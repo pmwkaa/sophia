@@ -1,7 +1,7 @@
 
 all:
-	@(cd db; make --no-print-directory)
-	@(cd test; make --no-print-directory)
+	@(cd db; $(MAKE) --no-print-directory)
+	@(cd test; $(MAKE) --no-print-directory)
 clean:
-	@(cd db; make clean --no-print-directory)
-	@(cd test; make clean --no-print-directory)
+	@(cd db; $(MAKE) clean --no-print-directory)
+	@(cd test; $(MAKE) clean --no-print-directory)
