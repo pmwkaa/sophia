@@ -125,7 +125,7 @@ cmpkey(spcat *c, sppage *p, void *rkey, int size)
 	return 1;
 }
 
-inline sppage*
+sppage*
 sp_catfind(spcat *c, char *rkey, int size, uint32_t *index)
 {
 	register int min = 0;
