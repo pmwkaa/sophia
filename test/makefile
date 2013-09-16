@@ -1,21 +1,21 @@
 
-CC      = gcc
-RM      = rm
-CFLAGS  = -I. -I../db -Wall -pthread -O0 -g
-LFLAGS  = -pthread -L../db -lsophia
+CC      ?= gcc
+RM      ?= rm
+CFLAGS  ?= -I. -I../db -Wall -pthread -O0 -g
+LDFLAGS ?= -pthread -L../db -lsophia
 all: clean i common recover merge crash limit
 common: common.o
-	$(CC) common.o $(LFLAGS) -o common
+	$(CC) common.o $(LDFLAGS) -o common
 recover: recover.o
-	$(CC) recover.o $(LFLAGS) -o recover
+	$(CC) recover.o $(LDFLAGS) -o recover
 merge: merge.o
-	$(CC) merge.o $(LFLAGS) -o merge
+	$(CC) merge.o $(LDFLAGS) -o merge
 crash: crash.o
-	$(CC) crash.o $(LFLAGS) -o crash
+	$(CC) crash.o $(LDFLAGS) -o crash
 limit: limit.o
-	$(CC) limit.o $(LFLAGS) -o limit
+	$(CC) limit.o $(LDFLAGS) -o limit
 i: i.o
-	$(CC) i.o $(LFLAGS) -o i
+	$(CC) i.o $(LDFLAGS) -o i
 .c.o:
 	$(CC) $(CFLAGS) -c $<
 clean:
