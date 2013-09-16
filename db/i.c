@@ -301,7 +301,7 @@ sp_iworldcmp(spi *i, char *rkey, int size)
 	return 1;
 }
 
-inline int sp_ilte(spi *i, spii *ii, char *k, int size)
+int sp_ilte(spi *i, spii *ii, char *k, int size)
 {
 	if (spunlikely(i->count == 0)) {
 		sp_iinv(i, ii);
@@ -334,7 +334,7 @@ inline int sp_ilte(spi *i, spii *ii, char *k, int size)
 	return eq;
 }
 
-inline int sp_igte(spi *i, spii *ii, char *k, int size)
+int sp_igte(spi *i, spii *ii, char *k, int size)
 {
 	if (spunlikely(i->count == 0)) {
 		sp_iinv(i, ii);
