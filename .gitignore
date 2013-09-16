@@ -1,0 +1,7 @@
+*.o
+*.mk
+out
+*.a
+gyp-mac-tool
+sophia.Makefile
+.*.sw[op]
