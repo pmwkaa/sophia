@@ -1,6 +1,10 @@
 #ifndef SOPHIA_H_
 #define SOPHIA_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * sophia database
  * sphia.org
@@ -72,5 +76,9 @@ const char *sp_value(void*);
 size_t sp_valuesize(void*);
 char *sp_error(void*);
 void sp_stat(void*, spstat*);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
