@@ -1,8 +1,8 @@
 
-CC      = gcc
-RM      = rm
-CFLAGS  = -I. -std=c99 -pedantic -Wextra -Wall -pthread -O2 -DNDEBUG
-LFLAGS  =
+CC      ?= gcc
+RM      ?= rm
+CFLAGS  ?= -I. -std=c99 -pedantic -Wextra -Wall -pthread -O2 -DNDEBUG
+LDFLAGS ?=
 OBJECTS = file.o \
 		  crc.o \
 		  e.o \
