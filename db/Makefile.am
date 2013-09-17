@@ -5,7 +5,22 @@ AM_CFLAGS = -Wall
 lib_LTLIBRARIES		= libsophia.la
 libsophia_la_LDFLAGS	= -version-info 1:0:0
 
-include_HEADERS		= \
+include_HEADERS		= sophia.h
+
+libsophia_la_SOURCES	= \
+	file.c			\
+	crc.c			\
+	e.c			\
+	i.c			\
+	cat.c			\
+	rep.c			\
+	util.c			\
+	sp.c			\
+	recover.c		\
+	merge.c			\
+	gc.c			\
+	cursor.c		\
+	\
 	a.h			\
 	cat.h			\
 	core.h			\
@@ -23,24 +38,9 @@ include_HEADERS		= \
 	recover.h		\
 	ref.h			\
 	rep.h			\
-	sophia.h		\
 	sp.h			\
 	task.h			\
 	track.h			\
 	util.h
-
-libsophia_la_SOURCES	= \
-	file.c			\
-	crc.c			\
-	e.c			\
-	i.c			\
-	cat.c			\
-	rep.c			\
-	util.c			\
-	sp.c			\
-	recover.c		\
-	merge.c			\
-	gc.c			\
-	cursor.c
 
 ### end of file
