@@ -508,6 +508,8 @@ int sp_set(void *o, const void *k, size_t ksize, const void *v, size_t vsize)
 		return sp_e(s, SPE, "key size limit reached");
 	if (spunlikely(vsize > UINT32_MAX))
 		return sp_e(s, SPE, "value size limit reached");
+	if (spunlikely(s->lockc))
+		return sp_e(s, SPE, "modify with open cursor");
 	return sp_do(s, SPSET, (char*)k, ksize, (char*)v, vsize);
 }
 
@@ -521,6 +523,8 @@ int sp_delete(void *o, const void *k, size_t ksize)
 		return sp_e(s, SPE, "db handle is read-only");
 	if (spunlikely(ksize > UINT16_MAX))
 		return sp_e(s, SPE, "key size limit reached");
+	if (spunlikely(s->lockc))
+		return sp_e(s, SPE, "modify with open cursor");
 	return sp_do(s, SPDEL, (char*)k, ksize, NULL, 0);
 }
 
