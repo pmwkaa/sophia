@@ -22,9 +22,9 @@ clean:
 	$(RM) -f common.o common recover.o recover merge.o merge
 	$(RM) -f crash.o crash i.o i limit.o limit
 test:
-	./i
-	./common
-	./recover
-	./merge
-	./crash
-	./limit
+	$(VALGRIND) ./i
+	$(VALGRIND) ./common
+	$(VALGRIND) ./recover
+	$(VALGRIND) ./merge
+	$(VALGRIND) ./crash
+	$(VALGRIND) ./limit
