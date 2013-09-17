@@ -1,0 +1,187 @@
+\input texinfo.tex
+@c %**start of header
+@setfilename sophia.info
+@settitle Sophia
+@c %**end of header
+
+@include version.texi
+@c @include macros.texi
+
+@c page
+@c ------------------------------------------------------------
+@c Values.
+@c ------------------------------------------------------------
+
+@set TITLE                      Sophia
+
+@c To be used as @value{PACKAGE} whenever we need to include the full
+@c name of this package.
+@set PACKAGE                    Sophia
+
+@c To be used as @value{PACKAGE} whenever we need to include the
+@c nickname of the project: the name that is used to compose the
+@c distribution tarball or the web address.
+@set PACKAGE_NICKNAME           sophia
+
+@c To be used as @value{AUTHOR} whenever we need to include the list of
+@c authors of this document.
+@set AUTHOR                     Dmitry Simonenko
+
+@c To be used as @value{AUTHOR_EMAIL} whenever we need to include the
+@c email of the *single* author of this document.
+@set AUTHOR_EMAIL               @email{pmwkaa@@gmail.com}
+
+@c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
+@c list of copyright years.
+@set COPYRIGHT_YEARS            2013
+
+@c page
+@c ------------------------------------------------------------
+@c Copyright notice.
+@c ------------------------------------------------------------
+
+@copying
+This document describes version @value{VERSION} of @value{PACKAGE}, a
+modern embeddable key--value database designed for a high load
+environment.
+
+The package is distributed under the terms of the @acronym{BSD} License
+and can be downloaded from:
+
+@center @url{http://sphia.org/}
+
+@noindent
+Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}
+
+@quotation
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+@enumerate
+@item
+Redistributions of source code must retain the above copyright notice,
+this list of conditions and the following disclaimer.
+
+@item
+Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+@end enumerate
+
+THIS SOFTWARE IS PROVIDED BY AUTHORS ``AS IS'' AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED.  IN NO EVENT SHALL AUTHORS OR CONTRIBUTORS BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+@end quotation
+@end copying
+
+@c page
+@c ------------------------------------------------------------
+@c Headers.
+@c ------------------------------------------------------------
+
+@titlepage
+@title @value{TITLE}
+@subtitle Revision @value{VERSION}
+@author @value{AUTHOR} @value{AUTHOR_EMAIL}
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@c ------------------------------------------------------------
+
+@ifinfo
+@dircategory Software Development
+@direntry
+* sophia: (sophia).             @value{TITLE}.
+@end direntry
+@end ifinfo
+
+@c ------------------------------------------------------------
+
+@ignore
+@syncodeindex tp cp
+@syncodeindex vr cp
+@syncodeindex fn cp
+@end ignore
+
+@c page
+@ifnottex
+@node Top
+@top @value{TITLE}
+
+@insertcopying
+
+@menu
+* overview::                    Overview of the package.
+
+Appendices
+
+* references::                  Bibliography and references.
+
+Indexes
+
+* concept index::               An entry for each concept.
+* function index::              An entry for each function.
+* variable index::              An entry for each variable.
+* type index::                  An entry for each type.
+@end menu
+@end ifnottex
+
+@c page
+@node overview
+@chapter Overview of the package
+
+
+This document describes version @value{VERSION} of @value{PACKAGE}, a
+modern embeddable key--value database designed for a high load
+environment.
+
+@c page
+@node references
+@appendix Bibliography and references
+
+
+The package is distributed under the terms of the @acronym{BSD} License
+and can be downloaded from:
+
+@center @url{http://sphia.org/}
+
+Development takes place at Github:
+
+@center @url{https://github.com/pmwkaa/sophia}
+
+@c page
+@node concept index
+@appendix An entry for each concept
+
+@printindex cp
+
+@node function index
+@appendix An entry for each function.
+
+@printindex fn
+
+@node variable index
+@appendix An entry for each variable.
+
+@printindex vr
+
+@node type index
+@appendix An entry for each type.
+
+@printindex tp
+
+@contents
+@bye
+
+@c end of file
