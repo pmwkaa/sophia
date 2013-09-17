@@ -9,6 +9,24 @@
 
 @c page
 @c ------------------------------------------------------------
+@c Macros.
+@c ------------------------------------------------------------
+
+@macro api{}
+@acronym{API}
+@end macro
+
+@macro cnull{}
+@code{NULL}
+@end macro
+
+@macro cfunc{NAME}
+@code{\NAME\()}
+@end macro
+
+
+@c page
+@c ------------------------------------------------------------
 @c Values.
 @c ------------------------------------------------------------
 
@@ -123,6 +141,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 @menu
 * overview::                    Overview of the package.
+* api::                         Programming interface.
 
 Appendices
 
@@ -145,6 +164,270 @@ Indexes
 This document describes version @value{VERSION} of @value{PACKAGE}, a
 modern embeddable key--value database designed for a high load
 environment.
+
+It has a unique architecture that was born as a result of research and
+rethinking primary alghorithmical constraints associated with a getting
+popular Log--file based data structures, such as LSM--tree, its
+variations based on Fractional Cascading ideas and a B-Tree.
+
+It is written entirely in C and can be used in C/C++ applications or by
+any interpreted language if the appropriate library bindings are
+available.
+
+Sophia supports the traditional set/get/delete operations semantic plus
+range queries by using cursors.  Database @api{} has been designed to be
+as clean as possible and easy to use.
+
+All sophia @api{} declarations are stored in a separate include file:
+@file{sophia.h}.
+
+And the library to link with is @code{-lsophia} accordingly.
+
+@c ------------------------------------------------------------
+
+@subsubheading Conventions
+
+All functions return either @code{0} on success, or @code{-1} on error.
+The only exception is functions that return a pointer; in that case
+@cnull{} indicates an error.
+
+Any error description can be accessed through @cfunc{sp_error} function.
+
+All created objects must be freed by @cfunc{sp_destroy} function.  The
+only exception is the @cfunc{sp_get} function, which allocates the
+returned value via @cfunc{malloc} (and should be freed using
+@cfunc{free} accordingly) or using the allocator--free function
+specified in @cfunc{sp_ctl}.
+
+@c ------------------------------------------------------------
+
+@subsubheading Database
+
+To open or create a database the @cfunc{sp_open} function must be used
+with a configuration object (environment) previously created using
+@cfunc{sp_env}.  The @cfunc{sp_env} function must be intialized using
+@cfunc{sp_ctl}.  Before opening, a database directory must be specified
+by @cfunc{sp_ctl} with flag @code{SPDIR}.
+
+@example
+#include <sophia.h>
+void *env = sp_env();
+if (env == NULL) @{
+        /* memory allocation error */
+@}
+int rc = sp_ctl(env, SPDIR, SPO_CREAT|SPO_RDWR, "./db");
+if (rc == -1) @{
+        /* memory allocation error */
+        printf("error: %s\n", sp_error(env));
+        sp_destroy(env);
+@}
+@end example
+
+To create a database directory the @code{SPO_CREAT} flag must be passed
+to the @cfunc{sp_ctl} function.
+
+The @cfunc{sp_open} function allocates a database handle and does the
+main job of creating a new or recovering an existing database.
+
+@example
+void *db = sp_open(env);
+if (db == NULL) @{
+        printf("error: %s\n", sp_error(env));
+        sp_destroy(env);
+@}
+@end example
+
+@c ------------------------------------------------------------
+
+@subsubheading Operations
+
+There are a number of operations available to write or read data.  All
+functions accept first arguments as key and key size.
+
+To insert a new key--value pair use @cfunc{sp_set}.
+
+@example
+char value[] = "hello world";
+int key = 0;
+while (key < 10) @{
+        rc = sp_set(db, &key, sizeof(key), value, sizeof(value));
+        if (rc == -1) @{
+                printf("sp_set: %s\n", sp_error(db));
+                break;
+        @}
+        key++;
+@}
+@end example
+
+To get a key use @cfunc{sp_get}.
+
+@cfunc{sp_get} allocates a value, which should be freed afterwards using
+the @cfunc{free} function (or by allocator specific function passed to
+@cfunc{sp_ctl} with flag @code{SPALLOC}.
+
+@example
+int key = 0;
+while (key < 10) @{
+        void *value;
+        size_t valuesize;
+        int rc = sp_get(s, &key, sizeof(key), &value, &valuesize);
+        if (rc == -1) @{
+                printf("sp_get: %s\n", sp_error(db));
+                break;
+        @}
+        printf("key: %d, value: %s\n", key, value);
+        free(value);
+        key++;
+@}
+@end example
+
+Please note that it is much faster to use range queries for sequential
+key reads.
+
+To delete a key use @cfunc{sp_delete}.
+
+@example
+int key = 0;
+while (key < 10) @{
+        rc = sp_delete(s, &key, sizeof(key));
+        if (rc == -1) @{
+                printf("sp_delete: %s\n", sp_error(db));
+                break;
+        @}
+        key++;
+@}
+@end example
+
+@c ------------------------------------------------------------
+
+@subsubheading Range queries
+
+It is possible to do range queries using cursors.
+
+To create a cursor the @cfunc{sp_cursor} function should be used.
+Cursor creation function allows to specify a query order and a start
+key.
+
+Possible orders are:
+
+@table @code
+@item SPGTE
+Increasing order, including supplied key.
+
+@item SPGT
+Increasing order, excluding supplied key.
+
+@item SPLTE
+Decreasing order, including supplied key.
+
+@item SPLT
+Decreasing order, excluding supplied key.
+@end table
+
+If no key is specified whole key range will be traversed.
+
+@example
+void *c = sp_cursor(db, SPGTE, NULL, 0);
+if (c == NULL) @{
+        printf("cursor failed: %s\n", sp_error(db));
+        /* error */
+@}
+@end example
+
+To do a single step of iteration @cfunc{sp_fetch} function should be
+used.  It returns @code{1} if there is more data available and @code{0}
+otherwise:
+
+@example
+while (sp_fetch(c)) @{
+        char *k = sp_key(c);
+        char *v = sp_value(c);
+        printf("key: %d, value: %s\n", *(int*)k, v);
+@}
+@end example
+
+To get current key or value data, @cfunc{sp_key}, @cfunc{sp_keysize} and
+@cfunc{sp_value}, @cfunc{sp_valuesize} functions should be used
+accordingly.
+
+Cursor objects should be freed using the @cfunc{sp_destroy} function
+after a usage.
+
+@c ------------------------------------------------------------
+
+@subsubheading Example
+
+@example
+#include <sophia.h>
+int main(void)
+@{
+        /* create environment handle */
+        void *env = sp_env();
+        if (env == NULL)
+                return 0;
+        /* set database directory with it's open flags */
+        int rc = sp_ctl(env, SPDIR, SPO_CREAT|SPO_RDWR, "./db");
+        if (rc == -1) @{
+                sp_destroy(env);
+                return 0;
+        @}
+        /* open a existing or create the new database */
+        void *db = sp_open(env);
+        if (db == NULL) @{
+                printf("error: %s\n", sp_error(env));
+                sp_destroy(env);
+                return 0;
+        @}
+        /* sequentially insert key-value pairs */
+        char value[] = "hello world";
+        int key = 0;
+        while (key < 10) @{
+                rc = sp_set(s, &key, sizeof(key), value, sizeof(value));
+                if (rc == -1) @{
+                        printf("sp_set: %s\n", sp_error(db));
+                        goto err;
+                @}
+                key++;
+        @}
+        /* sequentially get key values.
+         *
+         * By default, order is defined by memcmp(3) function in
+         * standart comparator. It is possible to specify custom comparator
+         * in sp_ctl(SPCMP).
+         */
+        key = 0;
+        while (key < 10) @{
+                void *v;
+                size_t vsize;
+                rc = sp_get(s, &key, sizeof(key), &v, &vsize);
+                if (rc == -1) @{
+                        printf("sp_get: %s\n", sp_error(db));
+                        goto err;
+                @}
+                printf("key: %d, value: %s\n", i, v);
+                free(v);
+                key++;
+        @}
+err:
+        sp_destroy(db);
+        sp_destroy(env);
+        return 0;
+@}
+@end example
+
+@c page
+@node api
+@chapter Programming interface
+
+
+To use the library we have to include the single header file
+@file{sophia.h}.
+
+
+@deftypefun {void *} sp_env (void)
+Create a new environment handle.
+@end deftypefun
+
 
 @c page
 @node references
