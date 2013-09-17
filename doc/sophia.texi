@@ -425,9 +425,498 @@ To use the library we have to include the single header file
 
 
 @deftypefun {void *} sp_env (void)
-Create a new environment handle.
+Create a new environment handle.  The @cfunc{sp_env} function allocates
+new sophia environment object.  The object is intented for use by
+@cfunc{sp_open} and must be initialized with @cfunc{sp_ctl} function
+first.  After a use, the object should be free'd by @cfunc{sp_destroy}.
+
+On success, @cfunc{sp_env} allocates new environment object; on error,
+it returns @cnull{}.
 @end deftypefun
 
+
+@deftypefun int sp_ctl (void * @var{env}, spopt @var{opt}, @dots{})
+Configure a database.  The @cfunc{sp_ctl} function sets database
+environment parameter opt with some specific value:
+
+Possible options are:
+
+@table @code
+@item SPDIR
+Tail arguments: @code{uint32_t flags, char *path}.
+
+Sets database directory path and it's open flags to use by
+@cfunc{sp_open}.  Possible flags are:
+
+@table @code
+@item SPO_RDWR
+Open repository in read--write mode (default).
+
+@item SPO_RDONLY
+Open repository in read--only mode.
+
+@item SPO_CREAT
+Create repository if it is not exists.
+@end table
+
+Example:
+
+@example
+void *env = sp_env();
+sp_ctl(env, SPDIR, SPO_CREAT|SPO_RDWR, "./db");
+@end example
+
+@item SPCMP
+Tail arguments: @code{spcmpf f, void *arg}.
+
+@example
+typedef int (*spcmpf) (char *a, size_t asz,
+                       char *b, size_t bsz,
+                       void *arg);
+@end example
+
+Sets a database comparator function to use by database for a key order
+determination.
+
+The function must return: @code{0} if the keys are equal, @code{-1} if
+key @var{a} is lower, @code{1} if key @var{b} is greater.
+
+Example:
+
+@example
+int cmp(char *a, size_t asz, char *b, size_t bsz, void *arg) @{
+    uint32_t av = *(uint32_t*)a;
+    uint32_t bv = *(uint32_t*)b;
+    if (av == bv)
+       return 0;
+    return (av > bv) ? 1 : -1;
+@}
+void *env = sp_env();
+sp_ctl(env, SPCMP, cmp, NULL);
+@end example
+
+@item SPALLOC
+Tail arguments: @code{spallocf f, void *arg}.
+
+@example
+typedef void *(*spallocf)(void *ptr, size_t size, void *arg);
+@end example
+
+Sets a database allocator function to use instead of standard
+@cfunc{malloc} allocator.  The allocator function will be used in all
+internal allocations, except @cfunc{sp_env} call.
+
+Example:
+
+@example
+void *alloc_func(void *ptr, size_t size, void *arg) @{
+     /* allocate memory here */
+@}
+void *env = sp_env();
+sp_ctl(env, SPALLOC, alloc_func, NULL);
+@end example
+
+@item SPPAGE
+Tail arguments: @code{uint32_t count}.
+
+Sets database max key count in a single page.  This option can be
+tweaked for performance.
+
+Example:
+
+@example
+void *env = sp_env();
+sp_ctl(env, SPPAGE, 1024);
+@end example
+
+@item SPGC
+Tail arguments: @code{int enabled}.
+
+Sets flag that garbage collector should be turn on.
+
+Example:
+
+@example
+void *env = sp_env();
+sp_ctl(env, SPGC, 1);
+@end example
+
+@item SPGCF
+Tail arguments: @code{double factor}
+
+Sets database garbage collector factor value, which is used to determine
+whether it is time to start GC.
+
+For example: a factor of @code{0.5} means that all ``alive'' pages from
+any DB file will be copied to new DB, when there are half or less of
+them is left.
+
+This option can be tweaked for performance.
+
+Example:
+
+@example
+void *env = sp_env();
+sp_ctl(env, SPGCF, 0.5);
+@end example
+
+@item SPGROW
+Tail arguments: @code{uint32_t new_size, double resize}.
+
+Sets the new database file's initial new size and resize factor.  These
+values are used while database extend during merge.
+
+This option can be tweaked for performance.
+
+Example:
+
+@example
+void *env = sp_env();
+sp_ctl(env, SPGROW, 16 * 1024 * 1024, 2.0);
+@end example
+
+@item SPMERGE
+Tail arguments: @code{int enabled}
+
+Sets flag that merger thread must be created during @cfunc{sp_open}.
+
+Example:
+
+@example
+void *env = sp_env();
+sp_ctl(env, SPMERGE, 1);
+@end example
+
+@item SPMERGEWM
+Tail arguments: @code{uint32_t wm}
+
+Sets database merge watermark value.
+
+When database update count reaches this value, it notifies merger thread
+to create a new epoch and start merge process of in--memory keys.
+
+This option can be tweaked for performance.
+
+Example:
+
+@example
+void *env = sp_env();
+sp_ctl(env, SPMERGEWM, 200000);
+@end example
+@end table
+
+On success, @cfunc{sp_ctl} returns @code{0}; on error, it returns
+@code{-1}.
+@end deftypefun
+
+
+@deftypefun {void *} sp_open (void * @var{env})
+Open or create a database.  The @cfunc{sp_open} function is used to open
+or create a sophia database depending on supplied environment
+configuration.
+
+Example:
+
+@example
+void *env;
+void *db;
+int rc;
+env = sp_env();
+if (! env) @{
+   /* memory allocation failed */
+@}
+rc = sp_ctl(env, SPDIR, SPO_CREAT|SPO_RDWR, "./db");
+if (rc == -1) @{
+   printf("error: %s\n", sp_error(env));
+@}
+void *db = sp_open(env);
+if (! db) @{
+   printf("error: %s\n", sp_error(env));
+@}
+@end example
+
+On success, @cfunc{sp_open} returns a database handle; on error, it
+returns @cnull{}.  See @cfunc{sp_error} for details.
+@end deftypefun
+
+
+@deftypefun {char *} sp_error (void * @var{ptr})
+Get a string error description.  The @cfunc{sp_error} function is used
+to get error description in a string format after any error occur.
+
+Environment or database handle must be used.
+
+Example:
+
+@example
+void *db = sp_open(env);
+if (! db) @{
+   printf("error: %s\n", sp_error(env));
+@}
+@end example
+
+On success, @cfunc{sp_error} returns a string; if there is no error,
+@cfunc{sp_error} returns @cnull{}.
+@end deftypefun
+
+
+@deftypefun int sp_destroy (void * @var{ptr})
+Free any handle.  The @cfunc{sp_destroy} function is used to free memory
+used by any sophia handle, such as: environment, database or cursor.
+
+Example:
+
+@example
+void *db = sp_open(env);
+/* ... */
+int rc = sp_destroy(db);
+if (rc == -1) @{
+   printf("error: %s\n", sp_error(env));
+@}
+@end example
+
+On success, @cfunc{sp_destroy} returns @code{0}; on error, it returns
+@code{-1}.  See @cfunc{sp_error} for details.
+@end deftypefun
+
+
+@deftypefun int sp_set (void * @var{db}, const void * @var{k}, size_t @var{ksize}, const void * @var{v}, size_t @var{vsize})
+Insert or replace a key--value pair.  The @cfunc{sp_set} function is
+used to insert new key, or to replace an existing key, in a database.
+
+Example:
+
+@example
+int key = 1234;
+char value[128];
+rc = sp_set(db, &key, sizeof(key), value, sizeof(value));
+if (rc == -1) @{
+   printf("error: %s\n", sp_error(db));
+@}
+@end example
+
+On success, @cfunc{sp_set} returns @code{0}; on error, it returns
+@code{-1}.  See @cfunc{sp_error} for details.
+@end deftypefun
+
+
+@deftypefun int sp_get (void * @var{db}, const void * @var{k}, size_t @var{ksize}, void ** @var{v}, size_t * @var{vsize})
+Find a key in a database.  The @cfunc{sp_get} function is used to find
+keys in a database.  If a key is found, it's value and value size is
+copied and returned through the supplied arguments.  Value must be
+@cfunc{free}'d after a use.
+
+If no value pointer is supplied, @cfunc{sp_get} is used only to check
+for the existence of a key.
+
+Example:
+
+@example
+int key = 1234;
+void *value;
+size_t vsize;
+int rc;
+rc = sp_get(db, &key, sizeof(key), &value, &vsize);
+switch (rc) @{
+       case -1:
+            printf("error: %s\n", sp_error(db));
+            break;
+       case  0:
+             printf("no key found\n");
+             break;
+       case  1:
+             printf("key found\n");
+             /* ... */
+             /* free value */
+             break;
+@}
+@end example
+
+On a key found, @cfunc{sp_get} returns @code{1}; on a key not found,
+@cfunc{sp_get} returns @code{0}; on error, it returns @code{-1}.  See
+@cfunc{sp_error} for details.
+@end deftypefun
+
+
+@deftypefun int sp_delete (void * @var{db}, const void * @var{k}, size_t @var{ksize})
+Delete key from a database.  The @cfunc{sp_delete} function is used to
+delete key in a database.
+
+Example:
+
+@example
+int key = 1234;
+rc = sp_delete(db, &key, sizeof(key));
+if (rc == -1) @{
+   printf("error: %s\n", sp_error(db));
+@}
+@end example
+
+On success, @cfunc{sp_delete} returns @code{0}; on error, it returns
+@code{-1}.  See @cfunc{sp_error} for details.
+@end deftypefun
+
+
+@deftypefun {void *} sp_cursor (void * @var{db}, sporder @var{o}, const void * @var{k}, size_t @var{ksize})
+Create a database cursor.  The @cfunc{sp_cursor} function is used to
+create cursor handle for further key iteration in a specific order.  If
+a key is supplied, the cursor is positioned to the key position, if any.
+
+Possible order are:
+
+@table @code
+@item SPGT
+Increasing order (skipping the key, if it is equal).
+
+@item SPGTE
+Increasing order (with key).
+
+@item SPLT
+Decreasing order (skippng the key, if is is equal).
+
+@item SPLTE
+Decreasing order.
+@end table
+
+After a use, cursor handle should be freed by @cfunc{sp_destroy}
+function.
+
+To iterate a cursor, see @cfunc{sp_fetch} function.
+
+Example:
+
+@example
+void *c = sp_cursor(db, SPGT, NULL, 0);
+if (c == NULL) @{
+   printf("error: %s\n", sp_error(db));
+@}
+/* do cursor iteration */
+sp_destroy(c);
+@end example
+
+On success, @cfunc{sp_cursor} the allocated cursor object; on error, it
+returns @cnull{}.  See @cfunc{sp_error} for details.
+@end deftypefun
+
+
+@deftypefun int sp_fetch (void * @var{cursor})
+Iterate a cursor.  The @cfunc{sp_fetch} function is used to make a
+single step of cursor iteration in a specific order.  Current key and
+it's value can be accessed through @cfunc{sp_key}, @cfunc{sp_keysize},
+@cfunc{sp_value}, @cfunc{sp_valuesize}) functions accordingly.
+
+Example:
+
+@example
+/* iterate all database keys in increasing order and
+   count keys. */
+void *c = sp_cursor(db, SPGT, NULL, 0);
+if (c == NULL) @{
+   printf("error: %s\n", sp_error(db));
+@}
+int count = 0;
+while (sp_fetch(c))
+   count++;
+printf("count: %d\n", count);
+sp_destroy(c);
+@end example
+
+On more keys, @cfunc{sp_fetch} returns @code{1}; on last key,
+@cfunc{sp_fetch} returns @code{0}.
+@end deftypefun
+
+
+@deftypefun {const char *} sp_key (void * @var{cursor})
+Get current key.  The @cfunc{sp_key} function is used to access the key
+from where a cursor is currently positioned.
+
+Example:
+
+@example
+void *c = sp_cursor(db, SPGT, NULL, 0);
+if (c == NULL) @{
+   printf("error: %s\n", sp_error(db));
+@}
+while (sp_fetch(c)) @{
+   printf("key: %s\n", sp_key(c));
+   printf("key size: %zu\n", sp_keysize(c));
+@}
+sp_destroy(c);
+@end example
+
+On success, @cfunc{sp_key} returns a key pointer; on error,
+@cfunc{sp_key} returns @cnull{}.
+@end deftypefun
+
+
+@deftypefun size_t sp_keysize (void * @var{cursor})
+Get current key size.  The @cfunc{sp_keysize} function is used to access
+currently positioned key size by a cursor.
+
+Example:
+
+@example
+void *c = sp_cursor(db, SPGT, NULL, 0);
+if (c == NULL) @{
+   printf("error: %s\n", sp_error(db));
+@}
+while (sp_fetch(c)) @{
+   printf("key: %s\n", sp_key(c));
+   printf("key size: %d\n", sp_keysize(c));
+@}
+sp_destroy(c);
+@end example
+
+On success, @cfunc{sp_keysize} returns the key size; on error,
+@cfunc{sp_keysize} function returns @code{0}.
+@end deftypefun
+
+
+@deftypefun {const char *} sp_value (void * @var{cursor})
+Get current cursor value.  The @cfunc{sp_value} function is used to
+access the key from where the cursor is currently positioned.
+
+Example:
+
+@example
+void *c = sp_cursor(db, SPGT, NULL, 0);
+if (c == NULL) @{
+   printf("error: %s\n", sp_error(db));
+@}
+while (sp_fetch(c)) @{
+   printf("value: %s\n", sp_value(c));
+   printf("value size: %d\n", sp_valuesize(c));
+@}
+sp_destroy(c);
+@end example
+
+On success, @cfunc{sp_value} returns a value pointer; on error, it
+returns @cnull{}.
+@end deftypefun
+
+
+@deftypefun size_t sp_valuesize (void * @var{cursor})
+Get current cursor value size.  The @cfunc{sp_valuesize} function is
+used to retrieve the size of the key from where the cursor is currently
+positioned.
+
+Example:
+
+@example
+void *c = sp_cursor(db, SPGT, NULL, 0);
+if (c == NULL) @{
+   printf("error: %s\n", sp_error(db));
+@}
+while (sp_fetch(c)) @{
+   printf("value: %s\n", sp_value(c));
+   printf("value size: %d\n", sp_valuesize(c));
+@}
+sp_destroy(c);
+@end example
+
+On success, @cfunc{sp_valuesize} returns the value size; on error, it
+returns @code{0}.
+@end deftypefun
 
 @c page
 @node references
