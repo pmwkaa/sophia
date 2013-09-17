@@ -7,6 +7,6 @@ check_PROGRAMS	= i common recover merge crash limit
 
 LDADD		= ../db/libsophia.la
 TESTS		= $(check_PROGRAMS)
-EXTRA_DIST	= $(check_PROGRAMS)
+EXTRA_DIST	= $(check_PROGRAMS) test.h
 
 ### end of file
