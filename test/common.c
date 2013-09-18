@@ -807,61 +807,23 @@ fetch_after_end(void) {
 	t( rmrf(dbrep) == 0 );
 }
 
-#if 0
 static void
-rotate_empty(void) {
+cursor_set(void) {
 	void *env = sp_env();
 	t( env != NULL );
 	t( sp_ctl(env, SPDIR, SPO_CREAT|SPO_RDWR, dbrep) == 0 );
 	t( sp_ctl(env, SPCMP, cmp, NULL) == 0 );
-	t( sp_ctl(env, SPMERGE, 0) == 0 );
-	t( sp_ctl(env, SPTTL, 2) == 0 );
-	void *db = sp_open(env);
-	t( exists(dbrep, 1, "log.incomplete") == 1 );
-	t( sp_destroy(db) == 0 );
-	t( exists(dbrep, 1, "log.incomplete") == 0 );
-	t( exists(dbrep, 1, "log") == 0 );
-	t( sp_destroy(env) == 0 );
-	t( rmrf(dbrep) == 0 );
-}
-
-static void
-rotate(void) {
-	void *env = sp_env();
-	t( env != NULL );
-	t( sp_ctl(env, SPDIR, SPO_CREAT|SPO_RDWR, dbrep) == 0 );
-	t( sp_ctl(env, SPCMP, cmp, NULL) == 0 );
-	t( sp_ctl(env, SPMERGE, 0) == 0 );
-	t( sp_ctl(env, SPTTL, 2) == 0 );
 	void *db = sp_open(env);
 	t( db != NULL );
-	uint32_t k = 1, v = 1;
-	t( sp_set(db, &k, sizeof(k), &v, sizeof(v)) == 0);
-	t( exists(dbrep, 1, "log.incomplete") == 1 );
-	t( exists(dbrep, 1, "db.incomplete") == 0 );
-	t( exists(dbrep, 1, "db") == 0 );
-	t( sp_set(db, &k, sizeof(k), &v, sizeof(v)) == 0);
-	t( exists(dbrep, 1, "log.incomplete") == 1 );
-	t( exists(dbrep, 2, "log.incomplete") == 1 );
-	t( sp_set(db, &k, sizeof(k), &v, sizeof(v)) == 0);
-	t( exists(dbrep, 3, "log.incomplete") == 0 );
-	t( sp_set(db, &k, sizeof(k), &v, sizeof(v)) == 0);
-	t( exists(dbrep, 1, "log.incomplete") == 1 );
-	t( exists(dbrep, 2, "log.incomplete") == 1 );
-	t( exists(dbrep, 3, "log.incomplete") == 1 );
+	void *cur = sp_cursor(db, SPGTE, NULL, 0);
+	t( cur != NULL );
+	uint32_t k = 1;
+	t( sp_set(db, &k, sizeof(k), &k, sizeof(k)) == -1 );
+	t( sp_destroy(cur) == 0 );
 	t( sp_destroy(db) == 0 );
-	t( exists(dbrep, 1, "db.incomplete") == 0 );
-	t( exists(dbrep, 1, "db") == 0 );
-	t( exists(dbrep, 1, "log.incomplete") == 0 );
-	t( exists(dbrep, 2, "log.incomplete") == 0 );
-	t( exists(dbrep, 3, "log.incomplete") == 0 );
-	t( exists(dbrep, 1, "log") == 1 );
-	t( exists(dbrep, 2, "log") == 1 );
-	t( exists(dbrep, 3, "log") == 0 );
 	t( sp_destroy(env) == 0 );
 	t( rmrf(dbrep) == 0 );
 }
-#endif
 
 int
 main(int argc, char *argv[])
@@ -903,9 +865,6 @@ main(int argc, char *argv[])
 	test(fetch_klte);
 	test(fetch_klt);
 	test(fetch_after_end);
-	/*
-	test(rotate_empty);
-	test(rotate);
-	*/
+	test(cursor_set);
 	return 0;
 }
