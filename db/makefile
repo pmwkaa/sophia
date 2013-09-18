@@ -1,36 +1,47 @@
 
-CC      ?= gcc
-RM      ?= rm
-CFLAGS  ?= -I. -std=c99 -pedantic -Wextra -Wall -pthread -O2 -DNDEBUG -fPIC
-LDFLAGS ?= -shared -soname $(SONAME) -o libsophia.so.1.0
-OBJECTS = file.o \
-		  crc.o \
-		  e.o \
-		  i.o \
-		  cat.o \
-		  rep.o \
-		  util.o \
-		  sp.o \
-		  recover.o \
-		  merge.o \
-		  gc.o \
-		  cursor.o
-LIBRARIES = -lc\
-	    -lpthread
+#
+# sophia makefile.
+#
 
-ALL: $(TARGET) so
+VERMAJOR   = 1
+VERMINOR   = 1
 
-TARGET  = libsophia.a
-SONAME = libsophia.so.1
-TARGET_SO = libsophia.so.1.0
+CC        ?= gcc
+RM        ?= rm
+LN        ?= ln
+CFLAGS    ?= -I. -std=c99 -pedantic -Wextra -Wall -pthread -O2 -DNDEBUG -fPIC
+LDFLAGS   ?= -shared -soname libsophia.$(VERMAJOR)
 
-$(TARGET): clean $(OBJECTS)
-	$(AR) cru $(TARGET) $(OBJECTS)
+OBJS       = file.o \
+			 crc.o \
+			 e.o \
+			 i.o \
+			 cat.o \
+			 rep.o \
+			 util.o \
+			 sp.o \
+             recover.o \
+			 merge.o \
+			 gc.o \
+			 cursor.o
 
-so: clean $(OBJECTS)
-	$(LD) $(LDFLAGS) $(OBJECTS) $(LIBRARIES)
+TARGET_STATIC = libsophia.a
+TARGET_DSOLIB = libsophia.so.$(VERMAJOR).$(VERMINOR)
+TARGET_DSO = libsophia.so
+
+ALL: $(TARGET_STATIC) $(TARGET_DSO)
+
+$(TARGET_STATIC): clean $(OBJS)
+	$(AR) cru $(TARGET_STATIC) $(OBJS)
+
+$(TARGET_DSO): clean $(OBJS)
+	$(LD) $(OBJS) $(LDFLAGS) -o $(TARGET_DSOLIB)
+	$(LN) -s $(TARGET_DSOLIB) $(TARGET_DSO).$(VERMAJOR)
+	$(LN) -s $(TARGET_DSOLIB) $(TARGET_DSO)
 
 .c.o:
 	$(CC) $(CFLAGS) -c $<
+
 clean:
-	$(RM) -f $(OBJECTS) $(TARGET)
+	$(RM) -f $(OBJS) $(TARGET_STATIC)
+	$(RM) -f $(TARGET_DSOLIB) $(TARGET_DSO).$(VERMAJOR) $(TARGET_DSO)

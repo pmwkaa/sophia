@@ -2,7 +2,7 @@
 CC      ?= gcc
 RM      ?= rm
 CFLAGS  ?= -I. -I../db -Wall -pthread -O0 -g
-LDFLAGS ?= -pthread -L../db -lsophia
+LDFLAGS ?= -pthread ../db/libsophia.a
 all: clean i common recover merge crash limit
 common: common.o
 	$(CC) common.o $(LDFLAGS) -o common
