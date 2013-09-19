@@ -353,3 +353,44 @@ int sp_logeof(spfile *f)
 	}
 	return 0;
 }
+
+int sp_lockfile(spfile *f, char *path)
+{
+	f->creat = 0;
+	f->fd = open(path, O_CREAT|O_WRONLY, 0600);
+	if (spunlikely(f->fd == -1))
+		return -1;
+	f->file = sp_strdup(f->a, path);
+	if (spunlikely(f->file == NULL)) {
+		close(f->fd);
+		f->fd = -1;
+		return -1;
+	}
+	struct flock l;
+	memset(&l, 0, sizeof(l));
+	l.l_whence = SEEK_SET;
+	l.l_start = 0;
+	l.l_len = 0;
+	l.l_type = F_WRLCK;
+	int rc = fcntl(f->fd, F_SETLK, &l);
+	if (spunlikely(rc == -1)) {
+		sp_fileclose(f);
+		return 1;
+	}
+	return 0;
+}
+
+int sp_unlockfile(spfile *f)
+{
+	if (spunlikely(f->fd == -1))
+		return 0;
+	struct flock l;
+	memset(&l, 0, sizeof(l));
+	l.l_whence = SEEK_SET;
+	l.l_start = 0;
+	l.l_len = 0;
+	l.l_type = F_UNLCK;
+	fcntl(f->fd, F_SETLK, &l);
+	unlink(f->file);
+	return sp_fileclose(f);
+}

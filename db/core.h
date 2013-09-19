@@ -55,6 +55,7 @@ struct sp {
 	volatile int stop;
 	sptask merger;
 	sprefset refs;      /* pre allocated key buffer (page merge) */
+	spfile lockdb;      /* per-process database lock */
 	int lockc;          /* incremental cursor lock */
 	spspinlock lockr;   /* repository lock */
 	spspinlock locks;   /* space lock */

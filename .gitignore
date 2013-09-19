@@ -16,3 +16,4 @@ test/i
 test/limit
 test/merge
 test/recover
+test/concurrent

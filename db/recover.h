@@ -9,6 +9,7 @@
  * BSD License
 */
 
+int sp_recoverunlock(sp*);
 int sp_recover(sp*);
 
 #endif

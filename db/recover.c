@@ -15,7 +15,8 @@
 #include <dirent.h>
 #include <unistd.h>
 
-static inline int sp_dircreate(sp *s) {
+static inline int sp_dircreate(sp *s)
+{
 	int rc = mkdir(s->e->dir, 0700);
 	if (spunlikely(rc == -1)) {
 		sp_e(s, SPE, "failed to create directory %s (errno: %d, %s)",
@@ -23,6 +24,78 @@ static inline int sp_dircreate(sp *s) {
 		return -1;
 	}
 	return 0;
+}
+
+typedef struct {
+	splist link;
+	char dir[];
+} spdirlock;
+
+static spspinlock dirlock = 0;
+static int dirlockn = 0;
+static splist dirlocks;
+
+static int sp_dirlock(sp *s)
+{
+	/* implement multi-process database exclusive access by creating
+	 * lock file. */
+	char path[1024];
+	snprintf(path, sizeof(path), "%s/lock", s->e->dir);
+	int rc = sp_lockfile(&s->lockdb, path);
+	if (spunlikely(rc == -1))
+		sp_e(s, SPE, "failed to create lock file (errno: %d, %s)",
+		     errno, strerror(errno));
+	if (rc == 1)
+		return sp_e(s, SPE, "database is locked");
+	/* within a single process, add database path to the list and
+	 * check the presence on a open. */
+	sp_lock(&dirlock);
+	if (dirlockn == 0) {
+		sp_listinit(&dirlocks);
+	} else {
+		splist *i;
+		sp_listforeach(&dirlocks, i) {
+			spdirlock *l = spcast(i, spdirlock, link);
+			if (! strcmp(s->e->dir, l->dir)) {
+				sp_unlock(&dirlock);
+				return sp_e(s, SPE, "database is locked");
+			}
+		}
+	}
+	int lendir = strlen(s->e->dir) + 1;
+	int len = sizeof(spdirlock) + lendir;
+	spdirlock *l = malloc(len);
+	if (spunlikely(l == NULL)) {
+		sp_unlock(&dirlock);
+		return sp_e(s, SPEOOM, "failed to allocate memory");
+	}
+	sp_listinit(&l->link);
+	memcpy(l->dir, s->e->dir, lendir);
+	sp_listappend(&dirlocks, &l->link);
+	dirlockn++;
+	sp_unlock(&dirlock);
+	return 0;
+}
+
+static int sp_dirunlock(sp *s)
+{
+	sp_lock(&dirlock);
+	if (spunlikely(dirlockn == 0)) {
+		sp_unlock(&dirlock);
+		return 0;
+	}
+	splist *i, *n;
+	sp_listforeach_safe(&dirlocks, i, n) {
+		spdirlock *l = spcast(i, spdirlock, link);
+		if (! strcmp(s->e->dir, l->dir)) {
+			sp_listunlink(&l->link);
+			free(l);
+			break;
+		}
+	}
+	dirlockn--;
+	sp_unlock(&dirlock);
+	return sp_unlockfile(&s->lockdb);
 }
 
 static inline ssize_t
@@ -411,6 +484,10 @@ err:
 	return -1;
 }
 
+int sp_recoverunlock(sp *s) {
+	return sp_dirunlock(s);
+}
+
 int sp_recover(sp *s)
 {
 	int exists = sp_fileexists(s->e->dir);
@@ -421,7 +498,13 @@ int sp_recover(sp *s)
 		if (s->e->flags & SPO_RDONLY)
 			return sp_e(s, SPE, "directory doesn't exists");
 		rc = sp_dircreate(s);
+		if (spunlikely(rc == -1))
+			return -1;
+		rc = sp_dirlock(s);
 	} else {
+		rc = sp_dirlock(s);
+		if (spunlikely(rc == -1))
+			return -1;
 		rc = sp_diropen(s);
 		if (spunlikely(rc == -1))
 			return -1;

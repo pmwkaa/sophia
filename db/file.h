@@ -103,4 +103,7 @@ sp_epochrm(char *dir, uint32_t epoch, char *ext) {
 	return sp_filerm(path);
 }
 
+int sp_lockfile(spfile*, char*);
+int sp_unlockfile(spfile*);
+
 #endif

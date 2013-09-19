@@ -252,6 +252,9 @@ static inline int sp_close(sp *s)
 	rc = sp_closerep(s);
 	if (spunlikely(rc == -1))
 		rcret = -1;
+	rc = sp_recoverunlock(s);
+	if (spunlikely(rc == -1))
+		rcret = -1;
 	sp_ifree(&s->i0);
 	sp_ifree(&s->i1);
 	sp_catfree(&s->s);
@@ -302,6 +305,7 @@ void *sp_open(void *e)
 	s->e->inuse = 1;
 	memcpy(&s->a, &a, sizeof(s->a));
 	/* init locks */
+	sp_fileinit(&s->lockdb, &s->a);
 	sp_lockinit(&s->lockr);
 	sp_lockinit(&s->locks);
 	sp_lockinit(&s->locki);
@@ -350,12 +354,18 @@ void *sp_open(void *e)
 		sp_taskwakeup(&s->merger);
 	}
 	return s;
-e4: sp_refsetfree(&s->refs, &s->a);
-e3: sp_closerep(s);
+e4:
+	sp_refsetfree(&s->refs, &s->a);
+e3:
+	sp_closerep(s);
+	sp_recoverunlock(s);
 	sp_catfree(&s->s);
-e2: sp_ifree(&s->i1);
-e1:	sp_ifree(&s->i0);
-e0: s->e->inuse = 0;
+e2:
+	sp_ifree(&s->i1);
+e1:
+	sp_ifree(&s->i0);
+e0:
+	s->e->inuse = 0;
 	sp_lockfree(&s->lockr);
 	sp_lockfree(&s->locks);
 	sp_lockfree(&s->locki);
