@@ -1,10 +1,6 @@
 #ifndef SOPHIA_H_
 #define SOPHIA_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*
  * sophia database
  * sphia.org
@@ -13,11 +9,15 @@ extern "C" {
  * BSD License
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 #include <stdint.h>
 
-typedef void *(*spallocf)(void*, size_t, void*);
-typedef int (*spcmpf)(char*, size_t, char*, size_t, void*);
+typedef void *(*spallocf)(void *ptr, size_t size, void *arg);
+typedef int (*spcmpf)(char *a, size_t asz, char *b, size_t bsz, void *arg);
 
 typedef enum {
 	/* env related */
@@ -62,20 +62,20 @@ typedef struct {
 } spstat;
 
 void *sp_env(void);
-void *sp_open(void*);
+void *sp_open(void *env);
 int sp_ctl(void*, spopt, ...);
-int sp_destroy(void*);
-int sp_set(void*, const void*, size_t, const void*, size_t);
-int sp_delete(void*, const void*, size_t);
-int sp_get(void*, const void*, size_t, void**, size_t*);
-void *sp_cursor(void*, sporder, const void*, size_t);
-int sp_fetch(void*);
-const char *sp_key(void*);
-size_t sp_keysize(void*);
-const char *sp_value(void*);
-size_t sp_valuesize(void*);
-char *sp_error(void*);
-void sp_stat(void*, spstat*);
+int sp_destroy(void *ptr);
+int sp_set(void *db, const void *k, size_t ksize, const void *v, size_t vsize);
+int sp_delete(void *db, const void *k, size_t ksize);
+int sp_get(void *db, const void *k, size_t ksize, void **v, size_t *vsize);
+void *sp_cursor(void *db, sporder, const void *k, size_t ksize);
+int sp_fetch(void *cur);
+const char *sp_key(void *cur);
+size_t sp_keysize(void *cur);
+const char *sp_value(void *cur);
+size_t sp_valuesize(void *cur);
+char *sp_error(void *ptr);
+void sp_stat(void *ptr, spstat*);
 
 #ifdef __cplusplus
 }
