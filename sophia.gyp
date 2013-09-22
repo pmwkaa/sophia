@@ -3,7 +3,7 @@
     {
       'target_name': 'sophia',
       'product_prefix': 'lib',
-      'type': 'static_library',
+      'type': '<(library)',
       'include_dirs': ['db'],
       'link_settings': {
         'libraries': ['-lpthread'],
