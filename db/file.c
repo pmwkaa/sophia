@@ -298,18 +298,33 @@ int sp_logunlink(spfile *f) {
 	return sp_filerm(f->file);
 }
 
-int sp_logflush(spfile *f)
+int sp_logwrite(spfile *f, void *buf, size_t size)
 {
-	register struct iovec *v = f->iov;
+	size_t n = 0;
+	do {
+		ssize_t r;
+		do {
+			r = write(f->fd, (char*)buf + n, size - n);
+		} while (r == -1 && errno == EINTR);
+		if (r <= 0)
+			return -1;
+		n += r;
+	} while (n != size);
+	return 0;
+}
+
+int sp_logput(spfile *f, spbatch *b)
+{
+	register struct iovec *v = b->iov;
 	register uint64_t size = 0;
-	register int n = f->iovc;
+	register int n = b->iovc;
 	do {
 		int r;
 		do {
 			r = writev(f->fd, v, n);
 		} while (r == -1 && errno == EINTR);
 		if (r < 0) {
-			f->iovc = 0;
+			b->iovc = 0;
 			return -1;
 		}
 		size += r;
@@ -326,13 +341,12 @@ int sp_logflush(spfile *f)
 		}
 	} while (n > 0);
 	f->used += size;
-	f->iovc = 0;
+	b->iovc = 0;
 	return 0;
 }
 
 int sp_logrlb(spfile *f)
 {
-	assert(f->iovc == 0);
 	int rc = ftruncate(f->fd, f->svp);
 	if (spunlikely(rc == -1))
 		return -1;
@@ -345,8 +359,7 @@ int sp_logeof(spfile *f)
 {
 	sp_filesvp(f);
 	speofh eof = { SPEOF };
-	sp_logadd(f, (char*)&eof, sizeof(eof));
-	int rc = sp_logflush(f);
+	int rc = sp_logwrite(f, &eof, sizeof(eof));
 	if (spunlikely(rc == -1)) {
 		sp_logrlb(f);
 		return -1;

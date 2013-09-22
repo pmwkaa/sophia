@@ -11,30 +11,24 @@
 
 typedef struct spc spc;
 
-enum spcsrc {
-	SPCNONE,
-	SPCI0,
-	SPCI1,
-	SPCP
-};
-
-#define SPCVDUP 1
-#define SPCPDUP 2
-
-typedef enum spcsrc spcsrc;
+#define SPCNONE  0
+#define SPCITXN  1
+#define SPCI0    2
+#define SPCI1    4
+#define SPCP    16
 
 struct spc {
 	spmagic m;
 	sporder o;
 	sp *s;
 	spii i0, i1;
-	int dup;     /* last iteration duplicate flags */
+	spii itxn;
 	sppageh *ph;
 	sppage *p;
 	int pi;      /* page space index */
 	spvh *pv;
 	int pvi;     /* version page index */
-	spcsrc vsrc; /* last iteration source */
+	int mask;    /* last iteration advance mask */
 	spref r;     /* last iteration result */
 };
 

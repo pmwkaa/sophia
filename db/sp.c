@@ -179,8 +179,7 @@ int sp_rotate(sp *s)
 	h.magic = SPMAGIC;
 	h.version[0] = SP_VERSION_MAJOR;
 	h.version[1] = SP_VERSION_MINOR;
-	sp_logadd(&e->log, (char*)&h, sizeof(h));
-	rc = sp_logflush(&e->log);
+	rc = sp_logwrite(&e->log, &h, sizeof(h));
 	if (spunlikely(rc == -1)) {
 		sp_logclose(&e->log);
 		sp_free(&s->a, e);
@@ -257,6 +256,7 @@ static inline int sp_close(sp *s)
 		rcret = -1;
 	sp_ifree(&s->i0);
 	sp_ifree(&s->i1);
+	sp_ifree(&s->itxn); /* equal to rollback */
 	sp_catfree(&s->s);
 	s->e->inuse = 0;
 	sp_lockfree(&s->lockr);
@@ -322,6 +322,14 @@ void *sp_open(void *e)
 		goto e1;
 	}
 	s->i = &s->i0;
+	/* init transaction index */
+	rc = sp_iinit(&s->itxn, &s->a, 1024, s->e->cmp, s->e->cmparg);
+	if (spunlikely(rc == -1)) {
+		sp_e(s, SPEOOM, "failed to allocate transaction index");
+		goto e2;
+	}
+	/* set current transaction state as single-stmt */
+	s->txn = SPTSS;
 	/* init page index */
 	s->psn = 0;
 	rc = sp_catinit(&s->s, &s->a, 512, s->e->cmp, s->e->cmparg);
@@ -361,6 +369,7 @@ e3:
 	sp_recoverunlock(s);
 	sp_catfree(&s->s);
 e2:
+	sp_ifree(&s->itxn);
 	sp_ifree(&s->i1);
 e1:
 	sp_ifree(&s->i0);
@@ -435,6 +444,132 @@ char *sp_error(void *o)
 	return e->e;
 }
 
+int sp_begin(void *o)
+{
+	sp *s = o;
+	assert(s->m == SPMDB);
+	if (spunlikely(s->txn == SPTMS))
+		return -1;
+	if (spunlikely(s->lockc))
+		return sp_e(s, SPE, "begin with open cursor");
+	s->txn = SPTMS;
+	return 0;
+}
+
+int sp_commit(void *o)
+{
+	sp *s = o;
+	assert(s->m == SPMDB);
+	if (spunlikely(s->txn == SPTSS))
+		return sp_e(s, SPE, "no active transaction to commit");
+	if (spunlikely(s->lockc))
+		return sp_e(s, SPE, "commit with open cursor");
+	if (spunlikely(s->itxn.count == 0)) {
+		s->txn = SPTSS;
+		return 0;
+	}
+
+	/* prepare to write the transaction
+	 * to the log */
+	int n = s->itxn.count;
+
+	sp_lock(&s->lockr);
+	sp_lock(&s->locki);
+
+	spepoch *live = sp_replive(&s->rep);
+	sp_filesvp(&live->log);
+
+	char hbuf[sizeof(spvh) * 512];
+	unsigned int hpos = 0;
+
+	spii it;
+	sp_iopen(&it, &s->itxn);
+	int rc;
+	do {
+		spv *v = sp_ival(&it);
+
+		if (spunlikely(! sp_batchensure(&s->lb, 3))) {
+			rc = sp_logput(&live->log, &s->lb);
+			if (spunlikely(rc == -1)) {
+				sp_e(s, SPEIO, "failed to write log file", live->epoch);
+				goto abort;
+			}
+			hpos = 0;
+		}
+
+		v->epoch = live->epoch;
+		assert(hpos < sizeof(hbuf));
+		spvh *hp = (spvh*)(hbuf + hpos);
+		hp->crc     = 0;
+		hp->size    = v->size;
+		hp->voffset = 0;
+		hp->vsize   = sp_vvsize(v);
+		hp->flags   = v->flags;
+		hp->crc     = sp_crc32c(v->crc, &hp->size, sizeof(spvh) - sizeof(uint32_t));
+		sp_batchadd(&s->lb, hp, sizeof(spvh));
+		sp_batchadd(&s->lb, v->key, v->size);
+		sp_batchadd(&s->lb, sp_vv(v), hp->vsize);
+		hpos += sizeof(spvh);
+
+		spv *old = NULL;
+		rc = sp_iset(s->i, v, &old);
+		if (spunlikely(rc == -1)) {
+			sp_e(s, SPEOOM, "failed to allocate key index page");
+			goto abort;
+		}
+		if (old)
+			sp_free(&s->a, old);
+
+	} while (sp_inext(&it));
+
+	if (sp_batchhas(&s->lb)) {
+		rc = sp_logput(&live->log, &s->lb);
+		if (spunlikely(rc == -1)) {
+			sp_e(s, SPEIO, "failed to write log file", live->epoch);
+			goto abort;
+		}
+	}
+
+	/* clean up transaction index (pages only) */
+	sp_ireset(&s->itxn);
+
+	sp_unlock(&s->locki);
+	sp_unlock(&s->lockr);
+
+	/* set transaction as single-stmt */
+	s->txn = SPTSS;
+
+	/* wake up merger if necessary */
+	live->nupdate += n;
+	if (live->nupdate >= s->e->mergewm) {
+		if (splikely(s->e->merge))
+			sp_taskwakeup(&s->merger);
+	}
+	return 0;
+
+abort:
+	sp_rollback(o);
+	sp_logrlb(&live->log);
+	sp_unlock(&s->locki);
+	sp_unlock(&s->lockr);
+	return -1;
+}
+
+int sp_rollback(void *o)
+{
+	sp *s = o;
+	assert(s->m == SPMDB);
+	if (spunlikely(s->txn == SPTSS))
+		return sp_e(s, SPE, "no active transaction to rollback");
+	if (spunlikely(s->lockc))
+		return sp_e(s, SPE, "rollback with open cursor");
+	int rc = sp_itruncate(&s->itxn);
+	if (spunlikely(rc == -1))
+		return sp_e(s, SPEOOM, "failed to allocate key index page");
+	s->txn = SPTSS;
+	return 0;
+}
+
 static inline int
 sp_do(sp *s, int op, void *k, size_t ksize, void *v, size_t vsize)
 {
@@ -460,16 +595,34 @@ sp_do(sp *s, int op, void *k, size_t ksize, void *v, size_t vsize)
 	crc   = sp_crc32c(crc, v, vsize);
 	h.crc = sp_crc32c(crc, &h.size, sizeof(spvh) - sizeof(uint32_t));
 
+	n->flags = op;
+	n->crc = crc;
+
+	/* in case of multi-stmt transaction, simply add version to the
+	 * transaction index only. */
+	int rc;
+	if (s->txn == SPTMS) {
+		spv *old = NULL;
+		rc = sp_iset(&s->itxn, n, &old);
+		if (spunlikely(rc == -1)) {
+			sp_free(&s->a, n);
+			return sp_e(s, SPEOOM, "failed to allocate transacton key index page");
+		}
+		if (old)
+			sp_free(&s->a, old);
+		return 0;
+	}
+
 	sp_lock(&s->lockr);
 	sp_lock(&s->locki);
 
 	/* write to current live epoch log */
 	spepoch *live = sp_replive(&s->rep);
 	sp_filesvp(&live->log);
-	sp_logadd(&live->log, &h, sizeof(spvh));
-	sp_logadd(&live->log, k, ksize);
-	sp_logadd(&live->log, v, vsize);
-	int rc = sp_logflush(&live->log);
+	sp_batchadd(&s->lb, &h, sizeof(spvh));
+	sp_batchadd(&s->lb, k, ksize);
+	sp_batchadd(&s->lb, v, vsize);
+	rc = sp_logput(&live->log, &s->lb);
 	if (spunlikely(rc == -1)) {
 		sp_free(&s->a, n);
 		sp_logrlb(&live->log);
@@ -479,10 +632,8 @@ sp_do(sp *s, int op, void *k, size_t ksize, void *v, size_t vsize)
 	}
 
 	/* add new version to the index */
-	spv *old = NULL;
 	n->epoch = live->epoch;
-	n->flags = op;
-	n->crc   = crc;
+	spv *old = NULL;
 	rc = sp_iset(s->i, n, &old);
 	if (spunlikely(rc == -1)) {
 		sp_free(&s->a, n);

@@ -22,7 +22,6 @@ sp_pageopen(spc *c, uint32_t page)
 	assert(c->ph->id > 0);
 	c->pvi = 0 ;
 	c->pv  = (spvh*)((char*)c->ph + sizeof(sppageh));
-	c->dup = 0;
 }
 
 static inline void sp_pageclose(spc *c) {
@@ -144,6 +143,8 @@ static inline void sp_first(spc *c)
 	sp_iopen(&c->i0, c->s->i);
 	if (! c->s->iskip)
 		sp_iopen(&c->i1, sp_ipair(c->s));
+	if (c->s->txn == SPTMS)
+		sp_iopen(&c->itxn, &c->s->itxn);
 	if (spunlikely(c->s->s.count == 0))
 		return;
 	sp_pageopen(c, 0);
@@ -156,6 +157,8 @@ sp_firstkey(spc *c, char *rkey, int size)
 	int eq = sp_ilte(c->s->i, &c->i0, rkey, size);
 	if (! c->s->iskip)
 		eq = eq + sp_ilte(sp_ipair(c->s), &c->i1, rkey, size);
+	if (c->s->txn == SPTMS)
+		eq = eq + sp_ilte(&c->s->itxn, &c->itxn, rkey, size);
 	/* match page for the key */
 	if (spunlikely(c->s->s.count == 0))
 		return eq;
@@ -177,6 +180,10 @@ static inline void sp_last(spc *c)
 		sp_iopen(&c->i1, sp_ipair(c->s));
 		sp_ilast(&c->i1);
 	}
+	if (c->s->txn == SPTMS) {
+		sp_iopen(&c->itxn, &c->s->itxn);
+		sp_ilast(&c->itxn);
+	}
 	if (spunlikely(c->s->s.count == 0))
 		return;
 	sp_pageopen(c, c->s->s.count-1);
@@ -189,6 +196,8 @@ static inline int sp_lastkey(spc *c, char *rkey, int size)
 	int eq = sp_igte(c->s->i, &c->i0, rkey, size);
 	if (! c->s->iskip)
 		eq = eq + sp_igte(sp_ipair(c->s), &c->i1, rkey, size);
+	if (c->s->txn == SPTMS)
+		eq = eq + sp_igte(&c->s->itxn, &c->itxn, rkey, size);
 	/* match page for the key */
 	if (spunlikely(c->s->s.count == 0))
 		return eq;
@@ -210,14 +219,14 @@ void sp_cursoropen(spc *c, sp *s, sporder o, char *rkey, int size)
 	c->m = SPMCUR;
 	c->o = o;
 	c->s = s;
-	c->dup = 0;
+	c->mask = SPCNONE;
 	c->p = NULL;
 	c->ph = NULL;
 	c->pi = 0;
 	c->pvi = 0;
 	c->pv = NULL;
-	c->vsrc = SPCNONE;
 
+	sp_iinv(&c->s->itxn, &c->itxn);
 	sp_iinv(c->s->i, &c->i0);
 	sp_iinv(sp_ipair(c->s), &c->i1);
 
@@ -253,186 +262,183 @@ void sp_cursorclose(spc *c)
 }
 
 static inline void sp_reset(spc *c) {
-	c->vsrc = SPCNONE;
+	c->mask   = SPCNONE;
 	c->r.type = SPREFNONE;
-	c->dup = 0;
 }
 
 static inline int sp_next(spc *c)
 {
-	switch (c->vsrc) {
-	case SPCI0:
+	/* apply last iteration skip mask */
+	if (c->mask & SPCITXN)
+		sp_inext(&c->itxn);
+	if (c->mask & SPCI0)
 		sp_inext(&c->i0);
-		if (c->dup & SPCPDUP)
-			sp_pagenext(c);
-		if (c->dup & SPCVDUP)
-			sp_inext(&c->i1);
-		break;
-	case SPCI1:
+	if (c->mask & SPCI1)
 		sp_inext(&c->i1);
-		if (c->dup & SPCPDUP)
-			sp_pagenext(c);
-		if (c->dup & SPCVDUP)
-			sp_inext(&c->i0);
-		break;
-	case SPCP:
+	if (c->mask & SPCP) {
 		assert(c->p != NULL);
 		assert(c->r.v.vh == c->pv);
 		sp_pagenext(c);
-		break;
-	case SPCNONE:
-		break;
 	}
 	sp_reset(c);
-	
-	int rc;
-	spcsrc src = SPCNONE;
-	spv *v0 = sp_ival(&c->i0);
-	spv *v1 = sp_ival(&c->i1);
-	spv *v  = NULL;
 
-	/* END */
-	if (v0 == NULL && v1 == NULL && c->pv == NULL) {
-		c->vsrc = SPCNONE;
+	/* do priority multi-index LTE search */
+	int rc;
+	int dup = SPCNONE;
+	int src = SPCNONE;
+	spv *v = NULL;
+	struct {
+		spv *v;
+		int mask;
+	} vv[3] = {
+		{ sp_ival(&c->itxn), SPCITXN },
+		{ sp_ival(&c->i0),   SPCI0   },
+		{ sp_ival(&c->i1),   SPCI1   }
+	};
+
+	/* end of iteration */
+	if (spunlikely(vv[0].v == NULL &&
+	               vv[1].v == NULL &&
+	               vv[2].v == NULL && c->pv == NULL)) {
 		return 0;
 	}
 
-	if (v0 && v1) {
-		rc = c->s->e->cmp(v0->key, v0->size, v1->key, v1->size,
-						  c->s->e->cmparg);
+	int i;
+	for (i = 0; i < 3; i++) {
+		if (vv[i].v == NULL)
+			continue;
+		if (v == NULL) {
+			src = vv[i].mask;
+			v = vv[i].v;
+			continue;
+		}
+		rc = c->s->e->cmp(vv[i].v->key, vv[i].v->size, v->key, v->size,
+		                  c->s->e->cmparg);
 		switch (rc) {
-		case  0: c->dup |= SPCVDUP;
-		case -1: v = v0, src = SPCI0;
+		case  0: dup |= vv[i].mask;
 			break;
-		case  1: v = v1, src = SPCI1;
+		case -1:
+			src = vv[i].mask;
+			v = vv[i].v;
 			break;
 		}
-	} else if (v0) {
-		v = v0, src = SPCI0;
-	} else if (v1) {
-		v = v1, src = SPCI1;
 	}
-
 	/* no page key */
-	if (c->pv == NULL) {
-		c->vsrc = src;
-		c->r.type = SPREFM;
-		c->r.v.v = v; 
-		return 1;
-	}
+	if (c->pv == NULL)
+		goto index;
 	/* no index key */
-	if (v == NULL) {
-		c->vsrc = SPCP;
-		c->r.type = SPREFD;
-		c->r.v.vh = c->pv;
-		return 1;
-	}
+	if (v == NULL)
+		goto page;
 
-	/* compare in-memory key and page one's */
+	/* compare in-memory and on-disk key */
 	rc = c->s->e->cmp(v->key, v->size, c->pv->key, c->pv->size,
 	                  c->s->e->cmparg);
 	switch (rc) {
-	case 0: c->dup |= SPCPDUP;
-	case -1:
-		c->vsrc = src;
-		c->r.type = SPREFM;
-		c->r.v.v = v; 
-		break;
-	case 1:
-		c->vsrc = SPCP;
-		c->r.type = SPREFD;
-		c->r.v.vh = c->pv;
-		break;
+	case  0: dup |= SPCP;
+	case -1: goto index;
+	case  1: goto page;
 	}
+
+	/* unreach */
+	assert(0);
+	return 1;
+index:
+	c->mask   = dup|src;
+	c->r.type = SPREFM;
+	c->r.v.v  = v;
+	return 1;
+page:
+	c->mask   = dup|SPCP;
+	c->r.type = SPREFD;
+	c->r.v.vh = c->pv;
 	return 1;
 }
 
 static inline int sp_prev(spc *c)
 {
-	switch (c->vsrc) {
-	case SPCI0:
+	/* apply last iteration skip mask */
+	if (c->mask & SPCITXN)
+		sp_iprev(&c->itxn);
+	if (c->mask & SPCI0)
 		sp_iprev(&c->i0);
-		if (c->dup & SPCPDUP)
-			sp_pageprev(c);
-		if (c->dup & SPCVDUP)
-			sp_iprev(&c->i1);
-		break;
-	case SPCI1:
+	if (c->mask & SPCI1)
 		sp_iprev(&c->i1);
-		if (c->dup & SPCPDUP)
-			sp_pageprev(c);
-		if (c->dup & SPCVDUP)
-			sp_iprev(&c->i0);
-		break;
-	case SPCP:
+	if (c->mask & SPCP) {
 		assert(c->p != NULL);
 		assert(c->r.v.vh == c->pv);
 		sp_pageprev(c);
-		break;
-	case SPCNONE:
-		break;
 	}
 	sp_reset(c);
-	
-	int rc;
-	spcsrc src = SPCNONE;
-	spv *v0 = sp_ival(&c->i0);
-	spv *v1 = sp_ival(&c->i1);
-	spv *v  = NULL;
 
-	/* END */
-	if (v0 == NULL && v1 == NULL && c->pv == NULL) {
-		c->vsrc = SPCNONE;
+	/* do priority multi-index LTE search */
+	int rc;
+	int dup = SPCNONE;
+	int src = SPCNONE;
+	spv *v = NULL;
+	struct {
+		spv *v;
+		int mask;
+	} vv[3] = {
+		{ sp_ival(&c->itxn), SPCITXN },
+		{ sp_ival(&c->i0),   SPCI0   },
+		{ sp_ival(&c->i1),   SPCI1   }
+	};
+
+	/* end of iteration */
+	if (spunlikely(vv[0].v == NULL &&
+	               vv[1].v == NULL &&
+	               vv[2].v == NULL && c->pv == NULL)) {
 		return 0;
 	}
 
-	if (v0 && v1) {
-		rc = c->s->e->cmp(v0->key, v0->size, v1->key, v1->size,
-						  c->s->e->cmparg);
+	int i;
+	for (i = 0; i < 3; i++) {
+		if (vv[i].v == NULL)
+			continue;
+		if (v == NULL) {
+			src = vv[i].mask;
+			v = vv[i].v;
+			continue;
+		}
+		rc = c->s->e->cmp(vv[i].v->key, vv[i].v->size, v->key, v->size,
+		                  c->s->e->cmparg);
 		switch (rc) {
-		case  0: c->dup |= SPCVDUP;
-		case -1: v = v1, src = SPCI1;
+		case 0: dup |= vv[i].mask;
 			break;
-		case  1: v = v0, src = SPCI0;
+		case 1:
+			src = vv[i].mask;
+			v = vv[i].v;
 			break;
 		}
-	} else if (v0) {
-		v = v0, src = SPCI0;
-	} else if (v1) {
-		v = v1, src = SPCI1;
 	}
-
 	/* no page key */
-	if (c->pv == NULL) {
-		c->vsrc = src;
-		c->r.type = SPREFM;
-		c->r.v.v = v; 
-		return 1;
-	}
+	if (c->pv == NULL)
+		goto index;
 	/* no index key */
-	if (v == NULL) {
-		c->vsrc = SPCP;
-		c->r.type = SPREFD;
-		c->r.v.vh = c->pv;
-		return 1;
-	}
+	if (v == NULL)
+		goto page;
 
-	/* compare in-memory key and page one's */
+	/* compare in-memory and on-disk key */
 	rc = c->s->e->cmp(v->key, v->size, c->pv->key, c->pv->size,
 	                  c->s->e->cmparg);
 	switch (rc) {
-	case  0: c->dup |= SPCPDUP;
-	case  1:
-		c->vsrc = src;
-		c->r.type = SPREFM;
-		c->r.v.v = v; 
-		break;
-	case -1:
-		c->vsrc = SPCP;
-		c->r.type = SPREFD;
-		c->r.v.vh = c->pv;
-		break;
+	case  0: dup |= SPCP;
+	case  1: goto index;
+	case -1: goto page;
 	}
+
+	/* unreach */
+	assert(0);
+	return 1;
+index:
+	c->mask   = dup|src;
+	c->r.type = SPREFM;
+	c->r.v.v  = v;
+	return 1;
+page:
+	c->mask   = dup|SPCP;
+	c->r.type = SPREFD;
+	c->r.v.vh = c->pv;
 	return 1;
 }
 
@@ -475,19 +481,26 @@ sp_matchi(sp *s, spi *i, void *key, size_t size, void **v, size_t *vsize)
 
 int sp_match(sp *s, void *k, size_t ksize, void **v, size_t *vsize)
 {
-	/* I. match both in-memory index'es for the key */
+	/*
+	 * if multi-stmt transaction is active, try to search the key
+	 * in the transaction findex first */
+	int rc;
+	if (s->txn == SPTMS) {
+		rc = sp_matchi(s, &s->itxn, k, ksize, v, vsize);
+		if (rc == -1 || rc == 1)
+			return rc;
+	}
+	/* match both in-memory index'es for the key */
 	sp_lock(&s->locki);
-	int rc = sp_matchi(s, s->i, k, ksize, v, vsize);
+	rc = sp_matchi(s, s->i, k, ksize, v, vsize);
 	if (rc == -1 || rc == 1) {
 		sp_unlock(&s->locki);
 		return rc;
 	}
-	/*
-	 * skip the second index if it is been truncating at the
-	 * somement, all updates are on disk pages.
-	*/
+	/* skip the second index if it is been truncating at the
+	 * somement, all updates are on disk pages */
 	if (! s->iskip) {
-		int rc = sp_matchi(s, sp_ipair(s), k, ksize, v, vsize);
+		rc = sp_matchi(s, sp_ipair(s), k, ksize, v, vsize);
 		if (rc == -1 || rc == 1) {
 			sp_unlock(&s->locki);
 			return rc;
@@ -495,7 +508,7 @@ int sp_match(sp *s, void *k, size_t ksize, void **v, size_t *vsize)
 	}
 	sp_unlock(&s->locki);
 
-	/* II. match the page */
+	/* match the page */
 	sp_lock(&s->locks);
 	uint32_t page = 0;
 	sppage *p = sp_catfind(&s->s, k, ksize, &page);
@@ -504,7 +517,7 @@ int sp_match(sp *s, void *k, size_t ksize, void **v, size_t *vsize)
 		return 0;
 	}
 
-	/* III. match the key in the page */
+	/* match the key in the page */
 	spepoch *e = (spepoch*)p->epoch;
 	sp_lock(&e->lock);
 

@@ -24,6 +24,12 @@ enum spmagic {
 
 typedef enum spmagic spmagic;
 
+enum sptxn {
+	SPTSS, SPTMS
+};
+
+typedef enum sptxn sptxn;
+
 struct spenv {
 	spmagic m;
 	spe e;
@@ -48,10 +54,13 @@ struct sp {
 	spenv *e;
 	spa a;
 	sprep rep;
+	sptxn txn;          /* transaction mode: single or multi stmt */
 	spi *i, i0, i1;
+	spi itxn;
 	int iskip;          /* skip second index during read */
 	uint64_t psn;       /* page sequence number */
 	spcat s;
+	spbatch lb;         /* log batch related */
 	volatile int stop;
 	sptask merger;
 	sprefset refs;      /* pre allocated key buffer (page merge) */

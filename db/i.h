@@ -37,6 +37,7 @@ struct spii {
 int sp_iinit(spi*, spa*, int, spcmpf, void*);
 void sp_ifree(spi*);
 int sp_itruncate(spi*);
+int sp_ireset(spi*);
 int sp_isetorget(spi *i, spv*, spii*);
 int sp_idelraw(spi*, char*, int, spv**);
 spv *sp_igetraw(spi*, char*, int);

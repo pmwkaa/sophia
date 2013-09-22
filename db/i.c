@@ -79,6 +79,18 @@ int sp_itruncate(spi *i)
 	return sp_iinit(i, i->a, i->pagesize, i->cmp, i->cmparg);
 }
 
+int sp_ireset(spi *i)
+{
+	uint32_t p = 0;
+	while (p < i->icount) {
+		sp_free(i->a, i->i[p]);
+		p++;
+	}
+	sp_free(i->a, i->i);
+	i->i = NULL;
+	return sp_iinit(i, i->a, i->pagesize, i->cmp, i->cmparg);
+}
+
 static inline void*
 sp_iminof(spi *i, spipage *p, char *rkey, int size, uint32_t *idx)
 {

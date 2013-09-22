@@ -9,7 +9,15 @@
  * BSD License
 */
 
+typedef struct spbatch spbatch;
 typedef struct spfile spfile;
+
+#define SPIOVMAX 1024
+
+struct spbatch {
+	struct iovec iov[SPIOVMAX];
+	int iovc;
+};
 
 struct spfile {
 	spa *a;
@@ -20,12 +28,17 @@ struct spfile {
 	char *file;
 	int fd;
 	char *map;
-	struct iovec iov[8];
-	int iovc;
 };
 
 int sp_fileexists(char*);
 int sp_filerm(char*);
+
+static inline int
+sp_epochrm(char *dir, uint32_t epoch, char *ext) {
+	char path[1024];
+	snprintf(path, sizeof(path), "%s/%"PRIu32".%s", dir, epoch, ext);
+	return sp_filerm(path);
+}
 
 static inline void
 sp_fileinit(spfile *f, spa *a) {
@@ -78,30 +91,39 @@ sp_mapinbound(spfile *f, size_t off) {
 	return off <= f->size;
 }
 
+static inline void
+sp_batchinit(spbatch *b) {
+	b->iovc = 0;
+}
+
+static inline int
+sp_batchhas(spbatch *b) {
+	return b->iovc > 0;
+}
+
+static inline int
+sp_batchensure(spbatch *b, int count) {
+	return (b->iovc + count) < SPIOVMAX;
+}
+
+static inline void
+sp_batchadd(spbatch *b, void *ptr, size_t size) {
+	assert(b->iovc < SPIOVMAX);
+	b->iov[b->iovc].iov_base = ptr;
+	b->iov[b->iovc].iov_len = size;
+	b->iovc++;
+}
+
 int sp_lognew(spfile*, char*, uint32_t);
 int sp_logcontinue(spfile*, char*, uint32_t);
 int sp_logclose(spfile*);
 int sp_logcomplete(spfile*);
 int sp_logcompleteforce(spfile*);
 int sp_logunlink(spfile*);
-int sp_logflush(spfile*);
+int sp_logwrite(spfile*, void*, size_t);
+int sp_logput(spfile*, spbatch*);
 int sp_logrlb(spfile*);
 int sp_logeof(spfile*);
-
-static inline void
-sp_logadd(spfile *f, const void *buf, int size) {
-	assert(f->iovc < 8);
-	f->iov[f->iovc].iov_base = (void*)buf;
-	f->iov[f->iovc].iov_len = size;
-	f->iovc++;
-}
-
-static inline int
-sp_epochrm(char *dir, uint32_t epoch, char *ext) {
-	char path[1024];
-	snprintf(path, sizeof(path), "%s/%"PRIu32".%s", dir, epoch, ext);
-	return sp_filerm(path);
-}
 
 int sp_lockfile(spfile*, char*);
 int sp_unlockfile(spfile*);
