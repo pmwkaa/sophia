@@ -36,12 +36,12 @@ typedef enum {
 	SPVERSION  /* uint32_t*, uint32_t* */
 } spopt;
 
-enum {
+typedef enum {
 	SPO_RDONLY = 1,
 	SPO_RDWR   = 2,
 	SPO_CREAT  = 4,
 	SPO_SYNC   = 8
-};
+} spflags;
 
 typedef enum {
 	SPGT,
