@@ -501,7 +501,7 @@ int sp_commit(void *o)
 		if (spunlikely(! sp_batchensure(&s->lb, 3))) {
 			rc = sp_logput(&live->log, &s->lb);
 			if (spunlikely(rc == -1)) {
-				sp_e(s, SPEIO, live->epoch, "failed to write log file");
+				sp_e(s, SPEIO|SPEF, live->epoch, "failed to write log file");
 				goto abort;
 			}
 			hpos = 0;
@@ -524,7 +524,7 @@ int sp_commit(void *o)
 		spv *old = NULL;
 		rc = sp_iset(s->i, v, &old);
 		if (spunlikely(rc == -1)) {
-			sp_e(s, SPEOOM, "failed to allocate key index page");
+			sp_e(s, SPEOOM|SPEF, "failed to allocate key index page");
 			goto abort;
 		}
 		if (old)
@@ -535,7 +535,7 @@ int sp_commit(void *o)
 	if (sp_batchhas(&s->lb)) {
 		rc = sp_logput(&live->log, &s->lb);
 		if (spunlikely(rc == -1)) {
-			sp_e(s, SPEIO, live->epoch, "failed to write log file");
+			sp_e(s, SPEIO|SPEF, live->epoch, "failed to write log file");
 			goto abort;
 		}
 	}
@@ -637,7 +637,9 @@ sp_do(sp *s, int op, void *k, size_t ksize, void *v, size_t vsize)
 	rc = sp_logput(&live->log, &s->lb);
 	if (spunlikely(rc == -1)) {
 		sp_free(&s->a, n);
-		sp_logrlb(&live->log);
+		rc = sp_logrlb(&live->log);
+		if (spunlikely(rc == -1))
+			sp_esetfatal(&s->e);
 		sp_unlock(&s->locki);
 		sp_unlock(&s->lockr);
 		return sp_e(s, SPEIO, live->epoch, "failed to write log file");
@@ -649,10 +651,13 @@ sp_do(sp *s, int op, void *k, size_t ksize, void *v, size_t vsize)
 	rc = sp_iset(s->i, n, &old);
 	if (spunlikely(rc == -1)) {
 		sp_free(&s->a, n);
-		sp_logrlb(&live->log);
+		rc = sp_logrlb(&live->log);
+		if (spunlikely(rc == -1))
+			sp_esetfatal(&s->e);
 		sp_unlock(&s->locki);
 		sp_unlock(&s->lockr);
-		return sp_e(s, SPEOOM, "failed to allocate key index page");
+		return (spunlikely(rc == -1)) ? -1 :
+		        sp_e(s, SPEOOM, "failed to allocate key index page");
 	}
 
 	sp_unlock(&s->locki);
