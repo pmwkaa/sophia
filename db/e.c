@@ -9,39 +9,48 @@
 
 #include <sp.h>
 
-void sp_ve(spe *e, int type, va_list args)
+void sp_vef(spe *e, int type, va_list args)
 {
 	sp_lock(&e->lock);
-	if (e->type != SPENONE) {
+	if (e->type & SPEF) {
 		sp_unlock(&e->lock);
 		return;
 	}
+	const char *fmt;
+	int len;
+	uint32_t epoch;
+
 	e->type = type;
-	switch (type) {
+	switch (type & ~SPEF) {
 	case SPE: {
-		char *fmt = va_arg(args, char*);
-		int len = snprintf(e->e, sizeof(e->e), "error: ");
+		fmt = va_arg(args, const char*);
+		len = snprintf(e->e, sizeof(e->e), "error: ");
 		vsnprintf(e->e + len, sizeof(e->e) - len, fmt, args);
 		break;
 	}
 	case SPEOOM: {
-		char *msg = va_arg(args, char*);
-		snprintf(e->e, sizeof(e->e), "out-of-memory error: %s", msg);
+		fmt = va_arg(args, const char*);
+		len = snprintf(e->e, sizeof(e->e), "out-of-memory error: ");
+		vsnprintf(e->e + len, sizeof(e->e) - len, fmt, args);
 		break;
 	}
 	case SPESYS: {
 		e->errno_ = errno;
-		char *msg = va_arg(args, char*);
-		snprintf(e->e, sizeof(e->e), "system error: %s (errno: %d, %s)",
-		         msg, e->errno_, strerror(e->errno_));
+		fmt  = va_arg(args, const char*);
+		len  = snprintf(e->e, sizeof(e->e), "system error: ");
+		len += vsnprintf(e->e + len, sizeof(e->e) - len, fmt, args);
+		snprintf(e->e + len, sizeof(e->e) - len, " (errno: %d, %s)",
+		         e->errno_, strerror(e->errno_));
 		break;
 	}
 	case SPEIO: {
 		e->errno_ = errno;
-		char *msg = va_arg(args, char*);
-		uint32_t epoch = va_arg(args, uint32_t);
-		snprintf(e->e, sizeof(e->e), "io error: [epoch %"PRIu32"] %s (errno: %d, %s)",
-		         epoch, msg, e->errno_, strerror(e->errno_));
+		epoch = va_arg(args, uint32_t);
+		fmt  = va_arg(args, const char*);
+		len  = snprintf(e->e, sizeof(e->e), "io error: [epoch %"PRIu32"] ", epoch);
+		len += vsnprintf(e->e + len, sizeof(e->e) - len, fmt, args);
+		snprintf(e->e + len, sizeof(e->e) - len, " (errno: %d, %s)",
+		         e->errno_, strerror(e->errno_));
 		break;
 	}
 	}

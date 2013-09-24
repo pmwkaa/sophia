@@ -825,6 +825,25 @@ cursor_set(void) {
 	t( rmrf(dbrep) == 0 );
 }
 
+static void
+error_nonfatal(void) {
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_ctl(env, SPDIR, SPO_CREAT|SPO_RDWR, dbrep) == 0 );
+	t( sp_ctl(env, SPCMP, cmp, NULL) == 0 );
+	void *db = sp_open(env);
+	t( db != NULL );
+	uint32_t k = 1, v = 1;
+	t( sp_set(db, &k, sizeof(k), &v, sizeof(v)) == 0);
+	t( sp_set(db, &k, UINT16_MAX + 1 , &v, sizeof(v)) == -1);
+	t( sp_error(db) != NULL );
+	t( sp_set(db, &k, sizeof(k), &v, sizeof(v)) == 0);
+	t( sp_error(db) == NULL );
+	t( sp_destroy(db) == 0 );
+	t( sp_destroy(env) == 0 );
+	t( rmrf(dbrep) == 0 );
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -866,5 +885,6 @@ main(int argc, char *argv[])
 	test(fetch_klt);
 	test(fetch_after_end);
 	test(cursor_set);
+	test(error_nonfatal);
 	return 0;
 }

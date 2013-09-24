@@ -1,9 +1,9 @@
 
-#
 # sophia makefile.
 #
 
 CC           ?= gcc
+AR            = ar
 RM            = rm
 LN            = ln
 STRIP         = strip
@@ -12,7 +12,7 @@ VERMINOR      = 1
 TARGET_STATIC = libsophia.a
 TARGET_DSOLIB = libsophia.so.$(VERMAJOR).$(VERMINOR)
 TARGET_DSO    = libsophia.so
-CFLAGS       ?= -I. -pthread -std=c99 -pedantic -Wextra -Wall -O2 -march=native -fPIC -fvisibility=hidden
+CFLAGS       ?= -I. -pthread -std=c99 -pedantic -Wextra -Wall -march=native -fPIC -fvisibility=hidden -O2
 LDFLAGS      ?= -shared -soname $(TARGET_DSO).$(VERMAJOR)
 
 OBJS =  file.o \
@@ -31,7 +31,7 @@ OBJS =  file.o \
 ALL: $(TARGET_STATIC) $(TARGET_DSO)
 
 $(TARGET_STATIC): clean $(OBJS)
-	$(AR) cru $(TARGET_STATIC) $(OBJS)
+	$(AR) crus $(TARGET_STATIC) $(OBJS)
 
 $(TARGET_DSO): clean $(OBJS)
 	$(LD) $(OBJS) $(LDFLAGS) -o $(TARGET_DSOLIB)

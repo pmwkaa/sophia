@@ -48,7 +48,7 @@ sp_pageseek(spc *c, char *rkey, int size, int *minp, int *midp, int *maxp)
 		mid = min + ((max - min) >> 1);
 		spvh *a = (spvh*)((char*)c->ph + sizeof(sppageh) + c->ph->bsize * mid);
 		register int rc =
-			c->s->e->cmp(a->key, a->size, rkey, size, c->s->e->cmparg);
+			c->s->env->cmp(a->key, a->size, rkey, size, c->s->env->cmparg);
 		switch (rc) {
 		case -1: min = mid + 1;
 			continue;
@@ -312,8 +312,8 @@ static inline int sp_next(spc *c)
 			v = vv[i].v;
 			continue;
 		}
-		rc = c->s->e->cmp(vv[i].v->key, vv[i].v->size, v->key, v->size,
-		                  c->s->e->cmparg);
+		rc = c->s->env->cmp(vv[i].v->key, vv[i].v->size, v->key, v->size,
+		                    c->s->env->cmparg);
 		switch (rc) {
 		case  0: dup |= vv[i].mask;
 			break;
@@ -331,8 +331,8 @@ static inline int sp_next(spc *c)
 		goto page;
 
 	/* compare in-memory and on-disk key */
-	rc = c->s->e->cmp(v->key, v->size, c->pv->key, c->pv->size,
-	                  c->s->e->cmparg);
+	rc = c->s->env->cmp(v->key, v->size, c->pv->key, c->pv->size,
+	                    c->s->env->cmparg);
 	switch (rc) {
 	case  0: dup |= SPCP;
 	case -1: goto index;
@@ -400,8 +400,8 @@ static inline int sp_prev(spc *c)
 			v = vv[i].v;
 			continue;
 		}
-		rc = c->s->e->cmp(vv[i].v->key, vv[i].v->size, v->key, v->size,
-		                  c->s->e->cmparg);
+		rc = c->s->env->cmp(vv[i].v->key, vv[i].v->size, v->key, v->size,
+		                    c->s->env->cmparg);
 		switch (rc) {
 		case 0: dup |= vv[i].mask;
 			break;
@@ -419,8 +419,8 @@ static inline int sp_prev(spc *c)
 		goto page;
 
 	/* compare in-memory and on-disk key */
-	rc = c->s->e->cmp(v->key, v->size, c->pv->key, c->pv->size,
-	                  c->s->e->cmparg);
+	rc = c->s->env->cmp(v->key, v->size, c->pv->key, c->pv->size,
+	                    c->s->env->cmparg);
 	switch (rc) {
 	case  0: dup |= SPCP;
 	case  1: goto index;
@@ -531,7 +531,7 @@ int sp_match(sp *s, void *k, size_t ksize, void **v, size_t *vsize)
 		register spvh *v =
 			(spvh*)(e->db.map + p->offset + sizeof(sppageh) +
 			        ph->bsize * mid);
-		switch (s->e->cmp(v->key, v->size, k, ksize, s->e->cmparg)) {
+		switch (s->env->cmp(v->key, v->size, k, ksize, s->env->cmparg)) {
 		case -1: min = mid + 1;
 			continue;
 		case  1: max = mid - 1;

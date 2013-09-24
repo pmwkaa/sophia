@@ -17,10 +17,10 @@
 
 static inline int sp_dircreate(sp *s)
 {
-	int rc = mkdir(s->e->dir, 0700);
+	int rc = mkdir(s->env->dir, 0700);
 	if (spunlikely(rc == -1)) {
 		sp_e(s, SPE, "failed to create directory %s (errno: %d, %s)",
-		     s->e->dir, errno, strerror(errno));
+		     s->env->dir, errno, strerror(errno));
 		return -1;
 	}
 	return 0;
@@ -40,7 +40,7 @@ static int sp_dirlock(sp *s)
 	/* implement multi-process database exclusive access by creating
 	 * lock file. */
 	char path[1024];
-	snprintf(path, sizeof(path), "%s/lock", s->e->dir);
+	snprintf(path, sizeof(path), "%s/lock", s->env->dir);
 	int rc = sp_lockfile(&s->lockdb, path);
 	if (spunlikely(rc == -1))
 		sp_e(s, SPE, "failed to create lock file (errno: %d, %s)",
@@ -56,13 +56,13 @@ static int sp_dirlock(sp *s)
 		splist *i;
 		sp_listforeach(&dirlocks, i) {
 			spdirlock *l = spcast(i, spdirlock, link);
-			if (! strcmp(s->e->dir, l->dir)) {
+			if (! strcmp(s->env->dir, l->dir)) {
 				sp_unlock(&dirlock);
 				return sp_e(s, SPE, "database is locked");
 			}
 		}
 	}
-	int lendir = strlen(s->e->dir) + 1;
+	int lendir = strlen(s->env->dir) + 1;
 	int len = sizeof(spdirlock) + lendir;
 	spdirlock *l = malloc(len);
 	if (spunlikely(l == NULL)) {
@@ -70,7 +70,7 @@ static int sp_dirlock(sp *s)
 		return sp_e(s, SPEOOM, "failed to allocate memory");
 	}
 	sp_listinit(&l->link);
-	memcpy(l->dir, s->e->dir, lendir);
+	memcpy(l->dir, s->env->dir, lendir);
 	sp_listappend(&dirlocks, &l->link);
 	dirlockn++;
 	sp_unlock(&dirlock);
@@ -87,7 +87,7 @@ static int sp_dirunlock(sp *s)
 	splist *i, *n;
 	sp_listforeach_safe(&dirlocks, i, n) {
 		spdirlock *l = spcast(i, spdirlock, link);
-		if (! strcmp(s->e->dir, l->dir)) {
+		if (! strcmp(s->env->dir, l->dir)) {
 			sp_listunlink(&l->link);
 			free(l);
 			break;
@@ -113,10 +113,10 @@ sp_epochof(char *s) {
 static int sp_diropen(sp *s)
 {
 	/* read repository and determine states */
-	DIR *d = opendir(s->e->dir);
+	DIR *d = opendir(s->env->dir);
 	if (spunlikely(d == NULL)) {
 		sp_e(s, SPE, "failed to open directory %s (errno: %d, %s)",
-		     s->e->dir, errno, strerror(errno));
+		     s->env->dir, errno, strerror(errno));
 		return -1;
 	}
 	struct dirent *de;
@@ -161,9 +161,9 @@ static int sp_diropen(sp *s)
 
 static int sp_recoverdb(sp *s, spepoch *x, sptrack *t)
 {
-	int rc = sp_mapepoch(&x->db, s->e->dir, x->epoch, "db");
+	int rc = sp_mapepoch(&x->db, s->env->dir, x->epoch, "db");
 	if (spunlikely(rc == -1))
-		return sp_e(s, SPEIO, "failed to open db file", x->epoch);
+		return sp_e(s, SPEIO, x->epoch, "failed to open db file");
 
 	sppageh *h = (sppageh*)(x->db.map);
 
@@ -282,9 +282,9 @@ static int sp_recoverlog(sp *s, spepoch *x, int incomplete)
 	/* open and map log file */
 	char *ext = (incomplete ? "log.incomplete" : "log");
 	int rc;
-	rc = sp_mapepoch(&x->log, s->e->dir, x->epoch, ext);
+	rc = sp_mapepoch(&x->log, s->env->dir, x->epoch, ext);
 	if (spunlikely(rc == -1))
-		return sp_e(s, SPEIO, "failed to open log file", x->epoch);
+		return sp_e(s, SPEIO, x->epoch, "failed to open log file");
 
 	/* validate log header */
 	if (spunlikely(! sp_mapinbound(&x->log, sizeof(splogh)) ))
@@ -388,7 +388,7 @@ static int sp_recoverlog(sp *s, spepoch *x, int incomplete)
 	 * during shutdown */
 	rc = sp_mapunmap(&x->log);
 	if (spunlikely(rc == -1))
-		return sp_e(s, SPEIO, "failed to unmap log file", x->epoch);
+		return sp_e(s, SPEIO, x->epoch, "failed to unmap log file");
 
 	/*
 	 * if there is eof marker missing, try to add one
@@ -401,22 +401,22 @@ static int sp_recoverlog(sp *s, spepoch *x, int incomplete)
 		if (! eof) {
 			rc = sp_logclose(&x->log);
 			if (spunlikely(rc == -1))
-				return sp_e(s, SPEIO, "failed to close log file", x->epoch);
-			rc = sp_logcontinue(&x->log, s->e->dir, x->epoch);
+				return sp_e(s, SPEIO, x->epoch, "failed to close log file");
+			rc = sp_logcontinue(&x->log, s->env->dir, x->epoch);
 			if (spunlikely(rc == -1)) {
 				sp_logclose(&x->log);
-				return sp_e(s, SPEIO, "failed to reopen log file", x->epoch);
+				return sp_e(s, SPEIO, x->epoch, "failed to reopen log file");
 			}
 			rc = sp_logeof(&x->log);
 			if (spunlikely(rc == -1)) {
 				sp_logclose(&x->log);
-				return sp_e(s, SPEIO, "failed to add eof marker", x->epoch);
+				return sp_e(s, SPEIO, x->epoch, "failed to add eof marker");
 			}
 		}
 		rc = sp_logcompleteforce(&x->log);
 		if (spunlikely(rc == -1)) {
 			sp_logclose(&x->log);
-			return sp_e(s, SPEIO, "failed to complete log file", x->epoch);
+			return sp_e(s, SPEIO, x->epoch, "failed to complete log file");
 		}
 	}
 	return 0;
@@ -441,13 +441,13 @@ static int sp_dirrecover(sp *s)
 			if (spunlikely(rc == -1))
 				goto err;
 			if (e->recover == (SPRDB|SPRLOG)) {
-				rc = sp_epochrm(s->e->dir, e->epoch, "log");
+				rc = sp_epochrm(s->env->dir, e->epoch, "log");
 				if (spunlikely(rc == -1))
 					goto err;
 			}
 			break;
 		case SPRLOG|SPRDBI:
-			rc = sp_epochrm(s->e->dir, e->epoch, "db.incomplete");
+			rc = sp_epochrm(s->env->dir, e->epoch, "db.incomplete");
 			if (spunlikely(rc == -1))
 				goto err;
 		case SPRLOG:
@@ -490,12 +490,12 @@ int sp_recoverunlock(sp *s) {
 
 int sp_recover(sp *s)
 {
-	int exists = sp_fileexists(s->e->dir);
+	int exists = sp_fileexists(s->env->dir);
 	int rc;
 	if (!exists) {
-		if (! (s->e->flags & SPO_CREAT))
+		if (! (s->env->flags & SPO_CREAT))
 			return sp_e(s, SPE, "directory doesn't exists and no SPO_CREAT specified");
-		if (s->e->flags & SPO_RDONLY)
+		if (s->env->flags & SPO_RDONLY)
 			return sp_e(s, SPE, "directory doesn't exists");
 		rc = sp_dircreate(s);
 		if (spunlikely(rc == -1))

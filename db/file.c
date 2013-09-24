@@ -310,6 +310,7 @@ int sp_logwrite(spfile *f, void *buf, size_t size)
 			return -1;
 		n += r;
 	} while (n != size);
+	f->used += size;
 	return 0;
 }
 

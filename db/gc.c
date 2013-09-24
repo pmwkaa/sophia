@@ -19,7 +19,7 @@ int sp_gc(sp *s, spepoch *x)
 	for (;;)
 	{
 		sp_lock(&s->lockr);
-		spepoch *g = sp_repgc(&s->rep, s->e->gcfactor);
+		spepoch *g = sp_repgc(&s->rep, s->env->gcfactor);
 		sp_unlock(&s->lockr);
 		if (g == NULL)
 			break;
@@ -32,10 +32,10 @@ int sp_gc(sp *s, spepoch *x)
 			/* map origin page and copy to db file */
 			sppageh *h = (sppageh*)(g->db.map + p->offset);
 			sp_lock(&x->lock);
-			rc = sp_mapensure(&x->db, sizeof(sppageh) + h->size, s->e->dbgrow);
+			rc = sp_mapensure(&x->db, sizeof(sppageh) + h->size, s->env->dbgrow);
 			if (spunlikely(rc == -1)) {
 				sp_unlock(&x->lock);
-				return sp_e(s, SPEIO, "failed to remap db file", x->epoch);
+				return sp_em(s, SPEIO|SPEF, x->epoch, "failed to remap db file");
 			}
 			sp_unlock(&x->lock);
 			memcpy(x->db.map + x->db.used, h, sizeof(sppageh) + h->size);
@@ -58,10 +58,10 @@ int sp_gc(sp *s, spepoch *x)
 		*/
 		rc = sp_mapunlink(&g->db);
 		if (spunlikely(rc == -1))
-			return sp_e(s, SPEIO, "failed to unlink db file", g->epoch);
+			return sp_em(s, SPEIO|SPEF, g->epoch, "failed to unlink db file");
 		rc = sp_mapclose(&g->db);
 		if (spunlikely(rc == -1))
-			return sp_e(s, SPEIO, "failed to close db file", g->epoch);
+			return sp_em(s, SPEIO|SPEF, g->epoch, "failed to close db file");
 		sp_lock(&s->lockr);
 		sp_repdetach(&s->rep, g);
 		sp_free(&s->a, g);

@@ -53,16 +53,16 @@ static inline int sp_merge0(sp *s, spepoch *x, spi *index)
 	{
 		/* get the new page properties and a data */
 		spupdate0 u;
-		sp_mergeget0(&i, s->e->page, &u);
+		sp_mergeget0(&i, s->env->page, &u);
 		if (spunlikely(u.count == 0))
 			 break;
 
 		/* ensure enough space for the page in the file */
 		sp_lock(&x->lock);
-		rc = sp_mapensure(&x->db, u.psize, s->e->dbgrow);
+		rc = sp_mapensure(&x->db, u.psize, s->env->dbgrow);
 		if (spunlikely(rc == -1)) {
 			sp_unlock(&x->lock);
-			sp_e(s, SPEIO, "failed to remap db file", x->epoch);
+			sp_em(s, SPEIO|SPEF, x->epoch, "failed to remap db file");
 			goto err;
 		}
 		sp_unlock(&x->lock);
@@ -95,7 +95,7 @@ static inline int sp_merge0(sp *s, spepoch *x, spi *index)
 			if (spunlikely(min == NULL)) {
 				min = sp_vdup(s, v);
 				if (spunlikely(min == NULL)) {
-					sp_e(s, SPEOOM, "failed to allocate key");
+					sp_em(s, SPEOOM|SPEF, "failed to allocate key");
 					goto err;
 				}
 			}
@@ -123,12 +123,12 @@ static inline int sp_merge0(sp *s, spepoch *x, spi *index)
 		/* create in-memory page */
 		sppage *page = sp_pagenew(s, x);
 		if (spunlikely(page == NULL)) {
-			sp_e(s, SPEOOM, "failed to allocate page");
+			sp_em(s, SPEOOM|SPEF, "failed to allocate page");
 			goto err;
 		}
 		max = sp_vdup(s, last);
 		if (spunlikely(max == NULL)) {
-			sp_e(s, SPEOOM, "failed to allocate key");
+			sp_em(s, SPEOOM|SPEF, "failed to allocate key");
 			goto err;
 		}
 		assert(min != NULL);
@@ -145,7 +145,7 @@ static inline int sp_merge0(sp *s, spepoch *x, spi *index)
 		if (spunlikely(rc == -1)) {
 			sp_unlock(&s->locks);
 			sp_pagefree(s, page);
-			sp_e(s, SPEOOM, "failed to allocate page index page");
+			sp_em(s, SPEOOM|SPEF, "failed to allocate page index page");
 			goto err;
 		}
 		sp_unlock(&s->locks);
@@ -254,9 +254,9 @@ static inline int sp_mergenext(sp *s, spmerge *m)
 	if (m->A < m->a_count && m->B < m->b_count)
 	{
 		register int cmp =
-			s->e->cmp(m->a->key, m->a->size,
-		              m->b->key,
-		              m->b->size, s->e->cmparg);
+			s->env->cmp(m->a->key, m->a->size,
+		                m->b->key,
+		                m->b->size, s->env->cmparg);
 		switch (cmp) {
 		case  0:
 			/* use updated key B */
@@ -332,7 +332,7 @@ static inline int sp_split(sp *s, spupdate *u, spmerge *m, spsplit *l)
 	 * page size.
 	*/
 	sp_refsetreset(&s->refs);
-	while (count < s->e->page && sp_mergenext(s, m)) {
+	while (count < s->env->page && sp_mergenext(s, m)) {
 		if (sp_refisdel(&m->last))
 			continue;
 		sp_refsetadd(&s->refs, &m->last);
@@ -349,11 +349,10 @@ static inline int sp_split(sp *s, spupdate *u, spmerge *m, spsplit *l)
 
 	/* ensure enough space for the page in the file */
 	sp_lock(&m->x->lock);
-	rc = sp_mapensure(&m->x->db, pagesize, s->e->dbgrow);
+	rc = sp_mapensure(&m->x->db, pagesize, s->env->dbgrow);
 	if (spunlikely(rc == -1)) {
 		sp_unlock(&m->x->lock);
-		return sp_e(s, SPEIO, "failed to remap db file",
-		            m->x->epoch);
+		return sp_em(s, SPEIO|SPEF, m->x->epoch, "failed to remap db file");
 	}
 	sp_unlock(&m->x->lock);
 
@@ -429,20 +428,20 @@ static inline int sp_split(sp *s, spupdate *u, spmerge *m, spsplit *l)
 	/* create in-memory page */
 	sppage *p = sp_pagenew(s, m->x);
 	if (spunlikely(p == NULL))
-		return sp_e(s, SPEOOM, "failed to allocate page");
+		return sp_em(s, SPEOOM|SPEF, "failed to allocate page");
 	p->id     = psn;
 	p->offset = m->x->db.used;
 	p->size   = pagesize;
 	p->min    = sp_vdupref(s, min, m->x->epoch);
 	if (spunlikely(p->min == NULL)) {
 		sp_free(&s->a, p);
-		return sp_e(s, SPEOOM, "failed to allocate key");
+		return sp_em(s, SPEOOM|SPEF, "failed to allocate key");
 	}
 	p->max    = sp_vdupref(s, max, m->x->epoch);
 	if (spunlikely(p->max == NULL)) {
 		sp_free(&s->a, p->min);
 		sp_free(&s->a, p);
-		return sp_e(s, SPEOOM, "failed to allocate key");
+		return sp_em(s, SPEOOM|SPEF, "failed to allocate key");
 	}
 
 	/* add page to split list */
@@ -498,7 +497,7 @@ static inline int sp_splitcommit(sp *s, spupdate *u, spmerge *m, spsplit *l)
 		int rc = sp_catset(&s->s, p, &o);
 		if (spunlikely(rc == -1)) {
 			sp_unlock(&s->locks);
-			return sp_e(s, SPEOOM, "failed to allocate page index page");
+			return sp_em(s, SPEOOM|SPEF, "failed to allocate page index page");
 		}
 		assert(o == NULL);
 		sp_pageattach(p);
@@ -550,8 +549,9 @@ int sp_merge(sp *s)
 	spepoch *x = sp_replive(&s->rep);
 	/* rotate current live epoch */
 	sp_repset(&s->rep, x, SPXFER);
-	int rc = sp_rotate(s);
+	int rc = sp_rotate(s, &s->em);
 	if (spunlikely(rc == -1)) {
+		sp_esetfatal(&s->em);
 		sp_lock(&s->lockr);
 		sp_lock(&s->locki);
 		return -1;
@@ -565,15 +565,16 @@ int sp_merge(sp *s)
 	/* complete old live epoch log */ 
 	rc = sp_logeof(&x->log);
 	if (spunlikely(rc == -1))
-		return sp_e(s, SPEIO, "failed to write eof marker", x->epoch);
+		return sp_em(s, SPEIO|SPEF, x->epoch, "failed to write eof marker");
 	rc = sp_logcomplete(&x->log);
 	if (spunlikely(rc == -1))
-		return sp_e(s, SPEIO, "failed to complete log file", x->epoch);
+		return sp_em(s, SPEIO|SPEF, x->epoch, "failed to complete log file");
 
 	/* create db file */
-	rc = sp_mapepochnew(&x->db, s->e->dbnewsize, s->e->dir, x->epoch, "db");
+	rc = sp_mapepochnew(&x->db, s->env->dbnewsize, s->env->dir,
+	                    x->epoch, "db");
 	if (spunlikely(rc == -1))
-		return sp_e(s, SPEIO, "failed to create db file", x->epoch);
+		return sp_em(s, SPEIO|SPEF, x->epoch, "failed to create db file");
 
 	/* merge index */
 	if (splikely(s->s.count > 0))
@@ -591,7 +592,7 @@ int sp_merge(sp *s)
 		return -1;
 
 	/* gc */
-	if (s->e->gc) {
+	if (s->env->gc) {
 		rc = sp_gc(s, x);
 		if (spunlikely(rc == -1))
 			return -1;
@@ -604,7 +605,7 @@ int sp_merge(sp *s)
 		rc = sp_mapcomplete(&x->db);
 		if (spunlikely(rc == -1)) {
 			sp_unlock(&x->lock);
-			return sp_e(s, SPEIO, "failed to complete db file", x->epoch);
+			return sp_em(s, SPEIO|SPEF, x->epoch, "failed to complete db file");
 		}
 		sp_unlock(&x->lock);
 		/* set epoch as db */
@@ -614,19 +615,19 @@ int sp_merge(sp *s)
 		/* remove log file */
 		rc = sp_logunlink(&x->log);
 		if (spunlikely(rc == -1))
-			return sp_e(s, SPEIO, "failed to unlink log file", x->epoch);
+			return sp_em(s, SPEIO|SPEF, x->epoch, "failed to unlink log file");
 		rc = sp_logclose(&x->log);
 		if (spunlikely(rc == -1))
-			return sp_e(s, SPEIO, "failed to close log file", x->epoch);
+			return sp_em(s, SPEIO|SPEF, x->epoch, "failed to close log file");
 	} else {
 		/* there are possible situation when all keys has
 		 * been deleted. */
 		rc = sp_mapunlink(&x->db);
 		if (spunlikely(rc == -1))
-			return sp_e(s, SPEIO, "failed to unlink db file", x->epoch);
+			return sp_em(s, SPEIO|SPEF, x->epoch, "failed to unlink db file");
 		rc = sp_mapclose(&x->db);
 		if (spunlikely(rc == -1))
-			return sp_e(s, SPEIO, "failed to close db file", x->epoch);
+			return sp_em(s, SPEIO|SPEF, x->epoch, "failed to close db file");
 	}
 
 	/* remove all xfer epochs that took part in the merge
@@ -640,10 +641,10 @@ int sp_merge(sp *s)
 			break;
 		rc = sp_logunlink(&e->log);
 		if (spunlikely(rc == -1))
-			return sp_e(s, SPEIO, "failed to unlink log file", e->epoch);
+			return sp_em(s, SPEIO|SPEF, e->epoch, "failed to unlink log file");
 		rc = sp_logclose(&e->log);
 		if (spunlikely(rc == -1))
-			return sp_e(s, SPEIO, "failed to close log file", e->epoch);
+			return sp_em(s, SPEIO|SPEF, e->epoch, "failed to close log file");
 		sp_lock(&s->lockr);
 		sp_repdetach(&s->rep, e);
 		sp_free(&s->a, e);
@@ -655,7 +656,7 @@ int sp_merge(sp *s)
 	rc = sp_itruncate(index);
 	if (spunlikely(rc == -1)) {
 		sp_iskipset(s, 0);
-		return sp_e(s, SPE, "failed create index");
+		return sp_em(s, SPE|SPEF, "failed create index");
 	}
 	sp_iskipset(s, 0);
 	return 0;

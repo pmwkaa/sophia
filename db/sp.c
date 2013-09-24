@@ -127,7 +127,7 @@ static int sp_ctldb(sp *s, spopt opt, va_list args spunused)
 {
 	switch (opt) {
 	case SPMERGEFORCE:
-		if (s->e->merge)
+		if (s->env->merge)
 			return sp_e(s, SPE, "force merge doesn't work with merger thread active");
 		return sp_merge(s);
 	default:
@@ -161,19 +161,19 @@ int sp_ctl(void *o, spopt opt, ...)
 	return rc;
 }
 
-int sp_rotate(sp *s)
+int sp_rotate(sp *s, spe *err)
 {
 	int rc;
 	sp_repepochincrement(&s->rep);
 	/* allocate new epoch */
 	spepoch *e = sp_repalloc(&s->rep, sp_repepoch(&s->rep));
 	if (spunlikely(s == NULL))
-		return sp_e(s, SPEOOM, "failed to allocate repository");
+		return sp_ef(err, SPEOOM, "failed to allocate repository");
 	/* create log file */
-	rc = sp_lognew(&e->log, s->e->dir, sp_repepoch(&s->rep));
+	rc = sp_lognew(&e->log, s->env->dir, sp_repepoch(&s->rep));
 	if (spunlikely(rc == -1)) {
 		sp_free(&s->a, e);
-		return sp_e(s, SPEIO, "failed to create log file", e->epoch);
+		return sp_ef(err, SPEIO, e->epoch, "failed to create log file");
 	}
 	splogh h;
 	h.magic = SPMAGIC;
@@ -183,7 +183,7 @@ int sp_rotate(sp *s)
 	if (spunlikely(rc == -1)) {
 		sp_logclose(&e->log);
 		sp_free(&s->a, e);
-		return sp_e(s, SPEIO, "failed to write log file", e->epoch);
+		return sp_ef(err, SPEIO, e->epoch, "failed to write log file");
 	}
 	/* attach epoch and mark it is as live */
 	sp_repattach(&s->rep, e);
@@ -208,28 +208,28 @@ static inline int sp_closerep(sp *s)
 			if (e->nupdate == 0) {
 				rc = sp_logunlink(&e->log);
 				if (spunlikely(rc == -1))
-					rcret = sp_e(s, SPEIO, "failed to unlink log file", e->epoch);
+					rcret = sp_e(s, SPEIO, e->epoch, "failed to unlink log file");
 				rc = sp_logclose(&e->log);
 				if (spunlikely(rc == -1))
-					rcret = sp_e(s, SPEIO, "failed to close log file", e->epoch);
+					rcret = sp_e(s, SPEIO, e->epoch, "failed to close log file");
 				break;
 			} else {
 				rc = sp_logeof(&e->log);
 				if (spunlikely(rc == -1))
-					rcret = sp_e(s, SPEIO, "failed to write eof marker", e->epoch);
+					rcret = sp_e(s, SPEIO, e->epoch, "failed to write eof marker");
 			}
 		case SPXFER:
 			rc = sp_logcomplete(&e->log);
 			if (spunlikely(rc == -1))
-				rcret = sp_e(s, SPEIO, "failed to complete log file", e->epoch);
+				rcret = sp_e(s, SPEIO, e->epoch, "failed to complete log file");
 			rc = sp_logclose(&e->log);
 			if (spunlikely(rc == -1))
-				rcret = sp_e(s, SPEIO, "failed to close log file", e->epoch);
+				rcret = sp_e(s, SPEIO, e->epoch, "failed to close log file");
 			break;
 		case SPDB:
 			rc = sp_mapclose(&e->db);
 			if (spunlikely(rc == -1))
-				rcret = sp_e(s, SPEIO, "failed to close db file", e->epoch);
+				rcret = sp_e(s, SPEIO, e->epoch, "failed to close db file");
 			break;
 		}
 		sp_free(&s->a, e);
@@ -242,7 +242,7 @@ static inline int sp_close(sp *s)
 	int rcret = 0;
 	int rc = 0;
 	s->stop = 1;
-	if (s->e->merge) {
+	if (s->env->merge) {
 		rc = sp_taskstop(&s->merger);
 		if (spunlikely(rc == -1))
 			rcret = sp_e(s, SPESYS, "failed to stop merger thread");
@@ -258,10 +258,12 @@ static inline int sp_close(sp *s)
 	sp_ifree(&s->i1);
 	sp_ifree(&s->itxn); /* equal to rollback */
 	sp_catfree(&s->s);
-	s->e->inuse = 0;
+	s->env->inuse = 0;
 	sp_lockfree(&s->lockr);
 	sp_lockfree(&s->locks);
 	sp_lockfree(&s->locki);
+	sp_efree(&s->e);
+	sp_efree(&s->em);
 	return rcret;
 }
 
@@ -271,7 +273,7 @@ static void *merger(void *arg)
 	sp *s = self->arg;
 	do {
 		sp_lock(&s->locki);
-		int merge = s->i->count > s->e->mergewm;
+		int merge = s->i->count > s->env->mergewm;
 		sp_unlock(&s->locki);
 		if (! merge)
 			continue;
@@ -296,13 +298,15 @@ void *sp_open(void *e)
 	sp_allocinit(&a, env->alloc, env->allocarg);
 	sp *s = sp_malloc(&a, sizeof(sp));
 	if (spunlikely(s == NULL)) {
-		sp_e(s, SPEOOM, "failed to allocate db handle");
+		sp_ee(env, SPEOOM, "failed to allocate db handle");
 		return NULL;
 	}
 	memset(s, 0, sizeof(sp));
+	sp_einit(&s->e);
+	sp_einit(&s->em);
 	s->m = SPMDB;
-	s->e = env;
-	s->e->inuse = 1;
+	s->env = env;
+	s->env->inuse = 1;
 	memcpy(&s->a, &a, sizeof(s->a));
 	/* init locks */
 	sp_fileinit(&s->lockdb, &s->a);
@@ -311,19 +315,19 @@ void *sp_open(void *e)
 	sp_lockinit(&s->locki);
 	s->lockc = 0;
 	/* init key index */
-	rc = sp_iinit(&s->i0, &s->a, 1024, s->e->cmp, s->e->cmparg);
+	rc = sp_iinit(&s->i0, &s->a, 1024, s->env->cmp, s->env->cmparg);
 	if (spunlikely(rc == -1)) {
 		sp_e(s, SPEOOM, "failed to allocate key index");
 		goto e0;
 	}
-	rc = sp_iinit(&s->i1, &s->a, 1024, s->e->cmp, s->e->cmparg);
+	rc = sp_iinit(&s->i1, &s->a, 1024, s->env->cmp, s->env->cmparg);
 	if (spunlikely(rc == -1)) {
 		sp_e(s, SPEOOM, "failed to allocate key index");
 		goto e1;
 	}
 	s->i = &s->i0;
 	/* init transaction index */
-	rc = sp_iinit(&s->itxn, &s->a, 1024, s->e->cmp, s->e->cmparg);
+	rc = sp_iinit(&s->itxn, &s->a, 1024, s->env->cmp, s->env->cmparg);
 	if (spunlikely(rc == -1)) {
 		sp_e(s, SPEOOM, "failed to allocate transaction index");
 		goto e2;
@@ -332,7 +336,7 @@ void *sp_open(void *e)
 	s->txn = SPTSS;
 	/* init page index */
 	s->psn = 0;
-	rc = sp_catinit(&s->s, &s->a, 512, s->e->cmp, s->e->cmparg);
+	rc = sp_catinit(&s->s, &s->a, 512, s->env->cmp, s->env->cmparg);
 	if (spunlikely(rc == -1)) {
 		sp_e(s, SPEOOM, "failed to allocate page index");
 		goto e2;
@@ -342,18 +346,18 @@ void *sp_open(void *e)
 	if (spunlikely(rc == -1))
 		goto e3;
 	/* do not create new live epoch in read-only mode */
-	if (! (s->e->flags & SPO_RDONLY)) {
-		rc = sp_rotate(s);
+	if (! (s->env->flags & SPO_RDONLY)) {
+		rc = sp_rotate(s, &s->e);
 		if (spunlikely(rc == -1))
 			goto e3;
 	}
 	s->stop = 0;
-	rc = sp_refsetinit(&s->refs, &s->a, s->e->page);
+	rc = sp_refsetinit(&s->refs, &s->a, s->env->page);
 	if (spunlikely(rc == -1)) {
 		sp_e(s, SPEOOM, "failed to allocate key buffer");
 		goto e3;
 	}
-	if (s->e->merge) {
+	if (s->env->merge) {
 		rc = sp_taskstart(&s->merger, merger, s);
 		if (spunlikely(rc == -1)) {
 			sp_e(s, SPESYS, "failed to start merger thread");
@@ -374,10 +378,13 @@ e2:
 e1:
 	sp_ifree(&s->i0);
 e0:
-	s->e->inuse = 0;
+	s->env->inuse = 0;
 	sp_lockfree(&s->lockr);
 	sp_lockfree(&s->locks);
 	sp_lockfree(&s->locki);
+	sp_edup(&env->e, &s->e);
+	sp_efree(&s->e);
+	sp_efree(&s->em);
 	sp_free(&a, s);
 	return NULL;
 }
@@ -423,31 +430,32 @@ int sp_destroy(void *o)
 char *sp_error(void *o)
 {
 	spmagic *magic = (spmagic*)o;
-	spe *e = NULL;
+	spenv *env;
 	switch (*magic) {
-	case SPMDB: {
-		sp *s = o;
-		e = &s->e->e;
-		break;
-	}
-	case SPMENV: {
-		spenv *env = o;
-		e = &env->e;
-		break;
-	}
+	case SPMENV:
+		env = o;
+		if (! sp_eis(&env->e))
+			return NULL;
+		return env->e.e;
+	case SPMDB: break;
 	default:
 		assert(0);
 		return NULL;
 	}
-	if (! sp_eis(e))
-		return NULL;
-	return e->e;
+	sp *s = o;
+	if (sp_eis(&s->em))
+		return s->em.e;
+	if (sp_eis(&s->e))
+		return s->em.e;
+	return NULL;
 }
 
 int sp_begin(void *o)
 {
 	sp *s = o;
 	assert(s->m == SPMDB);
+	if (spunlikely(sp_evalidate(s)))
+		return -1;
 	if (spunlikely(s->txn == SPTMS))
 		return -1;
 	if (spunlikely(s->lockc))
@@ -460,6 +468,8 @@ int sp_commit(void *o)
 {
 	sp *s = o;
 	assert(s->m == SPMDB);
+	if (spunlikely(sp_evalidate(s)))
+		return -1;
 	if (spunlikely(s->txn == SPTSS))
 		return sp_e(s, SPE, "no active transaction to commit");
 	if (spunlikely(s->lockc))
@@ -491,7 +501,7 @@ int sp_commit(void *o)
 		if (spunlikely(! sp_batchensure(&s->lb, 3))) {
 			rc = sp_logput(&live->log, &s->lb);
 			if (spunlikely(rc == -1)) {
-				sp_e(s, SPEIO, "failed to write log file", live->epoch);
+				sp_e(s, SPEIO, live->epoch, "failed to write log file");
 				goto abort;
 			}
 			hpos = 0;
@@ -525,7 +535,7 @@ int sp_commit(void *o)
 	if (sp_batchhas(&s->lb)) {
 		rc = sp_logput(&live->log, &s->lb);
 		if (spunlikely(rc == -1)) {
-			sp_e(s, SPEIO, "failed to write log file", live->epoch);
+			sp_e(s, SPEIO, live->epoch, "failed to write log file");
 			goto abort;
 		}
 	}
@@ -541,8 +551,8 @@ int sp_commit(void *o)
 
 	/* wake up merger if necessary */
 	live->nupdate += n;
-	if (live->nupdate >= s->e->mergewm) {
-		if (splikely(s->e->merge))
+	if (live->nupdate >= s->env->mergewm) {
+		if (splikely(s->env->merge))
 			sp_taskwakeup(&s->merger);
 	}
 	return 0;
@@ -559,6 +569,8 @@ int sp_rollback(void *o)
 {
 	sp *s = o;
 	assert(s->m == SPMDB);
+	if (spunlikely(sp_evalidate(s)))
+		return -1;
 	if (spunlikely(s->txn == SPTSS))
 		return sp_e(s, SPE, "no active transaction to rollback");
 	if (spunlikely(s->lockc))
@@ -628,7 +640,7 @@ sp_do(sp *s, int op, void *k, size_t ksize, void *v, size_t vsize)
 		sp_logrlb(&live->log);
 		sp_unlock(&s->locki);
 		sp_unlock(&s->lockr);
-		return sp_e(s, SPEIO, "failed to write log file", live->epoch);
+		return sp_e(s, SPEIO, live->epoch, "failed to write log file");
 	}
 
 	/* add new version to the index */
@@ -637,6 +649,7 @@ sp_do(sp *s, int op, void *k, size_t ksize, void *v, size_t vsize)
 	rc = sp_iset(s->i, n, &old);
 	if (spunlikely(rc == -1)) {
 		sp_free(&s->a, n);
+		sp_logrlb(&live->log);
 		sp_unlock(&s->locki);
 		sp_unlock(&s->lockr);
 		return sp_e(s, SPEOOM, "failed to allocate key index page");
@@ -650,8 +663,8 @@ sp_do(sp *s, int op, void *k, size_t ksize, void *v, size_t vsize)
 
 	/* wake up merger on merge watermark reached */
 	live->nupdate++;
-	if ((live->nupdate % s->e->mergewm) == 0) {
-		if (splikely(s->e->merge))
+	if ((live->nupdate % s->env->mergewm) == 0) {
+		if (splikely(s->env->merge))
 			sp_taskwakeup(&s->merger);
 	}
 	return 0;
@@ -661,9 +674,9 @@ int sp_set(void *o, const void *k, size_t ksize, const void *v, size_t vsize)
 {
 	sp *s = o;
 	assert(s->m == SPMDB);
-	if (spunlikely(sp_eis(&s->e->e)))
+	if (spunlikely(sp_evalidate(s)))
 		return -1;
-	if (spunlikely(s->e->flags & SPO_RDONLY))
+	if (spunlikely(s->env->flags & SPO_RDONLY))
 		return sp_e(s, SPE, "db handle is read-only");
 	if (spunlikely(ksize > UINT16_MAX))
 		return sp_e(s, SPE, "key size limit reached");
@@ -678,9 +691,9 @@ int sp_delete(void *o, const void *k, size_t ksize)
 {
 	sp *s = o;
 	assert(s->m == SPMDB);
-	if (spunlikely(sp_eis(&s->e->e)))
+	if (spunlikely(sp_evalidate(s)))
 		return -1;
-	if (spunlikely(s->e->flags & SPO_RDONLY))
+	if (spunlikely(s->env->flags & SPO_RDONLY))
 		return sp_e(s, SPE, "db handle is read-only");
 	if (spunlikely(ksize > UINT16_MAX))
 		return sp_e(s, SPE, "key size limit reached");
@@ -689,22 +702,14 @@ int sp_delete(void *o, const void *k, size_t ksize)
 	return sp_do(s, SPDEL, (char*)k, ksize, NULL, 0);
 }
 
-static inline int
-sp_checkro(sp *s, size_t ksize)
-{
-	if (spunlikely(sp_eis(&s->e->e)))
-		return -1;
-	if (spunlikely(ksize > UINT16_MAX))
-		return sp_e(s, SPE, "key size limit reached");
-	return 0;
-}
-
 int sp_get(void *o, const void *k, size_t ksize, void **v, size_t *vsize)
 {
 	sp *s = o;
 	assert(s->m == SPMDB);
-	if (spunlikely(sp_checkro(s, ksize) == -1))
+	if (spunlikely(sp_evalidate(s)))
 		return -1;
+	if (spunlikely(ksize > UINT16_MAX))
+		return sp_e(s, SPE, "key size limit reached");
 	return sp_match(s, (char*)k, ksize, v, vsize);
 }
 
@@ -712,8 +717,12 @@ void *sp_cursor(void *o, sporder order, const void *k, size_t ksize)
 {
 	sp *s = o;
 	assert(s->m == SPMDB);
-	if (spunlikely(sp_checkro(s, ksize) == -1))
+	if (spunlikely(sp_evalidate(s)))
 		return NULL;
+	if (spunlikely(ksize > UINT16_MAX)) {
+		sp_e(s, SPE, "key size limit reached");
+		return NULL;
+	}
 	spc *c = sp_malloc(&s->a, sizeof(spc));
 	if (spunlikely(c == NULL)) {
 		sp_e(s, SPEOOM, "failed to allocate cursor handle");
@@ -727,7 +736,7 @@ void *sp_cursor(void *o, sporder order, const void *k, size_t ksize)
 int sp_fetch(void *o) {
 	spc *c = o;
 	assert(c->m == SPMCUR);
-	if (spunlikely(sp_eis(&c->s->e->e)))
+	if (spunlikely(sp_evalidate(c->s)))
 		return -1;
 	return sp_iterate(c);
 }
@@ -771,7 +780,6 @@ void sp_stat(void *o, spstat *stat)
 	sp_lock(&s->lockr);
 	sp_lock(&s->locki);
 	sp_lock(&s->locks);
-
 	stat->epoch = s->rep.epoch;
 	stat->psn = s->psn;
 	stat->repn = s->rep.n;
@@ -780,7 +788,6 @@ void sp_stat(void *o, spstat *stat)
 	stat->catn = s->s.count;
 	stat->indexn = s->i->count;
 	stat->indexpages = s->i->icount;
-
 	sp_unlock(&s->locks);
 	sp_unlock(&s->locki);
 	sp_unlock(&s->lockr);

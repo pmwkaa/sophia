@@ -31,7 +31,7 @@ limit_key(void) {
 	t( db != NULL );
 	char buf[1];
 	t( sp_set(db, buf, UINT16_MAX + 1, buf, sizeof(buf)) == -1 );
-	t( sp_error(env) != NULL );
+	t( sp_error(db) != NULL );
 	t( sp_destroy(db) == 0 );
 	t( sp_destroy(env) == 0 );
 	rmrf(dbrep);
@@ -47,7 +47,7 @@ limit_value(void) {
 	t( db != NULL );
 	char buf[1];
 	t( sp_set(db, buf, sizeof(buf), buf, UINT32_MAX + 1ULL) == -1 );
-	t( sp_error(env) != NULL );
+	t( sp_error(db) != NULL );
 	t( sp_destroy(db) == 0 );
 	t( sp_destroy(env) == 0 );
 	rmrf(dbrep);
