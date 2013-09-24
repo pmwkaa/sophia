@@ -22,7 +22,6 @@ extern "C" {
 #  define SP_API
 #endif
 
-
 typedef void *(*spallocf)(void *ptr, size_t size, void *arg);
 typedef int (*spcmpf)(char *a, size_t asz, char *b, size_t bsz, void *arg);
 

@@ -11,11 +11,13 @@
 
 #define sppacked __attribute__((packed))
 #define spunused __attribute__((unused))
+
 #if __GNUC__ >= 4 && __GNUC_MINOR__ >= 3
-    #define sphot __attribute__((hot))
+#  define sphot __attribute__((hot))
 #else
-    #define sphot
+#  define sphot
 #endif
+
 #define splikely(EXPR) __builtin_expect(!! (EXPR), 1)
 #define spunlikely(EXPR) __builtin_expect(!! (EXPR), 0)
 #define spdiv(a, b) ((a) + (b) - 1) / (b)

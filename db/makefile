@@ -4,15 +4,16 @@
 #
 
 CC           ?= gcc
-RM           ?= rm
-LN           ?= ln
+RM            = rm
+LN            = ln
+STRIP         = strip
 VERMAJOR      = 1
 VERMINOR      = 1
 TARGET_STATIC = libsophia.a
 TARGET_DSOLIB = libsophia.so.$(VERMAJOR).$(VERMINOR)
 TARGET_DSO    = libsophia.so
-CFLAGS       ?= -I. -pthread -std=c99 -pedantic -Wextra -Wall -march=native -O2 -fPIC -fvisibility=hidden
-LDFLAGS      ?= -shared -soname libsophia.$(VERMAJOR)
+CFLAGS       ?= -I. -pthread -std=c99 -pedantic -Wextra -Wall -O2 -march=native -fPIC -fvisibility=hidden
+LDFLAGS      ?= -shared -soname $(TARGET_DSO).$(VERMAJOR)
 
 OBJS =  file.o \
 	crc.o \
@@ -36,6 +37,7 @@ $(TARGET_DSO): clean $(OBJS)
 	$(LD) $(OBJS) $(LDFLAGS) -o $(TARGET_DSOLIB)
 	$(LN) -s $(TARGET_DSOLIB) $(TARGET_DSO).$(VERMAJOR)
 	$(LN) -s $(TARGET_DSOLIB) $(TARGET_DSO)
+	$(STRIP) --strip-unneeded $(TARGET_DSO)
 
 .c.o:
 	$(CC) $(CFLAGS) -c $<
