@@ -446,7 +446,7 @@ char *sp_error(void *o)
 	if (sp_eis(&s->em))
 		return s->em.e;
 	if (sp_eis(&s->e))
-		return s->em.e;
+		return s->e.e;
 	return NULL;
 }
 
