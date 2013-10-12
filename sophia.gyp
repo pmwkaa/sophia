@@ -1,8 +1,8 @@
 {
   'variables': {
-    'target_arch%': 'ia32',          # set target architecture
-    'host_arch%': 'ia32',            # set host architecture
-    'library%': 'static_library',    # allow override to 'shared_library' for DLL/.so builds
+    'target_arch%': 'ia32',              # set target architecture
+    'host_arch%': 'ia32',                # set host architecture
+    'sophia_library%': 'static_library', # allow override to 'shared_library' for DLL/.so builds
   },
 
   'target_defaults': {
@@ -93,7 +93,7 @@
     {
       'target_name': 'sophia',
       'product_prefix': 'lib',
-      'type': '<(library)',
+      'type': '<(sophia_library)',
       'include_dirs': ['db'],
       'link_settings': {
         'libraries': ['-lpthread'],
