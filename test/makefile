@@ -1,8 +1,17 @@
 
-CC      ?= gcc
+UNAME_S := $(shell uname -s)
+    ifeq ($(UNAME_S),Linux)    	
+        CC           ?= gcc
+        CFLAGS  ?= -I. -I../db -Wall -pthread -O0 -g
+        LDFLAGS ?= -pthread ../db/libsophia.a
+	endif
+    ifeq ($(UNAME_S),Darwin)    	
+       	CC           ?= clang
+       	CFLAGS  ?= -I. -I../db -Wall -O0 -g
+       	LDFLAGS ?= ../db/libsophia.a
+    endif
+
 RM      ?= rm
-CFLAGS  ?= -I. -I../db -Wall -pthread -O0 -g
-LDFLAGS ?= -pthread ../db/libsophia.a
 all: clean i common recover merge concurrent transaction crash limit
 common: common.o
 	$(CC) common.o $(LDFLAGS) -o common
