@@ -886,5 +886,6 @@ main(int argc, char *argv[])
 	test(fetch_after_end);
 	test(cursor_set);
 	test(error_nonfatal);
+
 	return 0;
 }

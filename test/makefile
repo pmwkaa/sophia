@@ -3,7 +3,7 @@ CC      ?= gcc
 RM      ?= rm
 CFLAGS  ?= -I. -I../db -Wall -pthread -O0 -g
 LDFLAGS ?= -pthread ../db/libsophia.a
-all: clean i common recover merge concurrent transaction crash limit
+all: clean i common recover merge concurrent transaction crash limit issues
 common: common.o
 	$(CC) common.o $(LDFLAGS) -o common
 recover: recover.o
@@ -18,6 +18,8 @@ transaction: transaction.o
 	$(CC) transaction.o $(LDFLAGS) -o transaction
 limit: limit.o
 	$(CC) limit.o $(LDFLAGS) -o limit
+issues: issues.o
+	$(CC) issues.o $(LDFLAGS) -o issues
 i: i.o
 	$(CC) i.o $(LDFLAGS) -o i
 .c.o:
@@ -25,7 +27,7 @@ i: i.o
 clean:
 	$(RM) -f common.o common recover.o recover merge.o merge
 	$(RM) -f crash.o crash i.o i concurrent.o concurrent
-	$(RM) -f transaction.o transaction limit.o limit
+	$(RM) -f transaction.o transaction limit.o limit issues.o issues
 test:
 	$(VALGRIND) ./i
 	$(VALGRIND) ./common
@@ -34,4 +36,5 @@ test:
 	$(VALGRIND) ./crash
 	$(VALGRIND) ./transaction
 	$(VALGRIND) ./limit
+	$(VALGRIND) ./issues
 	./concurrent
