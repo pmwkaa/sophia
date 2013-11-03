@@ -331,6 +331,24 @@ cursor(void) {
 }
 
 static void
+cursor_set(void) {
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_ctl(env, SPDIR, SPO_CREAT|SPO_RDWR, dbrep) == 0 );
+	t( sp_ctl(env, SPCMP, cmp, NULL) == 0 );
+	void *db = sp_open(env);
+	t( db != NULL );
+	void *cur = sp_cursor(db, SPGTE, NULL, 0);
+	t( cur != NULL );
+	uint32_t k = 1;
+	t( sp_set(db, &k, sizeof(k), &k, sizeof(k)) == -1 );
+	t( sp_destroy(cur) == 0 );
+	t( sp_destroy(db) == 0 );
+	t( sp_destroy(env) == 0 );
+	t( rmrf(dbrep) == 0 );
+}
+
+static void
 fetch_gte_empty(void) {
 	void *env = sp_env();
 	t( env != NULL );
@@ -808,37 +826,441 @@ fetch_after_end(void) {
 }
 
 static void
-cursor_set(void) {
+fetch_kgte_random(void) {
 	void *env = sp_env();
 	t( env != NULL );
 	t( sp_ctl(env, SPDIR, SPO_CREAT|SPO_RDWR, dbrep) == 0 );
 	t( sp_ctl(env, SPCMP, cmp, NULL) == 0 );
+	t( sp_ctl(env, SPPAGE, 64) == 0 );
+	t( sp_ctl(env, SPMERGE, 0) == 0 );
+	t( sp_ctl(env, SPMERGEWM, 256) == 0 );
 	void *db = sp_open(env);
 	t( db != NULL );
-	void *cur = sp_cursor(db, SPGTE, NULL, 0);
-	t( cur != NULL );
-	uint32_t k = 1;
-	t( sp_set(db, &k, sizeof(k), &k, sizeof(k)) == -1 );
-	t( sp_destroy(cur) == 0 );
+
+	uint32_t k = 0;
+	while (k < 1024) {
+		t( sp_set(db, &k, sizeof(k), &k, sizeof(k)) == 0 );
+		k++;
+	}
+
+	k = 0;
+	while (k < 1024) {
+		void *cur = sp_cursor(db, SPGTE, &k, sizeof(k));
+		t( cur != NULL );
+		uint32_t n = 0;
+		while (sp_fetch(cur)) {
+			t( *(uint32_t*)sp_key(cur) == k + n );
+			t( *(uint32_t*)sp_value(cur) == k + n );
+			n++;
+		}
+		t( sp_destroy(cur) == 0 );
+		t( n == (1024 - k) );
+		k++;
+	}
+
 	t( sp_destroy(db) == 0 );
 	t( sp_destroy(env) == 0 );
 	t( rmrf(dbrep) == 0 );
 }
 
 static void
-error_nonfatal(void) {
+fetch_kgte_random_merge(void) {
 	void *env = sp_env();
 	t( env != NULL );
 	t( sp_ctl(env, SPDIR, SPO_CREAT|SPO_RDWR, dbrep) == 0 );
 	t( sp_ctl(env, SPCMP, cmp, NULL) == 0 );
+	t( sp_ctl(env, SPPAGE, 64) == 0 );
+	t( sp_ctl(env, SPMERGE, 0) == 0 );
+	t( sp_ctl(env, SPMERGEWM, 256) == 0 );
 	void *db = sp_open(env);
 	t( db != NULL );
-	uint32_t k = 1, v = 1;
-	t( sp_set(db, &k, sizeof(k), &v, sizeof(v)) == 0);
-	t( sp_set(db, &k, UINT16_MAX + 1 , &v, sizeof(v)) == -1);
-	t( sp_error(db) != NULL );
-	t( sp_set(db, &k, sizeof(k), &v, sizeof(v)) == 0);
-	t( sp_error(db) == NULL );
+
+	uint32_t k = 0;
+	while (k < 512) {
+		t( sp_set(db, &k, sizeof(k), &k, sizeof(k)) == 0 );
+		k++;
+	}
+
+	t( sp_ctl(db, SPMERGEFORCE) == 0 );
+
+	while (k < 1024) {
+		t( sp_set(db, &k, sizeof(k), &k, sizeof(k)) == 0 );
+		k++;
+	}
+
+	k = 0;
+	while (k < 1024) {
+		void *cur = sp_cursor(db, SPGTE, &k, sizeof(k));
+		t( cur != NULL );
+		uint32_t n = 0;
+		while (sp_fetch(cur)) {
+			t( *(uint32_t*)sp_key(cur) == k + n );
+			t( *(uint32_t*)sp_value(cur) == k + n );
+			n++;
+		}
+		t( sp_destroy(cur) == 0 );
+		t( n == (1024 - k) );
+		k++;
+	}
+
+	t( sp_destroy(db) == 0 );
+	t( sp_destroy(env) == 0 );
+	t( rmrf(dbrep) == 0 );
+}
+
+static void
+fetch_kgte_random_merge_rev(void) {
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_ctl(env, SPDIR, SPO_CREAT|SPO_RDWR, dbrep) == 0 );
+	t( sp_ctl(env, SPCMP, cmp, NULL) == 0 );
+	t( sp_ctl(env, SPPAGE, 64) == 0 );
+	t( sp_ctl(env, SPMERGE, 0) == 0 );
+	t( sp_ctl(env, SPMERGEWM, 256) == 0 );
+	void *db = sp_open(env);
+	t( db != NULL );
+
+	uint32_t k = 512;
+	while (k < 1024) {
+		t( sp_set(db, &k, sizeof(k), &k, sizeof(k)) == 0 );
+		k++;
+	}
+
+	t( sp_ctl(db, SPMERGEFORCE) == 0 );
+
+	k = 0;
+	while (k < 512) {
+		t( sp_set(db, &k, sizeof(k), &k, sizeof(k)) == 0 );
+		k++;
+	}
+
+	k = 0;
+	while (k < 1024) {
+		void *cur = sp_cursor(db, SPGTE, &k, sizeof(k));
+		t( cur != NULL );
+		uint32_t n = 0;
+		while (sp_fetch(cur)) {
+			t( *(uint32_t*)sp_key(cur) == k + n );
+			t( *(uint32_t*)sp_value(cur) == k + n );
+			n++;
+		}
+		t( sp_destroy(cur) == 0 );
+		t( n == (1024 - k) );
+		k++;
+	}
+
+	t( sp_destroy(db) == 0 );
+	t( sp_destroy(env) == 0 );
+	t( rmrf(dbrep) == 0 );
+}
+
+static void
+fetch_klte_random(void) {
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_ctl(env, SPDIR, SPO_CREAT|SPO_RDWR, dbrep) == 0 );
+	t( sp_ctl(env, SPCMP, cmp, NULL) == 0 );
+	t( sp_ctl(env, SPPAGE, 64) == 0 );
+	t( sp_ctl(env, SPMERGE, 0) == 0 );
+	t( sp_ctl(env, SPMERGEWM, 256) == 0 );
+	void *db = sp_open(env);
+	t( db != NULL );
+
+	int32_t k = 0;
+	while (k < 1024) {
+		t( sp_set(db, &k, sizeof(k), &k, sizeof(k)) == 0 );
+		k++;
+	}
+
+	k = 1023;
+	while (k >= 0) {
+		void *cur = sp_cursor(db, SPLTE, &k, sizeof(k));
+		t( cur != NULL );
+		uint32_t n = 0;
+		while (sp_fetch(cur)) {
+			t( *(uint32_t*)sp_key(cur) == k - n );
+			t( *(uint32_t*)sp_value(cur) == k - n );
+			n++;
+		}
+		t( sp_destroy(cur) == 0 );
+		t( n == (k + 1) );
+		k--;
+	}
+
+	t( sp_destroy(db) == 0 );
+	t( sp_destroy(env) == 0 );
+	t( rmrf(dbrep) == 0 );
+}
+
+static void
+fetch_klte_random_merge(void) {
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_ctl(env, SPDIR, SPO_CREAT|SPO_RDWR, dbrep) == 0 );
+	t( sp_ctl(env, SPCMP, cmp, NULL) == 0 );
+	t( sp_ctl(env, SPPAGE, 64) == 0 );
+	t( sp_ctl(env, SPMERGE, 0) == 0 );
+	t( sp_ctl(env, SPMERGEWM, 256) == 0 );
+	void *db = sp_open(env);
+	t( db != NULL );
+
+	int32_t k = 0;
+	while (k < 512) {
+		t( sp_set(db, &k, sizeof(k), &k, sizeof(k)) == 0 );
+		k++;
+	}
+
+	t( sp_ctl(db, SPMERGEFORCE) == 0 );
+
+	while (k < 1024) {
+		t( sp_set(db, &k, sizeof(k), &k, sizeof(k)) == 0 );
+		k++;
+	}
+
+	k = 1023;
+	while (k >= 0) {
+		void *cur = sp_cursor(db, SPLTE, &k, sizeof(k));
+		t( cur != NULL );
+		uint32_t n = 0;
+		while (sp_fetch(cur)) {
+			t( *(uint32_t*)sp_key(cur) == k - n );
+			t( *(uint32_t*)sp_value(cur) == k - n );
+			n++;
+		}
+		t( sp_destroy(cur) == 0 );
+		t( n == (k + 1) );
+		k--;
+	}
+
+	t( sp_destroy(db) == 0 );
+	t( sp_destroy(env) == 0 );
+	t( rmrf(dbrep) == 0 );
+}
+
+static void
+fetch_klte_random_merge_rev(void) {
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_ctl(env, SPDIR, SPO_CREAT|SPO_RDWR, dbrep) == 0 );
+	t( sp_ctl(env, SPCMP, cmp, NULL) == 0 );
+	t( sp_ctl(env, SPPAGE, 64) == 0 );
+	t( sp_ctl(env, SPMERGE, 0) == 0 );
+	t( sp_ctl(env, SPMERGEWM, 256) == 0 );
+	void *db = sp_open(env);
+	t( db != NULL );
+
+	int32_t k = 512;
+	while (k < 1024) {
+		t( sp_set(db, &k, sizeof(k), &k, sizeof(k)) == 0 );
+		k++;
+	}
+
+	t( sp_ctl(db, SPMERGEFORCE) == 0 );
+
+	k = 0;
+	while (k < 512) {
+		t( sp_set(db, &k, sizeof(k), &k, sizeof(k)) == 0 );
+		k++;
+	}
+
+	k = 1023;
+	while (k >= 0) {
+		void *cur = sp_cursor(db, SPLTE, &k, sizeof(k));
+		t( cur != NULL );
+		uint32_t n = 0;
+		while (sp_fetch(cur)) {
+			t( *(uint32_t*)sp_key(cur) == k - n );
+			t( *(uint32_t*)sp_value(cur) == k - n );
+			n++;
+		}
+		t( sp_destroy(cur) == 0 );
+		t( n == (k + 1) );
+		k--;
+	}
+
+	t( sp_destroy(db) == 0 );
+	t( sp_destroy(env) == 0 );
+	t( rmrf(dbrep) == 0 );
+}
+
+
+static void
+fetch_kgt_random_merge(void) {
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_ctl(env, SPDIR, SPO_CREAT|SPO_RDWR, dbrep) == 0 );
+	t( sp_ctl(env, SPCMP, cmp, NULL) == 0 );
+	t( sp_ctl(env, SPPAGE, 64) == 0 );
+	t( sp_ctl(env, SPMERGE, 0) == 0 );
+	t( sp_ctl(env, SPMERGEWM, 256) == 0 );
+	void *db = sp_open(env);
+	t( db != NULL );
+
+	uint32_t k = 0;
+	while (k < 512) {
+		t( sp_set(db, &k, sizeof(k), &k, sizeof(k)) == 0 );
+		k++;
+	}
+
+	t( sp_ctl(db, SPMERGEFORCE) == 0 );
+
+	while (k < 1024) {
+		t( sp_set(db, &k, sizeof(k), &k, sizeof(k)) == 0 );
+		k++;
+	}
+
+	k = 0;
+	while (k < 1024) {
+		void *cur = sp_cursor(db, SPGT, &k, sizeof(k));
+		t( cur != NULL );
+		uint32_t n = 0;
+		while (sp_fetch(cur)) {
+			t( *(uint32_t*)sp_key(cur) == k + (n + 1));
+			t( *(uint32_t*)sp_key(cur) == k + (n + 1));
+			n++;
+		}
+		t( sp_destroy(cur) == 0 );
+		t( n == (1023 - k) );
+		k++;
+	}
+
+	t( sp_destroy(db) == 0 );
+	t( sp_destroy(env) == 0 );
+	t( rmrf(dbrep) == 0 );
+}
+
+static void
+fetch_kgt_random_merge_rev(void) {
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_ctl(env, SPDIR, SPO_CREAT|SPO_RDWR, dbrep) == 0 );
+	t( sp_ctl(env, SPCMP, cmp, NULL) == 0 );
+	t( sp_ctl(env, SPPAGE, 64) == 0 );
+	t( sp_ctl(env, SPMERGE, 0) == 0 );
+	t( sp_ctl(env, SPMERGEWM, 256) == 0 );
+	void *db = sp_open(env);
+	t( db != NULL );
+
+	uint32_t k = 512;
+	while (k < 1024) {
+		t( sp_set(db, &k, sizeof(k), &k, sizeof(k)) == 0 );
+		k++;
+	}
+
+	t( sp_ctl(db, SPMERGEFORCE) == 0 );
+
+	k = 0;
+	while (k < 512) {
+		t( sp_set(db, &k, sizeof(k), &k, sizeof(k)) == 0 );
+		k++;
+	}
+
+	k = 0;
+	while (k < 1024) {
+		void *cur = sp_cursor(db, SPGT, &k, sizeof(k));
+		t( cur != NULL );
+		uint32_t n = 0;
+		while (sp_fetch(cur)) {
+			t( *(uint32_t*)sp_key(cur) == k + (n + 1));
+			t( *(uint32_t*)sp_key(cur) == k + (n + 1));
+			n++;
+		}
+		t( sp_destroy(cur) == 0 );
+		t( n == (1023 - k) );
+		k++;
+	}
+
+	t( sp_destroy(db) == 0 );
+	t( sp_destroy(env) == 0 );
+	t( rmrf(dbrep) == 0 );
+}
+
+static void
+fetch_klt_random_merge(void) {
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_ctl(env, SPDIR, SPO_CREAT|SPO_RDWR, dbrep) == 0 );
+	t( sp_ctl(env, SPCMP, cmp, NULL) == 0 );
+	t( sp_ctl(env, SPPAGE, 64) == 0 );
+	t( sp_ctl(env, SPMERGE, 0) == 0 );
+	t( sp_ctl(env, SPMERGEWM, 256) == 0 );
+	void *db = sp_open(env);
+	t( db != NULL );
+
+	int32_t k = 0;
+	while (k < 512) {
+		t( sp_set(db, &k, sizeof(k), &k, sizeof(k)) == 0 );
+		k++;
+	}
+
+	t( sp_ctl(db, SPMERGEFORCE) == 0 );
+
+	while (k < 1024) {
+		t( sp_set(db, &k, sizeof(k), &k, sizeof(k)) == 0 );
+		k++;
+	}
+
+	k = 1023;
+	while (k >= 0) {
+		void *cur = sp_cursor(db, SPLT, &k, sizeof(k));
+		t( cur != NULL );
+		uint32_t n = 0;
+		while (sp_fetch(cur)) {
+			t( *(uint32_t*)sp_key(cur) == k - (n + 1));
+			t( *(uint32_t*)sp_value(cur) == k - (n + 1));
+			n++;
+		}
+		t( sp_destroy(cur) == 0 );
+		t( n == k );
+		k--;
+	}
+
+	t( sp_destroy(db) == 0 );
+	t( sp_destroy(env) == 0 );
+	t( rmrf(dbrep) == 0 );
+}
+
+static void
+fetch_klt_random_merge_rev(void) {
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_ctl(env, SPDIR, SPO_CREAT|SPO_RDWR, dbrep) == 0 );
+	t( sp_ctl(env, SPCMP, cmp, NULL) == 0 );
+	t( sp_ctl(env, SPPAGE, 64) == 0 );
+	t( sp_ctl(env, SPMERGE, 0) == 0 );
+	t( sp_ctl(env, SPMERGEWM, 256) == 0 );
+	void *db = sp_open(env);
+	t( db != NULL );
+
+	int32_t k = 512;
+	while (k < 1024) {
+		t( sp_set(db, &k, sizeof(k), &k, sizeof(k)) == 0 );
+		k++;
+	}
+
+	t( sp_ctl(db, SPMERGEFORCE) == 0 );
+
+	k = 0;
+	while (k < 512) {
+		t( sp_set(db, &k, sizeof(k), &k, sizeof(k)) == 0 );
+		k++;
+	}
+
+	k = 1023;
+	while (k >= 0) {
+		void *cur = sp_cursor(db, SPLT, &k, sizeof(k));
+		t( cur != NULL );
+		uint32_t n = 0;
+		while (sp_fetch(cur)) {
+			t( *(uint32_t*)sp_key(cur) == k - (n + 1));
+			t( *(uint32_t*)sp_value(cur) == k - (n + 1));
+			n++;
+		}
+		t( sp_destroy(cur) == 0 );
+		t( n == k );
+		k--;
+	}
+
 	t( sp_destroy(db) == 0 );
 	t( sp_destroy(env) == 0 );
 	t( rmrf(dbrep) == 0 );
@@ -867,6 +1289,7 @@ main(int argc, char *argv[])
 	test(delete);
 	test(delete_set_get);
 	test(cursor);
+	test(cursor_set);
 	test(fetch_gte_empty);
 	test(fetch_gt_empty);
 	test(fetch_lte_empty);
@@ -884,8 +1307,16 @@ main(int argc, char *argv[])
 	test(fetch_klte);
 	test(fetch_klt);
 	test(fetch_after_end);
-	test(cursor_set);
-	test(error_nonfatal);
 
+	test(fetch_kgte_random);
+	test(fetch_kgte_random_merge);
+	test(fetch_kgte_random_merge_rev);
+	test(fetch_klte_random);
+	test(fetch_klte_random_merge);
+	test(fetch_klte_random_merge_rev);
+	test(fetch_kgt_random_merge);
+	test(fetch_kgt_random_merge_rev);
+	test(fetch_klt_random_merge);
+	test(fetch_klt_random_merge_rev);
 	return 0;
 }

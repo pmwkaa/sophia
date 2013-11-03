@@ -305,10 +305,10 @@ sp_iworldcmp(spi *i, char *rkey, int size)
 	/* inside index range */
 	if (l <= 0 && r >= 0)
 		return 0;
-	/* index min < key */
+	/* key > index min */
 	if (l == -1)
 		return -1;
-	/* index max > key */
+	/* key < index max */
 	assert(r == 1);
 	return 1;
 }
@@ -330,8 +330,8 @@ int sp_ilte(spi *i, spii *ii, char *k, int size)
 			break;
 		case  1:
 			ii->i = i;
-			ii->p = i->icount - 1;
-			ii->n = i->i[i->icount - 1]->count - 1;
+			ii->p = 0;
+			ii->n = 0;
 			break;
 		case  0:
 			assert(0);

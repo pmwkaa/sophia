@@ -79,14 +79,10 @@ sp_pagesetlte(spc *c, char *rkey, int size)
 	} else {
 		match = min;
 	}
-	/* not found, set minimal */
-	if (match >= c->ph->count) {
-		c->pv  = (spvh*)((char*)c->ph + sizeof(sppageh));
-		c->pvi = 0;
-	} else {
-		c->pv  = (spvh*)((char*)c->ph + sizeof(sppageh) + c->ph->bsize * match);
-		c->pvi = match;
-	}
+	if (match >= c->ph->count)
+		match = c->ph->count; /* skip */
+	c->pv  = (spvh*)((char*)c->ph + sizeof(sppageh) + c->ph->bsize * match);
+	c->pvi = match;
 	return eq;
 }
 
@@ -102,7 +98,9 @@ sp_pagesetgte(spc *c, char *rkey, int size)
 	} else {
 		match = max;
 	}
-	/* not found, set max */
+	if (match < 0)
+		match = c->ph->count; /* skip */
+	else
 	if (match >= c->ph->count)
 		match = c->ph->count - 1;
 	c->pv  = (spvh*)((char*)c->ph + sizeof(sppageh) + c->ph->bsize * match);
@@ -151,7 +149,7 @@ static inline void sp_first(spc *c)
 }
 
 static inline int
-sp_firstkey(spc *c, char *rkey, int size)
+sp_lte(spc *c, char *rkey, int size)
 {
 	/* do lte search on all indexes for the key */
 	int eq = sp_ilte(c->s->i, &c->i0, rkey, size);
@@ -169,6 +167,8 @@ sp_firstkey(spc *c, char *rkey, int size)
 	assert(p != NULL);
 	sp_pageopen(c, idx);
 	eq = eq + sp_pagesetlte(c, rkey, size);
+	if (spunlikely(c->pvi == c->ph->count))
+		sp_pageclose(c);
 	return eq;
 }
 
@@ -190,7 +190,8 @@ static inline void sp_last(spc *c)
 	sp_pagesetlast(c);
 }
 
-static inline int sp_lastkey(spc *c, char *rkey, int size)
+static inline int
+sp_gte(spc *c, char *rkey, int size)
 {
 	/* do gte search the index for the key */
 	int eq = sp_igte(c->s->i, &c->i0, rkey, size);
@@ -208,6 +209,8 @@ static inline int sp_lastkey(spc *c, char *rkey, int size)
 	assert(p != NULL);
 	sp_pageopen(c, idx);
 	eq = eq + sp_pagesetgte(c, rkey, size);
+	if (spunlikely(c->pvi == c->ph->count))
+		sp_pageclose(c);
 	return eq;
 }
 
@@ -236,7 +239,7 @@ void sp_cursoropen(spc *c, sp *s, sporder o, char *rkey, int size)
 	case SPGT:
 		if (rkey) {
 			/* init first key and skip on gt */
-			if (sp_firstkey(c, rkey, size) && o == SPGT)
+			if (sp_lte(c, rkey, size) && o == SPGT)
 				sp_iterate(c);
 			return;
 		}
@@ -246,7 +249,7 @@ void sp_cursoropen(spc *c, sp *s, sporder o, char *rkey, int size)
 	case SPLT:
 		if (rkey) {
 			/* init last key and skip on lt */
-			if (sp_lastkey(c, rkey, size) && o == SPLT)
+			if (sp_gte(c, rkey, size) && o == SPLT)
 				sp_iterate(c);
 			return;
 		}
