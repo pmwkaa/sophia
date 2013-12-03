@@ -40,7 +40,7 @@ $(TARGET_DSO): clean $(OBJS)
 .c.o:
 	$(CC) $(CFLAGS) -c $<
 
-install:
+install: ALL
 	mkdir -p $(PREFIX)/include/sophia
 	install *.h $(PREFIX)/include/sophia
 	mkdir -p $(PREFIX)/lib
