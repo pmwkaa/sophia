@@ -41,12 +41,12 @@ $(TARGET_DSO): clean $(OBJS)
 	$(CC) $(CFLAGS) -c $<
 
 install:
-	mkdir -p $(PREFIX)/include
-	install sophia.h $(PREFIX)/include
+	mkdir -p $(PREFIX)/include/sophia
+	install *.h $(PREFIX)/include/sophia
 	mkdir -p $(PREFIX)/lib
 	install $(TARGET_STATIC) $(TARGET_DSOLIB) $(PREFIX)/lib
-	$(LN) -s $(PREFIX)/lib/$(TARGET_DSOLIB) $(PREFIX)/lib/$(TARGET_DSO)
-	$(LN) -s $(PREFIX)/lib/$(TARGET_DSOLIB) $(PREFIX)/lib/$(TARGET_DSO).$(VERMAJOR)
+	$(LN) -sf $(PREFIX)/lib/$(TARGET_DSOLIB) $(PREFIX)/lib/$(TARGET_DSO)
+	$(LN) -sf $(PREFIX)/lib/$(TARGET_DSOLIB) $(PREFIX)/lib/$(TARGET_DSO).$(VERMAJOR)
 
 clean:
 	$(RM) -f $(OBJS) $(TARGET_STATIC) $(TARGET_DSOLIB)

@@ -7,7 +7,7 @@
  * BSD License
 */
 
-#include <sp.h>
+#include "sp.h"
 
 void sp_repinit(sprep *r, spa *a) {
 	sp_listinit(&r->l);
@@ -110,14 +110,14 @@ void sp_repset(sprep *r, spepoch *e, spepochtype t) {
 		if (e->type == SPDB)
 			r->ndb--;
 		break;
-	case SPLIVE:	
+	case SPLIVE:
 		assert(e->type == SPUNDEF);
 		break;
-	case SPXFER:	
+	case SPXFER:
 		assert(e->type == SPLIVE || e->type == SPUNDEF);
 		r->nxfer++;
 		break;
-	case SPDB:	
+	case SPDB:
 		assert(e->type == SPXFER || e->type == SPUNDEF);
 		if (e->type == SPXFER)
 			r->nxfer--;

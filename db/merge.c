@@ -7,7 +7,7 @@
  * BSD License
 */
 
-#include <sp.h>
+#include "sp.h"
 
 typedef struct {
 	uint32_t count;
@@ -19,7 +19,7 @@ static inline void
 sp_mergeget0(spii *pos, uint32_t n, spupdate0 *u)
 {
 	memset(u, 0, sizeof(*u));
-	/* 
+	/*
 	 * collect n or less versions for scheduled page write,
 	 * not marked as delete, calculate page size and the
 	 * block size.
@@ -71,7 +71,7 @@ static inline int sp_merge0(sp *s, spepoch *x, spi *index)
 		 *
 		 * [header] [keys (block sized)] [values]
 		 *
-		 * Use partly precalculated crc for a version. 
+		 * Use partly precalculated crc for a version.
 		*/
 		sppageh *h = (sppageh*)(x->db.map + x->db.used);
 		h->id    = ++s->psn;
@@ -562,7 +562,7 @@ int sp_merge(sp *s)
 	sp_unlock(&s->lockr);
 	sp_unlock(&s->locki);
 
-	/* complete old live epoch log */ 
+	/* complete old live epoch log */
 	rc = sp_logeof(&x->log);
 	if (spunlikely(rc == -1))
 		return sp_em(s, SPEIO|SPEF, x->epoch, "failed to write eof marker");

@@ -7,7 +7,7 @@
  * BSD License
 */
 
-#include <sp.h>
+#include "sp.h"
 
 static inline void
 sp_pageopen(spc *c, uint32_t page)
@@ -457,7 +457,7 @@ int sp_iterate(spc *c) {
 			break;
 		}
 	} while (rc > 0 && sp_refisdel(&c->r));
-	
+
 	return rc;
 }
 

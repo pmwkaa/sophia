@@ -7,7 +7,7 @@
  * BSD License
 */
 
-#include <sp.h>
+#include "sp.h"
 
 static inline int sphot
 cmpstd(char *a, size_t asz, char *b, size_t bsz, void *arg spunused) {
@@ -47,7 +47,7 @@ static inline int sp_envvalidate(spenv *e)
 {
 	/* check if environment is not already
 	 * in use.
-	 * do not set other environment error status 
+	 * do not set other environment error status
 	 * in that case.
 	 */
 	if (e->inuse)
@@ -588,7 +588,7 @@ sp_do(sp *s, int op, void *k, size_t ksize, void *v, size_t vsize)
 	/* allocate new version.
 	 *
 	 * try to reduce lock contention by making the alloc and
-	 * the crc calculation before log write. 
+	 * the crc calculation before log write.
 	*/
 	spv *n = sp_vnewv(s, k, ksize, v, vsize);
 	if (spunlikely(n == NULL))
@@ -599,7 +599,7 @@ sp_do(sp *s, int op, void *k, size_t ksize, void *v, size_t vsize)
 		.size    = ksize,
 		.voffset = 0,
 		.vsize   = vsize,
-		.flags   = op 
+		.flags   = op
 	};
 	/* calculate crc */
 	uint32_t crc;

@@ -11,10 +11,10 @@
  * Copyright (c) 2008-2010 Massachusetts Institute of Technology
  * Copyright (c) 2004-2006 Intel Corporation
  *
- * This software program is licensed subject to the BSD License, 
+ * This software program is licensed subject to the BSD License,
  * available at http://www.opensource.org/licenses/bsd-license.html
 */
-#include <sp.h>
+#include "sp.h"
 
 static const uint32_t crc_tableil8_o32[256] =
 {
@@ -317,7 +317,7 @@ uint32_t sp_crc32c(uint32_t crc, const void *buf, int len)
 
 	len -= initial_bytes;
 	int running_len = len & ~(sizeof(uint64_t) - 1);
-	int end_bytes = len - running_len; 
+	int end_bytes = len - running_len;
 
 	for (li = 0; li < running_len / 8; li++) {
 		crc ^= *(uint32_t*)p_buf;
@@ -326,7 +326,7 @@ uint32_t sp_crc32c(uint32_t crc, const void *buf, int len)
 		                 crc_tableil8_o80[(crc >> 8) & 0x000000FF];
 		uint32_t term2 = crc >> 16;
 		crc = term1 ^
-		      crc_tableil8_o72[term2 & 0x000000FF] ^ 
+		      crc_tableil8_o72[term2 & 0x000000FF] ^
 		      crc_tableil8_o64[(term2 >> 8) & 0x000000FF];
 		term1 = crc_tableil8_o56[(*(uint32_t*)p_buf) & 0x000000FF] ^
 		        crc_tableil8_o48[((*(uint32_t*)p_buf) >> 8) & 0x000000FF];
