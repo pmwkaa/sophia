@@ -1,4 +1,3 @@
-
 # sophia makefile.
 #
 
@@ -12,6 +11,7 @@ VERMINOR      = 1
 TARGET_STATIC = libsophia.a
 TARGET_DSOLIB = libsophia.so.$(VERMAJOR).$(VERMINOR)
 TARGET_DSO    = libsophia.so
+PREFIX       ?= /usr/local
 CFLAGS       ?= -I. -pthread -std=c99 -pedantic -Wextra -Wall -march=native -fPIC -fvisibility=hidden -O2 -DNDEBUG
 LDFLAGS      ?= -shared -soname $(TARGET_DSO).$(VERMAJOR)
 
@@ -35,13 +35,20 @@ $(TARGET_STATIC): clean $(OBJS)
 
 $(TARGET_DSO): clean $(OBJS)
 	$(LD) $(OBJS) $(LDFLAGS) -o $(TARGET_DSOLIB)
-	$(LN) -s $(TARGET_DSOLIB) $(TARGET_DSO).$(VERMAJOR)
-	$(LN) -s $(TARGET_DSOLIB) $(TARGET_DSO)
-	$(STRIP) --strip-unneeded $(TARGET_DSO)
+	$(STRIP) --strip-unneeded $(TARGET_DSOLIB)
 
 .c.o:
 	$(CC) $(CFLAGS) -c $<
 
+install:
+	mkdir -p $(PREFIX)/include
+	install sophia.h $(PREFIX)/include
+	mkdir -p $(PREFIX)/lib
+	install $(TARGET_STATIC) $(TARGET_DSOLIB) $(PREFIX)/lib
+	$(LN) -s $(PREFIX)/lib/$(TARGET_DSOLIB) $(PREFIX)/lib/$(TARGET_DSO)
+	$(LN) -s $(PREFIX)/lib/$(TARGET_DSOLIB) $(PREFIX)/lib/$(TARGET_DSO).$(VERMAJOR)
+
 clean:
-	$(RM) -f $(OBJS) $(TARGET_STATIC)
-	$(RM) -f $(TARGET_DSOLIB) $(TARGET_DSO).$(VERMAJOR) $(TARGET_DSO)
+	$(RM) -f $(OBJS) $(TARGET_STATIC) $(TARGET_DSOLIB)
+
+.PHONY: install clean
