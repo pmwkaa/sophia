@@ -334,7 +334,12 @@ int sp_ilte(spi *i, spii *ii, char *k, int size)
 			ii->n = 0;
 			break;
 		case  0:
-			assert(0);
+			if (spunlikely(a >= i->icount))
+				a = i->icount - 1;
+			ii->i = i;
+			ii->p = a;
+			ii->n = 0;
+			break;
 		}
 		return 0;
 	}
@@ -367,7 +372,12 @@ int sp_igte(spi *i, spii *ii, char *k, int size)
 			sp_iinv(i, ii);
 			break;
 		case  0:
-			assert(0);
+			if (spunlikely(a >= i->icount))
+				a = i->icount - 1;
+			ii->i = i;
+			ii->p = a;
+			ii->n = i->i[a]->count - 1;
+			break;
 		}
 		return 0;
 	}

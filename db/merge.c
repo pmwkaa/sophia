@@ -326,6 +326,7 @@ static inline int sp_split(sp *s, spupdate *u, spmerge *m, spsplit *l)
 	int bsize = m->b_bsize;
 	uint32_t pagesize = sizeof(sppageh);
 	uint32_t count = 0;
+
 	/*
 	 * merge in-memory keys with the origin page keys,
 	 * skip any deletes and calculate result

@@ -212,14 +212,15 @@ int sp_mapcomplete(spfile *f)
 
 int sp_mapensure(spfile *f, uint64_t size, float grow)
 {
-	if (splikely((f->used + size) < f->size))
+	if (splikely((f->used + size) <= f->size))
 		return 0;
 	int rc = sp_unmap(f);
 	if (spunlikely(rc == -1))
 		return -1;
-	long double nsz = f->size * grow;
+	uint64_t nsz = f->used + f->size * grow;
 	if (spunlikely(nsz < size))
-		nsz = size;
+		nsz = f->used + size;
+	assert(nsz >= (f->used + size));
 	rc = sp_mapresize(f, nsz);
 	if (spunlikely(rc == -1))
 		return -1;
