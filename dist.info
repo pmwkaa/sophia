@@ -1,0 +1,10 @@
+--- This file is part of LuaDist project
+
+name = "libsophia"
+version = "1.1-rc1"
+
+author = "Dmitry Simonenko"
+desc = "Sophia is a modern embeddable key-value database designed for a high load environment"
+url = "http://sphia.org/"
+license = "BSD"
+maintainer = "Michal Kottman"
