@@ -44,6 +44,34 @@ gh_5(void) {
 }
 
 static void
+gh_29(void) {
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_ctl(env, SPDIR, SPO_CREAT|SPO_RDWR, dbrep) == 0 );
+	void *db = sp_open(env);
+	t( db != NULL );
+	int i;
+	for (i = 1; i <= 10; i++)  {
+		char key[4];
+		int len = snprintf(key, sizeof(key), "%d", i);
+		t( sp_set(db, key, len, key, len) == 0 );
+	}
+	for (i = 1; i <= 10; i++) {
+		char key[4];
+		int len = snprintf(key, sizeof(key), "%d", i);
+		size_t vsize = 0;
+		void *vp = NULL;
+		t( sp_get(db, key, len, &vp, &vsize) == 1 );
+		t( vsize == len );
+		t( memcmp(key, vp, len) == 0 );
+		free(vp);
+	}
+	t( sp_destroy(db) == 0 );
+	t( sp_destroy(env) == 0 );
+	t( rmrf(dbrep) == 0 );
+}
+
+static void
 gh_37(void)
 {
 	const int size = 999;
@@ -95,6 +123,7 @@ main(int argc, char *argv[])
 	rmrf(dbrep);
 
 	test(gh_5);
+	test(gh_29);
 	test(gh_37);
 	return 0;
 }

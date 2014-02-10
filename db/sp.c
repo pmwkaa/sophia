@@ -13,7 +13,9 @@ static inline int sphot
 cmpstd(char *a, size_t asz, char *b, size_t bsz, void *arg spunused) {
 	register size_t sz = (asz < bsz ? asz : bsz);
 	register int rc = memcmp(a, b, sz);
-	return (rc == 0 ? rc : (rc > 0 ? 1 : -1));
+	if (rc == 0)
+		return (asz == bsz) ? 0 : (asz > bsz ? 1 : -1);
+	return rc > 0 ? 1 : -1;
 }
 
 static inline void sp_envinit(spenv *e) {
