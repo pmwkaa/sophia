@@ -12,7 +12,7 @@ VERMINOR      = 1
 TARGET_STATIC = libsophia.a
 TARGET_DSOLIB = libsophia.so.$(VERMAJOR).$(VERMINOR)
 TARGET_DSO    = libsophia.so
-CFLAGS       ?= -I. -pthread -std=c99 -pedantic -Wextra -Wall -march=native -fPIC -fvisibility=hidden -O2 -DNDEBUG
+CFLAGS       ?= -I. -pthread -std=c99 -pedantic -Wextra -Wall -fPIC -fvisibility=hidden -O2 -DNDEBUG
 LDFLAGS      ?= -shared -soname $(TARGET_DSO).$(VERMAJOR)
 
 OBJS =  file.o \
