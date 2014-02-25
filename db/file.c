@@ -158,14 +158,12 @@ sp_fileclose(spfile *f)
 static inline int
 sp_filecomplete(spfile *f)
 {
-	if (f->creat == 0)
-		return 0;
-	/* remove .incomplete part */
 	f->creat = 0;
 	char path[1024];
 	snprintf(path, sizeof(path), "%s", f->file);
-	char *ext = strrchr(path, '.');
-	assert(ext != NULL);
+	char *ext = strstr(path, ".incomplete");
+	if (spunlikely(ext == NULL))
+		return 0;
 	*ext = 0;
 	int rc = rename(f->file, path);
 	if (spunlikely(rc == -1))
