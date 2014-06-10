@@ -101,6 +101,11 @@
       'direct_dependent_settings': {
         'include_dirs': ['db'],
       },
+      'conditions': [
+        ['sophia_library=="shared_library"', {
+            'cflags': [ '-fPIC' ],
+        }],
+      ],
       'sources': [
         'db/cat.c',
         'db/crc.c',
