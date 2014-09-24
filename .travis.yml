@@ -1,0 +1,14 @@
+language: c
+compiler:
+  - clang
+  - gcc
+
+branches:
+  only:
+    - dev
+
+script:
+  - make
+  - cd test
+  - make
+  - make test
