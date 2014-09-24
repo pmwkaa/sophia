@@ -1,0 +1,16 @@
+LIBSR_O = sr_crc.o \
+          sr_cmp.o \
+          sr_rb.o \
+          sr_histogram.o \
+          sr_bufiter.o \
+          sr_thread.o \
+          sr_ctl.o \
+          sr_file.o \
+          sr_dir.o \
+          sr_map.o
+LIBSR_OBJECTS = $(addprefix rt/, $(LIBSR_O))
+OBJECTS = $(LIBSR_O)
+ifndef buildworld
+  include ../build/config
+  include ../build/lib
+endif

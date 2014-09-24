@@ -1,0 +1,47 @@
+
+# sophia build configuration
+#
+
+SOPHIA_VMAJOR   = 1
+SOPHIA_VMINOR   = 2
+SOPHIA_DIRS     = rt version mvcc log database index sophia
+SOPHIA_STATIC   = libsophia.a
+SOPHIA_DSOLIB   = libsophia.so.$(SOPHIA_VMAJOR).$(SOPHIA_VMINOR)
+SOPHIA_DSO      = libsophia.so
+SOPHIA_OUTPUT   = sophia
+
+CC             ?= gcc
+AR              = ar
+RM              = rm
+LN              = ln
+STRIP           = strip
+
+E               = @echo
+ifndef VERBOSE
+Q               = @
+endif
+
+ifndef buildworld
+INCLUDE_A       =
+INCLUDE_B       = $(addprefix -I../, $(SOPHIA_DIRS))
+INCLUDE_C       = -I../
+INCLUDE         = $(INCLUDE_A) $(INCLUDE_B) $(INCLUDE_C)
+else
+INCLUDE_A       = $(addprefix -I, $(SOPHIA_DIRS))
+INCLUDE_B       = 
+INCLUDE         = $(INCLUDE_A) $(INCLUDE_B)
+endif
+CFLAGS_INCLUDE  = -pthread $(INCLUDE)
+CFLAGS_DEBUG    = -g
+CFLAGS_OPT      = -O0
+CFLAGS_STRICT   = -std=c99 -pedantic -Wextra -Wall
+CFLAGS_MISC     = -march=native -fPIC -fvisibility=hidden
+CFLAGS_SOPHIA   = $(CFLAGS_INCLUDE) \
+                  $(CFLAGS_OPT) \
+                  $(CFLAGS_DEBUG) \
+                  $(CFLAGS_STRICT) \
+                  $(CFLAGS_MISC) \
+                  $(CFLAGS)
+LDFLAGS_SOPHIA ?= -shared -soname $(SOPHIA_DSO).$(SOPHIA_VMAJOR) $(LDFLAGS)
+
+# vim: syntax=make

@@ -1,0 +1,17 @@
+LIBSI_O = si_node.o \
+          si_plan.o \
+          si.o \
+          si_qos.o \
+          si_commit.o \
+          si_query.o \
+          si_iter.o \
+          si_split.o \
+          si_branch.o \
+          si_merge.o \
+          si_recover.o
+LIBSI_OBJECTS = $(addprefix index/, $(LIBSI_O))
+OBJECTS = $(LIBSI_O)
+ifndef buildworld
+  include ../build/config
+  include ../build/lib
+endif

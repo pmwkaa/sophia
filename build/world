@@ -1,0 +1,58 @@
+
+# sophia makefile
+#
+
+buildworld = 1
+
+include build/config
+include $(addsuffix /makefile, $(SOPHIA_DIRS))
+
+OPLATFORM = $(LIBSR_OBJECTS) \
+            $(LIBSV_OBJECTS) \
+            $(LIBSM_OBJECTS) \
+            $(LIBSL_OBJECTS) \
+            $(LIBSD_OBJECTS) \
+            $(LIBSI_OBJECTS) \
+            $(SOPHIA_OBJECTS)
+O = $(OPLATFORM)
+
+all: banner static_build dynamic_build
+
+banner:
+	$(E) "SOPHIA v$(SOPHIA_VMAJOR).$(SOPHIA_VMINOR)"
+	$(E) \(cflags $(CFLAGS_DEBUG) $(CFLAGS_OPT) $(CFLAGS_STRICT)\)
+	$(E)
+
+static_build: $(O)
+	$(E) "ar   $(SOPHIA_OUTPUT)/$(SOPHIA_STATIC)"
+	$(Q) $(AR) crus $(SOPHIA_OUTPUT)/$(SOPHIA_STATIC) $(O)
+
+static: banner static_build
+
+dynamic_build: $(O)
+	$(E) "ld   $(SOPHIA_OUTPUT)/$(SOPHIA_DSO)"
+	$(Q) $(LD) $(O) $(LDFLAGS_SOPHIA) -o $(SOPHIA_OUTPUT)/$(SOPHIA_DSOLIB)
+	$(Q) $(LN) -sf $(SOPHIA_DSOLIB) $(SOPHIA_OUTPUT)/$(SOPHIA_DSO).$(SOPHIA_VMAJOR)
+	$(Q) $(LN) -sf $(SOPHIA_DSOLIB) $(SOPHIA_OUTPUT)/$(SOPHIA_DSO)
+	$(Q) $(STRIP) --strip-unneeded $(SOPHIA_OUTPUT)/$(SOPHIA_DSOLIB)
+
+dynamic: banner dynamic_build
+
+.c.o:
+	$(E) "cc   $<"
+	$(Q) $(CC) $(CFLAGS_SOPHIA) -c $< -o $@
+
+clean: clean_o clean_static clean_dso
+
+clean_o:
+	$(Q) $(RM) -f $(O)
+
+clean_static:
+	$(Q) $(RM) -f $(SOPHIA_OUTPUT)/$(SOPHIA_STATIC)
+
+clean_dso:
+	$(Q) $(RM) -f $(SOPHIA_OUTPUT)/$(SOPHIA_DSOLIB)
+	$(Q) $(RM) -f $(SOPHIA_OUTPUT)/$(SOPHIA_DSO).$(SOPHIA_VMAJOR)
+	$(Q) $(RM) -f $(SOPHIA_OUTPUT)/$(SOPHIA_DSO)
+
+# vim: syntax=make

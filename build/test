@@ -1,0 +1,35 @@
+
+# sophia test makefile
+#
+
+TEST_O = $(addsuffix .o, $(SOPHIA_TESTS))
+TEST_LIST = $(addsuffix .test, $(SOPHIA_TESTS))
+TEST_CFLAGS = $(CFLAGS_INCLUDE) -I. -I../sophia -pthread -g -O0 -Wall
+
+all: clean $(TEST_O)
+clean:
+	$(Q) $(RM) -f $(TEST_LIST)
+.c.o:
+	$(E) "cc   $*.test"
+	$(Q) $(CC) $(TEST_CFLAGS) $< ../sophia/libsophia.a -lm -o $*.test
+
+test_valgrind:
+	@for test in $(TEST_LIST); do \
+		echo ./$$test; \
+		valgrind --leak-check=full --quiet ./$$test; \
+		if [ $$? -gt 0 ]; then \
+			exit; \
+		fi \
+	done
+test:
+	@for test in $(TEST_LIST); do \
+		echo ./$$test; \
+		$(VALGRIND) ./$$test; \
+		if [ $$? -gt 0 ]; then \
+			exit; \
+		fi \
+	done
+
+.PHONY: test
+
+# vim: syntax=make

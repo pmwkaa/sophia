@@ -1,0 +1,15 @@
+SOPHIA_O = so_worker.o \
+           so.o \
+           so_v.o \
+           so_dbconf.o \
+           so_db.o \
+           so_tx.o \
+           so_cursor.o \
+           so_recover.o \
+           sophia.o
+SOPHIA_OBJECTS = $(addprefix sophia/, $(SOPHIA_O))
+OBJECTS = $(SOPHIA_O)
+ifndef buildworld
+  include ../build/config
+  include ../build/lib
+endif
