@@ -73,7 +73,8 @@ test_seave(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 20 * (sizeof(svv) + sizeof(i)), sizeof(svv), 10);
+	uint64_t limit = 20 * (sizeof(svv) + sizeof(i));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 10ULL);
 
 	i = 0;
 	while (sr_iterhas(&seave)) {
@@ -148,7 +149,8 @@ test_seave_limit(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 5 * (sizeof(svv) + sizeof(i)), sizeof(svv), 18);
+	uint64_t limit = 5 * (sizeof(svv) + sizeof(i));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 18ULL);
 
 	i = 0;
 	while (sr_iterhas(&seave)) {
@@ -260,7 +262,8 @@ test_seave_limit_small(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 1 * (sizeof(svv) + sizeof(i)), sizeof(svv), 18);
+	uint64_t limit = 1 * (sizeof(svv) + sizeof(i));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 18ULL);
 
 	i = 0;
 	while (sr_iterhas(&seave)) {
@@ -388,7 +391,8 @@ test_seave_dup_lsn_gt(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 10 * (sizeof(svv) + sizeof(key)), sizeof(svv), 10);
+	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 10ULL);
 
 	int i = 0;
 	i = 0;
@@ -459,7 +463,8 @@ test_seave_dup_lsn_lt0(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 10 * (sizeof(svv) + sizeof(key)), sizeof(svv), 9);
+	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 9ULL);
 
 	int i = 0;
 	i = 0;
@@ -530,7 +535,8 @@ test_seave_dup_lsn_lt1(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 10 * (sizeof(svv) + sizeof(key)), sizeof(svv), 8);
+	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 8ULL);
 
 	int i = 0;
 	i = 0;
@@ -601,7 +607,8 @@ test_seave_dup_lsn_lt2(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 10 * (sizeof(svv) + sizeof(key)), sizeof(svv), 2);
+	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 2ULL);
 
 	int i = 0;
 	i = 0;
@@ -679,7 +686,8 @@ test_seave_dup_lsn_gt_chain(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 10 * (sizeof(svv) + sizeof(key)), sizeof(svv), 15);
+	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 15ULL);
 
 	checkv(&seave, 10, SVSET, key);
 	sr_iternext(&seave);
@@ -751,7 +759,8 @@ test_seave_dup_lsn_lt0_chain(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 10 * (sizeof(svv) + sizeof(key)) , sizeof(svv), 11);
+	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 11ULL);
 
 	checkv(&seave, 10, SVSET, key);
 	sr_iternext(&seave);
@@ -825,7 +834,8 @@ test_seave_dup_lsn_lt1_chain(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 10 * (sizeof(svv) + sizeof(key)), sizeof(svv), 9);
+	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 9ULL);
 
 	checkv(&seave, 10, SVSET, key);
 	sr_iternext(&seave);
@@ -901,7 +911,8 @@ test_seave_dup_lsn_lt2_chain(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 10 * (sizeof(svv) + sizeof(key)), sizeof(svv), 3);
+	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 3ULL);
 
 	checkv(&seave, 10, SVSET, key);
 	sr_iternext(&seave);
@@ -972,7 +983,8 @@ test_seave_dup_lsn_limit0(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 1 * (sizeof(svv) + sizeof(key)), sizeof(svv), 15);
+	uint64_t limit = 1 * (sizeof(svv) + sizeof(key));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 15ULL);
 
 	checkv(&seave, 10, SVSET, key);
 	sr_iternext(&seave);
@@ -1032,7 +1044,8 @@ test_seave_dup_lsn_limit1(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 1 * (sizeof(svv) + sizeof(key)), sizeof(svv), 9);
+	uint64_t limit = 1 * (sizeof(svv) + sizeof(key));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 9ULL);
 
 	checkv(&seave, 10, SVSET, key);
 	sr_iternext(&seave);
@@ -1093,7 +1106,8 @@ test_seave_dup_lsn_limit2(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 1 * (sizeof(svv) + sizeof(key)), sizeof(svv), 5);
+	uint64_t limit = 1 * (sizeof(svv) + sizeof(key));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 5ULL);
 
 	checkv(&seave, 10, SVSET, key);
 	sr_iternext(&seave);
@@ -1158,7 +1172,8 @@ test_seave_dup_lsn_limit3(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 2 * (sizeof(svv) + sizeof(key)), sizeof(svv), 500);
+	uint64_t limit = 2 * (sizeof(svv) + sizeof(key));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 500ULL);
 
 	t(sr_iterhas(&seave) == 1);
 	checkv(&seave, 412, SVSET, key);
@@ -1220,7 +1235,8 @@ test_seave_dup_lsn_limit4(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 1 * (sizeof(svv) + sizeof(key)), sizeof(svv), 0);
+	uint64_t limit = 1 * (sizeof(svv) + sizeof(k));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 0ULL);
 
 	k = 0;
 	while (sr_iterhas(&seave))
@@ -1289,7 +1305,8 @@ test_seave_dup_lsn_limit5(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 1 * (sizeof(svv) + sizeof(key)), sizeof(svv), 0);
+	uint64_t limit = 1 * (sizeof(svv) + sizeof(k));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 0ULL);
 
 	k = 0;
 	while (sr_iterhas(&seave))
@@ -1357,7 +1374,8 @@ test_seave_delete0(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 10 * (sizeof(svv) + sizeof(key)), sizeof(svv), 10);
+	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 10ULL);
 
 	int i = 0;
 	i = 0;
@@ -1428,7 +1446,8 @@ test_seave_delete1(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 10 * (sizeof(svv) + sizeof(key)), sizeof(svv), 9);
+	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 9ULL);
 
 	int i = 0;
 	i = 0;
@@ -1499,7 +1518,8 @@ test_seave_delete2(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 10 * (sizeof(svv) + sizeof(key)), sizeof(svv), 8);
+	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 8ULL);
 
 	int i = 0;
 	i = 0;
@@ -1570,7 +1590,8 @@ test_seave_delete3(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 10 * (sizeof(svv) + sizeof(key)), sizeof(svv), 7);
+	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 7ULL);
 
 	int i = 0;
 	i = 0;
@@ -1641,7 +1662,8 @@ test_seave_delete4(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 10 * (sizeof(svv) + sizeof(key)), sizeof(svv), 10);
+	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 10ULL);
 
 	int i = 0;
 	i = 0;
@@ -1712,7 +1734,8 @@ test_seave_delete5(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 10 * (sizeof(svv) + sizeof(key)), sizeof(svv), 11);
+	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 11ULL);
 
 	int i = 0;
 	i = 0;
@@ -1786,7 +1809,8 @@ test_seave_delete6(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 10 * (sizeof(svv) + sizeof(key)), sizeof(svv), 13);
+	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 13ULL);
 
 	int i = 0;
 	i = 0;
@@ -1862,7 +1886,8 @@ test_seave_delete7(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 10 * (sizeof(svv) + sizeof(key)), sizeof(svv), 10);
+	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 10ULL);
 
 	int i = 0;
 	i = 0;
@@ -1944,7 +1969,8 @@ test_seave_delete8(void)
 
 	sriter seave;
 	sr_iterinit(&seave, &sv_seaveiter, &r);
-	sr_iteropen(&seave, &merge, 10 * (sizeof(svv) + sizeof(key)), sizeof(svv), 9);
+	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
+	sr_iteropen(&seave, &merge, limit, sizeof(svv), 9ULL);
 
 	int i = 0;
 	i = 0;
