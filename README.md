@@ -4,8 +4,12 @@
 </p>
 <br>
 <br>
-<a href="http://sphia.org">sophia</a> - is a modern embeddable key-value database
-designed for a high load.
+<p align="center">
+	<a href="http://sphia.org">sophia</a> - is a modern embeddable key-value database
+	designed for a high load.
+</p>
+<br>
+<br>
 <br>
 (v1.2 development branch)<br>
 [![Build Status](https://travis-ci.org/pmwkaa/sophia.png?branch=dev)](https://travis-ci.org/pmwkaa/sophia)
