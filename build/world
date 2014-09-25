@@ -20,7 +20,9 @@ all: banner static_build dynamic_build
 
 banner:
 	$(E) "SOPHIA v$(SOPHIA_VMAJOR).$(SOPHIA_VMINOR)"
-	$(E) \(cflags $(CFLAGS_DEBUG) $(CFLAGS_OPT) $(CFLAGS_STRICT)\)
+	$(E)
+	$(E) "cc: $(CC)"
+	$(E) "cflags: $(CFLAGS_DEBUG) $(CFLAGS_OPT) $(CFLAGS_STRICT)"
 	$(E)
 
 static_build: $(O)
