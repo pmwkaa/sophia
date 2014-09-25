@@ -51,19 +51,19 @@ test_lte_empty(void)
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &i, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LTE, &i, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) == 0 );
 	sv *v = sr_iterof(&it);
 	t( v == NULL );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &j, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LTE, &j, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &k, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LTE, &k, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
@@ -97,19 +97,19 @@ test_lte_eq0(void)
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &i, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LTE, &i, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &j, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LTE, &j, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &k, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LTE, &k, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
@@ -143,19 +143,19 @@ test_lte_eq1(void)
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &i, sizeof(int), 3);
+	sr_iteropen(&it, &page, SR_LTE, &i, sizeof(int), 3ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &j, sizeof(int), 1);
+	sr_iteropen(&it, &page, SR_LTE, &j, sizeof(int), 1ULL);
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &k, sizeof(int), 1);
+	sr_iteropen(&it, &page, SR_LTE, &k, sizeof(int), 1ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
@@ -189,19 +189,19 @@ test_lte_eq2(void)
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &i, sizeof(int), 0);
+	sr_iteropen(&it, &page, SR_LTE, &i, sizeof(int), 0ULL);
 	t( sr_iterhas(&it) == 0 );
 	sv *v = sr_iterof(&it);
 	t( v == NULL );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &j, sizeof(int), 0);
+	sr_iteropen(&it, &page, SR_LTE, &j, sizeof(int), 0ULL);
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &k, sizeof(int), 0);
+	sr_iteropen(&it, &page, SR_LTE, &k, sizeof(int), 0ULL);
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
@@ -236,13 +236,13 @@ test_lte_minmax0(void)
 	int min = 6;
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &min, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LTE, &min, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) == 0 );
 	t( sr_iterof(&it) == NULL);
 
 	int max = 16;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &max, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LTE, &max, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
@@ -279,44 +279,44 @@ test_lte_minmax1(void)
 	int min = 6;
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &min, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LTE, &min, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == z);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &min, sizeof(int), 0);
+	sr_iteropen(&it, &page, SR_LTE, &min, sizeof(int), 0ULL);
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
 
 	int max = 16;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &max, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LTE, &max, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &max, sizeof(int), 0);
+	sr_iteropen(&it, &page, SR_LTE, &max, sizeof(int), 0ULL);
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &max, sizeof(int), 2);
+	sr_iteropen(&it, &page, SR_LTE, &max, sizeof(int), 2ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &max, sizeof(int), 3);
+	sr_iteropen(&it, &page, SR_LTE, &max, sizeof(int), 3ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &max, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LTE, &max, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
@@ -353,31 +353,31 @@ test_lte_minmax2(void)
 	int max = 16;
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &max, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LTE, &max, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &max, sizeof(int), 3);
+	sr_iteropen(&it, &page, SR_LTE, &max, sizeof(int), 3ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &max, sizeof(int), 2);
+	sr_iteropen(&it, &page, SR_LTE, &max, sizeof(int), 2ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &max, sizeof(int), 1);
+	sr_iteropen(&it, &page, SR_LTE, &max, sizeof(int), 1ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == z);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &max, sizeof(int), 0);
+	sr_iteropen(&it, &page, SR_LTE, &max, sizeof(int), 0ULL);
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL);
@@ -412,21 +412,21 @@ test_lte_mid0(void)
 	int p = 8;
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
 
 	p = 10;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
 
 	p = 555;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
@@ -460,33 +460,33 @@ test_lte_mid1(void)
 	int p = 8;
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 2);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 2ULL);
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
 
 	p = 10;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 1);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 1ULL);
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
 
 	p = 555;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
@@ -519,7 +519,7 @@ test_lte_iterate0(void)
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, NULL, 0, 4);
+	sr_iteropen(&it, &page, SR_LTE, NULL, 0, 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
@@ -567,7 +567,7 @@ test_lte_iterate1(void)
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &k, sizeof(k), 4);
+	sr_iteropen(&it, &page, SR_LTE, &k, sizeof(k), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
@@ -615,19 +615,19 @@ test_lt_eq(void)
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LT, &i, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LT, &i, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) == 0 );
 	sv *v = sr_iterof(&it);
 	t( v == NULL);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LT, &j, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LT, &j, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LT, &k, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LT, &k, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
@@ -661,13 +661,13 @@ test_lt_minmax(void)
 	int min = 7;
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LT, &min, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LT, &min, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) == 0 );
 	t( sr_iterof(&it) == NULL);
 
 	int max = 16;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &max, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LTE, &max, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
@@ -701,21 +701,21 @@ test_lt_mid(void)
 	int p = 8;
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LT, &p, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LT, &p, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
 
 	p = 10;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LT, &p, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LT, &p, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
 
 	p = 555;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LT, &p, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LT, &p, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
@@ -748,7 +748,7 @@ test_lt_iterate0(void)
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LT, NULL, 0, 4);
+	sr_iteropen(&it, &page, SR_LT, NULL, 0, 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
@@ -795,7 +795,7 @@ test_lt_iterate1(void)
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LT, &k, sizeof(k), 4);
+	sr_iteropen(&it, &page, SR_LT, &k, sizeof(k), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
@@ -837,26 +837,26 @@ test_lte_dup_eq(void)
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, NULL, 0, 4);
+	sr_iteropen(&it, &page, SR_LTE, NULL, 0, 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
 	t( svlsn(v) == 3 );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, NULL, 0, 2);
+	sr_iteropen(&it, &page, SR_LTE, NULL, 0, 2ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
 	t( svlsn(v) == 2 ); sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, NULL, 0, 1);
+	sr_iteropen(&it, &page, SR_LTE, NULL, 0, 1ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
 	t( svlsn(v) == 1 );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, NULL, 0, 0);
+	sr_iteropen(&it, &page, SR_LTE, NULL, 0, 0ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
@@ -893,41 +893,41 @@ test_lte_dup_mid(void)
 	int p = 8;
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) == 0 );
 	sv *v = sr_iterof(&it);
 	t( v == NULL );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, NULL, 0, 1);
+	sr_iteropen(&it, &page, SR_LTE, NULL, 0, 1ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 
 	p = 10;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 2);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 2ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j );
 	t( svlsn(v) == 2 );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 3);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 3ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j );
 	t( svlsn(v) == 3 );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j );
 	t( svlsn(v) == 4 );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 10);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 10ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j );
@@ -935,14 +935,14 @@ test_lte_dup_mid(void)
 
 	p = 8;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 8);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 8ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i );
 	t( svlsn(v) == 5 );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, NULL, 0, 4);
+	sr_iteropen(&it, &page, SR_LTE, NULL, 0, 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
@@ -979,47 +979,47 @@ test_lte_dup_mid_gt(void)
 	int p = 16;
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) == 0 );
 	sv *v = sr_iterof(&it);
 	t( v == NULL );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, NULL, 0, 4);
+	sr_iteropen(&it, &page, SR_LTE, NULL, 0, 4ULL);
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 30);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 30ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 	t( svlsn(v) == 30);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 38);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 38ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 	t( svlsn(v) == 30);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 40);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 40ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 	t( svlsn(v) == 40);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 50);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 50ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 	t( svlsn(v) == 50);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &j, sizeof(int), 90);
+	sr_iteropen(&it, &page, SR_LTE, &j, sizeof(int), 90ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
@@ -1057,35 +1057,35 @@ test_lte_dup_mid_lt(void)
 	int p = 6;
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 30);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 30ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 	t( svlsn(v) == 30);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 38);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 38ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 	t( svlsn(v) == 30);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 40);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 40ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 	t( svlsn(v) == 40);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 50);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 50ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 	t( svlsn(v) == 50);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &j, sizeof(int), 90);
+	sr_iteropen(&it, &page, SR_LTE, &j, sizeof(int), 90ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
@@ -1123,7 +1123,7 @@ test_lte_dup_iterate0(void)
 	int p = 100;
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 100);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 100ULL);
 
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
@@ -1179,7 +1179,7 @@ test_lte_dup_iterate1(void)
 	int p = 100;
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 30);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 30ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
@@ -1190,7 +1190,7 @@ test_lte_dup_iterate1(void)
 	t( v == NULL );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 42);
+	sr_iteropen(&it, &page, SR_LTE, &p, sizeof(int), 42ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
@@ -1211,7 +1211,7 @@ test_lte_dup_iterate1(void)
 	t( v == NULL );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_LTE, NULL, 0, 42);
+	sr_iteropen(&it, &page, SR_LTE, NULL, 0, 42ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
@@ -1259,19 +1259,19 @@ test_gte_eq0(void)
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &i, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GTE, &i, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &j, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GTE, &j, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &k, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GTE, &k, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
@@ -1304,19 +1304,19 @@ test_gte_eq1(void)
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &i, sizeof(int), 3);
+	sr_iteropen(&it, &page, SR_GTE, &i, sizeof(int), 3ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &j, sizeof(int), 1);
+	sr_iteropen(&it, &page, SR_GTE, &j, sizeof(int), 1ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &k, sizeof(int), 1);
+	sr_iteropen(&it, &page, SR_GTE, &k, sizeof(int), 1ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
@@ -1349,19 +1349,19 @@ test_gte_eq2(void)
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &i, sizeof(int), 0);
+	sr_iteropen(&it, &page, SR_GTE, &i, sizeof(int), 0ULL);
 	t( sr_iterhas(&it) == 0 );
 	sv *v = sr_iterof(&it);
 	t( v == NULL );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &j, sizeof(int), 0);
+	sr_iteropen(&it, &page, SR_GTE, &j, sizeof(int), 0ULL);
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &k, sizeof(int), 0);
+	sr_iteropen(&it, &page, SR_GTE, &k, sizeof(int), 0ULL);
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
@@ -1395,14 +1395,14 @@ test_gte_minmax0(void)
 	int min = 6;
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &min, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GTE, &min, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
 
 	int max = 16;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &max, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GTE, &max, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
@@ -1438,45 +1438,45 @@ test_gte_minmax1(void)
 	int min = 6;
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &min, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GTE, &min, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &min, sizeof(int), 0);
+	sr_iteropen(&it, &page, SR_GTE, &min, sizeof(int), 0ULL);
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
 
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &min, sizeof(int), 2);
+	sr_iteropen(&it, &page, SR_GTE, &min, sizeof(int), 2ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &min, sizeof(int), 3);
+	sr_iteropen(&it, &page, SR_GTE, &min, sizeof(int), 3ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &min, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GTE, &min, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
 
 	int max = 16;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &max, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GTE, &max, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &max, sizeof(int), 0);
+	sr_iteropen(&it, &page, SR_GTE, &max, sizeof(int), 0ULL);
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
@@ -1512,31 +1512,31 @@ test_gte_minmax2(void)
 	int max = 2;
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &max, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GTE, &max, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == z);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &max, sizeof(int), 3);
+	sr_iteropen(&it, &page, SR_GTE, &max, sizeof(int), 3ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &max, sizeof(int), 2);
+	sr_iteropen(&it, &page, SR_GTE, &max, sizeof(int), 2ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &max, sizeof(int), 1);
+	sr_iteropen(&it, &page, SR_GTE, &max, sizeof(int), 1ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &max, sizeof(int), 0);
+	sr_iteropen(&it, &page, SR_GTE, &max, sizeof(int), 0ULL);
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL);
@@ -1570,28 +1570,28 @@ test_gte_mid0(void)
 	int p = 8;
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
 
 	p = 10;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 
 	p = 2;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
 
 	p = 555;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
@@ -1625,33 +1625,33 @@ test_gte_mid1(void)
 	int p = 8;
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 1);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 1ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 
 	p = 10;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 0);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 0ULL);
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
 
 	p = 1;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
@@ -1684,7 +1684,7 @@ test_gte_iterate0(void)
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, NULL, 0, 4);
+	sr_iteropen(&it, &page, SR_GTE, NULL, 0, 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
@@ -1732,7 +1732,7 @@ test_gte_iterate1(void)
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &i, sizeof(k), 4);
+	sr_iteropen(&it, &page, SR_GTE, &i, sizeof(k), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
@@ -1780,20 +1780,20 @@ test_gt_eq(void)
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GT, &i, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GT, &i, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( v != NULL);
 	t( *(int*)svkey(v) == j);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GT, &j, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GT, &j, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GT, &k, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GT, &k, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
@@ -1827,14 +1827,14 @@ test_gt_minmax(void)
 	int min = 7;
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GT, &min, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GT, &min, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
 
 	int max = 15;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GT, &max, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GT, &max, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
@@ -1868,21 +1868,21 @@ test_gt_mid(void)
 	int p = 8;
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GT, &p, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GT, &p, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
 
 	p = 10;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GT, &p, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GT, &p, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 
 	p = 555;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GT, &p, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GT, &p, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
@@ -1915,7 +1915,7 @@ test_gt_iterate0(void)
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GT, NULL, 0, 4);
+	sr_iteropen(&it, &page, SR_GT, NULL, 0, 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
@@ -1962,7 +1962,7 @@ test_gt_iterate1(void)
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GT, &i, sizeof(i), 4);
+	sr_iteropen(&it, &page, SR_GT, &i, sizeof(i), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
@@ -2004,35 +2004,35 @@ test_gte_dup_eq(void)
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, NULL, 0, 4);
+	sr_iteropen(&it, &page, SR_GTE, NULL, 0, 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
 	t( svlsn(v) == 4 );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, NULL, 0, 3);
+	sr_iteropen(&it, &page, SR_GTE, NULL, 0, 3ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
 	t( svlsn(v) == 3 );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, NULL, 0, 2);
+	sr_iteropen(&it, &page, SR_GTE, NULL, 0, 2ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
 	t( svlsn(v) == 2 );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, NULL, 0, 1);
+	sr_iteropen(&it, &page, SR_GTE, NULL, 0, 1ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
 	t( svlsn(v) == 1 );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, NULL, 0, 0);
+	sr_iteropen(&it, &page, SR_GTE, NULL, 0, 0ULL);
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
@@ -2068,28 +2068,28 @@ test_gte_dup_mid(void)
 	int p = 8;
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
 	t( svlsn(v) == 4 );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, NULL, 0, 1);
+	sr_iteropen(&it, &page, SR_GTE, NULL, 0, 1ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 
 	p = 10;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 2);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 2ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k );
 	t( svlsn(v) == 1 );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 3);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 3ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k );
@@ -2097,28 +2097,28 @@ test_gte_dup_mid(void)
 
 	p = 8;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 8);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 8ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j );
 	t( svlsn(v) == 4 );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 3);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 3ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j );
 	t( svlsn(v) == 3 );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 2);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 2ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j );
 	t( svlsn(v) == 2 );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, NULL, 0, 6);
+	sr_iteropen(&it, &page, SR_GTE, NULL, 0, 6ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
@@ -2155,41 +2155,41 @@ test_gte_dup_mid_gt(void)
 	int p = 6;
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 4);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 4ULL);
 	t( sr_iterhas(&it) == 0 );
 	sv *v = sr_iterof(&it);
 	t( v == NULL );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 30);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 30ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 	t( svlsn(v) == 30);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 38);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 38ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 	t( svlsn(v) == 30);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 40);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 40ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 	t( svlsn(v) == 40);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 50);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 50ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 	t( svlsn(v) == 50);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &j, sizeof(int), 90);
+	sr_iteropen(&it, &page, SR_GTE, &j, sizeof(int), 90ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
@@ -2227,35 +2227,35 @@ test_gte_dup_mid_lt(void)
 	int p = 6;
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 30);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 30ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 	t( svlsn(v) == 30);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 38);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 38ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 	t( svlsn(v) == 30);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 40);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 40ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 	t( svlsn(v) == 40);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 50);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 50ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
 	t( svlsn(v) == 50);
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &j, sizeof(int), 90);
+	sr_iteropen(&it, &page, SR_GTE, &j, sizeof(int), 90ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
@@ -2293,7 +2293,7 @@ test_gte_dup_iterate0(void)
 	int p = 1;
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 100);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 100ULL);
 
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
@@ -2349,7 +2349,7 @@ test_gte_dup_iterate1(void)
 	int p = 1;
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 30);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 30ULL);
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
@@ -2360,7 +2360,7 @@ test_gte_dup_iterate1(void)
 	t( v == NULL );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 42);
+	sr_iteropen(&it, &page, SR_GTE, &p, sizeof(int), 42ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
@@ -2381,7 +2381,7 @@ test_gte_dup_iterate1(void)
 	t( v == NULL );
 
 	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, NULL, 0, 60);
+	sr_iteropen(&it, &page, SR_GTE, NULL, 0, 60ULL);
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);

@@ -3204,6 +3204,57 @@ test_consistency_rewrite2(void)
 	t( sp_destroy(env) == 0 );
 }
 
+static void
+test_delete0(void)
+{
+	rmrf("./test");
+	rmrf("./log");
+
+	void *env = sp_env();
+	t( env != NULL );
+	void *db = sp_storage(env);
+	t( db != NULL );
+	void *conf = sp_ctl(db, "conf");
+	t( conf != NULL );
+	t( sp_set(conf, "storage.logdir", "log") == 0 );
+	t( sp_set(conf, "storage.dir", "test") == 0 );
+	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
+	t( sp_set(conf, "storage.threads", 0) == 0 );
+	t( sp_open(env) == 0 );
+
+	void *c0 = sp_cursor(db, ">=", NULL);
+
+	void *tx = sp_begin(db);
+	int i = 0;
+	while (i < 385) {
+		void *o = sp_object(db);
+		t( o != NULL );
+		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_set(tx, o) == 0 );
+		i++;
+	}
+	sp_commit(tx);
+
+	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
+	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+
+	tx = sp_begin(db);
+	i = 0;
+	while (i < 385) {
+		void *o = sp_object(db);
+		t( o != NULL );
+		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_delete(tx, o) == 0 );
+		i++;
+	}
+	sp_commit(tx);
+
+	t( sp_get(c0) == NULL );
+
+	t( sp_destroy(c0) == 0 );
+	t( sp_destroy(env) == 0 );
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -3254,5 +3305,6 @@ main(int argc, char *argv[])
 	test( test_consistency_rewrite0 );
 	test( test_consistency_rewrite1 );
 	test( test_consistency_rewrite2 );
+	test( test_delete0 );
 	return 0;
 }

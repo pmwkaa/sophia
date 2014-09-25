@@ -15,6 +15,7 @@ SOPHIA_TESTS = \
 	recover_merge_log \
 	recover_merge_logless \
 	recover_branch \
+	recover_loop \
 	svmergeiter \
 	svseaveiter \
 	svindexiter \
@@ -22,7 +23,6 @@ SOPHIA_TESTS = \
 	sditer \
 	sdpageiter \
 	sliter
-#	recover_loop
 
 include ../build/config
 include ../build/test
