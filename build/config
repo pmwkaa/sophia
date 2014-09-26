@@ -35,7 +35,7 @@ CFLAGS_INCLUDE  = -pthread $(INCLUDE)
 CFLAGS_DEBUG    = -g
 CFLAGS_OPT      = -O0
 CFLAGS_STRICT   = -std=c99 -pedantic -Wextra -Wall
-CFLAGS_MISC     = -march=native -fPIC -fvisibility=hidden
+CFLAGS_MISC     = -fPIC -fvisibility=hidden
 CFLAGS_SOPHIA   = $(CFLAGS_INCLUDE) \
                   $(CFLAGS_OPT) \
                   $(CFLAGS_DEBUG) \
