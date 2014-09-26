@@ -206,9 +206,10 @@ so_txget(soobj *obj, va_list args)
 		if (srunlikely(ret == NULL))
 			sv_vfree(&db->e->a, (svv*)result.v);
 		return ret;
-	}
+		}
 	siquery q;
-	si_queryopen(&q, &t->db->r, &t->db->index, SR_EQ, t->t.lsvn,
+	si_queryopen(&q, &t->db->r, &t->db->index, SR_EQ,
+	             t->t.lsvn,
 	             key, svkeysize(&v->v));
 	rc = si_query(&q);
 	if (rc) {

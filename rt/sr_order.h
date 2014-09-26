@@ -16,7 +16,9 @@ typedef enum {
 	SR_GTE,
 	SR_EQ,
 	SR_UPDATE,
-	SR_ROUTE
+	SR_ROUTE,
+	SR_RANDOM,
+	SR_STOP
 } srorder;
 
 #endif

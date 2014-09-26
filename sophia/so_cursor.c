@@ -95,6 +95,8 @@ so_cursorfetch(soobj *o)
 		c->ready = 0;
 		return so_vhas(&c->v);
 	}
+	if (srunlikely(c->order == SR_STOP))
+		return 0;
 	if (srunlikely(! so_vhas(&c->v)))
 		return 0;
 	return so_cursorseek(c, svkey(&c->v.v), svkeysize(&c->v.v));
@@ -157,6 +159,11 @@ soobj *so_cursornew(sodb *db, va_list args)
 	} else
 	if (strcmp(order, "<=") == 0) {
 		cmp = SR_LTE;
+	} else
+	if (strcmp(order, "random") == 0) {
+		cmp = SR_RANDOM;
+		if (srunlikely(keyobj == NULL))
+			goto error;
 	} else {
 		goto error;
 	}
@@ -191,10 +198,12 @@ soobj *so_cursornew(sodb *db, va_list args)
 	srorder o = SR_GTE;
 	switch (c->order) {
 	case SR_LT:
-	case SR_LTE: o = SR_LT;
+	case SR_LTE:    o = SR_LT;
 		break;
 	case SR_GT:
-	case SR_GTE: o = SR_GT;
+	case SR_GTE:    o = SR_GT;
+		break;
+	case SR_RANDOM: o = SR_STOP;
 		break;
 	default: assert(0);
 	}

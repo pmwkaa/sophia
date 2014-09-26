@@ -2405,6 +2405,39 @@ test_gte_dup_iterate1(void)
 }
 
 static void
+test_random0(void)
+{
+	sra a;
+	sr_allocinit(&a, sr_allocstd, NULL);
+	srcomparator cmp = { sr_cmpu32, NULL };
+	sr r;
+	sr_init(&r, &a, NULL, &cmp);
+	sdbuild b;
+	sd_buildinit(&b, &r);
+	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	int i = 0;
+	for (; i < 100; i++)
+		addv(&b, i, SVSET, &i);
+	sd_buildend(&b);
+	sdpage page;
+	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	srand(2341);
+	for (; i < 1000; i++) {
+		uint32_t rnd = rand() % 100;
+		sriter it;
+		sr_iterinit(&it, &sd_pageiter, &r);
+		sr_iteropen(&it, &page, SR_RANDOM, &rnd, sizeof(rnd), UINT64_MAX);
+		t( sr_iterhas(&it) != 0 );
+		sv *v = sr_iterof(&it);
+		t( v != NULL );
+		int k = *(int*)svkey(v);
+		t( k >= 0 && k < 100 );
+		i++;
+	}
+	sd_buildfree(&b);
+}
+
+static void
 test_iterate_raw(void)
 {
 	sra a;
@@ -2494,7 +2527,6 @@ main(int argc, char *argv[])
 	test( test_lte_dup_mid_lt );
 	test( test_lte_dup_iterate0 );
 	test( test_lte_dup_iterate1 );
-
 	test( test_gte_eq0 );
 	test( test_gte_eq1 );
 	test( test_gte_eq2 );
@@ -2516,6 +2548,7 @@ main(int argc, char *argv[])
 	test( test_gte_dup_mid_lt );
 	test( test_gte_dup_iterate0 );
 	test( test_gte_dup_iterate1 );
+	test( test_random0 );
 
 	test( test_iterate_raw );
 	return 0;

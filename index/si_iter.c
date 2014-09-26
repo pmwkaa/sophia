@@ -108,6 +108,18 @@ si_iteropen(sriter *i, va_list args)
 		}
 		assert(ii->v != NULL);
 		break;
+	case SR_RANDOM: {
+		assert(ii->key != NULL);
+		uint32_t rnd = *(uint32_t*)ii->key;
+		rnd %= ii->index->n;
+		ii->v = sr_rbmin(&ii->index->i);
+		uint32_t pos = 0;
+		while (pos != rnd) {
+			ii->v = sr_rbnext(&ii->index->i, ii->v);
+			pos++;
+		}
+		break;
+	}
 	default: assert(0);
 	}
 	return eq;

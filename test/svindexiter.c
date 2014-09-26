@@ -1260,6 +1260,41 @@ test_gte_dup_iterate(void)
 }
 
 static void
+test_random(void)
+{
+	sra a;
+	sr_allocinit(&a, sr_allocstd, NULL);
+	srcomparator cmp = { sr_cmpu32, NULL };
+	sr r;
+	sr_init(&r, &a, NULL, &cmp);
+
+	svindex i;
+	t( sv_indexinit(&i) == 0 );
+
+	int key = 0;
+	for (; key < 100; key++) {
+		svv *vold = NULL;
+		svv *va = allocv(&a, key, SVSET, &key);
+		t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
+		t( vold == NULL );
+	}
+	srand(54321);
+	key = 0;
+	for (; key < 1000; key++) {
+		uint32_t rnd = rand() % 100;
+		sriter it;
+		sr_iterinit(&it, &sv_indexiter, &r);
+		sr_iteropen(&it, &i, SR_RANDOM, &rnd, sizeof(rnd), UINT64_MAX);
+		t( sr_iterhas(&it) != 0 );
+		sv *v = sr_iterof(&it);
+		int k = *(int*)svkey(v);
+		t( k >= 0 && k < 100 );
+	}
+	sv_indexfree(&i, &r);
+}
+
+
+static void
 test_iterate_raw0(void)
 {
 	sra a;
@@ -1372,7 +1407,6 @@ main(int argc, char *argv[])
 	test( test_lte_dup_eq );
 	test( test_lte_dup_mid );
 	test( test_lte_dup_iterate );
-
 	test( test_gte_empty );
 	test( test_gte_eq0 );
 	test( test_gte_eq1 );
@@ -1386,6 +1420,7 @@ main(int argc, char *argv[])
 	test( test_gte_dup_eq );
 	test( test_gte_dup_mid );
 	test( test_gte_dup_iterate );
+	test( test_random );
 
 	test( test_iterate_raw0 );
 	test( test_iterate_raw1 );

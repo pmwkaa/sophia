@@ -121,6 +121,9 @@ sm_iteropen(sriter *i, va_list args)
 		n = ii->v;
 		sm_iterfwd(ii);
 		break;
+	case SR_RANDOM:
+		ii->v = NULL;
+		break;
 	default: assert(0);
 	}
 	return eq && (n == ii->v);

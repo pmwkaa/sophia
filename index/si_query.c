@@ -199,14 +199,15 @@ int si_queryfirstsrc(siquery *q, sriter *i)
 int si_query(siquery *q)
 {
 	switch (q->order) {
+	case SR_EQ:
+	case SR_UPDATE:
+		return si_qmatch(q);
+	case SR_RANDOM:
 	case SR_LT:
 	case SR_LTE:
 	case SR_GT:
 	case SR_GTE:
 		return si_qfetch(q);
-	case SR_EQ:
-	case SR_UPDATE:
-		return si_qmatch(q);
 	default:
 		break;
 	}

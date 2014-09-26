@@ -12,15 +12,15 @@ SOPHIA_TESTS = \
 	cursor_branch \
 	cursor_merge \
 	recover_log \
+	recover_branch \
 	recover_merge \
 	recover_merge_log \
 	recover_merge_logless \
-	recover_branch \
 	recover_loop \
 	svmergeiter \
 	svseaveiter \
-	svindexiter \
 	svindex \
+	svindexiter \
 	sditer \
 	sdpageiter \
 	sliter

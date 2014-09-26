@@ -302,6 +302,23 @@ sd_pageiter_gt(sriter *i, int e)
 	return match;
 }
 
+static inline int
+sd_pageiter_random(sriter *i)
+{
+	sdpageiter *pi = (sdpageiter*)i->priv;
+	if (srunlikely(pi->page->h->count == 0)) {
+		sd_pageiter_end(pi);
+		return 0;
+	}
+	assert(pi->key != NULL);
+	uint32_t rnd = *(uint32_t*)pi->key;
+	int64_t pos = rnd % pi->page->h->count;
+	if (srunlikely(pos >= pi->page->h->count))
+		pos = pi->page->h->count - 1;
+	sd_pageiter_gland(pi, pos);
+	return 0;
+}
+
 static int
 sd_pageiter_open(sriter *i, va_list args)
 {
@@ -316,11 +333,12 @@ sd_pageiter_open(sriter *i, va_list args)
 		return 0;
 	int match;
 	switch (pi->order) {
-	case SR_LT:  return sd_pageiter_lt(i, 0);
-	case SR_LTE: return sd_pageiter_lt(i, 1);
-	case SR_GT:  return sd_pageiter_gt(i, 0);
-	case SR_GTE: return sd_pageiter_gt(i, 1);
-	case SR_EQ:  return sd_pageiter_lt(i, 1);
+	case SR_LT:     return sd_pageiter_lt(i, 0);
+	case SR_LTE:    return sd_pageiter_lt(i, 1);
+	case SR_GT:     return sd_pageiter_gt(i, 0);
+	case SR_GTE:    return sd_pageiter_gt(i, 1);
+	case SR_EQ:     return sd_pageiter_lt(i, 1);
+	case SR_RANDOM: return sd_pageiter_random(i);
 	case SR_UPDATE: {
 		uint64_t lsvn = pi->lsvn;
 		pi->lsvn = (uint64_t)-1;

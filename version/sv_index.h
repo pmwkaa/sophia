@@ -13,6 +13,7 @@ typedef struct svindex svindex;
 
 struct svindex {
 	srrb i;
+	uint32_t count;
 	uint16_t keymax;
 } srpacked;
 

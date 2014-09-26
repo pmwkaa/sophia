@@ -3255,6 +3255,60 @@ test_delete0(void)
 	t( sp_destroy(env) == 0 );
 }
 
+static void
+test_random0(void)
+{
+	rmrf("./test");
+	rmrf("./log");
+
+	void *env = sp_env();
+	t( env != NULL );
+	void *db = sp_storage(env);
+	t( db != NULL );
+	void *conf = sp_ctl(db, "conf");
+	t( conf != NULL );
+	t( sp_set(conf, "storage.logdir", "log") == 0 );
+	t( sp_set(conf, "storage.dir", "test") == 0 );
+	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
+	t( sp_set(conf, "storage.threads", 0) == 0 );
+	t( sp_open(env) == 0 );
+
+	void *tx = sp_begin(db);
+	int i = 0;
+	while (i < 385) {
+		void *o = sp_object(db);
+		t( o != NULL );
+		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_set(tx, o) == 0 );
+		i++;
+	}
+	sp_commit(tx);
+
+	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
+	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+
+	srand(9912351);
+	i = 0;
+	while (i < 3000) {
+		uint32_t rnd = rand() % 385;
+		void *o = sp_object(db);
+		t( o != NULL );
+		t( sp_set(o, "key", &rnd, sizeof(rnd)) == 0 );
+		void *c = sp_cursor(db, "random", o);
+		t( c != NULL );
+		o = sp_get(c);
+		t( o != NULL );
+		int k = *(int*)sp_get(o, "key", NULL);
+		t( k >= 0 && k < 385 );
+		t( k == rnd );
+		t( sp_get(c) == NULL );
+		sp_destroy(c);
+		i++;
+	}
+
+	t( sp_destroy(env) == 0 );
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -3306,5 +3360,6 @@ main(int argc, char *argv[])
 	test( test_consistency_rewrite1 );
 	test( test_consistency_rewrite2 );
 	test( test_delete0 );
+	test( test_random0 );
 	return 0;
 }

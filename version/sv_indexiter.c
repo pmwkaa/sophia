@@ -65,7 +65,6 @@ sv_indexiter_open(sriter *i, va_list args)
 	ii->key     = va_arg(args, void*);
 	ii->keysize = va_arg(args, int);
 	ii->lsvn    = va_arg(args, uint64_t);
-
 	srrbnode *n = NULL;
 	int eq = 0;
 	int rc;
@@ -117,6 +116,25 @@ sv_indexiter_open(sriter *i, va_list args)
 		n = ii->v;
 		sv_indexiter_fwd(ii);
 		break;
+	case SR_RANDOM: {
+		assert(ii->key != NULL);
+		if (srunlikely(ii->index->count == 0)) {
+			ii->v = NULL;
+			ii->vcur = NULL;
+			break;
+		}
+		uint32_t rnd = *(uint32_t*)ii->key;
+		rnd %= ii->index->count;
+		ii->v = sr_rbmin(&ii->index->i);
+		uint32_t pos = 0;
+		while (pos != rnd) {
+			ii->v = sr_rbnext(&ii->index->i, ii->v);
+			pos++;
+		}
+		svv *v = srcast(ii->v, svv, node);
+		ii->vcur = v;
+		break;
+	}
 	case SR_UPDATE:
 		rc = sv_indexmatch(&ii->index->i, i->r->cmp, ii->key, ii->keysize, &ii->v);
 		if (rc == 0 && ii->v) {

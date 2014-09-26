@@ -192,6 +192,7 @@ static void
 sv_mergeiter_next(sriter *it)
 {
 	switch (((svmergeiter*)it->priv)->order) {
+	case SR_RANDOM:
 	case SR_GT:
 	case SR_GTE:
 		sv_mergeiter_gt(it);

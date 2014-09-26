@@ -16,6 +16,7 @@ sr_rbtruncate(sv_indextruncate,
 int sv_indexinit(svindex *i)
 {
 	i->keymax = 0;
+	i->count  = 0;
 	sr_rbinit(&i->i);
 	return 0;
 }
@@ -40,6 +41,7 @@ int sv_indexset(svindex *i, sr *r, uint64_t lsvn, svv *v, svv **old)
 		sr_rbreplace(&i->i, n, &v->node);
 	} else {
 		sr_rbset(&i->i, n, rc, &v->node);
+		i->count++;
 	}
 	if (srunlikely(v->keysize > i->keymax))
 		i->keymax = v->keysize;
