@@ -2,6 +2,7 @@ SOPHIA_O = so_worker.o \
            so.o \
            so_v.o \
            so_dbconf.o \
+           so_dbprofiler.o \
            so_db.o \
            so_tx.o \
            so_cursor.o \

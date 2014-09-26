@@ -73,21 +73,21 @@ so_type(soobj *o srunused, va_list args srunused) {
 
 static soobjif soif =
 {
-	.ctl       = NULL,
-	.storage   = so_storage,
-	.open      = so_open,
-	.destroy   = so_destroy,
-	.set       = NULL,
-	.get       = NULL,
-	.del       = NULL,
-	.begin     = NULL,
-	.commit    = NULL,
-	.rollback  = NULL,
-	.cursor    = NULL,
-	.backup    = NULL,
-	.object    = NULL,
-	.type      = so_type,
-	.copy      = NULL
+	.ctl      = NULL,
+	.storage  = so_storage,
+	.open     = so_open,
+	.destroy  = so_destroy,
+	.set      = NULL,
+	.get      = NULL,
+	.del      = NULL,
+	.begin    = NULL,
+	.commit   = NULL,
+	.rollback = NULL,
+	.cursor   = NULL,
+	.backup   = NULL,
+	.object   = NULL,
+	.type     = so_type,
+	.copy     = NULL
 };
 
 soobj *so_new(void)

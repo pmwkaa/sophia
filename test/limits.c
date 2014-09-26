@@ -27,7 +27,7 @@ test_memory_limit(void)
 	t( sp_set(c, "storage.dir", "test") == 0 );
 	t( sp_set(c, "storage.cmp", sr_cmpu32) == 0 );
 	t( sp_set(c, "storage.threads", 0) == 0 );
-	t( sp_set(c, "storage.memory_limit", 16 * 1024) == 0 );
+	t( sp_set(c, "storage.memory_limit", 16ULL * 1024) == 0 );
 	t( sp_open(env) == 0 );
 	char value[1000];
 	memset(value, 'x', sizeof(value));

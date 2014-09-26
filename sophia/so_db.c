@@ -25,16 +25,6 @@ so_dbctlset(soobj *obj, va_list args)
 	int rc = 0;
 	sdc dc;
 	sd_cinit(&dc, &c->parent->r);
-	if (strcmp(name, "merge") == 0) {
-		while (1) {
-			rc = si_merge(&db->index, &db->r, &dc, db->conf.node_merge_wm);
-			if (srunlikely(rc <= 0))
-				break;
-		}
-	} else
-	if (strcmp(name, "merge_step") == 0) {
-		rc = si_merge(&db->index, &db->r, &dc, db->conf.node_merge_wm);
-	} else
 	if (strcmp(name, "branch") == 0) {
 		while (1) {
 			rc = si_branch(&db->index, &db->r, &dc, db->conf.node_branch_wm);
@@ -42,8 +32,12 @@ so_dbctlset(soobj *obj, va_list args)
 				break;
 		}
 	} else
-	if (strcmp(name, "branch_step") == 0) {
-		rc = si_branch(&db->index, &db->r, &dc, db->conf.node_branch_wm);
+	if (strcmp(name, "merge") == 0) {
+		while (1) {
+			rc = si_merge(&db->index, &db->r, &dc, db->conf.node_merge_wm);
+			if (srunlikely(rc <= 0))
+				break;
+		}
 	} else
 	if (strcmp(name, "logrotate") == 0) {
 		rc = sl_poolrotate(&db->lp);
@@ -59,21 +53,21 @@ so_dbtype(soobj *o srunused, va_list args srunused) {
 
 static soobjif sodbctlif =
 {
-	.ctl       = NULL,
-	.storage   = NULL,
-	.open      = NULL,
-	.destroy   = NULL,
-	.set       = so_dbctlset,
-	.get       = NULL,
-	.del       = NULL,
-	.begin     = NULL,
-	.commit    = NULL,
-	.rollback  = NULL,
-	.cursor    = NULL,
-	.backup    = NULL,
-	.object    = NULL,
-	.type      = so_dbtype,
-	.copy      = NULL
+	.ctl      = NULL,
+	.storage  = NULL,
+	.open     = NULL,
+	.destroy  = NULL,
+	.set      = so_dbctlset,
+	.get      = NULL,
+	.del      = NULL,
+	.begin    = NULL,
+	.commit   = NULL,
+	.rollback = NULL,
+	.cursor   = NULL,
+	.backup   = NULL,
+	.object   = NULL,
+	.type     = so_dbtype,
+	.copy     = NULL
 };
 
 static void*
@@ -85,6 +79,8 @@ so_dbctl(soobj *obj, va_list args)
 		return &o->ctl.o;
 	if (strcmp(name, "conf") == 0)
 		return &o->conf.o;
+	if (strcmp(name, "profiler") == 0)
+		return &o->prof.o;
 	return NULL;
 }
 
@@ -204,7 +200,8 @@ so_dbdestroy(soobj *obj)
 	rc = si_close(&o->index, &o->r);
 	if (srunlikely(rc == -1))
 		rcret = -1;
-	o->conf.o.oif->destroy(&o->conf.o);
+	sp_destroy(&o->conf);
+	sp_destroy(&o->prof);
 	sd_cfree(&o->dc, &o->r);
 	sr_free(&o->e->a, o);
 	return rcret;
@@ -247,21 +244,21 @@ so_dbcursor(soobj *o, va_list args)
 
 static soobjif sodbif =
 {
-	.ctl       = so_dbctl,
-	.storage   = NULL,
-	.open      = so_dbopen,
-	.destroy   = so_dbdestroy,
-	.set       = so_dbset,
-	.get       = so_dbget,
-	.del       = so_dbdel,
-	.begin     = so_dbbegin,
-	.commit    = NULL,
-	.rollback  = NULL,
-	.cursor    = so_dbcursor,
-	.backup    = NULL,
-	.object    = so_dbobj,
-	.type      = NULL,
-	.copy      = NULL
+	.ctl      = so_dbctl,
+	.storage  = NULL,
+	.open     = so_dbopen,
+	.destroy  = so_dbdestroy,
+	.set      = so_dbset,
+	.get      = so_dbget,
+	.del      = so_dbdel,
+	.begin    = so_dbbegin,
+	.commit   = NULL,
+	.rollback = NULL,
+	.cursor   = so_dbcursor,
+	.backup   = NULL,
+	.object   = so_dbobj,
+	.type     = NULL,
+	.copy     = NULL
 };
 
 soobj *so_dbnew(so *e)
@@ -274,6 +271,7 @@ soobj *so_dbnew(so *e)
 	so_objinit(&o->ctl.o, SODBCTL, &sodbctlif);
 	o->ctl.parent = o;
 	so_dbconf_init(&o->conf, o);
+	so_dbprofiler_init(&o->prof, o);
 	so_objindex_init(&o->tx);
 	so_objindex_init(&o->cursor);
 	o->mode = SO_OFFLINE;

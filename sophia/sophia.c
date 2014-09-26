@@ -189,28 +189,6 @@ SP_API void *sp_type(void *o, ...)
 
 SP_API void *sp_copy(void *o, ...)
 {
-#if 0
-	soobj *obj = (soobj*)o;
-	if (srunlikely(obj->oid != SOV))
-		return NULL;
-	sov *v = (sov*)o;
-	sov *copy = (sov*)so_vnew(v->e);
-	if (srunlikely(copy == NULL))
-		return NULL;
-	copy->lv = v->lv;
-	copy->v  = v->v;
-	if (v->allocated) {
-		svv *dup = sv_valloc(&v->e->a, &v->v);
-		if (srunlikely(dup == NULL)) {
-			sr_free(&v->e->a, copy);
-			return NULL;
-		}
-		sv result;
-		svinit(&result, &sv_vif, dup, NULL);
-		so_vput(copy, &result);
-	}
-	return copy;
-#endif
 	soobjif *oif = ((soobj*)o)->oif;
 	if (srunlikely(oif->copy == NULL))
 		return NULL;

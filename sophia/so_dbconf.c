@@ -124,21 +124,21 @@ so_dbconf_destroy(soobj *obj)
 
 static soobjif sodbconfif =
 {
-	.ctl       = NULL,
-	.storage   = NULL,
-	.open      = NULL,
-	.destroy   = so_dbconf_destroy,
-	.set       = so_dbconf_set,
-	.get       = NULL,
-	.del       = NULL,
-	.begin     = NULL,
-	.commit    = NULL,
-	.rollback  = NULL,
-	.cursor    = NULL,
-	.backup    = NULL,
-	.object    = NULL,
-	.type      = NULL,
-	.copy      = NULL
+	.ctl      = NULL,
+	.storage  = NULL,
+	.open     = NULL,
+	.destroy  = so_dbconf_destroy,
+	.set      = so_dbconf_set,
+	.get      = NULL,
+	.del      = NULL,
+	.begin    = NULL,
+	.commit   = NULL,
+	.rollback = NULL,
+	.cursor   = NULL,
+	.backup   = NULL,
+	.object   = NULL,
+	.type     = NULL,
+	.copy     = NULL
 };
 
 void so_dbconf_init(sodbconf *c, void *o)

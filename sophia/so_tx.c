@@ -387,21 +387,21 @@ so_txtype(soobj *o srunused, va_list args srunused) {
 
 static soobjif sotxif =
 {
-	.ctl       = NULL,
-	.storage   = NULL,
-	.open      = NULL,
-	.destroy   = so_txrollback,
-	.set       = so_txset,
-	.del       = so_txdelete,
-	.get       = so_txget,
-	.begin     = NULL,
-	.commit    = so_txcommit,
-	.rollback  = so_txrollback,
-	.cursor    = NULL,
-	.backup    = NULL,
-	.object    = NULL,
-	.type      = so_txtype,
-	.copy      = NULL
+	.ctl      = NULL,
+	.storage  = NULL,
+	.open     = NULL,
+	.destroy  = so_txrollback,
+	.set      = so_txset,
+	.del      = so_txdelete,
+	.get      = so_txget,
+	.begin    = NULL,
+	.commit   = so_txcommit,
+	.rollback = so_txrollback,
+	.cursor   = NULL,
+	.backup   = NULL,
+	.object   = NULL,
+	.type     = so_txtype,
+	.copy     = NULL
 };
 
 soobj *so_txnew(sodb *db)

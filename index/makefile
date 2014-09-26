@@ -8,7 +8,8 @@ LIBSI_O = si_node.o \
           si_split.o \
           si_branch.o \
           si_merge.o \
-          si_recover.o
+          si_recover.o \
+          si_profiler.o
 LIBSI_OBJECTS = $(addprefix index/, $(LIBSI_O))
 OBJECTS = $(LIBSI_O)
 ifndef buildworld

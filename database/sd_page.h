@@ -39,7 +39,7 @@ sd_pagev(sdpage *p, uint32_t pos) {
 
 static inline void*
 sd_pagevalue(sdpage *p, sdv *v) {
-	assert((p->h->sizeblock * p->h->count) + v->valueoffset < p->h->size);
+	assert((p->h->sizeblock * p->h->count) + v->valueoffset <= p->h->size);
 	return (char*)((char*)p->h + sizeof(sdpageheader) +
 	               p->h->sizeblock * p->h->count) + v->valueoffset;
 }

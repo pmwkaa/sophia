@@ -5,6 +5,7 @@ SOPHIA_TESTS = \
 	branch \
 	merge \
 	limits \
+	profiler \
 	transaction \
 	transaction_logless \
  	cursor \

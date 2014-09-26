@@ -22,6 +22,7 @@ struct sodb {
 	somode mode;
 	sodbctl ctl;
 	sodbconf conf;
+	sodbprofiler prof;
 	soobjindex tx;
 	soobjindex cursor;
 	sm mvcc;

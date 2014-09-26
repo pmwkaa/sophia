@@ -15,6 +15,7 @@
 #include <so.h>
 #include <so_v.h>
 #include <so_dbconf.h>
+#include <so_dbprofiler.h>
 #include <so_db.h>
 #include <so_recover.h>
 #include <so_tx.h>

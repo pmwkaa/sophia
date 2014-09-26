@@ -21,5 +21,6 @@
 #include <si_branch.h>
 #include <si_merge.h>
 #include <si_recover.h>
+#include <si_profiler.h>
 
 #endif

@@ -120,21 +120,21 @@ so_cursortype(soobj *o srunused, va_list args srunused) {
 
 static soobjif socursorif =
 {
-	.ctl       = NULL,
-	.storage   = NULL,
-	.open      = NULL,
-	.destroy   = so_cursordestroy, 
-	.set       = NULL,
-	.get       = so_cursorget,
-	.del       = NULL,
-	.begin     = NULL,
-	.commit    = NULL,
-	.rollback  = NULL,
-	.cursor    = NULL,
-	.backup    = NULL,
-	.object    = so_cursorobj,
-	.type      = so_cursortype,
-	.copy      = NULL
+	.ctl      = NULL,
+	.storage  = NULL,
+	.open     = NULL,
+	.destroy  = so_cursordestroy,
+	.set      = NULL,
+	.get      = so_cursorget,
+	.del      = NULL,
+	.begin    = NULL,
+	.commit   = NULL,
+	.rollback = NULL,
+	.cursor   = NULL,
+	.backup   = NULL,
+	.object   = so_cursorobj,
+	.type     = so_cursortype,
+	.copy     = NULL
 };
 
 soobj *so_cursornew(sodb *db, va_list args)
