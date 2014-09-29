@@ -10,15 +10,13 @@
 */
 
 typedef enum {
-	SOUNDEF      = 0L,
-	SOENV        = 0x06154834L,
-	SOV          = 0x2FABCDE2L,
-	SODB         = 0x34591111L,
-	SODBCTL      = 0x55551921L,
-	SODBCONF     = 0x6FFBBDDAL,
-	SODBPROFILER = 0x777ABD77L,
-	SOTX         = 0x13491FABL,
-	SOCURSOR     = 0x45ABCDFAL
+	SOUNDEF  = 0L,
+	SOENV    = 0x06154834L,
+	SOCTL    = 0x1234FFBBL,
+	SOV      = 0x2FABCDE2L,
+	SODB     = 0x34591111L,
+	SOTX     = 0x13491FABL,
+	SOCURSOR = 0x45ABCDFAL
 } soobjid;
 
 static inline soobjid
@@ -31,7 +29,6 @@ typedef struct soobj soobj;
 
 struct soobjif {
 	void *(*ctl)(soobj*, va_list);
-	void *(*storage)(soobj*, va_list);
 	int   (*open)(soobj*, va_list);
 	int   (*destroy)(soobj*);
 	int   (*set)(soobj*, va_list);
@@ -41,7 +38,6 @@ struct soobjif {
 	int   (*commit)(soobj*, va_list);
 	int   (*rollback)(soobj*);
 	void *(*cursor)(soobj*, va_list);
-	void *(*backup)(soobj*);
 	void *(*object)(soobj*, va_list);
 	void *(*type)(soobj*, va_list);
 	void *(*copy)(soobj*, va_list);

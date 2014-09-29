@@ -22,6 +22,7 @@ struct so {
 	soobj o;
 	soobjindex db;
 	volatile somode mode;
+	soctl ctl;
 	sra a;
 	srseq seq;
 	sr r;

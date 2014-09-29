@@ -1,6 +1,6 @@
 
 SOPHIA_TESTS = \
-	storage \
+#	storage \
 	object \
 	branch \
 	merge \

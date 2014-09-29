@@ -123,7 +123,6 @@ so_cursortype(soobj *o srunused, va_list args srunused) {
 static soobjif socursorif =
 {
 	.ctl      = NULL,
-	.storage  = NULL,
 	.open     = NULL,
 	.destroy  = so_cursordestroy,
 	.set      = NULL,
@@ -133,7 +132,6 @@ static soobjif socursorif =
 	.commit   = NULL,
 	.rollback = NULL,
 	.cursor   = NULL,
-	.backup   = NULL,
 	.object   = so_cursorobj,
 	.type     = so_cursortype,
 	.copy     = NULL

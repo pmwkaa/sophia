@@ -1,5 +1,5 @@
-#ifndef SO_DBCONF_H_
-#define SO_DBCONF_H_
+#ifndef SO_DBCTL_H_
+#define SO_DBCTL_H_
 
 /*
  * sophia database
@@ -9,11 +9,11 @@
  * BSD License
 */
 
-typedef struct sodbconf sodbconf;
+typedef struct sodbctl sodbctl;
 
-struct sodbconf {
-	soobj o;
+struct sodbctl {
 	void *parent;
+	char *name;
 	srcomparator cmp;
 	char *logdir;
 	int   logdir_read;
@@ -34,7 +34,10 @@ struct sodbconf {
 	int threads;
 };
 
-void so_dbconf_init(sodbconf*, void*);
-int  so_dbconf_validate(sodbconf*);
+int   so_dbctl_init(sodbctl*, char*, void*);
+int   so_dbctl_free(sodbctl*);
+int   so_dbctl_validate(sodbctl*);
+int   so_dbctl_set(sodbctl*, char*, va_list);
+void *so_dbctl_get(sodbctl*, char*, va_list);
 
 #endif

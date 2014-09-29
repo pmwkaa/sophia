@@ -23,7 +23,6 @@ extern "C" {
 #endif
 
 SP_API void *sp_env(void);
-SP_API void *sp_storage(void*, ...);
 SP_API void *sp_ctl(void*, ...);
 SP_API void *sp_object(void*, ...);
 SP_API int   sp_open(void*, ...);
@@ -35,10 +34,8 @@ SP_API void *sp_begin(void*, ...);
 SP_API int   sp_commit(void*, ...);
 SP_API int   sp_rollback(void*, ...);
 SP_API void *sp_cursor(void*, ...);
-SP_API void *sp_backup(void*, ...);
 SP_API void *sp_copy(void*, ...);
 SP_API void *sp_type(void*, ...);
-SP_API void *sp_error(void*, ...);
 
 #ifdef __cplusplus
 }

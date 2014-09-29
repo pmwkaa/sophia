@@ -9,20 +9,12 @@
  * BSD License
 */
 
-typedef struct sodbctl sodbctl;
 typedef struct sodb sodb;
-
-struct sodbctl {
-	soobj o;
-	sodb *parent;
-};
 
 struct sodb {
 	soobj o;
 	somode mode;
 	sodbctl ctl;
-	sodbconf conf;
-	sodbprofiler prof;
 	soobjindex tx;
 	soobjindex cursor;
 	sm mvcc;
@@ -42,6 +34,7 @@ so_dbactive(sodb *o) {
 	       o->mode != SO_SHUTDOWN;
 }
 
-soobj *so_dbnew(so*);
+soobj *so_dbnew(so*, char*);
+soobj *so_dbmatch(so*, char*);
 
 #endif

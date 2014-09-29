@@ -102,15 +102,15 @@ int so_recover(sodb *db)
 {
 	db->mode = SO_RECOVER;
 	siconf *c = &db->indexconf;
-	c->node_size      = db->conf.node_size;
-	c->node_page_size = db->conf.node_page_size;
-	c->node_branch_wm = db->conf.node_branch_wm;
-	c->node_merge_wm  = db->conf.node_merge_wm;
-	c->memory_limit   = db->conf.memory_limit;
-	c->dir            = db->conf.dir;
-	c->dir_read       = db->conf.dir_read;
-	c->dir_write      = db->conf.dir_write;
-	c->dir_create     = db->conf.dir_create;
+	c->node_size      = db->ctl.node_size;
+	c->node_page_size = db->ctl.node_page_size;
+	c->node_branch_wm = db->ctl.node_branch_wm;
+	c->node_merge_wm  = db->ctl.node_merge_wm;
+	c->memory_limit   = db->ctl.memory_limit;
+	c->dir            = db->ctl.dir;
+	c->dir_read       = db->ctl.dir_read;
+	c->dir_write      = db->ctl.dir_write;
+	c->dir_create     = db->ctl.dir_create;
 	si_init(&db->index, &db->indexconf);
 	int rc = si_open(&db->index, &db->r);
 	if (srunlikely(rc == -1))
@@ -118,11 +118,11 @@ int so_recover(sodb *db)
 	si_qosenable(&db->index, 0);
 	int index_isnew = rc;
 	slconf *lc = &db->lpconf;
-	lc->dir          = db->conf.logdir;
-	lc->dir_read     = db->conf.logdir_read;
-	lc->dir_write    = db->conf.logdir_write;
-	lc->dir_create   = db->conf.logdir_create;
-	lc->rotatewm     = db->conf.logdir_rotate_wm;
+	lc->dir           = db->ctl.logdir;
+	lc->dir_read      = db->ctl.logdir_read;
+	lc->dir_write     = db->ctl.logdir_write;
+	lc->dir_create    = db->ctl.logdir_create;
+	lc->rotatewm      = db->ctl.logdir_rotate_wm;
 	rc = sl_poolinit(&db->lp, &db->r, lc);
 	if (srunlikely(rc == -1))
 		return -1;

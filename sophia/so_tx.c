@@ -389,7 +389,6 @@ so_txtype(soobj *o srunused, va_list args srunused) {
 static soobjif sotxif =
 {
 	.ctl      = NULL,
-	.storage  = NULL,
 	.open     = NULL,
 	.destroy  = so_txrollback,
 	.set      = so_txset,
@@ -399,7 +398,6 @@ static soobjif sotxif =
 	.commit   = so_txcommit,
 	.rollback = so_txrollback,
 	.cursor   = NULL,
-	.backup   = NULL,
 	.object   = NULL,
 	.type     = so_txtype,
 	.copy     = NULL

@@ -101,7 +101,6 @@ so_vtype(soobj *o srunused, va_list args srunused) {
 static soobjif sovif =
 {
 	.ctl      = NULL,
-	.storage  = NULL,
 	.open     = NULL,
 	.destroy  = so_vdestroy,
 	.set      = so_vset,
@@ -111,7 +110,6 @@ static soobjif sovif =
 	.commit   = NULL,
 	.rollback = NULL,
 	.cursor   = NULL,
-	.backup   = NULL,
 	.object   = NULL,
 	.type     = so_vtype,
 	.copy     = so_vcopy

@@ -23,19 +23,6 @@ sp_env(void)
 }
 
 SP_API void*
-sp_storage(void *o, ...)
-{
-	soobjif *oif = ((soobj*)o)->oif;
-	if (srunlikely(oif->storage == NULL))
-		return NULL;
-	va_list args;
-	va_start(args, o);
-	void *h = oif->storage(o, args);
-	va_end(args);
-	return h;
-}
-
-SP_API void*
 sp_ctl(void *o, ...)
 {
 	soobjif *oif = ((soobj*)o)->oif;
@@ -164,15 +151,6 @@ sp_cursor(void *o, ...)
 	void *cursor = oif->cursor(o, args);
 	va_end(args);
 	return cursor;
-}
-
-SP_API void*
-sp_backup(void *o, ...)
-{
-	soobjif *oif = ((soobj*)o)->oif;
-	if (srunlikely(oif->backup == NULL))
-		return NULL;
-	return oif->backup(o);
 }
 
 SP_API void *sp_type(void *o, ...)

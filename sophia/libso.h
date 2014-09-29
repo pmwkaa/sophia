@@ -12,10 +12,10 @@
 #include <so_worker.h>
 #include <so_obj.h>
 #include <so_objindex.h>
+#include <so_ctl.h>
 #include <so.h>
 #include <so_v.h>
-#include <so_dbconf.h>
-#include <so_dbprofiler.h>
+#include <so_dbctl.h>
 #include <so_db.h>
 #include <so_recover.h>
 #include <so_tx.h>

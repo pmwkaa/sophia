@@ -16,81 +16,6 @@
 #include <libso.h>
 #include <sophia.h>
 
-static int
-so_dbctlset(soobj *obj, va_list args)
-{
-	sodbctl *c = (sodbctl*)obj;
-	sodb *db = c->parent;
-	char *name = va_arg(args, char*);
-	int rc = 0;
-	sdc dc;
-	sd_cinit(&dc, &c->parent->r);
-	if (strcmp(name, "branch") == 0) {
-		while (1) {
-			rc = si_branch(&db->index, &db->r, &dc, db->conf.node_branch_wm);
-			if (srunlikely(rc <= 0))
-				break;
-		}
-	} else
-	if (strcmp(name, "merge") == 0) {
-		while (1) {
-			rc = si_merge(&db->index, &db->r, &dc, db->conf.node_merge_wm);
-			if (srunlikely(rc <= 0))
-				break;
-		}
-	} else
-	if (strcmp(name, "logrotate") == 0) {
-		rc = sl_poolrotate(&db->lp);
-	}
-	sd_cfree(&dc, &c->parent->r);
-	return rc;
-}
-
-static void*
-so_dbtype(soobj *o srunused, va_list args srunused) {
-	return "database";
-}
-
-static soobjif sodbctlif =
-{
-	.ctl      = NULL,
-	.storage  = NULL,
-	.open     = NULL,
-	.destroy  = NULL,
-	.set      = so_dbctlset,
-	.get      = NULL,
-	.del      = NULL,
-	.begin    = NULL,
-	.commit   = NULL,
-	.rollback = NULL,
-	.cursor   = NULL,
-	.backup   = NULL,
-	.object   = NULL,
-	.type     = so_dbtype,
-	.copy     = NULL
-};
-
-static void*
-so_dbctl(soobj *obj, va_list args)
-{
-	sodb *o = (sodb*)obj;
-	char *name = va_arg(args, char*);
-	if (strcmp(name, "ctl") == 0)
-		return &o->ctl.o;
-	if (strcmp(name, "conf") == 0)
-		return &o->conf.o;
-	if (strcmp(name, "profiler") == 0)
-		return &o->prof.o;
-	return NULL;
-}
-
-static void*
-so_dbobj(soobj *obj, va_list args srunused)
-{
-	sodb *o = (sodb*)obj;
-	return so_vnew(o->e);
-}
-
 static inline void so_sleep(void)
 {
 	struct timespec ts;
@@ -110,7 +35,7 @@ static inline void *so_merger(void *arg)
 			break;
 		rc = si_merge(&o->index,
 		              &o->r, &self->dc,
-		              o->conf.node_merge_wm);
+		              o->ctl.node_merge_wm);
 		if (srunlikely(rc == -1))
 			break;
 		if (rc == 0)
@@ -130,14 +55,14 @@ static inline void *so_brancher(void *arg)
 			break;
 		rc = si_branch(&o->index,
 		               &o->r, &self->dc,
-		               o->conf.node_branch_wm);
+		               o->ctl.node_branch_wm);
 		if (srunlikely(rc == -1))
 			break;
 		int nojob = rc == 0;
 		rc = sl_poolgc(&o->lp);
 		if (srunlikely(rc == -1))
 			break;
-		rc = sl_poolrotate_ready(&o->lp, o->conf.logdir_rotate_wm);
+		rc = sl_poolrotate_ready(&o->lp, o->ctl.logdir_rotate_wm);
 		if (rc) {
 			rc = sl_poolrotate(&o->lp);
 			if (srunlikely(rc == -1))
@@ -156,15 +81,15 @@ so_dbopen(soobj *obj, va_list args srunused)
 	if (so_dbactive(o))
 		return -1;
 	int rc;
-	rc = so_dbconf_validate(&o->conf);
+	rc = so_dbctl_validate(&o->ctl);
 	if (srunlikely(rc == -1))
 		return -1;
-	o->r.cmp = &o->conf.cmp;
+	o->r.cmp = &o->ctl.cmp;
 	rc = so_recover(o);
 	if (srunlikely(rc == -1))
 		return -1;
 	o->mode = SO_ONLINE;
-	int threads = o->conf.threads;
+	int threads = o->ctl.threads;
 	if (threads) {
 		rc = so_workersnew(&o->workers, &o->r, 1, so_brancher, o);
 		if (srunlikely(rc == -1))
@@ -192,7 +117,6 @@ so_dbdestroy(soobj *obj)
 		rcret = -1;
 	so_objindex_free(&o->tx);
 	so_objindex_free(&o->cursor);
-
 	sm_free(&o->mvcc);
 	rc = sl_poolshutdown(&o->lp);
 	if (srunlikely(rc == -1))
@@ -200,8 +124,7 @@ so_dbdestroy(soobj *obj)
 	rc = si_close(&o->index, &o->r);
 	if (srunlikely(rc == -1))
 		rcret = -1;
-	sp_destroy(&o->conf);
-	sp_destroy(&o->prof);
+	so_dbctl_free(&o->ctl);
 	sd_cfree(&o->dc, &o->r);
 	sr_free(&o->e->a, o);
 	return rcret;
@@ -242,10 +165,21 @@ so_dbcursor(soobj *o, va_list args)
 	return so_cursornew(db, args);
 }
 
+static void*
+so_dbobj(soobj *obj, va_list args srunused)
+{
+	sodb *o = (sodb*)obj;
+	return so_vnew(o->e);
+}
+
+static void*
+so_dbtype(soobj *o srunused, va_list args srunused) {
+	return "database";
+}
+
 static soobjif sodbif =
 {
-	.ctl      = so_dbctl,
-	.storage  = NULL,
+	.ctl      = NULL,
 	.open     = so_dbopen,
 	.destroy  = so_dbdestroy,
 	.set      = so_dbset,
@@ -255,31 +189,43 @@ static soobjif sodbif =
 	.commit   = NULL,
 	.rollback = NULL,
 	.cursor   = so_dbcursor,
-	.backup   = NULL,
 	.object   = so_dbobj,
-	.type     = NULL,
+	.type     = so_dbtype,
 	.copy     = NULL
 };
 
-soobj *so_dbnew(so *e)
+soobj *so_dbnew(so *e, char *name)
 {
 	sodb *o = sr_malloc(&e->a, sizeof(sodb));
 	if (srunlikely(o == NULL))
 		return NULL;
 	memset(o, 0, sizeof(*o));
 	so_objinit(&o->o, SODB, &sodbif);
-	so_objinit(&o->ctl.o, SODBCTL, &sodbctlif);
-	o->ctl.parent = o;
-	so_dbconf_init(&o->conf, o);
-	so_dbprofiler_init(&o->prof, o);
 	so_objindex_init(&o->tx);
 	so_objindex_init(&o->cursor);
 	o->mode = SO_OFFLINE;
 	o->e = e;
 	o->r = e->r;
-	o->r.cmp = &o->conf.cmp;
+	o->r.cmp = &o->ctl.cmp;
+	int rc = so_dbctl_init(&o->ctl, name, o);
+	if (srunlikely(rc == -1)) {
+		sr_free(&e->a, o);
+		return NULL;
+	}
 	sm_init(&o->mvcc, &o->r);
 	sd_cinit(&o->dc, &o->r);
 	so_workersinit(&o->workers);
 	return &o->o;
+}
+
+soobj *so_dbmatch(so *e, char *name)
+{
+	srlist *i;
+	sr_listforeach(&e->db.list, i) {
+		soobj *o = srcast(i, soobj, olink);
+		sodb *db = (sodb*)o;
+		if (strcmp(db->ctl.name, name) == 0)
+			return o;
+	}
+	return NULL;
 }

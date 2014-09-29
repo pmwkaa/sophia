@@ -17,15 +17,10 @@
 #include <sophia.h>
 
 static void*
-so_storage(soobj *o, va_list args)
+so_ctl(soobj *obj, va_list args srunused)
 {
-	(void)args;
-	so *e = (so*)o;
-	soobj *storage = so_dbnew(e);
-	if (srunlikely(storage == NULL))
-		return NULL;
-	so_objindex_register(&e->db, storage);
-	return storage;
+	so *o = (so*)obj;
+	return &o->ctl;
 }
 
 static int
@@ -73,8 +68,7 @@ so_type(soobj *o srunused, va_list args srunused) {
 
 static soobjif soif =
 {
-	.ctl      = NULL,
-	.storage  = so_storage,
+	.ctl      = so_ctl,
 	.open     = so_open,
 	.destroy  = so_destroy,
 	.set      = NULL,
@@ -84,7 +78,6 @@ static soobjif soif =
 	.commit   = NULL,
 	.rollback = NULL,
 	.cursor   = NULL,
-	.backup   = NULL,
 	.object   = NULL,
 	.type     = so_type,
 	.copy     = NULL
@@ -98,6 +91,7 @@ soobj *so_new(void)
 	memset(e, 0, sizeof(*e));
 	e->mode = SO_OFFLINE;
 	so_objinit(&e->o, SOENV, &soif);
+	so_ctlinit(&e->ctl, e);
 	so_objindex_init(&e->db);
 	sr_seqinit(&e->seq);
 	sr_allocinit(&e->a, sr_allocstd, NULL);
