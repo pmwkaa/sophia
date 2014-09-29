@@ -1,5 +1,6 @@
 
 SOPHIA_TESTS = \
+	test
 #	storage \
 	object \
 	branch \

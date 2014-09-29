@@ -9,45 +9,61 @@
 
 #include <libsr.h>
 
-int sr_ctl(srctl **ctl, char *prefix, char *str, va_list args)
+static inline size_t sr_atoi(char *s)
 {
-	int plen = strlen(prefix);
-	int slen = strlen(str);
-	if (srunlikely(plen > slen))
+	size_t v = 0;
+	while (*s && *s != '.') {
+		if (srunlikely(!isdigit(*s)))
+			return -1;
+		v = (v * 10) + *s - '0';
+		s++;
+	}
+	return v;
+}
+
+int sr_ctlset(srctl *c, sra *a, void *arg, va_list args)
+{
+	int type = c->type & ~SR_CTLRO;
+	if (srunlikely(type == SR_CTLTRIGGER))
+		return c->func(c, arg, args);
+	if (c->type & SR_CTLRO)
 		return -1;
-	if (memcmp(prefix, str, plen) != 0)
-		return -1;
-	char *path = str + plen;
-	char q[200];
-	snprintf(q, sizeof(q), "%s", path);
-	char *ptr = NULL;
-	char *token;
-	token = strtok_r(q, ".", &ptr);
-	if (srunlikely(token == NULL))
-		return -1;
-	int i = 0;
-	srctl *c = ctl[i];
-	while (c->name) {
-		if (strcmp(token, c->name) != 0) {
-			c = ctl[++i];
-			continue;
-		}
-		switch (c->type) {
-		case SR_CTLINT:
-			*((int*)c->ptr) = va_arg(args, int);
-			break;
-		case SR_CTLU32:
-			*((uint32_t*)c->ptr) = va_arg(args, int);
-			break;
-		case SR_CTLU64:
-			*((uint64_t*)c->ptr) = va_arg(args, int);
-			break;
-		case SR_CTLSTRING:
-			*((char**)c->ptr) = va_arg(args, char*);
-			break;
-		}
-		c->set = 1;
-		return 1;
+	char *value = va_arg(args, char*);
+	switch (type) {
+	case SR_CTLINT: *((int*)c->v) = sr_atoi(value);
+		break;
+	case SR_CTLU32: *((uint32_t*)c->v) = sr_atoi(value);
+		break;
+	case SR_CTLU64: *((uint64_t*)c->v) = sr_atoi(value);
+		break;
+	case SR_CTLSTRING: {
+		char *nsz = sr_strdup(a, value);
+		if (srunlikely(nsz == NULL))
+			return -1;
+		char **sz = (char**)c->v;
+		if (*sz)
+			sr_free(a, *sz);
+		*sz = nsz;
+		break;
+	}
 	}
 	return 0;
+}
+
+int sr_ctlget(srctl *list, char *path, srctl **result)
+{
+	char *token;
+	token = strtok_r(NULL, ".", &path);
+	if (srunlikely(token == NULL))
+		return 1;
+	srctl *c = list;
+	while (c->name) {
+		if (strcmp(token, c->name) != 0) {
+			c++;
+			continue;
+		}
+		*result = c;
+		return 0;
+	}
+	return -1;
 }

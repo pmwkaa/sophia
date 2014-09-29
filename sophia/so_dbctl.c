@@ -69,175 +69,148 @@ int so_dbctl_validate(sodbctl *c)
 	return 0;
 }
 
-int so_dbctl_set(sodbctl *c, char *path, va_list args)
+static int
+so_dbctl_branch(srctl *c srunused, void *arg, va_list args srunused)
 {
-	sodb *db = c->parent;
-	if (so_dbactive(db))
-		return -1;
-
-	char *token;
-	token = strtok_r(NULL, ".", &path);
-	if (srunlikely(token == NULL))
-		return 0; /* db create */
-
-	if (strcmp(token, "name") == 0) {
-		return -1;
-	} else
-	if (strcmp(token, "dir") == 0) {
-		char *p = sr_strdup(&db->e->a, va_arg(args, char*));
-		if (srunlikely(p == NULL))
-			return -1;
-		if (c->dir)
-			sr_free(&db->e->a, c->dir);
-		c->dir = p;
-	} else
-	if (strcmp(token, "dir_read") == 0) {
-		c->dir_read = va_arg(args, int);
-	} else
-	if (strcmp(token, "dir_write") == 0) {
-		c->dir_write = va_arg(args, int);
-	} else
-	if (strcmp(token, "dir_create") == 0) {
-		c->dir_create = va_arg(args, int);
-	} else
-	if (strcmp(token, "logdir") == 0) {
-		char *p = sr_strdup(&db->e->a, va_arg(args, char*));
-		if (srunlikely(p == NULL))
-			return -1;
-		if (c->logdir)
-			sr_free(&db->e->a, c->logdir);
-		c->logdir = p;
-	} else
-	if (strcmp(token, "logdir_read") == 0) {
-		c->logdir_read = va_arg(args, int);
-	} else
-	if (strcmp(token, "logdir_write") == 0) {
-		c->logdir_write = va_arg(args, int);
-	} else
-	if (strcmp(token, "logdir_create") == 0) {
-		c->logdir_create = va_arg(args, int);
-	} else
-	if (strcmp(token, "cmp") == 0) {
-		c->cmp.cmp = va_arg(args, srcmpf);
-	} else
-	if (strcmp(token, "cmp_arg") == 0) {
-		c->cmp.cmparg = va_arg(args, void*);
-	} else
-	if (strcmp(token, "node_size") == 0) {
-		c->node_size = va_arg(args, int);
-	} else
-	if (strcmp(token, "node_page_size") == 0) {
-		c->node_page_size = va_arg(args, int);
-	} else
-	if (strcmp(token, "node_branch_wm") == 0) {
-		c->node_branch_wm = va_arg(args, int);
-	} else
-	if (strcmp(token, "node_merge_wm") == 0) {
-		c->node_merge_wm = va_arg(args, int);
-	} else
-	if (strcmp(token, "threads") == 0) {
-		c->threads = va_arg(args, int);
-	} else
-	if (strcmp(token, "memory_limit") == 0) {
-		c->memory_limit = va_arg(args, uint64_t);
-	} else
-	if (strcmp(token, "branch") == 0) {
-		sdc dc;
-		sd_cinit(&dc, &db->r);
-		int rc;
-		while (1) {
-			rc = si_branch(&db->index, &db->r, &dc, db->ctl.node_branch_wm);
-			if (srunlikely(rc <= 0))
-				break;
-		}
-		sd_cfree(&dc, &db->r);
-		return rc;
-	} else
-	if (strcmp(token, "merge") == 0) {
-		sdc dc;
-		sd_cinit(&dc, &db->r);
-		int rc;
-		while (1) {
-			rc = si_merge(&db->index, &db->r, &dc, db->ctl.node_merge_wm);
-			if (srunlikely(rc <= 0))
-				break;
-		}
-		sd_cfree(&dc, &db->r);
-		return rc;
-	} else
-	if (strcmp(token, "logrotate") == 0) {
-		return sl_poolrotate(&db->lp);
-	} else {
-		return -1;
+	sodb *db = arg;
+	sdc dc;
+	sd_cinit(&dc, &db->r);
+	int rc;
+	while (1) {
+		rc = si_branch(&db->index, &db->r, &dc, db->ctl.node_branch_wm);
+		if (srunlikely(rc <= 0))
+			break;
 	}
+	sd_cfree(&dc, &db->r);
+	return rc;
+}
+
+static int
+so_dbctl_merge(srctl *c srunused, void *arg, va_list args srunused)
+{
+	sodb *db = arg;
+	sdc dc;
+	sd_cinit(&dc, &db->r);
+	int rc;
+	while (1) {
+		rc = si_merge(&db->index, &db->r, &dc, db->ctl.node_merge_wm);
+		if (srunlikely(rc <= 0))
+			break;
+	}
+	sd_cfree(&dc, &db->r);
+	return rc;
+}
+
+static int
+so_dbctl_logrotate(srctl *c srunused, void *arg, va_list args srunused)
+{
+	sodb *db = arg;
+	return sl_poolrotate(&db->lp);
+}
+
+static int
+so_dbctl_cmp(srctl *c srunused, void *arg, va_list args)
+{
+	sodb *db = arg;
+	db->ctl.cmp.cmp = va_arg(args, srcmpf);
 	return 0;
 }
 
-/*
-static void*
-so_dbprofiler_get(soobj *obj, va_list args)
+static int
+so_dbctl_cmparg(srctl *c srunused, void *arg, va_list args srunused)
 {
-	sodbprofiler *p = (sodbprofiler*)obj;
-	sodb *db = p->db;
-	si_profilerbegin(&p->prof, &db->index);
-	si_profiler(&p->prof);
-	si_profilerend(&p->prof);
-	char *name = va_arg(args, char*);
-	int  *size = va_arg(args, int*);
-	if (strcmp(name, "count") == 0) {
-		if (size)
-			*size = sizeof(p->prof.count);
-		return &p->prof.count;
-	} else
-	if (strcmp(name, "total_node_count") == 0) {
-		if (size)
-			*size = sizeof(p->prof.total_node_count);
-		return &p->prof.total_node_count;
-	} else
-	if (strcmp(name, "total_node_size") == 0) {
-		if (size)
-			*size = sizeof(p->prof.total_node_size);
-		return &p->prof.total_node_size;
-	} else
-	if (strcmp(name, "total_branch_count") == 0) {
-		if (size)
-			*size = sizeof(p->prof.total_branch_count);
-		return &p->prof.total_branch_count;
-	} else
-	if (strcmp(name, "total_branch_max") == 0) {
-		if (size)
-			*size = sizeof(p->prof.total_branch_max);
-		return &p->prof.total_branch_max;
-	} else
-	if (strcmp(name, "total_branch_size") == 0) {
-		if (size)
-			*size = sizeof(p->prof.total_branch_size);
-		return &p->prof.total_branch_size;
-	} else
-	if (strcmp(name, "memory_used") == 0) {
-		if (size)
-			*size = sizeof(p->prof.memory_used);
-		return &p->prof.memory_used;
-	} else
-	if (strcmp(name, "count") == 0) {
-		if (size)
-			*size = sizeof(p->prof.count);
-		return &p->prof.count;
-	}
-	return NULL;
+	sodb *db = arg;
+	db->ctl.cmp.cmparg = va_arg(args, void*);
+	return 0;
 }
-*/
+
+static inline srctl*
+setctl(srctl *c, char *name, int type, void *v, srctlf func)
+{
+	c->name = name;
+	c->type = type;
+	c->v    = v;
+	c->func = func;
+	return ++c;
+}
+
+static inline void
+so_dbctl_prepare(srctl *t, sodbctl *c)
+{
+	srctl *p = t;
+	p = setctl(p, "name",           SR_CTLSTRING|SR_CTLRO, &c->name,           NULL);
+	p = setctl(p, "dir",            SR_CTLSTRING,          &c->dir,            NULL);
+	p = setctl(p, "dir_read",       SR_CTLINT,             &c->dir_read,       NULL);
+	p = setctl(p, "dir_write",      SR_CTLINT,             &c->dir_write,      NULL);
+	p = setctl(p, "dir_create",     SR_CTLINT,             &c->dir_create,     NULL);
+	p = setctl(p, "logdir",         SR_CTLSTRING,          &c->logdir,         NULL);
+	p = setctl(p, "logdir_read",    SR_CTLINT,             &c->logdir_read,    NULL);
+	p = setctl(p, "logdir_write",   SR_CTLINT,             &c->logdir_write,   NULL);
+	p = setctl(p, "logdir_create",  SR_CTLINT,             &c->logdir_create,  NULL);
+	p = setctl(p, "node_size",      SR_CTLINT,             &c->node_size,      NULL);
+	p = setctl(p, "node_page_size", SR_CTLINT,             &c->node_page_size, NULL);
+	p = setctl(p, "node_branch_wm", SR_CTLINT,             &c->node_branch_wm, NULL);
+	p = setctl(p, "node_merge_wm",  SR_CTLINT,             &c->node_merge_wm,  NULL);
+	p = setctl(p, "threads",        SR_CTLINT,             &c->threads,        NULL);
+	p = setctl(p, "memory_limit",   SR_CTLU64,             &c->memory_limit,   NULL);
+	p = setctl(p, "branch",         SR_CTLTRIGGER,         NULL,               so_dbctl_branch);
+	p = setctl(p, "merge",          SR_CTLTRIGGER,         NULL,               so_dbctl_merge);
+	p = setctl(p, "logrotate",      SR_CTLTRIGGER,         NULL,               so_dbctl_logrotate);
+	p = setctl(p, "cmp",            SR_CTLTRIGGER,         NULL,               so_dbctl_cmp);
+	p = setctl(p, "cmp_arg",        SR_CTLTRIGGER,         NULL,               so_dbctl_cmparg);
+}
+
+int so_dbctl_set(sodbctl *c, char *path, va_list args)
+{
+	sodb *db = c->parent;
+	srctl ctls[30];
+	memset(ctls, 0, sizeof(ctls));
+	so_dbctl_prepare(&ctls[0], c);
+	srctl *match = NULL;
+	int rc = sr_ctlget(&ctls[0], path, &match);
+	if (srunlikely(rc ==  1))
+		return 0; /* self */
+	if (srunlikely(rc == -1))
+		return -1;
+	if (so_dbactive(db))
+		if (match->type != SR_CTLTRIGGER)
+			return -1;
+	rc = sr_ctlset(match, db->r.a, db, args);
+	if (srunlikely(rc == -1))
+		return -1;
+	return 0;
+}
 
 void *so_dbctl_get(sodbctl *c, char *path, va_list args)
 {
 	sodb *db = c->parent;
-	char *token;
-	token = strtok_r(NULL, ".", &path);
-	if (srunlikely(token == NULL))
+	srctl ctls[30];
+	memset(ctls, 0, sizeof(ctls));
+	so_dbctl_prepare(&ctls[0], c);
+	srctl *match = NULL;
+	int rc = sr_ctlget(&ctls[0], path, &match);
+	if (srunlikely(rc ==  1))
 		return &db->o;
-
-	(void)c;
-	(void)path;
-	(void)args;
-	return NULL;
+	if (srunlikely(rc == -1))
+		return NULL;
+	int size = 0;
+	int type = match->type & ~SR_CTLRO;
+	switch (type) {
+	case SR_CTLINT: size = sizeof(int);
+		break;
+	case SR_CTLU32: size = sizeof(uint32_t);
+		break;
+	case SR_CTLU64: size = sizeof(uint64_t);
+		break;
+	case SR_CTLSTRING:
+		size = strlen(*(char**)match->v);
+		break;
+	default: return NULL;
+	}
+	int *sizeptr = va_arg(args, int*);
+	if (sizeptr)
+		*sizeptr = size;
+	if (type == SR_CTLSTRING)
+		return *(char**)match->v;
+	return match->v;
 }

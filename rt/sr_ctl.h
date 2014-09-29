@@ -11,20 +11,25 @@
 
 typedef struct srctl srctl;
 
+typedef int (*srctlf)(srctl*, void*, va_list);
+
 typedef enum {
-	SR_CTLINT,
-	SR_CTLU32,
-	SR_CTLU64,
-	SR_CTLSTRING
+	SR_CTLRO      = 1,
+	SR_CTLINT     = 2,
+	SR_CTLU32     = 4,
+	SR_CTLU64     = 8,
+	SR_CTLSTRING  = 16,
+	SR_CTLTRIGGER = 32
 } srctltype;
 
 struct srctl {
 	char *name;
-	srctltype type;
-	void *ptr;
-	int set;
+	int type;
+	void *v;
+	srctlf func;
 };
 
-int sr_ctl(srctl**, char*, char*, va_list);
+int sr_ctlget(srctl*, char*, srctl**);
+int sr_ctlset(srctl*, sra*, void*, va_list);
 
 #endif
