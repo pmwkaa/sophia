@@ -153,18 +153,18 @@ so_dbctl_prepare(srctl *t, sodbctl *c)
 	p = setctl(p, "node_merge_wm",  SR_CTLINT,             &c->node_merge_wm,  NULL);
 	p = setctl(p, "threads",        SR_CTLINT,             &c->threads,        NULL);
 	p = setctl(p, "memory_limit",   SR_CTLU64,             &c->memory_limit,   NULL);
-	p = setctl(p, "branch",         SR_CTLTRIGGER,         NULL,               so_dbctl_branch);
-	p = setctl(p, "merge",          SR_CTLTRIGGER,         NULL,               so_dbctl_merge);
-	p = setctl(p, "logrotate",      SR_CTLTRIGGER,         NULL,               so_dbctl_logrotate);
 	p = setctl(p, "cmp",            SR_CTLTRIGGER,         NULL,               so_dbctl_cmp);
 	p = setctl(p, "cmp_arg",        SR_CTLTRIGGER,         NULL,               so_dbctl_cmparg);
+	p = setctl(p, "run_branch",     SR_CTLTRIGGER,         NULL,               so_dbctl_branch);
+	p = setctl(p, "run_merge",      SR_CTLTRIGGER,         NULL,               so_dbctl_merge);
+	p = setctl(p, "run_logrotate",  SR_CTLTRIGGER,         NULL,               so_dbctl_logrotate);
+	p = setctl(p, NULL,             0,                     NULL,               NULL);
 }
 
 int so_dbctl_set(sodbctl *c, char *path, va_list args)
 {
 	sodb *db = c->parent;
 	srctl ctls[30];
-	memset(ctls, 0, sizeof(ctls));
 	so_dbctl_prepare(&ctls[0], c);
 	srctl *match = NULL;
 	int rc = sr_ctlget(&ctls[0], path, &match);
@@ -181,11 +181,10 @@ int so_dbctl_set(sodbctl *c, char *path, va_list args)
 	return 0;
 }
 
-void *so_dbctl_get(sodbctl *c, char *path, va_list args)
+void *so_dbctl_get(sodbctl *c, char *path, va_list args srunused)
 {
 	sodb *db = c->parent;
 	srctl ctls[30];
-	memset(ctls, 0, sizeof(ctls));
 	so_dbctl_prepare(&ctls[0], c);
 	srctl *match = NULL;
 	int rc = sr_ctlget(&ctls[0], path, &match);
@@ -203,14 +202,30 @@ void *so_dbctl_get(sodbctl *c, char *path, va_list args)
 	case SR_CTLU64: size = sizeof(uint64_t);
 		break;
 	case SR_CTLSTRING:
-		size = strlen(*(char**)match->v);
+		size = strlen(*(char**)match->v) + 1;
 		break;
 	default: return NULL;
 	}
-	int *sizeptr = va_arg(args, int*);
-	if (sizeptr)
-		*sizeptr = size;
+	svlocal l;
+	l.lsn       = 0;
+	l.flags     = 0;
+	l.keysize   = strlen(match->name) + 1;
+	l.key       = match->name;
+	l.valuesize = size;
 	if (type == SR_CTLSTRING)
-		return *(char**)match->v;
-	return match->v;
+		l.value = *(char**)match->v;
+	else
+		l.value = match->v;
+	sv vp;
+	svinit(&vp, &sv_localif, &l, NULL);
+	svv *v = sv_valloc(&db->e->a, &vp);
+	if (srunlikely(v == NULL))
+		return NULL;
+	sov *result = (sov*)so_vnew(db->e);
+	if (srunlikely(result == NULL)) {
+		sv_vfree(&db->e->a, v);
+		return NULL;
+	}
+	svinit(&vp, &sv_vif, v, NULL);
+	return so_vput(result, &vp);
 }
