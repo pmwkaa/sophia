@@ -9,7 +9,8 @@
 
 #include <libsr.h>
 #include <libsv.h>
-#include "suite.h"
+#include <libst.h>
+#include <sophia.h>
 
 static svv*
 allocv(sra *a, uint64_t lsn, uint8_t flags, uint32_t *key)
@@ -38,7 +39,7 @@ getv(svindex *i, sr *r, uint64_t lsvn, uint32_t *key) {
 }
 
 static void
-test_replace0(void)
+svindex_replace0(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -67,7 +68,7 @@ test_replace0(void)
 }
 
 static void
-test_replace1(void)
+svindex_replace1(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -99,7 +100,7 @@ test_replace1(void)
 }
 
 static void
-test_replace2(void)
+svindex_replace2(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -140,11 +141,11 @@ test_replace2(void)
 	sv_indexfree(&i, &r);
 }
 
-int
-main(int argc, char *argv[])
+st *svindex_group(void)
 {
-	test( test_replace0 );
-	test( test_replace1 );
-	test( test_replace2 );
-	return 0;
+	st *group = st_def("svindex", NULL);
+	st_test(group, st_def("replace0", svindex_replace0));
+	st_test(group, st_def("replace1", svindex_replace1));
+	st_test(group, st_def("replace2", svindex_replace2));
+	return group;
 }

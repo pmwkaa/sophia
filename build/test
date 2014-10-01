@@ -1,34 +1,28 @@
 
-# sophia test makefile
+# sophia test-suite makefile
 #
 
-TEST_O = $(addsuffix .o, $(SOPHIA_TESTS))
-TEST_LIST = $(addsuffix .test, $(SOPHIA_TESTS))
-TEST_CFLAGS = $(CFLAGS_INCLUDE) -I. -I../sophia -pthread -g -O0 -Wall
+TEST_DEBUG   = -g -O0 -Wall
+TEST_CFLAGS  = $(CFLAGS_INCLUDE) $(TEST_DEBUG) -I. -I../sophia -pthread
+TEST_LDFLAGS = $(LDFLAGS) $(TEST_DEBUG) ../sophia/libsophia.a -pthread
+TEST_LOGDIR  = logdir
+TEST_DIR     = dir
+TEST_BINARY  = run
 
-all: clean $(TEST_O)
-clean:
-	$(Q) $(RM) -f $(TEST_LIST)
+all: build
 .c.o:
-	$(E) "cc   $*.test"
-	$(Q) $(CC) $(TEST_CFLAGS) $< ../sophia/libsophia.a -lm -o $*.test
-
-test_valgrind:
-	@for test in $(TEST_LIST); do \
-		echo ./$$test; \
-		valgrind --leak-check=full --quiet ./$$test; \
-		if [ $$? -gt 0 ]; then \
-			exit; \
-		fi \
-	done
+	$(E) "cc   $<"
+	$(Q) $(CC) $(TEST_CFLAGS) -c $< -o $@
+build: clean $(OBJECTS)
+	$(E) "cc   $(TEST_BINARY)"
+	$(Q) $(CC) $(OBJECTS) $(TEST_LDFLAGS) -o $(TEST_BINARY)
+clean:
+	$(Q) $(RM) -f $(TEST_BINARY)
+	$(Q) $(RM) -f $(OBJECTS)
+cleanup: clean
+	$(Q) $(RM) -fr $(TEST_DIR) $(TEST_LOGDIR)
 test:
-	@for test in $(TEST_LIST); do \
-		echo ./$$test; \
-		$(VALGRIND) ./$$test; \
-		if [ $$? -gt 0 ]; then \
-			exit; \
-		fi \
-	done
+	$(Q) $(VALGRIND) ./$(TEST_BINARY)
 
 .PHONY: test
 

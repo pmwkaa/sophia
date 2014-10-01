@@ -9,10 +9,11 @@
 
 #include <libsr.h>
 #include <libsv.h>
-#include "suite.h"
+#include <libst.h>
+#include <sophia.h>
 
 static sv*
-test_valloc(sra *a, svlocal *l)
+svseaveiter_valloc(sra *a, svlocal *l)
 {
 	sv lv;
 	svinit(&lv, &sv_localif, l, NULL);
@@ -24,7 +25,7 @@ test_valloc(sra *a, svlocal *l)
 }
 
 static void
-test_seave(void)
+svseaveiter_seave(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -47,7 +48,7 @@ test_seave(void)
 		l.value       = NULL;
 		l.valuesize   = 0;
 		l.valueoffset = 0;
-		sv *v = test_valloc(&a, &l);
+		sv *v = svseaveiter_valloc(&a, &l);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
 	}
@@ -100,7 +101,7 @@ test_seave(void)
 }
 
 static void
-test_seave_limit(void)
+svseaveiter_limit(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -123,7 +124,7 @@ test_seave_limit(void)
 		l.value       = NULL;
 		l.valuesize   = 0;
 		l.valueoffset = 0;
-		sv *v = test_valloc(&a, &l);
+		sv *v = svseaveiter_valloc(&a, &l);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
 	}
@@ -213,7 +214,7 @@ test_seave_limit(void)
 }
 
 static void
-test_seave_limit_small(void)
+svseaveiter_limit_small(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -236,7 +237,7 @@ test_seave_limit_small(void)
 		l.value       = NULL;
 		l.valuesize   = 0;
 		l.valueoffset = 0;
-		sv *v = test_valloc(&a, &l);
+		sv *v = svseaveiter_valloc(&a, &l);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
 	}
@@ -336,7 +337,7 @@ addv(srbuf *list, sra *a, uint64_t lsn, int flags, char *key, int keysize)
 	l.value       = NULL;
 	l.valuesize   = 0;
 	l.valueoffset = 0;
-	sv *v = test_valloc(a, &l);
+	sv *v = svseaveiter_valloc(a, &l);
 	t( sr_bufadd(list, a, &v, sizeof(sv**)) == 0 );
 }
 
@@ -350,7 +351,7 @@ checkv(sriter *i, uint64_t lsn, int flags, int key)
 }
 
 static void
-test_seave_dup_lsn_gt(void)
+svseaveiter_dup_lsn_gt(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -422,7 +423,7 @@ test_seave_dup_lsn_gt(void)
 }
 
 static void
-test_seave_dup_lsn_lt0(void)
+svseaveiter_dup_lsn_lt0(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -494,7 +495,7 @@ test_seave_dup_lsn_lt0(void)
 }
 
 static void
-test_seave_dup_lsn_lt1(void)
+svseaveiter_dup_lsn_lt1(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -566,7 +567,7 @@ test_seave_dup_lsn_lt1(void)
 }
 
 static void
-test_seave_dup_lsn_lt2(void)
+svseaveiter_dup_lsn_lt2(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -638,7 +639,7 @@ test_seave_dup_lsn_lt2(void)
 }
 
 static void
-test_seave_dup_lsn_gt_chain(void)
+svseaveiter_dup_lsn_gt_chain(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -711,7 +712,7 @@ test_seave_dup_lsn_gt_chain(void)
 }
 
 static void
-test_seave_dup_lsn_lt0_chain(void)
+svseaveiter_dup_lsn_lt0_chain(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -786,7 +787,7 @@ test_seave_dup_lsn_lt0_chain(void)
 }
 
 static void
-test_seave_dup_lsn_lt1_chain(void)
+svseaveiter_dup_lsn_lt1_chain(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -863,7 +864,7 @@ test_seave_dup_lsn_lt1_chain(void)
 }
 
 static void
-test_seave_dup_lsn_lt2_chain(void)
+svseaveiter_dup_lsn_lt2_chain(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -942,7 +943,7 @@ test_seave_dup_lsn_lt2_chain(void)
 }
 
 static void
-test_seave_dup_lsn_limit0(void)
+svseaveiter_dup_lsn_limit0(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1003,7 +1004,7 @@ test_seave_dup_lsn_limit0(void)
 }
 
 static void
-test_seave_dup_lsn_limit1(void)
+svseaveiter_dup_lsn_limit1(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1066,7 +1067,7 @@ test_seave_dup_lsn_limit1(void)
 }
 
 static void
-test_seave_dup_lsn_limit2(void)
+svseaveiter_dup_lsn_limit2(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1130,7 +1131,7 @@ test_seave_dup_lsn_limit2(void)
 }
 
 static void
-test_seave_dup_lsn_limit3(void)
+svseaveiter_dup_lsn_limit3(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1193,7 +1194,7 @@ test_seave_dup_lsn_limit3(void)
 }
 
 static void
-test_seave_dup_lsn_limit4(void)
+svseaveiter_dup_lsn_limit4(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1263,7 +1264,7 @@ test_seave_dup_lsn_limit4(void)
 }
 
 static void
-test_seave_dup_lsn_limit5(void)
+svseaveiter_dup_lsn_limit5(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1333,7 +1334,7 @@ test_seave_dup_lsn_limit5(void)
 }
 
 static void
-test_seave_delete0(void)
+svseaveiter_delete0(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1405,7 +1406,7 @@ test_seave_delete0(void)
 }
 
 static void
-test_seave_delete1(void)
+svseaveiter_delete1(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1477,7 +1478,7 @@ test_seave_delete1(void)
 }
 
 static void
-test_seave_delete2(void)
+svseaveiter_delete2(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1549,7 +1550,7 @@ test_seave_delete2(void)
 }
 
 static void
-test_seave_delete3(void)
+svseaveiter_delete3(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1621,7 +1622,7 @@ test_seave_delete3(void)
 }
 
 static void
-test_seave_delete4(void)
+svseaveiter_delete4(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1693,7 +1694,7 @@ test_seave_delete4(void)
 }
 
 static void
-test_seave_delete5(void)
+svseaveiter_delete5(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1765,7 +1766,7 @@ test_seave_delete5(void)
 }
 
 static void
-test_seave_delete6(void)
+svseaveiter_delete6(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1842,7 +1843,7 @@ test_seave_delete6(void)
 }
 
 static void
-test_seave_delete7(void)
+svseaveiter_delete7(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1925,7 +1926,7 @@ test_seave_delete7(void)
 }
 
 static void
-test_seave_delete8(void)
+svseaveiter_delete8(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -2012,34 +2013,34 @@ test_seave_delete8(void)
 	sv_mergefree(&m, &a);
 }
 
-int
-main(int argc, char *argv[])
+st *svseaveiter_group(void)
 {
-	test( test_seave );
-	test( test_seave_limit );
-	test( test_seave_limit_small );
-	test( test_seave_dup_lsn_gt );
-	test( test_seave_dup_lsn_lt0 );
-	test( test_seave_dup_lsn_lt1 );
-	test( test_seave_dup_lsn_lt2 );
-	test( test_seave_dup_lsn_gt_chain );
-	test( test_seave_dup_lsn_lt0_chain );
-	test( test_seave_dup_lsn_lt1_chain );
-	test( test_seave_dup_lsn_lt2_chain );
-	test( test_seave_dup_lsn_limit0 );
-	test( test_seave_dup_lsn_limit1 );
-	test( test_seave_dup_lsn_limit2 );
-	test( test_seave_dup_lsn_limit3 );
-	test( test_seave_dup_lsn_limit4 );
-	test( test_seave_dup_lsn_limit5 );
-	test( test_seave_delete0 );
-	test( test_seave_delete1 );
-	test( test_seave_delete2 );
-	test( test_seave_delete3 );
-	test( test_seave_delete4 );
-	test( test_seave_delete5 );
-	test( test_seave_delete6 );
-	test( test_seave_delete7 );
-	test( test_seave_delete8 );
-	return 0;
+	st *group = st_def("svseaveiter", NULL);
+	st_test(group, st_def("seave", svseaveiter_seave));
+	st_test(group, st_def("seave_limit", svseaveiter_limit));
+	st_test(group, st_def("seave_limit_small", svseaveiter_limit_small));
+	st_test(group, st_def("seave_dup_lsn_gt", svseaveiter_dup_lsn_gt));
+	st_test(group, st_def("seave_dup_lsn_lt0", svseaveiter_dup_lsn_lt0));
+	st_test(group, st_def("seave_dup_lsn_lt1", svseaveiter_dup_lsn_lt1));
+	st_test(group, st_def("seave_dup_lsn_lt2", svseaveiter_dup_lsn_lt2));
+	st_test(group, st_def("seave_dup_lsn_gt_chain", svseaveiter_dup_lsn_gt_chain));
+	st_test(group, st_def("seave_dup_lsn_lt0_chain", svseaveiter_dup_lsn_lt0_chain));
+	st_test(group, st_def("seave_dup_lsn_lt1_chain", svseaveiter_dup_lsn_lt1_chain));
+	st_test(group, st_def("seave_dup_lsn_lt2_chain", svseaveiter_dup_lsn_lt2_chain));
+	st_test(group, st_def("seave_dup_lsn_limit0", svseaveiter_dup_lsn_limit0));
+	st_test(group, st_def("seave_dup_lsn_limit1", svseaveiter_dup_lsn_limit1));
+	st_test(group, st_def("seave_dup_lsn_limit2", svseaveiter_dup_lsn_limit2));
+	st_test(group, st_def("seave_dup_lsn_limit3", svseaveiter_dup_lsn_limit3));
+	st_test(group, st_def("seave_dup_lsn_limit4", svseaveiter_dup_lsn_limit4));
+	st_test(group, st_def("seave_dup_lsn_limit5", svseaveiter_dup_lsn_limit5));
+	st_test(group, st_def("seave_delete0", svseaveiter_delete0));
+	st_test(group, st_def("seave_delete1", svseaveiter_delete1));
+	st_test(group, st_def("seave_delete2", svseaveiter_delete2));
+	st_test(group, st_def("seave_delete3", svseaveiter_delete3));
+	st_test(group, st_def("seave_delete4", svseaveiter_delete4));
+	st_test(group, st_def("seave_delete5", svseaveiter_delete5));
+	st_test(group, st_def("seave_delete6", svseaveiter_delete6));
+	st_test(group, st_def("seave_delete7", svseaveiter_delete7));
+	st_test(group, st_def("seave_delete8", svseaveiter_delete8));
+	return group;
 }

@@ -189,7 +189,7 @@ void *so_dbctl_get(sodbctl *c, char *path, va_list args srunused)
 	srctl *match = NULL;
 	int rc = sr_ctlget(&ctls[0], path, &match);
 	if (srunlikely(rc ==  1))
-		return &db->o;
+		return &db->o; /* self */
 	if (srunlikely(rc == -1))
 		return NULL;
 	int size = 0;

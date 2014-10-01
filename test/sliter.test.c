@@ -11,7 +11,8 @@
 #include <libsv.h>
 #include <libsl.h>
 #include <libsd.h>
-#include "suite.h"
+#include <libst.h>
+#include <sophia.h>
 
 static void
 alloclogv(svlog *log, sra *a, uint64_t lsn, uint8_t flags, int key)
@@ -47,10 +48,10 @@ freelog(svlog *log, sr *c)
 }
 
 static void
-test_tx(void)
+sliter_tx(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
+	rmrf(cx->suite->logdir);
+	rmrf(cx->suite->dir);
 
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -60,7 +61,7 @@ test_tx(void)
 	sr r;
 	sr_init(&r, &a, &seq, &cmp);
 	slconf conf = {
-		.dir        = "./log",
+		.dir        = cx->suite->logdir,
 		.dir_read   = 1,
 		.dir_write  = 1,
 		.dir_create = 1,
@@ -86,11 +87,10 @@ test_tx(void)
 }
 
 static void
-test_tx_read_empty(void)
+sliter_tx_read_empty(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
+	rmrf(cx->suite->logdir);
+	rmrf(cx->suite->dir);
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -99,7 +99,7 @@ test_tx_read_empty(void)
 	sr r;
 	sr_init(&r, &a, &seq, &cmp);
 	slconf conf = {
-		.dir        = "./log",
+		.dir        = cx->suite->logdir,
 		.dir_read   = 1,
 		.dir_write  = 1,
 		.dir_create = 1,
@@ -135,10 +135,10 @@ test_tx_read_empty(void)
 }
 
 static void
-test_tx_read0(void)
+sliter_tx_read0(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
+	rmrf(cx->suite->logdir);
+	rmrf(cx->suite->dir);
 
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -148,7 +148,7 @@ test_tx_read0(void)
 	sr r;
 	sr_init(&r, &a, &seq, &cmp);
 	slconf conf = {
-		.dir        = "./log",
+		.dir        = cx->suite->logdir,
 		.dir_read   = 1,
 		.dir_write  = 1,
 		.dir_create = 1,
@@ -189,10 +189,10 @@ test_tx_read0(void)
 }
 
 static void
-test_tx_read1(void)
+sliter_tx_read1(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
+	rmrf(cx->suite->logdir);
+	rmrf(cx->suite->dir);
 
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -202,7 +202,7 @@ test_tx_read1(void)
 	sr r;
 	sr_init(&r, &a, &seq, &cmp);
 	slconf conf = {
-		.dir        = "./log",
+		.dir        = cx->suite->logdir,
 		.dir_read   = 1,
 		.dir_write  = 1,
 		.dir_create = 1,
@@ -254,10 +254,10 @@ test_tx_read1(void)
 }
 
 static void
-test_tx_read2(void)
+sliter_tx_read2(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
+	rmrf(cx->suite->logdir);
+	rmrf(cx->suite->dir);
 
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -267,7 +267,7 @@ test_tx_read2(void)
 	sr r;
 	sr_init(&r, &a, &seq, &cmp);
 	slconf conf = {
-		.dir        = "./log",
+		.dir        = cx->suite->logdir,
 		.dir_read   = 1,
 		.dir_write  = 1,
 		.dir_create = 1,
@@ -322,13 +322,13 @@ test_tx_read2(void)
 	t( sl_poolshutdown(&lp) == 0 );
 }
 
-int
-main(int argc, char *argv[])
+st *sliter_group(void)
 {
-	test( test_tx );
-	test( test_tx_read_empty );
-	test( test_tx_read0 );
-	test( test_tx_read1 );
-	test( test_tx_read2 );
-	return 0;
+	st *group = st_def("sliter", NULL);
+	st_test(group, st_def("tx", sliter_tx));
+	st_test(group, st_def("tx_read_empty", sliter_tx_read_empty));
+	st_test(group, st_def("tx_read0", sliter_tx_read0));
+	st_test(group, st_def("tx_read1", sliter_tx_read1));
+	st_test(group, st_def("tx_read2", sliter_tx_read2));
+	return group;
 }

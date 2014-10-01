@@ -9,10 +9,11 @@
 
 #include <libsr.h>
 #include <libsv.h>
-#include "suite.h"
+#include <libst.h>
+#include <sophia.h>
 
 static sv*
-test_valloc(sra *a, svlocal *l)
+svmergeiter_valloc(sra *a, svlocal *l)
 {
 	sv lv;
 	svinit(&lv, &sv_localif, l, NULL);
@@ -24,7 +25,7 @@ test_valloc(sra *a, svlocal *l)
 }
 
 static void
-test_merge_a(void)
+svmergeiter_merge_a(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -47,7 +48,7 @@ test_merge_a(void)
 		l.value       = NULL;
 		l.valuesize   = 0;
 		l.valueoffset = 0;
-		sv *v = test_valloc(&a, &l);
+		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
 	}
@@ -95,7 +96,7 @@ test_merge_a(void)
 }
 
 static void
-test_merge_b(void)
+svmergeiter_merge_b(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -118,7 +119,7 @@ test_merge_b(void)
 		l.value       = NULL;
 		l.valuesize   = 0;
 		l.valueoffset = 0;
-		sv *v = test_valloc(&a, &l);
+		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlistb, &a, &v, sizeof(sv**)) == 0);
 		i++;
 	}
@@ -166,7 +167,7 @@ test_merge_b(void)
 }
 
 static void
-test_merge_ab(void)
+svmergeiter_merge_ab(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -189,7 +190,7 @@ test_merge_ab(void)
 		l.value       = NULL;
 		l.valuesize   = 0;
 		l.valueoffset = 0;
-		sv *v = test_valloc(&a, &l);
+		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
 	}
@@ -203,7 +204,7 @@ test_merge_ab(void)
 		l.value       = NULL;
 		l.valuesize   = 0;
 		l.valueoffset = 0;
-		sv *v = test_valloc(&a, &l);
+		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlistb, &a, &v, sizeof(sv**)) == 0);
 		i++;
 	}
@@ -261,7 +262,7 @@ test_merge_ab(void)
 }
 
 static void
-test_merge_abc(void)
+svmergeiter_merge_abc(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -286,7 +287,7 @@ test_merge_abc(void)
 		l.value       = NULL;
 		l.valuesize   = 0;
 		l.valueoffset = 0;
-		sv *v = test_valloc(&a, &l);
+		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
 	}
@@ -300,7 +301,7 @@ test_merge_abc(void)
 		l.value       = NULL;
 		l.valuesize   = 0;
 		l.valueoffset = 0;
-		sv *v = test_valloc(&a, &l);
+		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlistb, &a, &v, sizeof(sv**)) == 0);
 		i++;
 	}
@@ -314,7 +315,7 @@ test_merge_abc(void)
 		l.value       = NULL;
 		l.valuesize   = 0;
 		l.valueoffset = 0;
-		sv *v = test_valloc(&a, &l);
+		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlistc, &a, &v, sizeof(sv**)) == 0);
 		i++;
 	}
@@ -386,7 +387,7 @@ test_merge_abc(void)
 }
 
 static void
-test_merge_ba(void)
+svmergeiter_merge_ba(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -409,7 +410,7 @@ test_merge_ba(void)
 		l.value       = NULL;
 		l.valuesize   = 0;
 		l.valueoffset = 0;
-		sv *v = test_valloc(&a, &l);
+		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
 	}
@@ -423,7 +424,7 @@ test_merge_ba(void)
 		l.value       = NULL;
 		l.valuesize   = 0;
 		l.valueoffset = 0;
-		sv *v = test_valloc(&a, &l);
+		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlistb, &a, &v, sizeof(sv**)) == 0);
 		i++;
 	}
@@ -481,7 +482,7 @@ test_merge_ba(void)
 }
 
 static void
-test_merge_dup_ab(void)
+svmergeiter_merge_dup_ab(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -505,7 +506,7 @@ test_merge_dup_ab(void)
 		l.value       = NULL;
 		l.valuesize   = 0;
 		l.valueoffset = 0;
-		sv *v = test_valloc(&a, &l);
+		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
 		lsn--;
@@ -521,7 +522,7 @@ test_merge_dup_ab(void)
 		l.value       = NULL;
 		l.valuesize   = 0;
 		l.valueoffset = 0;
-		sv *v = test_valloc(&a, &l);
+		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlistb, &a, &v, sizeof(sv**)) == 0);
 		i++;
 		lsn--;
@@ -586,7 +587,7 @@ test_merge_dup_ab(void)
 }
 
 static void
-test_merge_dup_a_chain(void)
+svmergeiter_merge_dup_a_chain(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -611,7 +612,7 @@ test_merge_dup_a_chain(void)
 		l.value       = NULL;
 		l.valuesize   = 0;
 		l.valueoffset = 0;
-		sv *v = test_valloc(&a, &l);
+		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
 		lsn--;
@@ -673,7 +674,7 @@ test_merge_dup_a_chain(void)
 }
 
 static void
-test_merge_dup_ab_chain(void)
+svmergeiter_merge_dup_ab_chain(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -698,7 +699,7 @@ test_merge_dup_ab_chain(void)
 		l.value       = NULL;
 		l.valuesize   = 0;
 		l.valueoffset = 0;
-		sv *v = test_valloc(&a, &l);
+		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
 		lsn--;
@@ -714,7 +715,7 @@ test_merge_dup_ab_chain(void)
 		l.value       = NULL;
 		l.valuesize   = 0;
 		l.valueoffset = 0;
-		sv *v = test_valloc(&a, &l);
+		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlistb, &a, &v, sizeof(sv**)) == 0);
 		i++;
 		lsn--;
@@ -776,7 +777,7 @@ test_merge_dup_ab_chain(void)
 }
 
 static void
-test_merge_dup_abc_chain(void)
+svmergeiter_merge_dup_abc_chain(stc *c srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -803,7 +804,7 @@ test_merge_dup_abc_chain(void)
 		l.value       = NULL;
 		l.valuesize   = 0;
 		l.valueoffset = 0;
-		sv *v = test_valloc(&a, &l);
+		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
 		lsn--;
@@ -819,7 +820,7 @@ test_merge_dup_abc_chain(void)
 		l.value       = NULL;
 		l.valuesize   = 0;
 		l.valueoffset = 0;
-		sv *v = test_valloc(&a, &l);
+		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlistb, &a, &v, sizeof(sv**)) == 0);
 		i++;
 		lsn--;
@@ -835,7 +836,7 @@ test_merge_dup_abc_chain(void)
 		l.value       = NULL;
 		l.valuesize   = 0;
 		l.valueoffset = 0;
-		sv *v = test_valloc(&a, &l);
+		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlistc, &a, &v, sizeof(sv**)) == 0);
 		i++;
 		lsn--;
@@ -911,17 +912,17 @@ test_merge_dup_abc_chain(void)
 	sv_mergefree(&m, &a);
 }
 
-int
-main(int argc, char *argv[])
+st *svmergeiter_group(void)
 {
-	test( test_merge_a );
-	test( test_merge_b );
-	test( test_merge_ab );
-	test( test_merge_abc );
-	test( test_merge_ba );
-	test( test_merge_dup_ab );
-	test( test_merge_dup_a_chain );
-	test( test_merge_dup_ab_chain );
-	test( test_merge_dup_abc_chain );
-	return 0;
+	st *group = st_def("svmergeiter", NULL);
+	st_test(group, st_def("merge_a", svmergeiter_merge_a));
+	st_test(group, st_def("merge_b", svmergeiter_merge_b));
+	st_test(group, st_def("merge_ab", svmergeiter_merge_ab));
+	st_test(group, st_def("merge_abc", svmergeiter_merge_abc));
+	st_test(group, st_def("merge_ba", svmergeiter_merge_ba));
+	st_test(group, st_def("merge_dup_ab", svmergeiter_merge_dup_ab));
+	st_test(group, st_def("merge_dup_a_chain", svmergeiter_merge_dup_a_chain));
+	st_test(group, st_def("merge_dup_ab_chain", svmergeiter_merge_dup_ab_chain));
+	st_test(group, st_def("merge_dup_abc_chain", svmergeiter_merge_dup_abc_chain));
+	return group;
 }

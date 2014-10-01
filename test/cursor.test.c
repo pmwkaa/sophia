@@ -8,132 +8,58 @@
 */
 
 #include <libsr.h>
+#include <libst.h>
 #include <sophia.h>
-#include "suite.h"
 
 static void
-test_empty_gte(void)
+cursor_empty_gte(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	void *db = cx->db;
 	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 0);
 }
 
 static void
-test_empty_gt(void)
+cursor_empty_gt(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	void *db = cx->db;
 	void *c = sp_cursor(db, ">", NULL);
 	t( c != NULL );
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 0);
 }
 
 static void
-test_empty_lte(void)
+cursor_empty_lte(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	void *db = cx->db;
 	void *c = sp_cursor(db, "<=", NULL);
 	t( c != NULL );
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 0);
 }
 
 static void
-test_empty_lt(void)
+cursor_empty_lt(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-	void *c = sp_cursor(db, "<", NULL);
+	void *db = cx->db;
+	void *c = sp_cursor(db, "<=", NULL);
 	t( c != NULL );
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 0);
 }
 
 static void
-test_gte(void)
+cursor_gte(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int key = 7;
 	void *o = sp_object(db);
@@ -155,9 +81,7 @@ test_gte(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
+	st_phase(cx, 0);
 	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
 	o = sp_get(c);
@@ -172,28 +96,14 @@ test_gte(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_gt(void)
+cursor_gt(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int key = 7;
 	void *o = sp_object(db);
@@ -215,10 +125,8 @@ test_gt(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
-	void *c = sp_cursor(db, ">", NULL);
+	st_phase(cx, 0);
+	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -232,28 +140,14 @@ test_gt(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_lte(void)
+cursor_lte(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int key = 7;
 	void *o = sp_object(db);
@@ -275,9 +169,7 @@ test_lte(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
+	st_phase(cx, 0);
 	void *c = sp_cursor(db, "<=", NULL);
 	t( c != NULL );
 	o = sp_get(c);
@@ -292,29 +184,14 @@ test_lte(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_lt(void)
+cursor_lt(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int key = 7;
 	void *o = sp_object(db);
@@ -336,9 +213,7 @@ test_lt(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
+	st_phase(cx, 0);
 	void *c = sp_cursor(db, "<", NULL);
 	t( c != NULL );
 	o = sp_get(c);
@@ -353,29 +228,14 @@ test_lt(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_pos_gte0(void)
+cursor_pos_gte0(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int key = 7;
 	void *o = sp_object(db);
@@ -397,9 +257,7 @@ test_pos_gte0(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
+	st_phase(cx, 0);
 	key = 7;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -418,29 +276,14 @@ test_pos_gte0(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_pos_gte1(void)
+cursor_pos_gte1(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int key = 7;
 	void *o = sp_object(db);
@@ -462,9 +305,7 @@ test_pos_gte1(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
+	st_phase(cx, 0);
 	key = 8;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -480,29 +321,14 @@ test_pos_gte1(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_pos_gte2(void)
+cursor_pos_gte2(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int key = 7;
 	void *o = sp_object(db);
@@ -524,9 +350,7 @@ test_pos_gte2(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
+	st_phase(cx, 0);
 	key = 9;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -539,29 +363,14 @@ test_pos_gte2(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_pos_gte3(void)
+cursor_pos_gte3(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int key = 7;
 	void *o = sp_object(db);
@@ -583,9 +392,7 @@ test_pos_gte3(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
+	st_phase(cx, 0);
 	key = 15;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -595,29 +402,14 @@ test_pos_gte3(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_pos_gte4(void)
+cursor_pos_gte4(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int key = 73;
 	void *o = sp_object(db);
@@ -639,9 +431,7 @@ test_pos_gte4(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
+	st_phase(cx, 0);
 	key = 79;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -657,28 +447,14 @@ test_pos_gte4(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_pos_gte5(void)
+cursor_pos_gte5(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int key = 7;
 	void *o = sp_object(db);
@@ -700,9 +476,7 @@ test_pos_gte5(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
+	st_phase(cx, 0);
 	key = 0;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -721,29 +495,14 @@ test_pos_gte5(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_pos_gt0(void)
+cursor_pos_gt0(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int key = 7;
 	void *o = sp_object(db);
@@ -765,9 +524,7 @@ test_pos_gt0(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
+	st_phase(cx, 0);
 	key = 7;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -783,29 +540,14 @@ test_pos_gt0(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_pos_gt1(void)
+cursor_pos_gt1(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int key = 7;
 	void *o = sp_object(db);
@@ -827,9 +569,7 @@ test_pos_gt1(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
+	st_phase(cx, 0);
 	key = 8;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -842,29 +582,14 @@ test_pos_gt1(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_pos_gt2(void)
+cursor_pos_gt2(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int key = 7;
 	void *o = sp_object(db);
@@ -886,9 +611,7 @@ test_pos_gt2(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
+	st_phase(cx, 0);
 	key = 9;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -898,29 +621,14 @@ test_pos_gt2(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_pos_lte0(void)
+cursor_pos_lte0(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int key = 7;
 	void *o = sp_object(db);
@@ -942,9 +650,7 @@ test_pos_lte0(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
+	st_phase(cx, 0);
 	key = 9;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -963,29 +669,14 @@ test_pos_lte0(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_pos_lte1(void)
+cursor_pos_lte1(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int key = 7;
 	void *o = sp_object(db);
@@ -1007,9 +698,7 @@ test_pos_lte1(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
+	st_phase(cx, 0);
 	key = 8;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -1025,29 +714,14 @@ test_pos_lte1(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_pos_lte2(void)
+cursor_pos_lte2(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int key = 7;
 	void *o = sp_object(db);
@@ -1069,9 +743,7 @@ test_pos_lte2(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
+	st_phase(cx, 0);
 	key = 7;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -1084,29 +756,14 @@ test_pos_lte2(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_pos_lte3(void)
+cursor_pos_lte3(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int key = 7;
 	void *o = sp_object(db);
@@ -1128,9 +785,7 @@ test_pos_lte3(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
+	st_phase(cx, 0);
 	key = 5;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -1140,29 +795,14 @@ test_pos_lte3(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_pos_lte4(void)
+cursor_pos_lte4(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int key = 7;
 	void *o = sp_object(db);
@@ -1184,9 +824,7 @@ test_pos_lte4(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
+	st_phase(cx, 0);
 	key = 20;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -1205,29 +843,14 @@ test_pos_lte4(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_pos_lt0(void)
+cursor_pos_lt0(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int key = 7;
 	void *o = sp_object(db);
@@ -1249,9 +872,7 @@ test_pos_lt0(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
+	st_phase(cx, 0);
 	key = 9;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -1267,29 +888,14 @@ test_pos_lt0(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_pos_lt1(void)
+cursor_pos_lt1(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int key = 7;
 	void *o = sp_object(db);
@@ -1311,9 +917,7 @@ test_pos_lt1(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
+	st_phase(cx, 0);
 	key = 8;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -1326,29 +930,14 @@ test_pos_lt1(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_pos_lt2(void)
+cursor_pos_lt2(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int key = 7;
 	void *o = sp_object(db);
@@ -1370,9 +959,7 @@ test_pos_lt2(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
+	st_phase(cx, 0);
 	key = 7;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -1382,29 +969,14 @@ test_pos_lt2(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_pos_lt3(void)
+cursor_pos_lt3(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int key = 7;
 	void *o = sp_object(db);
@@ -1426,9 +998,7 @@ test_pos_lt3(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
+	st_phase(cx, 0);
 	key = 2;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -1438,29 +1008,14 @@ test_pos_lt3(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_pos_lt4(void)
+cursor_pos_lt4(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int key = 7;
 	void *o = sp_object(db);
@@ -1482,9 +1037,7 @@ test_pos_lt4(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
+	st_phase(cx, 0);
 	key = 20;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -1503,29 +1056,14 @@ test_pos_lt4(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_pos_gte_range(void)
+cursor_pos_gte_range(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	t( tx != NULL );
 	int i = 0;
@@ -1539,8 +1077,7 @@ test_pos_gte_range(void)
 	}
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 0);
 	i = 0;
 	while (i < 385) {
 		void *o = sp_object(db);
@@ -1555,28 +1092,14 @@ test_pos_gte_range(void)
 		t( sp_destroy(c) == 0 );
 		i++;
 	}
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_pos_gt_range(void)
+cursor_pos_gt_range(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	t( tx != NULL );
 	int i = 0;
@@ -1590,8 +1113,7 @@ test_pos_gt_range(void)
 	}
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 0);
 	i = 0;
 	while (i < (385 - 1)) {
 		void *o = sp_object(db);
@@ -1606,28 +1128,14 @@ test_pos_gt_range(void)
 		t( sp_destroy(c) == 0 );
 		i++;
 	}
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_pos_lte_range(void)
+cursor_pos_lte_range(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	t( tx != NULL );
 	int i = 0;
@@ -1641,8 +1149,7 @@ test_pos_lte_range(void)
 	}
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 0);
 	i = 0;
 	while (i < 385) {
 		void *o = sp_object(db);
@@ -1657,28 +1164,14 @@ test_pos_lte_range(void)
 		t( sp_destroy(c) == 0 );
 		i++;
 	}
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_pos_lt_range(void)
+cursor_pos_lt_range(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	t( tx != NULL );
 	int i = 0;
@@ -1692,8 +1185,7 @@ test_pos_lt_range(void)
 	}
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 0);
 	i = 1;
 	while (i < 385) {
 		void *o = sp_object(db);
@@ -1708,31 +1200,16 @@ test_pos_lt_range(void)
 		t( sp_destroy(c) == 0 );
 		i++;
 	}
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_pos_gte_random(void)
+cursor_pos_gte_random(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	unsigned int seed = time(NULL);
 	srand(seed);
-
 	void *tx = sp_begin(db);
 	t( tx != NULL );
 	int i = 0;
@@ -1747,9 +1224,7 @@ test_pos_gte_random(void)
 	}
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
+	st_phase(cx, 0);
 	srand(seed);
 	i = 0;
 	while (i < 270) {
@@ -1766,31 +1241,16 @@ test_pos_gte_random(void)
 		t( sp_destroy(c) == 0 );
 		i++;
 	}
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_pos_lte_random(void)
+cursor_pos_lte_random(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	unsigned int seed = time(NULL);
 	srand(seed);
-
 	void *tx = sp_begin(db);
 	t( tx != NULL );
 	int i = 0;
@@ -1805,9 +1265,7 @@ test_pos_lte_random(void)
 	}
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
+	st_phase(cx, 0);
 	srand(seed);
 	i = 0;
 	while (i < 403) {
@@ -1824,33 +1282,52 @@ test_pos_lte_random(void)
 		t( sp_destroy(c) == 0 );
 		i++;
 	}
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_consistency_0(void)
+cursor_random(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
+	void *db = cx->db;
+	void *tx = sp_begin(db);
+	int i = 0;
+	while (i < 385) {
+		void *o = sp_object(db);
+		t( o != NULL );
+		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_set(tx, o) == 0 );
+		i++;
+	}
+	t( sp_commit(tx) == 0 );
+	st_phase(cx, 0);
+	srand(234541);
+	i = 0;
+	while (i < 3000) {
+		uint32_t rnd = rand() % 385;
+		void *o = sp_object(db);
+		t( o != NULL );
+		t( sp_set(o, "key", &rnd, sizeof(rnd)) == 0 );
+		void *c = sp_cursor(db, "random", o);
+		t( c != NULL );
+		o = sp_get(c);
+		t( o != NULL );
+		int k = *(int*)sp_get(o, "key", NULL);
+		t( k >= 0 && k < 385 );
+		t( k == rnd );
+		t( sp_get(c) == NULL );
+		sp_destroy(c);
+		i++;
+	}
+	st_phase(cx, 1);
+}
 
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+static void
+cursor_consistency0(stc *cx)
+{
+	void *db = cx->db;
 	int rc;
-
 	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
 	void *tx = sp_begin(db);
 	int key = 7;
 	void *o = sp_object(db);
@@ -1871,33 +1348,18 @@ test_consistency_0(void)
 	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
+	st_phase(cx, 0);
 	t( rc == 0 );
-
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 1);
 }
 
 static void
-test_consistency_1(void)
+cursor_consistency1(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int key = 7;
 	void *o = sp_object(db);
@@ -1919,11 +1381,10 @@ test_consistency_1(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
 
 	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
+	st_phase(cx, 0);
 
 	tx = sp_begin(db);
 	t( tx != NULL );
@@ -1941,8 +1402,7 @@ test_consistency_1(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 1);
 
 	o = sp_get(c);
 	t( o != NULL );
@@ -1956,29 +1416,14 @@ test_consistency_1(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 2);
 }
 
 static void
-test_consistency_2(void)
+cursor_consistency2(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int k = 1;
 	int v = 2;
@@ -2001,8 +1446,7 @@ test_consistency_2(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 0);
 
 	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
@@ -2018,8 +1462,7 @@ test_consistency_2(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 1);
 
 	o = sp_get(c);
 	t( o != NULL );
@@ -2036,29 +1479,14 @@ test_consistency_2(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 2);
 }
 
 static void
-test_consistency_3(void)
+cursor_consistency3(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int k = 1;
 	int v = 2;
@@ -2081,8 +1509,7 @@ test_consistency_3(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 1);
 
 	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
@@ -2105,8 +1532,7 @@ test_consistency_3(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 2);
 
 	o = sp_get(c);
 	t( o != NULL );
@@ -2123,29 +1549,14 @@ test_consistency_3(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 3);
 }
 
 static void
-test_consistency_4(void)
+cursor_consistency4(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int k = 1;
 	int v = 2;
@@ -2168,8 +1579,7 @@ test_consistency_4(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 0);
 
 	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
@@ -2192,6 +1602,7 @@ test_consistency_4(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
+	st_phase(cx, 1);
 
 	tx = sp_begin(db);
 	t( tx != NULL );
@@ -2211,8 +1622,7 @@ test_consistency_4(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 2);
 
 	o = sp_get(c);
 	t( o != NULL );
@@ -2226,34 +1636,17 @@ test_consistency_4(void)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 3 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 3);
 }
 
 static void
-test_consistency_5(void)
+cursor_consistency5(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int v = 2;
 	int k;
@@ -2277,8 +1670,7 @@ test_consistency_5(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 0);
 
 	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
@@ -2298,8 +1690,7 @@ test_consistency_5(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 1);
 
 	o = sp_get(c);
 	t( o != NULL );
@@ -2312,29 +1703,14 @@ test_consistency_5(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 2);
 }
 
 static void
-test_consistency_6(void)
+cursor_consistency6(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int v = 2;
 	int k;
@@ -2358,8 +1734,7 @@ test_consistency_6(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 0);
 
 	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
@@ -2394,8 +1769,7 @@ test_consistency_6(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 1);
 
 	o = sp_get(c);
 	t( o != NULL );
@@ -2408,29 +1782,14 @@ test_consistency_6(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 2);
 }
 
 static void
-test_consistency_7(void)
+cursor_consistency7(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int v = 2;
 	int k;
@@ -2454,8 +1813,7 @@ test_consistency_7(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 0);
 
 	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
@@ -2463,8 +1821,6 @@ test_consistency_7(void)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 1 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
 
 	tx = sp_begin(db);
 	t( tx != NULL );
@@ -2505,8 +1861,7 @@ test_consistency_7(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 1);
 
 	o = sp_get(c);
 	t( o != NULL );
@@ -2519,29 +1874,14 @@ test_consistency_7(void)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 2);
 }
 
 static void
-test_consistency_8(void)
+cursor_consistency8(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int v = 2;
 	int k;
@@ -2565,8 +1905,7 @@ test_consistency_8(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 0);
 
 	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
@@ -2593,8 +1932,7 @@ test_consistency_8(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 1);
 
 	o = sp_get(c);
 	t( o != NULL );
@@ -2625,8 +1963,7 @@ test_consistency_8(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 2);
 
 	o = sp_get(c);
 	t( o != NULL );
@@ -2644,31 +1981,16 @@ test_consistency_8(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
+	st_phase(cx, 3);
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
 }
 
 static void
-test_consistency_9(void)
+cursor_consistency9(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int v = 2;
 	int k;
@@ -2692,8 +2014,7 @@ test_consistency_9(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 0);
 
 	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
@@ -2720,8 +2041,7 @@ test_consistency_9(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 1);
 
 	tx = sp_begin(db);
 	t( tx != NULL );
@@ -2734,8 +2054,7 @@ test_consistency_9(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 2);
 
 	o = sp_get(c);
 	t( o != NULL );
@@ -2760,8 +2079,7 @@ test_consistency_9(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 3);
 
 	o = sp_get(c);
 	t( o != NULL );
@@ -2786,13 +2104,12 @@ test_consistency_9(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
+	st_phase(cx, 4);
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
 
 	c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
 
 	o = sp_get(c);
 	t( o != NULL );
@@ -2824,29 +2141,14 @@ test_consistency_9(void)
 	t( *(int*)sp_get(o, "value",  NULL) == 3 );
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
-
-	t( sp_destroy(env) == 0 );
+	st_phase(cx, 5);
 }
 
 static void
-test_consistency_n(void)
+cursor_consistencyN(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
+	void *db = cx->db;
 	int rc;
-
 	void *tx = sp_begin(db);
 	int k;
 	int v = 2;
@@ -2870,8 +2172,7 @@ test_consistency_n(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 0);
 
 	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
@@ -2897,8 +2198,7 @@ test_consistency_n(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 1);
 
 	tx = sp_begin(db);
 	t( tx != NULL );
@@ -2910,6 +2210,7 @@ test_consistency_n(void)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
+	st_phase(cx, 2);
 
 	void *c2 = sp_cursor(db, ">=", NULL);
 	t( c2 != NULL );
@@ -2925,8 +2226,6 @@ test_consistency_n(void)
 	o = sp_get(c);
 	t( o == NULL );
 	sp_destroy(c);
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
 
 	o = sp_get(c2);
 	t( o != NULL );
@@ -2937,20 +2236,17 @@ test_consistency_n(void)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 1 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
 
 	o = sp_get(c2);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 2 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	st_phase(cx, 3);
 
 	o = sp_get(c2);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 3 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
 
 	o = sp_get(c2);
 	t( o != NULL );
@@ -2958,28 +2254,12 @@ test_consistency_n(void)
 	t( *(int*)sp_get(o, "value",  NULL) == 3 );
 	t( sp_get(c2) == NULL );
 	t( sp_destroy(c2) == 0 );
-
-	t( sp_destroy(env) == 0 );
 }
 
 static void
-test_consistency_rewrite0(void)
+cursor_consistency_rewrite0(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
-
+	void *db = cx->db;
 	void *c0 = sp_cursor(db, ">=", NULL, 0);
 
 	void *tx = sp_begin(db);
@@ -2994,9 +2274,8 @@ test_consistency_rewrite0(void)
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
-	sp_commit(tx);
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	t( sp_commit(tx) == 0);
+	st_phase(cx, 0);
 
 	void *c1 = sp_cursor(db, ">=", NULL, 0);
 
@@ -3011,7 +2290,8 @@ test_consistency_rewrite0(void)
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
-	sp_commit(tx);
+	t( sp_commit(tx) == 0);
+	st_phase(cx, 1);
 
 	void *c2 = sp_cursor(db, ">=", NULL);
 
@@ -3025,8 +2305,7 @@ test_consistency_rewrite0(void)
 		i++;
 	}
 	t(i == 385);
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 2);
 
 	i = 0;
 	while (sp_get(c2)) {
@@ -3040,28 +2319,12 @@ test_consistency_rewrite0(void)
 	t( sp_destroy(c0) == 0 );
 	t( sp_destroy(c2) == 0 );
 	t( sp_destroy(c1) == 0 );
-
-	t( sp_destroy(env) == 0 );
 }
 
 static void
-test_consistency_rewrite1(void)
+cursor_consistency_rewrite1(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
-
+	void *db = cx->db;
 	void *c0 = sp_cursor(db, ">=", NULL, 0);
 
 	void *tx = sp_begin(db);
@@ -3076,9 +2339,8 @@ test_consistency_rewrite1(void)
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
-	sp_commit(tx);
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	t( sp_commit(tx) == 0 );
+	st_phase(cx, 0);
 
 	void *c1 = sp_cursor(db, ">=", NULL);
 
@@ -3093,7 +2355,8 @@ test_consistency_rewrite1(void)
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
-	sp_commit(tx);
+	t( sp_commit(tx) == 0 );
+	st_phase(cx, 1);
 
 	t( sp_get(c0) == NULL );
 
@@ -3105,8 +2368,6 @@ test_consistency_rewrite1(void)
 		i++;
 	}
 	t(i == 385);
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
 
 	i = 0;
 	while (i < 385) {
@@ -3124,28 +2385,12 @@ test_consistency_rewrite1(void)
 
 	t( sp_destroy(c0) == 0 );
 	t( sp_destroy(c1) == 0 );
-
-	t( sp_destroy(env) == 0 );
 }
 
 static void
-test_consistency_rewrite2(void)
+cursor_consistency_rewrite2(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
-
+	void *db = cx->db;
 	void *c0 = sp_cursor(db, ">=", NULL, 0);
 
 	void *tx = sp_begin(db);
@@ -3160,9 +2405,8 @@ test_consistency_rewrite2(void)
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
-	sp_commit(tx);
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	t( sp_commit(tx) == 0 );
+	st_phase(cx, 0);
 
 	void *c1 = sp_cursor(db, ">=", NULL);
 	v = 20;
@@ -3182,8 +2426,7 @@ test_consistency_rewrite2(void)
 		i++;
 	}
 	t(i == 385);
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	st_phase(cx, 1);
 
 	t( sp_get(c0) == 0 );
 
@@ -3196,32 +2439,17 @@ test_consistency_rewrite2(void)
 		i++;
 	}
 	t(i == 385);
+	st_phase(cx, 2);
 
 	t( sp_destroy(c0) == 0 );
 	t( sp_destroy(c2) == 0 );
 	t( sp_destroy(c1) == 0 );
-
-	t( sp_destroy(env) == 0 );
 }
 
 static void
-test_delete0(void)
+cursor_consistency_delete(stc *cx)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
-
+	void *db = cx->db;
 	void *c0 = sp_cursor(db, ">=", NULL);
 
 	void *tx = sp_begin(db);
@@ -3233,10 +2461,8 @@ test_delete0(void)
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
-	sp_commit(tx);
-
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
+	t( sp_commit(tx) == 0 );
+	st_phase(cx, 0);
 
 	tx = sp_begin(db);
 	i = 0;
@@ -3247,119 +2473,65 @@ test_delete0(void)
 		t( sp_delete(tx, o) == 0 );
 		i++;
 	}
-	sp_commit(tx);
+	t( sp_commit(tx) == 0 );
+	st_phase(cx, 1);
 
 	t( sp_get(c0) == NULL );
 
 	t( sp_destroy(c0) == 0 );
-	t( sp_destroy(env) == 0 );
 }
 
-static void
-test_random0(void)
+st *cursor_group(void)
 {
-	rmrf("./test");
-	rmrf("./log");
-
-	void *env = sp_env();
-	t( env != NULL );
-	void *db = sp_storage(env);
-	t( db != NULL );
-	void *conf = sp_ctl(db, "conf");
-	t( conf != NULL );
-	t( sp_set(conf, "storage.logdir", "log") == 0 );
-	t( sp_set(conf, "storage.dir", "test") == 0 );
-	t( sp_set(conf, "storage.cmp", sr_cmpu32) == 0 );
-	t( sp_set(conf, "storage.threads", 0) == 0 );
-	t( sp_open(env) == 0 );
-
-	void *tx = sp_begin(db);
-	int i = 0;
-	while (i < 385) {
-		void *o = sp_object(db);
-		t( o != NULL );
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(tx, o) == 0 );
-		i++;
-	}
-	sp_commit(tx);
-
-	t( sp_set(sp_ctl(db, "ctl"), "branch") == 0 );
-	t( sp_set(sp_ctl(db, "ctl"), "merge") == 0 );
-
-	srand(9912351);
-	i = 0;
-	while (i < 3000) {
-		uint32_t rnd = rand() % 385;
-		void *o = sp_object(db);
-		t( o != NULL );
-		t( sp_set(o, "key", &rnd, sizeof(rnd)) == 0 );
-		void *c = sp_cursor(db, "random", o);
-		t( c != NULL );
-		o = sp_get(c);
-		t( o != NULL );
-		int k = *(int*)sp_get(o, "key", NULL);
-		t( k >= 0 && k < 385 );
-		t( k == rnd );
-		t( sp_get(c) == NULL );
-		sp_destroy(c);
-		i++;
-	}
-
-	t( sp_destroy(env) == 0 );
-}
-
-int
-main(int argc, char *argv[])
-{
-	test( test_empty_gte );
-	test( test_empty_gt );
-	test( test_empty_lte );
-	test( test_empty_lt );
-	test( test_gte );
-	test( test_gt );
-	test( test_lte );
-	test( test_lt );
-	test( test_pos_gte0 );
-	test( test_pos_gte1 );
-	test( test_pos_gte2 );
-	test( test_pos_gte3 );
-	test( test_pos_gte4 );
-	test( test_pos_gte5 );
-	test( test_pos_gt0 );
-	test( test_pos_gt1 );
-	test( test_pos_gt2 );
-	test( test_pos_lte0 );
-	test( test_pos_lte1 );
-	test( test_pos_lte2 );
-	test( test_pos_lte3 );
-	test( test_pos_lte4 );
-	test( test_pos_lt0 );
-	test( test_pos_lt1 );
-	test( test_pos_lt2 );
-	test( test_pos_lt3 );
-	test( test_pos_lt4 );
-	test( test_pos_gte_range );
-	test( test_pos_gt_range );
-	test( test_pos_lte_range );
-	test( test_pos_lt_range );
-	test( test_pos_gte_random );
-	test( test_pos_lte_random );
-	test( test_consistency_0 );
-	test( test_consistency_1 );
-	test( test_consistency_2 );
-	test( test_consistency_3 );
-	test( test_consistency_4 );
-	test( test_consistency_5 );
-	test( test_consistency_6 );
-	test( test_consistency_7 );
-	test( test_consistency_8 );
-	test( test_consistency_9 );
-	test( test_consistency_n );
-	test( test_consistency_rewrite0 );
-	test( test_consistency_rewrite1 );
-	test( test_consistency_rewrite2 );
-	test( test_delete0 );
-	test( test_random0 );
-	return 0;
+	st *group = st_def("cursor", NULL);
+	st_test(group, st_def("empty_gte", cursor_empty_gte));
+	st_test(group, st_def("empty_gt", cursor_empty_gt));
+	st_test(group, st_def("empty_lte", cursor_empty_lte));
+	st_test(group, st_def("empty_lt", cursor_empty_lt));
+	st_test(group, st_def("gte", cursor_gte));
+	st_test(group, st_def("gt", cursor_gt));
+	st_test(group, st_def("lte", cursor_lte));
+	st_test(group, st_def("lt", cursor_lt));
+	st_test(group, st_def("pos_gte0", cursor_pos_gte0));
+	st_test(group, st_def("pos_gte1", cursor_pos_gte1));
+	st_test(group, st_def("pos_gte2", cursor_pos_gte2));
+	st_test(group, st_def("pos_gte3", cursor_pos_gte3));
+	st_test(group, st_def("pos_gte4", cursor_pos_gte4));
+	st_test(group, st_def("pos_gte5", cursor_pos_gte5));
+	st_test(group, st_def("pos_gt0", cursor_pos_gt0));
+	st_test(group, st_def("pos_gt1", cursor_pos_gt1));
+	st_test(group, st_def("pos_gt2", cursor_pos_gt2));
+	st_test(group, st_def("pos_lte0", cursor_pos_lte0));
+	st_test(group, st_def("pos_lte1", cursor_pos_lte1));
+	st_test(group, st_def("pos_lte2", cursor_pos_lte2));
+	st_test(group, st_def("pos_lte3", cursor_pos_lte3));
+	st_test(group, st_def("pos_lte4", cursor_pos_lte4));
+	st_test(group, st_def("pos_lt0", cursor_pos_lt0));
+	st_test(group, st_def("pos_lt1", cursor_pos_lt1));
+	st_test(group, st_def("pos_lt2", cursor_pos_lt2));
+	st_test(group, st_def("pos_lt3", cursor_pos_lt3));
+	st_test(group, st_def("pos_lt4", cursor_pos_lt4));
+	st_test(group, st_def("pos_gte_range", cursor_pos_gte_range));
+	st_test(group, st_def("pos_gt_range", cursor_pos_gt_range));
+	st_test(group, st_def("pos_lte_range", cursor_pos_lte_range));
+	st_test(group, st_def("pos_lt_range", cursor_pos_lt_range));
+	st_test(group, st_def("pos_gte_random", cursor_pos_gte_random));
+	st_test(group, st_def("pos_lte_random", cursor_pos_lte_random));
+	st_test(group, st_def("random", cursor_random));
+	st_test(group, st_def("consistency0", cursor_consistency0));
+	st_test(group, st_def("consistency1", cursor_consistency1));
+	st_test(group, st_def("consistency2", cursor_consistency2));
+	st_test(group, st_def("consistency3", cursor_consistency3));
+	st_test(group, st_def("consistency4", cursor_consistency4));
+	st_test(group, st_def("consistency5", cursor_consistency5));
+	st_test(group, st_def("consistency6", cursor_consistency6));
+	st_test(group, st_def("consistency7", cursor_consistency7));
+	st_test(group, st_def("consistency8", cursor_consistency8));
+	st_test(group, st_def("consistency9", cursor_consistency9));
+	st_test(group, st_def("consistencyN", cursor_consistencyN));
+	st_test(group, st_def("consistency_rewrite0", cursor_consistency_rewrite0));
+	st_test(group, st_def("consistency_rewrite1", cursor_consistency_rewrite1));
+	st_test(group, st_def("consistency_rewrite2", cursor_consistency_rewrite2));
+	st_test(group, st_def("consistency_delete", cursor_consistency_delete));
+	return group;
 }

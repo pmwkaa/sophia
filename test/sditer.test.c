@@ -10,7 +10,8 @@
 #include <libsr.h>
 #include <libsv.h>
 #include <libsd.h>
-#include "suite.h"
+#include <libst.h>
+#include <sophia.h>
 
 static void
 addv(sdbuild *b, uint64_t lsn, uint8_t flags, int *key)
@@ -29,7 +30,7 @@ addv(sdbuild *b, uint64_t lsn, uint8_t flags, int *key)
 }
 
 static void
-test_gt0(void)
+sditer_gt0(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -85,7 +86,7 @@ test_gt0(void)
 }
 
 static void
-test_gt1(void)
+sditer_gt1(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -184,10 +185,10 @@ test_gt1(void)
 	sd_buildfree(&b);
 }
 
-int
-main(int argc, char *argv[])
+st *sditer_group(void)
 {
-	test( test_gt0 );
-	test( test_gt1 );
-	return 0;
+	st *group = st_def("sditer", NULL);
+	st_test(group, st_def("gt0", sditer_gt0));
+	st_test(group, st_def("gt1", sditer_gt1));
+	return group;
 }

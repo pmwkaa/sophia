@@ -8,9 +8,10 @@
 */
 
 #include <libsr.h>
+#include <libst.h>
 #include <sophia.h>
-#include "suite.h"
 
+#if 0
 static void
 test_profiler(void)
 {
@@ -64,10 +65,10 @@ test_profiler(void)
 
 	t( sp_destroy(env) == 0 );
 }
+#endif
 
-int
-main(int argc, char *argv[])
+st *profiler_group(void)
 {
-	test( test_profiler );
-	return 0;
+	st *group = st_def("profiler", NULL);
+	return group;
 }

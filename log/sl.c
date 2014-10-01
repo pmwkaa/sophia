@@ -177,9 +177,11 @@ int sl_poolrotate(slpool *p)
 	p->n++;
 	sr_spinunlock(&p->lock);
 	if (log) {
+		/*
 		int rc = sr_filesync(&log->file);
 		if (srunlikely(rc == -1))
 			return -1;
+			*/
 	}
 	return 0;
 }
