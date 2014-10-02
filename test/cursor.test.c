@@ -19,7 +19,7 @@ cursor_empty_gte(stc *cx)
 	t( c != NULL );
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 }
 
 static void
@@ -30,7 +30,7 @@ cursor_empty_gt(stc *cx)
 	t( c != NULL );
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 }
 
 static void
@@ -41,7 +41,7 @@ cursor_empty_lte(stc *cx)
 	t( c != NULL );
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 }
 
 static void
@@ -52,7 +52,7 @@ cursor_empty_lt(stc *cx)
 	t( c != NULL );
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 }
 
 static void
@@ -81,7 +81,7 @@ cursor_gte(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
 	o = sp_get(c);
@@ -96,7 +96,7 @@ cursor_gte(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -125,7 +125,7 @@ cursor_gt(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
 	o = sp_get(c);
@@ -140,7 +140,7 @@ cursor_gt(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -169,7 +169,7 @@ cursor_lte(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	void *c = sp_cursor(db, "<=", NULL);
 	t( c != NULL );
 	o = sp_get(c);
@@ -184,7 +184,7 @@ cursor_lte(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -213,7 +213,7 @@ cursor_lt(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	void *c = sp_cursor(db, "<", NULL);
 	t( c != NULL );
 	o = sp_get(c);
@@ -228,7 +228,7 @@ cursor_lt(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -257,7 +257,7 @@ cursor_pos_gte0(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	key = 7;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -276,7 +276,7 @@ cursor_pos_gte0(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -305,7 +305,7 @@ cursor_pos_gte1(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	key = 8;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -321,7 +321,7 @@ cursor_pos_gte1(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -350,7 +350,7 @@ cursor_pos_gte2(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	key = 9;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -363,7 +363,7 @@ cursor_pos_gte2(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -392,7 +392,7 @@ cursor_pos_gte3(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	key = 15;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -402,7 +402,7 @@ cursor_pos_gte3(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -431,7 +431,7 @@ cursor_pos_gte4(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	key = 79;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -447,7 +447,7 @@ cursor_pos_gte4(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -476,7 +476,7 @@ cursor_pos_gte5(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	key = 0;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -495,7 +495,7 @@ cursor_pos_gte5(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -524,7 +524,7 @@ cursor_pos_gt0(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	key = 7;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -540,7 +540,7 @@ cursor_pos_gt0(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -569,7 +569,7 @@ cursor_pos_gt1(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	key = 8;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -582,7 +582,7 @@ cursor_pos_gt1(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -611,7 +611,7 @@ cursor_pos_gt2(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	key = 9;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -621,7 +621,7 @@ cursor_pos_gt2(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -650,7 +650,7 @@ cursor_pos_lte0(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	key = 9;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -669,7 +669,7 @@ cursor_pos_lte0(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -698,7 +698,7 @@ cursor_pos_lte1(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	key = 8;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -714,7 +714,7 @@ cursor_pos_lte1(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -743,7 +743,7 @@ cursor_pos_lte2(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	key = 7;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -756,7 +756,7 @@ cursor_pos_lte2(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -785,7 +785,7 @@ cursor_pos_lte3(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	key = 5;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -795,7 +795,7 @@ cursor_pos_lte3(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -824,7 +824,7 @@ cursor_pos_lte4(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	key = 20;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -843,7 +843,7 @@ cursor_pos_lte4(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -872,7 +872,7 @@ cursor_pos_lt0(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	key = 9;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -888,7 +888,7 @@ cursor_pos_lt0(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -917,7 +917,7 @@ cursor_pos_lt1(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	key = 8;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -930,7 +930,7 @@ cursor_pos_lt1(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -959,7 +959,7 @@ cursor_pos_lt2(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	key = 7;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -969,7 +969,7 @@ cursor_pos_lt2(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -998,7 +998,7 @@ cursor_pos_lt3(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	key = 2;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -1008,7 +1008,7 @@ cursor_pos_lt3(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -1037,7 +1037,7 @@ cursor_pos_lt4(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	key = 20;
 	void *pos = sp_object(db);
 	t( pos != NULL );
@@ -1056,7 +1056,7 @@ cursor_pos_lt4(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -1077,7 +1077,7 @@ cursor_pos_gte_range(stc *cx)
 	}
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	i = 0;
 	while (i < 385) {
 		void *o = sp_object(db);
@@ -1092,7 +1092,7 @@ cursor_pos_gte_range(stc *cx)
 		t( sp_destroy(c) == 0 );
 		i++;
 	}
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -1113,7 +1113,7 @@ cursor_pos_gt_range(stc *cx)
 	}
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	i = 0;
 	while (i < (385 - 1)) {
 		void *o = sp_object(db);
@@ -1128,7 +1128,7 @@ cursor_pos_gt_range(stc *cx)
 		t( sp_destroy(c) == 0 );
 		i++;
 	}
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -1149,7 +1149,7 @@ cursor_pos_lte_range(stc *cx)
 	}
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	i = 0;
 	while (i < 385) {
 		void *o = sp_object(db);
@@ -1164,7 +1164,7 @@ cursor_pos_lte_range(stc *cx)
 		t( sp_destroy(c) == 0 );
 		i++;
 	}
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -1185,7 +1185,7 @@ cursor_pos_lt_range(stc *cx)
 	}
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	i = 1;
 	while (i < 385) {
 		void *o = sp_object(db);
@@ -1200,7 +1200,7 @@ cursor_pos_lt_range(stc *cx)
 		t( sp_destroy(c) == 0 );
 		i++;
 	}
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -1224,7 +1224,7 @@ cursor_pos_gte_random(stc *cx)
 	}
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	srand(seed);
 	i = 0;
 	while (i < 270) {
@@ -1241,7 +1241,7 @@ cursor_pos_gte_random(stc *cx)
 		t( sp_destroy(c) == 0 );
 		i++;
 	}
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -1265,7 +1265,7 @@ cursor_pos_lte_random(stc *cx)
 	}
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	srand(seed);
 	i = 0;
 	while (i < 403) {
@@ -1282,7 +1282,7 @@ cursor_pos_lte_random(stc *cx)
 		t( sp_destroy(c) == 0 );
 		i++;
 	}
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -1299,7 +1299,7 @@ cursor_random(stc *cx)
 		i++;
 	}
 	t( sp_commit(tx) == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 	srand(234541);
 	i = 0;
 	while (i < 3000) {
@@ -1318,7 +1318,7 @@ cursor_random(stc *cx)
 		sp_destroy(c);
 		i++;
 	}
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -1348,11 +1348,11 @@ cursor_consistency0(stc *cx)
 	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
-	st_phase(cx, 0);
+	st_transaction(cx);
 	t( rc == 0 );
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 }
 
 static void
@@ -1384,7 +1384,7 @@ cursor_consistency1(stc *cx)
 
 	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
-	st_phase(cx, 0);
+	st_transaction(cx);
 
 	tx = sp_begin(db);
 	t( tx != NULL );
@@ -1402,7 +1402,7 @@ cursor_consistency1(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 
 	o = sp_get(c);
 	t( o != NULL );
@@ -1416,7 +1416,7 @@ cursor_consistency1(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 2);
+	st_transaction(cx);
 }
 
 static void
@@ -1446,7 +1446,7 @@ cursor_consistency2(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 
 	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
@@ -1462,7 +1462,7 @@ cursor_consistency2(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 
 	o = sp_get(c);
 	t( o != NULL );
@@ -1479,7 +1479,7 @@ cursor_consistency2(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 2);
+	st_transaction(cx);
 }
 
 static void
@@ -1509,7 +1509,7 @@ cursor_consistency3(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 
 	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
@@ -1532,7 +1532,7 @@ cursor_consistency3(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 2);
+	st_transaction(cx);
 
 	o = sp_get(c);
 	t( o != NULL );
@@ -1549,7 +1549,7 @@ cursor_consistency3(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 3);
+	st_transaction(cx);
 }
 
 static void
@@ -1579,7 +1579,7 @@ cursor_consistency4(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 
 	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
@@ -1602,7 +1602,7 @@ cursor_consistency4(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 
 	tx = sp_begin(db);
 	t( tx != NULL );
@@ -1622,7 +1622,7 @@ cursor_consistency4(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 2);
+	st_transaction(cx);
 
 	o = sp_get(c);
 	t( o != NULL );
@@ -1639,7 +1639,7 @@ cursor_consistency4(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 3);
+	st_transaction(cx);
 }
 
 static void
@@ -1670,7 +1670,7 @@ cursor_consistency5(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 
 	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
@@ -1690,7 +1690,7 @@ cursor_consistency5(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 
 	o = sp_get(c);
 	t( o != NULL );
@@ -1703,7 +1703,7 @@ cursor_consistency5(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 2);
+	st_transaction(cx);
 }
 
 static void
@@ -1734,7 +1734,7 @@ cursor_consistency6(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 
 	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
@@ -1769,7 +1769,7 @@ cursor_consistency6(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 
 	o = sp_get(c);
 	t( o != NULL );
@@ -1782,7 +1782,7 @@ cursor_consistency6(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 2);
+	st_transaction(cx);
 }
 
 static void
@@ -1813,7 +1813,7 @@ cursor_consistency7(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 
 	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
@@ -1861,7 +1861,7 @@ cursor_consistency7(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 
 	o = sp_get(c);
 	t( o != NULL );
@@ -1874,7 +1874,7 @@ cursor_consistency7(stc *cx)
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 2);
+	st_transaction(cx);
 }
 
 static void
@@ -1905,7 +1905,7 @@ cursor_consistency8(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 
 	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
@@ -1932,7 +1932,7 @@ cursor_consistency8(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 
 	o = sp_get(c);
 	t( o != NULL );
@@ -1963,7 +1963,7 @@ cursor_consistency8(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 2);
+	st_transaction(cx);
 
 	o = sp_get(c);
 	t( o != NULL );
@@ -1981,7 +1981,7 @@ cursor_consistency8(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 3);
+	st_transaction(cx);
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
 }
@@ -2014,7 +2014,7 @@ cursor_consistency9(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 
 	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
@@ -2041,7 +2041,7 @@ cursor_consistency9(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 
 	tx = sp_begin(db);
 	t( tx != NULL );
@@ -2054,7 +2054,7 @@ cursor_consistency9(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 2);
+	st_transaction(cx);
 
 	o = sp_get(c);
 	t( o != NULL );
@@ -2079,7 +2079,7 @@ cursor_consistency9(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 3);
+	st_transaction(cx);
 
 	o = sp_get(c);
 	t( o != NULL );
@@ -2104,7 +2104,7 @@ cursor_consistency9(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 4);
+	st_transaction(cx);
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
 
@@ -2141,7 +2141,7 @@ cursor_consistency9(stc *cx)
 	t( *(int*)sp_get(o, "value",  NULL) == 3 );
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
-	st_phase(cx, 5);
+	st_transaction(cx);
 }
 
 static void
@@ -2172,7 +2172,7 @@ cursor_consistencyN(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 
 	void *c = sp_cursor(db, ">=", NULL);
 	t( c != NULL );
@@ -2198,7 +2198,7 @@ cursor_consistencyN(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 
 	tx = sp_begin(db);
 	t( tx != NULL );
@@ -2210,7 +2210,7 @@ cursor_consistencyN(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_phase(cx, 2);
+	st_transaction(cx);
 
 	void *c2 = sp_cursor(db, ">=", NULL);
 	t( c2 != NULL );
@@ -2241,7 +2241,7 @@ cursor_consistencyN(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 2 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
-	st_phase(cx, 3);
+	st_transaction(cx);
 
 	o = sp_get(c2);
 	t( o != NULL );
@@ -2275,7 +2275,7 @@ cursor_consistency_rewrite0(stc *cx)
 		i++;
 	}
 	t( sp_commit(tx) == 0);
-	st_phase(cx, 0);
+	st_transaction(cx);
 
 	void *c1 = sp_cursor(db, ">=", NULL, 0);
 
@@ -2291,7 +2291,7 @@ cursor_consistency_rewrite0(stc *cx)
 		i++;
 	}
 	t( sp_commit(tx) == 0);
-	st_phase(cx, 1);
+	st_transaction(cx);
 
 	void *c2 = sp_cursor(db, ">=", NULL);
 
@@ -2305,7 +2305,7 @@ cursor_consistency_rewrite0(stc *cx)
 		i++;
 	}
 	t(i == 385);
-	st_phase(cx, 2);
+	st_transaction(cx);
 
 	i = 0;
 	while (sp_get(c2)) {
@@ -2340,7 +2340,7 @@ cursor_consistency_rewrite1(stc *cx)
 		i++;
 	}
 	t( sp_commit(tx) == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 
 	void *c1 = sp_cursor(db, ">=", NULL);
 
@@ -2356,7 +2356,7 @@ cursor_consistency_rewrite1(stc *cx)
 		i++;
 	}
 	t( sp_commit(tx) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 
 	t( sp_get(c0) == NULL );
 
@@ -2406,7 +2406,7 @@ cursor_consistency_rewrite2(stc *cx)
 		i++;
 	}
 	t( sp_commit(tx) == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 
 	void *c1 = sp_cursor(db, ">=", NULL);
 	v = 20;
@@ -2426,7 +2426,7 @@ cursor_consistency_rewrite2(stc *cx)
 		i++;
 	}
 	t(i == 385);
-	st_phase(cx, 1);
+	st_transaction(cx);
 
 	t( sp_get(c0) == 0 );
 
@@ -2439,7 +2439,7 @@ cursor_consistency_rewrite2(stc *cx)
 		i++;
 	}
 	t(i == 385);
-	st_phase(cx, 2);
+	st_transaction(cx);
 
 	t( sp_destroy(c0) == 0 );
 	t( sp_destroy(c2) == 0 );
@@ -2462,7 +2462,7 @@ cursor_consistency_delete(stc *cx)
 		i++;
 	}
 	t( sp_commit(tx) == 0 );
-	st_phase(cx, 0);
+	st_transaction(cx);
 
 	tx = sp_begin(db);
 	i = 0;
@@ -2474,7 +2474,7 @@ cursor_consistency_delete(stc *cx)
 		i++;
 	}
 	t( sp_commit(tx) == 0 );
-	st_phase(cx, 1);
+	st_transaction(cx);
 
 	t( sp_get(c0) == NULL );
 

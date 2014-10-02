@@ -61,73 +61,73 @@ st_scene_open(stscene *g, stc *cx)
 }
 
 static inline void
-st_phasefull(stc *cx, int flags) {
-	int i = 0;
-	while (i < 10) {
-		cx->phases[i] = flags;
-		i++;
-	}
-}
-
-void st_phase(stc *cx, int id)
+st_phase_commit(stc *cx)
 {
-	int e = cx->phases[id];
-	if (e == ST_NONE)
-		return;
-	if (e & ST_BRANCH)
-		t( sp_set(sp_ctl(cx->env, "db.test.run_branch")) == 0 );
-	if (e & ST_MERGE)
-		t( sp_set(sp_ctl(cx->env, "db.test.run_merge")) == 0 );
-	if (e & ST_LOGROTATE)
-		t( sp_set(sp_ctl(cx->env, "db.test.run_logrotate")) == 0 );
+	switch (cx->phase_scene) {
+	case 0:
+		t( sp_set(sp_ctl(cx->env), "db.test.run_branch") == 0 );
+		break;
+	case 1:
+		t( sp_set(sp_ctl(cx->env), "db.test.run_branch") == 0 );
+		t( sp_set(sp_ctl(cx->env), "db.test.run_merge") == 0 );
+		break;
+	case 2:
+		t( sp_set(sp_ctl(cx->env), "db.test.run_logrotate") == 0 );
+		break;
+	case 3:
+		if (cx->phase == 0) {
+			t( sp_set(sp_ctl(cx->env), "db.test.run_branch") == 0 );
+			cx->phase = 1;
+		} else
+		if (cx->phase == 1) {
+			t( sp_set(sp_ctl(cx->env), "db.test.run_merge") == 0 );
+			cx->phase = 0;
+		}
+		break;
+	case 4:
+		if (cx->phase == 0) {
+			t( sp_set(sp_ctl(cx->env), "db.test.run_branch") == 0 );
+			cx->phase = 1;
+		} else
+		if (cx->phase == 1) {
+			t( sp_set(sp_ctl(cx->env), "db.test.run_merge") == 0 );
+			cx->phase = 2;
+		} else
+		if (cx->phase == 2) {
+			t( sp_set(sp_ctl(cx->env), "db.test.run_logrotate") == 0 );
+			cx->phase = 0;
+		}
+		break;
+	default: t(0);
+	}
 }
 
 void
 st_scene_phases(stscene *g, stc *cx)
 {
+	cx->commit = st_phase_commit;
+	cx->phase_scene = g->state;
+	cx->phase = 0;
 	switch (g->state) {
 	case 0:
 		printf(".branch");
 		fflush(NULL);
-		st_phasefull(cx, ST_BRANCH);
 		break;
 	case 1:
 		printf(".merge");
 		fflush(NULL);
-		st_phasefull(cx, ST_BRANCH|ST_MERGE);
 		break;
 	case 2:
 		printf(".logrotate");
 		fflush(NULL);
-		st_phasefull(cx, ST_LOGROTATE);
 		break;
 	case 3:
 		printf(".branch+merge");
 		fflush(NULL);
-		cx->phases[0] = ST_BRANCH;
-		cx->phases[1] = ST_MERGE;
-		cx->phases[2] = ST_BRANCH;
-		cx->phases[3] = ST_MERGE;
-		cx->phases[4] = ST_BRANCH;
-		cx->phases[5] = ST_MERGE;
-		cx->phases[6] = ST_BRANCH;
-		cx->phases[7] = ST_MERGE;
-		cx->phases[8] = ST_BRANCH;
-		cx->phases[9] = ST_MERGE;
 		break;
 	case 4:
 		printf(".branch+logrotate");
 		fflush(NULL);
-		cx->phases[0] = ST_BRANCH;
-		cx->phases[1] = ST_MERGE;
-		cx->phases[2] = ST_LOGROTATE;
-		cx->phases[3] = ST_BRANCH;
-		cx->phases[4] = ST_MERGE;
-		cx->phases[5] = ST_LOGROTATE;
-		cx->phases[6] = ST_BRANCH;
-		cx->phases[7] = ST_MERGE;
-		cx->phases[8] = ST_LOGROTATE;
-		cx->phases[9] = ST_BRANCH;
 		break;
 	}
 }
@@ -181,7 +181,7 @@ main(int argc, char *argv[])
 
 	st_scene(&s, st_scene_create,  1);
 	st_scene(&s, st_scene_open,    1);
-	st_scene(&s, st_scene_phases,  6);
+	st_scene(&s, st_scene_phases,  5);
 	st_scene(&s, st_scene_test,    1);
 	st_scene(&s, st_scene_destroy, 1);
 

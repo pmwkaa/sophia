@@ -17,17 +17,14 @@ typedef struct stc stc;
 typedef void (*stscenef)(stscene*, stc*);
 typedef void (*stf)(stc*);
 
-#define ST_NONE      0
-#define ST_BRANCH    1
-#define ST_MERGE     2
-#define ST_LOGROTATE 4
-
 struct stc {
 	void *db;
 	void *env;
 	st *group;
 	st *test;
-	int phases[10];
+	stf commit;
+	int phase_scene;
+	int phase;
 	stsuite *suite;
 };
 
@@ -100,8 +97,6 @@ st_free(stsuite *s)
 	}
 }
 
-void st_phase(stc*, int id);
-
 static inline void
 st_group(stsuite *s, st *group) {
 	sr_listappend(&s->groups, &group->link);
@@ -125,6 +120,12 @@ st_scene(stsuite *s, stscenef function, int statemax)
 static inline void
 st_unit(stsuite *s, st *test) {
 	sr_listappend(&s->units, &test->link);
+}
+
+static inline void
+st_transaction(stc *cx) {
+	if (cx->commit)
+		cx->commit(cx);
 }
 
 static inline int
@@ -151,11 +152,14 @@ st_rungroup(stsuite *s, st *group)
 	{
 		st *test = srcast(i, st, link);
 		stc context = {
-			.env   = NULL,
-			.db    = NULL,
-			.group = group,
-			.test  = test,
-			.suite = s
+			.env    = NULL,
+			.db     = NULL,
+			.group  = group,
+			.test   = test,
+			.suite  = s,
+			.commit = NULL,
+			.phase_scene = 0,
+			.phase  = 0
 		};
 		printf("%s.%s", group->name, test->name);
 		fflush(NULL);
@@ -184,7 +188,10 @@ st_rununit(stsuite *s)
 				.db    = NULL,
 				.group = group,
 				.test  = test,
-				.suite = s
+				.suite = s,
+				.commit = NULL,
+				.phase_scene = 0,
+				.phase  = 0
 			};
 			test->function(&context);
 			printf(": ok\n");
