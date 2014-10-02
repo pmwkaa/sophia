@@ -76,44 +76,6 @@ sv_vfree(sra *a, svv *v)
 	}
 }
 
-#if 0
-static inline svv*
-sv_vupdate(svv *head, svv *v, uint64_t lsvn)
-{
-	assert(head->id.lsn < v->id.lsn);
-	if (srlikely(v->id.lsn == lsvn))
-		return head;
-	v->next = head;
-	register svv *c = head;
-	while (c && c->id.lsn > lsvn)
-		c = c->next;
-	if (c == NULL)
-		return NULL;
-	/* <= lsvn */
-	register svv *p = c->next;
-	c->next = NULL;
-	return p;
-}
-#endif
-
-static inline svv*
-sv_vupdate(svv *head, svv *v, uint64_t lsvn)
-{
-	assert(head->id.lsn < v->id.lsn);
-	if (head->id.lsn < lsvn)
-		return head;
-	v->next = head;
-	register svv *c = head;
-	while (c && c->id.lsn > lsvn)
-		c = c->next;
-	if (c == NULL)
-		return NULL;
-	/* <= lsvn */
-	register svv *p = c->next;
-	c->next = NULL;
-	return p;
-}
-
 static inline svv*
 sv_visible(svv *v, uint64_t lsvn) {
 	while (v && v->id.lsn > lsvn)
