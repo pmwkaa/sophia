@@ -18,13 +18,14 @@ int sd_indexbegin(sdindex *i, sra *a, uint32_t keysize)
 		return -1;
 	sdindexheader *h = sd_indexheader(i);
 	i->h = h;
-	h->crc    = 0;
-	h->block  = sizeof(sdindexpage) + (keysize * 2);
-	h->count  = 0;
-	h->keys   = 0;
-	h->total  = 0;
-	h->lsnmin = 0;
-	h->lsnmax = 0;
+	h->crc     = 0;
+	h->block   = sizeof(sdindexpage) + (keysize * 2);
+	h->count   = 0;
+	h->keys    = 0;
+	h->total   = 0;
+	h->totalkv = 0;
+	h->lsnmin  = 0;
+	h->lsnmax  = 0;
 	sr_bufadvance(&i->i, sizeof(sdindexheader));
 	return 0;
 }
@@ -44,7 +45,9 @@ int sd_indexcommit(sdindex *i, sra *a)
 	return 0;
 }
 
-int sd_indexadd(sdindex *i, sra *a, uint32_t offset, uint32_t size,
+int sd_indexadd(sdindex *i, sra *a, uint32_t offset,
+                uint32_t size,
+                uint32_t sizekv,
                 uint32_t count,
                 char *min, int sizemin,
                 char *max, int sizemax,
@@ -67,6 +70,7 @@ int sd_indexadd(sdindex *i, sra *a, uint32_t offset, uint32_t size,
 	i->h->count++;
 	i->h->keys  += count;
 	i->h->total += size;
+	i->h->totalkv += sizekv;
 	if (lsnmin > i->h->lsnmin)
 		i->h->lsnmin = lsnmin;
 	if (lsnmax > i->h->lsnmax)

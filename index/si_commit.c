@@ -56,9 +56,11 @@ si_set(si *index, sr *r, uint64_t lsvn, svv *v)
 	sv_indexset(vindex, r, lsvn, v, &prev);
 	node->icount++;
 	node->iused += size;
+	node->iusedkv += v->keysize + v->valuesize;
 	if (srunlikely(prev)) {
 		uint32_t size_prev = sv_vsize(prev);
 		node->iused -= size_prev;
+		node->iusedkv -= prev->keysize + prev->valuesize;
 		si_qos(index, 1, size_prev);
 	}
 	/* schedule node */

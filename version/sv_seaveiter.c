@@ -17,6 +17,7 @@ struct svseaveiter {
 	uint64_t limit; 
 	uint64_t size;
 	uint32_t sizev;
+	uint32_t totalkv;
 	uint64_t lsvn;
 	int next;
 	sv *v;
@@ -80,18 +81,22 @@ sv_seaveiter_next(sriter *i)
 			if (! dup)
 				break;
 		}
+		int kv = svkeysize(v) + svvaluesize(v);
 		if (srunlikely(dup)) {
 			if (svlsn(v) < im->lsvn) {
+				im->totalkv += kv;
 				sr_iternext(im->merge);
 				continue;
 			}
 		} else {
 			uint8_t del = (svflags(v) & SVDELETE) > 0;
 			if (srunlikely(del && (svlsn(v) < im->lsvn))) {
+				im->totalkv += kv;
 				sr_iternext(im->merge);
 				continue;
 			}
-			im->size += im->sizev + svkeysize(v) + svvaluesize(v);
+			im->size += im->sizev + kv;
+			im->totalkv += kv;
 		}
 		im->v = v;
 		im->next = 1;
@@ -116,6 +121,13 @@ int sv_seaveiter_resume(sriter *i)
 	if (srunlikely(im->v == NULL))
 		return 0;
 	im->next = 1;
-	im->size = im->sizev + svkeysize(im->v) + svvaluesize(im->v);
+	im->size = im->sizev + svkeysize(im->v) +
+	           svvaluesize(im->v);
 	return 1;
+}
+
+uint32_t sv_seaveiter_totalkv(sriter *i)
+{
+	svseaveiter *im = (svseaveiter*)i->priv;
+	return im->totalkv;
 }

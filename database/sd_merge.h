@@ -18,7 +18,7 @@ struct sdmerge {
 	uint32_t size_key;
 	uint32_t size_page;
 	uint32_t size_node;
-	uint32_t merged;
+	uint32_t processed;
 	sr *r;
 	sdbuild *build;
 };

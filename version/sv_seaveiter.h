@@ -12,5 +12,6 @@
 extern sriterif sv_seaveiter;
 
 int sv_seaveiter_resume(sriter*);
+uint32_t sv_seaveiter_totalkv(sriter*);
 
 #endif

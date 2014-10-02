@@ -86,7 +86,8 @@ int sd_buildadd(sdbuild *b, sv *v)
 	crc = sr_crcs(sv, sizeof(sdv), crc);
 	sv->crc = crc;
 	h->count++;
-	h->size += sv->valuesize + sizeblock;
+	h->size   += sv->valuesize + sizeblock;
+	h->sizekv += sv->keysize + sv->valuesize;
 	if (sv->lsn > h->lsnmax)
 		h->lsnmax = sv->lsn;
 	if (sv->lsn < h->lsnmin)
