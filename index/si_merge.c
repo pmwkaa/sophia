@@ -12,6 +12,8 @@
 #include <libsd.h>
 #include <libsi.h>
 
+extern void si_vgc(sra*, svv*);
+
 static int
 si_redistribute(sr *r, sdc *c, sinode *node, srbuf *result, uint64_t lsvn)
 {
@@ -39,31 +41,35 @@ si_redistribute(sr *r, sdc *c, sinode *node, srbuf *result, uint64_t lsvn)
 			assert(prev != NULL);
 			while (sr_iterhas(&i)) {
 				svv *v = sr_iterof(&i);
-				svv *vold = NULL;
-				sv_indexset(&prev->i0, r, lsvn, v, &vold);
-				assert(vold == NULL);
+				svv *vgc = NULL;
+				sv_indexset(&prev->i0, r, lsvn, v, &vgc);
 				prev->iused += sv_vsize(v);
 				prev->iusedkv += v->keysize + v->valuesize;
 				prev->icount++;
 				sr_iternext(&i);
+				if (vgc) {
+					si_vgc(r->a, vgc);
+				}
 			}
 			break;
 		}
 		while (sr_iterhas(&i)) {
 			svv *v = sr_iterof(&i);
-			svv *vold = NULL;
+			svv *vgc = NULL;
 			sdindexpage *page = sd_indexmin(&p->index);
 
 			int rc = sr_compare(r->cmp, sv_vkey(v), v->keysize,
 			                    sd_indexpage_min(page), page->sizemin);
 			if (srunlikely(rc >= 0))
 				break;
-			sv_indexset(&prev->i0, r, lsvn, v, &vold);
-			assert(vold == NULL);
+			sv_indexset(&prev->i0, r, lsvn, v, &vgc);
 			prev->iused += sv_vsize(v);
 			prev->iusedkv += v->keysize + v->valuesize;
 			prev->icount++;
 			sr_iternext(&i);
+			if (vgc) {
+				si_vgc(r->a, vgc);
+			}
 		}
 		if (srunlikely(! sr_iterhas(&i)))
 			break;

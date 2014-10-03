@@ -13,6 +13,21 @@
 #include <libsd.h>
 #include <libsi.h>
 
+void
+si_vgc(sra *a, svv *gc)
+{
+	svv *v = gc;
+	while (v) {
+		register svv *n = v->next;
+		sl *log = (sl*)v->log;
+		if (log) {
+			sr_gcsweep(&log->gc, 1);
+		}
+		sr_free(a, v);
+		v = n;
+	}
+}
+
 int si_begin(sitx *t, sr *r, si *index, uint64_t lsvn, svlog *log, svv *v)
 {
 	t->index = index;
@@ -52,26 +67,21 @@ si_set(si *index, sr *r, uint64_t lsvn, svv *v)
 	assert(node != NULL);
 	/* update node */
 	svindex *vindex = si_nodeindex(node);
-	svv *prev = NULL;
-	sv_indexset(vindex, r, lsvn, v, &prev);
+	svv *vgc = NULL;
+	sv_indexset(vindex, r, lsvn, v, &vgc);
 	node->icount++;
 	node->iused += size;
 	node->iusedkv += v->keysize + v->valuesize;
-	if (srunlikely(prev)) {
-		uint32_t size_prev = sv_vsize(prev);
-		node->iused -= size_prev;
-		node->iusedkv -= prev->keysize + prev->valuesize;
-		si_qos(index, 1, size_prev);
+	if (srunlikely(vgc)) {
+		uint32_t size_vgc = sv_vsize(vgc);
+		node->iused -= size_vgc;
+		node->iusedkv -= vgc->keysize + vgc->valuesize;
+		si_qos(index, 1, size_vgc);
 	}
 	/* schedule node */
 	si_plan(&index->plan, SI_BRANCH, node);
-	if (srunlikely(prev)) {
-		sl *log = (sl*)prev->log;
-		if (log) {
-			sr_gcsweep(&log->gc, 1);
-		}
-		sv_vfree(r->a, prev);
-	}
+	if (srunlikely(vgc))
+		si_vgc(r->a, vgc);
 }
 
 int si_write(sitx *t)
