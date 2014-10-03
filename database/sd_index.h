@@ -20,6 +20,7 @@ struct sdindexheader {
 	uint32_t count;
 	uint32_t keys;
 	uint32_t total;
+	uint32_t totalkv;
 	uint64_t lsnmin;
 	uint64_t lsnmax;
 } srpacked;
@@ -119,6 +120,14 @@ sd_indextotal(sdindex *i)
 	return sd_indexheader(i)->total;
 }
 
+static inline uint32_t
+sd_indextotal_kv(sdindex *i)
+{
+	if (srunlikely(i->h == NULL))
+		return 0;
+	return sd_indexheader(i)->totalkv;
+}
+
 static inline int
 sd_indexpage_cmp(sdindexpage *p, void *key, int size, srcomparator *c)
 {
@@ -139,7 +148,7 @@ sd_indexpage_cmp(sdindexpage *p, void *key, int size, srcomparator *c)
 
 int sd_indexbegin(sdindex*, sra*, uint32_t);
 int sd_indexcommit(sdindex*, sra*);
-int sd_indexadd(sdindex*, sra*, uint32_t, uint32_t, uint32_t,
+int sd_indexadd(sdindex*, sra*, uint32_t, uint32_t, uint32_t, uint32_t,
                 char*, int, char*, int,
                 uint64_t, uint64_t);
 sdindexheader*

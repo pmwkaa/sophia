@@ -12,6 +12,8 @@
 #include <libsd.h>
 #include <libsi.h>
 
+extern void si_vgc(sra*, svv*);
+
 static int
 si_redistribute(sr *r, sdc *c, sinode *node, srbuf *result, uint64_t lsvn)
 {
@@ -39,29 +41,35 @@ si_redistribute(sr *r, sdc *c, sinode *node, srbuf *result, uint64_t lsvn)
 			assert(prev != NULL);
 			while (sr_iterhas(&i)) {
 				svv *v = sr_iterof(&i);
-				svv *vold = NULL;
-				sv_indexset(&prev->i0, r, lsvn, v, &vold);
-				assert(vold == NULL);
+				svv *vgc = NULL;
+				sv_indexset(&prev->i0, r, lsvn, v, &vgc);
 				prev->iused += sv_vsize(v);
+				prev->iusedkv += v->keysize + v->valuesize;
 				prev->icount++;
 				sr_iternext(&i);
+				if (vgc) {
+					si_vgc(r->a, vgc);
+				}
 			}
 			break;
 		}
 		while (sr_iterhas(&i)) {
 			svv *v = sr_iterof(&i);
-			svv *vold = NULL;
+			svv *vgc = NULL;
 			sdindexpage *page = sd_indexmin(&p->index);
 
 			int rc = sr_compare(r->cmp, sv_vkey(v), v->keysize,
 			                    sd_indexpage_min(page), page->sizemin);
 			if (srunlikely(rc >= 0))
 				break;
-			sv_indexset(&prev->i0, r, lsvn, v, &vold);
-			assert(vold == NULL);
+			sv_indexset(&prev->i0, r, lsvn, v, &vgc);
 			prev->iused += sv_vsize(v);
+			prev->iusedkv += v->keysize + v->valuesize;
 			prev->icount++;
 			sr_iternext(&i);
+			if (vgc) {
+				si_vgc(r->a, vgc);
+			}
 		}
 		if (srunlikely(! sr_iterhas(&i)))
 			break;
@@ -103,10 +111,11 @@ si_mergeof(si *index, sr *r, sdc *c, sinode *node,
 	sinode *n;
 	if (srlikely(count == 1)) {
 		n = *(sinode**)result->s;
-		n->iused  = node->iused;
-		n->icount = node->icount;
-		n->i0     = node->i0;
-		n->flags |= SI_MERGE|SI_BRANCH;
+		n->iused   = node->iused;
+		n->iusedkv = node->iusedkv;
+		n->icount  = node->icount;
+		n->i0      = node->i0;
+		n->flags  |= SI_MERGE|SI_BRANCH;
 		sv_indexinit(&node->i0);
 		si_replace(index, node, n);
 		si_plan(&index->plan, SI_MERGE|SI_BRANCH, n);
@@ -173,7 +182,7 @@ si_mergeadd(svmerge *m, sr *r, sinode *n,
 	uint16_t key = sd_indexkeysize(&n->index);
 	if (key > *size_key)
 		*size_key = key;
-	*size_stream += sd_indextotal(&n->index);
+	*size_stream += sd_indextotal_kv(&n->index);
 	sr_iterinit(&src->i, &sd_iter, r);
 	sr_iteropen(&src->i, &n->map, 0);
 	return 0;

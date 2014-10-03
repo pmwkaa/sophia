@@ -16,6 +16,7 @@ struct sdpageheader {
 	uint32_t crc;
 	uint32_t count;
 	uint32_t size;
+	uint32_t sizekv;
 	uint16_t sizeblock;
 	uint64_t lsnmin;
 	uint64_t lsnmax;

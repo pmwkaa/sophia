@@ -25,7 +25,6 @@ int sd_mergeinit(sdmerge *m, sr *r, sriter *i,
 	m->size_stream = size_stream;
 	m->size_node   = size_node;
 	m->size_page   = size_page;
-	m->merged      = 0;
 	sr_iterinit(&m->i, &sv_seaveiter, r);
 	sr_iteropen(&m->i, i, (uint64_t)size_page, sizeof(sdv), lsvn);
 	return 0;
@@ -48,7 +47,10 @@ int sd_merge(sdmerge *m)
 	if (srunlikely(rc == -1))
 		return -1;
 
-	uint32_t left = (m->size_stream - m->merged);
+	uint32_t processed = sv_seaveiter_totalkv(&m->i);
+	uint32_t processed_last = 0;
+	assert(processed <= m->size_stream);
+	uint32_t left = (m->size_stream - processed);
 	uint32_t limit;
 	if (left >= (m->size_node * 2))
 		limit = m->size_node;
@@ -58,7 +60,7 @@ int sd_merge(sdmerge *m)
 	else
 		limit = left;
 
-	while (sr_iterhas(&m->i) && (sd_buildsize(m->build) < limit))
+	while (sr_iterhas(&m->i) && (processed_last <= limit))
 	{
 		rc = sd_buildbegin(m->build, m->size_key);
 		if (srunlikely(rc == -1))
@@ -76,6 +78,7 @@ int sd_merge(sdmerge *m)
 		rc = sd_indexadd(&m->index, m->r->a,
 		                 sd_buildoffset(m->build) + sizeof(srversion),
 		                 sd_buildheader(m->build)->size + sizeof(sdpageheader),
+		                 sd_buildheader(m->build)->sizekv,
 		                 sd_buildheader(m->build)->count,
 		                 sd_buildmin(m->build)->key,
 		                 sd_buildmin(m->build)->keysize,
@@ -86,13 +89,15 @@ int sd_merge(sdmerge *m)
 		if (srunlikely(rc == -1))
 			return -1;
 		sd_buildcommit(m->build);
+
+		processed_last = sv_seaveiter_totalkv(&m->i) -
+		                 processed;
 		if (srunlikely(! sv_seaveiter_resume(&m->i)))
 			break;
 	}
+
 	rc = sd_indexcommit(&m->index, m->r->a);
 	if (srunlikely(rc == -1))
 		return -1;
-
-	m->merged += sd_buildsize(m->build);
 	return 1;
 }

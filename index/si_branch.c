@@ -25,8 +25,9 @@ int si_branch(si *index, sr *r, sdc *c, uint32_t wm)
 		si_unlock(index);
 		return 0;
 	}
-	uint32_t iused = n->iused;
-	uint32_t icount = n->icount;
+	uint32_t iused   = n->iused;
+	uint32_t iusedkv = n->iusedkv;
+	uint32_t icount  = n->icount;
 	if (srunlikely(iused == 0)) {
 		n->flags &= ~SI_BRANCH;
 		si_unlock(index);
@@ -49,7 +50,7 @@ int si_branch(si *index, sr *r, sdc *c, uint32_t wm)
 		.src_deriveid = 0,
 		.i            = &indexi,
 		.size_key     = i->keymax,
-		.size_stream  = n->iused,
+		.size_stream  = iusedkv,
 		.size_node    = UINT32_MAX,
 		.lsvn         = sr_seq(r->seq, SR_LSN) - 1,
 		.conf         = index->conf
@@ -76,8 +77,9 @@ int si_branch(si *index, sr *r, sdc *c, uint32_t wm)
 	n->next = q;
 	si_nodeunrotate(n);
 	n->lv++;
-	n->iused -= iused;
-	n->icount -= icount;
+	n->iused   -= iused;
+	n->iusedkv -= iusedkv;
+	n->icount  -= icount;
 	si_plan(&index->plan, SI_BRANCH|SI_MERGE, n);
 	si_qos(index, 1, iused);
 	si_unlock(index);

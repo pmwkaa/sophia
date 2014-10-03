@@ -36,7 +36,7 @@ si_deploy(si *i, sr *r)
 		si_nodefree(n, r);
 		return -1;
 	}
-	rc = sd_indexadd(&index, r->a, 0, 0, 0, "", 1, "", 1, 0, 0);
+	rc = sd_indexadd(&index, r->a, 0, 0, 0, 0, "", 1, "", 1, 0, 0);
 	if (srunlikely(rc == -1)) {
 		sd_indexfree(&index, r->a);
 		si_nodefree(n, r);
