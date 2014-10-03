@@ -98,7 +98,7 @@ void *so_txdbget(sodb *db, va_list args)
 		return NULL;
 	}
 	sm_get_stmt(&db->mvcc);
-	uint64_t lsvn = sm_lsvn(&db->mvcc);
+	uint64_t lsvn = sr_seq(db->r.seq, SR_LSN) - 1;
 	sv result;
 	siquery q;
 	si_queryopen(&q, &db->r, &db->index, SR_EQ, lsvn, key, keysize);

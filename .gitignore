@@ -5,7 +5,6 @@
 *.mk
 out
 *.a
-*.test
 gyp-mac-tool
 sophia.Makefile
 .*.sw[op]
