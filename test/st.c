@@ -32,12 +32,17 @@ int rmrf(char *path) {
 }
 
 void
+st_scene_rmrf(stscene *g, stc *cx)
+{
+	rmrf(cx->suite->logdir);
+	rmrf(cx->suite->dir);
+}
+
+void
 st_scene_create(stscene *g, stc *cx)
 {
 	printf(".create");
 	fflush(NULL);
-	rmrf(cx->suite->logdir);
-	rmrf(cx->suite->dir);
 	t( cx->db  == NULL );
 	t( cx->env == NULL );
 	cx->env = sp_env();
@@ -139,6 +144,25 @@ st_scene_test(stscene *g, stc *cx)
 }
 
 void
+st_scene_truncate(stscene *g, stc *cx)
+{
+	printf(".truncate");
+	fflush(NULL);
+
+	void *c = sp_cursor(cx->db, ">=", NULL);
+	t( c != NULL );
+	void *o;
+	while ((o = sp_get(c))) {
+		void *k = sp_object(cx->db);
+		t( k != NULL );
+		int keysize;
+		void *key = sp_get(o, "key", &keysize);
+		sp_set(k, "key", key, keysize);
+		t( sp_delete(cx->db, k) == 0 );
+	}
+}
+
+void
 st_scene_destroy(stscene *g, stc *cx)
 {
 	t( cx->env != NULL );
@@ -179,11 +203,16 @@ main(int argc, char *argv[])
 	st_unit(&s, dml_group());
 	st_unit(&s, profiler_group());
 
-	st_scene(&s, st_scene_create,  1);
-	st_scene(&s, st_scene_open,    1);
-	st_scene(&s, st_scene_phases,  5);
-	st_scene(&s, st_scene_test,    1);
-	st_scene(&s, st_scene_destroy, 1);
+	st_scene(&s, st_scene_rmrf,     1);
+	st_scene(&s, st_scene_create,   1);
+	st_scene(&s, st_scene_open,     1);
+	st_scene(&s, st_scene_phases,   5);
+	st_scene(&s, st_scene_test,     1);
+	/*
+	st_scene(&s, st_scene_truncate, 1);
+	st_scene(&s, st_scene_test,     1);
+	*/
+	st_scene(&s, st_scene_destroy,  1);
 
 	st_group(&s, object_group());
 	st_group(&s, cursor_group());

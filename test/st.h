@@ -184,11 +184,11 @@ st_rununit(stsuite *s)
 			printf("%s.%s", group->name, test->name);
 			fflush(NULL);
 			stc context = {
-				.env   = NULL,
-				.db    = NULL,
-				.group = group,
-				.test  = test,
-				.suite = s,
+				.env    = NULL,
+				.db     = NULL,
+				.group  = group,
+				.test   = test,
+				.suite  = s,
 				.commit = NULL,
 				.phase_scene = 0,
 				.phase  = 0
