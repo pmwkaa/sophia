@@ -9,6 +9,7 @@
  * BSD License
 */
 
+#if 0
 typedef pthread_spinlock_t srspinlock;
 
 static inline void
@@ -30,8 +31,8 @@ static inline void
 sr_spinunlock(srspinlock *l) {
 	pthread_spin_unlock(l);
 }
+#endif
 
-#if 0
 typedef uint8_t srspinlock;
 
 #if defined(__x86_64__) || defined(__i386) || defined(_X86_)
@@ -41,17 +42,17 @@ typedef uint8_t srspinlock;
 #endif
 
 static inline void
-sr_lockinit(srspinlock *l) {
+sr_spinlockinit(srspinlock *l) {
 	*l = 0;
 }
 
 static inline void
-sr_lockfree(srspinlock *l) {
+sr_spinlockfree(srspinlock *l) {
 	*l = 0;
 }
 
 static inline void
-sr_lock(srspinlock *l) {
+sr_spinlock(srspinlock *l) {
 	if (__sync_lock_test_and_set(l, 1) != 0) {
 		unsigned int spin_count = 0U;
 		for (;;) {
@@ -65,9 +66,8 @@ sr_lock(srspinlock *l) {
 }
 
 static inline void
-sr_unlock(srspinlock *l) {
+sr_spinunlock(srspinlock *l) {
 	__sync_lock_release(l);
 }
-#endif
 
 #endif
