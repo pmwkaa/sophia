@@ -26,7 +26,8 @@ addv(sdbuild *b, uint64_t lsn, uint8_t flags, int *key)
 	l.valueoffset = 0;
 	sv lv;
 	svinit(&lv, &sv_localif, &l, NULL);
-	t( sd_buildadd(b, &lv) == 0 );
+	/*t( sd_buildadd(b, &lv) == 0 );*/
+	sd_buildadd(b, &lv);
 }
 
 static void
@@ -185,10 +186,10 @@ sditer_gt1(stc *cx srunused)
 	sd_buildfree(&b);
 }
 
-st *sditer_group(void)
+stgroup *sditer_group(void)
 {
-	st *group = st_def("sditer", NULL);
-	st_test(group, st_def("gt0", sditer_gt0));
-	st_test(group, st_def("gt1", sditer_gt1));
+	stgroup *group = st_group("sditer");
+	st_groupadd(group, st_test("gt0", sditer_gt0));
+	st_groupadd(group, st_test("gt1", sditer_gt1));
 	return group;
 }

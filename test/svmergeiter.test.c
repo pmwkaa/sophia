@@ -18,14 +18,14 @@ svmergeiter_valloc(sra *a, svlocal *l)
 	sv lv;
 	svinit(&lv, &sv_localif, l, NULL);
 	svv *kv = sv_valloc(a, &lv);
-	t(kv != NULL);
+	/*t(kv != NULL);*/
 	sv *v = sr_malloc(a, sizeof(sv));
 	svinit(v, &sv_vif, kv, NULL);
 	return v;
 }
 
 static void
-svmergeiter_merge_a(stc *c srunused)
+svmergeiter_merge_a(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -96,7 +96,7 @@ svmergeiter_merge_a(stc *c srunused)
 }
 
 static void
-svmergeiter_merge_b(stc *c srunused)
+svmergeiter_merge_b(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -167,7 +167,7 @@ svmergeiter_merge_b(stc *c srunused)
 }
 
 static void
-svmergeiter_merge_ab(stc *c srunused)
+svmergeiter_merge_ab(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -262,7 +262,7 @@ svmergeiter_merge_ab(stc *c srunused)
 }
 
 static void
-svmergeiter_merge_abc(stc *c srunused)
+svmergeiter_merge_abc(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -387,7 +387,7 @@ svmergeiter_merge_abc(stc *c srunused)
 }
 
 static void
-svmergeiter_merge_ba(stc *c srunused)
+svmergeiter_merge_ba(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -482,7 +482,7 @@ svmergeiter_merge_ba(stc *c srunused)
 }
 
 static void
-svmergeiter_merge_dup_ab(stc *c srunused)
+svmergeiter_merge_dup_ab(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -587,7 +587,7 @@ svmergeiter_merge_dup_ab(stc *c srunused)
 }
 
 static void
-svmergeiter_merge_dup_a_chain(stc *c srunused)
+svmergeiter_merge_dup_a_chain(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -674,7 +674,7 @@ svmergeiter_merge_dup_a_chain(stc *c srunused)
 }
 
 static void
-svmergeiter_merge_dup_ab_chain(stc *c srunused)
+svmergeiter_merge_dup_ab_chain(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -777,7 +777,7 @@ svmergeiter_merge_dup_ab_chain(stc *c srunused)
 }
 
 static void
-svmergeiter_merge_dup_abc_chain(stc *c srunused)
+svmergeiter_merge_dup_abc_chain(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -912,17 +912,17 @@ svmergeiter_merge_dup_abc_chain(stc *c srunused)
 	sv_mergefree(&m, &a);
 }
 
-st *svmergeiter_group(void)
+stgroup *svmergeiter_group(void)
 {
-	st *group = st_def("svmergeiter", NULL);
-	st_test(group, st_def("merge_a", svmergeiter_merge_a));
-	st_test(group, st_def("merge_b", svmergeiter_merge_b));
-	st_test(group, st_def("merge_ab", svmergeiter_merge_ab));
-	st_test(group, st_def("merge_abc", svmergeiter_merge_abc));
-	st_test(group, st_def("merge_ba", svmergeiter_merge_ba));
-	st_test(group, st_def("merge_dup_ab", svmergeiter_merge_dup_ab));
-	st_test(group, st_def("merge_dup_a_chain", svmergeiter_merge_dup_a_chain));
-	st_test(group, st_def("merge_dup_ab_chain", svmergeiter_merge_dup_ab_chain));
-	st_test(group, st_def("merge_dup_abc_chain", svmergeiter_merge_dup_abc_chain));
+	stgroup *group = st_group("svmergeiter");
+	st_groupadd(group, st_test("merge_a", svmergeiter_merge_a));
+	st_groupadd(group, st_test("merge_b", svmergeiter_merge_b));
+	st_groupadd(group, st_test("merge_ab", svmergeiter_merge_ab));
+	st_groupadd(group, st_test("merge_abc", svmergeiter_merge_abc));
+	st_groupadd(group, st_test("merge_ba", svmergeiter_merge_ba));
+	st_groupadd(group, st_test("merge_dup_ab", svmergeiter_merge_dup_ab));
+	st_groupadd(group, st_test("merge_dup_a_chain", svmergeiter_merge_dup_a_chain));
+	st_groupadd(group, st_test("merge_dup_ab_chain", svmergeiter_merge_dup_ab_chain));
+	st_groupadd(group, st_test("merge_dup_abc_chain", svmergeiter_merge_dup_abc_chain));
 	return group;
 }

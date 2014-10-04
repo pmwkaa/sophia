@@ -10,218 +10,244 @@
 #include <libsr.h>
 #include <libst.h>
 #include <sophia.h>
+#include <assert.h>
 
-int rmrf(char *path) {
-	DIR *d = opendir(path);
-	if (d == NULL)
-		return -1;
-	char file[1024];
-	struct dirent *de;
-	while ((de = readdir(d))) {
-		if (de->d_name[0] == '.')
-			continue;
-		snprintf(file, sizeof(file), "%s/%s", path, de->d_name);
-		int rc = unlink(file);
-		if (rc == -1) {
-			closedir(d);
-			return -1;
-		}
-	}
-	closedir(d);
-	return rmdir(path);
+stscene *st_scene(char *name, stscenef function, int statemax)
+{
+	stscene *scene = malloc(sizeof(*scene));
+	assert( scene != NULL );
+	scene->name = name;
+	scene->state = 0;
+	scene->statemax = statemax;
+	scene->function = function;
+	sr_listinit(&scene->link);
+	return scene;
 }
 
-void
-st_scene_rmrf(stscene *g, stc *cx)
+stplan *st_plan(char *name)
 {
-	rmrf(cx->suite->logdir);
-	rmrf(cx->suite->dir);
+	stplan *plan = malloc(sizeof(*plan));
+	assert( plan != NULL );
+	plan->name = name;
+	plan->scene_count = 0;
+	plan->group_count = 0;
+	sr_listinit(&plan->group);
+	sr_listinit(&plan->link);
+	return plan;
 }
 
-void
-st_scene_create(stscene *g, stc *cx)
+stgroup *st_group(char *name)
 {
-	printf(".create");
-	fflush(NULL);
-	t( cx->db  == NULL );
-	t( cx->env == NULL );
-	cx->env = sp_env();
-	t( cx->env != NULL );
-	void *c = sp_ctl(cx->env);
-	t( c != NULL );
-	t( sp_set(c, "db.test.logdir", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.cmp", sr_cmpu32) == 0 );
-	t( sp_set(c, "db.test.threads", "0") == 0 );
-	cx->db = sp_get(c, "db.test");
-	t( cx->db != NULL );
+	stgroup *group = malloc(sizeof(*group));
+	assert( group != NULL );
+	group->name = name;
+	group->count = 0;
+	sr_listinit(&group->test);
+	sr_listinit(&group->link);
+	return group;
 }
 
-void
-st_scene_open(stscene *g, stc *cx)
+sttest *st_test(char *name, stf function)
 {
-	printf(".open");
-	fflush(NULL);
-	t( sp_open(cx->env) == 0 );
+	sttest *test = malloc(sizeof(*test));
+	assert( test != NULL );
+	test->name = name;
+	test->function = function;
+	sr_listinit(&test->link);
+	return test;
 }
 
 static inline void
-st_phase_commit(stc *cx)
+st_testfree(sttest *test)
 {
-	switch (cx->phase_scene) {
-	case 0:
-		t( sp_set(sp_ctl(cx->env), "db.test.run_branch") == 0 );
-		break;
-	case 1:
-		t( sp_set(sp_ctl(cx->env), "db.test.run_branch") == 0 );
-		t( sp_set(sp_ctl(cx->env), "db.test.run_merge") == 0 );
-		break;
-	case 2:
-		t( sp_set(sp_ctl(cx->env), "db.test.run_logrotate") == 0 );
-		break;
-	case 3:
-		if (cx->phase == 0) {
-			t( sp_set(sp_ctl(cx->env), "db.test.run_branch") == 0 );
-			cx->phase = 1;
-		} else
-		if (cx->phase == 1) {
-			t( sp_set(sp_ctl(cx->env), "db.test.run_merge") == 0 );
-			cx->phase = 0;
+	free(test);
+}
+
+static void
+st_groupfree(stgroup *group)
+{
+	srlist *i, *n;
+	sr_listforeach_safe(&group->test, i, n) {
+		sttest *test = srcast(i, sttest, link);
+		st_testfree(test);
+	}
+	free(group);
+}
+
+static void
+st_planfree(stplan *plan)
+{
+	srlist *i, *n;
+	sr_listforeach_safe(&plan->group, i, n) {
+		stgroup *group = srcast(i, stgroup, link);
+		st_groupfree(group);
+	}
+	free(plan);
+}
+
+static inline void
+st_scenefree(stscene *scene)
+{
+	free(scene);
+}
+
+void st_init(st *s, char *dir, char *logdir)
+{
+	s->dir = dir;
+	s->logdir = logdir;
+	sr_listinit(&s->scene);
+	sr_listinit(&s->plan);
+	s->scene_count = 0;
+	s->plan_count = 0;
+	s->stat_stmt = 0;
+	s->stat_test = 0;
+}
+
+void st_free(st *s)
+{
+	srlist *i, *n;
+	sr_listforeach_safe(&s->plan, i, n) {
+		stplan *plan = srcast(i, stplan, link);
+		st_planfree(plan);
+	}
+	sr_listforeach_safe(&s->scene, i, n) {
+		stscene *scene = srcast(i, stscene, link);
+		st_scenefree(scene);
+	}
+}
+
+void st_add(st *s, stplan *p)
+{
+	sr_listappend(&s->plan, &p->link);
+	s->plan_count++;
+}
+
+stscene *st_sceneof(st *s, char *name)
+{
+	srlist *i;
+	sr_listforeach(&s->scene, i) {
+		stscene *scene = srcast(i, stscene, link);
+		if (strcmp(scene->name, name) == 0)
+			return scene;
+	}
+	return NULL;
+}
+
+void st_addscene(st *s, stscene *scene)
+{
+	sr_listappend(&s->scene, &scene->link);
+	s->scene_count++;
+}
+
+void st_planadd(stplan *p, stgroup *g)
+{
+	sr_listappend(&p->group, &g->link);
+	p->group_count++;
+}
+
+void st_planscene(stplan *p, stscene *s)
+{
+	assert( s != NULL );
+	int id = p->scene_count;
+	p->scene[id] = *s;
+	p->scene_count++;
+}
+
+static inline void
+st_planreset(stplan *p)
+{
+	int i = 0;
+	while (i < p->scene_count) {
+		p->scene[i].state = 0;
+		i++;
+	}
+}
+
+void st_groupadd(stgroup *g, sttest *t)
+{
+	sr_listappend(&g->test, &t->link);
+	g->count++;
+}
+
+void st_transaction(stc *cx)
+{
+	if (cx->commit)
+		cx->commit(cx);
+}
+
+static void
+st_rungroup(st *s, stplan *plan, stgroup *group)
+{
+	srlist *i;
+	sr_listforeach(&group->test, i)
+	{
+		sttest *test = srcast(i, sttest, link);
+		stc context = {
+			.env         = NULL,
+			.db          = NULL,
+			.phase_scene = 0,
+			.phase       = 0,
+			.commit      = NULL,
+			.test        = test,
+			.group       = group,
+			.plan        = plan,
+			.suite       = s
+		};
+		printf("%s.%s", group->name, test->name);
+		fflush(NULL);
+		int i = 0;
+		while (i < plan->scene_count) {
+			stscene *scene = &plan->scene[i];
+			scene->function(scene, &context);
+			i++;
 		}
-		break;
-	case 4:
-		if (cx->phase == 0) {
-			t( sp_set(sp_ctl(cx->env), "db.test.run_branch") == 0 );
-			cx->phase = 1;
-		} else
-		if (cx->phase == 1) {
-			t( sp_set(sp_ctl(cx->env), "db.test.run_merge") == 0 );
-			cx->phase = 2;
-		} else
-		if (cx->phase == 2) {
-			t( sp_set(sp_ctl(cx->env), "db.test.run_logrotate") == 0 );
-			cx->phase = 0;
-		}
-		break;
-	default: t(0);
 	}
 }
 
-void
-st_scene_phases(stscene *g, stc *cx)
+static inline int
+st_plannext(stplan *plan)
 {
-	cx->commit = st_phase_commit;
-	cx->phase_scene = g->state;
-	cx->phase = 0;
-	switch (g->state) {
-	case 0:
-		printf(".branch");
-		fflush(NULL);
-		break;
-	case 1:
-		printf(".merge");
-		fflush(NULL);
-		break;
-	case 2:
-		printf(".logrotate");
-		fflush(NULL);
-		break;
-	case 3:
-		printf(".branch+merge");
-		fflush(NULL);
-		break;
-	case 4:
-		printf(".branch+logrotate");
-		fflush(NULL);
-		break;
+	int i = plan->scene_count - 1;
+	while (i >= 0) {
+		stscene *scene = &plan->scene[i];
+		scene->state++;
+		if (scene->state == scene->statemax)
+			scene->state = 0;
+		else
+			return 1;
+		i--;
 	}
-}
-
-void
-st_scene_test(stscene *g, stc *cx)
-{
-	cx->test->function(cx);
-}
-
-void
-st_scene_truncate(stscene *g, stc *cx)
-{
-	printf(".truncate");
-	fflush(NULL);
-
-	void *c = sp_cursor(cx->db, ">=", NULL);
-	t( c != NULL );
-	void *o;
-	while ((o = sp_get(c))) {
-		void *k = sp_object(cx->db);
-		t( k != NULL );
-		int keysize;
-		void *key = sp_get(o, "key", &keysize);
-		sp_set(k, "key", key, keysize);
-		t( sp_delete(cx->db, k) == 0 );
-	}
-}
-
-void
-st_scene_destroy(stscene *g, stc *cx)
-{
-	t( cx->env != NULL );
-	t( sp_destroy(cx->env) == 0 );
-	cx->env = NULL;
-	cx->db  = NULL;
-	printf(": ok\n");
-	fflush(NULL);
-}
-
-extern st *sliter_group(void);
-extern st *sditer_group(void);
-extern st *sdpageiter_group(void);
-extern st *svindex_group(void);
-extern st *svindexiter_group(void);
-extern st *svmergeiter_group(void);
-extern st *svseaveiter_group(void);
-extern st *dml_group(void);
-extern st *object_group(void);
-extern st *profiler_group(void);
-extern st *cursor_group(void);
-extern st *transaction_group(void);
-
-int
-main(int argc, char *argv[])
-{
-	printf("sophia test-suite.\n\n");
-
-	stsuite s;
-	st_init(&s, "./dir", "./logdir");
-	st_unit(&s, sliter_group());
-	st_unit(&s, sditer_group());
-	st_unit(&s, sdpageiter_group());
-	st_unit(&s, svindex_group());
-	st_unit(&s, svindexiter_group());
-	st_unit(&s, svmergeiter_group());
-	st_unit(&s, svseaveiter_group());
-	st_unit(&s, dml_group());
-	st_unit(&s, profiler_group());
-
-	st_scene(&s, st_scene_rmrf,     1);
-	st_scene(&s, st_scene_create,   1);
-	st_scene(&s, st_scene_open,     1);
-	st_scene(&s, st_scene_phases,   5);
-	st_scene(&s, st_scene_test,     1);
-	/*
-	st_scene(&s, st_scene_truncate, 1);
-	st_scene(&s, st_scene_test,     1);
-	*/
-	st_scene(&s, st_scene_destroy,  1);
-
-	st_group(&s, object_group());
-	st_group(&s, cursor_group());
-	st_group(&s, transaction_group());
-
-	st_rununit(&s);
-	do {
-		st_run(&s);
-	} while(st_next(&s));
-	st_free(&s);
 	return 0;
+}
+
+static inline void
+st_runplan(st *s, stplan *plan)
+{
+	printf("\n<%s>\n", plan->name);
+
+	srlist *i;
+	sr_listforeach(&plan->group, i) {
+		stgroup *group = srcast(i, stgroup, link);
+		do {
+			st_rungroup(s, plan, group);
+		} while (st_plannext(plan));
+		st_planreset(plan);
+	}
+}
+
+void st_run(st *s)
+{
+	printf("sophia test-suite.\n");
+
+	srlist *i;
+	sr_listforeach(&s->plan, i) {
+		stplan *plan = srcast(i, stplan, link);
+		st_runplan(s, plan);
+	}
+
+	printf("\n");
+	printf("tests passed: %d\n", s->stat_test);
+	printf("statements passed: %d\n", s->stat_stmt);
+	printf("\n");
+	printf("complete.\n");
 }

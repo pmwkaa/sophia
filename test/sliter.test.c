@@ -28,10 +28,11 @@ alloclogv(svlog *log, sra *a, uint64_t lsn, uint8_t flags, int key)
 	sv lv;
 	svinit(&lv, &sv_localif, &l, NULL);
 	svv *v = sv_valloc(a, &lv);
-	t( v != NULL );
+	/*t( v != NULL );*/
 	sv vv;
 	svinit(&vv, &sv_vif, v, NULL);
-	t( sv_logadd(log, a, &vv) == 0 );
+	sv_logadd(log, a, &vv);
+	/*t( sv_logadd(log, a, &vv) == 0 );*/
 }
 
 static void
@@ -50,9 +51,6 @@ freelog(svlog *log, sr *c)
 static void
 sliter_tx(stc *cx)
 {
-	rmrf(cx->suite->logdir);
-	rmrf(cx->suite->dir);
-
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -89,8 +87,6 @@ sliter_tx(stc *cx)
 static void
 sliter_tx_read_empty(stc *cx)
 {
-	rmrf(cx->suite->logdir);
-	rmrf(cx->suite->dir);
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -137,9 +133,6 @@ sliter_tx_read_empty(stc *cx)
 static void
 sliter_tx_read0(stc *cx)
 {
-	rmrf(cx->suite->logdir);
-	rmrf(cx->suite->dir);
-
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -191,9 +184,6 @@ sliter_tx_read0(stc *cx)
 static void
 sliter_tx_read1(stc *cx)
 {
-	rmrf(cx->suite->logdir);
-	rmrf(cx->suite->dir);
-
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -256,9 +246,6 @@ sliter_tx_read1(stc *cx)
 static void
 sliter_tx_read2(stc *cx)
 {
-	rmrf(cx->suite->logdir);
-	rmrf(cx->suite->dir);
-
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -322,13 +309,13 @@ sliter_tx_read2(stc *cx)
 	t( sl_poolshutdown(&lp) == 0 );
 }
 
-st *sliter_group(void)
+stgroup *sliter_group(void)
 {
-	st *group = st_def("sliter", NULL);
-	st_test(group, st_def("tx", sliter_tx));
-	st_test(group, st_def("tx_read_empty", sliter_tx_read_empty));
-	st_test(group, st_def("tx_read0", sliter_tx_read0));
-	st_test(group, st_def("tx_read1", sliter_tx_read1));
-	st_test(group, st_def("tx_read2", sliter_tx_read2));
+	stgroup *group = st_group("sliter");
+	st_groupadd(group, st_test("tx", sliter_tx));
+	st_groupadd(group, st_test("tx_read_empty", sliter_tx_read_empty));
+	st_groupadd(group, st_test("tx_read0", sliter_tx_read0));
+	st_groupadd(group, st_test("tx_read1", sliter_tx_read1));
+	st_groupadd(group, st_test("tx_read2", sliter_tx_read2));
 	return group;
 }

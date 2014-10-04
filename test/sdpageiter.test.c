@@ -26,7 +26,8 @@ addv(sdbuild *b, uint64_t lsn, uint8_t flags, int *key)
 	l.valueoffset = 0;
 	sv lv;
 	svinit(&lv, &sv_localif, &l, NULL);
-	t( sd_buildadd(b, &lv) == 0 );
+	sd_buildadd(b, &lv);
+	/*t( sd_buildadd(b, &lv) == 0 );*/
 }
 
 static void
@@ -73,7 +74,7 @@ sdpageiter_lte_empty(stc *cx srunused)
 }
 
 static void
-sdpageiter_lte_eq0(stc *c srunused)
+sdpageiter_lte_eq0(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -119,7 +120,7 @@ sdpageiter_lte_eq0(stc *c srunused)
 }
 
 static void
-sdpageiter_lte_eq1(stc *c srunused)
+sdpageiter_lte_eq1(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -165,7 +166,7 @@ sdpageiter_lte_eq1(stc *c srunused)
 }
 
 static void
-sdpageiter_lte_eq2(stc *c srunused)
+sdpageiter_lte_eq2(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -211,7 +212,7 @@ sdpageiter_lte_eq2(stc *c srunused)
 }
 
 static void
-sdpageiter_lte_minmax0(stc *c srunused)
+sdpageiter_lte_minmax0(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -252,7 +253,7 @@ sdpageiter_lte_minmax0(stc *c srunused)
 }
 
 static void
-sdpageiter_lte_minmax1(stc *c srunused)
+sdpageiter_lte_minmax1(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -326,7 +327,7 @@ sdpageiter_lte_minmax1(stc *c srunused)
 }
 
 static void
-sdpageiter_lte_minmax2(stc *c srunused)
+sdpageiter_lte_minmax2(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -387,7 +388,7 @@ sdpageiter_lte_minmax2(stc *c srunused)
 }
 
 static void
-sdpageiter_lte_mid0(stc *c srunused)
+sdpageiter_lte_mid0(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -436,7 +437,7 @@ sdpageiter_lte_mid0(stc *c srunused)
 }
 
 static void
-sdpageiter_lte_mid1(stc *c srunused)
+sdpageiter_lte_mid1(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -496,7 +497,7 @@ sdpageiter_lte_mid1(stc *c srunused)
 }
 
 static void
-sdpageiter_lte_iterate0(stc *c srunused)
+sdpageiter_lte_iterate0(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -544,7 +545,7 @@ sdpageiter_lte_iterate0(stc *c srunused)
 }
 
 static void
-sdpageiter_lte_iterate1(stc *c srunused)
+sdpageiter_lte_iterate1(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -592,7 +593,7 @@ sdpageiter_lte_iterate1(stc *c srunused)
 }
 
 static void
-sdpageiter_lt_eq(stc *c srunused)
+sdpageiter_lt_eq(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -637,7 +638,7 @@ sdpageiter_lt_eq(stc *c srunused)
 }
 
 static void
-sdpageiter_lt_minmax(stc *c srunused)
+sdpageiter_lt_minmax(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -677,7 +678,7 @@ sdpageiter_lt_minmax(stc *c srunused)
 }
 
 static void
-sdpageiter_lt_mid(stc *c srunused)
+sdpageiter_lt_mid(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -725,7 +726,7 @@ sdpageiter_lt_mid(stc *c srunused)
 }
 
 static void
-sdpageiter_lt_iterate0(stc *c srunused)
+sdpageiter_lt_iterate0(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -773,7 +774,7 @@ sdpageiter_lt_iterate0(stc *c srunused)
 }
 
 static void
-sdpageiter_lt_iterate1(stc *c srunused)
+sdpageiter_lt_iterate1(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -815,7 +816,7 @@ sdpageiter_lt_iterate1(stc *c srunused)
 }
 
 static void
-sdpageiter_lte_dup_eq(stc *c srunused)
+sdpageiter_lte_dup_eq(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -867,7 +868,7 @@ sdpageiter_lte_dup_eq(stc *c srunused)
 }
 
 static void
-sdpageiter_lte_dup_mid(stc *c srunused)
+sdpageiter_lte_dup_mid(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -952,7 +953,7 @@ sdpageiter_lte_dup_mid(stc *c srunused)
 }
 
 static void
-sdpageiter_lte_dup_mid_gt(stc *c srunused)
+sdpageiter_lte_dup_mid_gt(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1030,7 +1031,7 @@ sdpageiter_lte_dup_mid_gt(stc *c srunused)
 }
 
 static void
-sdpageiter_lte_dup_mid_lt(stc *c srunused)
+sdpageiter_lte_dup_mid_lt(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1096,7 +1097,7 @@ sdpageiter_lte_dup_mid_lt(stc *c srunused)
 }
 
 static void
-sdpageiter_lte_dup_iterate0(stc *c srunused)
+sdpageiter_lte_dup_iterate0(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1152,7 +1153,7 @@ sdpageiter_lte_dup_iterate0(stc *c srunused)
 }
 
 static void
-sdpageiter_lte_dup_iterate1(stc *c srunused)
+sdpageiter_lte_dup_iterate1(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1236,7 +1237,7 @@ sdpageiter_lte_dup_iterate1(stc *c srunused)
 }
 
 static void
-sdpageiter_gte_eq0(stc *c srunused)
+sdpageiter_gte_eq0(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1281,7 +1282,7 @@ sdpageiter_gte_eq0(stc *c srunused)
 }
 
 static void
-sdpageiter_gte_eq1(stc *c srunused)
+sdpageiter_gte_eq1(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1326,7 +1327,7 @@ sdpageiter_gte_eq1(stc *c srunused)
 }
 
 static void
-sdpageiter_gte_eq2(stc *c srunused)
+sdpageiter_gte_eq2(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1371,7 +1372,7 @@ sdpageiter_gte_eq2(stc *c srunused)
 }
 
 static void
-sdpageiter_gte_minmax0(stc *c srunused)
+sdpageiter_gte_minmax0(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1412,7 +1413,7 @@ sdpageiter_gte_minmax0(stc *c srunused)
 }
 
 static void
-sdpageiter_gte_minmax1(stc *c srunused)
+sdpageiter_gte_minmax1(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1486,7 +1487,7 @@ sdpageiter_gte_minmax1(stc *c srunused)
 }
 
 static void
-sdpageiter_gte_minmax2(stc *c srunused)
+sdpageiter_gte_minmax2(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1546,7 +1547,7 @@ sdpageiter_gte_minmax2(stc *c srunused)
 }
 
 static void
-sdpageiter_gte_mid0(stc *c srunused)
+sdpageiter_gte_mid0(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1601,7 +1602,7 @@ sdpageiter_gte_mid0(stc *c srunused)
 }
 
 static void
-sdpageiter_gte_mid1(stc *c srunused)
+sdpageiter_gte_mid1(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1661,7 +1662,7 @@ sdpageiter_gte_mid1(stc *c srunused)
 }
 
 static void
-sdpageiter_gte_iterate0(stc *c srunused)
+sdpageiter_gte_iterate0(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1709,7 +1710,7 @@ sdpageiter_gte_iterate0(stc *c srunused)
 }
 
 static void
-sdpageiter_gte_iterate1(stc *c srunused)
+sdpageiter_gte_iterate1(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1757,7 +1758,7 @@ sdpageiter_gte_iterate1(stc *c srunused)
 }
 
 static void
-sdpageiter_gt_eq(stc *c srunused)
+sdpageiter_gt_eq(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1803,7 +1804,7 @@ sdpageiter_gt_eq(stc *c srunused)
 }
 
 static void
-sdpageiter_gt_minmax(stc *c srunused)
+sdpageiter_gt_minmax(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1844,7 +1845,7 @@ sdpageiter_gt_minmax(stc *c srunused)
 }
 
 static void
-sdpageiter_gt_mid(stc *c srunused)
+sdpageiter_gt_mid(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1892,7 +1893,7 @@ sdpageiter_gt_mid(stc *c srunused)
 }
 
 static void
-sdpageiter_gt_iterate0(stc *c srunused)
+sdpageiter_gt_iterate0(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1940,7 +1941,7 @@ sdpageiter_gt_iterate0(stc *c srunused)
 }
 
 static void
-sdpageiter_gt_iterate1(stc *c srunused)
+sdpageiter_gt_iterate1(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1982,7 +1983,7 @@ sdpageiter_gt_iterate1(stc *c srunused)
 }
 
 static void
-sdpageiter_gte_dup_eq(stc *c srunused)
+sdpageiter_gte_dup_eq(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -2042,7 +2043,7 @@ sdpageiter_gte_dup_eq(stc *c srunused)
 }
 
 static void
-sdpageiter_gte_dup_mid(stc *c srunused)
+sdpageiter_gte_dup_mid(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -2128,7 +2129,7 @@ sdpageiter_gte_dup_mid(stc *c srunused)
 }
 
 static void
-sdpageiter_gte_dup_mid_gt(stc *c srunused)
+sdpageiter_gte_dup_mid_gt(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -2200,7 +2201,7 @@ sdpageiter_gte_dup_mid_gt(stc *c srunused)
 }
 
 static void
-sdpageiter_gte_dup_mid_lt(stc *c srunused)
+sdpageiter_gte_dup_mid_lt(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -2266,7 +2267,7 @@ sdpageiter_gte_dup_mid_lt(stc *c srunused)
 }
 
 static void
-sdpageiter_gte_dup_iterate0(stc *c srunused)
+sdpageiter_gte_dup_iterate0(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -2322,7 +2323,7 @@ sdpageiter_gte_dup_iterate0(stc *c srunused)
 }
 
 static void
-sdpageiter_gte_dup_iterate1(stc *c srunused)
+sdpageiter_gte_dup_iterate1(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -2406,7 +2407,7 @@ sdpageiter_gte_dup_iterate1(stc *c srunused)
 }
 
 static void
-sdpageiter_random0(stc *c srunused)
+sdpageiter_random0(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -2439,7 +2440,7 @@ sdpageiter_random0(stc *c srunused)
 }
 
 static void
-sdpageiter_iterate_raw(stc *c srunused)
+sdpageiter_iterate_raw(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -2503,53 +2504,53 @@ sdpageiter_iterate_raw(stc *c srunused)
 	sd_buildfree(&b);
 }
 
-st *sdpageiter_group(void)
+stgroup *sdpageiter_group(void)
 {
-	st *group = st_def("sdpageiter", NULL);
-	st_test(group, st_def("lte_empty", sdpageiter_lte_empty));
-	st_test(group, st_def("lte_eq0", sdpageiter_lte_eq0));
-	st_test(group, st_def("lte_eq1", sdpageiter_lte_eq1));
-	st_test(group, st_def("lte_eq2", sdpageiter_lte_eq2));
-	st_test(group, st_def("lte_minmax0",  sdpageiter_lte_minmax0));
-	st_test(group, st_def("lte_minmax1", sdpageiter_lte_minmax1));
-	st_test(group, st_def("lte_minmax2", sdpageiter_lte_minmax2));
-	st_test(group, st_def("lte_mid0", sdpageiter_lte_mid0));
-	st_test(group, st_def("lte_mid1", sdpageiter_lte_mid1));
-	st_test(group, st_def("lte_iterate0", sdpageiter_lte_iterate0));
-	st_test(group, st_def("lte_iterate1", sdpageiter_lte_iterate1));
-	st_test(group, st_def("lt_eq", sdpageiter_lt_eq));
-	st_test(group, st_def("lt_minmax", sdpageiter_lt_minmax));
-	st_test(group, st_def("lt_mid", sdpageiter_lt_mid));
-	st_test(group, st_def("lt_iterate0", sdpageiter_lt_iterate0));
-	st_test(group, st_def("lt_iterate1", sdpageiter_lt_iterate1));
-	st_test(group, st_def("lte_dup_eq", sdpageiter_lte_dup_eq));
-	st_test(group, st_def("lte_dup_mid", sdpageiter_lte_dup_mid));
-	st_test(group, st_def("lte_dup_mid_gt", sdpageiter_lte_dup_mid_gt));
-	st_test(group, st_def("lte_dup_mid_lt", sdpageiter_lte_dup_mid_lt));
-	st_test(group, st_def("lte_dup_iterate0", sdpageiter_lte_dup_iterate0));
-	st_test(group, st_def("lte_dup_iterate1", sdpageiter_lte_dup_iterate1));
-	st_test(group, st_def("gte_eq0", sdpageiter_gte_eq0));
-	st_test(group, st_def("gte_eq1", sdpageiter_gte_eq1));
-	st_test(group, st_def("gte_eq2", sdpageiter_gte_eq2));
-	st_test(group, st_def("gte_minmax0", sdpageiter_gte_minmax0));
-	st_test(group, st_def("gte_minmax1", sdpageiter_gte_minmax1));
-	st_test(group, st_def("gte_minmax2", sdpageiter_gte_minmax2));
-	st_test(group, st_def("gte_mid0", sdpageiter_gte_mid0));
-	st_test(group, st_def("gte_mid1", sdpageiter_gte_mid1));
-	st_test(group, st_def("gte_iterate0", sdpageiter_gte_iterate0));
-	st_test(group, st_def("gte_iterate1", sdpageiter_gte_iterate1));
-	st_test(group, st_def("gt_eq", sdpageiter_gt_eq));
-	st_test(group, st_def("gt_minmax", sdpageiter_gt_minmax));
-	st_test(group, st_def("gt_mid", sdpageiter_gt_mid));
-	st_test(group, st_def("gt_iterate0", sdpageiter_gt_iterate0));
-	st_test(group, st_def("gt_iterate1", sdpageiter_gt_iterate1));
-	st_test(group, st_def("gte_dup_eq", sdpageiter_gte_dup_eq));
-	st_test(group, st_def("gte_dup_mid", sdpageiter_gte_dup_mid));
-	st_test(group, st_def("gte_dup_mid_gt", sdpageiter_gte_dup_mid_gt));
-	st_test(group, st_def("gte_dup_mid_lt", sdpageiter_gte_dup_mid_lt));
-	st_test(group, st_def("gte_dup_iterate0", sdpageiter_gte_dup_iterate0));
-	st_test(group, st_def("gte_dup_iterate1", sdpageiter_gte_dup_iterate1));
-	st_test(group, st_def("random0", sdpageiter_random0));
-	st_test(group, st_def("iterate_raw", sdpageiter_iterate_raw));
+	stgroup *group = st_group("sdpageiter");
+	st_groupadd(group, st_test("lte_empty", sdpageiter_lte_empty));
+	st_groupadd(group, st_test("lte_eq0", sdpageiter_lte_eq0));
+	st_groupadd(group, st_test("lte_eq1", sdpageiter_lte_eq1));
+	st_groupadd(group, st_test("lte_eq2", sdpageiter_lte_eq2));
+	st_groupadd(group, st_test("lte_minmax0",  sdpageiter_lte_minmax0));
+	st_groupadd(group, st_test("lte_minmax1", sdpageiter_lte_minmax1));
+	st_groupadd(group, st_test("lte_minmax2", sdpageiter_lte_minmax2));
+	st_groupadd(group, st_test("lte_mid0", sdpageiter_lte_mid0));
+	st_groupadd(group, st_test("lte_mid1", sdpageiter_lte_mid1));
+	st_groupadd(group, st_test("lte_iterate0", sdpageiter_lte_iterate0));
+	st_groupadd(group, st_test("lte_iterate1", sdpageiter_lte_iterate1));
+	st_groupadd(group, st_test("lt_eq", sdpageiter_lt_eq));
+	st_groupadd(group, st_test("lt_minmax", sdpageiter_lt_minmax));
+	st_groupadd(group, st_test("lt_mid", sdpageiter_lt_mid));
+	st_groupadd(group, st_test("lt_iterate0", sdpageiter_lt_iterate0));
+	st_groupadd(group, st_test("lt_iterate1", sdpageiter_lt_iterate1));
+	st_groupadd(group, st_test("lte_dup_eq", sdpageiter_lte_dup_eq));
+	st_groupadd(group, st_test("lte_dup_mid", sdpageiter_lte_dup_mid));
+	st_groupadd(group, st_test("lte_dup_mid_gt", sdpageiter_lte_dup_mid_gt));
+	st_groupadd(group, st_test("lte_dup_mid_lt", sdpageiter_lte_dup_mid_lt));
+	st_groupadd(group, st_test("lte_dup_iterate0", sdpageiter_lte_dup_iterate0));
+	st_groupadd(group, st_test("lte_dup_iterate1", sdpageiter_lte_dup_iterate1));
+	st_groupadd(group, st_test("gte_eq0", sdpageiter_gte_eq0));
+	st_groupadd(group, st_test("gte_eq1", sdpageiter_gte_eq1));
+	st_groupadd(group, st_test("gte_eq2", sdpageiter_gte_eq2));
+	st_groupadd(group, st_test("gte_minmax0", sdpageiter_gte_minmax0));
+	st_groupadd(group, st_test("gte_minmax1", sdpageiter_gte_minmax1));
+	st_groupadd(group, st_test("gte_minmax2", sdpageiter_gte_minmax2));
+	st_groupadd(group, st_test("gte_mid0", sdpageiter_gte_mid0));
+	st_groupadd(group, st_test("gte_mid1", sdpageiter_gte_mid1));
+	st_groupadd(group, st_test("gte_iterate0", sdpageiter_gte_iterate0));
+	st_groupadd(group, st_test("gte_iterate1", sdpageiter_gte_iterate1));
+	st_groupadd(group, st_test("gt_eq", sdpageiter_gt_eq));
+	st_groupadd(group, st_test("gt_minmax", sdpageiter_gt_minmax));
+	st_groupadd(group, st_test("gt_mid", sdpageiter_gt_mid));
+	st_groupadd(group, st_test("gt_iterate0", sdpageiter_gt_iterate0));
+	st_groupadd(group, st_test("gt_iterate1", sdpageiter_gt_iterate1));
+	st_groupadd(group, st_test("gte_dup_eq", sdpageiter_gte_dup_eq));
+	st_groupadd(group, st_test("gte_dup_mid", sdpageiter_gte_dup_mid));
+	st_groupadd(group, st_test("gte_dup_mid_gt", sdpageiter_gte_dup_mid_gt));
+	st_groupadd(group, st_test("gte_dup_mid_lt", sdpageiter_gte_dup_mid_lt));
+	st_groupadd(group, st_test("gte_dup_iterate0", sdpageiter_gte_dup_iterate0));
+	st_groupadd(group, st_test("gte_dup_iterate1", sdpageiter_gte_dup_iterate1));
+	st_groupadd(group, st_test("random0", sdpageiter_random0));
+	st_groupadd(group, st_test("iterate_raw", sdpageiter_iterate_raw));
 	return group;
 }

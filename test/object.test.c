@@ -87,12 +87,12 @@ object_copy1(stc *cx)
 	sp_destroy(copy);
 }
 
-st *object_group(void)
+stgroup *object_group(void)
 {
-	st *group = st_def("object", NULL);
-	st_test(group, st_def("db", object_db));
-	st_test(group, st_def("setget", object_set_get));
-	st_test(group, st_def("copy0", object_copy0));
-	st_test(group, st_def("copy1", object_copy1));
+	stgroup *group = st_group("object");
+	st_groupadd(group, st_test("db", object_db));
+	st_groupadd(group, st_test("setget", object_set_get));
+	st_groupadd(group, st_test("copy0", object_copy0));
+	st_groupadd(group, st_test("copy1", object_copy1));
 	return group;
 }

@@ -14,8 +14,6 @@
 static void
 dml_precreate(stc *cx srunused)
 {
-	rmrf(cx->suite->logdir);
-	rmrf(cx->suite->dir);
 	void *env = sp_env();
 	t( env != NULL );
 	void *c = sp_ctl(env);
@@ -33,8 +31,6 @@ dml_precreate(stc *cx srunused)
 static void
 dml_create_online0(stc *cx srunused)
 {
-	rmrf(cx->suite->logdir);
-	rmrf(cx->suite->dir);
 	void *env = sp_env();
 	t( env != NULL );
 	t( sp_open(env) == 0 );
@@ -53,8 +49,6 @@ dml_create_online0(stc *cx srunused)
 static void
 dml_create_online1(stc *cx srunused)
 {
-	rmrf(cx->suite->logdir);
-	rmrf(cx->suite->dir);
 	void *env = sp_env();
 	t( env != NULL );
 	t( sp_open(env) == 0 );
@@ -70,6 +64,8 @@ dml_create_online1(stc *cx srunused)
 	t( sp_destroy(db) == 0 );
 	t( sp_destroy(env) == 0 );
 }
+
+extern int rmrf(char*);
 
 static void
 dml_create_online2(stc *cx srunused)
@@ -137,12 +133,12 @@ dml_create_online2(stc *cx srunused)
 	rmrf("./dir1");
 }
 
-st *dml_group(void)
+stgroup *dml_group(void)
 {
-	st *group = st_def("dml", NULL);
-	st_test(group, st_def("precreate", dml_precreate));
-	st_test(group, st_def("create_online0", dml_create_online0));
-	st_test(group, st_def("create_online1", dml_create_online1));
-	st_test(group, st_def("create_online2", dml_create_online2));
+	stgroup *group = st_group("dml");
+	st_groupadd(group, st_test("precreate", dml_precreate));
+	st_groupadd(group, st_test("create_online0", dml_create_online0));
+	st_groupadd(group, st_test("create_online1", dml_create_online1));
+	st_groupadd(group, st_test("create_online2", dml_create_online2));
 	return group;
 }

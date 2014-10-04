@@ -67,8 +67,8 @@ test_profiler(void)
 }
 #endif
 
-st *profiler_group(void)
+stgroup *profiler_group(void)
 {
-	st *group = st_def("profiler", NULL);
+	stgroup *group = st_group("profiler");
 	return group;
 }

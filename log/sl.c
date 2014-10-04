@@ -202,12 +202,14 @@ int sl_poolshutdown(slpool *p)
 {
 	int rcret = 0;
 	int rc;
-	srlist *i, *n;
-	sr_listforeach_safe(&p->list, i, n) {
-		sl *l = srcast(i, sl, link);
-		rc = sl_close(p, l);
-		if (srunlikely(rc == -1))
-			rcret = -1;
+	if (p->n) {
+		srlist *i, *n;
+		sr_listforeach_safe(&p->list, i, n) {
+			sl *l = srcast(i, sl, link);
+			rc = sl_close(p, l);
+			if (srunlikely(rc == -1))
+				rcret = -1;
+		}
 	}
 	if (p->iov.v)
 		sr_free(p->r->a, p->iov.v);

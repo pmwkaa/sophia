@@ -4,7 +4,7 @@
 
 TEST_DEBUG   = -g -O0 -Wall
 TEST_CFLAGS  = $(CFLAGS_INCLUDE) $(TEST_DEBUG) -I. -I../sophia -pthread
-TEST_LDFLAGS = $(LDFLAGS) $(TEST_DEBUG) ../sophia/libsophia.a -pthread
+TEST_LDFLAGS = $(LDFLAGS) $(TEST_DEBUG) ../sophia/libsophia.a -pthread -lm
 TEST_LOGDIR  = logdir
 TEST_DIR     = dir
 TEST_BINARY  = run
@@ -14,7 +14,7 @@ all: build
 	$(E) "cc   $<"
 	$(Q) $(CC) $(TEST_CFLAGS) -c $< -o $@
 build: clean $(OBJECTS)
-	$(E) "cc   $(TEST_BINARY)"
+	$(E) "ld   $(TEST_BINARY)"
 	$(Q) $(CC) $(OBJECTS) $(TEST_LDFLAGS) -o $(TEST_BINARY)
 clean:
 	$(Q) $(RM) -f $(TEST_BINARY)

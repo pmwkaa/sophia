@@ -29,7 +29,7 @@ allocv(sra *a, uint64_t lsn, uint8_t flags, int *key)
 }
 
 static void
-svindexiter_lte_empty(stc *c srunused)
+svindexiter_lte_empty(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -52,7 +52,7 @@ svindexiter_lte_empty(stc *c srunused)
 }
 
 static void
-svindexiter_lte_eq0(stc *c srunused)
+svindexiter_lte_eq0(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -97,7 +97,7 @@ svindexiter_lte_eq0(stc *c srunused)
 }
 
 static void
-svindexiter_lte_eq1(stc *c srunused)
+svindexiter_lte_eq1(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -136,7 +136,7 @@ svindexiter_lte_eq1(stc *c srunused)
 }
 
 static void
-svindexiter_lte_minmax(stc *c srunused)
+svindexiter_lte_minmax(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -187,7 +187,7 @@ svindexiter_lte_minmax(stc *c srunused)
 }
 
 static void
-svindexiter_lte_mid0(stc *c srunused)
+svindexiter_lte_mid0(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -242,7 +242,7 @@ svindexiter_lte_mid0(stc *c srunused)
 }
 
 static void
-svindexiter_lte_mid1(stc *c srunused)
+svindexiter_lte_mid1(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -288,7 +288,7 @@ svindexiter_lte_mid1(stc *c srunused)
 }
 
 static void
-svindexiter_lte_iterate0(stc *c srunused)
+svindexiter_lte_iterate0(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -337,7 +337,7 @@ svindexiter_lte_iterate0(stc *c srunused)
 }
 
 static void
-svindexiter_lte_iterate1(stc *c srunused)
+svindexiter_lte_iterate1(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -382,7 +382,7 @@ svindexiter_lte_iterate1(stc *c srunused)
 }
 
 static void
-svindexiter_lte_iterate2(stc *c srunused)
+svindexiter_lte_iterate2(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -421,7 +421,7 @@ svindexiter_lte_iterate2(stc *c srunused)
 }
 
 static void
-svindexiter_lt_eq(stc *c srunused)
+svindexiter_lt_eq(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -466,7 +466,7 @@ svindexiter_lt_eq(stc *c srunused)
 }
 
 static void
-svindexiter_lt_iterate(stc *c srunused)
+svindexiter_lt_iterate(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -509,7 +509,7 @@ svindexiter_lt_iterate(stc *c srunused)
 }
 
 static void
-svindexiter_lte_dup_eq(stc *c srunused)
+svindexiter_lte_dup_eq(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -553,7 +553,7 @@ svindexiter_lte_dup_eq(stc *c srunused)
 }
 
 static void
-svindexiter_lte_dup_mid(stc *c srunused)
+svindexiter_lte_dup_mid(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -610,7 +610,7 @@ svindexiter_lte_dup_mid(stc *c srunused)
 }
 
 static void
-svindexiter_lte_dup_iterate(stc *c srunused)
+svindexiter_lte_dup_iterate(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -665,7 +665,7 @@ svindexiter_lte_dup_iterate(stc *c srunused)
 }
 
 static void
-svindexiter_gte_empty(stc *c srunused)
+svindexiter_gte_empty(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -688,7 +688,7 @@ svindexiter_gte_empty(stc *c srunused)
 }
 
 static void
-svindexiter_gte_eq0(stc *c srunused)
+svindexiter_gte_eq0(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -733,7 +733,7 @@ svindexiter_gte_eq0(stc *c srunused)
 }
 
 static void
-svindexiter_gte_eq1(stc *c srunused)
+svindexiter_gte_eq1(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -772,7 +772,7 @@ svindexiter_gte_eq1(stc *c srunused)
 }
 
 static void
-svindexiter_gte_minmax(stc *c srunused)
+svindexiter_gte_minmax(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -823,7 +823,7 @@ svindexiter_gte_minmax(stc *c srunused)
 }
 
 static void
-svindexiter_gte_mid0(stc *c srunused)
+svindexiter_gte_mid0(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -878,7 +878,7 @@ svindexiter_gte_mid0(stc *c srunused)
 }
 
 static void
-svindexiter_gte_mid1(stc *c srunused)
+svindexiter_gte_mid1(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -924,7 +924,7 @@ svindexiter_gte_mid1(stc *c srunused)
 }
 
 static void
-svindexiter_gte_iterate0(stc *c srunused)
+svindexiter_gte_iterate0(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -973,7 +973,7 @@ svindexiter_gte_iterate0(stc *c srunused)
 }
 
 static void
-svindexiter_gte_iterate1(stc *c srunused)
+svindexiter_gte_iterate1(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1018,7 +1018,7 @@ svindexiter_gte_iterate1(stc *c srunused)
 }
 
 static void
-svindexiter_gt_eq(stc *c srunused)
+svindexiter_gt_eq(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1063,7 +1063,7 @@ svindexiter_gt_eq(stc *c srunused)
 }
 
 static void
-svindexiter_gt_iterate(stc *c srunused)
+svindexiter_gt_iterate(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1106,7 +1106,7 @@ svindexiter_gt_iterate(stc *c srunused)
 }
 
 static void
-svindexiter_gte_dup_eq(stc *c srunused)
+svindexiter_gte_dup_eq(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1150,7 +1150,7 @@ svindexiter_gte_dup_eq(stc *c srunused)
 }
 
 static void
-svindexiter_gte_dup_mid(stc *c srunused)
+svindexiter_gte_dup_mid(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1207,7 +1207,7 @@ svindexiter_gte_dup_mid(stc *c srunused)
 }
 
 static void
-svindexiter_gte_dup_iterate(stc *c srunused)
+svindexiter_gte_dup_iterate(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1261,7 +1261,7 @@ svindexiter_gte_dup_iterate(stc *c srunused)
 }
 
 static void
-svindexiter_random(stc *c srunused)
+svindexiter_random(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1296,7 +1296,7 @@ svindexiter_random(stc *c srunused)
 
 
 static void
-svindexiter_iterate_raw0(stc *c srunused)
+svindexiter_iterate_raw0(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1356,7 +1356,7 @@ svindexiter_iterate_raw0(stc *c srunused)
 }
 
 static void
-svindexiter_iterate_raw1(stc *c srunused)
+svindexiter_iterate_raw1(stc *cx srunused)
 {
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
@@ -1391,38 +1391,38 @@ svindexiter_iterate_raw1(stc *c srunused)
 	sv_indexfree(&i, &r);
 }
 
-st *svindexiter_group(void)
+stgroup *svindexiter_group(void)
 {
-	st *group = st_def("svindexiter", NULL);
-	st_test(group, st_def("lte_empty", svindexiter_lte_empty));
-	st_test(group, st_def("lte_eq0", svindexiter_lte_eq0));
-	st_test(group, st_def("lte_eq1", svindexiter_lte_eq1));
-	st_test(group, st_def("lte_minmax", svindexiter_lte_minmax));
-	st_test(group, st_def("lte_mid0", svindexiter_lte_mid0));
-	st_test(group, st_def("lte_mid1", svindexiter_lte_mid1));
-	st_test(group, st_def("lte_iterate0", svindexiter_lte_iterate0));
-	st_test(group, st_def("lte_iterate1", svindexiter_lte_iterate1));
-	st_test(group, st_def("lte_iterate2", svindexiter_lte_iterate2));
-	st_test(group, st_def("lt_eq", svindexiter_lt_eq));
-	st_test(group, st_def("lt_iterate", svindexiter_lt_iterate));
-	st_test(group, st_def("lte_dup_eq", svindexiter_lte_dup_eq));
-	st_test(group, st_def("lte_dup_mid", svindexiter_lte_dup_mid));
-	st_test(group, st_def("lte_dup_iterate", svindexiter_lte_dup_iterate));
-	st_test(group, st_def("gte_empty", svindexiter_gte_empty));
-	st_test(group, st_def("gte_eq0", svindexiter_gte_eq0));
-	st_test(group, st_def("gte_eq1", svindexiter_gte_eq1));
-	st_test(group, st_def("gte_minmax", svindexiter_gte_minmax));
-	st_test(group, st_def("gte_mid0", svindexiter_gte_mid0));
-	st_test(group, st_def("gte_mid1", svindexiter_gte_mid1));
-	st_test(group, st_def("gte_iterate0", svindexiter_gte_iterate0));
-	st_test(group, st_def("gte_iterate1", svindexiter_gte_iterate1));
-	st_test(group, st_def("gt_eq", svindexiter_gt_eq));
-	st_test(group, st_def("gt_iterate", svindexiter_gt_iterate));
-	st_test(group, st_def("gte_dup_eq", svindexiter_gte_dup_eq));
-	st_test(group, st_def("gte_dup_mid", svindexiter_gte_dup_mid));
-	st_test(group, st_def("gte_dup_iterate", svindexiter_gte_dup_iterate));
-	st_test(group, st_def("random", svindexiter_random));
-	st_test(group, st_def("iterate_raw0", svindexiter_iterate_raw0));
-	st_test(group, st_def("iterate_raw1", svindexiter_iterate_raw1));
+	stgroup *group = st_group("svindexiter");
+	st_groupadd(group, st_test("lte_empty", svindexiter_lte_empty));
+	st_groupadd(group, st_test("lte_eq0", svindexiter_lte_eq0));
+	st_groupadd(group, st_test("lte_eq1", svindexiter_lte_eq1));
+	st_groupadd(group, st_test("lte_minmax", svindexiter_lte_minmax));
+	st_groupadd(group, st_test("lte_mid0", svindexiter_lte_mid0));
+	st_groupadd(group, st_test("lte_mid1", svindexiter_lte_mid1));
+	st_groupadd(group, st_test("lte_iterate0", svindexiter_lte_iterate0));
+	st_groupadd(group, st_test("lte_iterate1", svindexiter_lte_iterate1));
+	st_groupadd(group, st_test("lte_iterate2", svindexiter_lte_iterate2));
+	st_groupadd(group, st_test("lt_eq", svindexiter_lt_eq));
+	st_groupadd(group, st_test("lt_iterate", svindexiter_lt_iterate));
+	st_groupadd(group, st_test("lte_dup_eq", svindexiter_lte_dup_eq));
+	st_groupadd(group, st_test("lte_dup_mid", svindexiter_lte_dup_mid));
+	st_groupadd(group, st_test("lte_dup_iterate", svindexiter_lte_dup_iterate));
+	st_groupadd(group, st_test("gte_empty", svindexiter_gte_empty));
+	st_groupadd(group, st_test("gte_eq0", svindexiter_gte_eq0));
+	st_groupadd(group, st_test("gte_eq1", svindexiter_gte_eq1));
+	st_groupadd(group, st_test("gte_minmax", svindexiter_gte_minmax));
+	st_groupadd(group, st_test("gte_mid0", svindexiter_gte_mid0));
+	st_groupadd(group, st_test("gte_mid1", svindexiter_gte_mid1));
+	st_groupadd(group, st_test("gte_iterate0", svindexiter_gte_iterate0));
+	st_groupadd(group, st_test("gte_iterate1", svindexiter_gte_iterate1));
+	st_groupadd(group, st_test("gt_eq", svindexiter_gt_eq));
+	st_groupadd(group, st_test("gt_iterate", svindexiter_gt_iterate));
+	st_groupadd(group, st_test("gte_dup_eq", svindexiter_gte_dup_eq));
+	st_groupadd(group, st_test("gte_dup_mid", svindexiter_gte_dup_mid));
+	st_groupadd(group, st_test("gte_dup_iterate", svindexiter_gte_dup_iterate));
+	st_groupadd(group, st_test("random", svindexiter_random));
+	st_groupadd(group, st_test("iterate_raw0", svindexiter_iterate_raw0));
+	st_groupadd(group, st_test("iterate_raw1", svindexiter_iterate_raw1));
 	return group;
 }

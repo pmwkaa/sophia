@@ -141,11 +141,11 @@ svindex_replace2(stc *cx srunused)
 	sv_indexfree(&i, &r);
 }
 
-st *svindex_group(void)
+stgroup *svindex_group(void)
 {
-	st *group = st_def("svindex", NULL);
-	st_test(group, st_def("replace0", svindex_replace0));
-	st_test(group, st_def("replace1", svindex_replace1));
-	st_test(group, st_def("replace2", svindex_replace2));
+	stgroup *group = st_group("svindex");
+	st_groupadd(group, st_test("replace0", svindex_replace0));
+	st_groupadd(group, st_test("replace1", svindex_replace1));
+	st_groupadd(group, st_test("replace2", svindex_replace2));
 	return group;
 }
