@@ -18,7 +18,6 @@ svmergeiter_valloc(sra *a, svlocal *l)
 	sv lv;
 	svinit(&lv, &sv_localif, l, NULL);
 	svv *kv = sv_valloc(a, &lv);
-	/*t(kv != NULL);*/
 	sv *v = sr_malloc(a, sizeof(sv));
 	svinit(v, &sv_vif, kv, NULL);
 	return v;

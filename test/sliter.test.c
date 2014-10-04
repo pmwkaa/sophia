@@ -28,11 +28,9 @@ alloclogv(svlog *log, sra *a, uint64_t lsn, uint8_t flags, int key)
 	sv lv;
 	svinit(&lv, &sv_localif, &l, NULL);
 	svv *v = sv_valloc(a, &lv);
-	/*t( v != NULL );*/
 	sv vv;
 	svinit(&vv, &sv_vif, v, NULL);
 	sv_logadd(log, a, &vv);
-	/*t( sv_logadd(log, a, &vv) == 0 );*/
 }
 
 static void

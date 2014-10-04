@@ -26,7 +26,6 @@ addv(sdbuild *b, uint64_t lsn, uint8_t flags, int *key)
 	l.valueoffset = 0;
 	sv lv;
 	svinit(&lv, &sv_localif, &l, NULL);
-	/*t( sd_buildadd(b, &lv) == 0 );*/
 	sd_buildadd(b, &lv);
 }
 

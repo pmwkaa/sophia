@@ -18,7 +18,6 @@ svseaveiter_valloc(sra *a, svlocal *l)
 	sv lv;
 	svinit(&lv, &sv_localif, l, NULL);
 	svv *kv = sv_valloc(a, &lv);
-	/*t(kv != NULL);*/
 	sv *v = sr_malloc(a, sizeof(sv));
 	svinit(v, &sv_vif, kv, NULL);
 	return v;
@@ -339,7 +338,6 @@ addv(srbuf *list, sra *a, uint64_t lsn, int flags, char *key, int keysize)
 	l.valueoffset = 0;
 	sv *v = svseaveiter_valloc(a, &l);
 	sr_bufadd(list, a, &v, sizeof(sv**));
-	/*t( sr_bufadd(list, a, &v, sizeof(sv**)) == 0 );*/
 }
 
 static void
