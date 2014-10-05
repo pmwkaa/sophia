@@ -134,61 +134,6 @@ setctl(srctl *c, char *name, int type, void *v, srctlf func)
 	return ++c;
 }
 
-/*
-static void*
-so_dbprofiler_get(soobj *obj, va_list args)
-{
-	sodbprofiler *p = (sodbprofiler*)obj;
-	sodb *db = p->db;
-	si_profilerbegin(&p->prof, &db->index);
-	si_profiler(&p->prof);
-	si_profilerend(&p->prof);
-	char *name = va_arg(args, char*);
-	int  *size = va_arg(args, int*);
-	if (strcmp(name, "count") == 0) {
-		if (size)
-			*size = sizeof(p->prof.count);
-		return &p->prof.count;
-	} else
-	if (strcmp(name, "total_node_count") == 0) {
-		if (size)
-			*size = sizeof(p->prof.total_node_count);
-		return &p->prof.total_node_count;
-	} else
-	if (strcmp(name, "total_node_size") == 0) {
-		if (size)
-			*size = sizeof(p->prof.total_node_size);
-		return &p->prof.total_node_size;
-	} else
-	if (strcmp(name, "total_branch_count") == 0) {
-		if (size)
-			*size = sizeof(p->prof.total_branch_count);
-		return &p->prof.total_branch_count;
-	} else
-	if (strcmp(name, "total_branch_max") == 0) {
-		if (size)
-			*size = sizeof(p->prof.total_branch_max);
-		return &p->prof.total_branch_max;
-	} else
-	if (strcmp(name, "total_branch_size") == 0) {
-		if (size)
-			*size = sizeof(p->prof.total_branch_size);
-		return &p->prof.total_branch_size;
-	} else
-	if (strcmp(name, "memory_used") == 0) {
-		if (size)
-			*size = sizeof(p->prof.memory_used);
-		return &p->prof.memory_used;
-	} else
-	if (strcmp(name, "count") == 0) {
-		if (size)
-			*size = sizeof(p->prof.count);
-		return &p->prof.count;
-	}
-	return NULL;
-}
-*/
-
 static inline void
 so_dbctl_prepare(srctl *t, sodbctl *c)
 {
@@ -213,8 +158,8 @@ so_dbctl_prepare(srctl *t, sodbctl *c)
 	p = setctl(p, "run_branch",     SR_CTLTRIGGER,         NULL,               so_dbctl_branch);
 	p = setctl(p, "run_merge",      SR_CTLTRIGGER,         NULL,               so_dbctl_merge);
 	p = setctl(p, "run_logrotate",  SR_CTLTRIGGER,         NULL,               so_dbctl_logrotate);
-	/* profiler */
-	p = setctl(p, NULL,             0,                     NULL,               NULL);
+	p = setctl(p, "profiler",       SR_CTLSUB,             NULL,               NULL);
+	p = setctl(p,  NULL,            0,                     NULL,               NULL);
 }
 
 int so_dbctl_set(sodbctl *c, char *path, va_list args)
@@ -223,7 +168,7 @@ int so_dbctl_set(sodbctl *c, char *path, va_list args)
 	srctl ctls[30];
 	so_dbctl_prepare(&ctls[0], c);
 	srctl *match = NULL;
-	int rc = sr_ctlget(&ctls[0], path, &match);
+	int rc = sr_ctlget(&ctls[0], &path, &match);
 	if (srunlikely(rc ==  1))
 		return 0; /* self */
 	if (srunlikely(rc == -1))
@@ -237,41 +182,40 @@ int so_dbctl_set(sodbctl *c, char *path, va_list args)
 	return 0;
 }
 
-void *so_dbctl_get(sodbctl *c, char *path, va_list args srunused)
+static inline void*
+so_dbctl_ret(sodb *db, srctl *match)
 {
-	sodb *db = c->parent;
-	srctl ctls[30];
-	so_dbctl_prepare(&ctls[0], c);
-	srctl *match = NULL;
-	int rc = sr_ctlget(&ctls[0], path, &match);
-	if (srunlikely(rc ==  1))
-		return &db->o; /* self */
-	if (srunlikely(rc == -1))
-		return NULL;
 	int size = 0;
 	int type = match->type & ~SR_CTLRO;
+	char integer[64];
+	char *value;
 	switch (type) {
-	case SR_CTLINT: size = sizeof(int);
+	case SR_CTLINT:
+		size = snprintf(integer, sizeof(integer), "%d", *(int*)match->v);
+		value = integer;
 		break;
-	case SR_CTLU32: size = sizeof(uint32_t);
+	case SR_CTLU32:
+		size = snprintf(integer, sizeof(integer), "%"PRIu32, *(uint32_t*)match->v);
+		value = integer;
 		break;
-	case SR_CTLU64: size = sizeof(uint64_t);
+	case SR_CTLU64:
+		size = snprintf(integer, sizeof(integer), "%"PRIu64, *(uint64_t*)match->v);
+		value = integer;
 		break;
 	case SR_CTLSTRING:
-		size = strlen(*(char**)match->v) + 1;
+		value = *(char**)match->v;
+		size = strlen(value);
 		break;
 	default: return NULL;
 	}
+	size++;
 	svlocal l;
 	l.lsn       = 0;
 	l.flags     = 0;
 	l.keysize   = strlen(match->name) + 1;
 	l.key       = match->name;
 	l.valuesize = size;
-	if (type == SR_CTLSTRING)
-		l.value = *(char**)match->v;
-	else
-		l.value = match->v;
+	l.value     = value;
 	sv vp;
 	svinit(&vp, &sv_localif, &l, NULL);
 	svv *v = sv_valloc(&db->e->a, &vp);
@@ -284,4 +228,56 @@ void *so_dbctl_get(sodbctl *c, char *path, va_list args srunused)
 	}
 	svinit(&vp, &sv_vif, v, NULL);
 	return so_vput(result, &vp);
+}
+
+static inline void
+so_dbprofiler_prepare(srctl *t, siprofiler *pf)
+{
+	srctl *p = t;
+	p = setctl(p, "total_node_count",   SR_CTLU32|SR_CTLRO, &pf->total_node_count,   NULL);
+	p = setctl(p, "total_node_size",    SR_CTLU64|SR_CTLRO, &pf->total_node_size,    NULL);
+	p = setctl(p, "total_branch_count", SR_CTLU32|SR_CTLRO, &pf->total_branch_count, NULL);
+	p = setctl(p, "total_branch_max",   SR_CTLU32|SR_CTLRO, &pf->total_branch_max,   NULL);
+	p = setctl(p, "total_branch_size",  SR_CTLU64|SR_CTLRO, &pf->total_branch_size,  NULL);
+	p = setctl(p, "memory_used",        SR_CTLU64|SR_CTLRO, &pf->memory_used,        NULL);
+	p = setctl(p, "count",              SR_CTLU64|SR_CTLRO, &pf->count,              NULL);
+	p = setctl(p,  NULL,                0,                  NULL,                    NULL);
+}
+
+static void*
+so_dbprofiler_get(sodb *db, char *path)
+{
+	siprofiler pf;
+	si_profilerbegin(&pf, &db->index);
+	si_profiler(&pf);
+	si_profilerend(&pf);
+	srctl ctls[30];
+	so_dbprofiler_prepare(&ctls[0], &pf);
+	srctl *match = NULL;
+	int rc = sr_ctlget(&ctls[0], &path, &match);
+	if (srunlikely(rc ==  1))
+		return NULL;
+	if (srunlikely(rc == -1))
+		return NULL;
+	return so_dbctl_ret(db, match);
+}
+
+void *so_dbctl_get(sodbctl *c, char *path, va_list args srunused)
+{
+	sodb *db = c->parent;
+	srctl ctls[30];
+	so_dbctl_prepare(&ctls[0], c);
+	srctl *match = NULL;
+	int rc = sr_ctlget(&ctls[0], &path, &match);
+	if (srunlikely(rc ==  1))
+		return &db->o; /* self */
+	if (srunlikely(rc == -1))
+		return NULL;
+	int type = match->type & ~SR_CTLRO;
+	if (type == SR_CTLSUB) {
+		if (strcmp(match->name, "profiler") == 0)
+			return so_dbprofiler_get(db, path);
+		return NULL;
+	}
+	return so_dbctl_ret(db, match);
 }

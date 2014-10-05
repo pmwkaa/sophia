@@ -46,14 +46,15 @@ int sr_ctlset(srctl *c, sra *a, void *arg, va_list args)
 		*sz = nsz;
 		break;
 	}
+	case SR_CTLSUB: return -1;
 	}
 	return 0;
 }
 
-int sr_ctlget(srctl *list, char *path, srctl **result)
+int sr_ctlget(srctl *list, char **path, srctl **result)
 {
 	char *token;
-	token = strtok_r(NULL, ".", &path);
+	token = strtok_r(NULL, ".", path);
 	if (srunlikely(token == NULL))
 		return 1;
 	srctl *c = list;

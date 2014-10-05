@@ -19,7 +19,8 @@ typedef enum {
 	SR_CTLU32     = 4,
 	SR_CTLU64     = 8,
 	SR_CTLSTRING  = 16,
-	SR_CTLTRIGGER = 32
+	SR_CTLTRIGGER = 32,
+	SR_CTLSUB     = 64
 } srctltype;
 
 struct srctl {
@@ -29,7 +30,7 @@ struct srctl {
 	srctlf func;
 };
 
-int sr_ctlget(srctl*, char*, srctl**);
+int sr_ctlget(srctl*, char**, srctl**);
 int sr_ctlset(srctl*, sra*, void*, va_list);
 
 #endif
