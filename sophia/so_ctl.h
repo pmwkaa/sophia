@@ -16,6 +16,7 @@ struct soctl {
 	void *e;
 };
 
-void so_ctlinit(soctl*, void*);
+void  so_ctlinit(soctl*, void*);
+void *so_ctlreturn(srctl *match, void*);
 
 #endif

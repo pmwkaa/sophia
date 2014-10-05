@@ -30,6 +30,16 @@ struct srctl {
 	srctlf func;
 };
 
+static inline srctl*
+sr_ctladd(srctl *c, char *name, int type, void *v, srctlf func)
+{
+	c->name = name;
+	c->type = type;
+	c->v    = v;
+	c->func = func;
+	return ++c;
+}
+
 int sr_ctlget(srctl*, char**, srctl**);
 int sr_ctlset(srctl*, sra*, void*, va_list);
 
