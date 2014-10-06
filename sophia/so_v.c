@@ -40,6 +40,10 @@ so_vset(soobj *obj, va_list args)
 		v->lv.value = va_arg(args, char*);
 		v->lv.valuesize = va_arg(args, int);
 		return 0;
+	} else
+	if (strcmp(name, "lsn") == 0) {
+		v->lv.lsn = va_arg(args, uint64_t);
+		return 0;
 	}
 	return -1;
 }
@@ -66,6 +70,18 @@ so_vget(soobj *obj, va_list args)
 		if (valuesize)
 			*valuesize = svvaluesize(&v->v);
 		return value;
+	} else
+	if (strcmp(name, "lsn") == 0) {
+		uint64_t *lsnp = NULL;
+		if (v->v.i == &sv_localif)
+			lsnp = &v->lv.lsn;
+		else
+		if (v->v.i == &sv_vif)
+			lsnp = &((svv*)(v->v.v))->id.lsn;
+		int *valuesize = va_arg(args, int*);
+		if (valuesize)
+			*valuesize = sizeof(uint64_t);
+		return lsnp;
 	}
 	return NULL;
 }
