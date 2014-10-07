@@ -7,6 +7,35 @@
  * BSD License
 */
 
+/*
+	Repository recover states.
+
+	I. branch
+	000000001.db.incomplete (1) (2)
+	000000001.db            (3)
+
+	1. remove incomplete node
+	2. incomplete node without parent is corrupt
+	3. link branch node with head
+
+	II. merge
+	000000001.000000002.db.incomplete  (1)
+	000000001.000000002.db.seal        (2)
+	000000002.db                       (3)
+	000000001.000000003.db.incomplete
+	000000001.000000003.db.seal
+	000000003.db
+	(4)
+
+	1. remove incomplete, mark parent as having incomplete
+	2. find parent, mark as having seal
+	3. add
+	4. recover:
+		a. if parent has incomplete and seal - remove both
+		b. if parent has incomplete - remove incomplete
+		c. if parent has seal - remove parent, complete seal
+*/
+
 #include <libsr.h>
 #include <libsv.h>
 #include <libsd.h>
@@ -65,7 +94,7 @@ si_deploy(si *i, sr *r)
 		si_nodefree(n, r);
 		return -1;
 	}
-	rc = si_nodeseal(n, i->conf);
+	rc = si_nodecomplete(n, i->conf);
 	if (srunlikely(rc == -1)) {
 		si_nodefree(n, r);
 		return -1;
@@ -89,20 +118,35 @@ si_processid(char **str) {
 }
 
 static inline int
-si_process(char *name, uint32_t *nsn)
+si_process(char *name, uint32_t *nsn, uint32_t *parent)
 {
 	/* id.db */
 	/* id.db.inprogress */
+	/* id.id.db.inprogress */
+	/* id.id.db.seal */
 	char *token = name;
 	ssize_t id = si_processid(&token);
 	if (srunlikely(id == -1))
 		return -1;
+	*parent = id;
 	*nsn = id;
 	if (strcmp(token, ".db") == 0)
 		return SI_RDB;
 	else
 	if (strcmp(token, ".db.inprogress") == 0)
 		return SI_RDBI;
+	if (srunlikely(*token != '.'))
+		return -1;
+	token++;
+	id = si_processid(&token);
+	if (srunlikely(id == -1))
+		return -1;
+	*nsn = id;
+	if (strcmp(token, ".db.inprogress") == 0)
+		return SI_RDB_DBI;
+	else
+	if (strcmp(token, ".db.seal") == 0)
+		return SI_RDB_DBSEAL;
 	return -1;
 }
 
@@ -116,34 +160,81 @@ si_trackdir(sitrack *track, sr *r, si *i)
 	while ((de = readdir(dir))) {
 		if (srunlikely(de->d_name[0] == '.'))
 			continue;
+		srpath path;
+		sinode *head;
+		sinode *node;
+
+		uint32_t id_parent = 0;
 		uint32_t id = 0;
-		int rc = si_process(de->d_name, &id);
+		int rc = si_process(de->d_name, &id, &id_parent);
 		if (srunlikely(rc == -1))
 			continue; /* skip unknown file */
+		si_tracknsn(track, id_parent);
+		si_tracknsn(track, id);
 
-		/* remove any incomplete files */
-		if (srunlikely(rc == SI_RDBI)) {
-			rc = si_nodeunlink(i->conf, id, 1);
+		switch (rc) {
+		case SI_RDBI:
+			/* remove any incomplete branch */
+			sr_pathA(&path, i->conf->dir, id, ".db.incomplete");
+			rc = sr_fileunlink(path.path);
 			if (srunlikely(rc == -1))
 				goto error;
+			continue;
+		case SI_RDB_DBI:
+		case SI_RDB_DBSEAL: {
+			/* find parent node and mark it as having
+			 * incomplete merge process */
+			head = si_trackget(track, id_parent);
+			if (srlikely(head == NULL)) {
+				head = si_nodenew(r);
+				if (srunlikely(head == NULL))
+					goto error;
+				head->id.id = id_parent;
+				head->recover = SI_RDB_UNDEF;
+				si_trackset(track, head);
+			}
+			head->recover |= rc;
+			/* remove any incomplete file made during merge */
+			if (rc == SI_RDB_DBI) {
+				sr_pathAB(&path, i->conf->dir, id_parent, id, ".db.incomplete");
+				rc = sr_fileunlink(path.path);
+				if (srunlikely(rc == -1))
+					goto error;
+				continue;
+			}
+			assert(rc == SI_RDB_DBSEAL);
+			/* recover 'sealed' node */
+			node = si_nodenew(r);
+			if (srunlikely(node == NULL))
+				goto error;
+			node->recover = SI_RDB_DBSEAL;
+			sr_pathAB(&path, i->conf->dir, id_parent, id, ".db.seal");
+			rc = si_nodeopen(node, r, &path);
+			if (srunlikely(rc == -1)) {
+				si_nodefree(node, r);
+				goto error;
+			}
+			si_tracklsn(track, node);
+			continue;
+		}
 		}
 		assert(rc == SI_RDB);
 
 		/* recover node */
-		sinode *node = si_nodenew(r);
+		node = si_nodenew(r);
 		if (srunlikely(node == NULL))
 			goto error;
-		rc = si_nodeopen(node, r, i->conf, id);
+		node->recover = SI_RDB;
+		sr_pathA(&path, i->conf->dir, id, ".db");
+		rc = si_nodeopen(node, r, &path);
 		if (srunlikely(rc == -1)) {
 			si_nodefree(node, r);
 			goto error;
 		}
-		si_tracknsn(track, node);
 		si_tracklsn(track, node);
 
 		/* search previous definition or an older
 		 * version */
-		sinode *head;
 		if (node->id.flags & SD_IDBRANCH) {
 			head = si_trackget(track, node->id.parent);
 			if (srlikely(head == NULL)) {
@@ -166,12 +257,14 @@ si_trackdir(sitrack *track, sr *r, si *i)
 		} else {
 			/* replace a node previously created
 			 * by a branch */
-			if (! (node->recover & SI_RDB_UNDEF))
+			if (! (head->recover & SI_RDB_UNDEF))
 				goto error;
+			head->recover &= ~SI_RDB_UNDEF;
 			si_trackreplace(track, head, node);
-			node->next = head->next;
-			node->lv   = head->lv;
-			head->next = NULL;
+			node->recover = head->recover;
+			node->next    = head->next;
+			node->lv      = head->lv;
+			head->next    = NULL;
 			si_nodefree(head, r);
 		}
 	}
@@ -223,35 +316,57 @@ si_branchsort(sr *r, srbuf *buf, sinode *parent)
 }
 
 static inline int
-si_trackvalidate(sitrack *track, srbuf *buf, sr *r)
+si_trackvalidate(sitrack *track, srbuf *buf, sr *r, si *i)
 {
 	sr_bufreset(buf);
 	srrbnode *p = sr_rbmax(&track->i);
 	while (p) {
 		sinode *n = srcast(p, sinode, node);
-		/* corrupted state: branch without head */
-		if (n->recover & SI_RDB_UNDEF)
-			return -1;
-		/* match and remove any leftover ancestor with
-		 * its branches */
-		sinode *ancestor = si_trackget(track, n->id.parent);
-		int rc;
-		if (ancestor && (ancestor != n)) {
-			si_trackremove(track, ancestor);
-			rc = si_nodegc(ancestor, r);
+		switch (n->recover) {
+		case SI_RDB|SI_RDB_DBI|SI_RDB_DBSEAL:
+		case SI_RDB|SI_RDB_DBI:
+		case SI_RDB:
+		case SI_RDB|SI_RDB_DBSEAL:
+		case SI_RDB_UNDEF|SI_RDB_DBSEAL: {
+			/* match and remove any leftover ancestor with
+			 * its branches */
+			sinode *ancestor = si_trackget(track, n->id.parent);
+			if (ancestor && (ancestor != n))
+				ancestor->recover |= SI_RDB_REMOVE;
+			int rc = si_branchsort(r, buf, n);
 			if (srunlikely(rc == -1))
 				return -1;
+			break;
 		}
-		rc = si_branchsort(r, buf, n);
-		if (srunlikely(rc == -1))
+		case SI_RDB_DBSEAL: {
+			/* find parent */
+			sinode *parent = si_trackget(track, n->id.parent);
+			if (parent) {
+				/* schedule node for removal, if has incomplete merges */
+				if (parent->recover & SI_RDB_DBI)
+					n->recover |= SI_RDB_REMOVE;
+				else
+					parent->recover |= SI_RDB_REMOVE;
+			} else {
+				/* complete node */
+				int rc = si_nodecomplete(n, i->conf);
+				if (srunlikely(rc == -1))
+					return -1;
+				n->recover = SI_RDB;
+			}
+			break;
+		}
+		default:
+			/* corrupted states */
 			return -1;
+		}
 		p = sr_rbprev(&track->i, p);
 	}
 	return 0;
 }
 
 static inline int
-si_recoverbuild(sitrack *track, sr *r, si *index, srbuf *buf)
+si_recovercomplete(sitrack *track, sr *r, si *index, srbuf *buf)
 {
 	/* prepare and build primary index */
 	sr_bufreset(buf);
@@ -268,6 +383,13 @@ si_recoverbuild(sitrack *track, sr *r, si *index, srbuf *buf)
 	sr_iteropen(&i, buf, sizeof(sinode*));
 	for (; sr_iterhas(&i); sr_iternext(&i)) {
 		sinode *n = sr_iterof(&i);
+		if (n->recover & SI_RDB_REMOVE) {
+			int rc = si_nodegc(n, r);
+			if (srunlikely(rc == -1))
+				return -1;
+			continue;
+		}
+		/*n->recover = SI_RDB;*/
 		si_insert(index, r, n);
 		si_plan(&index->plan, SI_MERGE, n);
 	}
@@ -286,10 +408,10 @@ si_recoverindex(si *i, sr *r)
 		goto error;
 	if (srunlikely(track.count == 0))
 		goto error;
-	rc = si_trackvalidate(&track, &buf, r);
+	rc = si_trackvalidate(&track, &buf, r, i);
 	if (srunlikely(rc == -1))
 		goto error;
-	rc = si_recoverbuild(&track, r, i, &buf);
+	rc = si_recovercomplete(&track, r, i, &buf);
 	if (srunlikely(rc == -1))
 		goto error;
 	/* complete node recover */

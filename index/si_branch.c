@@ -61,7 +61,8 @@ int si_branch(si *index, sr *r, sdc *c, uint64_t lsvn, uint32_t wm)
 
 	/* sync and rename */
 	sinode *q = *(sinode**)result->s;
-	rc = si_nodeseal(q, index->conf);
+	/* xxx: sync */
+	rc = si_nodecomplete(q, index->conf);
 	if (srunlikely(rc == -1)) {
 		si_splitfree(result, r);
 		return -1;

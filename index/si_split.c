@@ -48,7 +48,10 @@ int si_split(sisplit *s, sr *r, sdc *c, srbuf *result)
 		rc = sd_mergecommit(&merge, &id);
 		if (srunlikely(rc == -1))
 			goto error;
-		rc = si_nodecreate(n, s->conf, &id, &merge.index, &c->build);
+		if (s->flags & SD_IDBRANCH)
+			rc = si_nodecreate(n, s->conf, &id, &merge.index, &c->build);
+		else
+			rc = si_nodecreate_attach(n, s->conf, &id, &merge.index, &c->build);
 		if (srunlikely(rc == -1))
 			goto error;
 		rc = sr_bufadd(result, r->a, &n, sizeof(sinode*));

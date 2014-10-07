@@ -97,7 +97,7 @@ int sr_fileclose(srfile *f)
 }
 
 int sr_filesync(srfile *f) {
-	return fsync(f->fd); /* XXX fdatasync */
+	return fdatasync(f->fd);
 }
 
 int sr_fileresize(srfile *f, uint64_t size)

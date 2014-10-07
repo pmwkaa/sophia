@@ -146,7 +146,7 @@ si_mergeof(si *index, sr *r, sdc *c, uint64_t lsvn,
 
 	/* garbage collection */
 
-	/* sync and rename new nodes */
+	/* seal nodes */
 	sr_iterinit(&i, &sr_bufiterref, NULL);
 	sr_iteropen(&i, result, sizeof(sinode*));
 	for (; sr_iterhas(&i); sr_iternext(&i)) {
@@ -155,11 +155,23 @@ si_mergeof(si *index, sr *r, sdc *c, uint64_t lsvn,
 		if (srunlikely(rc == -1))
 			return -1;
 	}
+
 	/* remove old files */
 	rc = si_nodegc(node, r);
 	if (srunlikely(rc == -1))
 		return -1;
-	/* complete */
+
+	/* complete new nodes */
+	sr_iterinit(&i, &sr_bufiterref, NULL);
+	sr_iteropen(&i, result, sizeof(sinode*));
+	for (; sr_iterhas(&i); sr_iternext(&i)) {
+		n = sr_iterof(&i);
+		rc = si_nodecomplete(n, index->conf);
+		if (srunlikely(rc == -1))
+			return -1;
+	}
+
+	/* unlock */
 	si_lock(index);
 	sr_iterinit(&i, &sr_bufiterref, NULL);
 	sr_iteropen(&i, result, sizeof(sinode*));

@@ -9,20 +9,6 @@
  * BSD License
 */
 
-/*
-typedef struct {
-	sinode   *root;
-	sinode   *src;
-	int       src_deriveid;
-	sriter   *i;
-	uint32_t  size_node;
-	uint32_t  size_key;
-	uint32_t  size_stream;
-	uint64_t  lsvn;
-	siconf   *conf;
-} sisplit;
-*/
-
 typedef struct {
 	sinode   *parent;
 	int       flags;

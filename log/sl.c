@@ -44,7 +44,7 @@ sl_open(slpool *p, uint32_t id)
 	if (srunlikely(l == NULL))
 		return NULL;
 	srpath path;
-	sr_path(&path, p->conf.dir, id, ".log");
+	sr_pathA(&path, p->conf.dir, id, ".log");
 	int rc = sr_fileopen(&l->file, path.path);
 	if (srunlikely(rc == -1))
 		goto error;
@@ -61,7 +61,7 @@ sl_new(slpool *p, uint32_t id)
 	if (srunlikely(l == NULL))
 		return NULL;
 	srpath path;
-	sr_path(&path, p->conf.dir, id, ".log");
+	sr_pathA(&path, p->conf.dir, id, ".log");
 	int rc = sr_filenew(&l->file, path.path);
 	if (srunlikely(rc == -1))
 		goto error;

@@ -36,14 +36,35 @@ sinode *si_nodenew(sr *r)
 	return n;
 }
 
-int si_nodecreate(sinode *n, siconf *conf,
-                  sdid *id,
-                  sdindex *i, sdbuild *build)
+int si_nodecreate(sinode *n, siconf *conf, sdid *id,
+                  sdindex *i,
+                  sdbuild *build)
 {
 	n->index = *i;
 	n->id = *id;
 	srpath path;
-	sr_path(&path, conf->dir, id->id, ".db.inprogress");
+	sr_pathA(&path, conf->dir, id->id, ".db.inprogress");
+	int rc = sr_filenew(&n->file, path.path);
+	if (srunlikely(rc == -1))
+		return -1;
+	rc = sd_buildwrite(build, &n->index, &n->file);
+	if (srunlikely(rc == -1))
+		return -1;
+	rc = sr_mapfile(&n->map, &n->file, 1);
+	if (srunlikely(rc == -1))
+		return -1;
+	return 0;
+}
+
+int
+si_nodecreate_attach(sinode *n, siconf *conf, sdid *id,
+                     sdindex *i,
+                     sdbuild *build)
+{
+	n->index = *i;
+	n->id = *id;
+	srpath path;
+	sr_pathAB(&path, conf->dir, id->parent, id->id, ".db.inprogress");
 	int rc = sr_filenew(&n->file, path.path);
 	if (srunlikely(rc == -1))
 		return -1;
@@ -70,11 +91,9 @@ si_nodeclose(sinode *n, sr *r)
 	return rcret;
 }
 
-int si_nodeopen(sinode *n, sr *r, siconf *conf, uint32_t nsn)
+int si_nodeopen(sinode *n, sr *r, srpath *path)
 {
-	srpath path;
-	sr_path(&path, conf->dir, nsn, ".db");
-	int rc = sr_fileopen(&n->file, path.path);
+	int rc = sr_fileopen(&n->file, path->path);
 	if (srunlikely(rc == -1))
 		return -1;
 	rc = sr_mapfile(&n->map, &n->file, 1);
@@ -84,8 +103,6 @@ int si_nodeopen(sinode *n, sr *r, siconf *conf, uint32_t nsn)
 	if (srunlikely(rc == -1))
 		goto error;
 	n->id = n->index.h->id;
-	if (srunlikely(n->id.id != nsn))
-		goto error;
 	return 0;
 error:
 	si_nodeclose(n, r);
@@ -155,17 +172,17 @@ int si_nodecmp(sinode *n, void *key, int size, srcomparator *c)
 
 int si_nodeseal(sinode *n, siconf *conf)
 {
+	/* sync */
 	srpath path;
-	sr_path(&path, conf->dir, n->id.id, ".db");
+	sr_pathAB(&path, conf->dir, n->id.parent, n->id.id, ".db.seal");
 	int rc = sr_filerename(&n->file, path.path);
 	return rc;
 }
 
-int si_nodeunlink(siconf *conf, uint32_t id, int inprogress)
+int si_nodecomplete(sinode *n, siconf *conf)
 {
-	char *ext = (inprogress) ? ".db.inprogress" : ".db";
 	srpath path;
-	sr_path(&path, conf->dir, id, ext);
-	int rc = sr_fileunlink(path.path);
+	sr_pathA(&path, conf->dir, n->id.id, ".db");
+	int rc = sr_filerename(&n->file, path.path);
 	return rc;
 }

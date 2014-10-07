@@ -46,10 +46,10 @@ si_tracklsn(sitrack *t, sinode *n)
 }
 
 static inline void
-si_tracknsn(sitrack *t, sinode *n)
+si_tracknsn(sitrack *t, uint32_t nsn)
 {
-	if (t->nsn < n->id.id)
-		t->nsn = n->id.id;
+	if (t->nsn < nsn)
+		t->nsn = nsn;
 }
 
 sr_rbget(si_trackmatch,
