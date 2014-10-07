@@ -25,15 +25,9 @@ sr_pathset(srpath *p, char *fmt, ...)
 }
 
 static inline void
-sr_pathA(srpath *p, char *dir, uint32_t id, char *ext)
+sr_path(srpath *p, char *dir, uint32_t id, char *ext)
 {
-	sr_pathset(p, "%s/%04"PRIu32"%s", dir, id, ext);
-}
-
-static inline void
-sr_pathAB(srpath *p, char *dir, uint32_t a, uint32_t b, char *ext)
-{
-	sr_pathset(p, "%s/%04"PRIu32".%02"PRIu32"%s", dir, a, b, ext);
+	sr_pathset(p, "%s/%010"PRIu32"%s", dir, id, ext);
 }
 
 #endif

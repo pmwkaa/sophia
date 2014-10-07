@@ -48,12 +48,12 @@ si_tracklsn(sitrack *t, sinode *n)
 static inline void
 si_tracknsn(sitrack *t, sinode *n)
 {
-	if (t->nsn < n->id)
-		t->nsn = n->id;
+	if (t->nsn < n->id.id)
+		t->nsn = n->id.id;
 }
 
 sr_rbget(si_trackmatch,
-         sr_cmpu32((char*)&(srcast(n, sinode, node))->id, sizeof(uint32_t),
+         sr_cmpu32((char*)&(srcast(n, sinode, node))->id.id, sizeof(uint32_t),
                    (char*)key, sizeof(uint32_t), NULL))
 
 static inline void
@@ -64,7 +64,6 @@ si_trackset(sitrack *t, sinode *n)
 	assert(! (rc == 0 && p));
 	sr_rbset(&t->i, p, rc, &n->node);
 	t->count++;
-	si_tracknsn(t, n);
 }
 
 static inline sinode*
@@ -75,6 +74,19 @@ si_trackget(sitrack *t, uint32_t id)
 	if (rc == 0 && p)
 		return srcast(p, sinode, node);
 	return NULL;
+}
+
+static inline void
+si_trackreplace(sitrack *t, sinode *o, sinode *n)
+{
+	sr_rbreplace(&t->i, &o->node, &n->node);
+}
+
+static inline void
+si_trackremove(sitrack *t, sinode *n)
+{
+	sr_rbremove(&t->i, &n->node);
+	t->count--;
 }
 
 #endif

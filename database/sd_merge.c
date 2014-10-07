@@ -11,20 +11,23 @@
 #include <libsv.h>
 #include <libsd.h>
 
-int sd_mergeinit(sdmerge *m, sr *r, sriter *i,
+int sd_mergeinit(sdmerge *m, sr *r, uint32_t parent, uint8_t flags,
+                 sriter *i,
                  sdbuild *build,
                  uint32_t size_key,
                  uint32_t size_stream,
                  uint32_t size_node,
                  uint32_t size_page, uint64_t lsvn)
 {
-	m->r = r;
-	m->build = build;
-	sd_indexinit(&m->index);
+	m->r           = r;
+	m->parent      = parent;
+	m->flags       = flags;
+	m->build       = build;
 	m->size_key    = size_key;
 	m->size_stream = size_stream;
 	m->size_node   = size_node;
 	m->size_page   = size_page;
+	sd_indexinit(&m->index);
 	sr_iterinit(&m->i, &sv_seaveiter, r);
 	sr_iteropen(&m->i, i, (uint64_t)size_page, sizeof(sdv), lsvn);
 	return 0;
@@ -96,8 +99,15 @@ int sd_merge(sdmerge *m)
 			break;
 	}
 
+	/*
 	rc = sd_indexcommit(&m->index, m->r->a);
 	if (srunlikely(rc == -1))
 		return -1;
+		*/
 	return 1;
+}
+
+int sd_mergecommit(sdmerge *m, sdid *id)
+{
+	return sd_indexcommit(&m->index, m->r->a, id);
 }

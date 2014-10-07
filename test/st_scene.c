@@ -188,3 +188,10 @@ st_scene_pass(stscene *g, stc *cx)
 	printf(": ok\n");
 	fflush(NULL);
 }
+
+void
+st_scene_rerun(stscene *g srunused, stc *cx srunused)
+{
+	printf("\n (rerun) ");
+	fflush(NULL);
+}

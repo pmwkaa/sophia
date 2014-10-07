@@ -29,7 +29,8 @@ int si_split(sisplit *s, sr *r, sdc *c, srbuf *result)
 	int count = 0;
 	int rc;
 	sdmerge merge;
-	sd_mergeinit(&merge, r, s->i, &c->build,
+	sd_mergeinit(&merge, r, s->parent->id.id, s->flags,
+	             s->i, &c->build,
 	             s->size_key,
 	             s->size_stream,
 	             s->size_node,
@@ -39,11 +40,15 @@ int si_split(sisplit *s, sr *r, sdc *c, srbuf *result)
 		sinode *n = si_nodenew(r);
 		if (srunlikely(n == NULL))
 			goto error;
-		if (s->src_deriveid && count == 0)
-			n->id = s->src->id;
-		else
-			n->id = sr_seq(r->seq, SR_NSNNEXT);
-		rc = si_nodecreate(n, s->conf, s->root, &merge.index, &c->build);
+		sdid id = {
+			.parent = s->parent->id.id,
+			.flags  = s->flags,
+			.id     = sr_seq(r->seq, SR_NSNNEXT)
+		};
+		rc = sd_mergecommit(&merge, &id);
+		if (srunlikely(rc == -1))
+			goto error;
+		rc = si_nodecreate(n, s->conf, &id, &merge.index, &c->build);
 		if (srunlikely(rc == -1))
 			goto error;
 		rc = sr_bufadd(result, r->a, &n, sizeof(sinode*));

@@ -17,7 +17,7 @@ sinode *si_nodenew(sr *r)
 	sinode *n = (sinode*)sr_malloc(r->a, sizeof(sinode));
 	if (srunlikely(n == NULL))
 		return NULL;
-	n->id = 0;
+	memset(&n->id, 0, sizeof(n->id));
 	n->flags = 0;
 	n->recover = 0;
 	sd_indexinit(&n->index);
@@ -37,16 +37,13 @@ sinode *si_nodenew(sr *r)
 }
 
 int si_nodecreate(sinode *n, siconf *conf,
-                  sinode *parent,
+                  sdid *id,
                   sdindex *i, sdbuild *build)
 {
 	n->index = *i;
+	n->id = *id;
 	srpath path;
-	if (parent == NULL) {
-		sr_pathA(&path, conf->dir, n->id, ".db.inprogress");
-	} else {
-		sr_pathAB(&path, conf->dir, parent->id, n->id, ".db.inprogress");
-	}
+	sr_path(&path, conf->dir, id->id, ".db.inprogress");
 	int rc = sr_filenew(&n->file, path.path);
 	if (srunlikely(rc == -1))
 		return -1;
@@ -59,27 +56,8 @@ int si_nodecreate(sinode *n, siconf *conf,
 	return 0;
 }
 
-int si_nodeopen(sinode *n, sr *r, siconf *conf, sinode *parent)
-{
-	srpath path;
-	if (parent == NULL) {
-		sr_pathA(&path, conf->dir, n->id, ".db");
-	} else {
-		sr_pathAB(&path, conf->dir, parent->id, n->id, ".db");
-	}
-	int rc = sr_fileopen(&n->file, path.path);
-	if (srunlikely(rc == -1))
-		return -1;
-	rc = sr_mapfile(&n->map, &n->file, 1);
-	if (srunlikely(rc == -1))
-		return -1;
-	rc = sd_indexrecover(&n->index, r->a, &n->map);
-	if (srunlikely(rc == -1))
-		return -1;
-	return 0;
-}
-
-int si_nodefree(sinode *n, sr *r)
+static inline int
+si_nodeclose(sinode *n, sr *r)
 {
 	sr_mapunmap(&n->map);
 	int rcret = 0;
@@ -89,8 +67,36 @@ int si_nodefree(sinode *n, sr *r)
 	sd_indexfree(&n->index, r->a);
 	sv_indexfree(&n->i0, r);
 	sv_indexfree(&n->i1, r);
-	sr_free(r->a, n);
 	return rcret;
+}
+
+int si_nodeopen(sinode *n, sr *r, siconf *conf, uint32_t nsn)
+{
+	srpath path;
+	sr_path(&path, conf->dir, nsn, ".db");
+	int rc = sr_fileopen(&n->file, path.path);
+	if (srunlikely(rc == -1))
+		return -1;
+	rc = sr_mapfile(&n->map, &n->file, 1);
+	if (srunlikely(rc == -1))
+		goto error;
+	rc = sd_indexrecover(&n->index, r->a, &n->map);
+	if (srunlikely(rc == -1))
+		goto error;
+	n->id = n->index.h->id;
+	if (srunlikely(n->id.id != nsn))
+		goto error;
+	return 0;
+error:
+	si_nodeclose(n, r);
+	return -1;
+}
+
+int si_nodefree(sinode *n, sr *r)
+{
+	int rc = si_nodeclose(n, r);
+	sr_free(r->a, n);
+	return rc;
 }
 
 int si_nodefree_all(sinode *n, sr *r)
@@ -147,27 +153,19 @@ int si_nodecmp(sinode *n, void *key, int size, srcomparator *c)
 	return 1;
 }
 
-int si_nodeseal(sinode *n, siconf *conf, sinode *parent)
+int si_nodeseal(sinode *n, siconf *conf)
 {
 	srpath path;
-	if (parent == NULL) {
-		sr_pathA(&path, conf->dir, n->id, ".db");
-	} else {
-		sr_pathAB(&path, conf->dir, parent->id, n->id, ".db");
-	}
+	sr_path(&path, conf->dir, n->id.id, ".db");
 	int rc = sr_filerename(&n->file, path.path);
 	return rc;
 }
 
-int si_nodeunlink(sinode *n, siconf *conf, sinode *parent, int inprogress)
+int si_nodeunlink(siconf *conf, uint32_t id, int inprogress)
 {
 	char *ext = (inprogress) ? ".db.inprogress" : ".db";
 	srpath path;
-	if (parent == NULL) {
-		sr_pathA(&path, conf->dir, n->id, ext);
-	} else {
-		sr_pathAB(&path, conf->dir, parent->id, n->id, ext);
-	}
+	sr_path(&path, conf->dir, id, ext);
 	int rc = sr_fileunlink(path.path);
 	return rc;
 }

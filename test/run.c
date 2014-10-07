@@ -41,6 +41,7 @@ main(int argc, char *argv[])
 	st_addscene(&s, st_scene("truncate", st_scene_truncate, 1));
 	st_addscene(&s, st_scene("destroy", st_scene_destroy, 1));
 	st_addscene(&s, st_scene("pass", st_scene_pass, 1));
+	st_addscene(&s, st_scene("rerun", st_scene_rerun, 1));
 	st_addscene(&s, st_scene("test", st_scene_test, 1));
 
 	stplan *plan;
@@ -125,6 +126,16 @@ main(int argc, char *argv[])
 	st_planscene(plan, st_sceneof(&s, "rmrf"));
 	st_planscene(plan, st_sceneof(&s, "create"));
 	st_planscene(plan, st_sceneof(&s, "multithread"));
+	st_planscene(plan, st_sceneof(&s, "open"));
+	st_planscene(plan, st_sceneof(&s, "test"));
+	st_planscene(plan, st_sceneof(&s, "destroy"));
+	st_planscene(plan, st_sceneof(&s, "rerun"));
+	st_planscene(plan, st_sceneof(&s, "create"));
+	st_planscene(plan, st_sceneof(&s, "open"));
+	st_planscene(plan, st_sceneof(&s, "test"));
+	st_planscene(plan, st_sceneof(&s, "destroy"));
+	st_planscene(plan, st_sceneof(&s, "rerun"));
+	st_planscene(plan, st_sceneof(&s, "create"));
 	st_planscene(plan, st_sceneof(&s, "open"));
 	st_planscene(plan, st_sceneof(&s, "test"));
 	st_planscene(plan, st_sceneof(&s, "destroy"));

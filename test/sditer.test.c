@@ -52,7 +52,9 @@ sditer_gt0(stc *cx srunused)
 	sdindex index;
 	sd_indexinit(&index);
 	t( sd_indexbegin(&index, &a, 0) == 0 );
-	t( sd_indexcommit(&index, &a) == 0 );
+	sdid id;
+	memset(&id, 0, sizeof(id));
+	t( sd_indexcommit(&index, &a, &id) == 0 );
 
 	srfile f;
 	sr_fileinit(&f, &a);
@@ -129,7 +131,9 @@ sditer_gt1(stc *cx srunused)
 	sdindex index;
 	sd_indexinit(&index);
 	t( sd_indexbegin(&index, &a, 0) == 0 );
-	t( sd_indexcommit(&index, &a) == 0 );
+	sdid id;
+	memset(&id, 0, sizeof(id));
+	t( sd_indexcommit(&index, &a, &id) == 0 );
 	srfile f;
 	sr_fileinit(&f, &a);
 	t( sr_filenew(&f, "./0000.db") == 0 );

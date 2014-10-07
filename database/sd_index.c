@@ -17,26 +17,28 @@ int sd_indexbegin(sdindex *i, sra *a, uint32_t keysize)
 	if (srunlikely(rc == -1))
 		return -1;
 	sdindexheader *h = sd_indexheader(i);
-	i->h = h;
-	h->crc     = 0;
-	h->block   = sizeof(sdindexpage) + (keysize * 2);
-	h->count   = 0;
-	h->keys    = 0;
-	h->total   = 0;
-	h->totalkv = 0;
-	h->lsnmin  = 0;
-	h->lsnmax  = 0;
+	i->h         = h;
+	h->crc       = 0;
+	h->block     = sizeof(sdindexpage) + (keysize * 2);
+	h->count     = 0;
+	h->keys      = 0;
+	h->total     = 0;
+	h->totalkv   = 0;
+	h->lsnmin    = 0;
+	h->lsnmax    = 0;
+	sd_idinit(&h->id, 0, 0, 0);
 	sr_bufadvance(&i->i, sizeof(sdindexheader));
 	return 0;
 }
 
-int sd_indexcommit(sdindex *i, sra *a)
+int sd_indexcommit(sdindex *i, sra *a, sdid *id)
 {
 	int rc = sr_bufensure(&i->i, a, sizeof(sdindexfooter));
 	if (srunlikely(rc == -1))
 		return -1;
 	sr_bufadvance(&i->i, sizeof(sdindexfooter));
 	i->h        = sd_indexheader(i);
+	i->h->id    = *id;
 	i->h->crc   = sr_crcs(i->h, sizeof(sdindexheader), 0);
 	i->f        = sd_indexfooter(i);
 	i->f->magic = 0x12345;

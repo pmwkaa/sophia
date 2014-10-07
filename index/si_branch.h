@@ -9,6 +9,6 @@
  * BSD License
 */
 
-int si_branch(si*, sr*, sdc*, uint32_t);
+int si_branch(si*, sr*, sdc*, uint64_t, uint32_t);
 
 #endif

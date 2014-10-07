@@ -9,6 +9,7 @@
  * BSD License
 */
 
+#include <sd_id.h>
 #include <sd_v.h>
 #include <sd_page.h>
 #include <sd_pageiter.h>

@@ -13,7 +13,7 @@
 #include <libsd.h>
 #include <libsi.h>
 
-int si_branch(si *index, sr *r, sdc *c, uint32_t wm)
+int si_branch(si *index, sr *r, sdc *c, uint64_t lsvn, uint32_t wm)
 {
 	si_lock(index);
 	uint32_t limit = wm;
@@ -45,14 +45,13 @@ int si_branch(si *index, sr *r, sdc *c, uint32_t wm)
 	sr_iterinit(&indexi, &sv_indexiterraw, r);
 	sr_iteropen(&indexi, i);
 	sisplit s = {
-		.root         = n,
-		.src          = n,
-		.src_deriveid = 0,
+		.parent       = n,
+		.flags        = SD_IDBRANCH,
 		.i            = &indexi,
 		.size_key     = i->keymax,
 		.size_stream  = iusedkv,
 		.size_node    = UINT32_MAX,
-		.lsvn         = sr_seq(r->seq, SR_LSN) - 1,
+		.lsvn         = lsvn,
 		.conf         = index->conf
 	};
 	int rc = si_split(&s, r, c, result);
@@ -62,7 +61,7 @@ int si_branch(si *index, sr *r, sdc *c, uint32_t wm)
 
 	/* sync and rename */
 	sinode *q = *(sinode**)result->s;
-	rc = si_nodeseal(q, index->conf, n);
+	rc = si_nodeseal(q, index->conf);
 	if (srunlikely(rc == -1)) {
 		si_splitfree(result, r);
 		return -1;

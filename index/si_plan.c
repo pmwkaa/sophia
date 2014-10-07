@@ -24,9 +24,9 @@ si_planmerge_cmp(sinode *a, sinode *b)
 {
 	if (a->lv != b->lv)
 		return (a->lv > b->lv) ? 1 : -1;
-	if (a->id == b->id)
+	if (a->id.id == b->id.id)
 		return 0;
-	return (a->id > b->id) ? 1 : -1;
+	return (a->id.id > b->id.id) ? 1 : -1;
 }
 
 sr_rbget(si_planmerge_match,
@@ -61,9 +61,9 @@ si_planbranch_cmp(sinode *a, sinode *b)
 {
 	if (a->iused != b->iused)
 		return (a->iused > b->iused) ? 1 : -1;
-	if (a->id == b->id)
+	if (a->id.id == b->id.id)
 		return 0;
-	return (a->id > b->id) ? 1 : -1;
+	return (a->id.id > b->id.id) ? 1 : -1;
 }
 
 sr_rbget(si_planbranch_match,
@@ -90,7 +90,6 @@ si_planbranch(siplan *p, sinode *n)
 		iusedlast = n->iused;
 		pn = sr_rbprev(&p->branch, pn);
 	}
-	
 	return 0;
 }
 
@@ -181,8 +180,10 @@ si_planprint_branch(siplan *p)
 	pn = sr_rbmax(&p->branch);
 	while (pn) {
 		n = srcast(pn, sinode, nodebranch);
+		if (n->flags == 0)
+			break;
 		printf("(%d) iused: %d, icount: %d, lv: %d, flags: ",
-		       n->id, n->iused, n->icount, n->lv);
+		       n->id.id, n->iused, n->icount, n->lv);
 		if (n->flags & SI_BRANCH)
 			printf("SI_BRANCH");
 		if (n->flags & SI_MERGE)
@@ -201,8 +202,10 @@ si_planprint_merge(siplan *p)
 	pn = sr_rbmax(&p->merge);
 	while (pn) {
 		n = srcast(pn, sinode, nodemerge);
+		if (n->flags == 0)
+			break;
 		printf("(%d) iused: %d, icount: %d, lv: %d, flags: ",
-		       n->id, n->iused, n->icount, n->lv);
+		       n->id.id, n->iused, n->icount, n->lv);
 		if (n->flags & SI_BRANCH)
 			printf("SI_BRANCH");
 		if (n->flags & SI_MERGE)

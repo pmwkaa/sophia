@@ -23,6 +23,7 @@ struct sdindexheader {
 	uint32_t totalkv;
 	uint64_t lsnmin;
 	uint64_t lsnmax;
+	sdid     id;
 } srpacked;
 
 struct sdindexfooter {
@@ -147,7 +148,7 @@ sd_indexpage_cmp(sdindexpage *p, void *key, int size, srcomparator *c)
 }
 
 int sd_indexbegin(sdindex*, sra*, uint32_t);
-int sd_indexcommit(sdindex*, sra*);
+int sd_indexcommit(sdindex*, sra*, sdid*);
 int sd_indexadd(sdindex*, sra*, uint32_t, uint32_t, uint32_t, uint32_t,
                 char*, int, char*, int,
                 uint64_t, uint64_t);

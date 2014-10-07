@@ -77,7 +77,8 @@ so_dbctl_branch(srctl *c srunused, void *arg, va_list args srunused)
 	sd_cinit(&dc, &db->r);
 	int rc;
 	while (1) {
-		rc = si_branch(&db->index, &db->r, &dc, db->ctl.node_branch_wm);
+		uint64_t lsvn = sm_lsvn(&db->mvcc);
+		rc = si_branch(&db->index, &db->r, &dc, lsvn, db->ctl.node_branch_wm);
 		if (srunlikely(rc <= 0))
 			break;
 	}
@@ -93,7 +94,8 @@ so_dbctl_merge(srctl *c srunused, void *arg, va_list args srunused)
 	sd_cinit(&dc, &db->r);
 	int rc;
 	while (1) {
-		rc = si_merge(&db->index, &db->r, &dc, db->ctl.node_merge_wm);
+		uint64_t lsvn = sm_lsvn(&db->mvcc);
+		rc = si_merge(&db->index, &db->r, &dc, lsvn, db->ctl.node_merge_wm);
 		if (srunlikely(rc <= 0))
 			break;
 	}

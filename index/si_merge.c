@@ -57,7 +57,6 @@ si_redistribute(sr *r, sdc *c, sinode *node, srbuf *result, uint64_t lsvn)
 			svv *v = sr_iterof(&i);
 			svv *vgc = NULL;
 			sdindexpage *page = sd_indexmin(&p->index);
-
 			int rc = sr_compare(r->cmp, sv_vkey(v), v->keysize,
 			                    sd_indexpage_min(page), page->sizemin);
 			if (srunlikely(rc >= 0))
@@ -81,24 +80,26 @@ si_redistribute(sr *r, sdc *c, sinode *node, srbuf *result, uint64_t lsvn)
 }
 
 static inline int
-si_mergeof(si *index, sr *r, sdc *c, sinode *node,
+si_mergeof(si *index, sr *r, sdc *c, uint64_t lsvn,
+           sinode *node,
            sriter *stream,
            uint32_t size_stream,
            uint32_t size_key)
 {
 	srbuf *result = &c->a;
 	sriter i;
-	/* create nodes */
+
+	/* split merge stream into a number of
+	 * a new nodes */
 	sisplit s = {
-		.root         = node,
-		.src          = node,
-		.src_deriveid = 0,
+		.parent       = node,
+		.flags        = 0,
 		.i            = stream,
 		.size_key     = size_key,
 		.size_stream  = size_stream,
 		.size_node    = index->conf->node_size,
 		.conf         = index->conf,
-		.lsvn         = sr_seq(r->seq, SR_LSN) - 1,
+		.lsvn         = lsvn
 	};
 	int rc = si_split(&s, r, c, result);
 	if (srunlikely(rc == -1))
@@ -145,19 +146,19 @@ si_mergeof(si *index, sr *r, sdc *c, sinode *node,
 
 	/* garbage collection */
 
-	/* remove old files */
-	rc = si_nodegc(node, r);
-	if (srunlikely(rc == -1))
-		return -1;
-	/* rename new nodes */
+	/* sync and rename new nodes */
 	sr_iterinit(&i, &sr_bufiterref, NULL);
 	sr_iteropen(&i, result, sizeof(sinode*));
 	for (; sr_iterhas(&i); sr_iternext(&i)) {
 		n = sr_iterof(&i);
-		rc = si_nodeseal(n, index->conf, NULL);
+		rc = si_nodeseal(n, index->conf);
 		if (srunlikely(rc == -1))
 			return -1;
 	}
+	/* remove old files */
+	rc = si_nodegc(node, r);
+	if (srunlikely(rc == -1))
+		return -1;
 	/* complete */
 	si_lock(index);
 	sr_iterinit(&i, &sr_bufiterref, NULL);
@@ -188,7 +189,7 @@ si_mergeadd(svmerge *m, sr *r, sinode *n,
 	return 0;
 }
 
-int si_merge(si *index, sr *r, sdc *c, uint32_t wm)
+int si_merge(si *index, sr *r, sdc *c, uint64_t lsvn, uint32_t wm)
 {
 	si_lock(index);
 	sinode *node = si_planpeek(&index->plan, SI_MERGE, wm);
@@ -213,7 +214,7 @@ int si_merge(si *index, sr *r, sdc *c, uint32_t wm)
 	sriter i;
 	sr_iterinit(&i, &sv_mergeiter, r);
 	sr_iteropen(&i, &merge, SR_GTE);
-	rc = si_mergeof(index, r, c, node, &i, size_stream, size_key);
+	rc = si_mergeof(index, r, c, lsvn, node, &i, size_stream, size_key);
 	if (srunlikely(rc == -1)) {
 		sv_mergefree(&merge, r->a);
 		return -1;

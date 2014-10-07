@@ -28,7 +28,12 @@ si_deploy(si *i, sr *r)
 	sinode *n = si_nodenew(r);
 	if (srunlikely(n == NULL))
 		return -1;
-	n->id = sr_seq(r->seq, SR_NSNNEXT);
+	sdid id = {
+		.parent = 0,
+		.flags  = 0,
+		.id     = sr_seq(r->seq, SR_NSNNEXT)
+	};
+	n->id = id;
 	sdindex index;
 	sd_indexinit(&index);
 	rc = sd_indexbegin(&index, r->a, 0);
@@ -42,7 +47,7 @@ si_deploy(si *i, sr *r)
 		si_nodefree(n, r);
 		return -1;
 	}
-	sd_indexcommit(&index, r->a);
+	sd_indexcommit(&index, r->a, &id);
 	sdbuild build;
 	sd_buildinit(&build, r);
 	rc = sd_buildbegin(&build, 0);
@@ -54,13 +59,13 @@ si_deploy(si *i, sr *r)
 	}
 	sd_buildend(&build);
 	sd_buildcommit(&build);
-	rc = si_nodecreate(n, i->conf, NULL, &index, &build);
+	rc = si_nodecreate(n, i->conf, &id, &index, &build);
 	sd_buildfree(&build);
 	if (srunlikely(rc == -1)) {
 		si_nodefree(n, r);
 		return -1;
 	}
-	rc = si_nodeseal(n, i->conf, NULL);
+	rc = si_nodeseal(n, i->conf);
 	if (srunlikely(rc == -1)) {
 		si_nodefree(n, r);
 		return -1;
@@ -84,34 +89,20 @@ si_processid(char **str) {
 }
 
 static inline int
-si_process(char *name, uint32_t *nsn, uint32_t *parent)
+si_process(char *name, uint32_t *nsn)
 {
 	/* id.db */
 	/* id.db.inprogress */
-	/* id.id.db */
-	/* id.id.db.inprogress */
 	char *token = name;
 	ssize_t id = si_processid(&token);
 	if (srunlikely(id == -1))
 		return -1;
-	*parent = id;
 	*nsn = id;
 	if (strcmp(token, ".db") == 0)
 		return SI_RDB;
 	else
 	if (strcmp(token, ".db.inprogress") == 0)
 		return SI_RDBI;
-	assert(*token == '.');
-	token++;
-	id = si_processid(&token);
-	if (srunlikely(id == -1))
-		return -1;
-	*nsn = id;
-	if (strcmp(token, ".db") == 0)
-		return SI_RDB_LEVEL;
-	else
-	if (strcmp(token, ".db.inprogress") == 0)
-		return SI_RDB_LEVELI;
 	return -1;
 }
 
@@ -125,61 +116,63 @@ si_trackdir(sitrack *track, sr *r, si *i)
 	while ((de = readdir(dir))) {
 		if (srunlikely(de->d_name[0] == '.'))
 			continue;
-		uint32_t parent = 0;
 		uint32_t id = 0;
-		int rc = si_process(de->d_name, &id, &parent);
-		sinode *node;
-		switch (rc) {
-		case SI_RDBI:
-		case SI_RDB:
-			node = si_trackget(track, id);
-			if (node == NULL) {
-				node = si_nodenew(r);
-				if (srunlikely(node == NULL))
-					goto error;
-				node->id = id;
-				si_trackset(track, node);
-			} else {
-				node->recover &= ~SI_RDB_UNDEF;
-			}
-			node->recover |= rc;
-			break;
-		case SI_RDB_LEVELI:
-		case SI_RDB_LEVEL:
-			node = si_trackget(track, parent);
-			if (node == NULL) {
-				node = si_nodenew(r);
-				if (srunlikely(node == NULL))
-					goto error;
-				node->id = parent;
-				node->recover = SI_RDB_UNDEF;
-				si_trackset(track, node);
-			}
-			int match = 0;
-			sinode *nodeparent = node;
-			while (node->next) {
-				if (node->id == id) {
-					node->recover |= rc;
-					match = 1;
-					break;
-				}
-				node = node->next;
-			}
-			if (match)
-				continue;
-			node = si_nodenew(r);
-			if (srunlikely(node == NULL))
+		int rc = si_process(de->d_name, &id);
+		if (srunlikely(rc == -1))
+			continue; /* skip unknown file */
+
+		/* remove any incomplete files */
+		if (srunlikely(rc == SI_RDBI)) {
+			rc = si_nodeunlink(i->conf, id, 1);
+			if (srunlikely(rc == -1))
 				goto error;
-			node->id = id;
-			node->recover |= rc;
-			node->next = nodeparent->next;
-			nodeparent->next = node;
-			nodeparent->lv++;
-			si_tracknsn(track, node);
-			break;
-		case -1:
-			/* skip unknown files */
+		}
+		assert(rc == SI_RDB);
+
+		/* recover node */
+		sinode *node = si_nodenew(r);
+		if (srunlikely(node == NULL))
+			goto error;
+		rc = si_nodeopen(node, r, i->conf, id);
+		if (srunlikely(rc == -1)) {
+			si_nodefree(node, r);
+			goto error;
+		}
+		si_tracknsn(track, node);
+		si_tracklsn(track, node);
+
+		/* search previous definition or an older
+		 * version */
+		sinode *head;
+		if (node->id.flags & SD_IDBRANCH) {
+			head = si_trackget(track, node->id.parent);
+			if (srlikely(head == NULL)) {
+				head = si_nodenew(r);
+				if (srunlikely(head == NULL))
+					goto error;
+				head->id.id = node->id.parent;
+				head->recover = SI_RDB_UNDEF;
+				si_trackset(track, head);
+			}
+			node->next = head->next;
+			head->next = node;
+			head->lv++;
 			continue;
+		}
+
+		head = si_trackget(track, id);
+		if (srlikely(head == NULL)) {
+			si_trackset(track, node);
+		} else {
+			/* replace a node previously created
+			 * by a branch */
+			if (! (node->recover & SI_RDB_UNDEF))
+				goto error;
+			si_trackreplace(track, head, node);
+			node->next = head->next;
+			node->lv   = head->lv;
+			head->next = NULL;
+			si_nodefree(head, r);
 		}
 	}
 	closedir(dir);
@@ -190,17 +183,17 @@ error:
 }
 
 static int
-si_levelcmp(const void *p1, const void *p2)
+si_branchcmp(const void *p1, const void *p2)
 {
 	sinode *a = *(sinode**)p1;
 	sinode *b = *(sinode**)p2;
-	if (a->id == b->id)
+	if (a->id.id == b->id.id)
 		return 0;
-	return (a->id > b->id) ? 1 : -1;
+	return (a->id.id > b->id.id) ? 1 : -1;
 }
 
 static inline int
-si_levelsort(sr *r, srbuf *buf, sinode *parent)
+si_branchsort(sr *r, srbuf *buf, sinode *parent)
 {
 	if (parent->lv == 0)
 		return 0;
@@ -216,7 +209,7 @@ si_levelsort(sr *r, srbuf *buf, sinode *parent)
 	}
 	uint32_t count = sr_bufused(buf) / sizeof(sinode*);
 	assert(count == parent->lv);
-	qsort(buf->s, count, sizeof(sinode*), si_levelcmp);
+	qsort(buf->s, count, sizeof(sinode*), si_branchcmp);
 	parent->next = NULL;
 	sriter i;
 	sr_iterinit(&i, &sr_bufiterref, r);
@@ -230,105 +223,46 @@ si_levelsort(sr *r, srbuf *buf, sinode *parent)
 }
 
 static inline int
-si_trackvalidate(sitrack *track, srbuf *buf, sr *r, si *i)
+si_trackvalidate(sitrack *track, srbuf *buf, sr *r)
 {
 	sr_bufreset(buf);
-	srrbnode *p = sr_rbmin(&track->i);
+	srrbnode *p = sr_rbmax(&track->i);
 	while (p) {
 		sinode *n = srcast(p, sinode, node);
-		sinode *parent = n;
-		sinode *prev   = n;
-		if (parent->recover & SI_RDB_UNDEF)
+		/* corrupted state: branch without head */
+		if (n->recover & SI_RDB_UNDEF)
 			return -1;
+		/* match and remove any leftover ancestor with
+		 * its branches */
+		sinode *ancestor = si_trackget(track, n->id.parent);
 		int rc;
-		while (n) {
-			switch (n->recover) {
-			case SI_RDBI|SI_RDB:
-				assert(n == parent);
-				/* remove inprogress file */
-				rc = si_nodeunlink(n, i->conf, NULL, 1);
-				if (srunlikely(rc == -1))
-					return -1;
-				n->recover &= ~SI_RDBI;
-				break;
-			case SI_RDBI:
-				assert(n == parent);
-				/* ensure correct */
-				/* seal */
-				rc = si_nodeseal(n, i->conf, NULL);
-				if (srunlikely(rc == -1))
-					return -1;
-				n->recover &= ~SI_RDBI;
-				n->recover |= SI_RDB;
-				break;
-			case SI_RDB:
-				assert(n == parent);
-				/* ok */
-				break;
-			case SI_RDB_LEVELI|SI_RDB_LEVEL:
-				assert(n != parent);
-				/* impossible */
+		if (ancestor && (ancestor != n)) {
+			si_trackremove(track, ancestor);
+			rc = si_nodegc(ancestor, r);
+			if (srunlikely(rc == -1))
 				return -1;
-			case SI_RDB_LEVELI:
-				assert(n != parent);
-				/* remove inprogress */
-				rc = si_nodeunlink(n, i->conf, parent, 1);
-				if (srunlikely(rc == -1))
-					return -1;
-				/* remove node from parent */
-				prev->next = n->next;
-				parent->lv--;
-				n->recover &= ~SI_RDB_LEVELI;
-				si_nodefree(n, r);
-				/* xxx ENSURE OTHER > LEVELS ARE IN_PROGRESS TOO */
-				n = prev;
-				break;
-			case SI_RDB_LEVEL:
-				assert(n != parent);
-				/* ok */
-				break;
-			}
-			prev = n;
-			n = n->next;
 		}
-		rc = si_levelsort(r, buf, parent);
+		rc = si_branchsort(r, buf, n);
 		if (srunlikely(rc == -1))
 			return -1;
-		p = sr_rbnext(&track->i, p);
+		p = sr_rbprev(&track->i, p);
 	}
 	return 0;
 }
 
 static inline int
-si_trackopen(sitrack *track, srbuf *buf, sr *r, si *i)
+si_recoverbuild(sitrack *track, sr *r, si *index, srbuf *buf)
 {
+	/* prepare and build primary index */
 	sr_bufreset(buf);
 	srrbnode *p = sr_rbmin(&track->i);
 	while (p) {
 		sinode *n = srcast(p, sinode, node);
-		sinode *parent = n;
-		int rc;
-		while (n) {
-			sinode *parentref = parent;
-			if (parent == n)
-				parentref = NULL;
-			rc = si_nodeopen(n, r, i->conf, parentref);
-			if (srunlikely(rc == -1))
-				return -1;
-			si_tracklsn(track, n);
-			n = n->next;
-		}
-		rc = sr_bufadd(buf, r->a, &parent, sizeof(sinode**));
+		int rc = sr_bufadd(buf, r->a, &n, sizeof(sinode**));
 		if (srunlikely(rc == -1))
 			return -1;
 		p = sr_rbnext(&track->i, p);
 	}
-	return 0;
-}
-
-static inline void
-si_recoverbuild(si *index, sr *r, srbuf *buf)
-{
 	sriter i;
 	sr_iterinit(&i, &sr_bufiterref, r);
 	sr_iteropen(&i, buf, sizeof(sinode*));
@@ -337,6 +271,7 @@ si_recoverbuild(si *index, sr *r, srbuf *buf)
 		si_insert(index, r, n);
 		si_plan(&index->plan, SI_MERGE, n);
 	}
+	return 0;
 }
 
 static inline int
@@ -351,14 +286,12 @@ si_recoverindex(si *i, sr *r)
 		goto error;
 	if (srunlikely(track.count == 0))
 		goto error;
-	rc = si_trackvalidate(&track, &buf, r, i);
+	rc = si_trackvalidate(&track, &buf, r);
 	if (srunlikely(rc == -1))
 		goto error;
-	rc = si_trackopen(&track, &buf, r, i);
+	rc = si_recoverbuild(&track, r, i, &buf);
 	if (srunlikely(rc == -1))
 		goto error;
-	si_recoverbuild(i, r, &buf);
-
 	/* complete node recover */
 	r->seq->nsn = track.nsn + 1;
 	/* expect to be completed by logpool */

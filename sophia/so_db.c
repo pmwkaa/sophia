@@ -33,8 +33,10 @@ static inline void *so_merger(void *arg)
 		int rc = so_active(o->e) && so_dbactive(o);
 		if (srunlikely(rc == 0))
 			break;
+		uint64_t lsvn = sm_lsvn(&o->mvcc);
 		rc = si_merge(&o->index,
 		              &o->r, &self->dc,
+		              lsvn,
 		              o->ctl.node_merge_wm);
 		if (srunlikely(rc == -1))
 			break;
@@ -53,8 +55,10 @@ static inline void *so_brancher(void *arg)
 		int rc = so_active(o->e) && so_dbactive(o);
 		if (srunlikely(rc == 0))
 			break;
+		uint64_t lsvn = sm_lsvn(&o->mvcc);
 		rc = si_branch(&o->index,
 		               &o->r, &self->dc,
+		               lsvn,
 		               o->ctl.node_branch_wm);
 		if (srunlikely(rc == -1))
 			break;
