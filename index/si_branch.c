@@ -16,7 +16,6 @@
 int si_branch(si *index, sr *r, sdc *c, uint32_t wm)
 {
 	si_lock(index);
-	/*si_planprint_branch(&index->plan);*/
 	uint32_t limit = wm;
 	if (si_qoslimit(index))
 		limit = 0;
@@ -25,6 +24,7 @@ int si_branch(si *index, sr *r, sdc *c, uint32_t wm)
 		si_unlock(index);
 		return 0;
 	}
+	/*si_planprint_branch(&index->plan);*/
 	uint32_t iused   = n->iused;
 	uint32_t iusedkv = n->iusedkv;
 	uint32_t icount  = n->icount;

@@ -12,7 +12,7 @@
 #include <sophia.h>
 
 static void
-version_get(stc *cx srunused)
+ctl_version(stc *cx srunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -38,9 +38,9 @@ version_get(stc *cx srunused)
 	t( sp_destroy(env) == 0 );
 }
 
-stgroup *version_group(void)
+stgroup *ctl_group(void)
 {
-	stgroup *group = st_group("version");
-	st_groupadd(group, st_test("get", version_get));
+	stgroup *group = st_group("ctl");
+	st_groupadd(group, st_test("version", ctl_version));
 	return group;
 }

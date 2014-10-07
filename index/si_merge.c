@@ -82,9 +82,9 @@ si_redistribute(sr *r, sdc *c, sinode *node, srbuf *result, uint64_t lsvn)
 
 static inline int
 si_mergeof(si *index, sr *r, sdc *c, sinode *node,
-          sriter *stream,
-          uint32_t size_stream,
-          uint32_t size_key)
+           sriter *stream,
+           uint32_t size_stream,
+           uint32_t size_key)
 {
 	srbuf *result = &c->a;
 	sriter i;
@@ -191,12 +191,12 @@ si_mergeadd(svmerge *m, sr *r, sinode *n,
 int si_merge(si *index, sr *r, sdc *c, uint32_t wm)
 {
 	si_lock(index);
-	/*si_planprint_merge(&index->plan);*/
 	sinode *node = si_planpeek(&index->plan, SI_MERGE, wm);
 	if (srunlikely(node == NULL)) {
 		si_unlock(index);
 		return 0;
 	}
+	/*si_planprint_merge(&index->plan);*/
 	si_unlock(index);
 	sd_creset(c);
 	svmerge merge;

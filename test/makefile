@@ -5,7 +5,7 @@ LIBST_O = sliter.test.o \
           svindexiter.test.o \
           svmergeiter.test.o \
           svseaveiter.test.o \
-          version.test.o \
+          ctl.test.o \
           dml.test.o \
           profiler.test.o \
           object.test.o \

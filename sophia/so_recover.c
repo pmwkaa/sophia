@@ -33,7 +33,6 @@ so_recoverlog(sodb *db, sl *log)
 		uint64_t lsn = svlsn(v);
 		if (lsn > db->r.seq->lsn)
 			db->r.seq->lsn = lsn;
-
 		/* ensure that this update was not previously
 		 * merged to disk */
 		if (si_querycommited(&db->index, &db->r, v))
