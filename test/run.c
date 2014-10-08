@@ -25,6 +25,7 @@ extern stgroup *profiler_group(void);
 extern stgroup *transaction_group(void);
 extern stgroup *cursor_group(void);
 extern stgroup *recoverloop_group(void);
+extern stgroup *recovercrash_group(void);
 extern stgroup *multithread_group(void);
 
 int
@@ -45,6 +46,8 @@ main(int argc, char *argv[])
 	st_addscene(&s, st_scene("test", st_scene_test, 1));
 
 	stplan *plan;
+	/*
+	*/
 	plan = st_plan("unit");
 	st_planscene(plan, st_sceneof(&s, "rmrf"));
 	st_planscene(plan, st_sceneof(&s, "test"));
@@ -113,6 +116,13 @@ main(int argc, char *argv[])
 	st_planadd(plan, object_group());
 	st_planadd(plan, transaction_group());
 	st_planadd(plan, cursor_group());
+	st_add(&s, plan);
+
+	plan = st_plan("recover_crash");
+	st_planscene(plan, st_sceneof(&s, "rmrf"));
+	st_planscene(plan, st_sceneof(&s, "test"));
+	st_planscene(plan, st_sceneof(&s, "pass"));
+	st_planadd(plan, recovercrash_group());
 	st_add(&s, plan);
 
 	plan = st_plan("recover_loop");

@@ -107,6 +107,10 @@ si_mergeof(si *index, sr *r, sdc *c, uint64_t lsvn,
 	int count = sr_bufused(result) / sizeof(sinode*);
 	assert(count >= 1);
 
+	SR_INJECTION(r->i, SR_INJECTION_SI_MERGE_0,
+	             si_splitfree(result, r);
+	             return -1);
+
 	si_lock(index);
 	si_planremove(&index->plan, SI_MERGE|SI_BRANCH, node);
 	sinode *n;
@@ -154,12 +158,22 @@ si_mergeof(si *index, sr *r, sdc *c, uint64_t lsvn,
 		rc = si_nodeseal(n, index->conf);
 		if (srunlikely(rc == -1))
 			return -1;
+		SR_INJECTION(r->i, SR_INJECTION_SI_MERGE_3,
+		             si_nodefree_all(node, r);
+		             return -1);
 	}
+
+	SR_INJECTION(r->i, SR_INJECTION_SI_MERGE_1,
+	             si_nodefree_all(node, r);
+	             return -1);
 
 	/* remove old files */
 	rc = si_nodegc(node, r);
 	if (srunlikely(rc == -1))
 		return -1;
+
+	SR_INJECTION(r->i, SR_INJECTION_SI_MERGE_2,
+	             return -1);
 
 	/* complete new nodes */
 	sr_iterinit(&i, &sr_bufiterref, NULL);
@@ -169,6 +183,8 @@ si_mergeof(si *index, sr *r, sdc *c, uint64_t lsvn,
 		rc = si_nodecomplete(n, index->conf);
 		if (srunlikely(rc == -1))
 			return -1;
+		SR_INJECTION(r->i, SR_INJECTION_SI_MERGE_4,
+		             return -1);
 	}
 
 	/* unlock */

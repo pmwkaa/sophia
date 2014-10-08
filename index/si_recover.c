@@ -8,7 +8,8 @@
 */
 
 /*
-	Repository recover states.
+	repository recover states
+	-------------------------
 
 	I. branch
 	000000001.db.incomplete (1) (2)
@@ -34,6 +35,8 @@
 		a. if parent has incomplete and seal - remove both
 		b. if parent has incomplete - remove incomplete
 		c. if parent has seal - remove parent, complete seal
+
+	see: test/recovery_crash.test.c
 */
 
 #include <libsr.h>
@@ -121,8 +124,8 @@ static inline int
 si_process(char *name, uint32_t *nsn, uint32_t *parent)
 {
 	/* id.db */
-	/* id.db.inprogress */
-	/* id.id.db.inprogress */
+	/* id.db.incomplete */
+	/* id.id.db.incomplete */
 	/* id.id.db.seal */
 	char *token = name;
 	ssize_t id = si_processid(&token);
@@ -133,7 +136,7 @@ si_process(char *name, uint32_t *nsn, uint32_t *parent)
 	if (strcmp(token, ".db") == 0)
 		return SI_RDB;
 	else
-	if (strcmp(token, ".db.inprogress") == 0)
+	if (strcmp(token, ".db.incomplete") == 0)
 		return SI_RDBI;
 	if (srunlikely(*token != '.'))
 		return -1;
@@ -142,7 +145,7 @@ si_process(char *name, uint32_t *nsn, uint32_t *parent)
 	if (srunlikely(id == -1))
 		return -1;
 	*nsn = id;
-	if (strcmp(token, ".db.inprogress") == 0)
+	if (strcmp(token, ".db.incomplete") == 0)
 		return SI_RDB_DBI;
 	else
 	if (strcmp(token, ".db.seal") == 0)
@@ -160,10 +163,6 @@ si_trackdir(sitrack *track, sr *r, si *i)
 	while ((de = readdir(dir))) {
 		if (srunlikely(de->d_name[0] == '.'))
 			continue;
-		srpath path;
-		sinode *head;
-		sinode *node;
-
 		uint32_t id_parent = 0;
 		uint32_t id = 0;
 		int rc = si_process(de->d_name, &id, &id_parent);
@@ -172,6 +171,8 @@ si_trackdir(sitrack *track, sr *r, si *i)
 		si_tracknsn(track, id_parent);
 		si_tracknsn(track, id);
 
+		sinode *head, *node;
+		srpath path;
 		switch (rc) {
 		case SI_RDBI:
 			/* remove any incomplete branch */
@@ -214,6 +215,7 @@ si_trackdir(sitrack *track, sr *r, si *i)
 				si_nodefree(node, r);
 				goto error;
 			}
+			si_trackset(track, node);
 			si_tracklsn(track, node);
 			continue;
 		}
@@ -261,10 +263,10 @@ si_trackdir(sitrack *track, sr *r, si *i)
 				goto error;
 			head->recover &= ~SI_RDB_UNDEF;
 			si_trackreplace(track, head, node);
-			node->recover = head->recover;
-			node->next    = head->next;
-			node->lv      = head->lv;
-			head->next    = NULL;
+			node->recover |= head->recover;
+			node->next     = head->next;
+			node->lv       = head->lv;
+			head->next     = NULL;
 			si_nodefree(head, r);
 		}
 	}
@@ -323,6 +325,10 @@ si_trackvalidate(sitrack *track, srbuf *buf, sr *r, si *i)
 	while (p) {
 		sinode *n = srcast(p, sinode, node);
 		switch (n->recover) {
+		case SI_RDB|SI_RDB_DBI|SI_RDB_DBSEAL|SI_RDB_REMOVE:
+		case SI_RDB|SI_RDB_DBSEAL|SI_RDB_REMOVE:
+		case SI_RDB|SI_RDB_REMOVE:
+		case SI_RDB_UNDEF|SI_RDB_DBSEAL|SI_RDB_REMOVE:
 		case SI_RDB|SI_RDB_DBI|SI_RDB_DBSEAL:
 		case SI_RDB|SI_RDB_DBI:
 		case SI_RDB:
@@ -347,7 +353,8 @@ si_trackvalidate(sitrack *track, srbuf *buf, sr *r, si *i)
 					n->recover |= SI_RDB_REMOVE;
 				else
 					parent->recover |= SI_RDB_REMOVE;
-			} else {
+			}
+			if (! (n->recover & SI_RDB_REMOVE)) {
 				/* complete node */
 				int rc = si_nodecomplete(n, i->conf);
 				if (srunlikely(rc == -1))

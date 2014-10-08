@@ -65,8 +65,6 @@ dml_create_online1(stc *cx srunused)
 	t( sp_destroy(env) == 0 );
 }
 
-extern int rmrf(char*);
-
 static void
 dml_create_online2(stc *cx srunused)
 {

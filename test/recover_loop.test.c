@@ -47,6 +47,7 @@ recover_loop(stc *cx)
 				sp_destroy(o);
 				i++;
 			}
+			t( sp_set(c, "db.test.run_branch") == 0 );
 		}
 
 		srand(seed);

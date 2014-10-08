@@ -43,7 +43,7 @@ int si_nodecreate(sinode *n, siconf *conf, sdid *id,
 	n->index = *i;
 	n->id = *id;
 	srpath path;
-	sr_pathA(&path, conf->dir, id->id, ".db.inprogress");
+	sr_pathA(&path, conf->dir, id->id, ".db.incomplete");
 	int rc = sr_filenew(&n->file, path.path);
 	if (srunlikely(rc == -1))
 		return -1;
@@ -64,7 +64,7 @@ si_nodecreate_attach(sinode *n, siconf *conf, sdid *id,
 	n->index = *i;
 	n->id = *id;
 	srpath path;
-	sr_pathAB(&path, conf->dir, id->parent, id->id, ".db.inprogress");
+	sr_pathAB(&path, conf->dir, id->parent, id->id, ".db.incomplete");
 	int rc = sr_filenew(&n->file, path.path);
 	if (srunlikely(rc == -1))
 		return -1;

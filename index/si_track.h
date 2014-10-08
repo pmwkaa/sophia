@@ -60,7 +60,7 @@ static inline void
 si_trackset(sitrack *t, sinode *n)
 {
 	srrbnode *p = NULL;
-	int rc = si_trackmatch(&t->i, NULL, (char*)&n->id, sizeof(n->id), &p);
+	int rc = si_trackmatch(&t->i, NULL, (char*)&n->id.id, sizeof(n->id.id), &p);
 	assert(! (rc == 0 && p));
 	sr_rbset(&t->i, p, rc, &n->node);
 	t->count++;

@@ -156,7 +156,8 @@ si_qfetch(siquery *q)
 	sr_iteropen(&i, q->index, q->order, q->key, q->keysize);
 	sinode *node;
 	node = sr_iterof(&i);
-	assert(node != NULL);
+	if (srunlikely(node == NULL))
+		return 0;
 
 	/* prepare sources */
 	svmerge *m = &q->merge;

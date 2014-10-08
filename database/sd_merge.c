@@ -99,11 +99,6 @@ int sd_merge(sdmerge *m)
 			break;
 	}
 
-	/*
-	rc = sd_indexcommit(&m->index, m->r->a);
-	if (srunlikely(rc == -1))
-		return -1;
-		*/
 	return 1;
 }
 

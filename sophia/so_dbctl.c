@@ -175,6 +175,11 @@ so_dbei_prepare(srctl *t, srinjection *i)
 	srctl *p = t;
 	p = sr_ctladd(p, "si_branch_0", SR_CTLINT, &i->e[0], NULL);
 	p = sr_ctladd(p, "si_branch_1", SR_CTLINT, &i->e[1], NULL);
+	p = sr_ctladd(p, "si_merge_0",  SR_CTLINT, &i->e[2], NULL);
+	p = sr_ctladd(p, "si_merge_1",  SR_CTLINT, &i->e[3], NULL);
+	p = sr_ctladd(p, "si_merge_2",  SR_CTLINT, &i->e[4], NULL);
+	p = sr_ctladd(p, "si_merge_3",  SR_CTLINT, &i->e[5], NULL);
+	p = sr_ctladd(p, "si_merge_4",  SR_CTLINT, &i->e[6], NULL);
 	p = sr_ctladd(p,  NULL,         0,          NULL,    NULL);
 }
 

@@ -59,18 +59,22 @@ int si_branch(si *index, sr *r, sdc *c, uint64_t lsvn, uint32_t wm)
 		return -1;
 	assert(sr_bufused(result) == sizeof(sinode*));
 
-	SR_INJECTION(r->i, SR_INJECTION_SI_BRANCH_0, return -1);
+	SR_INJECTION(r->i, SR_INJECTION_SI_BRANCH_0,
+	             si_splitfree(result, r);
+	             return -1);
 
 	/* sync and rename */
-	sinode *q = *(sinode**)result->s;
 	/* xxx: sync */
+	sinode *q = *(sinode**)result->s;
 	rc = si_nodecomplete(q, index->conf);
 	if (srunlikely(rc == -1)) {
 		si_splitfree(result, r);
 		return -1;
 	}
 
-	SR_INJECTION(r->i, SR_INJECTION_SI_BRANCH_1, return -1);
+	SR_INJECTION(r->i, SR_INJECTION_SI_BRANCH_1,
+	             si_splitfree(result, r);
+	             return -1);
 
 	/* commit */
 	svindex swap = *i;

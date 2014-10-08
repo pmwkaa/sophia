@@ -11,6 +11,12 @@
 #include <libst.h>
 #include <sophia.h>
 
+int exists(char *path, char *name) {
+	char file[1024];
+	snprintf(file, sizeof(file), "%s/%s", path, name);
+	return sr_fileexists(file);
+}
+
 int rmrf(char *path)
 {
 	DIR *d = opendir(path);

@@ -20,4 +20,7 @@ void st_scene_pass(stscene*, stc*);
 void st_scene_test(stscene*, stc*);
 void st_scene_rerun(stscene*, stc*);
 
+int exists(char*, char*);
+int rmrf(char*);
+
 #endif
