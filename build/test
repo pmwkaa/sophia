@@ -2,9 +2,15 @@
 # sophia test-suite makefile
 #
 
+ifdef ENABLE_COVERAGE
+TEST_COVERAGE = --coverage
+else
+TEST_COVERAGE =
+endif
+
 TEST_DEBUG   = -g -O0 -Wall
 TEST_CFLAGS  = $(CFLAGS_INCLUDE) $(TEST_DEBUG) -I. -I../sophia -pthread
-TEST_LDFLAGS = $(LDFLAGS) $(TEST_DEBUG) ../sophia/libsophia.a -pthread -lm
+TEST_LDFLAGS = $(LDFLAGS) $(TEST_DEBUG) ../sophia/libsophia.a -pthread -lm $(TEST_COVERAGE)
 TEST_LOGDIR  = logdir
 TEST_DIR     = dir
 TEST_BINARY  = run

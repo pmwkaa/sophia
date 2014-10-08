@@ -9,5 +9,5 @@
 	(v1.2 development branch)<br>
 </p>
 <br>
-[![Build Status](https://travis-ci.org/pmwkaa/sophia.png?branch=dev)](https://travis-ci.org/pmwkaa/sophia)<br>
+[![Build Status](https://travis-ci.org/pmwkaa/sophia.png?branch=dev)](https://travis-ci.org/pmwkaa/sophia)
 [![Coverage Status](https://coveralls.io/repos/pmwkaa/sophia/badge.png?branch=dev)](https://coveralls.io/r/pmwkaa/sophia?branch=dev)

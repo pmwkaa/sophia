@@ -31,17 +31,26 @@ INCLUDE_A       = $(addprefix -I, $(SOPHIA_DIRS))
 INCLUDE_B       = 
 INCLUDE         = $(INCLUDE_A) $(INCLUDE_B)
 endif
+
+ifdef ENABLE_COVERAGE
+CFLAGS_COVERAGE = --coverage 
+else
+CFLAGS_COVERAGE =
+endif
+
 CFLAGS_INCLUDE  = -pthread $(INCLUDE)
-CFLAGS_DEBUG    = -g -DSR_INJECTION_ENABLE=1
+CFLAGS_DEBUG    = -g -DSR_INJECTION_ENABLE
 CFLAGS_OPT      = -O0
 CFLAGS_STRICT   = -std=c99 -pedantic -Wextra -Wall
 CFLAGS_MISC     = -fPIC -fvisibility=hidden
 CFLAGS_SOPHIA   = $(CFLAGS_INCLUDE) \
                   $(CFLAGS_OPT) \
+                  $(CFLAGS_COVERAGE) \
                   $(CFLAGS_DEBUG) \
                   $(CFLAGS_STRICT) \
                   $(CFLAGS_MISC) \
                   $(CFLAGS)
+
 LDFLAGS_SOPHIA ?= -shared -soname $(SOPHIA_DSO).$(SOPHIA_VMAJOR) $(LDFLAGS)
 
 # vim: syntax=make

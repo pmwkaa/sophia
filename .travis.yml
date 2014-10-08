@@ -1,14 +1,16 @@
 language: c
+before_install:
+  - sudo pip install cpp-coveralls
+after_success:
+  - coveralls --exclude test --gcov-options '\-lp'
 compiler:
   - clang
   - gcc
-
 branches:
   only:
     - dev
-
 script:
-  - make
+  - make ENABLE_COVERAGE=1
   - cd test
-  - make
+  - make ENABLE_COVERAGE=1
   - make test
