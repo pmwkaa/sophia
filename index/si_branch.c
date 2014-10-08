@@ -45,19 +45,21 @@ int si_branch(si *index, sr *r, sdc *c, uint64_t lsvn, uint32_t wm)
 	sr_iterinit(&indexi, &sv_indexiterraw, r);
 	sr_iteropen(&indexi, i);
 	sisplit s = {
-		.parent       = n,
-		.flags        = SD_IDBRANCH,
-		.i            = &indexi,
-		.size_key     = i->keymax,
-		.size_stream  = iusedkv,
-		.size_node    = UINT32_MAX,
-		.lsvn         = lsvn,
-		.conf         = index->conf
+		.parent      = n,
+		.flags       = SD_IDBRANCH,
+		.i           = &indexi,
+		.size_key    = i->keymax,
+		.size_stream = iusedkv,
+		.size_node   = UINT32_MAX,
+		.lsvn        = lsvn,
+		.conf        = index->conf
 	};
 	int rc = si_split(&s, r, c, result);
 	if (srunlikely(rc == -1))
 		return -1;
 	assert(sr_bufused(result) == sizeof(sinode*));
+
+	SR_INJECTION(r->i, SR_INJECTION_SI_BRANCH_0, return -1);
 
 	/* sync and rename */
 	sinode *q = *(sinode**)result->s;
@@ -67,6 +69,8 @@ int si_branch(si *index, sr *r, sdc *c, uint64_t lsvn, uint32_t wm)
 		si_splitfree(result, r);
 		return -1;
 	}
+
+	SR_INJECTION(r->i, SR_INJECTION_SI_BRANCH_1, return -1);
 
 	/* commit */
 	svindex swap = *i;

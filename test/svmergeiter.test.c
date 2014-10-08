@@ -30,7 +30,7 @@ svmergeiter_merge_a(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -101,7 +101,7 @@ svmergeiter_merge_b(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -172,7 +172,7 @@ svmergeiter_merge_ab(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -267,7 +267,7 @@ svmergeiter_merge_abc(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -392,7 +392,7 @@ svmergeiter_merge_ba(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -487,7 +487,7 @@ svmergeiter_merge_dup_ab(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -592,7 +592,7 @@ svmergeiter_merge_dup_a_chain(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -679,7 +679,7 @@ svmergeiter_merge_dup_ab_chain(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -782,7 +782,7 @@ svmergeiter_merge_dup_abc_chain(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;

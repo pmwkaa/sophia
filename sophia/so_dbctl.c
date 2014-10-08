@@ -130,48 +130,29 @@ static inline void
 so_dbctl_prepare(srctl *t, sodbctl *c)
 {
 	srctl *p = t;
-	p = sr_ctladd(p, "name",           SR_CTLSTRING|SR_CTLRO, &c->name,           NULL);
-	p = sr_ctladd(p, "dir",            SR_CTLSTRING,          &c->dir,            NULL);
-	p = sr_ctladd(p, "dir_read",       SR_CTLINT,             &c->dir_read,       NULL);
-	p = sr_ctladd(p, "dir_write",      SR_CTLINT,             &c->dir_write,      NULL);
-	p = sr_ctladd(p, "dir_create",     SR_CTLINT,             &c->dir_create,     NULL);
-	p = sr_ctladd(p, "logdir",         SR_CTLSTRING,          &c->logdir,         NULL);
-	p = sr_ctladd(p, "logdir_read",    SR_CTLINT,             &c->logdir_read,    NULL);
-	p = sr_ctladd(p, "logdir_write",   SR_CTLINT,             &c->logdir_write,   NULL);
-	p = sr_ctladd(p, "logdir_create",  SR_CTLINT,             &c->logdir_create,  NULL);
-	p = sr_ctladd(p, "node_size",      SR_CTLINT,             &c->node_size,      NULL);
-	p = sr_ctladd(p, "node_page_size", SR_CTLINT,             &c->node_page_size, NULL);
-	p = sr_ctladd(p, "node_branch_wm", SR_CTLINT,             &c->node_branch_wm, NULL);
-	p = sr_ctladd(p, "node_merge_wm",  SR_CTLINT,             &c->node_merge_wm,  NULL);
-	p = sr_ctladd(p, "threads",        SR_CTLINT,             &c->threads,        NULL);
-	p = sr_ctladd(p, "memory_limit",   SR_CTLU64,             &c->memory_limit,   NULL);
-	p = sr_ctladd(p, "cmp",            SR_CTLTRIGGER,         NULL,               so_dbctl_cmp);
-	p = sr_ctladd(p, "cmp_arg",        SR_CTLTRIGGER,         NULL,               so_dbctl_cmparg);
-	p = sr_ctladd(p, "run_branch",     SR_CTLTRIGGER,         NULL,               so_dbctl_branch);
-	p = sr_ctladd(p, "run_merge",      SR_CTLTRIGGER,         NULL,               so_dbctl_merge);
-	p = sr_ctladd(p, "run_logrotate",  SR_CTLTRIGGER,         NULL,               so_dbctl_logrotate);
-	p = sr_ctladd(p, "profiler",       SR_CTLSUB,             NULL,               NULL);
-	p = sr_ctladd(p,  NULL,            0,                     NULL,               NULL);
-}
-
-int so_dbctl_set(sodbctl *c, char *path, va_list args)
-{
-	sodb *db = c->parent;
-	srctl ctls[30];
-	so_dbctl_prepare(&ctls[0], c);
-	srctl *match = NULL;
-	int rc = sr_ctlget(&ctls[0], &path, &match);
-	if (srunlikely(rc ==  1))
-		return 0; /* self */
-	if (srunlikely(rc == -1))
-		return -1;
-	if (so_dbactive(db))
-		if (match->type != SR_CTLTRIGGER)
-			return -1;
-	rc = sr_ctlset(match, db->r.a, db, args);
-	if (srunlikely(rc == -1))
-		return -1;
-	return 0;
+	p = sr_ctladd(p, "name",            SR_CTLSTRING|SR_CTLRO, &c->name,           NULL);
+	p = sr_ctladd(p, "dir",             SR_CTLSTRING,          &c->dir,            NULL);
+	p = sr_ctladd(p, "dir_read",        SR_CTLINT,             &c->dir_read,       NULL);
+	p = sr_ctladd(p, "dir_write",       SR_CTLINT,             &c->dir_write,      NULL);
+	p = sr_ctladd(p, "dir_create",      SR_CTLINT,             &c->dir_create,     NULL);
+	p = sr_ctladd(p, "logdir",          SR_CTLSTRING,          &c->logdir,         NULL);
+	p = sr_ctladd(p, "logdir_read",     SR_CTLINT,             &c->logdir_read,    NULL);
+	p = sr_ctladd(p, "logdir_write",    SR_CTLINT,             &c->logdir_write,   NULL);
+	p = sr_ctladd(p, "logdir_create",   SR_CTLINT,             &c->logdir_create,  NULL);
+	p = sr_ctladd(p, "node_size",       SR_CTLINT,             &c->node_size,      NULL);
+	p = sr_ctladd(p, "node_page_size",  SR_CTLINT,             &c->node_page_size, NULL);
+	p = sr_ctladd(p, "node_branch_wm",  SR_CTLINT,             &c->node_branch_wm, NULL);
+	p = sr_ctladd(p, "node_merge_wm",   SR_CTLINT,             &c->node_merge_wm,  NULL);
+	p = sr_ctladd(p, "threads",         SR_CTLINT,             &c->threads,        NULL);
+	p = sr_ctladd(p, "memory_limit",    SR_CTLU64,             &c->memory_limit,   NULL);
+	p = sr_ctladd(p, "cmp",             SR_CTLTRIGGER,         NULL,               so_dbctl_cmp);
+	p = sr_ctladd(p, "cmp_arg",         SR_CTLTRIGGER,         NULL,               so_dbctl_cmparg);
+	p = sr_ctladd(p, "run_branch",      SR_CTLTRIGGER,         NULL,               so_dbctl_branch);
+	p = sr_ctladd(p, "run_merge",       SR_CTLTRIGGER,         NULL,               so_dbctl_merge);
+	p = sr_ctladd(p, "run_logrotate",   SR_CTLTRIGGER,         NULL,               so_dbctl_logrotate);
+	p = sr_ctladd(p, "profiler",        SR_CTLSUB,             NULL,               NULL);
+	p = sr_ctladd(p, "error_injection", SR_CTLSUB,             NULL,               NULL);
+	p = sr_ctladd(p,  NULL,             0,                     NULL,               NULL);
 }
 
 static inline void
@@ -186,6 +167,15 @@ so_dbprofiler_prepare(srctl *t, siprofiler *pf)
 	p = sr_ctladd(p, "memory_used",        SR_CTLU64|SR_CTLRO, &pf->memory_used,        NULL);
 	p = sr_ctladd(p, "count",              SR_CTLU64|SR_CTLRO, &pf->count,              NULL);
 	p = sr_ctladd(p,  NULL,                0,                  NULL,                    NULL);
+}
+
+static inline void
+so_dbei_prepare(srctl *t, srinjection *i)
+{
+	srctl *p = t;
+	p = sr_ctladd(p, "si_branch_0", SR_CTLINT, &i->e[0], NULL);
+	p = sr_ctladd(p, "si_branch_1", SR_CTLINT, &i->e[1], NULL);
+	p = sr_ctladd(p,  NULL,         0,          NULL,    NULL);
 }
 
 static void*
@@ -206,6 +196,58 @@ so_dbprofiler_get(sodb *db, char *path)
 	return so_ctlreturn(match, db->e);
 }
 
+static int
+so_dbei_set(sodb *db, char *path, va_list args)
+{
+	srctl ctls[30];
+	so_dbei_prepare(&ctls[0], &db->ei);
+	srctl *match = NULL;
+	int rc = sr_ctlget(&ctls[0], &path, &match);
+	if (srunlikely(rc ==  1))
+		return -1;
+	if (srunlikely(rc == -1))
+		return -1;
+	return sr_ctlset(match, db->r.a, db, args);
+}
+
+static void*
+so_dbei_get(sodb *db, char *path)
+{
+	srctl ctls[30];
+	so_dbei_prepare(&ctls[0], &db->ei);
+	srctl *match = NULL;
+	int rc = sr_ctlget(&ctls[0], &path, &match);
+	if (srunlikely(rc ==  1))
+		return NULL;
+	if (srunlikely(rc == -1))
+		return NULL;
+	return so_ctlreturn(match, db->e);
+}
+
+int so_dbctl_set(sodbctl *c, char *path, va_list args)
+{
+	sodb *db = c->parent;
+	srctl ctls[30];
+	so_dbctl_prepare(&ctls[0], c);
+	srctl *match = NULL;
+	int rc = sr_ctlget(&ctls[0], &path, &match);
+	if (srunlikely(rc ==  1))
+		return 0; /* self */
+	if (srunlikely(rc == -1))
+		return -1;
+	int type = match->type & ~SR_CTLRO;
+	if (type == SR_CTLSUB) {
+		if (strcmp(match->name, "error_injection") == 0)
+			return so_dbei_set(db, path, args);
+	}
+	if (so_dbactive(db) && (type != SR_CTLTRIGGER))
+		return -1;
+	rc = sr_ctlset(match, db->r.a, db, args);
+	if (srunlikely(rc == -1))
+		return -1;
+	return 0;
+}
+
 void *so_dbctl_get(sodbctl *c, char *path, va_list args srunused)
 {
 	sodb *db = c->parent;
@@ -221,6 +263,9 @@ void *so_dbctl_get(sodbctl *c, char *path, va_list args srunused)
 	if (type == SR_CTLSUB) {
 		if (strcmp(match->name, "profiler") == 0)
 			return so_dbprofiler_get(db, path);
+		else
+		if (strcmp(match->name, "error_injection") == 0)
+			return so_dbei_get(db, path);
 		return NULL;
 	}
 	return so_ctlreturn(match, db->e);

@@ -24,6 +24,7 @@ struct sodb {
 	slconf lpconf;
 	slpool lp;
 	soworkers workers;
+	srinjection ei;
 	sr r;
 	so *e;
 };

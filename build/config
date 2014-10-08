@@ -32,7 +32,7 @@ INCLUDE_B       =
 INCLUDE         = $(INCLUDE_A) $(INCLUDE_B)
 endif
 CFLAGS_INCLUDE  = -pthread $(INCLUDE)
-CFLAGS_DEBUG    = -g
+CFLAGS_DEBUG    = -g -DSR_INJECTION_ENABLE=1
 CFLAGS_OPT      = -O0
 CFLAGS_STRICT   = -std=c99 -pedantic -Wextra -Wall
 CFLAGS_MISC     = -fPIC -fvisibility=hidden

@@ -55,7 +55,7 @@ sliter_tx(stc *cx)
 	srseq seq;
 	sr_seqinit(&seq);
 	sr r;
-	sr_init(&r, &a, &seq, &cmp);
+	sr_init(&r, &a, &seq, &cmp, NULL);
 	slconf conf = {
 		.dir        = cx->suite->logdir,
 		.dir_read   = 1,
@@ -91,7 +91,7 @@ sliter_tx_read_empty(stc *cx)
 	srseq seq;
 	sr_seqinit(&seq);
 	sr r;
-	sr_init(&r, &a, &seq, &cmp);
+	sr_init(&r, &a, &seq, &cmp, NULL);
 	slconf conf = {
 		.dir        = cx->suite->logdir,
 		.dir_read   = 1,
@@ -137,7 +137,7 @@ sliter_tx_read0(stc *cx)
 	srseq seq;
 	sr_seqinit(&seq);
 	sr r;
-	sr_init(&r, &a, &seq, &cmp);
+	sr_init(&r, &a, &seq, &cmp, NULL);
 	slconf conf = {
 		.dir        = cx->suite->logdir,
 		.dir_read   = 1,
@@ -188,7 +188,7 @@ sliter_tx_read1(stc *cx)
 	srseq seq;
 	sr_seqinit(&seq);
 	sr r;
-	sr_init(&r, &a, &seq, &cmp);
+	sr_init(&r, &a, &seq, &cmp, NULL);
 	slconf conf = {
 		.dir        = cx->suite->logdir,
 		.dir_read   = 1,
@@ -250,7 +250,7 @@ sliter_tx_read2(stc *cx)
 	srseq seq;
 	sr_seqinit(&seq);
 	sr r;
-	sr_init(&r, &a, &seq, &cmp);
+	sr_init(&r, &a, &seq, &cmp, NULL);
 	slconf conf = {
 		.dir        = cx->suite->logdir,
 		.dir_read   = 1,

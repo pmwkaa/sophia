@@ -208,9 +208,10 @@ soobj *so_dbnew(so *e, char *name)
 	so_objindex_init(&o->tx);
 	so_objindex_init(&o->cursor);
 	o->mode = SO_OFFLINE;
-	o->e = e;
-	o->r = e->r;
+	o->e     = e;
+	o->r     = e->r;
 	o->r.cmp = &o->ctl.cmp;
+	o->r.i   = &o->ei;
 	int rc = so_dbctl_init(&o->ctl, name, o);
 	if (srunlikely(rc == -1)) {
 		sr_free(&e->a, o);

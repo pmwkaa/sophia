@@ -30,7 +30,7 @@ svseaveiter_seave(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -106,7 +106,7 @@ svseaveiter_limit(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -219,7 +219,7 @@ svseaveiter_limit_small(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -356,7 +356,7 @@ svseaveiter_dup_lsn_gt(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -428,7 +428,7 @@ svseaveiter_dup_lsn_lt0(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -500,7 +500,7 @@ svseaveiter_dup_lsn_lt1(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -572,7 +572,7 @@ svseaveiter_dup_lsn_lt2(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -644,7 +644,7 @@ svseaveiter_dup_lsn_gt_chain(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -717,7 +717,7 @@ svseaveiter_dup_lsn_lt0_chain(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -792,7 +792,7 @@ svseaveiter_dup_lsn_lt1_chain(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -869,7 +869,7 @@ svseaveiter_dup_lsn_lt2_chain(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -948,7 +948,7 @@ svseaveiter_dup_lsn_limit0(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1009,7 +1009,7 @@ svseaveiter_dup_lsn_limit1(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1072,7 +1072,7 @@ svseaveiter_dup_lsn_limit2(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1136,7 +1136,7 @@ svseaveiter_dup_lsn_limit3(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1199,7 +1199,7 @@ svseaveiter_dup_lsn_limit4(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1269,7 +1269,7 @@ svseaveiter_dup_lsn_limit5(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1339,7 +1339,7 @@ svseaveiter_delete0(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1411,7 +1411,7 @@ svseaveiter_delete1(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1483,7 +1483,7 @@ svseaveiter_delete2(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1555,7 +1555,7 @@ svseaveiter_delete3(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1627,7 +1627,7 @@ svseaveiter_delete4(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1699,7 +1699,7 @@ svseaveiter_delete5(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1771,7 +1771,7 @@ svseaveiter_delete6(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1848,7 +1848,7 @@ svseaveiter_delete7(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1931,7 +1931,7 @@ svseaveiter_delete8(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;

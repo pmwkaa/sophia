@@ -36,7 +36,7 @@ sditer_gt0(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 	sdbuild b;
 	sd_buildinit(&b, &r);
 	t( sd_buildbegin(&b, sizeof(int)) == 0);
@@ -94,7 +94,7 @@ sditer_gt1(stc *cx srunused)
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	sr r;
-	sr_init(&r, &a, NULL, &cmp);
+	sr_init(&r, &a, NULL, &cmp, NULL);
 	sdbuild b;
 	sd_buildinit(&b, &r);
 	t( sd_buildbegin(&b, sizeof(int)) == 0);

@@ -95,6 +95,6 @@ soobj *so_new(void)
 	so_objindex_init(&e->db);
 	sr_seqinit(&e->seq);
 	sr_allocinit(&e->a, sr_allocstd, NULL);
-	sr_init(&e->r, &e->a, &e->seq, NULL);
+	sr_init(&e->r, &e->a, &e->seq, NULL, NULL);
 	return &e->o;
 }
