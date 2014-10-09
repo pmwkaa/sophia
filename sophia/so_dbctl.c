@@ -211,7 +211,7 @@ so_dbprofiler_dump(sodb *db, srbuf *dump)
 	srctl ctls[30];
 	so_dbprofiler_prepare(&ctls[0], &pf);
 	char prefix[64];
-	snprintf(prefix, sizeof(prefix), "%s.profiler.", db->ctl.name);
+	snprintf(prefix, sizeof(prefix), "db.%s.profiler.", db->ctl.name);
 	return sr_ctlserialize(&ctls[0], &db->e->a, prefix, dump);
 }
 
@@ -249,7 +249,7 @@ so_dbei_dump(sodb *db, srbuf *dump)
 	srctl ctls[30];
 	so_dbei_prepare(&ctls[0], &db->ei);
 	char prefix[64];
-	snprintf(prefix, sizeof(prefix), "%s.error_injection.", db->ctl.name);
+	snprintf(prefix, sizeof(prefix), "db.%s.error_injection.", db->ctl.name);
 	return sr_ctlserialize(&ctls[0], &db->e->a, prefix, dump);
 }
 
@@ -306,7 +306,7 @@ int so_dbctl_dump(sodbctl *c, srbuf *dump)
 	srctl ctls[30];
 	so_dbctl_prepare(&ctls[0], c);
 	char prefix[64];
-	snprintf(prefix, sizeof(prefix), "%s.", c->name);
+	snprintf(prefix, sizeof(prefix), "db.%s.", c->name);
 	int rc = sr_ctlserialize(&ctls[0], &db->e->a, prefix, dump);
 	if (srunlikely(rc == -1))
 		return -1;
