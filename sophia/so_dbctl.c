@@ -202,6 +202,20 @@ so_dbprofiler_get(sodb *db, char *path)
 }
 
 static int
+so_dbprofiler_dump(sodb *db, srbuf *dump)
+{
+	siprofiler pf;
+	si_profilerbegin(&pf, &db->index);
+	si_profiler(&pf);
+	si_profilerend(&pf);
+	srctl ctls[30];
+	so_dbprofiler_prepare(&ctls[0], &pf);
+	char prefix[64];
+	snprintf(prefix, sizeof(prefix), "%s.profiler.", db->ctl.name);
+	return sr_ctlserialize(&ctls[0], &db->e->a, prefix, dump);
+}
+
+static int
 so_dbei_set(sodb *db, char *path, va_list args)
 {
 	srctl ctls[30];
@@ -227,6 +241,16 @@ so_dbei_get(sodb *db, char *path)
 	if (srunlikely(rc == -1))
 		return NULL;
 	return so_ctlreturn(match, db->e);
+}
+
+static int
+so_dbei_dump(sodb *db, srbuf *dump)
+{
+	srctl ctls[30];
+	so_dbei_prepare(&ctls[0], &db->ei);
+	char prefix[64];
+	snprintf(prefix, sizeof(prefix), "%s.error_injection.", db->ctl.name);
+	return sr_ctlserialize(&ctls[0], &db->e->a, prefix, dump);
 }
 
 int so_dbctl_set(sodbctl *c, char *path, va_list args)
@@ -274,4 +298,23 @@ void *so_dbctl_get(sodbctl *c, char *path, va_list args srunused)
 		return NULL;
 	}
 	return so_ctlreturn(match, db->e);
+}
+
+int so_dbctl_dump(sodbctl *c, srbuf *dump)
+{
+	sodb *db = c->parent;
+	srctl ctls[30];
+	so_dbctl_prepare(&ctls[0], c);
+	char prefix[64];
+	snprintf(prefix, sizeof(prefix), "%s.", c->name);
+	int rc = sr_ctlserialize(&ctls[0], &db->e->a, prefix, dump);
+	if (srunlikely(rc == -1))
+		return -1;
+	rc = so_dbprofiler_dump(db, dump);
+	if (srunlikely(rc == -1))
+		return -1;
+	rc = so_dbei_dump(db, dump);
+	if (srunlikely(rc == -1))
+		return -1;
+	return 0;
 }

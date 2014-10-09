@@ -119,6 +119,7 @@ so_dbdestroy(soobj *obj)
 	rc = so_workersshutdown(&o->workers, &o->r);
 	if (srunlikely(rc == -1))
 		rcret = -1;
+	/* destroy */
 	so_objindex_free(&o->tx);
 	so_objindex_free(&o->cursor);
 	sm_free(&o->mvcc);

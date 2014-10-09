@@ -62,10 +62,43 @@ ctl_error_injection(stc *cx srunused)
 	t( sp_destroy(env) == 0 );
 }
 
+static void
+ctl_cursor(stc *cx srunused)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	void *c = sp_ctl(env);
+	t( c != NULL );
+	t( sp_set(c, "db.test") == 0 );
+
+	o = sp_get(c, "db.test.run_branch");
+	t( o != NULL );
+	sp_destroy(o);
+
+	void *cur = sp_cursor(c, ">=", NULL);
+	t( cur != NULL );
+
+	printf("\n\n");
+	void *o;
+	while ((o = sp_get(cur))) {
+		char *key = sp_get(o, "key", NULL);
+		char *value = sp_get(o, "value", NULL);
+		printf("%s", key);
+		if (value)
+			printf(" = %s\n", value);
+		else
+			printf("\n");
+	}
+	t( sp_destroy(cur) == 0 );
+
+	t( sp_destroy(env) == 0 );
+}
+
 stgroup *ctl_group(void)
 {
 	stgroup *group = st_group("ctl");
 	st_groupadd(group, st_test("version", ctl_version));
 	st_groupadd(group, st_test("error_injection", ctl_error_injection));
+	st_groupadd(group, st_test("cursor", ctl_cursor));
 	return group;
 }

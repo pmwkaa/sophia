@@ -1,5 +1,6 @@
 SOPHIA_O = so_worker.o \
            so_ctl.o \
+           so_ctlcursor.o \
            so.o \
            so_v.o \
            so_dbctl.o \

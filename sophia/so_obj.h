@@ -10,13 +10,14 @@
 */
 
 typedef enum {
-	SOUNDEF  = 0L,
-	SOENV    = 0x06154834L,
-	SOCTL    = 0x1234FFBBL,
-	SOV      = 0x2FABCDE2L,
-	SODB     = 0x34591111L,
-	SOTX     = 0x13491FABL,
-	SOCURSOR = 0x45ABCDFAL
+	SOUNDEF     = 0L,
+	SOENV       = 0x06154834L,
+	SOCTL       = 0x1234FFBBL,
+	SOCTLCURSOR = 0x6AB65429L,
+	SOV         = 0x2FABCDE2L,
+	SODB        = 0x34591111L,
+	SOTX        = 0x13491FABL,
+	SOCURSOR    = 0x45ABCDFAL
 } soobjid;
 
 static inline soobjid

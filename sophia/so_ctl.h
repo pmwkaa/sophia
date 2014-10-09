@@ -17,6 +17,8 @@ struct soctl {
 };
 
 void  so_ctlinit(soctl*, void*);
+int   so_ctldump(soctl*, srbuf*);
+
 void *so_ctlreturn(srctl *match, void*);
 
 #endif

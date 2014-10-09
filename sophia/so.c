@@ -55,6 +55,8 @@ so_destroy(soobj *o)
 		if (srunlikely(rc == -1))
 			rcret = -1;
 	}
+	/* destroy */
+	so_objindex_free(&e->ctlcursor);
 	so_objindex_free(&e->db);
 	sr_seqfree(&e->seq);
 	free(e);
@@ -93,6 +95,7 @@ soobj *so_new(void)
 	so_objinit(&e->o, SOENV, &soif);
 	so_ctlinit(&e->ctl, e);
 	so_objindex_init(&e->db);
+	so_objindex_init(&e->ctlcursor);
 	sr_seqinit(&e->seq);
 	sr_allocinit(&e->a, sr_allocstd, NULL);
 	sr_init(&e->r, &e->a, &e->seq, NULL, NULL);

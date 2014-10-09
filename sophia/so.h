@@ -21,6 +21,7 @@ typedef enum {
 struct so {
 	soobj o;
 	soobjindex db;
+	soobjindex ctlcursor;
 	volatile somode mode;
 	soctl ctl;
 	sra a;

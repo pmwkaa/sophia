@@ -43,8 +43,8 @@
 #include <sr_seq.h>
 #include <sr_order.h>
 #include <sr_cmp.h>
-#include <sr_ctl.h>
 #include <sr_buf.h>
+#include <sr_ctl.h>
 #include <sr_injection.h>
 #include <sr.h>
 #include <sr_iter.h>

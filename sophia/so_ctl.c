@@ -41,7 +41,15 @@ so_ctlreturn(srctl *match, void *o)
 		value = *(char**)match->v;
 		size = strlen(value);
 		break;
-	default: return NULL;
+	case SR_CTLTRIGGER: {
+		char hint[] = "function";
+		value = hint;
+		size = sizeof(hint);
+		break;
+	}
+	case SR_CTLSUB:
+		assert(0);
+		break;
 	}
 	size++;
 	svlocal l;
@@ -97,6 +105,26 @@ so_ctlsophia_get(soctl *c, char *path, va_list args srunused)
 }
 
 static int
+so_ctlsophia_dump(soctl *c, srbuf *dump)
+{
+	int version_major = SR_VERSION_MAJOR - '0';
+	int version_minor = SR_VERSION_MINOR - '0';
+	char version[16];
+	char *version_ptr = version;
+	snprintf(version, sizeof(version), "%d.%d",
+	         version_major,
+	         version_minor);
+	srctl ctls[4];
+	srctl *p = ctls;
+	p = sr_ctladd(p, "version",       SR_CTLSTRING|SR_CTLRO, &version_ptr,   NULL);
+	p = sr_ctladd(p, "version_major", SR_CTLINT|SR_CTLRO,    &version_major, NULL);
+	p = sr_ctladd(p, "version_minor", SR_CTLINT|SR_CTLRO,    &version_minor, NULL);
+	p = sr_ctladd(p,  NULL,           0,                     NULL,           NULL);
+	so *e = c->e;
+	return sr_ctlserialize(&ctls[0], &e->a, "sophia.", dump);
+}
+
+static int
 so_ctldb_set(soctl *c, char *path, va_list args)
 {
 	char *token;
@@ -128,6 +156,21 @@ so_ctldb_get(soctl *c, char *path, va_list args)
 	if (db == NULL)
 		return NULL;
 	return so_dbctl_get(&db->ctl, path, args);
+}
+
+static int
+so_ctldb_dump(soctl *c, srbuf *dump)
+{
+	so *e = c->e;
+	srlist *i;
+	sr_listforeach(&e->db.list, i) {
+		soobj *o = srcast(i, soobj, olink);
+		sodb *db = (sodb*)o;
+		int rc = so_dbctl_dump(&db->ctl, dump);
+		if (srunlikely(rc == -1))
+			return -1;
+	}
+	return 0;
 }
 
 static int
@@ -168,6 +211,24 @@ so_ctlget(soobj *obj, va_list args)
 	return NULL;
 }
 
+int so_ctldump(soctl *c, srbuf *dump)
+{
+	int rc = so_ctlsophia_dump(c, dump);
+	if (srunlikely(rc == -1))
+		return -1;
+	rc = so_ctldb_dump(c, dump);
+	if (srunlikely(rc == -1))
+		return -1;
+	return 0;
+}
+
+static void*
+so_ctlcursor(soobj *o, va_list args srunused)
+{
+	soctl *c = (soctl*)o;
+	return so_ctlcursor_new(c->e);
+}
+
 static void*
 so_ctltype(soobj *o srunused, va_list args srunused) {
 	return "ctl";
@@ -184,7 +245,7 @@ static soobjif soctlif =
 	.begin    = NULL,
 	.commit   = NULL,
 	.rollback = NULL,
-	.cursor   = NULL,
+	.cursor   = so_ctlcursor,
 	.object   = NULL,
 	.type     = so_ctltype,
 	.copy     = NULL

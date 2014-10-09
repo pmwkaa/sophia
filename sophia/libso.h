@@ -15,6 +15,7 @@
 #include <so_ctl.h>
 #include <so.h>
 #include <so_v.h>
+#include <so_ctlcursor.h>
 #include <so_dbctl.h>
 #include <so_db.h>
 #include <so_recover.h>
