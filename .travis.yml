@@ -2,7 +2,7 @@ language: c
 before_install:
   - sudo pip install cpp-coveralls
 after_success:
-  - coveralls --exclude test --gcov-options '\-lp'
+  - coveralls --exclude test -r . -b .
 compiler:
   - clang
   - gcc
