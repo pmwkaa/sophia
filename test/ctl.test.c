@@ -71,7 +71,7 @@ ctl_cursor(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "db.test") == 0 );
 
-	o = sp_get(c, "db.test.run_branch");
+	void *o = sp_get(c, "db.test.run_branch");
 	t( o != NULL );
 	sp_destroy(o);
 
@@ -79,7 +79,6 @@ ctl_cursor(stc *cx srunused)
 	t( cur != NULL );
 
 	printf("\n\n");
-	void *o;
 	while ((o = sp_get(cur))) {
 		char *key = sp_get(o, "key", NULL);
 		char *value = sp_get(o, "value", NULL);
