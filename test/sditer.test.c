@@ -78,6 +78,7 @@ sditer_gt0(stc *cx srunused)
 	t( *(int*)svkey(v) == 9);
 	sr_iternext(&it);
 	t( sr_iterhas(&it) == 0 );
+	sr_iterclose(&it);
 
 	sr_fileclose(&f);
 	t( sr_mapunmap(&map) == 0 );
@@ -180,6 +181,7 @@ sditer_gt1(stc *cx srunused)
 	t( *(int*)svkey(v) == 20);
 	sr_iternext(&it);
 	t( sr_iterhas(&it) == 0 );
+	sr_iterclose(&it);
 
 	sr_fileclose(&f);
 	t( sr_mapunmap(&map) == 0 );

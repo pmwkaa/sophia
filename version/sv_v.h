@@ -57,12 +57,9 @@ sv_valloc(sra *a, sv *v)
 	vv->prev      = NULL;
 	vv->log       = NULL;
 	memset(&vv->node, 0, sizeof(vv->node));
-	memcpy(sv_vkey(vv), svkey(v), vv->keysize);
-	int rc = svvaluecopy(v, sv_vvalue(vv));
-	if (srunlikely(rc == -1)) {
-		sr_free(a, vv);
-		vv = NULL;
-	}
+	char *key = sv_vkey(vv);
+	memcpy(key, svkey(v), keysize);
+	memcpy(key + keysize, svvalue(v), valuesize);
 	return vv;
 }
 

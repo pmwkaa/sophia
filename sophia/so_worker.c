@@ -77,13 +77,3 @@ int so_workersnew(soworkers *w, sr *r, int n, srthreadf f, void *arg)
 	}
 	return 0;
 }
-
-int so_workerswakeup(soworkers *w)
-{
-	srlist *i;
-	sr_listforeach(&w->list, i) {
-		soworker *p = srcast(i, soworker, link);
-		sr_threadwakeup(&p->t);
-	}
-	return 0;
-}

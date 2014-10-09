@@ -207,5 +207,8 @@ int sr_filerlb(srfile *f, uint64_t svp)
 	if (srunlikely(rc == -1))
 		return -1;
 	f->size = svp;
-	return lseek(f->fd, f->size, SEEK_SET);
+	rc = sr_fileseek(f, f->size);
+	if (srunlikely(rc == -1))
+		return -1;
+	return 0;
 }

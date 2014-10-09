@@ -86,6 +86,7 @@ svseaveiter_seave(stc *cx srunused)
 		i++;
 	}
 	t( i == 10 );
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -199,6 +200,7 @@ svseaveiter_limit(stc *cx srunused)
 	}
 	t( j == 3 );
 	t( i == 18 );
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -312,6 +314,7 @@ svseaveiter_limit_small(stc *cx srunused)
 	}
 	t( j == 1 );
 	t( i == 4 );
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -408,6 +411,7 @@ svseaveiter_dup_lsn_gt(stc *cx srunused)
 		i++;
 	}
 	t( i == 1 );
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -480,6 +484,7 @@ svseaveiter_dup_lsn_lt0(stc *cx srunused)
 		i++;
 	}
 	t( i == 2 );
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -552,6 +557,7 @@ svseaveiter_dup_lsn_lt1(stc *cx srunused)
 		i++;
 	}
 	t( i == 3 );
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -624,6 +630,7 @@ svseaveiter_dup_lsn_lt2(stc *cx srunused)
 		i++;
 	}
 	t( i == 3 );
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -697,6 +704,7 @@ svseaveiter_dup_lsn_gt_chain(stc *cx srunused)
 	sr_iternext(&seave);
 	checkv(cx, &seave, 14, SVSET, key4);
 	sr_iternext(&seave);
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -772,6 +780,7 @@ svseaveiter_dup_lsn_lt0_chain(stc *cx srunused)
 	sr_iternext(&seave);
 	checkv(cx, &seave, 14, SVSET, key4);
 	sr_iternext(&seave);
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -849,6 +858,7 @@ svseaveiter_dup_lsn_lt1_chain(stc *cx srunused)
 	sr_iternext(&seave);
 	checkv(cx, &seave, 14, SVSET, key4);
 	sr_iternext(&seave);
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -928,6 +938,7 @@ svseaveiter_dup_lsn_lt2_chain(stc *cx srunused)
 	sr_iternext(&seave);
 	checkv(cx, &seave, 14, SVSET, key4);
 	sr_iternext(&seave);
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -989,6 +1000,7 @@ svseaveiter_dup_lsn_limit0(stc *cx srunused)
 	checkv(cx, &seave, 10, SVSET, key);
 	sr_iternext(&seave);
 	t( sr_iterhas(&seave) == 0 );
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1052,6 +1064,7 @@ svseaveiter_dup_lsn_limit1(stc *cx srunused)
 	checkv(cx, &seave,  9, SVSET|SVDUP, key);
 	sr_iternext(&seave);
 	t( sr_iterhas(&seave) == 0 );
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1116,6 +1129,7 @@ svseaveiter_dup_lsn_limit2(stc *cx srunused)
 	checkv(cx, &seave,  8, SVSET|SVDUP, key);
 	sr_iternext(&seave);
 	t( sr_iterhas(&seave) == 0 );
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1179,6 +1193,7 @@ svseaveiter_dup_lsn_limit3(stc *cx srunused)
 	checkv(cx, &seave, 412, SVSET, key);
 	sr_iternext(&seave);
 	t(sr_iterhas(&seave) == 0);
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1249,6 +1264,7 @@ svseaveiter_dup_lsn_limit4(stc *cx srunused)
 		k++;
 	}
 	t( k == 412 );
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1319,6 +1335,7 @@ svseaveiter_dup_lsn_limit5(stc *cx srunused)
 		k++;
 	}
 	t( k == 412 );
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1391,6 +1408,7 @@ svseaveiter_delete0(stc *cx srunused)
 		i++;
 	}
 	t( i == 1 );
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1463,6 +1481,7 @@ svseaveiter_delete1(stc *cx srunused)
 		i++;
 	}
 	t( i == 2 );
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1535,6 +1554,7 @@ svseaveiter_delete2(stc *cx srunused)
 		i++;
 	}
 	t( i == 3 );
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1607,6 +1627,7 @@ svseaveiter_delete3(stc *cx srunused)
 		i++;
 	}
 	t( i == 3 );
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1679,6 +1700,7 @@ svseaveiter_delete4(stc *cx srunused)
 		i++;
 	}
 	t( i == 1 );
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1751,6 +1773,7 @@ svseaveiter_delete5(stc *cx srunused)
 		i++;
 	}
 	t( i == 0 );
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1828,6 +1851,7 @@ svseaveiter_delete6(stc *cx srunused)
 		i++;
 	}
 	t( i == 2 );
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1911,6 +1935,7 @@ svseaveiter_delete7(stc *cx srunused)
 		i++;
 	}
 	t( i == 3 );
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1999,6 +2024,7 @@ svseaveiter_delete8(stc *cx srunused)
 		i++;
 	}
 	t( i == 4 );
+	sr_iterclose(&seave);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));

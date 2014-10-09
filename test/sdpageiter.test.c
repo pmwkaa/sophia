@@ -68,6 +68,7 @@ sdpageiter_lte_empty(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -114,6 +115,7 @@ sdpageiter_lte_eq0(stc *cx srunused)
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -160,6 +162,7 @@ sdpageiter_lte_eq1(stc *cx srunused)
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -206,6 +209,7 @@ sdpageiter_lte_eq2(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -247,6 +251,7 @@ sdpageiter_lte_minmax0(stc *cx srunused)
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -321,6 +326,7 @@ sdpageiter_lte_minmax1(stc *cx srunused)
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -382,6 +388,7 @@ sdpageiter_lte_minmax2(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL);
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -431,6 +438,7 @@ sdpageiter_lte_mid0(stc *cx srunused)
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -491,6 +499,7 @@ sdpageiter_lte_mid1(stc *cx srunused)
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -539,6 +548,7 @@ sdpageiter_lte_iterate0(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -587,6 +597,7 @@ sdpageiter_lte_iterate1(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -632,6 +643,7 @@ sdpageiter_lt_eq(stc *cx srunused)
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -672,6 +684,7 @@ sdpageiter_lt_minmax(stc *cx srunused)
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -720,6 +733,7 @@ sdpageiter_lt_mid(stc *cx srunused)
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -768,6 +782,7 @@ sdpageiter_lt_iterate0(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -810,6 +825,7 @@ sdpageiter_lt_iterate1(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -862,6 +878,7 @@ sdpageiter_lte_dup_eq(stc *cx srunused)
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
 	t( svlsn(v) == 0 );
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -947,6 +964,7 @@ sdpageiter_lte_dup_mid(stc *cx srunused)
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -1025,6 +1043,7 @@ sdpageiter_lte_dup_mid_gt(stc *cx srunused)
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
 	t( svlsn(v) == 80);
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -1091,6 +1110,7 @@ sdpageiter_lte_dup_mid_lt(stc *cx srunused)
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
 	t( svlsn(v) == 80);
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -1147,6 +1167,7 @@ sdpageiter_lte_dup_iterate0(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -1231,6 +1252,7 @@ sdpageiter_lte_dup_iterate1(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -1276,6 +1298,7 @@ sdpageiter_gte_eq0(stc *cx srunused)
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -1321,6 +1344,7 @@ sdpageiter_gte_eq1(stc *cx srunused)
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == k);
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -1366,6 +1390,7 @@ sdpageiter_gte_eq2(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -1407,6 +1432,7 @@ sdpageiter_gte_minmax0(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -1481,6 +1507,7 @@ sdpageiter_gte_minmax1(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -1541,6 +1568,7 @@ sdpageiter_gte_minmax2(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL);
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -1596,6 +1624,7 @@ sdpageiter_gte_mid0(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -1656,6 +1685,7 @@ sdpageiter_gte_mid1(stc *cx srunused)
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -1704,6 +1734,7 @@ sdpageiter_gte_iterate0(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -1752,6 +1783,7 @@ sdpageiter_gte_iterate1(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -1798,6 +1830,7 @@ sdpageiter_gt_eq(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -1839,6 +1872,7 @@ sdpageiter_gt_minmax(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -1887,6 +1921,7 @@ sdpageiter_gt_mid(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -1935,6 +1970,7 @@ sdpageiter_gt_iterate0(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -1977,6 +2013,7 @@ sdpageiter_gt_iterate1(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -2037,6 +2074,7 @@ sdpageiter_gte_dup_eq(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -2123,6 +2161,7 @@ sdpageiter_gte_dup_mid(stc *cx srunused)
 	t( sr_iterhas(&it) != 0 );
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == i);
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -2195,6 +2234,7 @@ sdpageiter_gte_dup_mid_gt(stc *cx srunused)
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
 	t( svlsn(v) == 80);
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -2261,6 +2301,7 @@ sdpageiter_gte_dup_mid_lt(stc *cx srunused)
 	v = sr_iterof(&it);
 	t( *(int*)svkey(v) == j);
 	t( svlsn(v) == 80);
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -2317,6 +2358,7 @@ sdpageiter_gte_dup_iterate0(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -2401,6 +2443,44 @@ sdpageiter_gte_dup_iterate1(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
+	sr_iterclose(&it);
+
+	sd_buildfree(&b);
+}
+
+static void
+sdpageiter_update0(stc *cx srunused)
+{
+	sra a;
+	sr_allocinit(&a, sr_allocstd, NULL);
+	srcomparator cmp = { sr_cmpu32, NULL };
+	sr r;
+	sr_init(&r, &a, NULL, &cmp, NULL);
+	sdbuild b;
+	sd_buildinit(&b, &r);
+	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	int i = 0;
+	for (; i < 10; i++)
+		addv(&b, i, SVSET, &i);
+	sd_buildend(&b);
+	sdpage page;
+	sd_pageinit(&page, (sdpageheader*)b.k.s);
+
+	sriter it;
+	sr_iterinit(&it, &sd_pageiter, &r);
+	i = 5;
+	t( sr_iteropen(&it, &page, SR_UPDATE, &i, sizeof(i), (uint64_t)i) == 0 );
+	sr_iterclose(&it);
+
+	sr_iterinit(&it, &sd_pageiter, &r);
+	i = 5;
+	t( sr_iteropen(&it, &page, SR_UPDATE, &i, sizeof(i), (uint64_t)(i - 1)) == 1 );
+	sr_iterclose(&it);
+
+	sr_iterinit(&it, &sd_pageiter, &r);
+	i = 5;
+	t( sr_iteropen(&it, &page, SR_UPDATE, &i, sizeof(i), (uint64_t)(i + 1)) == 0 );
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -2434,6 +2514,7 @@ sdpageiter_random0(stc *cx srunused)
 		int k = *(int*)svkey(v);
 		t( k >= 0 && k < 100 );
 		i++;
+		sr_iterclose(&it);
 	}
 	sd_buildfree(&b);
 }
@@ -2499,6 +2580,7 @@ sdpageiter_iterate_raw(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	v = sr_iterof(&it);
 	t( v == NULL );
+	sr_iterclose(&it);
 
 	sd_buildfree(&b);
 }
@@ -2549,6 +2631,7 @@ stgroup *sdpageiter_group(void)
 	st_groupadd(group, st_test("gte_dup_mid_lt", sdpageiter_gte_dup_mid_lt));
 	st_groupadd(group, st_test("gte_dup_iterate0", sdpageiter_gte_dup_iterate0));
 	st_groupadd(group, st_test("gte_dup_iterate1", sdpageiter_gte_dup_iterate1));
+	st_groupadd(group, st_test("update0", sdpageiter_update0));
 	st_groupadd(group, st_test("random0", sdpageiter_random0));
 	st_groupadd(group, st_test("iterate_raw", sdpageiter_iterate_raw));
 	return group;

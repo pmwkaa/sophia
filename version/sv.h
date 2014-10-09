@@ -26,7 +26,6 @@ struct svif {
 	char     *(*key)(sv*);
 	uint16_t  (*keysize)(sv*);
 	char     *(*value)(sv*);
-	int       (*valuecopy)(sv*, char*);
 	uint32_t  (*valuesize)(sv*);
 	uint64_t  (*valueoffset)(sv*);
 	char     *(*raw)(sv*);
@@ -77,11 +76,6 @@ svkeysize(sv *v) {
 static inline char*
 svvalue(sv *v) {
 	return v->i->value(v);
-}
-
-static inline int
-svvaluecopy(sv *v, char *dest) {
-	return v->i->valuecopy(v, dest);
 }
 
 static inline uint32_t

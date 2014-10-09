@@ -27,7 +27,6 @@ struct soworkers {
 int so_workersinit(soworkers*);
 int so_workersshutdown(soworkers*, sr*);
 int so_workersnew(soworkers*, sr*, int, srthreadf, void*);
-int so_workerswakeup(soworkers*);
 
 static inline void
 so_workerwait(soworker *w) {

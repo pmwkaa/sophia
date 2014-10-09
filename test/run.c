@@ -11,7 +11,10 @@
 #include <libst.h>
 #include <sophia.h>
 
+extern stgroup *sl_group(void);
 extern stgroup *sliter_group(void);
+extern stgroup *sdbuild_group(void);
+extern stgroup *sdv_group(void);
 extern stgroup *sditer_group(void);
 extern stgroup *sdpageiter_group(void);
 extern stgroup *svindex_group(void);
@@ -46,13 +49,14 @@ main(int argc, char *argv[])
 	st_addscene(&s, st_scene("test", st_scene_test, 1));
 
 	stplan *plan;
-	/*
-	*/
 	plan = st_plan("unit");
 	st_planscene(plan, st_sceneof(&s, "rmrf"));
 	st_planscene(plan, st_sceneof(&s, "test"));
 	st_planscene(plan, st_sceneof(&s, "pass"));
+	st_planadd(plan, sl_group());
 	st_planadd(plan, sliter_group());
+	st_planadd(plan, sdbuild_group());
+	st_planadd(plan, sdv_group());
 	st_planadd(plan, sditer_group());
 	st_planadd(plan, sdpageiter_group());
 	st_planadd(plan, svindex_group());

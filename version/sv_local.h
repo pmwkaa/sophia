@@ -40,11 +40,7 @@ sv_copy(sra *a, sv *v)
 	l->value     = key + keysize;
 	l->valuesize = valuesize;
 	memcpy(key, svkey(v), l->keysize);
-	int rc = svvaluecopy(v, key + keysize);
-	if (srunlikely(rc == -1)) {
-		sr_free(a, l);
-		l = NULL;
-	}
+	memcpy(key + keysize, svvalue(v), valuesize);
 	return l;
 }
 

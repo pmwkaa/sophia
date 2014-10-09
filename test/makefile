@@ -1,7 +1,10 @@
 LIBST_O = st.o \
           st_scene.o \
           run.o \
+          sl.test.o \
           sliter.test.o \
+          sdbuild.test.o \
+          sdv.test.o \
           sditer.test.o \
           sdpageiter.test.o \
           svindex.test.o \

@@ -44,13 +44,6 @@ int sd_buildcommit(sdbuild *b)
 	return 0;
 }
 
-int sd_buildrollback(sdbuild *b)
-{
-	b->k.p -= sizeof(sdpageheader);
-	b->list.p -= sizeof(sdbuildref);
-	return 0;
-}
-
 int sd_buildadd(sdbuild *b, sv *v)
 {
 	uint32_t sizeblock = sd_buildheader(b)->sizeblock;
@@ -75,9 +68,7 @@ int sd_buildadd(sdbuild *b, sv *v)
 	rc = sr_bufensure(&b->v, b->r->a, sv->valuesize);
 	if (srunlikely(rc == -1))
 		return -1;
-	rc = svvaluecopy(v, b->v.p);
-	if (srunlikely(rc == -1))
-		return -1;
+	memcpy(b->v.p, svvalue(v), sv->valuesize);
 	sv->valueoffset =
 		sr_bufused(&b->v) - sd_buildref(b)->v;
 	uint32_t crc;
@@ -131,25 +122,6 @@ sd_buildiov(sdbuildiov *i, sriov *iov)
 		n += 2;
 	}
 	return i->i < i->b->n;
-}
-
-int sd_buildcompile(sdbuild *b, srbuf *buf)
-{
-	uint32_t i = 0;
-	while (i < b->n)
-	{
-		sdbuildref *ref =
-			(sdbuildref*)sr_bufat(&b->list, sizeof(sdbuildref), i);
-		int rc = sr_bufensure(buf, b->r->a, ref->ksize + ref->vsize);
-		if (srunlikely(rc == -1))
-			return -1;
-		memcpy(buf->p, b->k.s + ref->k, ref->ksize);
-		sr_bufadvance(buf, ref->ksize);
-		memcpy(buf->p, b->v.s + ref->v, ref->vsize);
-		sr_bufadvance(buf, ref->vsize);
-		i++;
-	}
-	return 0;
 }
 
 int sd_buildwrite(sdbuild *b, sdindex *index, srfile *file)

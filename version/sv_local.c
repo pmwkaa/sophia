@@ -42,14 +42,6 @@ sv_localifvalue(sv *v)
 	return lv->value;
 }
 
-static int
-sv_localifvaluecopy(sv *v, char *dest)
-{
-	svlocal *lv = v->v;
-	memcpy(dest, lv->value, lv->valuesize);
-	return 0;
-}
-
 static uint32_t
 sv_localifvaluesize(sv *v) {
 	return ((svlocal*)v->v)->valuesize;
@@ -60,31 +52,6 @@ sv_localifoffset(sv *v) {
 	return ((svlocal*)v->v)->valueoffset;
 }
 
-static char*
-sv_localifraw(sv *v) {
-	(void)v;
-	assert(0);
-	return NULL;
-}
-
-static uint32_t
-sv_localifrawsize(sv *v) {
-	(void)v;
-	assert(0);
-	return 0;
-}
-
-static void
-sv_localifref(sv *v) {
-	(void)v;
-}
-
-static void
-sv_localifunref(sv *v, sra *a) {
-	sr_free(a, v->v);
-	v->v = NULL;
-}
-
 svif sv_localif =
 {
 	.flags       = sv_localifflags,
@@ -93,11 +60,10 @@ svif sv_localif =
 	.key         = sv_localifkey,
 	.keysize     = sv_localifkeysize,
 	.value       = sv_localifvalue,
-	.valuecopy   = sv_localifvaluecopy,
 	.valuesize   = sv_localifvaluesize,
 	.valueoffset = sv_localifoffset,
-	.raw         = sv_localifraw,
-	.rawsize     = sv_localifrawsize,
-	.ref         = sv_localifref,
-	.unref       = sv_localifunref
+	.raw         = NULL,
+	.rawsize     = NULL,
+	.ref         = NULL,
+	.unref       = NULL
 };

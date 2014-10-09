@@ -81,6 +81,7 @@ svmergeiter_merge_a(stc *cx srunused)
 		i++;
 	}
 	t( i == 10 );
+	sr_iterclose(&merge);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -152,6 +153,7 @@ svmergeiter_merge_b(stc *cx srunused)
 		i++;
 	}
 	t( i == 10 );
+	sr_iterclose(&merge);
 
 	sr_iterinit(&itb, &sr_bufiterref, NULL);
 	sr_iteropen(&itb, &vlistb, sizeof(sv*));
@@ -238,6 +240,7 @@ svmergeiter_merge_ab(stc *cx srunused)
 		i++;
 	}
 	t( i == 10 );
+	sr_iterclose(&merge);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -354,6 +357,7 @@ svmergeiter_merge_abc(stc *cx srunused)
 		i++;
 	}
 	t( i == 15 );
+	sr_iterclose(&merge);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -458,6 +462,7 @@ svmergeiter_merge_ba(stc *cx srunused)
 		i++;
 	}
 	t( i == 10 );
+	sr_iterclose(&merge);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -563,6 +568,7 @@ svmergeiter_merge_dup_ab(stc *cx srunused)
 		i++;
 	}
 	t( i == 10 );
+	sr_iterclose(&merge);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -650,6 +656,7 @@ svmergeiter_merge_dup_a_chain(stc *cx srunused)
 		i++;
 	}
 	t( i == 5 );
+	sr_iterclose(&merge);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -753,6 +760,7 @@ svmergeiter_merge_dup_ab_chain(stc *cx srunused)
 		i++;
 	}
 	t( i == 10 );
+	sr_iterclose(&merge);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -880,6 +888,7 @@ svmergeiter_merge_dup_abc_chain(stc *cx srunused)
 		i++;
 	}
 	t( i == 15 );
+	sr_iterclose(&merge);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
