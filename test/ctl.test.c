@@ -83,7 +83,7 @@ ctl_cursor(stc *cx srunused)
 		if (value)
 			printf(" = %s\n", value);
 		else
-			printf("\n");
+			printf(" = \n");
 	}
 	t( sp_destroy(cur) == 0 );
 	t( sp_destroy(env) == 0 );

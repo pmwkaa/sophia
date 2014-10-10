@@ -52,6 +52,14 @@ sr_errorstatus(srerror *e) {
 	return status;
 }
 
+static inline int
+sr_errorcopy(srerror *e, char *buf, int bufsize) {
+	sr_spinlock(&e->lock);
+	int len = snprintf(buf, bufsize, "%s", e->error);
+	sr_spinunlock(&e->lock);
+	return len;
+}
+
 static inline void
 sr_verror(srerror *e, int status, char *fmt, va_list args)
 {

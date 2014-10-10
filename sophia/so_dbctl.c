@@ -126,13 +126,38 @@ so_dbctl_cmparg(srctl *c srunused, void *arg, va_list args srunused)
 	return 0;
 }
 
+typedef struct sodbctlinfo sodbctlinfo;
+
+struct sodbctlinfo {
+	char *status;
+	char *error;
+	char  errorsz[256];
+	int   errorlen;
+};
+
 static inline void
-so_dbctl_prepare(srctl *t, sodbctl *c)
+so_dbctl_info(sodb *db, sodbctlinfo *info)
 {
-	char *status = so_statusof(((sodb*)c->parent)->status);
+	info->status = so_statusof(db->status);
+	info->errorsz[0] = 0;
+	info->errorlen =
+		sr_errorcopy(&db->error, info->errorsz,
+		             sizeof(info->errorsz));
+	if (srlikely(info->errorlen == 0))
+		info->error = NULL;
+	else
+		info->error = info->errorsz;
+}
+
+static inline void
+so_dbctl_prepare(srctl *t, sodbctl *c, sodbctlinfo *info)
+{
+	sodb *db = c->parent;
+	so_dbctl_info(db, info);
 	srctl *p = t;
 	p = sr_ctladd(p, "name",            SR_CTLSTRING|SR_CTLRO, c->name,            NULL);
-	p = sr_ctladd(p, "status",          SR_CTLSTRING|SR_CTLRO, status,             NULL);
+	p = sr_ctladd(p, "status",          SR_CTLSTRING|SR_CTLRO, info->status,       NULL);
+	p = sr_ctladd(p, "error",           SR_CTLSTRING|SR_CTLRO, info->error,        NULL);
 	p = sr_ctladd(p, "dir",             SR_CTLSTRINGREF,       &c->dir,            NULL);
 	p = sr_ctladd(p, "dir_read",        SR_CTLINT,             &c->dir_read,       NULL);
 	p = sr_ctladd(p, "dir_write",       SR_CTLINT,             &c->dir_write,      NULL);
@@ -259,7 +284,8 @@ int so_dbctl_set(sodbctl *c, char *path, va_list args)
 {
 	sodb *db = c->parent;
 	srctl ctls[30];
-	so_dbctl_prepare(&ctls[0], c);
+	sodbctlinfo info;
+	so_dbctl_prepare(&ctls[0], c, &info);
 	srctl *match = NULL;
 	int rc = sr_ctlget(&ctls[0], &path, &match);
 	if (srunlikely(rc ==  1))
@@ -283,7 +309,8 @@ void *so_dbctl_get(sodbctl *c, char *path, va_list args srunused)
 {
 	sodb *db = c->parent;
 	srctl ctls[30];
-	so_dbctl_prepare(&ctls[0], c);
+	sodbctlinfo info;
+	so_dbctl_prepare(&ctls[0], c, &info);
 	srctl *match = NULL;
 	int rc = sr_ctlget(&ctls[0], &path, &match);
 	if (srunlikely(rc ==  1))
@@ -306,7 +333,8 @@ int so_dbctl_dump(sodbctl *c, srbuf *dump)
 {
 	sodb *db = c->parent;
 	srctl ctls[30];
-	so_dbctl_prepare(&ctls[0], c);
+	sodbctlinfo info;
+	so_dbctl_prepare(&ctls[0], c, &info);
 	char prefix[64];
 	snprintf(prefix, sizeof(prefix), "db.%s.", c->name);
 	int rc = sr_ctlserialize(&ctls[0], &db->e->a, prefix, dump);

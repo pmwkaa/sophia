@@ -33,9 +33,12 @@ static inline int
 so_ctlcursor_set(soctlcursor *c)
 {
 	int type = c->pos->type;
+	void *value = NULL;
+	if (c->pos->valuelen > 0)
+		value = sr_ctldump_value(c->pos);
 	srctl match = {
 		.name = sr_ctldump_name(c->pos),
-		.v    = sr_ctldump_value(c->pos),
+		.v    = value,
 		.type = type,
 		.func = NULL
 	};

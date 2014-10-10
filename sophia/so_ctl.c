@@ -40,12 +40,12 @@ so_ctlreturn(srctl *match, void *o)
 	case SR_CTLSTRINGREF:
 		value = *(char**)match->v;
 		if (value)
-			size = strlen(value) + 1;
+			size = strlen(value);
 		break;
 	case SR_CTLSTRING:
 		value = match->v;
 		if (value)
-			size = strlen(value) + 1;
+			size = strlen(value);
 		break;
 	case SR_CTLTRIGGER: {
 		char hint[] = "function";
@@ -53,11 +53,11 @@ so_ctlreturn(srctl *match, void *o)
 		size = sizeof(hint);
 		break;
 	}
-	case SR_CTLSUB:
-		assert(0);
+	case SR_CTLSUB: assert(0);
 		break;
 	}
-	size++;
+	if (value)
+		size++;
 	svlocal l;
 	l.lsn       = 0;
 	l.flags     = 0;

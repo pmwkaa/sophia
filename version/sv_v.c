@@ -39,6 +39,8 @@ static char*
 sv_vifvalue(sv *v)
 {
 	register svv *vv = v->v;
+	if (vv->valuesize == 0)
+		return NULL;
 	return sv_vvalue(vv);
 }
 
