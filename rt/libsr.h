@@ -38,7 +38,6 @@
 #include <sr_list.h>
 #include <sr_a.h>
 #include <sr_error.h>
-#include <sr_flags.h>
 #include <sr_gc.h>
 #include <sr_seq.h>
 #include <sr_order.h>

@@ -138,7 +138,7 @@ struct sodbctlinfo {
 static inline void
 so_dbctl_info(sodb *db, sodbctlinfo *info)
 {
-	info->status = so_statusof(db->status);
+	info->status = so_statusof(&db->status);
 	info->errorsz[0] = 0;
 	info->errorlen =
 		sr_errorcopy(&db->error, info->errorsz,

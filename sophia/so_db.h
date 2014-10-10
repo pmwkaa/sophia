@@ -32,7 +32,7 @@ struct sodb {
 
 static inline int
 so_dbactive(sodb *o) {
-	return so_statusactive(o->status);
+	return so_statusactive(&o->status);
 }
 
 soobj *so_dbnew(so*, char*);

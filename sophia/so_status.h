@@ -9,23 +9,58 @@
  * BSD License
 */
 
-typedef enum {
+enum {
 	SO_OFFLINE,
 	SO_ONLINE,
 	SO_RECOVER,
 	SO_SHUTDOWN,
 	SO_MALFUNCTION
-} sostatus;
+};
+
+typedef struct sostatus sostatus;
+
+struct sostatus {
+	int status;
+	srspinlock lock;
+};
+
+static inline void
+so_statusinit(sostatus *s)
+{
+	s->status = SO_OFFLINE;
+	sr_spinlockinit(&s->lock);
+}
+
+static inline void
+so_statusfree(sostatus *s)
+{
+	sr_spinlockfree(&s->lock);
+}
 
 static inline int
-so_statusactive(sostatus s) {
-	return s != SO_OFFLINE && s != SO_SHUTDOWN;
+so_statusset(sostatus *s, int status)
+{
+	sr_spinlock(&s->lock);
+	int old = s->status;
+	s->status = status;
+	sr_spinunlock(&s->lock);
+	return old;
+}
+
+static inline int
+so_status(sostatus *s)
+{
+	sr_spinlock(&s->lock);
+	int status = s->status;
+	sr_spinunlock(&s->lock);
+	return status;
 }
 
 static inline char*
-so_statusof(sostatus s)
+so_statusof(sostatus *s)
 {
-	switch (s) {
+	int status = so_status(s);
+	switch (status) {
 	case SO_OFFLINE:     return "offline";
 	case SO_ONLINE:      return "offline";
 	case SO_RECOVER:     return "recover";
@@ -34,6 +69,14 @@ so_statusof(sostatus s)
 	}
 	assert(0);
 	return NULL;
+}
+
+static inline int
+so_statusactive(sostatus *s) {
+
+	int status = so_status(s);
+	return status != SO_OFFLINE &&
+	       status != SO_SHUTDOWN;
 }
 
 #endif

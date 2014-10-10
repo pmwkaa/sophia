@@ -99,7 +99,7 @@ so_recoverlogpool(sodb *db)
 
 int so_recover(sodb *db)
 {
-	db->status = SO_RECOVER;
+	so_statusset(&db->status, SO_RECOVER);
 	siconf *c = &db->indexconf;
 	c->node_size      = db->ctl.node_size;
 	c->node_page_size = db->ctl.node_page_size;

@@ -122,7 +122,7 @@ so_txdo(soobj *obj, uint8_t flags, va_list args)
 	sotx *t = (sotx*)obj;
 	svv *v;
 	int rc;
-	if (srunlikely(t->db->status == SO_RECOVER)) {
+	if (srunlikely(so_status(&t->db->status) == SO_RECOVER)) {
 		sv *recover_v = va_arg(args, sv*);
 		v = sv_valloc(t->db->r.a, recover_v);
 		if (srunlikely(v == NULL))
@@ -323,7 +323,7 @@ so_txcommit(soobj *o, va_list args)
 	sotx *t  = (sotx*)o;
 	sodb *db = t->db;
 	so *e    = t->db->e;
-	if (e->status == SO_RECOVER)
+	if (so_status(&db->status) == SO_RECOVER)
 		return so_txcommit_recover(o, args);
 	sm_lock(&db->mvcc);
 	smstate s = sm_prepare(&t->t, so_txprepare, t);

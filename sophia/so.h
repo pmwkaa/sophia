@@ -15,7 +15,7 @@ struct so {
 	soobj o;
 	soobjindex db;
 	soobjindex ctlcursor;
-	volatile sostatus status;
+	sostatus status;
 	soctl ctl;
 	sra a;
 	srseq seq;
@@ -25,7 +25,7 @@ struct so {
 
 static inline int
 so_active(so *o) {
-	return so_statusactive(o->status);
+	return so_statusactive(&o->status);
 }
 
 soobj *so_new(void);
