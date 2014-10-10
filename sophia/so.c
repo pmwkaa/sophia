@@ -73,6 +73,7 @@ static soobjif soif =
 	.ctl      = so_ctl,
 	.open     = so_open,
 	.destroy  = so_destroy,
+	.error    = NULL,
 	.set      = NULL,
 	.get      = NULL,
 	.del      = NULL,

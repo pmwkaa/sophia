@@ -119,6 +119,7 @@ static soobjif sovif =
 	.ctl      = NULL,
 	.open     = NULL,
 	.destroy  = so_vdestroy,
+	.error    = NULL,
 	.set      = so_vset,
 	.get      = so_vget,
 	.del      = NULL,

@@ -22,6 +22,7 @@ extern stgroup *svindexiter_group(void);
 extern stgroup *svmergeiter_group(void);
 extern stgroup *svseaveiter_group(void);
 extern stgroup *ctl_group(void);
+extern stgroup *error_group(void);
 extern stgroup *dml_group(void);
 extern stgroup *object_group(void);
 extern stgroup *profiler_group(void);
@@ -70,6 +71,7 @@ main(int argc, char *argv[])
 	st_planscene(plan, st_sceneof(&s, "test"));
 	st_planscene(plan, st_sceneof(&s, "pass"));
 	st_planadd(plan, ctl_group());
+	st_planadd(plan, error_group());
 	st_planadd(plan, profiler_group());
 	st_planadd(plan, dml_group());
 	st_add(&s, plan);

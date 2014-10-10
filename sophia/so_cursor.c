@@ -125,6 +125,7 @@ static soobjif socursorif =
 	.ctl      = NULL,
 	.open     = NULL,
 	.destroy  = so_cursordestroy,
+	.error    = NULL,
 	.set      = NULL,
 	.get      = so_cursorget,
 	.del      = NULL,

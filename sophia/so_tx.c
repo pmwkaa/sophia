@@ -391,6 +391,7 @@ static soobjif sotxif =
 	.ctl      = NULL,
 	.open     = NULL,
 	.destroy  = so_txrollback,
+	.error    = NULL,
 	.set      = so_txset,
 	.del      = so_txdelete,
 	.get      = so_txget,

@@ -89,11 +89,29 @@ ctl_cursor(stc *cx srunused)
 	t( sp_destroy(env) == 0 );
 }
 
+static void
+ctl_error(stc *cx srunused)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	void *c = sp_ctl(env);
+	t( c != NULL );
+	t( sp_set(c, "db.test") == 0 );
+	void *o = sp_get(c, "db.test.error");
+	t( o != NULL );
+	char *value = sp_get(o, "value", NULL);
+	t( value == NULL );
+	sp_destroy(o);
+	t( sp_destroy(env) == 0 );
+}
+
+
 stgroup *ctl_group(void)
 {
 	stgroup *group = st_group("ctl");
 	st_groupadd(group, st_test("version", ctl_version));
 	st_groupadd(group, st_test("error_injection", ctl_error_injection));
 	st_groupadd(group, st_test("cursor", ctl_cursor));
+	st_groupadd(group, st_test("error", ctl_error));
 	return group;
 }

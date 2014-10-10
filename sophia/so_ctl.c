@@ -245,6 +245,7 @@ static soobjif soctlif =
 	.ctl      = NULL,
 	.open     = NULL,
 	.destroy  = NULL,
+	.error    = NULL,
 	.set      = so_ctlset,
 	.get      = so_ctlget,
 	.del      = NULL,

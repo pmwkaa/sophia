@@ -31,6 +31,7 @@ typedef struct soobj soobj;
 struct soobjif {
 	void *(*ctl)(soobj*, va_list);
 	int   (*open)(soobj*, va_list);
+	int   (*error)(soobj*, va_list);
 	int   (*destroy)(soobj*);
 	int   (*set)(soobj*, va_list);
 	void *(*get)(soobj*, va_list);

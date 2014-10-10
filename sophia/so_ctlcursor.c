@@ -108,6 +108,7 @@ static soobjif soctlcursorif =
 	.ctl      = NULL,
 	.open     = NULL,
 	.destroy  = so_ctlcursor_destroy,
+	.error    = NULL,
 	.set      = NULL,
 	.get      = so_ctlcursor_get,
 	.del      = NULL,

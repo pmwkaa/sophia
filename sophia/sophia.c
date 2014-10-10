@@ -70,6 +70,18 @@ sp_destroy(void *o, ...)
 	return oif->destroy(o);
 }
 
+SP_API int sp_error(void *o, ...)
+{
+	soobjif *oif = ((soobj*)o)->oif;
+	if (srunlikely(oif->error == NULL))
+		return -1;
+	va_list args;
+	va_start(args, o);
+	int rc = oif->error(o, args);
+	va_end(args);
+	return rc;
+}
+
 SP_API int
 sp_set(void *o, ...)
 {
@@ -175,11 +187,4 @@ SP_API void *sp_copy(void *o, ...)
 	void *h = oif->copy(o, args);
 	va_end(args);
 	return h;
-}
-
-SP_API void *sp_error(void *o, ...)
-{
-	(void)o;
-	/* obj->error */
-	return "";
 }

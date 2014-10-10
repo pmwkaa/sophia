@@ -136,6 +136,16 @@ so_dbdestroy(soobj *obj)
 }
 
 static int
+so_dberror(soobj *obj, va_list args srunused)
+{
+	sodb *o = (sodb*)obj;
+	int status = sr_errorstatus(&o->error);
+	if (srunlikely(status != SR_ERROR_NONE))
+		return 1;
+	return 0;
+}
+
+static int
 so_dbset(soobj *obj, va_list args)
 {
 	sodb *o = (sodb*)obj;
@@ -187,6 +197,7 @@ static soobjif sodbif =
 	.ctl      = NULL,
 	.open     = so_dbopen,
 	.destroy  = so_dbdestroy,
+	.error    = so_dberror,
 	.set      = so_dbset,
 	.get      = so_dbget,
 	.del      = so_dbdel,
