@@ -55,7 +55,9 @@ sl_begin_commit(stc *cx)
 	srseq seq;
 	sr_seqinit(&seq);
 	sr r;
-	sr_init(&r, &a, &seq, &cmp, NULL);
+	srerror error;
+	sr_errorinit(&error);
+	sr_init(&r, &error, &a, &seq, &cmp, NULL);
 	slconf conf = {
 		.dir        = cx->suite->logdir,
 		.dir_read   = 1,
@@ -91,7 +93,9 @@ sl_begin_rollback(stc *cx)
 	srseq seq;
 	sr_seqinit(&seq);
 	sr r;
-	sr_init(&r, &a, &seq, &cmp, NULL);
+	srerror error;
+	sr_errorinit(&error);
+	sr_init(&r, &error, &a, &seq, &cmp, NULL);
 	slconf conf = {
 		.dir        = cx->suite->logdir,
 		.dir_read   = 1,

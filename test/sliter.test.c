@@ -54,8 +54,10 @@ sliter_tx(stc *cx)
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srseq seq;
 	sr_seqinit(&seq);
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, &seq, &cmp, NULL);
+	sr_init(&r, &error, &a, &seq, &cmp, NULL);
 	slconf conf = {
 		.dir        = cx->suite->logdir,
 		.dir_read   = 1,
@@ -90,8 +92,10 @@ sliter_tx_read_empty(stc *cx)
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srseq seq;
 	sr_seqinit(&seq);
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, &seq, &cmp, NULL);
+	sr_init(&r, &error, &a, &seq, &cmp, NULL);
 	slconf conf = {
 		.dir        = cx->suite->logdir,
 		.dir_read   = 1,
@@ -136,8 +140,10 @@ sliter_tx_read0(stc *cx)
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srseq seq;
 	sr_seqinit(&seq);
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, &seq, &cmp, NULL);
+	sr_init(&r, &error, &a, &seq, &cmp, NULL);
 	slconf conf = {
 		.dir        = cx->suite->logdir,
 		.dir_read   = 1,
@@ -187,8 +193,10 @@ sliter_tx_read1(stc *cx)
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srseq seq;
 	sr_seqinit(&seq);
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, &seq, &cmp, NULL);
+	sr_init(&r, &error, &a, &seq, &cmp, NULL);
 	slconf conf = {
 		.dir        = cx->suite->logdir,
 		.dir_read   = 1,
@@ -249,8 +257,10 @@ sliter_tx_read2(stc *cx)
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srseq seq;
 	sr_seqinit(&seq);
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, &seq, &cmp, NULL);
+	sr_init(&r, &error, &a, &seq, &cmp, NULL);
 	slconf conf = {
 		.dir        = cx->suite->logdir,
 		.dir_read   = 1,

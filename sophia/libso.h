@@ -9,6 +9,7 @@
  * BSD License
 */
 
+#include <so_status.h>
 #include <so_worker.h>
 #include <so_obj.h>
 #include <so_objindex.h>

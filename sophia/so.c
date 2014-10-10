@@ -29,7 +29,7 @@ so_open(soobj *o, va_list args)
 	so *e = (so*)o;
 	if (so_active(e))
 		return -1;
-	e->mode = SO_RECOVER;
+	e->status = SO_RECOVER;
 	srlist *i, *n;
 	sr_listforeach_safe(&e->db.list, i, n) {
 		soobj *o = srcast(i, soobj, olink);
@@ -37,7 +37,7 @@ so_open(soobj *o, va_list args)
 		if (srunlikely(rc == -1))
 			return -1;
 	}
-	e->mode = SO_ONLINE;
+	e->status = SO_ONLINE;
 	return 0;
 }
 
@@ -47,7 +47,7 @@ so_destroy(soobj *o)
 	so *e = (so*)o;
 	int rcret = 0;
 	int rc;
-	e->mode = SO_SHUTDOWN;
+	e->status = SO_SHUTDOWN;
 	srlist *i, *n;
 	sr_listforeach_safe(&e->db.list, i, n) {
 		soobj *o = srcast(i, soobj, olink);
@@ -91,13 +91,14 @@ soobj *so_new(void)
 	if (srunlikely(e == NULL))
 		return NULL;
 	memset(e, 0, sizeof(*e));
-	e->mode = SO_OFFLINE;
+	e->status = SO_OFFLINE;
 	so_objinit(&e->o, SOENV, &soif);
 	so_ctlinit(&e->ctl, e);
 	so_objindex_init(&e->db);
 	so_objindex_init(&e->ctlcursor);
 	sr_seqinit(&e->seq);
 	sr_allocinit(&e->a, sr_allocstd, NULL);
-	sr_init(&e->r, &e->a, &e->seq, NULL, NULL);
+	sr_errorinit(&e->error);
+	sr_init(&e->r, &e->error, &e->a, &e->seq, NULL, NULL);
 	return &e->o;
 }

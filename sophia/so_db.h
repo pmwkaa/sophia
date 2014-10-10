@@ -13,7 +13,7 @@ typedef struct sodb sodb;
 
 struct sodb {
 	soobj o;
-	somode mode;
+	sostatus status;
 	sodbctl ctl;
 	soobjindex tx;
 	soobjindex cursor;
@@ -25,14 +25,14 @@ struct sodb {
 	slpool lp;
 	soworkers workers;
 	srinjection ei;
+	srerror error;
 	sr r;
 	so *e;
 };
 
 static inline int
 so_dbactive(sodb *o) {
-	return o->mode != SO_OFFLINE &&
-	       o->mode != SO_SHUTDOWN;
+	return so_statusactive(o->status);
 }
 
 soobj *so_dbnew(so*, char*);

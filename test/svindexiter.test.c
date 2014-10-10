@@ -34,8 +34,10 @@ svindexiter_lte_empty(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -57,8 +59,10 @@ svindexiter_lte_eq0(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -102,8 +106,10 @@ svindexiter_lte_eq1(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -141,8 +147,10 @@ svindexiter_lte_minmax(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -192,8 +200,10 @@ svindexiter_lte_mid0(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -247,8 +257,10 @@ svindexiter_lte_mid1(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -293,8 +305,10 @@ svindexiter_lte_iterate0(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -342,8 +356,10 @@ svindexiter_lte_iterate1(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -387,8 +403,10 @@ svindexiter_lte_iterate2(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -426,8 +444,10 @@ svindexiter_lt_eq(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -471,8 +491,10 @@ svindexiter_lt_iterate(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -514,8 +536,10 @@ svindexiter_lte_dup_eq(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -558,8 +582,10 @@ svindexiter_lte_dup_mid(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -615,8 +641,10 @@ svindexiter_lte_dup_iterate(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -670,8 +698,10 @@ svindexiter_gte_empty(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -693,8 +723,10 @@ svindexiter_gte_eq0(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -738,8 +770,10 @@ svindexiter_gte_eq1(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -777,8 +811,10 @@ svindexiter_gte_minmax(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -828,8 +864,10 @@ svindexiter_gte_mid0(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -883,8 +921,10 @@ svindexiter_gte_mid1(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -929,8 +969,10 @@ svindexiter_gte_iterate0(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -978,8 +1020,10 @@ svindexiter_gte_iterate1(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -1023,8 +1067,10 @@ svindexiter_gt_eq(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -1068,8 +1114,10 @@ svindexiter_gt_iterate(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -1111,8 +1159,10 @@ svindexiter_gte_dup_eq(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -1155,8 +1205,10 @@ svindexiter_gte_dup_mid(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -1212,8 +1264,10 @@ svindexiter_gte_dup_iterate(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -1266,8 +1320,10 @@ svindexiter_random(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -1301,8 +1357,10 @@ svindexiter_iterate_raw0(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -1361,8 +1419,10 @@ svindexiter_iterate_raw1(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );

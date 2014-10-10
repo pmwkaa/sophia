@@ -36,7 +36,7 @@ int sr_ctlset(srctl *c, sra *a, void *arg, va_list args)
 		break;
 	case SR_CTLU64: *((uint64_t*)c->v) = sr_atoi(value);
 		break;
-	case SR_CTLSTRING: {
+	case SR_CTLSTRINGREF: {
 		char *nsz = sr_strdup(a, value);
 		if (srunlikely(nsz == NULL))
 			return -1;
@@ -46,7 +46,9 @@ int sr_ctlset(srctl *c, sra *a, void *arg, va_list args)
 		*sz = nsz;
 		break;
 	}
-	case SR_CTLSUB: return -1;
+	case SR_CTLSTRING: assert(0);
+	case SR_CTLSUB:
+		return -1;
 	}
 	return 0;
 }
@@ -92,13 +94,19 @@ sr_ctldump(srctl *c, sra *a, char *prefix, srbuf *buf)
 		dump.valuelen = sizeof(uint64_t);
 		value = c->v;
 		break;
-	case SR_CTLSTRING: {
+	case SR_CTLSTRINGREF: {
 		char **sz = (char**)c->v;
 		if (*sz)
 			dump.valuelen = strlen(*sz) + 1;
 		value = *sz;
+		dump.type = SR_CTLSTRING;
 		break;
 	}
+	case SR_CTLSTRING:
+		value = c->v;
+		if (value)
+			dump.valuelen = strlen(value) + 1;
+		break;
 	case SR_CTLTRIGGER:
 		dump.valuelen = 0;
 		value = NULL;

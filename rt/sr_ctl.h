@@ -15,13 +15,14 @@ typedef struct srctldump srctldump;
 typedef int (*srctlf)(srctl*, void*, va_list);
 
 typedef enum {
-	SR_CTLRO      = 1,
-	SR_CTLINT     = 2,
-	SR_CTLU32     = 4,
-	SR_CTLU64     = 8,
-	SR_CTLSTRING  = 16,
-	SR_CTLTRIGGER = 32,
-	SR_CTLSUB     = 64
+	SR_CTLRO        = 1,
+	SR_CTLINT       = 2,
+	SR_CTLU32       = 4,
+	SR_CTLU64       = 8,
+	SR_CTLSTRINGREF = 16,
+	SR_CTLSTRING    = 32,
+	SR_CTLTRIGGER   = 64,
+	SR_CTLSUB       = 128
 } srctltype;
 
 struct srctl {

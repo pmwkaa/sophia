@@ -129,13 +129,15 @@ so_dbctl_cmparg(srctl *c srunused, void *arg, va_list args srunused)
 static inline void
 so_dbctl_prepare(srctl *t, sodbctl *c)
 {
+	char *status = so_statusof(((sodb*)c->parent)->status);
 	srctl *p = t;
-	p = sr_ctladd(p, "name",            SR_CTLSTRING|SR_CTLRO, &c->name,           NULL);
-	p = sr_ctladd(p, "dir",             SR_CTLSTRING,          &c->dir,            NULL);
+	p = sr_ctladd(p, "name",            SR_CTLSTRING|SR_CTLRO, c->name,            NULL);
+	p = sr_ctladd(p, "status",          SR_CTLSTRING|SR_CTLRO, status,             NULL);
+	p = sr_ctladd(p, "dir",             SR_CTLSTRINGREF,       &c->dir,            NULL);
 	p = sr_ctladd(p, "dir_read",        SR_CTLINT,             &c->dir_read,       NULL);
 	p = sr_ctladd(p, "dir_write",       SR_CTLINT,             &c->dir_write,      NULL);
 	p = sr_ctladd(p, "dir_create",      SR_CTLINT,             &c->dir_create,     NULL);
-	p = sr_ctladd(p, "logdir",          SR_CTLSTRING,          &c->logdir,         NULL);
+	p = sr_ctladd(p, "logdir",          SR_CTLSTRINGREF,       &c->logdir,         NULL);
 	p = sr_ctladd(p, "logdir_read",     SR_CTLINT,             &c->logdir_read,    NULL);
 	p = sr_ctladd(p, "logdir_write",    SR_CTLINT,             &c->logdir_write,   NULL);
 	p = sr_ctladd(p, "logdir_create",   SR_CTLINT,             &c->logdir_create,  NULL);

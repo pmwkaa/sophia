@@ -12,6 +12,7 @@
 typedef struct sr sr;
 
 struct sr {
+	srerror *e;
 	srcomparator *cmp;
 	srseq *seq;
 	sra *a;
@@ -19,14 +20,17 @@ struct sr {
 };
 
 static inline void
-sr_init(sr *r, sra *a,
+sr_init(sr *r,
+        srerror *e,
+        sra *a,
         srseq *seq,
         srcomparator *cmp,
         srinjection *i)
 {
-	r->cmp = cmp;
-	r->seq = seq;
+	r->e   = e;
 	r->a   = a;
+	r->seq = seq;
+	r->cmp = cmp;
 	r->i   = i;
 }
 

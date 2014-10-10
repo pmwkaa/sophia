@@ -32,15 +32,11 @@ so_ctlcursor_destroy(soobj *o)
 static inline int
 so_ctlcursor_set(soctlcursor *c)
 {
-	void *value = sr_ctldump_value(c->pos);
-	void *sz = value;
-	int type = c->pos->type & ~SR_CTLRO;
-	if (type == SR_CTLSTRING || type == SR_CTLTRIGGER)
-		value = &sz;
+	int type = c->pos->type;
 	srctl match = {
 		.name = sr_ctldump_name(c->pos),
-		.v    = value,
-		.type = c->pos->type,
+		.v    = sr_ctldump_value(c->pos),
+		.type = type,
 		.func = NULL
 	};
 	void *v = so_ctlreturn(&match, c->e);

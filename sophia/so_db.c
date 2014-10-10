@@ -92,7 +92,7 @@ so_dbopen(soobj *obj, va_list args srunused)
 	rc = so_recover(o);
 	if (srunlikely(rc == -1))
 		return -1;
-	o->mode = SO_ONLINE;
+	o->status = SO_ONLINE;
 	int threads = o->ctl.threads;
 	if (threads) {
 		rc = so_workersnew(&o->workers, &o->r, 1, so_brancher, o);
@@ -113,7 +113,7 @@ so_dbdestroy(soobj *obj)
 {
 	sodb *o = (sodb*)obj;
 	so_objindex_unregister(&o->e->db, &o->o);
-	o->mode = SO_SHUTDOWN;
+	o->status = SO_SHUTDOWN;
 	int rcret = 0;
 	int rc;
 	rc = so_workersshutdown(&o->workers, &o->r);
@@ -208,11 +208,13 @@ soobj *so_dbnew(so *e, char *name)
 	so_objinit(&o->o, SODB, &sodbif);
 	so_objindex_init(&o->tx);
 	so_objindex_init(&o->cursor);
-	o->mode = SO_OFFLINE;
+	sr_errorinit(&o->error);
+	o->status = SO_OFFLINE;
 	o->e     = e;
 	o->r     = e->r;
 	o->r.cmp = &o->ctl.cmp;
 	o->r.i   = &o->ei;
+	o->r.e   = &o->error;
 	int rc = so_dbctl_init(&o->ctl, name, o);
 	if (srunlikely(rc == -1)) {
 		sr_free(&e->a, o);

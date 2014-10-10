@@ -11,28 +11,21 @@
 
 typedef struct so so;
 
-typedef enum {
-	SO_OFFLINE,
-	SO_ONLINE,
-	SO_RECOVER,
-	SO_SHUTDOWN
-} somode;
-
 struct so {
 	soobj o;
 	soobjindex db;
 	soobjindex ctlcursor;
-	volatile somode mode;
+	volatile sostatus status;
 	soctl ctl;
 	sra a;
 	srseq seq;
+	srerror error;
 	sr r;
 };
 
 static inline int
 so_active(so *o) {
-	return o->mode != SO_OFFLINE &&
-	       o->mode != SO_SHUTDOWN;
+	return so_statusactive(o->status);
 }
 
 soobj *so_new(void);

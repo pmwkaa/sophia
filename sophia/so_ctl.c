@@ -37,9 +37,15 @@ so_ctlreturn(srctl *match, void *o)
 		size = snprintf(integer, sizeof(integer), "%"PRIu64, *(uint64_t*)match->v);
 		value = integer;
 		break;
-	case SR_CTLSTRING:
+	case SR_CTLSTRINGREF:
 		value = *(char**)match->v;
-		size = strlen(value);
+		if (value)
+			size = strlen(value) + 1;
+		break;
+	case SR_CTLSTRING:
+		value = match->v;
+		if (value)
+			size = strlen(value) + 1;
 		break;
 	case SR_CTLTRIGGER: {
 		char hint[] = "function";
@@ -91,7 +97,7 @@ so_ctlsophia_get(soctl *c, char *path, va_list args srunused)
 	         version_minor);
 	srctl ctls[4];
 	srctl *p = ctls;
-	p = sr_ctladd(p, "version",       SR_CTLSTRING|SR_CTLRO, &version_ptr,   NULL);
+	p = sr_ctladd(p, "version",       SR_CTLSTRING|SR_CTLRO, version_ptr,    NULL);
 	p = sr_ctladd(p, "version_major", SR_CTLINT|SR_CTLRO,    &version_major, NULL);
 	p = sr_ctladd(p, "version_minor", SR_CTLINT|SR_CTLRO,    &version_minor, NULL);
 	p = sr_ctladd(p,  NULL,           0,                     NULL,           NULL);
@@ -116,7 +122,7 @@ so_ctlsophia_dump(soctl *c, srbuf *dump)
 	         version_minor);
 	srctl ctls[4];
 	srctl *p = ctls;
-	p = sr_ctladd(p, "version",       SR_CTLSTRING|SR_CTLRO, &version_ptr,   NULL);
+	p = sr_ctladd(p, "version",       SR_CTLSTRING|SR_CTLRO, version_ptr,    NULL);
 	p = sr_ctladd(p, "version_major", SR_CTLINT|SR_CTLRO,    &version_major, NULL);
 	p = sr_ctladd(p, "version_minor", SR_CTLINT|SR_CTLRO,    &version_minor, NULL);
 	p = sr_ctladd(p,  NULL,           0,                     NULL,           NULL);

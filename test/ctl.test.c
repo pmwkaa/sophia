@@ -70,15 +70,12 @@ ctl_cursor(stc *cx srunused)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "db.test") == 0 );
-
 	void *o = sp_get(c, "db.test.run_branch");
 	t( o != NULL );
 	sp_destroy(o);
-
 	void *cur = sp_cursor(c, ">=", NULL);
 	t( cur != NULL );
-
-	printf("\n\n");
+	printf("\n");
 	while ((o = sp_get(cur))) {
 		char *key = sp_get(o, "key", NULL);
 		char *value = sp_get(o, "value", NULL);
@@ -89,7 +86,6 @@ ctl_cursor(stc *cx srunused)
 			printf("\n");
 	}
 	t( sp_destroy(cur) == 0 );
-
 	t( sp_destroy(env) == 0 );
 }
 

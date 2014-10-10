@@ -35,8 +35,10 @@ sdv_test(stc *cx srunused)
 	sra a;
 	sr_allocinit(&a, sr_allocstd, NULL);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b, &r);
