@@ -334,11 +334,9 @@ so_txcommit_recover(soobj *o, va_list args)
 	sm_lock(&db->mvcc);
 	sm_commit(&t->t);
 	uint64_t lsvn = sm_lsvn(&db->mvcc);
-	int rc;
 	sitx ti;
 	si_begin(&ti, &db->r, &db->index, lsvn, &t->t.log, NULL);
 	si_writelog(&ti);
-	assert(rc == 0);
 	si_commit(&ti);
 	sm_unlock(&db->mvcc);
 	sm_end(&t->t);
@@ -402,7 +400,6 @@ so_txcommit(soobj *o, va_list args)
 	sitx ti;
 	si_begin(&ti, &db->r, &db->index, lsvn, &t->t.log, NULL);
 	si_writelog(&ti);
-	assert(rc == 0);
 	si_commit(&ti);
 	sm_unlock(&db->mvcc);
 	sm_end(&t->t);
