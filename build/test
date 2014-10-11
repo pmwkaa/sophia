@@ -13,6 +13,8 @@ TEST_CFLAGS  = $(CFLAGS_INCLUDE) $(TEST_DEBUG) -I. -I../sophia -pthread
 TEST_LDFLAGS = $(LDFLAGS) $(TEST_DEBUG) ../sophia/libsophia.a -pthread -lm $(TEST_COVERAGE)
 TEST_LOGDIR  = logdir
 TEST_DIR     = dir
+TEST_GDB     = gdb
+TEST_GREP    = grep
 TEST_BINARY  = run
 
 all: build
@@ -27,8 +29,10 @@ clean:
 	$(Q) $(RM) -f $(OBJECTS)
 cleanup: clean
 	$(Q) $(RM) -fr $(TEST_DIR) $(TEST_LOGDIR)
-test:
+test_valgrind:
 	$(Q) $(VALGRIND) ./$(TEST_BINARY)
+test:
+	$(Q) $(TEST_GDB) -batch -ex "run" -ex "bt" ./$(TEST_BINARY)
 
 .PHONY: test
 
