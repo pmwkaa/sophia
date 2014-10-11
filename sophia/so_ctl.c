@@ -112,7 +112,7 @@ so_ctlsophia_get(soctl *c, char *path, va_list args srunused)
 		error = NULL;
 	else
 		error = errorsz;
-	srctl ctls[4];
+	srctl ctls[30];
 	srctl *p = ctls;
 	p = sr_ctladd(p, "version",       SR_CTLSTRING|SR_CTLRO, version_ptr,    NULL);
 	p = sr_ctladd(p, "version_major", SR_CTLINT|SR_CTLRO,    &version_major, NULL);
@@ -148,7 +148,7 @@ so_ctlsophia_dump(soctl *c, srbuf *dump)
 		error = NULL;
 	else
 		error = errorsz;
-	srctl ctls[4];
+	srctl ctls[30];
 	srctl *p = ctls;
 	p = sr_ctladd(p, "version",       SR_CTLSTRING|SR_CTLRO, version_ptr,    NULL);
 	p = sr_ctladd(p, "version_major", SR_CTLINT|SR_CTLRO,    &version_major, NULL);

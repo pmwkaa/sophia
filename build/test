@@ -32,7 +32,7 @@ cleanup: clean
 test_valgrind:
 	$(Q) $(VALGRIND) ./$(TEST_BINARY)
 test:
-	$(Q) $(TEST_GDB) -batch -ex "run" -ex "bt" ./$(TEST_BINARY)
+	$(Q) $(TEST_GDB) -q -return-child-result -batch -ex "run" -ex "bt" ./$(TEST_BINARY)
 
 .PHONY: test
 
