@@ -1,6 +1,8 @@
 language: c
 before_install:
   - sudo pip install cpp-coveralls
+  # backtrace support
+  - sudo apt-get -y install gdb
 after_success:
   - coveralls --exclude test -r . -b .
 compiler:
