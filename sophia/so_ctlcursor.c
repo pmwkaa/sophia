@@ -139,8 +139,11 @@ soobj *so_ctlcursor_new(void *o)
 {
 	so *e = o;
 	soctlcursor *c = sr_malloc(&e->a, sizeof(soctlcursor));
-	if (srunlikely(c == NULL))
+	if (srunlikely(c == NULL)) {
+		sr_error(&e->error, "memory allocation failed");
+		sr_error_recoverable(&e->error);
 		return NULL;
+	}
 	so_objinit(&c->o, SOCTLCURSOR, &soctlcursorif);
 	c->e = o;
 	c->pos = NULL;

@@ -28,6 +28,9 @@ so_workershutdown(soworker *w, sr *r)
 {
 	sr_threadwakeup(&w->t);
 	int rc = sr_threadjoin(&w->t);
+	if (srunlikely(rc == -1))
+		sr_error(r->e, "failed to join a thread: %s",
+		         strerror(errno));
 	sd_cfree(&w->dc, r);
 	sr_free(r->a, w);
 	return rc;
@@ -51,13 +54,17 @@ static inline soworker*
 so_workernew(sr *r, srthreadf f, void *arg)
 {
 	soworker *p = sr_malloc(r->a, sizeof(soworker));
-	if (srunlikely(p == NULL))
+	if (srunlikely(p == NULL)) {
+		sr_error(r->e, "memory allocation failed");
 		return NULL;
+	}
 	p->arg = arg;
 	sd_cinit(&p->dc, r);
 	sr_listinit(&p->link);
 	int rc = sr_threadnew(&p->t, f, p);
 	if (srunlikely(rc == -1)) {
+		sr_error(r->e, "failed to create thread: %s",
+		         strerror(errno));
 		sr_free(r->a, p);
 		return NULL;
 	}

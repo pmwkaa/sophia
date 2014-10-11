@@ -53,10 +53,10 @@ sditer_gt0(stc *cx srunused)
 	sd_buildcommit(&b);
 	sdindex index;
 	sd_indexinit(&index);
-	t( sd_indexbegin(&index, &a, 0) == 0 );
+	t( sd_indexbegin(&index, &r, 0) == 0 );
 	sdid id;
 	memset(&id, 0, sizeof(id));
-	t( sd_indexcommit(&index, &a, &id) == 0 );
+	t( sd_indexcommit(&index, &r, &id) == 0 );
 
 	srfile f;
 	sr_fileinit(&f, &a);
@@ -86,7 +86,7 @@ sditer_gt0(stc *cx srunused)
 	t( sr_mapunmap(&map) == 0 );
 	t( sr_fileunlink("./0000.db") == 0 );
 
-	sd_indexfree(&index, &a);
+	sd_indexfree(&index, &r);
 	sd_buildfree(&b);
 }
 
@@ -135,10 +135,10 @@ sditer_gt1(stc *cx srunused)
 
 	sdindex index;
 	sd_indexinit(&index);
-	t( sd_indexbegin(&index, &a, 0) == 0 );
+	t( sd_indexbegin(&index, &r, 0) == 0 );
 	sdid id;
 	memset(&id, 0, sizeof(id));
-	t( sd_indexcommit(&index, &a, &id) == 0 );
+	t( sd_indexcommit(&index, &r, &id) == 0 );
 	srfile f;
 	sr_fileinit(&f, &a);
 	t( sr_filenew(&f, "./0000.db") == 0 );
@@ -191,7 +191,7 @@ sditer_gt1(stc *cx srunused)
 	t( sr_mapunmap(&map) == 0 );
 	t( sr_fileunlink("./0000.db") == 0 );
 
-	sd_indexfree(&index, &a);
+	sd_indexfree(&index, &r);
 	sd_buildfree(&b);
 }
 

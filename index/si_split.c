@@ -49,13 +49,14 @@ int si_split(sisplit *s, sr *r, sdc *c, srbuf *result)
 		if (srunlikely(rc == -1))
 			goto error;
 		if (s->flags & SD_IDBRANCH)
-			rc = si_nodecreate(n, s->conf, &id, &merge.index, &c->build);
+			rc = si_nodecreate(n, r, s->conf, &id, &merge.index, &c->build);
 		else
-			rc = si_nodecreate_attach(n, s->conf, &id, &merge.index, &c->build);
+			rc = si_nodecreate_attach(n, r, s->conf, &id, &merge.index, &c->build);
 		if (srunlikely(rc == -1))
 			goto error;
 		rc = sr_bufadd(result, r->a, &n, sizeof(sinode*));
 		if (srunlikely(rc == -1)) {
+			sr_error(r->e, "memory allocation failed");
 			si_nodefree(n, r);
 			goto error;
 		}

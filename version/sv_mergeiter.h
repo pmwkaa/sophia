@@ -29,9 +29,12 @@ sv_mergeinit(svmerge *m) {
 }
 
 static inline int
-sv_mergeprepare(svmerge *m, sra *a, int count, int reserve) {
+sv_mergeprepare(svmerge *m, sr *r, int count, int reserve) {
 	m->reserve = reserve;
-	return sr_bufensure(&m->buf, a, (sizeof(svmergesrc) + reserve) * count);
+	int rc = sr_bufensure(&m->buf, r->a, (sizeof(svmergesrc) + reserve) * count);
+	if (srunlikely(rc == -1))
+		return sr_error(r->e, "memory allocation failed");
+	return 0;
 }
 
 static inline void

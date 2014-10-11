@@ -41,15 +41,15 @@ struct sinode {
 } srpacked;
 
 sinode *si_nodenew(sr*);
-int si_nodecreate(sinode*, siconf*, sdid*, sdindex*, sdbuild*);
-int si_nodecreate_attach(sinode*, siconf*, sdid*, sdindex*, sdbuild*);
+int si_nodecreate(sinode*, sr*, siconf*, sdid*, sdindex*, sdbuild*);
+int si_nodecreate_attach(sinode*, sr*, siconf*, sdid*, sdindex*, sdbuild*);
 int si_nodeopen(sinode*, sr*, srpath*);
 int si_nodefree(sinode*, sr*);
 int si_nodefree_all(sinode*, sr*);
 int si_nodecmp(sinode*, void*, int, srcomparator*);
 int si_nodegc(sinode*, sr*);
-int si_nodeseal(sinode*, siconf*);
-int si_nodecomplete(sinode*, siconf*);
+int si_nodeseal(sinode*, sr*, siconf*);
+int si_nodecomplete(sinode*, sr*, siconf*);
 
 static inline svindex*
 si_noderotate(sinode *node) {

@@ -56,10 +56,8 @@ so_cursorseek(socursor *c, void *key, int keysize)
 static inline int
 so_cursoropen(socursor *c, void *key, int keysize)
 {
-	int rc = sm_begin(&c->db->mvcc, &c->t);
-	if (srunlikely(rc == -1))
-		return -1;
-
+	sm_begin(&c->db->mvcc, &c->t);
+	int rc;
 	do {
 		rc = so_cursorseek(c, key, keysize);
 	} while (rc == 1 && (svflags(&c->v.v) & SVDELETE) > 0);
@@ -68,7 +66,6 @@ so_cursoropen(socursor *c, void *key, int keysize)
 		sm_end(&c->t);
 		return -1;
 	}
-
 	return so_vhas(&c->v);
 }
 
@@ -167,8 +164,11 @@ soobj *so_cursornew(sodb *db, va_list args)
 		goto error;
 	}
 	c = sr_malloc(&e->a, sizeof(socursor));
-	if (srunlikely(c == NULL))
+	if (srunlikely(c == NULL)) {
+		sr_error(&e->error, "memory allocation failed");
+		sr_error_recoverable(&e->error);
 		goto error;
+	}
 	so_objinit(&c->o, SOCURSOR, &socursorif);
 	c->key   = keyobj;
 	c->db    = db;

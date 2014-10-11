@@ -66,7 +66,6 @@ so_recoverlog(sodb *db, sl *log)
 		rc = sp_commit(tx, lsn, log);
 		if (srunlikely(rc != 0))
 			goto error;
-
 		rc = sl_itercontinue(&i);
 		if (srunlikely(rc == -1))
 			goto error;
@@ -100,6 +99,22 @@ so_recoverlogpool(sodb *db)
 int so_recover(sodb *db)
 {
 	so_statusset(&db->status, SO_RECOVER);
+
+	/* open logdir */
+	slconf *lc = &db->lpconf;
+	lc->dir           = db->ctl.logdir;
+	lc->dir_read      = db->ctl.logdir_read;
+	lc->dir_write     = db->ctl.logdir_write;
+	lc->dir_create    = db->ctl.logdir_create;
+	lc->rotatewm      = db->ctl.logdir_rotate_wm;
+	int rc = sl_poolinit(&db->lp, &db->r, lc);
+	if (srunlikely(rc == -1))
+		return -1;
+	rc = sl_poolopen(&db->lp);
+	if (srunlikely(rc == -1))
+		return -1;
+
+	/* open and recover repository */
 	siconf *c = &db->indexconf;
 	c->node_size      = db->ctl.node_size;
 	c->node_page_size = db->ctl.node_page_size;
@@ -111,31 +126,24 @@ int so_recover(sodb *db)
 	c->dir_write      = db->ctl.dir_write;
 	c->dir_create     = db->ctl.dir_create;
 	si_init(&db->index, &db->indexconf);
-	int rc = si_open(&db->index, &db->r);
+	rc = si_open(&db->index, &db->r);
 	if (srunlikely(rc == -1))
-		return -1;
-	si_qosenable(&db->index, 0);
+		goto error;
 	int index_isnew = rc;
-	slconf *lc = &db->lpconf;
-	lc->dir           = db->ctl.logdir;
-	lc->dir_read      = db->ctl.logdir_read;
-	lc->dir_write     = db->ctl.logdir_write;
-	lc->dir_create    = db->ctl.logdir_create;
-	lc->rotatewm      = db->ctl.logdir_rotate_wm;
-	rc = sl_poolinit(&db->lp, &db->r, lc);
-	if (srunlikely(rc == -1))
-		return -1;
-	rc = sl_poolopen(&db->lp);
-	if (srunlikely(rc == -1))
-		return -1;
+
+	/* recover log files */
+	si_qosenable(&db->index, 0);
 	if (! index_isnew) {
 		rc = so_recoverlogpool(db);
 		if (srunlikely(rc == -1))
-			return -1;
+			goto error;
 	}
 	rc = sl_poolrotate(&db->lp);
 	if (srunlikely(rc == -1))
-		return -1;
+		goto error;
 	si_qosenable(&db->index, 1);
 	return 0;
+error:
+	so_dbmalfunction_set(db);
+	return -1;
 }

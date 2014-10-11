@@ -68,11 +68,16 @@ so_ctlreturn(srctl *match, void *o)
 	sv vp;
 	svinit(&vp, &sv_localif, &l, NULL);
 	svv *v = sv_valloc(&e->a, &vp);
-	if (srunlikely(v == NULL))
+	if (srunlikely(v == NULL)) {
+		sr_error(&e->error, "memory allocation failed");
+		sr_error_recoverable(&e->error);
 		return NULL;
+	}
 	sov *result = (sov*)so_vnew(e);
 	if (srunlikely(result == NULL)) {
 		sv_vfree(&e->a, v);
+		sr_error(&e->error, "memory allocation failed");
+		sr_error_recoverable(&e->error);
 		return NULL;
 	}
 	svinit(&vp, &sv_vif, v, NULL);
@@ -80,14 +85,18 @@ so_ctlreturn(srctl *match, void *o)
 }
 
 static int
-so_ctlsophia_set(soctl *c srunused, char *path srunused, va_list args srunused)
+so_ctlsophia_set(soctl *c, char *path srunused, va_list args srunused)
 {
+	so *e = c->e;
+	sr_error(&e->error, "control path is ready-only");
+	sr_error_recoverable(&e->error);
 	return -1;
 }
 
 static void*
 so_ctlsophia_get(soctl *c, char *path, va_list args srunused)
 {
+	so *e = c->e;
 	int version_major = SR_VERSION_MAJOR - '0';
 	int version_minor = SR_VERSION_MINOR - '0';
 	char version[16];
@@ -95,24 +104,35 @@ so_ctlsophia_get(soctl *c, char *path, va_list args srunused)
 	snprintf(version, sizeof(version), "%d.%d",
 	         version_major,
 	         version_minor);
+	char errorsz[128];
+	char *error;
+	errorsz[0] = 0;
+	int errorlen = sr_errorcopy(&e->error, errorsz, sizeof(errorsz));
+	if (srlikely(errorlen == 0))
+		error = NULL;
+	else
+		error = errorsz;
 	srctl ctls[4];
 	srctl *p = ctls;
 	p = sr_ctladd(p, "version",       SR_CTLSTRING|SR_CTLRO, version_ptr,    NULL);
 	p = sr_ctladd(p, "version_major", SR_CTLINT|SR_CTLRO,    &version_major, NULL);
 	p = sr_ctladd(p, "version_minor", SR_CTLINT|SR_CTLRO,    &version_minor, NULL);
+	p = sr_ctladd(p, "error",         SR_CTLSTRING|SR_CTLRO, error,          NULL);
 	p = sr_ctladd(p,  NULL,           0,                     NULL,           NULL);
 	srctl *match = NULL;
 	int rc = sr_ctlget(&ctls[0], &path, &match);
-	if (srunlikely(rc ==  1))
-		return 0; /* self */
-	if (srunlikely(rc == -1))
+	if (srunlikely(rc == 1 || rc == -1)) {
+		sr_error(&e->error, "bad control path");
+		sr_error_recoverable(&e->error);
 		return NULL;
+	}
 	return so_ctlreturn(match, c->e);
 }
 
 static int
 so_ctlsophia_dump(soctl *c, srbuf *dump)
 {
+	so *e = c->e;
 	int version_major = SR_VERSION_MAJOR - '0';
 	int version_minor = SR_VERSION_MINOR - '0';
 	char version[16];
@@ -120,25 +140,42 @@ so_ctlsophia_dump(soctl *c, srbuf *dump)
 	snprintf(version, sizeof(version), "%d.%d",
 	         version_major,
 	         version_minor);
+	char errorsz[128];
+	char *error;
+	errorsz[0] = 0;
+	int errorlen = sr_errorcopy(&e->error, errorsz, sizeof(errorsz));
+	if (srlikely(errorlen == 0))
+		error = NULL;
+	else
+		error = errorsz;
 	srctl ctls[4];
 	srctl *p = ctls;
 	p = sr_ctladd(p, "version",       SR_CTLSTRING|SR_CTLRO, version_ptr,    NULL);
 	p = sr_ctladd(p, "version_major", SR_CTLINT|SR_CTLRO,    &version_major, NULL);
 	p = sr_ctladd(p, "version_minor", SR_CTLINT|SR_CTLRO,    &version_minor, NULL);
+	p = sr_ctladd(p, "error",         SR_CTLSTRING|SR_CTLRO, error,          NULL);
 	p = sr_ctladd(p,  NULL,           0,                     NULL,           NULL);
-	so *e = c->e;
-	return sr_ctlserialize(&ctls[0], &e->a, "sophia.", dump);
+	int rc = sr_ctlserialize(&ctls[0], &e->a, "sophia.", dump);
+	if (srunlikely(rc == -1)) {
+		sr_error(&e->error, "memory allocation failed");
+		sr_error_recoverable(&e->error);
+		return -1;
+	}
+	return 0;
 }
 
 static int
 so_ctldb_set(soctl *c, char *path, va_list args)
 {
+	so *e = c->e;
 	char *token;
 	token = strtok_r(NULL, ".", &path);
-	if (srunlikely(token == NULL))
+	if (srunlikely(token == NULL)) {
+		sr_error(&e->error, "bad control path");
+		sr_error_recoverable(&e->error);
 		return -1;
+	}
 	char *name = token;
-	so *e = c->e;
 	sodb *db = (sodb*)so_dbmatch(e, name);
 	if (db == NULL) {
 		db = (sodb*)so_dbnew(e, name);
@@ -152,12 +189,15 @@ so_ctldb_set(soctl *c, char *path, va_list args)
 static void*
 so_ctldb_get(soctl *c, char *path, va_list args)
 {
+	so *e = c->e;
 	char *token;
 	token = strtok_r(NULL, ".", &path);
-	if (srunlikely(token == NULL))
+	if (srunlikely(token == NULL)) {
+		sr_error(&e->error, "bad control path");
+		sr_error_recoverable(&e->error);
 		return NULL;
+	}
 	char *name = token;
-	so *e = c->e;
 	sodb *db = (sodb*)so_dbmatch(e, name);
 	if (db == NULL)
 		return NULL;
@@ -183,18 +223,24 @@ static int
 so_ctlset(soobj *obj, va_list args)
 {
 	soctl *c = (soctl*)obj;
+	so *e = c->e;
 	char *path = va_arg(args, char*);
 	char q[200];
 	snprintf(q, sizeof(q), "%s", path);
 	char *ptr = NULL;
 	char *token;
 	token = strtok_r(q, ".", &ptr);
-	if (srunlikely(token == NULL))
+	if (srunlikely(token == NULL)) {
+		sr_error(&e->error, "bad control path");
+		sr_error_recoverable(&e->error);
 		return -1;
+	}
 	if (strcmp(token, "sophia") == 0)
 		return so_ctlsophia_set(c, ptr, args);
 	if (strcmp(token, "db") == 0)
 		return so_ctldb_set(c, ptr, args);
+	sr_error(&e->error, "unknown control path");
+	sr_error_recoverable(&e->error);
 	return -1;
 }
 
@@ -202,18 +248,24 @@ static void*
 so_ctlget(soobj *obj, va_list args)
 {
 	soctl *c = (soctl*)obj;
+	so *e = c->e;
 	char *path = va_arg(args, char*);
 	char q[200];
 	snprintf(q, sizeof(q), "%s", path);
 	char *ptr = NULL;
 	char *token;
 	token = strtok_r(q, ".", &ptr);
-	if (srunlikely(token == NULL))
+	if (srunlikely(token == NULL)) {
+		sr_error(&e->error, "bad control path");
+		sr_error_recoverable(&e->error);
 		return NULL;
+	}
 	if (strcmp(token, "sophia") == 0)
 		return so_ctlsophia_get(c, ptr, args);
 	if (strcmp(token, "db") == 0)
 		return so_ctldb_get(c, ptr, args);
+	sr_error(&e->error, "unknown control path");
+	sr_error_recoverable(&e->error);
 	return NULL;
 }
 

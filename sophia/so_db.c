@@ -38,8 +38,10 @@ static inline void *so_merger(void *arg)
 		              &o->r, &self->dc,
 		              lsvn,
 		              o->ctl.node_merge_wm);
-		if (srunlikely(rc == -1))
+		if (srunlikely(rc == -1)) {
+			so_dbmalfunction_set(o);
 			break;
+		}
 		if (rc == 0)
 			so_sleep();
 	}
@@ -60,17 +62,23 @@ static inline void *so_brancher(void *arg)
 		               &o->r, &self->dc,
 		               lsvn,
 		               o->ctl.node_branch_wm);
-		if (srunlikely(rc == -1))
+		if (srunlikely(rc == -1)) {
+			so_dbmalfunction_set(o);
 			break;
+		}
 		int nojob = rc == 0;
 		rc = sl_poolgc(&o->lp);
-		if (srunlikely(rc == -1))
+		if (srunlikely(rc == -1)) {
+			so_dbmalfunction_set(o);
 			break;
+		}
 		rc = sl_poolrotate_ready(&o->lp, o->ctl.logdir_rotate_wm);
 		if (rc) {
 			rc = sl_poolrotate(&o->lp);
-			if (srunlikely(rc == -1))
+			if (srunlikely(rc == -1)) {
+				so_dbmalfunction_set(o);
 				break;
+			}
 		}
 		if (nojob)
 			so_sleep();
@@ -84,6 +92,7 @@ so_dbopen(soobj *obj, va_list args srunused)
 	sodb *o = (sodb*)obj;
 	if (so_dbactive(o))
 		return -1;
+	sr_errorreset(&o->e->error);
 	int rc;
 	rc = so_dbctl_validate(&o->ctl);
 	if (srunlikely(rc == -1))
@@ -139,8 +148,11 @@ static int
 so_dberror(soobj *obj, va_list args srunused)
 {
 	sodb *o = (sodb*)obj;
-	int status = sr_errorstatus(&o->error);
-	if (srunlikely(status != SR_ERROR_NONE))
+	int status = sr_erroris(&o->e->error);
+	int recoverable = sr_erroris_recoverable(&o->e->error);
+	if (srunlikely(status && recoverable))
+		return 2;
+	if (srunlikely(status))
 		return 1;
 	return 0;
 }
@@ -213,19 +225,20 @@ static soobjif sodbif =
 soobj *so_dbnew(so *e, char *name)
 {
 	sodb *o = sr_malloc(&e->a, sizeof(sodb));
-	if (srunlikely(o == NULL))
+	if (srunlikely(o == NULL)) {
+		sr_error(&e->error, "memory allocation failed");
+		sr_error_recoverable(&e->error);
 		return NULL;
+	}
 	memset(o, 0, sizeof(*o));
 	so_objinit(&o->o, SODB, &sodbif);
 	so_objindex_init(&o->tx);
 	so_objindex_init(&o->cursor);
-	sr_errorinit(&o->error);
 	so_statusset(&o->status, SO_OFFLINE);
 	o->e     = e;
 	o->r     = e->r;
 	o->r.cmp = &o->ctl.cmp;
 	o->r.i   = &o->ei;
-	o->r.e   = &o->error;
 	int rc = so_dbctl_init(&o->ctl, name, o);
 	if (srunlikely(rc == -1)) {
 		sr_free(&e->a, o);
@@ -247,4 +260,22 @@ soobj *so_dbmatch(so *e, char *name)
 			return o;
 	}
 	return NULL;
+}
+
+int so_dbmalfunction_set(sodb *o)
+{
+	so_statusset(&o->status, SO_MALFUNCTION);
+	return -1;
+}
+
+int so_dbmalfunction(sodb *o, char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	so_statuslock(&o->status);
+	o->status.status = SO_MALFUNCTION;
+	sr_verror(&o->e->error, SR_ERROR, fmt, args);
+	so_statusunlock(&o->status);
+	va_end(args);
+	return -1;
 }

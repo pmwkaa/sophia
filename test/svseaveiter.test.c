@@ -62,7 +62,7 @@ svseaveiter_seave(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -141,7 +141,7 @@ svseaveiter_limit(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -257,7 +257,7 @@ svseaveiter_limit_small(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -389,7 +389,7 @@ svseaveiter_dup_lsn_gt(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -464,7 +464,7 @@ svseaveiter_dup_lsn_lt0(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -539,7 +539,7 @@ svseaveiter_dup_lsn_lt1(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -614,7 +614,7 @@ svseaveiter_dup_lsn_lt2(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -696,7 +696,7 @@ svseaveiter_dup_lsn_gt_chain(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -772,7 +772,7 @@ svseaveiter_dup_lsn_lt0_chain(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -850,7 +850,7 @@ svseaveiter_dup_lsn_lt1_chain(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -930,7 +930,7 @@ svseaveiter_dup_lsn_lt2_chain(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -1005,7 +1005,7 @@ svseaveiter_dup_lsn_limit0(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -1069,7 +1069,7 @@ svseaveiter_dup_lsn_limit1(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -1134,7 +1134,7 @@ svseaveiter_dup_lsn_limit2(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -1203,7 +1203,7 @@ svseaveiter_dup_lsn_limit3(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -1269,7 +1269,7 @@ svseaveiter_dup_lsn_limit4(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -1342,7 +1342,7 @@ svseaveiter_dup_lsn_limit5(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -1414,7 +1414,7 @@ svseaveiter_delete0(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -1489,7 +1489,7 @@ svseaveiter_delete1(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -1564,7 +1564,7 @@ svseaveiter_delete2(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -1639,7 +1639,7 @@ svseaveiter_delete3(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -1714,7 +1714,7 @@ svseaveiter_delete4(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -1789,7 +1789,7 @@ svseaveiter_delete5(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -1867,7 +1867,7 @@ svseaveiter_delete6(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -1947,7 +1947,7 @@ svseaveiter_delete7(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -2033,7 +2033,7 @@ svseaveiter_delete8(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;

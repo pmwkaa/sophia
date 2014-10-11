@@ -12,9 +12,9 @@
 typedef struct srerror srerror;
 
 enum {
-	SR_ERROR_NONE,
-	SR_ERROR,
-	SR_ERROR_FATAL
+	SR_ERROR_NONE = 0,
+	SR_ERROR = 1,
+	SR_ERROR_RECOVERABLE = 2
 };
 
 struct srerror {
@@ -36,20 +36,31 @@ sr_errorfree(srerror *e) {
 }
 
 static inline void
-sr_erroreset(srerror *e) {
+sr_errorreset(srerror *e) {
 	sr_spinlock(&e->lock);
-	assert(e->status != SR_ERROR_FATAL);
+	if (! (e->status & SR_ERROR_RECOVERABLE)) {
+		sr_spinunlock(&e->lock);
+		return;
+	}
 	e->status = SR_ERROR_NONE;
 	e->error[0] = 0;
 	sr_spinunlock(&e->lock);
 }
 
 static inline int
-sr_errorstatus(srerror *e) {
+sr_erroris(srerror *e) {
 	sr_spinlock(&e->lock);
 	int status = e->status;
 	sr_spinunlock(&e->lock);
-	return status;
+	return status & SR_ERROR;
+}
+
+static inline int
+sr_erroris_recoverable(srerror *e) {
+	sr_spinlock(&e->lock);
+	int status = e->status;
+	sr_spinunlock(&e->lock);
+	return status & SR_ERROR_RECOVERABLE;
 }
 
 static inline int
@@ -64,7 +75,7 @@ static inline void
 sr_verror(srerror *e, int status, char *fmt, va_list args)
 {
 	sr_spinlock(&e->lock);
-	if (srunlikely(e->status == SR_ERROR_FATAL)) {
+	if (srunlikely(e->status & SR_ERROR)) {
 		sr_spinunlock(&e->lock);
 		return;
 	}
@@ -83,11 +94,11 @@ sr_error(srerror *e, char *fmt, ...) {
 }
 
 static inline int
-sr_errorfatal(srerror *e, char *fmt, ...) {
-	va_list args;
-	va_start(args, fmt);
-	sr_verror(e, SR_ERROR_FATAL, fmt, args);
-	va_end(args);
+sr_error_recoverable(srerror *e) {
+	sr_spinlock(&e->lock);
+	assert(e->status & SR_ERROR);
+	e->status |= SR_ERROR_RECOVERABLE;
+	sr_spinunlock(&e->lock);
 	return -1;
 }
 

@@ -65,8 +65,8 @@ sd_indexinit(sdindex *i) {
 }
 
 static inline void
-sd_indexfree(sdindex *i, sra *a) {
-	sr_buffree(&i->i, a);
+sd_indexfree(sdindex *i, sr *r) {
+	sr_buffree(&i->i, r->a);
 }
 
 static inline sdindexheader*
@@ -147,13 +147,13 @@ sd_indexpage_cmp(sdindexpage *p, void *key, int size, srcomparator *c)
 	return 1;
 }
 
-int sd_indexbegin(sdindex*, sra*, uint32_t);
-int sd_indexcommit(sdindex*, sra*, sdid*);
-int sd_indexadd(sdindex*, sra*, uint32_t, uint32_t, uint32_t, uint32_t,
+int sd_indexbegin(sdindex*, sr*, uint32_t);
+int sd_indexcommit(sdindex*, sr*, sdid*);
+int sd_indexadd(sdindex*, sr*, uint32_t, uint32_t, uint32_t, uint32_t,
                 char*, int, char*, int,
                 uint64_t, uint64_t);
 sdindexheader*
-sd_indexvalidate(srmap*);
-int sd_indexrecover(sdindex*, sra*, srmap*);
+sd_indexvalidate(srmap*, sr*);
+int sd_indexrecover(sdindex*, sr*, srmap*);
 
 #endif

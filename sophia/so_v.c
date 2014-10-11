@@ -98,6 +98,8 @@ so_vcopy(soobj *o srunused, va_list args srunused)
 	if (v->allocated) {
 		svv *dup = sv_valloc(&v->e->a, &v->v);
 		if (srunlikely(dup == NULL)) {
+			sr_error(&v->e->error, "memory allocation failed");
+			sr_error_recoverable(&v->e->error);
 			sr_free(&v->e->a, copy);
 			return NULL;
 		}
@@ -144,8 +146,11 @@ soobj *so_vinit(sov *v, so *e)
 soobj *so_vnew(so *e)
 {
 	sov *v = sr_malloc(&e->a, sizeof(sov));
-	if (srunlikely(v == NULL))
+	if (srunlikely(v == NULL)) {
+		sr_error(&e->error, "memory allocation failed");
+		sr_error_recoverable(&e->error);
 		return NULL;
+	}
 	return so_vinit(v, e);
 }
 

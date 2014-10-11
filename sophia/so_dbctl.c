@@ -21,8 +21,11 @@ int so_dbctl_init(sodbctl *c, char *name, void *db)
 	memset(c, 0, sizeof(*c));
 	sodb *o = db;
 	c->name = sr_strdup(&o->e->a, name);
-	if (srunlikely(c->name == NULL))
+	if (srunlikely(c->name == NULL)) {
+		sr_error(&o->e->error, "memory allocation failed");
+		sr_error_recoverable(&o->e->error);
 		return -1;
+	}
 	c->parent           = db;
 	c->logdir_create    = 1;
 	c->logdir_write     = 1;
@@ -64,8 +67,12 @@ int so_dbctl_free(sodbctl *c)
 
 int so_dbctl_validate(sodbctl *c)
 {
-	if (c->dir == NULL)
+	sodb *o = c->parent;
+	if (c->dir == NULL) {
+		sr_error(&o->e->error, "database directory is not set");
+		sr_error_recoverable(&o->e->error);
 		return -1;
+	}
 	return 0;
 }
 
@@ -130,23 +137,12 @@ typedef struct sodbctlinfo sodbctlinfo;
 
 struct sodbctlinfo {
 	char *status;
-	char *error;
-	char  errorsz[256];
-	int   errorlen;
 };
 
 static inline void
 so_dbctl_info(sodb *db, sodbctlinfo *info)
 {
 	info->status = so_statusof(&db->status);
-	info->errorsz[0] = 0;
-	info->errorlen =
-		sr_errorcopy(&db->error, info->errorsz,
-		             sizeof(info->errorsz));
-	if (srlikely(info->errorlen == 0))
-		info->error = NULL;
-	else
-		info->error = info->errorsz;
 }
 
 static inline void
@@ -157,7 +153,6 @@ so_dbctl_prepare(srctl *t, sodbctl *c, sodbctlinfo *info)
 	srctl *p = t;
 	p = sr_ctladd(p, "name",            SR_CTLSTRING|SR_CTLRO, c->name,            NULL);
 	p = sr_ctladd(p, "status",          SR_CTLSTRING|SR_CTLRO, info->status,       NULL);
-	p = sr_ctladd(p, "error",           SR_CTLSTRING|SR_CTLRO, info->error,        NULL);
 	p = sr_ctladd(p, "dir",             SR_CTLSTRINGREF,       &c->dir,            NULL);
 	p = sr_ctladd(p, "dir_read",        SR_CTLINT,             &c->dir_read,       NULL);
 	p = sr_ctladd(p, "dir_write",       SR_CTLINT,             &c->dir_write,      NULL);
@@ -221,10 +216,11 @@ so_dbprofiler_get(sodb *db, char *path)
 	so_dbprofiler_prepare(&ctls[0], &pf);
 	srctl *match = NULL;
 	int rc = sr_ctlget(&ctls[0], &path, &match);
-	if (srunlikely(rc ==  1))
+	if (srunlikely(rc == 1 || rc == -1)) {
+		sr_error(&db->e->error, "bad control path");
+		sr_error_recoverable(&db->e->error);
 		return NULL;
-	if (srunlikely(rc == -1))
-		return NULL;
+	}
 	return so_ctlreturn(match, db->e);
 }
 
@@ -239,7 +235,13 @@ so_dbprofiler_dump(sodb *db, srbuf *dump)
 	so_dbprofiler_prepare(&ctls[0], &pf);
 	char prefix[64];
 	snprintf(prefix, sizeof(prefix), "db.%s.profiler.", db->ctl.name);
-	return sr_ctlserialize(&ctls[0], &db->e->a, prefix, dump);
+	int rc = sr_ctlserialize(&ctls[0], &db->e->a, prefix, dump);
+	if (srunlikely(rc == -1)) {
+		sr_error(&db->e->error, "memory allocation failed");
+		sr_error_recoverable(&db->e->error);
+		return -1;
+	}
+	return 0;
 }
 
 static int
@@ -249,11 +251,18 @@ so_dbei_set(sodb *db, char *path, va_list args)
 	so_dbei_prepare(&ctls[0], &db->ei);
 	srctl *match = NULL;
 	int rc = sr_ctlget(&ctls[0], &path, &match);
-	if (srunlikely(rc ==  1))
+	if (srunlikely(rc == 1 || rc == -1)) {
+		sr_error(&db->e->error, "bad control path");
+		sr_error_recoverable(&db->e->error);
 		return -1;
-	if (srunlikely(rc == -1))
+	}
+	rc = sr_ctlset(match, db->r.a, db, args);
+	if (srunlikely(rc == -1)) {
+		sr_error(&db->e->error, "failed to set control path");
+		sr_error_recoverable(&db->e->error);
 		return -1;
-	return sr_ctlset(match, db->r.a, db, args);
+	}
+	return 0;
 }
 
 static void*
@@ -263,10 +272,11 @@ so_dbei_get(sodb *db, char *path)
 	so_dbei_prepare(&ctls[0], &db->ei);
 	srctl *match = NULL;
 	int rc = sr_ctlget(&ctls[0], &path, &match);
-	if (srunlikely(rc ==  1))
+	if (srunlikely(rc == 1 || rc == -1)) {
+		sr_error(&db->e->error, "bad control path");
+		sr_error_recoverable(&db->e->error);
 		return NULL;
-	if (srunlikely(rc == -1))
-		return NULL;
+	}
 	return so_ctlreturn(match, db->e);
 }
 
@@ -277,7 +287,13 @@ so_dbei_dump(sodb *db, srbuf *dump)
 	so_dbei_prepare(&ctls[0], &db->ei);
 	char prefix[64];
 	snprintf(prefix, sizeof(prefix), "db.%s.error_injection.", db->ctl.name);
-	return sr_ctlserialize(&ctls[0], &db->e->a, prefix, dump);
+	int rc = sr_ctlserialize(&ctls[0], &db->e->a, prefix, dump);
+	if (srunlikely(rc == -1)) {
+		sr_error(&db->e->error, "memory allocation failed");
+		sr_error_recoverable(&db->e->error);
+		return -1;
+	}
+	return 0;
 }
 
 int so_dbctl_set(sodbctl *c, char *path, va_list args)
@@ -289,19 +305,28 @@ int so_dbctl_set(sodbctl *c, char *path, va_list args)
 	srctl *match = NULL;
 	int rc = sr_ctlget(&ctls[0], &path, &match);
 	if (srunlikely(rc ==  1))
-		return 0; /* self */
-	if (srunlikely(rc == -1))
+		return  0; /* self */
+	if (srunlikely(rc == -1)) {
+		sr_error(&db->e->error, "bad control path");
+		sr_error_recoverable(&db->e->error);
 		return -1;
+	}
 	int type = match->type & ~SR_CTLRO;
 	if (type == SR_CTLSUB) {
 		if (strcmp(match->name, "error_injection") == 0)
 			return so_dbei_set(db, path, args);
 	}
-	if (so_dbactive(db) && (type != SR_CTLTRIGGER))
+	if (so_dbactive(db) && (type != SR_CTLTRIGGER)) {
+		sr_error(&db->e->error, "failed to set control path");
+		sr_error_recoverable(&db->e->error);
 		return -1;
+	}
 	rc = sr_ctlset(match, db->r.a, db, args);
-	if (srunlikely(rc == -1))
+	if (srunlikely(rc == -1)) {
+		sr_error(&db->e->error, "failed to set control path");
+		sr_error_recoverable(&db->e->error);
 		return -1;
+	}
 	return 0;
 }
 
@@ -315,8 +340,11 @@ void *so_dbctl_get(sodbctl *c, char *path, va_list args srunused)
 	int rc = sr_ctlget(&ctls[0], &path, &match);
 	if (srunlikely(rc ==  1))
 		return &db->o; /* self */
-	if (srunlikely(rc == -1))
+	if (srunlikely(rc == -1)) {
+		sr_error(&db->e->error, "bad control path");
+		sr_error_recoverable(&db->e->error);
 		return NULL;
+	}
 	int type = match->type & ~SR_CTLRO;
 	if (type == SR_CTLSUB) {
 		if (strcmp(match->name, "profiler") == 0)
@@ -324,6 +352,8 @@ void *so_dbctl_get(sodbctl *c, char *path, va_list args srunused)
 		else
 		if (strcmp(match->name, "error_injection") == 0)
 			return so_dbei_get(db, path);
+		sr_error(&db->e->error, "unknown control path");
+		sr_error_recoverable(&db->e->error);
 		return NULL;
 	}
 	return so_ctlreturn(match, db->e);
@@ -338,8 +368,11 @@ int so_dbctl_dump(sodbctl *c, srbuf *dump)
 	char prefix[64];
 	snprintf(prefix, sizeof(prefix), "db.%s.", c->name);
 	int rc = sr_ctlserialize(&ctls[0], &db->e->a, prefix, dump);
-	if (srunlikely(rc == -1))
+	if (srunlikely(rc == -1)) {
+		sr_error(&db->e->error, "memory allocation failed");
+		sr_error_recoverable(&db->e->error);
 		return -1;
+	}
 	rc = so_dbprofiler_dump(db, dump);
 	if (srunlikely(rc == -1))
 		return -1;

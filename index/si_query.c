@@ -124,8 +124,11 @@ si_qmatch(siquery *q)
 int si_querydup(siquery *q, sv *result)
 {
 	svv *v = sv_valloc(q->r->a, &q->result);
-	if (srunlikely(v == NULL))
+	if (srunlikely(v == NULL)) {
+		sr_error(q->r->e, "memory allocation failed");
+		sr_error_recoverable(q->r->e);
 		return -1;
+	}
 	svinit(result, &sv_vif, v, NULL);
 	return 1;
 }
@@ -158,13 +161,14 @@ si_qfetch(siquery *q)
 	node = sr_iterof(&i);
 	if (srunlikely(node == NULL))
 		return 0;
-
 	/* prepare sources */
 	svmerge *m = &q->merge;
 	int count = 1 + 2 + node->lv + 1;
-	int rc = sv_mergeprepare(m, q->r->a, count, sizeof(sdpage));
-	if (srunlikely(rc == -1))
+	int rc = sv_mergeprepare(m, q->r, count, sizeof(sdpage));
+	if (srunlikely(rc == -1)) {
+		sr_error_recoverable(q->r->e);
 		return -1;
+	}
 	svmergesrc *s;
 	s = sv_mergeadd(m);
 	assert(q->firstsrc != NULL);

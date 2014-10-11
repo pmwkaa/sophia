@@ -40,7 +40,6 @@ si_planmerge(siplan *p, sinode *n)
 	int rc = si_planmerge_match(&p->merge, NULL, n, 0, &pn);
 	assert(! (rc == 0 && pn));
 	sr_rbset(&p->merge, pn, rc, &n->nodemerge);
-
 	pn = sr_rbmax(&p->merge);
 	if (pn == NULL)
 		return 0;
@@ -77,7 +76,6 @@ si_planbranch(siplan *p, sinode *n)
 	int rc = si_planbranch_match(&p->branch, NULL, n, 0, &pn);
 	assert(! (rc == 0 && pn));
 	sr_rbset(&p->branch, pn, rc, &n->nodebranch);
-
 	pn = sr_rbmax(&p->branch);
 	if (pn == NULL)
 		return 0;

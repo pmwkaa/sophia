@@ -49,13 +49,24 @@ static inline int
 si_deploy(si *i, sr *r)
 {
 	int rc;
-	if (! i->conf->dir_create)
+	if (! i->conf->dir_create) {
+		sr_error(r->e, "directory '%s' can't be created",
+		         i->conf->dir);
+		sr_error_recoverable(r->e);
 		return -1;
-	if (! i->conf->dir_write)
+	}
+	if (! i->conf->dir_write) {
+		sr_error(r->e, "directory '%s' is read-only",
+		         i->conf->dir);
+		sr_error_recoverable(r->e);
 		return -1;
+	}
 	rc = sr_filemkdir(i->conf->dir);
-	if (srunlikely(rc == -1))
+	if (srunlikely(rc == -1)) {
+		sr_error(r->e, "directory '%s' create error: %s",
+		         i->conf->dir, strerror(errno));
 		return -1;
+	}
 	sr_seq(r->seq, SR_LSNNEXT);
 	sinode *n = si_nodenew(r);
 	if (srunlikely(n == NULL))
@@ -68,36 +79,36 @@ si_deploy(si *i, sr *r)
 	n->id = id;
 	sdindex index;
 	sd_indexinit(&index);
-	rc = sd_indexbegin(&index, r->a, 0);
+	rc = sd_indexbegin(&index, r, 0);
 	if (srunlikely(rc == -1)) {
 		si_nodefree(n, r);
 		return -1;
 	}
-	rc = sd_indexadd(&index, r->a, 0, 0, 0, 0, "", 1, "", 1, 0, 0);
+	rc = sd_indexadd(&index, r, 0, 0, 0, 0, "", 1, "", 1, 0, 0);
 	if (srunlikely(rc == -1)) {
-		sd_indexfree(&index, r->a);
+		sd_indexfree(&index, r);
 		si_nodefree(n, r);
 		return -1;
 	}
-	sd_indexcommit(&index, r->a, &id);
+	sd_indexcommit(&index, r, &id);
 	sdbuild build;
 	sd_buildinit(&build, r);
 	rc = sd_buildbegin(&build, 0);
 	if (srunlikely(rc == -1)) {
-		sd_indexfree(&index, r->a);
+		sd_indexfree(&index, r);
 		sd_buildfree(&build);
 		si_nodefree(n, r);
 		return -1;
 	}
 	sd_buildend(&build);
 	sd_buildcommit(&build);
-	rc = si_nodecreate(n, i->conf, &id, &index, &build);
+	rc = si_nodecreate(n, r, i->conf, &id, &index, &build);
 	sd_buildfree(&build);
 	if (srunlikely(rc == -1)) {
 		si_nodefree(n, r);
 		return -1;
 	}
-	rc = si_nodecomplete(n, i->conf);
+	rc = si_nodecomplete(n, r, i->conf);
 	if (srunlikely(rc == -1)) {
 		si_nodefree(n, r);
 		return -1;
@@ -157,8 +168,11 @@ static inline int
 si_trackdir(sitrack *track, sr *r, si *i)
 {
 	DIR *dir = opendir(i->conf->dir);
-	if (srunlikely(dir == NULL))
+	if (srunlikely(dir == NULL)) {
+		sr_error(r->e, "directory '%s' open error: %s",
+		         i->conf->dir, strerror(errno));
 		return -1;
+	}
 	struct dirent *de;
 	while ((de = readdir(dir))) {
 		if (srunlikely(de->d_name[0] == '.'))
@@ -178,8 +192,11 @@ si_trackdir(sitrack *track, sr *r, si *i)
 			/* remove any incomplete branch */
 			sr_pathA(&path, i->conf->dir, id, ".db.incomplete");
 			rc = sr_fileunlink(path.path);
-			if (srunlikely(rc == -1))
+			if (srunlikely(rc == -1)) {
+				sr_error(r->e, "db file '%s' unlink error: %s",
+				         path.path, strerror(errno));
 				goto error;
+			}
 			continue;
 		case SI_RDB_DBI:
 		case SI_RDB_DBSEAL: {
@@ -199,8 +216,11 @@ si_trackdir(sitrack *track, sr *r, si *i)
 			if (rc == SI_RDB_DBI) {
 				sr_pathAB(&path, i->conf->dir, id_parent, id, ".db.incomplete");
 				rc = sr_fileunlink(path.path);
-				if (srunlikely(rc == -1))
+				if (srunlikely(rc == -1)) {
+					sr_error(r->e, "db file '%s' unlink error: %s",
+					         path.path, strerror(errno));
 					goto error;
+				}
 				continue;
 			}
 			assert(rc == SI_RDB_DBSEAL);
@@ -296,7 +316,7 @@ si_branchsort(sr *r, srbuf *buf, sinode *parent)
 	int rc;
 	rc = sr_bufensure(buf, r->a, sizeof(sinode*) * parent->lv);
 	if (srunlikely(rc == -1))
-		return -1;
+		return sr_error(r->e, "memory allocation failed");
 	sinode *n = parent->next;
 	while (n) {
 		sr_bufadd(buf, r->a, &n, sizeof(sinode*));
@@ -356,7 +376,7 @@ si_trackvalidate(sitrack *track, srbuf *buf, sr *r, si *i)
 			}
 			if (! (n->recover & SI_RDB_REMOVE)) {
 				/* complete node */
-				int rc = si_nodecomplete(n, i->conf);
+				int rc = si_nodecomplete(n, r, i->conf);
 				if (srunlikely(rc == -1))
 					return -1;
 				n->recover = SI_RDB;
@@ -365,7 +385,8 @@ si_trackvalidate(sitrack *track, srbuf *buf, sr *r, si *i)
 		}
 		default:
 			/* corrupted states */
-			return -1;
+			return sr_error(r->e, "corrupted database repository: %s",
+			                i->conf->dir);
 		}
 		p = sr_rbprev(&track->i, p);
 	}
@@ -382,7 +403,7 @@ si_recovercomplete(sitrack *track, sr *r, si *index, srbuf *buf)
 		sinode *n = srcast(p, sinode, node);
 		int rc = sr_bufadd(buf, r->a, &n, sizeof(sinode**));
 		if (srunlikely(rc == -1))
-			return -1;
+			return sr_error(r->e, "memory allocation failed");
 		p = sr_rbnext(&track->i, p);
 	}
 	sriter i;
@@ -396,7 +417,7 @@ si_recovercomplete(sitrack *track, sr *r, si *index, srbuf *buf)
 				return -1;
 			continue;
 		}
-		/*n->recover = SI_RDB;*/
+		n->recover = SI_RDB;
 		si_insert(index, r, n);
 		si_plan(&index->plan, SI_MERGE, n);
 	}

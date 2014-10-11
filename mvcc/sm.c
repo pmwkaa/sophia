@@ -195,7 +195,7 @@ int sm_set(smtx *t, svv *v)
 		/* unique */
 		v->id.tx.lo = sv_logn(&t->log);
 		if (srunlikely(sv_logadd(&t->log, c->r->a, &vv) == -1))
-			return -1;
+			return sr_error(t->c->r->e, "memory allocation failed");
 		sr_rbset(&c->i, n, rc, &v->node);
 		return 0;
 	}
@@ -218,7 +218,7 @@ int sm_set(smtx *t, svv *v)
 	rc = sv_logadd(&t->log, c->r->a, &vv);
 	if (srunlikely(rc == -1)) {
 		sv_vfree(c->r->a, v);
-		return -1;
+		return sr_error(t->c->r->e, "memory allocation failed");
 	}
 	/* add version */
 	sm_vlink(head, v);
@@ -242,7 +242,7 @@ int sm_get(smtx *t, sv *key, sv *result)
 	svinit(&vv, &sv_vif, v, NULL);
 	svv *ret = sv_valloc(c->r->a, &vv);
 	if (srunlikely(ret == NULL))
-		return -1;
+		return sr_error(t->c->r->e, "memory allocation failed");
 	svinit(result, &sv_vif, ret, NULL);
 	return 1;
 }

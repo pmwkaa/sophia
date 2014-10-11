@@ -62,7 +62,7 @@ svmergeiter_merge_a(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -136,7 +136,7 @@ svmergeiter_merge_b(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -225,7 +225,7 @@ svmergeiter_merge_ab(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -341,7 +341,7 @@ svmergeiter_merge_abc(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 3, 0);
+	sv_mergeprepare(&m, &r, 3, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -451,7 +451,7 @@ svmergeiter_merge_ba(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 3, 0);
+	sv_mergeprepare(&m, &r, 3, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -553,7 +553,7 @@ svmergeiter_merge_dup_ab(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -646,7 +646,7 @@ svmergeiter_merge_dup_a_chain(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -752,7 +752,7 @@ svmergeiter_merge_dup_ab_chain(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 2, 0);
+	sv_mergeprepare(&m, &r, 2, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;
@@ -879,7 +879,7 @@ svmergeiter_merge_dup_abc_chain(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &a, 3, 0);
+	sv_mergeprepare(&m, &r, 3, 0);
 	svmergesrc *s = sv_mergeadd(&m);
 	t(s != NULL);
 	s->i = ita;

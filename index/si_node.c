@@ -15,8 +15,10 @@
 sinode *si_nodenew(sr *r)
 {
 	sinode *n = (sinode*)sr_malloc(r->a, sizeof(sinode));
-	if (srunlikely(n == NULL))
+	if (srunlikely(n == NULL)) {
+		sr_error(r->e, "memory allocation failed");
 		return NULL;
+	}
 	memset(&n->id, 0, sizeof(n->id));
 	n->flags = 0;
 	n->recover = 0;
@@ -36,7 +38,7 @@ sinode *si_nodenew(sr *r)
 	return n;
 }
 
-int si_nodecreate(sinode *n, siconf *conf, sdid *id,
+int si_nodecreate(sinode *n, sr *r, siconf *conf, sdid *id,
                   sdindex *i,
                   sdbuild *build)
 {
@@ -45,19 +47,25 @@ int si_nodecreate(sinode *n, siconf *conf, sdid *id,
 	srpath path;
 	sr_pathA(&path, conf->dir, id->id, ".db.incomplete");
 	int rc = sr_filenew(&n->file, path.path);
-	if (srunlikely(rc == -1))
+	if (srunlikely(rc == -1)) {
+		sr_error(r->e, "db file '%s' create error",
+		         n->file.file, strerror(errno));
 		return -1;
+	}
 	rc = sd_buildwrite(build, &n->index, &n->file);
 	if (srunlikely(rc == -1))
 		return -1;
 	rc = sr_mapfile(&n->map, &n->file, 1);
-	if (srunlikely(rc == -1))
+	if (srunlikely(rc == -1)) {
+		sr_error(r->e, "db file '%s' map error",
+		         n->file.file, strerror(errno));
 		return -1;
+	}
 	return 0;
 }
 
 int
-si_nodecreate_attach(sinode *n, siconf *conf, sdid *id,
+si_nodecreate_attach(sinode *n, sr *r, siconf *conf, sdid *id,
                      sdindex *i,
                      sdbuild *build)
 {
@@ -66,14 +74,20 @@ si_nodecreate_attach(sinode *n, siconf *conf, sdid *id,
 	srpath path;
 	sr_pathAB(&path, conf->dir, id->parent, id->id, ".db.incomplete");
 	int rc = sr_filenew(&n->file, path.path);
-	if (srunlikely(rc == -1))
+	if (srunlikely(rc == -1)) {
+		sr_error(r->e, "db file '%s' create error",
+		         n->file.file, strerror(errno));
 		return -1;
+	}
 	rc = sd_buildwrite(build, &n->index, &n->file);
 	if (srunlikely(rc == -1))
 		return -1;
 	rc = sr_mapfile(&n->map, &n->file, 1);
-	if (srunlikely(rc == -1))
+	if (srunlikely(rc == -1)) {
+		sr_error(r->e, "db file '%s' map error",
+		         n->file.file, strerror(errno));
 		return -1;
+	}
 	return 0;
 }
 
@@ -83,9 +97,12 @@ si_nodeclose(sinode *n, sr *r)
 	sr_mapunmap(&n->map);
 	int rcret = 0;
 	int rc = sr_fileclose(&n->file);
-	if (srunlikely(rc == -1))
+	if (srunlikely(rc == -1)) {
+		sr_error(r->e, "db file '%s' close error",
+		         n->file.file, strerror(errno));
 		rcret = -1;
-	sd_indexfree(&n->index, r->a);
+	}
+	sd_indexfree(&n->index, r);
 	sv_indexfree(&n->i0, r);
 	sv_indexfree(&n->i1, r);
 	return rcret;
@@ -94,12 +111,18 @@ si_nodeclose(sinode *n, sr *r)
 int si_nodeopen(sinode *n, sr *r, srpath *path)
 {
 	int rc = sr_fileopen(&n->file, path->path);
-	if (srunlikely(rc == -1))
+	if (srunlikely(rc == -1)) {
+		sr_error(r->e, "db file '%s' open error",
+		         n->file.file, strerror(errno));
 		return -1;
+	}
 	rc = sr_mapfile(&n->map, &n->file, 1);
-	if (srunlikely(rc == -1))
+	if (srunlikely(rc == -1)) {
+		sr_error(r->e, "db file '%s' map error",
+		         n->file.file, strerror(errno));
 		goto error;
-	rc = sd_indexrecover(&n->index, r->a, &n->map);
+	}
+	rc = sd_indexrecover(&n->index, r, &n->map);
 	if (srunlikely(rc == -1))
 		goto error;
 	n->id = n->index.h->id;
@@ -142,8 +165,11 @@ int si_nodegc(sinode *n, sr *r)
 		next = p->next;
 		if (p->file.file) {
 			rc = sr_fileunlink(p->file.file);
-			if (srunlikely(rc == -1))
+			if (srunlikely(rc == -1)) {
+				sr_error(r->e, "db file '%s' unlink error",
+				         p->file.file, strerror(errno));
 				rcret = -1;
+			}
 		}
 		rc = si_nodefree(p, r);
 		if (srunlikely(rc == -1))
@@ -170,19 +196,27 @@ int si_nodecmp(sinode *n, void *key, int size, srcomparator *c)
 	return 1;
 }
 
-int si_nodeseal(sinode *n, siconf *conf)
+int si_nodeseal(sinode *n, sr *r, siconf *conf)
 {
 	/* sync */
 	srpath path;
 	sr_pathAB(&path, conf->dir, n->id.parent, n->id.id, ".db.seal");
 	int rc = sr_filerename(&n->file, path.path);
+	if (srunlikely(rc == -1)) {
+		sr_error(r->e, "db file '%s' rename error",
+				 n->file.file, strerror(errno));
+	}
 	return rc;
 }
 
-int si_nodecomplete(sinode *n, siconf *conf)
+int si_nodecomplete(sinode *n, sr *r, siconf *conf)
 {
 	srpath path;
 	sr_pathA(&path, conf->dir, n->id.id, ".db");
 	int rc = sr_filerename(&n->file, path.path);
+	if (srunlikely(rc == -1)) {
+		sr_error(r->e, "db file '%s' rename error",
+				 n->file.file, strerror(errno));
+	}
 	return rc;
 }

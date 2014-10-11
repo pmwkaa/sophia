@@ -37,11 +37,25 @@ so_statusfree(sostatus *s)
 	sr_spinlockfree(&s->lock);
 }
 
+static inline void
+so_statuslock(sostatus *s) {
+	sr_spinlock(&s->lock);
+}
+
+static inline void
+so_statusunlock(sostatus *s) {
+	sr_spinunlock(&s->lock);
+}
+
 static inline int
 so_statusset(sostatus *s, int status)
 {
 	sr_spinlock(&s->lock);
 	int old = s->status;
+	if (old == SO_MALFUNCTION) {
+		sr_spinunlock(&s->lock);
+		return -1;
+	}
 	s->status = status;
 	sr_spinunlock(&s->lock);
 	return old;
@@ -75,8 +89,17 @@ static inline int
 so_statusactive(sostatus *s) {
 
 	int status = so_status(s);
-	return status != SO_OFFLINE &&
-	       status != SO_SHUTDOWN;
+	switch (status) {
+	case SO_ONLINE:
+	case SO_RECOVER:
+		return 1;
+	case SO_OFFLINE:
+	case SO_SHUTDOWN:
+	case SO_MALFUNCTION:
+		return 0;
+	}
+	assert(0);
+	return -1;
 }
 
 #endif

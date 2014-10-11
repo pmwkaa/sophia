@@ -41,15 +41,20 @@ sl_iterseterror(sliter *i)
 }
 
 static inline int
-sl_iterset(sliter *i, slv *v)
+sl_iterset(sriter *it, slv *v)
 {
+	sliter *i = (sliter*)it->priv;
 	if (srunlikely((char*)v >= ((char*)i->map.p + i->map.size))) {
+		sr_error(it->r->e, "corrupted log file '%s': bad record size",
+		         i->log->file);
 		sl_iterseterror(i);
 		return -1;
 	}
 	if (i->validate) {
 		char *end = (char*)v + v->keysize + v->valuesize;
 		if (srunlikely(end > ((char*)i->map.p + i->map.size))) {
+			sr_error(it->r->e, "corrupted log file '%s': bad record size",
+			         i->log->file);
 			sl_iterseterror(i);
 			return -1;
 		}
@@ -68,27 +73,40 @@ sl_iterset(sliter *i, slv *v)
 }
 
 static inline int
-sl_iterprepare(sliter *i)
+sl_iterprepare(sriter *it)
 {
+	sliter *i = (sliter*)it->priv;
 	srversion *ver = (srversion*)i->map.p;
 	if (! sr_versioncheck(ver))
+		return sr_error(it->r->e, "bad log file '%s' version",
+		                i->log->file);
+	if (srunlikely(i->log->size < (sizeof(srversion) + sizeof(slv)))) {
+		sr_error(it->r->e, "corrupted log file '%s': bad size",
+		         i->log->file);
 		return -1;
-	if (srunlikely(i->log->size < (sizeof(srversion) + sizeof(slv))))
-		return -1;
+	}
 	i->begin = (slv*)((char*)i->map.p + sizeof(srversion));
-	if (srunlikely( !(i->begin->flags & SVBEGIN)))
+	if (srunlikely( !(i->begin->flags & SVBEGIN))) {
+		sr_error(it->r->e, "corrupted log file '%s': bad record flags",
+		         i->log->file);
 		return -1;
-	if (i->begin->valuesize == 0)
+	}
+	if (i->begin->valuesize == 0) {
+		sr_error(it->r->e, "corrupted log file '%s': bad record size",
+		         i->log->file);
 		return -1;
+	}
 	if (i->validate) {
 		uint32_t crc = sr_crcs(i->begin, sizeof(slv), 0);
 		if (srunlikely(crc != i->begin->crc)) {
+			sr_error(it->r->e, "corrupted log file '%s': bad record crc",
+			         i->log->file);
 			sl_iterseterror(i);
 			return -1;
 		}
 	}
 	slv *v = (slv*)((char*)i->begin + sizeof(slv));
-	return sl_iterset(i, v);
+	return sl_iterset(it, v);
 }
 
 static int
@@ -100,14 +118,20 @@ sl_iteropen(sriter *i, va_list args)
 	li->v        = NULL;
 	li->begin    = NULL;
 	li->pos      = 0;
-	if (srunlikely(li->log->size < sizeof(srversion)))
+	if (srunlikely(li->log->size < sizeof(srversion))) {
+		sr_error(i->r->e, "corrupted log file '%s': bad size",
+		         li->log->file);
 		return -1;
+	}
 	if (srunlikely(li->log->size == sizeof(srversion)))
 		return 0;
 	int rc = sr_map(&li->map, li->log->fd, li->log->size, 1);
-	if (srunlikely(rc == -1))
+	if (srunlikely(rc == -1)) {
+		sr_error(i->r->e, "failed to mmap log file '%s': %s",
+		         li->log->file, strerror(errno));
 		return -1;
-	rc = sl_iterprepare(li);
+	}
+	rc = sl_iterprepare(i);
 	if (srunlikely(rc == -1))
 		sr_mapunmap(&li->map);
 	return 0;
@@ -153,6 +177,8 @@ sl_iternext(sriter *i)
 	if (srunlikely((char*)next >= ((char*)li->map.p + li->map.size))) {
 		/* eof */
 		if (li->pos != li->begin->valuesize) {
+			sr_error(i->r->e, "corrupted log file '%s': bad record size",
+			         li->log->file);
 			sl_iterseterror(li);
 			return;
 		}
@@ -163,6 +189,8 @@ sl_iternext(sriter *i)
 
 	if (srunlikely(next->flags & SVBEGIN)) {
 		if (li->pos != li->begin->valuesize) {
+			sr_error(i->r->e, "corrupted log file '%s': bad record size",
+			         li->log->file);
 			sl_iterseterror(li);
 			return;
 		}
@@ -171,13 +199,15 @@ sl_iternext(sriter *i)
 		li->pos   = 0;
 		if (li->validate) {
 			uint32_t crc = sr_crcs(li->begin, sizeof(slv), 0);
-			if (srunlikely(crc != li->begin->crc))
+			if (srunlikely(crc != li->begin->crc)) {
+				sr_error(i->r->e, "corrupted log file '%s': bad record crc",
+				         li->log->file);
 				sl_iterseterror(li);
+			}
 		}
 		return;
 	}
-
-	if (srunlikely(sl_iterset(li, next) == -1))
+	if (srunlikely(sl_iterset(i, next) == -1))
 		return;
 }
 
@@ -208,7 +238,7 @@ int sl_itercontinue(sriter *i)
 		return -1;
 	li->pos = 0;
 	slv *v = (slv*)((char*)li->begin + sizeof(slv));
-	int rc = sl_iterset(li, v);
+	int rc = sl_iterset(i, v);
 	if (srunlikely(rc == -1))
 		return -1;
 	return 1;

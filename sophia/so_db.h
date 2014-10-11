@@ -25,7 +25,6 @@ struct sodb {
 	slpool lp;
 	soworkers workers;
 	srinjection ei;
-	srerror error;
 	sr r;
 	so *e;
 };
@@ -37,5 +36,7 @@ so_dbactive(sodb *o) {
 
 soobj *so_dbnew(so*, char*);
 soobj *so_dbmatch(so*, char*);
+int    so_dbmalfunction_set(sodb *o);
+int    so_dbmalfunction(sodb *o, char*, ...);
 
 #endif

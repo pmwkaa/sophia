@@ -32,7 +32,7 @@ sd_iterinit(sriter *i)
 	memset(ii, 0, sizeof(*ii));
 }
 
-static int sd_iternextpage(sditer*);
+static int sd_iternextpage(sriter*);
 
 static int
 sd_iteropen(sriter *i, va_list args)
@@ -40,7 +40,7 @@ sd_iteropen(sriter *i, va_list args)
 	sditer *ii = (sditer*)i->priv;
 	ii->map      = va_arg(args, srmap*);
 	ii->validate = va_arg(args, int);
-	return sd_iternextpage(ii);
+	return sd_iternextpage(i);
 }
 
 static void
@@ -70,16 +70,18 @@ sd_iterof(sriter *i)
 }
 
 static inline int
-sd_iternextpage(sditer *i)
+sd_iternextpage(sriter *it)
 {
+	sditer *i = (sditer*)it->priv;
 	char *page = NULL;
-
 	if (srunlikely(i->page == NULL))
 	{
 		srversion *ver = (srversion*)i->map->p;
-		if (! sr_versioncheck(ver))
-			return 0;
-		sdindexheader *h = sd_indexvalidate(i->map);
+		if (! sr_versioncheck(ver)) {
+			sr_error(it->r->e, "bad index version");
+			return -1;
+		}
+		sdindexheader *h = sd_indexvalidate(i->map, it->r);
 		if (srunlikely(h == NULL))
 			return -1;
 		i->eof = (char*)h;
@@ -97,7 +99,8 @@ sd_iternextpage(sditer *i)
 		uint32_t crc = sr_crcs(h, sizeof(sdpageheader), 0);
 		if (srunlikely(crc != h->crc)) {
 			i->page = NULL;
-			return 0;
+			sr_error(it->r->e, "bad page header crc");
+			return -1;
 		}
 	}
 	sd_pageinit(&i->pagev, (void*)i->page);
@@ -124,7 +127,7 @@ sd_iternext(sriter *i)
 		svinit(&ii->v, &sd_vif, ii->dv, ii->pagev.h);
 	} else {
 		ii->dv = NULL;
-		sd_iternextpage(ii);
+		sd_iternextpage(i);
 	}
 }
 

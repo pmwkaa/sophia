@@ -35,7 +35,7 @@ int sd_mergeinit(sdmerge *m, sr *r, uint32_t parent, uint8_t flags,
 
 int sd_mergefree(sdmerge *m)
 {
-	sd_indexfree(&m->index, m->r->a);
+	sd_indexfree(&m->index, m->r);
 	return 0;
 }
 
@@ -46,7 +46,7 @@ int sd_merge(sdmerge *m)
 	sd_buildreset(m->build);
 
 	sd_indexinit(&m->index);
-	int rc = sd_indexbegin(&m->index, m->r->a, m->size_key);
+	int rc = sd_indexbegin(&m->index, m->r, m->size_key);
 	if (srunlikely(rc == -1))
 		return -1;
 
@@ -78,7 +78,7 @@ int sd_merge(sdmerge *m)
 		rc = sd_buildend(m->build);
 		if (srunlikely(rc == -1))
 			return -1;
-		rc = sd_indexadd(&m->index, m->r->a,
+		rc = sd_indexadd(&m->index, m->r,
 		                 sd_buildoffset(m->build) + sizeof(srversion),
 		                 sd_buildheader(m->build)->size + sizeof(sdpageheader),
 		                 sd_buildheader(m->build)->sizekv,
@@ -104,5 +104,5 @@ int sd_merge(sdmerge *m)
 
 int sd_mergecommit(sdmerge *m, sdid *id)
 {
-	return sd_indexcommit(&m->index, m->r->a, id);
+	return sd_indexcommit(&m->index, m->r, id);
 }

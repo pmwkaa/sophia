@@ -23,11 +23,17 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 		return -1;
 	soobj *o = va_arg(args, soobj*);
 	sv *ov = NULL;
-	if (srunlikely(o->oid != SOV))
+	if (srunlikely(o->oid != SOV)) {
+		sr_error(&db->e->error, "bad arguments");
+		sr_error_recoverable(&db->e->error);
 		return -1;
+	}
 	ov = &((sov*)o)->v;
-	if (srunlikely(ov->v == NULL))
+	if (srunlikely(ov->v == NULL)) {
+		sr_error(&db->e->error, "bad arguments");
+		sr_error_recoverable(&db->e->error);
 		goto error;
+	}
 	svlocal l;
 	l.lsn         = 0;
 	l.flags       = flags;
@@ -39,8 +45,11 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	sv vp;
 	svinit(&vp, &sv_localif, &l, NULL);
 	svv *v = sv_valloc(db->r.a, &vp);
-	if (srunlikely(v == NULL))
+	if (srunlikely(v == NULL)) {
+		sr_error(&db->e->error, "memory allocation failed");
+		sr_error_recoverable(&db->e->error);
 		goto error;
+	}
 	svinit(&vp, &sv_vif, v, NULL);
 	/* update */
 	sm_lock(&db->mvcc);
@@ -73,11 +82,11 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	uint64_t lsvn = sm_lsvn(&db->mvcc);
 	sitx tx;
 	si_begin(&tx, &db->r, &db->index, lsvn, NULL, v);
-	rc = si_write(&tx);
+	si_write(&tx);
 	si_commit(&tx);
 	sm_unlock(&db->mvcc);
 	sp_destroy(o);
-	return rc;
+	return 0;
 error:
 	sp_destroy(o);
 	return -1;
@@ -88,13 +97,18 @@ void *so_txdbget(sodb *db, va_list args)
 	if (srunlikely(! so_dbactive(db)))
 		return NULL;
 	soobj *o = va_arg(args, soobj*);
-	if (srunlikely(o->oid != SOV))
+	if (srunlikely(o->oid != SOV)) {
+		sr_error(&db->e->error, "bad arguments");
+		sr_error_recoverable(&db->e->error);
 		return NULL;
+	}
 	sov *v = (sov*)o;
 	void *key = svkey(&v->v);
 	uint32_t keysize = svkeysize(&v->v);
 	if (srunlikely(key == NULL)) {
 		sp_destroy(o);
+		sr_error(&db->e->error, "bad arguments");
+		sr_error_recoverable(&db->e->error);
 		return NULL;
 	}
 	sm_get_stmt(&db->mvcc);
@@ -120,24 +134,33 @@ static int
 so_txdo(soobj *obj, uint8_t flags, va_list args)
 {
 	sotx *t = (sotx*)obj;
+	sodb *db = t->db;
 	svv *v;
 	int rc;
 	if (srunlikely(so_status(&t->db->status) == SO_RECOVER)) {
 		sv *recover_v = va_arg(args, sv*);
-		v = sv_valloc(t->db->r.a, recover_v);
-		if (srunlikely(v == NULL))
+		v = sv_valloc(db->r.a, recover_v);
+		if (srunlikely(v == NULL)) {
+			sr_error(&db->e->error, "memory allocation failed");
 			return -1;
+		}
 		rc = sm_set(&t->t, v);
 		return rc;
 	}
 	/* prepare object */
 	soobj *o = va_arg(args, soobj*);
 	sv *ov = NULL;
-	if (srunlikely(o->oid != SOV))
+	if (srunlikely(o->oid != SOV)) {
+		sr_error(&db->e->error, "bad arguments");
+		sr_error_recoverable(&db->e->error);
 		return -1;
+	}
 	ov = &((sov*)o)->v;
-	if (srunlikely(ov->v == NULL))
+	if (srunlikely(ov->v == NULL)) {
+		sr_error(&db->e->error, "bad arguments");
+		sr_error_recoverable(&db->e->error);
 		goto error;
+	}
 	svlocal l;
 	l.lsn         = 0;
 	l.flags       = flags;
@@ -148,9 +171,12 @@ so_txdo(soobj *obj, uint8_t flags, va_list args)
 	l.valueoffset = 0;
 	sv vp;
 	svinit(&vp, &sv_localif, &l, NULL);
-	v = sv_valloc(t->db->r.a, &vp);
-	if (srunlikely(v == NULL))
+	v = sv_valloc(db->r.a, &vp);
+	if (srunlikely(v == NULL)) {
+		sr_error(&db->e->error, "memory allocation failed");
+		sr_error_recoverable(&db->e->error);
 		goto error;
+	}
 	sm_lock(&t->db->mvcc);
 	rc = sm_set(&t->t, v);
 	sm_unlock(&t->db->mvcc);
@@ -181,12 +207,17 @@ so_txget(soobj *obj, va_list args)
 	if (srunlikely(! so_dbactive(db)))
 		return NULL;
 	soobj *o = va_arg(args, soobj*);
-	if (srunlikely(o->oid != SOV))
+	if (srunlikely(o->oid != SOV)) {
+		sr_error(&db->e->error, "bad arguments");
+		sr_error_recoverable(&db->e->error);
 		return NULL;
+	}
 	sov *v = (sov*)o;
 	void *key = svkey(&v->v);
 	if (srunlikely(key == NULL)) {
 		sp_destroy(o);
+		sr_error(&db->e->error, "bad arguments");
+		sr_error_recoverable(&db->e->error);
 		return NULL;
 	}
 	sm_lock(&t->db->mvcc);
@@ -306,7 +337,7 @@ so_txcommit_recover(soobj *o, va_list args)
 	int rc;
 	sitx ti;
 	si_begin(&ti, &db->r, &db->index, lsvn, &t->t.log, NULL);
-	rc = si_writelog(&ti);
+	si_writelog(&ti);
 	assert(rc == 0);
 	si_commit(&ti);
 	sm_unlock(&db->mvcc);
@@ -370,7 +401,7 @@ so_txcommit(soobj *o, va_list args)
 	uint64_t lsvn = sm_lsvn(&db->mvcc);
 	sitx ti;
 	si_begin(&ti, &db->r, &db->index, lsvn, &t->t.log, NULL);
-	rc = si_writelog(&ti);
+	si_writelog(&ti);
 	assert(rc == 0);
 	si_commit(&ti);
 	sm_unlock(&db->mvcc);
@@ -408,15 +439,14 @@ soobj *so_txnew(sodb *db)
 {
 	so *e = db->e;
 	sotx *t = sr_malloc(&e->a, sizeof(sotx));
-	if (srunlikely(t == NULL))
-		return NULL;
-	so_objinit(&t->o, SOTX, &sotxif);
-	t->db = db;
-	int rc = sm_begin(&db->mvcc, &t->t);
-	if (srunlikely(rc == -1)) {
-		sr_free(&e->a, t);
+	if (srunlikely(t == NULL)) {
+		sr_error(&e->error, "memory allocation failed");
+		sr_error_recoverable(&e->error);
 		return NULL;
 	}
+	so_objinit(&t->o, SOTX, &sotxif);
+	t->db = db;
+	sm_begin(&db->mvcc, &t->t);
 	so_objindex_register(&db->tx, &t->o);
 	return &t->o;
 }

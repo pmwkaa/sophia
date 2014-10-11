@@ -24,7 +24,7 @@ si_redistribute(sr *r, sdc *c, sinode *node, srbuf *result, uint64_t lsvn)
 		sv *v = sr_iterof(&i);
 		int rc = sr_bufadd(&c->c, r->a, &v->v, sizeof(svv**));
 		if (srunlikely(rc == -1))
-			return -1;
+			return sr_error(r->e, "memory allocation failed");
 	}
 	if (srunlikely(sr_bufused(&c->c) == 0))
 		return 0;
@@ -155,7 +155,7 @@ si_mergeof(si *index, sr *r, sdc *c, uint64_t lsvn,
 	sr_iteropen(&i, result, sizeof(sinode*));
 	for (; sr_iterhas(&i); sr_iternext(&i)) {
 		n = sr_iterof(&i);
-		rc = si_nodeseal(n, index->conf);
+		rc = si_nodeseal(n, r, index->conf);
 		if (srunlikely(rc == -1))
 			return -1;
 		SR_INJECTION(r->i, SR_INJECTION_SI_MERGE_3,
@@ -180,7 +180,7 @@ si_mergeof(si *index, sr *r, sdc *c, uint64_t lsvn,
 	sr_iteropen(&i, result, sizeof(sinode*));
 	for (; sr_iterhas(&i); sr_iternext(&i)) {
 		n = sr_iterof(&i);
-		rc = si_nodecomplete(n, index->conf);
+		rc = si_nodecomplete(n, r, index->conf);
 		if (srunlikely(rc == -1))
 			return -1;
 		SR_INJECTION(r->i, SR_INJECTION_SI_MERGE_4,
@@ -206,8 +206,7 @@ si_mergeadd(svmerge *m, sr *r, sinode *n,
             uint32_t *size_key)
 {
 	svmergesrc *src = sv_mergeadd(m);
-	if (srunlikely(src == NULL))
-		return -1;
+	assert(src != NULL);
 	uint16_t key = sd_indexkeysize(&n->index);
 	if (key > *size_key)
 		*size_key = key;
@@ -230,7 +229,7 @@ int si_merge(si *index, sr *r, sdc *c, uint64_t lsvn, uint32_t wm)
 	sd_creset(c);
 	svmerge merge;
 	sv_mergeinit(&merge);
-	int rc = sv_mergeprepare(&merge, r->a, node->lv + 1, 0);
+	int rc = sv_mergeprepare(&merge, r, node->lv + 1, 0);
 	if (srunlikely(rc == -1))
 		return -1;
 	uint32_t size_stream = 0;

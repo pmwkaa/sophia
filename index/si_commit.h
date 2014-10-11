@@ -19,10 +19,10 @@ struct sitx {
 	sr *r;
 };
 
-int si_begin(sitx*, sr*, si*, uint64_t, svlog*, svv*);
-int si_commit(sitx*);
-int si_rollback(sitx*);
-int si_writelog(sitx*);
-int si_write(sitx*);
+void si_begin(sitx*, sr*, si*, uint64_t, svlog*, svv*);
+void si_commit(sitx*);
+void si_rollback(sitx*);
+void si_writelog(sitx*);
+void si_write(sitx*);
 
 #endif
