@@ -33,7 +33,7 @@ sv_mergeprepare(svmerge *m, sr *r, int count, int reserve) {
 	m->reserve = reserve;
 	int rc = sr_bufensure(&m->buf, r->a, (sizeof(svmergesrc) + reserve) * count);
 	if (srunlikely(rc == -1))
-		return sr_error(r->e, "memory allocation failed");
+		return sr_error(r->e, "%s", "memory allocation failed");
 	return 0;
 }
 

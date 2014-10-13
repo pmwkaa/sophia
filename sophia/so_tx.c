@@ -24,13 +24,13 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	soobj *o = va_arg(args, soobj*);
 	sv *ov = NULL;
 	if (srunlikely(o->oid != SOV)) {
-		sr_error(&db->e->error, "bad arguments");
+		sr_error(&db->e->error, "%s", "bad arguments");
 		sr_error_recoverable(&db->e->error);
 		return -1;
 	}
 	ov = &((sov*)o)->v;
 	if (srunlikely(ov->v == NULL)) {
-		sr_error(&db->e->error, "bad arguments");
+		sr_error(&db->e->error, "%s", "bad arguments");
 		sr_error_recoverable(&db->e->error);
 		goto error;
 	}
@@ -46,7 +46,7 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	svinit(&vp, &sv_localif, &l, NULL);
 	svv *v = sv_valloc(db->r.a, &vp);
 	if (srunlikely(v == NULL)) {
-		sr_error(&db->e->error, "memory allocation failed");
+		sr_error(&db->e->error, "%s", "memory allocation failed");
 		sr_error_recoverable(&db->e->error);
 		goto error;
 	}
@@ -98,7 +98,7 @@ void *so_txdbget(sodb *db, va_list args)
 		return NULL;
 	soobj *o = va_arg(args, soobj*);
 	if (srunlikely(o->oid != SOV)) {
-		sr_error(&db->e->error, "bad arguments");
+		sr_error(&db->e->error, "%s", "bad arguments");
 		sr_error_recoverable(&db->e->error);
 		return NULL;
 	}
@@ -107,7 +107,7 @@ void *so_txdbget(sodb *db, va_list args)
 	uint32_t keysize = svkeysize(&v->v);
 	if (srunlikely(key == NULL)) {
 		sp_destroy(o);
-		sr_error(&db->e->error, "bad arguments");
+		sr_error(&db->e->error, "%s", "bad arguments");
 		sr_error_recoverable(&db->e->error);
 		return NULL;
 	}
@@ -141,7 +141,7 @@ so_txdo(soobj *obj, uint8_t flags, va_list args)
 		sv *recover_v = va_arg(args, sv*);
 		v = sv_valloc(db->r.a, recover_v);
 		if (srunlikely(v == NULL)) {
-			sr_error(&db->e->error, "memory allocation failed");
+			sr_error(&db->e->error, "%s", "memory allocation failed");
 			return -1;
 		}
 		rc = sm_set(&t->t, v);
@@ -151,13 +151,13 @@ so_txdo(soobj *obj, uint8_t flags, va_list args)
 	soobj *o = va_arg(args, soobj*);
 	sv *ov = NULL;
 	if (srunlikely(o->oid != SOV)) {
-		sr_error(&db->e->error, "bad arguments");
+		sr_error(&db->e->error, "%s", "bad arguments");
 		sr_error_recoverable(&db->e->error);
 		return -1;
 	}
 	ov = &((sov*)o)->v;
 	if (srunlikely(ov->v == NULL)) {
-		sr_error(&db->e->error, "bad arguments");
+		sr_error(&db->e->error, "%s", "bad arguments");
 		sr_error_recoverable(&db->e->error);
 		goto error;
 	}
@@ -173,7 +173,7 @@ so_txdo(soobj *obj, uint8_t flags, va_list args)
 	svinit(&vp, &sv_localif, &l, NULL);
 	v = sv_valloc(db->r.a, &vp);
 	if (srunlikely(v == NULL)) {
-		sr_error(&db->e->error, "memory allocation failed");
+		sr_error(&db->e->error, "%s", "memory allocation failed");
 		sr_error_recoverable(&db->e->error);
 		goto error;
 	}
@@ -208,7 +208,7 @@ so_txget(soobj *obj, va_list args)
 		return NULL;
 	soobj *o = va_arg(args, soobj*);
 	if (srunlikely(o->oid != SOV)) {
-		sr_error(&db->e->error, "bad arguments");
+		sr_error(&db->e->error, "%s", "bad arguments");
 		sr_error_recoverable(&db->e->error);
 		return NULL;
 	}
@@ -216,7 +216,7 @@ so_txget(soobj *obj, va_list args)
 	void *key = svkey(&v->v);
 	if (srunlikely(key == NULL)) {
 		sp_destroy(o);
-		sr_error(&db->e->error, "bad arguments");
+		sr_error(&db->e->error, "%s", "bad arguments");
 		sr_error_recoverable(&db->e->error);
 		return NULL;
 	}
@@ -437,7 +437,7 @@ soobj *so_txnew(sodb *db)
 	so *e = db->e;
 	sotx *t = sr_malloc(&e->a, sizeof(sotx));
 	if (srunlikely(t == NULL)) {
-		sr_error(&e->error, "memory allocation failed");
+		sr_error(&e->error, "%s", "memory allocation failed");
 		sr_error_recoverable(&e->error);
 		return NULL;
 	}

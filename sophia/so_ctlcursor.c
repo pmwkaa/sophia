@@ -140,7 +140,7 @@ soobj *so_ctlcursor_new(void *o)
 	so *e = o;
 	soctlcursor *c = sr_malloc(&e->a, sizeof(soctlcursor));
 	if (srunlikely(c == NULL)) {
-		sr_error(&e->error, "memory allocation failed");
+		sr_error(&e->error, "%s", "memory allocation failed");
 		sr_error_recoverable(&e->error);
 		return NULL;
 	}

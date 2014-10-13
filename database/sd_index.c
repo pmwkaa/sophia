@@ -15,7 +15,7 @@ int sd_indexbegin(sdindex *i, sr *r, uint32_t keysize)
 {
 	int rc = sr_bufensure(&i->i, r->a, sizeof(sdindexheader));
 	if (srunlikely(rc == -1))
-		return sr_error(r->e, "memory allocation failed");
+		return sr_error(r->e, "%s", "memory allocation failed");
 	sdindexheader *h = sd_indexheader(i);
 	i->h         = h;
 	h->crc       = 0;
@@ -35,7 +35,7 @@ int sd_indexcommit(sdindex *i, sr *r, sdid *id)
 {
 	int rc = sr_bufensure(&i->i, r->a, sizeof(sdindexfooter));
 	if (srunlikely(rc == -1))
-		return sr_error(r->e, "memory allocation failed");
+		return sr_error(r->e, "%s", "memory allocation failed");
 	sr_bufadvance(&i->i, sizeof(sdindexfooter));
 	i->h        = sd_indexheader(i);
 	i->h->id    = *id;
@@ -58,7 +58,7 @@ int sd_indexadd(sdindex *i, sr *r, uint32_t offset,
 {
 	int rc = sr_bufensure(&i->i, r->a, i->h->block);
 	if (srunlikely(rc == -1))
-		return sr_error(r->e, "memory allocation failed");
+		return sr_error(r->e, "%s", "memory allocation failed");
 	i->h = sd_indexheader(i);
 	sdindexpage *p = (sdindexpage*)i->i.p;
 	p->offset  = offset;
@@ -88,7 +88,7 @@ sd_indexvalidate(srmap *map, sr *r)
 	    sizeof(srversion) + sizeof(sdindexheader) +
 	    sizeof(sdindexfooter);
 	if (map->size < minsize) {
-		sr_error(r->e, "bad index size");
+		sr_error(r->e, "%s", "bad index size");
 		return NULL;
 	}
 	sdindexfooter *f = (sdindexfooter*)
@@ -97,12 +97,12 @@ sd_indexvalidate(srmap *map, sr *r)
 		(sdindexheader*)(map->p + (map->size - f->size));
 	uint32_t crc = sr_crcs(h, sizeof(sdindexheader), 0);
 	if (h->crc != crc) {
-		sr_error(r->e, "bad index header crc");
+		sr_error(r->e, "%s", "bad index header crc");
 		return NULL;
 	}
 	crc = sr_crcs(f, sizeof(sdindexfooter), h->crc);
 	if (f->crc != crc) {
-		sr_error(r->e, "bad index footer crc");
+		sr_error(r->e, "%s", "bad index footer crc");
 		return NULL;
 	}
 	return h;
@@ -118,7 +118,7 @@ int sd_indexrecover(sdindex *i, sr *r, srmap *map)
 		sizeof(sdindexfooter);
 	int rc = sr_bufensure(&i->i, r->a, size);
 	if (srunlikely(rc == -1))
-		return sr_error(r->e, "memory allocation failed");
+		return sr_error(r->e, "%s", "memory allocation failed");
 	memcpy(i->i.s, (char*)h, size);
 	sr_bufadvance(&i->i, size);
 	i->h = sd_indexheader(i);

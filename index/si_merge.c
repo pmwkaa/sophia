@@ -24,7 +24,7 @@ si_redistribute(sr *r, sdc *c, sinode *node, srbuf *result, uint64_t lsvn)
 		sv *v = sr_iterof(&i);
 		int rc = sr_bufadd(&c->c, r->a, &v->v, sizeof(svv**));
 		if (srunlikely(rc == -1))
-			return sr_error(r->e, "memory allocation failed");
+			return sr_error(r->e, "%s", "memory allocation failed");
 	}
 	if (srunlikely(sr_bufused(&c->c) == 0))
 		return 0;

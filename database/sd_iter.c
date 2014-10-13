@@ -78,7 +78,7 @@ sd_iternextpage(sriter *it)
 	{
 		srversion *ver = (srversion*)i->map->p;
 		if (! sr_versioncheck(ver)) {
-			sr_error(it->r->e, "bad index version");
+			sr_error(it->r->e, "%s", "bad index version");
 			return -1;
 		}
 		sdindexheader *h = sd_indexvalidate(i->map, it->r);
@@ -99,7 +99,7 @@ sd_iternextpage(sriter *it)
 		uint32_t crc = sr_crcs(h, sizeof(sdpageheader), 0);
 		if (srunlikely(crc != h->crc)) {
 			i->page = NULL;
-			sr_error(it->r->e, "bad page header crc");
+			sr_error(it->r->e, "%s", "bad page header crc");
 			return -1;
 		}
 	}

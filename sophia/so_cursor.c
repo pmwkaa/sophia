@@ -165,7 +165,7 @@ soobj *so_cursornew(sodb *db, va_list args)
 	}
 	c = sr_malloc(&e->a, sizeof(socursor));
 	if (srunlikely(c == NULL)) {
-		sr_error(&e->error, "memory allocation failed");
+		sr_error(&e->error, "%s", "memory allocation failed");
 		sr_error_recoverable(&e->error);
 		goto error;
 	}

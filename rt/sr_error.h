@@ -20,6 +20,9 @@ enum {
 struct srerror {
 	srspinlock lock;
 	int status;
+	const char *file;
+	const char *function;
+	int line;
 	char error[256];
 };
 
@@ -27,6 +30,9 @@ static inline void
 sr_errorinit(srerror *e) {
 	e->status = SR_ERROR_NONE;
 	e->error[0] = 0;
+	e->line = 0;
+	e->function = NULL;
+	e->file = NULL;
 	sr_spinlockinit(&e->lock);
 }
 
@@ -72,23 +78,35 @@ sr_errorcopy(srerror *e, char *buf, int bufsize) {
 }
 
 static inline void
-sr_verror(srerror *e, int status, char *fmt, va_list args)
+sr_verrorset(srerror *e,
+             const char *file,
+             const char *function, int line, int status,
+             char *fmt, va_list args)
 {
 	sr_spinlock(&e->lock);
 	if (srunlikely(e->status & SR_ERROR)) {
 		sr_spinunlock(&e->lock);
 		return;
 	}
-	e->status = status;
-	vsnprintf(e->error, sizeof(e->error), fmt, args);
+	e->file     = file;
+	e->function = function;
+	e->line     = line;
+	e->status   = status;
+	int len;
+	len = snprintf(e->error, sizeof(e->error), "%s:%d ", file, line);
+	vsnprintf(e->error + len, sizeof(e->error) - len, fmt, args);
 	sr_spinunlock(&e->lock);
 }
 
 static inline int
-sr_error(srerror *e, char *fmt, ...) {
+sr_errorset(srerror *e,
+            const char *file,
+            const char *function, int line,
+            char *fmt, ...)
+{
 	va_list args;
 	va_start(args, fmt);
-	sr_verror(e, SR_ERROR, fmt, args);
+	sr_verrorset(e, file, function, line, SR_ERROR, fmt, args);
 	va_end(args);
 	return -1;
 }
@@ -101,5 +119,8 @@ sr_error_recoverable(srerror *e) {
 	sr_spinunlock(&e->lock);
 	return -1;
 }
+
+#define sr_error(e, fmt, ...) \
+	sr_errorset(e, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
 #endif

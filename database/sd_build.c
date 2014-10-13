@@ -15,7 +15,7 @@ int sd_buildbegin(sdbuild *b, uint32_t keymax)
 {
 	int rc = sr_bufensure(&b->list, b->r->a, sizeof(sdbuildref));
 	if (srunlikely(rc == -1))
-		return sr_error(b->r->e, "memory allocation failed");
+		return sr_error(b->r->e, "%s", "memory allocation failed");
 	sdbuildref *ref =
 		(sdbuildref*)sr_bufat(&b->list, sizeof(sdbuildref), b->n);
 	ref->k     = sr_bufused(&b->k);
@@ -24,7 +24,7 @@ int sd_buildbegin(sdbuild *b, uint32_t keymax)
 	ref->vsize = 0;
 	rc = sr_bufensure(&b->k, b->r->a, sizeof(sdpageheader));
 	if (srunlikely(rc == -1))
-		return sr_error(b->r->e, "memory allocation failed");
+		return sr_error(b->r->e, "%s", "memory allocation failed");
 	sdpageheader *h = sd_buildheader(b);
 	memset(h, 0, sizeof(*h));
 	h->sizeblock = sizeof(sdv) + keymax;
@@ -49,7 +49,7 @@ int sd_buildadd(sdbuild *b, sv *v)
 	uint32_t sizeblock = sd_buildheader(b)->sizeblock;
 	int rc = sr_bufensure(&b->k, b->r->a, sizeblock);
 	if (srunlikely(rc == -1))
-		return sr_error(b->r->e, "memory allocation failed");
+		return sr_error(b->r->e, "%s", "memory allocation failed");
 	sdpageheader *h = sd_buildheader(b);
 	sdv *sv = (sdv*)b->k.p;
 	if (sd_isdb(v)) {
@@ -67,7 +67,7 @@ int sd_buildadd(sdbuild *b, sv *v)
 	sv->flags = svflags(v); /* ensure v->flags */
 	rc = sr_bufensure(&b->v, b->r->a, sv->valuesize);
 	if (srunlikely(rc == -1))
-		return sr_error(b->r->e, "memory allocation failed");
+		return sr_error(b->r->e, "%s", "memory allocation failed");
 	memcpy(b->v.p, svvalue(v), sv->valuesize);
 	sv->valueoffset =
 		sr_bufused(&b->v) - sd_buildref(b)->v;

@@ -36,7 +36,6 @@ so_dbactive(sodb *o) {
 
 soobj *so_dbnew(so*, char*);
 soobj *so_dbmatch(so*, char*);
-int    so_dbmalfunction_set(sodb *o);
-int    so_dbmalfunction(sodb *o, char*, ...);
+int    so_dbmalfunction(sodb *o);
 
 #endif

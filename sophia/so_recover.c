@@ -144,6 +144,6 @@ int so_recover(sodb *db)
 	si_qosenable(&db->index, 1);
 	return 0;
 error:
-	so_dbmalfunction_set(db);
+	so_dbmalfunction(db);
 	return -1;
 }

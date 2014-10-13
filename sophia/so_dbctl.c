@@ -22,7 +22,7 @@ int so_dbctl_init(sodbctl *c, char *name, void *db)
 	sodb *o = db;
 	c->name = sr_strdup(&o->e->a, name);
 	if (srunlikely(c->name == NULL)) {
-		sr_error(&o->e->error, "memory allocation failed");
+		sr_error(&o->e->error, "%s", "memory allocation failed");
 		sr_error_recoverable(&o->e->error);
 		return -1;
 	}
@@ -69,7 +69,7 @@ int so_dbctl_validate(sodbctl *c)
 {
 	sodb *o = c->parent;
 	if (c->dir == NULL) {
-		sr_error(&o->e->error, "database directory is not set");
+		sr_error(&o->e->error, "%s", "database directory is not set");
 		sr_error_recoverable(&o->e->error);
 		return -1;
 	}
@@ -217,7 +217,7 @@ so_dbprofiler_get(sodb *db, char *path)
 	srctl *match = NULL;
 	int rc = sr_ctlget(&ctls[0], &path, &match);
 	if (srunlikely(rc == 1 || rc == -1)) {
-		sr_error(&db->e->error, "bad control path");
+		sr_error(&db->e->error, "%s", "bad control path");
 		sr_error_recoverable(&db->e->error);
 		return NULL;
 	}
@@ -237,7 +237,7 @@ so_dbprofiler_dump(sodb *db, srbuf *dump)
 	snprintf(prefix, sizeof(prefix), "db.%s.profiler.", db->ctl.name);
 	int rc = sr_ctlserialize(&ctls[0], &db->e->a, prefix, dump);
 	if (srunlikely(rc == -1)) {
-		sr_error(&db->e->error, "memory allocation failed");
+		sr_error(&db->e->error, "%s", "memory allocation failed");
 		sr_error_recoverable(&db->e->error);
 		return -1;
 	}
@@ -252,13 +252,13 @@ so_dbei_set(sodb *db, char *path, va_list args)
 	srctl *match = NULL;
 	int rc = sr_ctlget(&ctls[0], &path, &match);
 	if (srunlikely(rc == 1 || rc == -1)) {
-		sr_error(&db->e->error, "bad control path");
+		sr_error(&db->e->error, "%s", "bad control path");
 		sr_error_recoverable(&db->e->error);
 		return -1;
 	}
 	rc = sr_ctlset(match, db->r.a, db, args);
 	if (srunlikely(rc == -1)) {
-		sr_error(&db->e->error, "failed to set control path");
+		sr_error(&db->e->error, "%s", "failed to set control path");
 		sr_error_recoverable(&db->e->error);
 		return -1;
 	}
@@ -273,7 +273,7 @@ so_dbei_get(sodb *db, char *path)
 	srctl *match = NULL;
 	int rc = sr_ctlget(&ctls[0], &path, &match);
 	if (srunlikely(rc == 1 || rc == -1)) {
-		sr_error(&db->e->error, "bad control path");
+		sr_error(&db->e->error, "%s", "bad control path");
 		sr_error_recoverable(&db->e->error);
 		return NULL;
 	}
@@ -289,7 +289,7 @@ so_dbei_dump(sodb *db, srbuf *dump)
 	snprintf(prefix, sizeof(prefix), "db.%s.error_injection.", db->ctl.name);
 	int rc = sr_ctlserialize(&ctls[0], &db->e->a, prefix, dump);
 	if (srunlikely(rc == -1)) {
-		sr_error(&db->e->error, "memory allocation failed");
+		sr_error(&db->e->error, "%s", "memory allocation failed");
 		sr_error_recoverable(&db->e->error);
 		return -1;
 	}
@@ -307,7 +307,7 @@ int so_dbctl_set(sodbctl *c, char *path, va_list args)
 	if (srunlikely(rc ==  1))
 		return  0; /* self */
 	if (srunlikely(rc == -1)) {
-		sr_error(&db->e->error, "bad control path");
+		sr_error(&db->e->error, "%s", "bad control path");
 		sr_error_recoverable(&db->e->error);
 		return -1;
 	}
@@ -317,13 +317,13 @@ int so_dbctl_set(sodbctl *c, char *path, va_list args)
 			return so_dbei_set(db, path, args);
 	}
 	if (so_dbactive(db) && (type != SR_CTLTRIGGER)) {
-		sr_error(&db->e->error, "failed to set control path");
+		sr_error(&db->e->error, "%s", "failed to set control path");
 		sr_error_recoverable(&db->e->error);
 		return -1;
 	}
 	rc = sr_ctlset(match, db->r.a, db, args);
 	if (srunlikely(rc == -1)) {
-		sr_error(&db->e->error, "failed to set control path");
+		sr_error(&db->e->error, "%s", "failed to set control path");
 		sr_error_recoverable(&db->e->error);
 		return -1;
 	}
@@ -341,7 +341,7 @@ void *so_dbctl_get(sodbctl *c, char *path, va_list args srunused)
 	if (srunlikely(rc ==  1))
 		return &db->o; /* self */
 	if (srunlikely(rc == -1)) {
-		sr_error(&db->e->error, "bad control path");
+		sr_error(&db->e->error, "%s", "bad control path");
 		sr_error_recoverable(&db->e->error);
 		return NULL;
 	}
@@ -352,7 +352,7 @@ void *so_dbctl_get(sodbctl *c, char *path, va_list args srunused)
 		else
 		if (strcmp(match->name, "error_injection") == 0)
 			return so_dbei_get(db, path);
-		sr_error(&db->e->error, "unknown control path");
+		sr_error(&db->e->error, "%s", "unknown control path");
 		sr_error_recoverable(&db->e->error);
 		return NULL;
 	}
@@ -369,7 +369,7 @@ int so_dbctl_dump(sodbctl *c, srbuf *dump)
 	snprintf(prefix, sizeof(prefix), "db.%s.", c->name);
 	int rc = sr_ctlserialize(&ctls[0], &db->e->a, prefix, dump);
 	if (srunlikely(rc == -1)) {
-		sr_error(&db->e->error, "memory allocation failed");
+		sr_error(&db->e->error, "%s", "memory allocation failed");
 		sr_error_recoverable(&db->e->error);
 		return -1;
 	}

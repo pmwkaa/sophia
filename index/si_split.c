@@ -56,7 +56,7 @@ int si_split(sisplit *s, sr *r, sdc *c, srbuf *result)
 			goto error;
 		rc = sr_bufadd(result, r->a, &n, sizeof(sinode*));
 		if (srunlikely(rc == -1)) {
-			sr_error(r->e, "memory allocation failed");
+			sr_error(r->e, "%s", "memory allocation failed");
 			si_nodefree(n, r);
 			goto error;
 		}

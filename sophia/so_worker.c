@@ -55,7 +55,7 @@ so_workernew(sr *r, srthreadf f, void *arg)
 {
 	soworker *p = sr_malloc(r->a, sizeof(soworker));
 	if (srunlikely(p == NULL)) {
-		sr_error(r->e, "memory allocation failed");
+		sr_error(r->e, "%s", "memory allocation failed");
 		return NULL;
 	}
 	p->arg = arg;

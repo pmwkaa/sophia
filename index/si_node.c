@@ -16,7 +16,7 @@ sinode *si_nodenew(sr *r)
 {
 	sinode *n = (sinode*)sr_malloc(r->a, sizeof(sinode));
 	if (srunlikely(n == NULL)) {
-		sr_error(r->e, "memory allocation failed");
+		sr_error(r->e, "%s", "memory allocation failed");
 		return NULL;
 	}
 	memset(&n->id, 0, sizeof(n->id));
@@ -48,7 +48,7 @@ int si_nodecreate(sinode *n, sr *r, siconf *conf, sdid *id,
 	sr_pathA(&path, conf->dir, id->id, ".db.incomplete");
 	int rc = sr_filenew(&n->file, path.path);
 	if (srunlikely(rc == -1)) {
-		sr_error(r->e, "db file '%s' create error",
+		sr_error(r->e, "db file '%s' create error: %s",
 		         n->file.file, strerror(errno));
 		return -1;
 	}
@@ -57,7 +57,7 @@ int si_nodecreate(sinode *n, sr *r, siconf *conf, sdid *id,
 		return -1;
 	rc = sr_mapfile(&n->map, &n->file, 1);
 	if (srunlikely(rc == -1)) {
-		sr_error(r->e, "db file '%s' map error",
+		sr_error(r->e, "db file '%s' map error: %s",
 		         n->file.file, strerror(errno));
 		return -1;
 	}
@@ -75,7 +75,7 @@ si_nodecreate_attach(sinode *n, sr *r, siconf *conf, sdid *id,
 	sr_pathAB(&path, conf->dir, id->parent, id->id, ".db.incomplete");
 	int rc = sr_filenew(&n->file, path.path);
 	if (srunlikely(rc == -1)) {
-		sr_error(r->e, "db file '%s' create error",
+		sr_error(r->e, "db file '%s' create error: %s",
 		         n->file.file, strerror(errno));
 		return -1;
 	}
@@ -84,7 +84,7 @@ si_nodecreate_attach(sinode *n, sr *r, siconf *conf, sdid *id,
 		return -1;
 	rc = sr_mapfile(&n->map, &n->file, 1);
 	if (srunlikely(rc == -1)) {
-		sr_error(r->e, "db file '%s' map error",
+		sr_error(r->e, "db file '%s' map error: %s",
 		         n->file.file, strerror(errno));
 		return -1;
 	}
@@ -98,7 +98,7 @@ si_nodeclose(sinode *n, sr *r)
 	int rcret = 0;
 	int rc = sr_fileclose(&n->file);
 	if (srunlikely(rc == -1)) {
-		sr_error(r->e, "db file '%s' close error",
+		sr_error(r->e, "db file '%s' close error: %s",
 		         n->file.file, strerror(errno));
 		rcret = -1;
 	}
@@ -112,13 +112,13 @@ int si_nodeopen(sinode *n, sr *r, srpath *path)
 {
 	int rc = sr_fileopen(&n->file, path->path);
 	if (srunlikely(rc == -1)) {
-		sr_error(r->e, "db file '%s' open error",
+		sr_error(r->e, "db file '%s' open error: %s",
 		         n->file.file, strerror(errno));
 		return -1;
 	}
 	rc = sr_mapfile(&n->map, &n->file, 1);
 	if (srunlikely(rc == -1)) {
-		sr_error(r->e, "db file '%s' map error",
+		sr_error(r->e, "db file '%s' map error: %s",
 		         n->file.file, strerror(errno));
 		goto error;
 	}
@@ -166,7 +166,7 @@ int si_nodegc(sinode *n, sr *r)
 		if (p->file.file) {
 			rc = sr_fileunlink(p->file.file);
 			if (srunlikely(rc == -1)) {
-				sr_error(r->e, "db file '%s' unlink error",
+				sr_error(r->e, "db file '%s' unlink error: %s",
 				         p->file.file, strerror(errno));
 				rcret = -1;
 			}
@@ -203,7 +203,7 @@ int si_nodeseal(sinode *n, sr *r, siconf *conf)
 	sr_pathAB(&path, conf->dir, n->id.parent, n->id.id, ".db.seal");
 	int rc = sr_filerename(&n->file, path.path);
 	if (srunlikely(rc == -1)) {
-		sr_error(r->e, "db file '%s' rename error",
+		sr_error(r->e, "db file '%s' rename error: %s",
 				 n->file.file, strerror(errno));
 	}
 	return rc;
@@ -215,7 +215,7 @@ int si_nodecomplete(sinode *n, sr *r, siconf *conf)
 	sr_pathA(&path, conf->dir, n->id.id, ".db");
 	int rc = sr_filerename(&n->file, path.path);
 	if (srunlikely(rc == -1)) {
-		sr_error(r->e, "db file '%s' rename error",
+		sr_error(r->e, "db file '%s' rename error: %s",
 				 n->file.file, strerror(errno));
 	}
 	return rc;

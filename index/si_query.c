@@ -125,7 +125,7 @@ int si_querydup(siquery *q, sv *result)
 {
 	svv *v = sv_valloc(q->r->a, &q->result);
 	if (srunlikely(v == NULL)) {
-		sr_error(q->r->e, "memory allocation failed");
+		sr_error(q->r->e, "%s", "memory allocation failed");
 		sr_error_recoverable(q->r->e);
 		return -1;
 	}

@@ -316,7 +316,7 @@ si_branchsort(sr *r, srbuf *buf, sinode *parent)
 	int rc;
 	rc = sr_bufensure(buf, r->a, sizeof(sinode*) * parent->lv);
 	if (srunlikely(rc == -1))
-		return sr_error(r->e, "memory allocation failed");
+		return sr_error(r->e, "%s", "memory allocation failed");
 	sinode *n = parent->next;
 	while (n) {
 		sr_bufadd(buf, r->a, &n, sizeof(sinode*));
@@ -403,7 +403,7 @@ si_recovercomplete(sitrack *track, sr *r, si *index, srbuf *buf)
 		sinode *n = srcast(p, sinode, node);
 		int rc = sr_bufadd(buf, r->a, &n, sizeof(sinode**));
 		if (srunlikely(rc == -1))
-			return sr_error(r->e, "memory allocation failed");
+			return sr_error(r->e, "%s", "memory allocation failed");
 		p = sr_rbnext(&track->i, p);
 	}
 	sriter i;

@@ -16,7 +16,7 @@ sl_alloc(slpool *p, uint32_t id)
 {
 	sl *l = sr_malloc(p->r->a, sizeof(*l));
 	if (srunlikely(l == NULL)) {
-		sr_error(p->r->e, "memory allocation failed");
+		sr_error(p->r->e, "%s", "memory allocation failed");
 		return NULL;
 	}
 	l->id   = id;
@@ -102,7 +102,7 @@ int sl_poolinit(slpool *p, sr *r, slconf *conf)
 	struct iovec *iov =
 		sr_malloc(r->a, sizeof(struct iovec) * 1021);
 	if (srunlikely(iov == NULL))
-		return sr_error(r->e, "memory allocation failed");
+		return sr_error(r->e, "%s", "memory allocation failed");
 	sr_iovinit(&p->iov, iov, 1021);
 	if (conf->dir == NULL)
 		p->enabled = 0;

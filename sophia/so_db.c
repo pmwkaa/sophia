@@ -39,7 +39,7 @@ static inline void *so_merger(void *arg)
 		              lsvn,
 		              o->ctl.node_merge_wm);
 		if (srunlikely(rc == -1)) {
-			so_dbmalfunction_set(o);
+			so_dbmalfunction(o);
 			break;
 		}
 		if (rc == 0)
@@ -63,20 +63,20 @@ static inline void *so_brancher(void *arg)
 		               lsvn,
 		               o->ctl.node_branch_wm);
 		if (srunlikely(rc == -1)) {
-			so_dbmalfunction_set(o);
+			so_dbmalfunction(o);
 			break;
 		}
 		int nojob = rc == 0;
 		rc = sl_poolgc(&o->lp);
 		if (srunlikely(rc == -1)) {
-			so_dbmalfunction_set(o);
+			so_dbmalfunction(o);
 			break;
 		}
 		rc = sl_poolrotate_ready(&o->lp, o->ctl.logdir_rotate_wm);
 		if (rc) {
 			rc = sl_poolrotate(&o->lp);
 			if (srunlikely(rc == -1)) {
-				so_dbmalfunction_set(o);
+				so_dbmalfunction(o);
 				break;
 			}
 		}
@@ -226,7 +226,7 @@ soobj *so_dbnew(so *e, char *name)
 {
 	sodb *o = sr_malloc(&e->a, sizeof(sodb));
 	if (srunlikely(o == NULL)) {
-		sr_error(&e->error, "memory allocation failed");
+		sr_error(&e->error, "%s", "memory allocation failed");
 		sr_error_recoverable(&e->error);
 		return NULL;
 	}
@@ -262,20 +262,8 @@ soobj *so_dbmatch(so *e, char *name)
 	return NULL;
 }
 
-int so_dbmalfunction_set(sodb *o)
+int so_dbmalfunction(sodb *o)
 {
 	so_statusset(&o->status, SO_MALFUNCTION);
-	return -1;
-}
-
-int so_dbmalfunction(sodb *o, char *fmt, ...)
-{
-	va_list args;
-	va_start(args, fmt);
-	so_statuslock(&o->status);
-	o->status.status = SO_MALFUNCTION;
-	sr_verror(&o->e->error, SR_ERROR, fmt, args);
-	so_statusunlock(&o->status);
-	va_end(args);
 	return -1;
 }
