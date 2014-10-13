@@ -60,6 +60,7 @@ int si_branch(si *index, sr *r, sdc *c, uint64_t lsvn, uint32_t wm)
 	assert(sr_bufused(result) == sizeof(sinode*));
 
 	SR_INJECTION(r->i, SR_INJECTION_SI_BRANCH_0,
+	             sr_error(r->e, "%s", "error injection");
 	             si_splitfree(result, r);
 	             return -1);
 
@@ -74,6 +75,7 @@ int si_branch(si *index, sr *r, sdc *c, uint64_t lsvn, uint32_t wm)
 
 	SR_INJECTION(r->i, SR_INJECTION_SI_BRANCH_1,
 	             si_splitfree(result, r);
+	             sr_error(r->e, "%s", "error injection");
 	             return -1);
 
 	/* commit */

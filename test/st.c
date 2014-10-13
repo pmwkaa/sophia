@@ -175,6 +175,18 @@ void st_transaction(stc *cx)
 		cx->commit(cx);
 }
 
+void st_error(stc *cx)
+{
+	if (cx->env == NULL)
+		return;
+	void *c = sp_ctl(cx->env);
+	void *o = sp_get(c, "sophia.error");
+	char *value = sp_get(o, "value", NULL);
+	if (value)
+		printf("%s\n", value);
+	sp_destroy(o);
+}
+
 static void
 st_rungroup(st *s, stplan *plan, stgroup *group)
 {

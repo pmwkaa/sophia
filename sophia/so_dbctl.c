@@ -258,7 +258,6 @@ so_dbei_set(sodb *db, char *path, va_list args)
 	}
 	rc = sr_ctlset(match, db->r.a, db, args);
 	if (srunlikely(rc == -1)) {
-		sr_error(&db->e->error, "%s", "failed to set control path");
 		sr_error_recoverable(&db->e->error);
 		return -1;
 	}
@@ -323,7 +322,6 @@ int so_dbctl_set(sodbctl *c, char *path, va_list args)
 	}
 	rc = sr_ctlset(match, db->r.a, db, args);
 	if (srunlikely(rc == -1)) {
-		sr_error(&db->e->error, "%s", "failed to set control path");
 		sr_error_recoverable(&db->e->error);
 		return -1;
 	}

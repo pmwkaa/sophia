@@ -109,6 +109,7 @@ si_mergeof(si *index, sr *r, sdc *c, uint64_t lsvn,
 
 	SR_INJECTION(r->i, SR_INJECTION_SI_MERGE_0,
 	             si_splitfree(result, r);
+	             sr_error(r->e, "%s", "error injection");
 	             return -1);
 
 	si_lock(index);
@@ -160,11 +161,13 @@ si_mergeof(si *index, sr *r, sdc *c, uint64_t lsvn,
 			return -1;
 		SR_INJECTION(r->i, SR_INJECTION_SI_MERGE_3,
 		             si_nodefree_all(node, r);
+		             sr_error(r->e, "%s", "error injection");
 		             return -1);
 	}
 
 	SR_INJECTION(r->i, SR_INJECTION_SI_MERGE_1,
 	             si_nodefree_all(node, r);
+	             sr_error(r->e, "%s", "error injection");
 	             return -1);
 
 	/* remove old files */
@@ -173,6 +176,7 @@ si_mergeof(si *index, sr *r, sdc *c, uint64_t lsvn,
 		return -1;
 
 	SR_INJECTION(r->i, SR_INJECTION_SI_MERGE_2,
+	             sr_error(r->e, "%s", "error injection");
 	             return -1);
 
 	/* complete new nodes */
@@ -184,6 +188,7 @@ si_mergeof(si *index, sr *r, sdc *c, uint64_t lsvn,
 		if (srunlikely(rc == -1))
 			return -1;
 		SR_INJECTION(r->i, SR_INJECTION_SI_MERGE_4,
+		             sr_error(r->e, "%s", "error injection");
 		             return -1);
 	}
 

@@ -86,4 +86,7 @@ void     st_groupadd(stgroup*, sttest*);
 sttest  *st_test(char*, stf);
 void     st_transaction(stc*);
 
+void     st_error(stc*);
+
+
 #endif
