@@ -117,6 +117,43 @@ object_lsn0(stc *cx)
 	sp_destroy(copy);
 }
 
+static void
+object_readonly0(stc *cx)
+{
+	void *db = cx->db;
+	int key = 7;
+	void *o = sp_object(db);
+	t(o != NULL);
+	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_set(db, o) == 0 );
+	o = sp_object(db);
+	t(o != NULL);
+	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+	o = sp_get(db, o);
+	t( o!= NULL );
+	t( sp_set(o, "key", &key, sizeof(key)) == -1 );
+	t( *(int*)sp_get(o, "key", NULL) == key );
+	sp_destroy(o);
+}
+
+static void
+object_readonly1(stc *cx)
+{
+	void *db = cx->db;
+	int key = 7;
+	void *o = sp_object(db);
+	t(o != NULL);
+	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_set(db, o) == 0 );
+	void *c = sp_cursor(db, ">", NULL);
+	o = sp_get(c);
+	t( o != NULL );
+	t( sp_set(o, "key", &key, sizeof(key)) == -1 );
+	sp_destroy(c);
+}
+
 stgroup *object_group(void)
 {
 	stgroup *group = st_group("object");
@@ -125,5 +162,7 @@ stgroup *object_group(void)
 	st_groupadd(group, st_test("copy0", object_copy0));
 	st_groupadd(group, st_test("copy1", object_copy1));
 	st_groupadd(group, st_test("lsn0", object_lsn0));
+	st_groupadd(group, st_test("readonly0", object_readonly0));
+	st_groupadd(group, st_test("readonly1", object_readonly1));
 	return group;
 }

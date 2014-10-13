@@ -2447,7 +2447,7 @@ cursor_consistency_rewrite2(stc *cx)
 }
 
 static void
-cursor_consistency_delete(stc *cx)
+cursor_consistency_delete0(stc *cx)
 {
 	void *db = cx->db;
 	void *c0 = sp_cursor(db, ">=", NULL);
@@ -2478,6 +2478,37 @@ cursor_consistency_delete(stc *cx)
 
 	t( sp_get(c0) == NULL );
 
+	t( sp_destroy(c0) == 0 );
+}
+
+static void
+cursor_consistency_delete1(stc *cx)
+{
+	void *db = cx->db;
+	void *c0 = sp_cursor(db, ">=", NULL);
+
+	void *tx = sp_begin(db);
+	void *o;
+	int i = 0;
+	while (i < 385) {
+		o = sp_object(db);
+		t( o != NULL );
+		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_set(tx, o) == 0 );
+		i++;
+	}
+	t( sp_commit(tx) == 0 );
+	st_transaction(cx);
+
+	tx = sp_begin(db);
+	void *c1 = sp_cursor(db, ">=", NULL);
+	while ((o = sp_get(c1)))
+		t( sp_delete(tx, o) == 0 );
+	t( sp_commit(tx) == 0 );
+	t( sp_destroy(c1) == 0 );
+	st_transaction(cx);
+
+	t( sp_get(c0) == NULL );
 	t( sp_destroy(c0) == 0 );
 }
 
@@ -2532,6 +2563,7 @@ stgroup *cursor_group(void)
 	st_groupadd(group, st_test("consistency_rewrite0", cursor_consistency_rewrite0));
 	st_groupadd(group, st_test("consistency_rewrite1", cursor_consistency_rewrite1));
 	st_groupadd(group, st_test("consistency_rewrite2", cursor_consistency_rewrite2));
-	st_groupadd(group, st_test("consistency_delete", cursor_consistency_delete));
+	st_groupadd(group, st_test("consistency_delete0", cursor_consistency_delete0));
+	st_groupadd(group, st_test("consistency_delete1", cursor_consistency_delete1));
 	return group;
 }

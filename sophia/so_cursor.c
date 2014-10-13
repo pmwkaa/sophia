@@ -47,6 +47,7 @@ so_cursorseek(socursor *c, void *key, int keysize)
 			return -1;
 		}
 		so_vput(&c->v, &result);
+		so_vimmutable(&c->v);
 	}
 	si_queryclose(&q);
 	sm_unlock(&c->db->mvcc);

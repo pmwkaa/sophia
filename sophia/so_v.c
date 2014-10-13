@@ -20,8 +20,9 @@ static int
 so_vdestroy(soobj *obj)
 {
 	sov *v = (sov*)obj;
-	if (v->allocated)
-		sv_vfree(&v->e->a, (svv*)v->v.v);
+	if (v->flags & SO_VIMMUTABLE)
+		return 0;
+	so_vrelease(v);
 	sr_free(&v->e->a, v);
 	return 0;
 }
@@ -30,6 +31,11 @@ static int
 so_vset(soobj *obj, va_list args)
 {
 	sov *v = (sov*)obj;
+	if (srunlikely(v->flags & SO_VRO)) {
+		sr_error(&v->e->error, "%s", "object is read-only");
+		sr_error_recoverable(&v->e->error);
+		return -1;
+	}
 	char *name = va_arg(args, char*);
 	if (strcmp(name, "key") == 0) {
 		v->lv.key = va_arg(args, char*);
@@ -95,7 +101,7 @@ so_vcopy(soobj *o srunused, va_list args srunused)
 		return NULL;
 	copy->lv = v->lv;
 	copy->v  = v->v;
-	if (v->allocated) {
+	if (v->flags & SO_VALLOCATED) {
 		svv *dup = sv_valloc(&v->e->a, &v->v);
 		if (srunlikely(dup == NULL)) {
 			sr_error(&v->e->error, "%s", "memory allocation failed");
@@ -103,7 +109,7 @@ so_vcopy(soobj *o srunused, va_list args srunused)
 			sr_free(&v->e->a, copy);
 			return NULL;
 		}
-		copy->allocated = 1;
+		copy->flags = SO_VALLOCATED|SO_VRO;
 		sv result;
 		svinit(&result, &sv_vif, dup, NULL);
 		so_vput(copy, &result);
@@ -156,16 +162,16 @@ soobj *so_vnew(so *e)
 
 soobj *so_vrelease(sov *v)
 {
-	if (v->allocated)
+	if (v->flags & SO_VALLOCATED)
 		sv_vfree(&v->e->a, (svv*)v->v.v);
-	v->allocated = 0;
+	v->flags = 0;
 	v->v.v = NULL;
 	return &v->o;
 }
 
 soobj *so_vput(sov *o, sv *v)
 {
-	o->allocated = 1;
+	o->flags = SO_VALLOCATED|SO_VRO;
 	o->v = *v;
 	return &o->o;
 }
@@ -175,7 +181,13 @@ soobj *so_vdup(so *e, sv *v)
 	sov *ret = (sov*)so_vnew(e);
 	if (srunlikely(ret == NULL))
 		return NULL;
-	ret->allocated = 1;
+	ret->flags = SO_VALLOCATED|SO_VRO;
 	ret->v = *v;
 	return &ret->o;
+}
+
+int so_vimmutable(sov *v)
+{
+	v->flags |= SO_VIMMUTABLE;
+	return 0;
 }
