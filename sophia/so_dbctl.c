@@ -111,6 +111,22 @@ so_dbctl_merge(srctl *c srunused, void *arg, va_list args srunused)
 }
 
 static int
+so_dbctl_deadlock(srctl *c srunused, void *arg, va_list args)
+{
+	sodb *db = arg;
+	sotx *tx = va_arg(args, sotx*);
+	if (srunlikely(tx->db != db)) {
+		sr_error(&db->e->error, "%s", "transaction does not match a parent db object");
+		sr_error_recoverable(&db->e->error);
+		return -1;
+	}
+	sm_lock(&db->mvcc);
+	int rc = sm_deadlock(&tx->t);
+	sm_unlock(&db->mvcc);
+	return rc;
+}
+
+static int
 so_dbctl_logrotate(srctl *c srunused, void *arg, va_list args srunused)
 {
 	sodb *db = arg;
@@ -172,6 +188,7 @@ so_dbctl_prepare(srctl *t, sodbctl *c, sodbctlinfo *info)
 	p = sr_ctladd(p, "run_branch",      SR_CTLTRIGGER,         NULL,               so_dbctl_branch);
 	p = sr_ctladd(p, "run_merge",       SR_CTLTRIGGER,         NULL,               so_dbctl_merge);
 	p = sr_ctladd(p, "run_logrotate",   SR_CTLTRIGGER,         NULL,               so_dbctl_logrotate);
+	p = sr_ctladd(p, "run_deadlock",    SR_CTLTRIGGER,         NULL,               so_dbctl_deadlock);
 	p = sr_ctladd(p, "profiler",        SR_CTLSUB,             NULL,               NULL);
 	p = sr_ctladd(p, "error_injection", SR_CTLSUB,             NULL,               NULL);
 	p = sr_ctladd(p,  NULL,             0,                     NULL,               NULL);
@@ -261,7 +278,7 @@ so_dbei_set(sodb *db, char *path, va_list args)
 		sr_error_recoverable(&db->e->error);
 		return -1;
 	}
-	return 0;
+	return rc;
 }
 
 static void*
@@ -325,7 +342,7 @@ int so_dbctl_set(sodbctl *c, char *path, va_list args)
 		sr_error_recoverable(&db->e->error);
 		return -1;
 	}
-	return 0;
+	return rc;
 }
 
 void *so_dbctl_get(sodbctl *c, char *path, va_list args srunused)

@@ -11,6 +11,7 @@
 
 #include <sm_v.h>
 #include <sm.h>
+#include <sm_deadlock.h>
 #include <sm_iter.h>
 
 #endif

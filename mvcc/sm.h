@@ -38,6 +38,7 @@ struct smtx {
 	uint64_t lsvn;
 	svlog log;
 	sm *c;
+	srlist deadlock;
 	srrbnode node;
 };
 
@@ -53,9 +54,9 @@ sm_unlock(sm *c) {
 
 int sm_init(sm*, sr*);
 int sm_free(sm*);
-
 uint64_t sm_lsvn(sm*);
 
+smtx   *sm_find(sm*, uint32_t);
 smstate sm_begin(sm*, smtx*);
 smstate sm_end(smtx*);
 smstate sm_prepare(smtx*, smpreparef, void*);

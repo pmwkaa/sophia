@@ -54,6 +54,15 @@ sr_rbget(sm_matchtx,
          sr_cmpu32((char*)&(srcast(n, smtx, node))->id, sizeof(uint32_t),
                    (char*)key, sizeof(uint32_t), NULL))
 
+smtx *sm_find(sm *c, uint32_t id)
+{
+	srrbnode *n = NULL;
+	int rc = sm_matchtx(&c->t, NULL, (char*)&id, sizeof(id), &n);
+	if (rc == 0 && n)
+		return  srcast(n, smtx, node);
+	return NULL;
+}
+
 smstate sm_begin(sm *c, smtx *t)
 {
 	t->s = SMREADY; 
@@ -63,6 +72,7 @@ smstate sm_begin(sm *c, smtx *t)
 	t->lsvn = sr_seqdo(c->r->seq, SR_LSN) - 1;
 	sr_sequnlock(c->r->seq);
 	sv_loginit(&t->log);
+	sr_listinit(&t->deadlock);
 	sr_spinlock(&c->lockt);
 	srrbnode *n = NULL;
 	int rc = sm_matchtx(&c->t, NULL, (char*)&t->id, sizeof(t->id), &n);

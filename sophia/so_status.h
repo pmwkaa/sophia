@@ -76,7 +76,7 @@ so_statusof(sostatus *s)
 	int status = so_status(s);
 	switch (status) {
 	case SO_OFFLINE:     return "offline";
-	case SO_ONLINE:      return "offline";
+	case SO_ONLINE:      return "online";
 	case SO_RECOVER:     return "recover";
 	case SO_SHUTDOWN:    return "shutdown";
 	case SO_MALFUNCTION: return "malfunction";
@@ -99,7 +99,7 @@ so_statusactive(sostatus *s) {
 		return 0;
 	}
 	assert(0);
-	return -1;
+	return 0;
 }
 
 #endif
