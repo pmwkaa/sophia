@@ -92,7 +92,6 @@ so_dbopen(soobj *obj, va_list args srunused)
 	sodb *o = (sodb*)obj;
 	if (so_dbactive(o))
 		return -1;
-	sr_errorreset(&o->e->error);
 	int rc;
 	rc = so_dbctl_validate(&o->ctl);
 	if (srunlikely(rc == -1))
@@ -121,7 +120,6 @@ static int
 so_dbdestroy(soobj *obj)
 {
 	sodb *o = (sodb*)obj;
-	so_objindex_unregister(&o->e->db, &o->o);
 	so_statusset(&o->status, SO_SHUTDOWN);
 	int rcret = 0;
 	int rc;
@@ -140,6 +138,7 @@ so_dbdestroy(soobj *obj)
 		rcret = -1;
 	so_dbctl_free(&o->ctl);
 	sd_cfree(&o->dc, &o->r);
+	so_objindex_unregister(&o->e->db, &o->o);
 	sr_free(&o->e->a, o);
 	return rcret;
 }
@@ -231,7 +230,7 @@ soobj *so_dbnew(so *e, char *name)
 		return NULL;
 	}
 	memset(o, 0, sizeof(*o));
-	so_objinit(&o->o, SODB, &sodbif);
+	so_objinit(&o->o, SODB, &sodbif, &e->o);
 	so_objindex_init(&o->tx);
 	so_objindex_init(&o->cursor);
 	so_statusset(&o->status, SO_OFFLINE);
@@ -254,7 +253,7 @@ soobj *so_dbmatch(so *e, char *name)
 {
 	srlist *i;
 	sr_listforeach(&e->db.list, i) {
-		soobj *o = srcast(i, soobj, olink);
+		soobj *o = srcast(i, soobj, link);
 		sodb *db = (sodb*)o;
 		if (strcmp(db->ctl.name, name) == 0)
 			return o;

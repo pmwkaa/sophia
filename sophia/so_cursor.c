@@ -76,7 +76,7 @@ so_cursordestroy(soobj *o)
 	socursor *c = (socursor*)o;
 	sm_end(&c->t);
 	if (c->key) {
-		sp_destroy(c->key);
+		so_objdestroy(c->key);
 		c->key = NULL;
 	}
 	so_vrelease(&c->v);
@@ -170,7 +170,7 @@ soobj *so_cursornew(sodb *db, va_list args)
 		sr_error_recoverable(&e->error);
 		goto error;
 	}
-	so_objinit(&c->o, SOCURSOR, &socursorif);
+	so_objinit(&c->o, SOCURSOR, &socursorif, &e->o);
 	c->key   = keyobj;
 	c->db    = db;
 	c->ready = 1;
@@ -182,7 +182,7 @@ soobj *so_cursornew(sodb *db, va_list args)
 	uint32_t keysize = 0;
 	if (keyobj) {
 		sv *ov = NULL;
-		if (srunlikely(keyobj->oid != SOV))
+		if (srunlikely(keyobj->id != SOV))
 			goto error;
 		ov = &((sov*)keyobj)->v;
 		key = svkey(ov);
@@ -212,7 +212,7 @@ soobj *so_cursornew(sodb *db, va_list args)
 	return &c->o;
 error:
 	if (keyobj)
-		sp_destroy(keyobj);
+		so_objdestroy(keyobj);
 	if (c)
 		sr_free(&e->a, c);
 	return NULL;

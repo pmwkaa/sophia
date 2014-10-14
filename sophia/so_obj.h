@@ -46,17 +46,64 @@ struct soobjif {
 };
 
 struct soobj {
-	soobjid  oid;
-	srlist   olink;
-	soobjif *oif;
+	soobjid  id;
+	soobjif *i;
+	soobj   *env;
+	srlist   link;
 };
 
 static inline void
-so_objinit(soobj *o, soobjid oid, soobjif *oif)
+so_objinit(soobj *o, soobjid id, soobjif *i, soobj *env)
 {
-	o->oid = oid;
-	o->oif = oif;
-	sr_listinit(&o->olink);
+	o->id  = id;
+	o->i   = i;
+	o->env = env;
+	sr_listinit(&o->link);
+}
+
+static inline int
+so_objdestroy(soobj *o) {
+	return o->i->destroy(o);
+}
+
+static inline int
+so_objset(soobj *o, ...)
+{
+	va_list args;
+	va_start(args, o);
+	int rc = o->i->set(o, args);
+	va_end(args);
+	return rc;
+}
+
+static inline void*
+so_objget(soobj *o, ...)
+{
+	va_list args;
+	va_start(args, o);
+	void *h = o->i->get(o, args);
+	va_end(args);
+	return h;
+}
+
+static inline void*
+so_objbegin(soobj *o) {
+	return o->i->begin(o);
+}
+
+static inline int
+so_objcommit(soobj *o, ...)
+{
+	va_list args;
+	va_start(args, o);
+	int rc = o->i->commit(o, args);
+	va_end(args);
+	return rc;
+}
+
+static inline int
+so_objrollback(soobj *o) {
+	return o->i->rollback(o);
 }
 
 #endif

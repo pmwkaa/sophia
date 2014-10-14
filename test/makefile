@@ -13,6 +13,7 @@ LIBST_O = st.o \
           svseaveiter.test.o \
           ctl.test.o \
           error.test.o \
+          method.test.o \
           dml.test.o \
           profiler.test.o \
           object.test.o \

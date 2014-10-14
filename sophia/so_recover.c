@@ -49,13 +49,13 @@ so_recoverlog(sodb *db, sl *log)
 				break;
 			continue;
 		}
-		tx = sp_begin(db);
+		tx = so_objbegin(&db->o);
 		if (srunlikely(tx == NULL))
 			goto error;
 		while (sr_iterhas(&i)) {
 			v = sr_iterof(&i);
 			assert(svlsn(v) == lsn);
-			rc = sp_set(tx, v);
+			rc = so_objset(tx, v);
 			if (srunlikely(rc == -1))
 				goto rlb;
 			sr_gcmark(&log->gc, 1);
@@ -63,7 +63,7 @@ so_recoverlog(sodb *db, sl *log)
 		}
 		if (srunlikely(sl_itererror(&i)))
 			goto rlb;
-		rc = sp_commit(tx, lsn, log);
+		rc = so_objcommit(tx, lsn, log);
 		if (srunlikely(rc != 0))
 			goto error;
 		rc = sl_itercontinue(&i);
@@ -75,7 +75,7 @@ so_recoverlog(sodb *db, sl *log)
 	sr_iterclose(&i);
 	return 0;
 rlb:
-	sp_rollback(tx);
+	so_objrollback(tx);
 error:
 	sr_iterclose(&i);
 	return -1;

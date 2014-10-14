@@ -23,7 +23,7 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 		return -1;
 	soobj *o = va_arg(args, soobj*);
 	sv *ov = NULL;
-	if (srunlikely(o->oid != SOV)) {
+	if (srunlikely(o->id != SOV)) {
 		sr_error(&db->e->error, "%s", "bad arguments");
 		sr_error_recoverable(&db->e->error);
 		return -1;
@@ -60,7 +60,7 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	case SMROLLBACK:
 		sm_unlock(&db->mvcc);
 		sv_vfree(db->r.a, v);
-		sp_destroy(o);
+		so_objdestroy(o);
 		return rc;
 	default:
 		break;
@@ -85,10 +85,10 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	si_write(&tx);
 	si_commit(&tx);
 	sm_unlock(&db->mvcc);
-	sp_destroy(o);
+	so_objdestroy(o);
 	return 0;
 error:
-	sp_destroy(o);
+	so_objdestroy(o);
 	return -1;
 }
 
@@ -97,7 +97,7 @@ void *so_txdbget(sodb *db, va_list args)
 	if (srunlikely(! so_dbactive(db)))
 		return NULL;
 	soobj *o = va_arg(args, soobj*);
-	if (srunlikely(o->oid != SOV)) {
+	if (srunlikely(o->id != SOV)) {
 		sr_error(&db->e->error, "%s", "bad arguments");
 		sr_error_recoverable(&db->e->error);
 		return NULL;
@@ -106,7 +106,7 @@ void *so_txdbget(sodb *db, va_list args)
 	void *key = svkey(&v->v);
 	uint32_t keysize = svkeysize(&v->v);
 	if (srunlikely(key == NULL)) {
-		sp_destroy(o);
+		so_objdestroy(o);
 		sr_error(&db->e->error, "%s", "bad arguments");
 		sr_error_recoverable(&db->e->error);
 		return NULL;
@@ -121,7 +121,7 @@ void *so_txdbget(sodb *db, va_list args)
 		rc = si_querydup(&q, &result);
 	}
 	si_queryclose(&q);
-	sp_destroy(o);
+	so_objdestroy(o);
 	if (srunlikely(rc <= 0))
 		return NULL;
 	soobj *ret = so_vdup(db->e, &result);
@@ -150,7 +150,7 @@ so_txdo(soobj *obj, uint8_t flags, va_list args)
 	/* prepare object */
 	soobj *o = va_arg(args, soobj*);
 	sv *ov = NULL;
-	if (srunlikely(o->oid != SOV)) {
+	if (srunlikely(o->id != SOV)) {
 		sr_error(&db->e->error, "%s", "bad arguments");
 		sr_error_recoverable(&db->e->error);
 		return -1;
@@ -180,10 +180,10 @@ so_txdo(soobj *obj, uint8_t flags, va_list args)
 	sm_lock(&t->db->mvcc);
 	rc = sm_set(&t->t, v);
 	sm_unlock(&t->db->mvcc);
-	sp_destroy(o);
+	so_objdestroy(o);
 	return rc;
 error:
-	sp_destroy(o);
+	so_objdestroy(o);
 	return -1;
 }
 
@@ -207,7 +207,7 @@ so_txget(soobj *obj, va_list args)
 	if (srunlikely(! so_dbactive(db)))
 		return NULL;
 	soobj *o = va_arg(args, soobj*);
-	if (srunlikely(o->oid != SOV)) {
+	if (srunlikely(o->id != SOV)) {
 		sr_error(&db->e->error, "%s", "bad arguments");
 		sr_error_recoverable(&db->e->error);
 		return NULL;
@@ -215,7 +215,7 @@ so_txget(soobj *obj, va_list args)
 	sov *v = (sov*)o;
 	void *key = svkey(&v->v);
 	if (srunlikely(key == NULL)) {
-		sp_destroy(o);
+		so_objdestroy(o);
 		sr_error(&db->e->error, "%s", "bad arguments");
 		sr_error_recoverable(&db->e->error);
 		return NULL;
@@ -229,10 +229,10 @@ so_txget(soobj *obj, va_list args)
 	switch (rc) {
 	case -1:
 	case  2: /* delete */
-		sp_destroy(o);
+		so_objdestroy(o);
 		return NULL;
 	case  1:
-		sp_destroy(o);
+		so_objdestroy(o);
 		ret = so_vdup(db->e, &result);
 		if (srunlikely(ret == NULL))
 			sv_vfree(&db->e->a, (svv*)result.v);
@@ -247,7 +247,7 @@ so_txget(soobj *obj, va_list args)
 		rc = si_querydup(&q, &result);
 	}
 	si_queryclose(&q);
-	sp_destroy(o);
+	so_objdestroy(o);
 	if (srunlikely(rc <= 0))
 		return NULL;
 	ret = so_vdup(db->e, &result);
@@ -441,7 +441,7 @@ soobj *so_txnew(sodb *db)
 		sr_error_recoverable(&e->error);
 		return NULL;
 	}
-	so_objinit(&t->o, SOTX, &sotxif);
+	so_objinit(&t->o, SOTX, &sotxif, &e->o);
 	t->db = db;
 	sm_begin(&db->mvcc, &t->t);
 	so_objindex_register(&db->tx, &t->o);

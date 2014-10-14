@@ -210,7 +210,7 @@ so_ctldb_dump(soctl *c, srbuf *dump)
 	so *e = c->e;
 	srlist *i;
 	sr_listforeach(&e->db.list, i) {
-		soobj *o = srcast(i, soobj, olink);
+		soobj *o = srcast(i, soobj, link);
 		sodb *db = (sodb*)o;
 		int rc = so_dbctl_dump(&db->ctl, dump);
 		if (srunlikely(rc == -1))
@@ -312,6 +312,6 @@ static soobjif soctlif =
 
 void so_ctlinit(soctl *c, void *e)
 {
-	so_objinit(&c->o, SOCTL, &soctlif);
+	so_objinit(&c->o, SOCTL, &soctlif, e);
 	c->e = e;
 }

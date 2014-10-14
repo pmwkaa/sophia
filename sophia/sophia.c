@@ -16,6 +16,21 @@
 #include <libso.h>
 #include <sophia.h>
 
+static inline void
+sp_error_unsupported_method(soobj *o, const char *method, ...)
+{
+	assert(o->env != NULL);
+	assert(o->env->id == SOENV);
+	va_list args;
+	va_start(args, method);
+	so *e = (so*)o->env;
+	sr_error(&e->error, "unsupported %s(%s) operation",
+	         (char*)method,
+	         (char*)o->i->type(o, args));
+	sr_error_recoverable(&e->error);
+	va_end(args);
+}
+
 SP_API void*
 sp_env(void)
 {
@@ -25,12 +40,16 @@ sp_env(void)
 SP_API void*
 sp_ctl(void *o, ...)
 {
-	soobjif *oif = ((soobj*)o)->oif;
-	if (srunlikely(oif->ctl == NULL))
+	soobj *obj = o;
+	if (srunlikely(obj->i->ctl == NULL)) {
+		sp_error_unsupported_method(o, __FUNCTION__);
 		return NULL;
+	}
 	va_list args;
 	va_start(args, o);
-	void *h = oif->ctl(o, args);
+	so_apilock(obj->env);
+	void *h = obj->i->ctl(o, args);
+	so_apiunlock(obj->env);
 	va_end(args);
 	return h;
 }
@@ -38,12 +57,16 @@ sp_ctl(void *o, ...)
 SP_API void*
 sp_object(void *o, ...)
 {
-	soobjif *oif = ((soobj*)o)->oif;
-	if (srunlikely(oif->object == NULL))
+	soobj *obj = o;
+	if (srunlikely(obj->i->object == NULL)) {
+		sp_error_unsupported_method(o, __FUNCTION__);
 		return NULL;
+	}
 	va_list args;
 	va_start(args, o);
-	void *h = oif->object(o, args);
+	so_apilock(obj->env);
+	void *h = obj->i->object(o, args);
+	so_apiunlock(obj->env);
 	va_end(args);
 	return h;
 }
@@ -51,12 +74,16 @@ sp_object(void *o, ...)
 SP_API int
 sp_open(void *o, ...)
 {
-	soobjif *oif = ((soobj*)o)->oif;
-	if (srunlikely(oif->open == NULL))
+	soobj *obj = o;
+	if (srunlikely(obj->i->open == NULL)) {
+		sp_error_unsupported_method(o, __FUNCTION__);
 		return -1;
+	}
 	va_list args;
 	va_start(args, o);
-	int rc = oif->open(o, args);
+	so_apilock(obj->env);
+	int rc = obj->i->open(o, args);
+	so_apiunlock(obj->env);
 	va_end(args);
 	return rc;
 }
@@ -64,20 +91,32 @@ sp_open(void *o, ...)
 SP_API int
 sp_destroy(void *o, ...)
 {
-	soobjif *oif = ((soobj*)o)->oif;
-	if (srunlikely(oif->destroy == NULL))
+	soobj *obj = o;
+	if (srunlikely(obj->i->destroy == NULL)) {
+		sp_error_unsupported_method(o, __FUNCTION__);
 		return -1;
-	return oif->destroy(o);
+	}
+	soobj *env = obj->env;
+	if (srunlikely(env == o))
+		return obj->i->destroy(o);
+	so_apilock(env);
+	int rc = obj->i->destroy(o);
+	so_apiunlock(env);
+	return rc;
 }
 
 SP_API int sp_error(void *o, ...)
 {
-	soobjif *oif = ((soobj*)o)->oif;
-	if (srunlikely(oif->error == NULL))
+	soobj *obj = o;
+	if (srunlikely(obj->i->error == NULL)) {
+		sp_error_unsupported_method(o, __FUNCTION__);
 		return -1;
+	}
 	va_list args;
 	va_start(args, o);
-	int rc = oif->error(o, args);
+	so_apilock(obj->env);
+	int rc = obj->i->error(o, args);
+	so_apiunlock(obj->env);
 	va_end(args);
 	return rc;
 }
@@ -85,12 +124,16 @@ SP_API int sp_error(void *o, ...)
 SP_API int
 sp_set(void *o, ...)
 {
-	soobjif *oif = ((soobj*)o)->oif;
-	if (srunlikely(oif->set == NULL))
+	soobj *obj = o;
+	if (srunlikely(obj->i->set == NULL)) {
+		sp_error_unsupported_method(o, __FUNCTION__);
 		return -1;
+	}
 	va_list args;
 	va_start(args, o);
-	int rc = oif->set(o, args);
+	so_apilock(obj->env);
+	int rc = obj->i->set(o, args);
+	so_apiunlock(obj->env);
 	va_end(args);
 	return rc;
 }
@@ -98,12 +141,16 @@ sp_set(void *o, ...)
 SP_API void*
 sp_get(void *o, ...)
 {
-	soobjif *oif = ((soobj*)o)->oif;
-	if (srunlikely(oif->get == NULL))
+	soobj *obj = o;
+	if (srunlikely(obj->i->get == NULL)) {
+		sp_error_unsupported_method(o, __FUNCTION__);
 		return NULL;
+	}
 	va_list args;
 	va_start(args, o);
-	void *h = oif->get(o, args);
+	so_apilock(obj->env);
+	void *h = obj->i->get(o, args);
+	so_apiunlock(obj->env);
 	va_end(args);
 	return h;
 }
@@ -111,12 +158,17 @@ sp_get(void *o, ...)
 SP_API int
 sp_delete(void *o, ...)
 {
-	soobjif *oif = ((soobj*)o)->oif;
-	if (srunlikely(oif->del == NULL))
+	soobj *obj = o;
+	if (srunlikely(obj->i->del == NULL)) {
+		sp_error_unsupported_method(o, __FUNCTION__);
 		return -1;
+	}
+	soobj *env = obj->env;
 	va_list args;
 	va_start(args, o);
-	int rc = oif->del(o, args);
+	so_apilock(env);
+	int rc = obj->i->del(o, args);
+	so_apiunlock(env);
 	va_end(args);
 	return rc;
 }
@@ -124,21 +176,31 @@ sp_delete(void *o, ...)
 SP_API void*
 sp_begin(void *o, ...)
 {
-	soobjif *oif = ((soobj*)o)->oif;
-	if (srunlikely(oif->begin == NULL))
+	soobj *obj = o;
+	if (srunlikely(obj->i->begin == NULL)) {
+		sp_error_unsupported_method(o, __FUNCTION__);
 		return NULL;
-	return oif->begin(o);
+	}
+	so_apilock(obj->env);
+	void *h = obj->i->begin(o);
+	so_apiunlock(obj->env);
+	return h;
 }
 
 SP_API int
 sp_commit(void *o, ...)
 {
-	soobjif *oif = ((soobj*)o)->oif;
-	if (srunlikely(oif->commit == NULL))
+	soobj *obj = o;
+	if (srunlikely(obj->i->commit == NULL)) {
+		sp_error_unsupported_method(o, __FUNCTION__);
 		return -1;
+	}
+	soobj *env = obj->env;
 	va_list args;
 	va_start(args, o);
-	int rc = oif->commit(o, args);
+	so_apilock(env);
+	int rc = obj->i->commit(o, args);
+	so_apiunlock(env);
 	va_end(args);
 	return rc;
 }
@@ -146,45 +208,63 @@ sp_commit(void *o, ...)
 SP_API int
 sp_rollback(void *o, ...)
 {
-	soobjif *oif = ((soobj*)o)->oif;
-	if (srunlikely(oif->rollback == NULL))
+	soobj *obj = o;
+	if (srunlikely(obj->i->rollback == NULL)) {
+		sp_error_unsupported_method(o, __FUNCTION__);
 		return -1;
-	return oif->rollback(o);
+	}
+	soobj *env = obj->env;
+	so_apilock(env);
+	int rc = obj->i->rollback(o);
+	so_apiunlock(env);
+	return rc;
 }
 
 SP_API void*
 sp_cursor(void *o, ...)
 {
-	soobjif *oif = ((soobj*)o)->oif;
-	if (srunlikely(oif->cursor == NULL))
+	soobj *obj = o;
+	if (srunlikely(obj->i->cursor == NULL)) {
+		sp_error_unsupported_method(o, __FUNCTION__);
 		return NULL;
+	}
 	va_list args;
 	va_start(args, o);
-	void *cursor = oif->cursor(o, args);
+	so_apilock(obj->env);
+	void *cursor = obj->i->cursor(o, args);
+	so_apiunlock(obj->env);
 	va_end(args);
 	return cursor;
 }
 
 SP_API void *sp_type(void *o, ...)
 {
-	soobjif *oif = ((soobj*)o)->oif;
-	if (srunlikely(oif->type == NULL))
+	soobj *obj = o;
+	if (srunlikely(obj->i->type == NULL)) {
+		sp_error_unsupported_method(o, __FUNCTION__);
 		return NULL;
+	}
 	va_list args;
 	va_start(args, o);
-	void *h = oif->type(o, args);
+	so_apilock(obj->env);
+	void *h = obj->i->type(o, args);
+	so_apiunlock(obj->env);
 	va_end(args);
 	return h;
 }
 
 SP_API void *sp_copy(void *o, ...)
 {
-	soobjif *oif = ((soobj*)o)->oif;
-	if (srunlikely(oif->copy == NULL))
+	soobj *obj = o;
+	if (srunlikely(obj->i->copy == NULL)) {
+		sp_error_unsupported_method(o, __FUNCTION__);
 		return NULL;
+	}
 	va_list args;
 	va_start(args, o);
-	void *h = oif->copy(o, args);
+	so_apilock(obj->env);
+	void *h = obj->i->copy(o, args);
+	so_apiunlock(obj->env);
 	va_end(args);
 	return h;
 }

@@ -143,7 +143,7 @@ static soobjif sovif =
 soobj *so_vinit(sov *v, so *e)
 {
 	memset(v, 0, sizeof(*v));
-	so_objinit(&v->o, SOV, &sovif);
+	so_objinit(&v->o, SOV, &sovif, &e->o);
 	svinit(&v->v, &sv_localif, &v->lv, NULL);
 	v->e = e;
 	return &v->o;

@@ -23,7 +23,7 @@ so_ctlcursor_destroy(soobj *o)
 	so *e = c->e;
 	sr_buffree(&c->dump, &e->a);
 	if (c->v)
-		sp_destroy(c->v);
+		so_objdestroy(c->v);
 	so_objindex_unregister(&e->ctlcursor, &c->o);
 	sr_free(&e->a, c);
 	return 0;
@@ -46,7 +46,7 @@ so_ctlcursor_set(soctlcursor *c)
 	if (srunlikely(v == NULL))
 		return -1;
 	if (c->v)
-		sp_destroy(c->v);
+		so_objdestroy(c->v);
 	c->v = v;
 	return 0;
 }
@@ -66,7 +66,7 @@ so_ctlcursor_next(soctlcursor *c)
 	}
 	if (srunlikely(c->pos == NULL)) {
 		if (c->v)
-			sp_destroy(c->v);
+			so_objdestroy(c->v);
 		c->v = NULL;
 		return 0;
 	}
@@ -144,7 +144,7 @@ soobj *so_ctlcursor_new(void *o)
 		sr_error_recoverable(&e->error);
 		return NULL;
 	}
-	so_objinit(&c->o, SOCTLCURSOR, &soctlcursorif);
+	so_objinit(&c->o, SOCTLCURSOR, &soctlcursorif, &e->o);
 	c->e = o;
 	c->pos = NULL;
 	c->v = NULL;
@@ -152,7 +152,7 @@ soobj *so_ctlcursor_new(void *o)
 	sr_bufinit(&c->dump);
 	int rc = so_ctlcursor_open(c);
 	if (srunlikely(rc == -1)) {
-		sp_destroy(c);
+		so_objdestroy(&c->o);
 		return NULL;
 	}
 	so_objindex_unregister(&e->ctlcursor, &c->o);

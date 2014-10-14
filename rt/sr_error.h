@@ -41,16 +41,17 @@ sr_errorfree(srerror *e) {
 	sr_spinlockfree(&e->lock);
 }
 
-static inline void
+static inline int
 sr_errorreset(srerror *e) {
 	sr_spinlock(&e->lock);
 	if (! (e->status & SR_ERROR_RECOVERABLE)) {
 		sr_spinunlock(&e->lock);
-		return;
+		return 1;
 	}
 	e->status = SR_ERROR_NONE;
 	e->error[0] = 0;
 	sr_spinunlock(&e->lock);
+	return 0;
 }
 
 static inline int
@@ -121,6 +122,6 @@ sr_error_recoverable(srerror *e) {
 }
 
 #define sr_error(e, fmt, ...) \
-	sr_errorset(e, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+	sr_errorset(e, __FILE__, __FUNCTION__, __LINE__, fmt, __VA_ARGS__)
 
 #endif
