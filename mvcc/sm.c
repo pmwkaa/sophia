@@ -15,8 +15,7 @@ int sm_init(sm *c, sr *r)
 {
 	sr_rbinit(&c->t);
 	sr_rbinit(&c->i);
-	sr_spinlockinit(&c->lockt);
-	sr_spinlockinit(&c->locki);
+	sr_spinlockinit(&c->lock);
 	c->tn = 0;
 	c->r = r;
 	return 0;
@@ -30,14 +29,13 @@ int sm_free(sm *c)
 	/* rollback active transactions */
 	if (c->i.root)
 		sm_truncate(c->i.root, c->r->a);
-	sr_spinlockfree(&c->lockt);
-	sr_spinlockfree(&c->locki);
+	sr_spinlockfree(&c->lock);
 	return 0;
 }
 
 uint64_t sm_lsvn(sm *c)
 {
-	sr_spinlock(&c->lockt);
+	sr_spinlock(&c->lock);
 	uint64_t lsvn;
 	if (c->tn) {
 		srrbnode *node = sr_rbmin(&c->t);
@@ -46,7 +44,7 @@ uint64_t sm_lsvn(sm *c)
 	} else {
 		lsvn = sr_seq(c->r->seq, SR_LSN) - 1;
 	}
-	sr_spinunlock(&c->lockt);
+	sr_spinunlock(&c->lock);
 	return lsvn;
 }
 
@@ -73,7 +71,8 @@ smstate sm_begin(sm *c, smtx *t)
 	sr_sequnlock(c->r->seq);
 	sv_loginit(&t->log);
 	sr_listinit(&t->deadlock);
-	sr_spinlock(&c->lockt);
+
+	sr_spinlock(&c->lock);
 	srrbnode *n = NULL;
 	int rc = sm_matchtx(&c->t, NULL, (char*)&t->id, sizeof(t->id), &n);
 	if (rc == 0 && n) {
@@ -82,7 +81,7 @@ smstate sm_begin(sm *c, smtx *t)
 		sr_rbset(&c->t, n, rc, &t->node);
 	}
 	c->tn++;
-	sr_spinunlock(&c->lockt);
+	sr_spinunlock(&c->lock);
 	return SMREADY;
 }
 
@@ -90,11 +89,11 @@ smstate sm_end(smtx *t)
 {
 	sm *c = t->c;
 	assert(t->s != SMUNDEF);
-	sr_spinlock(&c->lockt);
+	sr_spinlock(&c->lock);
 	sr_rbremove(&c->t, &t->node);
 	t->s = SMUNDEF;
 	c->tn--;
-	sr_spinunlock(&c->lockt);
+	sr_spinunlock(&c->lock);
 	sv_logfree(&t->log, c->r->a);
 	return SMUNDEF;
 }
@@ -259,12 +258,12 @@ int sm_get(smtx *t, sv *key, sv *result)
 
 smstate sm_set_stmt(sm *c, svv *v)
 {
-	sr_seq(c->r->seq, SR_TSNNEXT);
 	srrbnode *n = NULL;
 	int rc = sm_match(&c->i, c->r->cmp, sv_vkey(v),
 	                  v->keysize, &n);
 	if (rc == 0 && n)
 		return SMWAIT;
+	sr_seq(c->r->seq, SR_TSNNEXT);
 	return SMCOMMIT;
 }
 

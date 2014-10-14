@@ -170,9 +170,11 @@ si_qfetch(siquery *q)
 		return -1;
 	}
 	svmergesrc *s;
+	/*
 	s = sv_mergeadd(m);
 	assert(q->firstsrc != NULL);
 	s->i = *q->firstsrc;
+	*/
 	s = sv_mergeadd(m);
 	sr_iterinit(&s->i, &sv_indexiter, q->r);
 	sr_iteropen(&s->i, &node->i1, q->order, q->key, q->keysize, q->lsvn);

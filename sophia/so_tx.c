@@ -52,13 +52,11 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	}
 	svinit(&vp, &sv_vif, v, NULL);
 	/* update */
-	sm_lock(&db->mvcc);
 	smstate s = sm_set_stmt(&db->mvcc, v);
 	rc = 1; /* rlb */
 	switch (s) {
 	case SMWAIT: rc = 2;
 	case SMROLLBACK:
-		sm_unlock(&db->mvcc);
 		sv_vfree(db->r.a, v);
 		so_objdestroy(o);
 		return rc;
@@ -74,7 +72,6 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	rc = sl_write(&tl, &log);
 	if (srunlikely(rc == -1)) {
 		sl_rollback(&tl);
-		sm_unlock(&db->mvcc);
 		goto error;
 	}
 	v->log = tl.l;
@@ -84,7 +81,6 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	si_begin(&tx, &db->r, &db->index, lsvn, NULL, v);
 	si_write(&tx);
 	si_commit(&tx);
-	sm_unlock(&db->mvcc);
 	so_objdestroy(o);
 	return 0;
 error:
@@ -177,9 +173,7 @@ so_txdo(soobj *obj, uint8_t flags, va_list args)
 		sr_error_recoverable(&db->e->error);
 		goto error;
 	}
-	sm_lock(&t->db->mvcc);
 	rc = sm_set(&t->t, v);
-	sm_unlock(&t->db->mvcc);
 	so_objdestroy(o);
 	return rc;
 error:
@@ -220,12 +214,10 @@ so_txget(soobj *obj, va_list args)
 		sr_error_recoverable(&db->e->error);
 		return NULL;
 	}
-	sm_lock(&t->db->mvcc);
 	soobj *ret;
 	sv result;
 	int rc;
 	rc = sm_get(&t->t, &v->v, &result);
-	sm_unlock(&t->db->mvcc);
 	switch (rc) {
 	case -1:
 	case  2: /* delete */
@@ -279,9 +271,7 @@ static int
 so_txrollback(soobj *o)
 {
 	sotx *t = (sotx*)o;
-	sm_lock(&t->db->mvcc);
 	sm_rollback(&t->t);
-	sm_unlock(&t->db->mvcc);
 	sm_end(&t->t);
 	so_objindex_unregister(&t->db->tx, &t->o);
 	sr_free(&t->db->e->a, t);
@@ -299,9 +289,7 @@ so_txcommit_recover(soobj *o, va_list args)
 	sl *log = va_arg(args, sl*);
 	(void)log;
 
-	sm_lock(&db->mvcc);
 	smstate s = sm_prepare(&t->t, so_txprepare, t);
-	sm_unlock(&db->mvcc);
 	if (s == SMWAIT)
 		return 2;
 	if (s == SMROLLBACK) {
@@ -311,10 +299,8 @@ so_txcommit_recover(soobj *o, va_list args)
 	assert(s == SMPREPARE);
 
 	if (srunlikely(! sv_logn(&t->t.log))) {
-		sm_lock(&db->mvcc);
 		sm_commit(&t->t);
 		sm_end(&t->t);
-		sm_unlock(&db->mvcc);
 		so_objindex_unregister(&db->tx, &t->o);
 		sr_free(&e->a, t);
 		return 0;
@@ -331,14 +317,12 @@ so_txcommit_recover(soobj *o, va_list args)
 	}
 
 	/* database write */
-	sm_lock(&db->mvcc);
 	sm_commit(&t->t);
 	uint64_t lsvn = sm_lsvn(&db->mvcc);
 	sitx ti;
 	si_begin(&ti, &db->r, &db->index, lsvn, &t->t.log, NULL);
 	si_writelog(&ti);
 	si_commit(&ti);
-	sm_unlock(&db->mvcc);
 	sm_end(&t->t);
 
 	so_objindex_unregister(&db->tx, &t->o);
@@ -354,9 +338,7 @@ so_txcommit(soobj *o, va_list args)
 	so *e    = t->db->e;
 	if (so_status(&db->status) == SO_RECOVER)
 		return so_txcommit_recover(o, args);
-	sm_lock(&db->mvcc);
 	smstate s = sm_prepare(&t->t, so_txprepare, t);
-	sm_unlock(&db->mvcc);
 	if (s == SMWAIT) {
 		return 2;
 	}
@@ -366,10 +348,8 @@ so_txcommit(soobj *o, va_list args)
 	}
 	assert(s == SMPREPARE);
 	if (srunlikely(! sv_logn(&t->t.log))) {
-		sm_lock(&db->mvcc);
 		sm_commit(&t->t);
 		sm_end(&t->t);
-		sm_unlock(&db->mvcc);
 		so_objindex_unregister(&db->tx, &t->o);
 		sr_free(&e->a, t);
 		return 0;
@@ -393,7 +373,6 @@ so_txcommit(soobj *o, va_list args)
 		((svv*)v->v)->log = tl.l;
 	}
 
-	sm_lock(&db->mvcc);
 	sm_commit(&t->t);
 	sl_commit(&tl); 
 	uint64_t lsvn = sm_lsvn(&db->mvcc);
@@ -401,7 +380,6 @@ so_txcommit(soobj *o, va_list args)
 	si_begin(&ti, &db->r, &db->index, lsvn, &t->t.log, NULL);
 	si_writelog(&ti);
 	si_commit(&ti);
-	sm_unlock(&db->mvcc);
 	sm_end(&t->t);
 
 	so_objindex_unregister(&db->tx, &t->o);

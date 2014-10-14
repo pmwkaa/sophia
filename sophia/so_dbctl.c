@@ -120,9 +120,7 @@ so_dbctl_deadlock(srctl *c srunused, void *arg, va_list args)
 		sr_error_recoverable(&db->e->error);
 		return -1;
 	}
-	sm_lock(&db->mvcc);
 	int rc = sm_deadlock(&tx->t);
-	sm_unlock(&db->mvcc);
 	return rc;
 }
 

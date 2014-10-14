@@ -28,14 +28,9 @@ so_cursorobj(soobj *obj, va_list args srunused)
 static inline int
 so_cursorseek(socursor *c, void *key, int keysize)
 {
-	sm_lock(&c->db->mvcc);
-	sriter i;
-	sr_iterinit(&i, &sm_iter, &c->db->r);
-	sr_iteropen(&i, &c->db->mvcc, c->order, key, keysize, c->t.id);
 	siquery q;
 	si_queryopen(&q, &c->db->r, &c->db->index, c->order,
 	             c->t.lsvn, key, keysize);
-	si_queryfirstsrc(&q, &i);
 	si_query(&q);
 	so_vrelease(&c->v);
 	if (q.result.v) {
@@ -43,14 +38,12 @@ so_cursorseek(socursor *c, void *key, int keysize)
 		int rc = si_querydup(&q, &result);
 		if (srunlikely(rc == -1)) {
 			si_queryclose(&q);
-			sm_unlock(&c->db->mvcc);
 			return -1;
 		}
 		so_vput(&c->v, &result);
 		so_vimmutable(&c->v);
 	}
 	si_queryclose(&q);
-	sm_unlock(&c->db->mvcc);
 	return so_vhas(&c->v);
 }
 
