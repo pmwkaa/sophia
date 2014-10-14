@@ -102,11 +102,12 @@ int so_recover(sodb *db)
 
 	/* open logdir */
 	slconf *lc = &db->lpconf;
-	lc->dir           = db->ctl.logdir;
-	lc->dir_read      = db->ctl.logdir_read;
-	lc->dir_write     = db->ctl.logdir_write;
-	lc->dir_create    = db->ctl.logdir_create;
-	lc->rotatewm      = db->ctl.logdir_rotate_wm;
+	lc->dir            = db->ctl.logdir;
+	lc->dir_write      = db->ctl.logdir_write;
+	lc->dir_create     = db->ctl.logdir_create;
+	lc->rotatewm       = db->ctl.logdir_rotate_wm;
+	lc->sync_on_rotate = db->ctl.logdir_rotate_sync;
+	lc->sync_on_write  = db->ctl.logdir_sync;
 	int rc = sl_poolinit(&db->lp, &db->r, lc);
 	if (srunlikely(rc == -1))
 		return -1;
@@ -122,9 +123,9 @@ int so_recover(sodb *db)
 	c->node_merge_wm  = db->ctl.node_merge_wm;
 	c->memory_limit   = db->ctl.memory_limit;
 	c->dir            = db->ctl.dir;
-	c->dir_read       = db->ctl.dir_read;
 	c->dir_write      = db->ctl.dir_write;
 	c->dir_create     = db->ctl.dir_create;
+	c->sync           = db->ctl.dir_sync;
 	si_init(&db->index, &db->indexconf);
 	rc = si_open(&db->index, &db->r);
 	if (srunlikely(rc == -1))

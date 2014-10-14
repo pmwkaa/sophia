@@ -16,6 +16,8 @@ struct slconf {
 	int   dir_read;
 	int   dir_write;
 	int   dir_create;
+	int   sync_on_rotate;
+	int   sync_on_write;
 	int   rotatewm;
 };
 

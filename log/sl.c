@@ -50,7 +50,7 @@ sl_open(slpool *p, uint32_t id)
 	if (srunlikely(l == NULL))
 		return NULL;
 	srpath path;
-	sr_pathA(&path, p->conf.dir, id, ".log");
+	sr_pathA(&path, p->conf->dir, id, ".log");
 	int rc = sr_fileopen(&l->file, path.path);
 	if (srunlikely(rc == -1)) {
 		sr_error(p->r->e, "log file '%s' open error: %s",
@@ -70,7 +70,7 @@ sl_new(slpool *p, uint32_t id)
 	if (srunlikely(l == NULL))
 		return NULL;
 	srpath path;
-	sr_pathA(&path, p->conf.dir, id, ".log");
+	sr_pathA(&path, p->conf->dir, id, ".log");
 	int rc = sr_filenew(&l->file, path.path);
 	if (srunlikely(rc == -1)) {
 		sr_error(p->r->e, "log file '%s' create error: %s",
@@ -97,7 +97,7 @@ int sl_poolinit(slpool *p, sr *r, slconf *conf)
 	sr_listinit(&p->list);
 	p->n       = 0;
 	p->r       = r;
-	p->conf    = *conf;
+	p->conf    = conf;
 	p->enabled = 1;
 	struct iovec *iov =
 		sr_malloc(r->a, sizeof(struct iovec) * 1021);
@@ -113,22 +113,22 @@ static inline int
 sl_poolcreate(slpool *p)
 {
 	int rc;
-	if (! p->conf.dir_create) {
+	if (! p->conf->dir_create) {
 		sr_error(p->r->e, "log directory '%s' can't be created",
-		         p->conf.dir);
+		         p->conf->dir);
 		sr_error_recoverable(p->r->e);
 		return -1;
 	}
-	if (! p->conf.dir_write) {
+	if (! p->conf->dir_write) {
 		sr_error(p->r->e, "log directory '%s' is read only",
-		         p->conf.dir);
+		         p->conf->dir);
 		sr_error_recoverable(p->r->e);
 		return -1;
 	}
-	rc = sr_filemkdir(p->conf.dir);
+	rc = sr_filemkdir(p->conf->dir);
 	if (srunlikely(rc == -1))
 		return sr_error(p->r->e, "log directory '%s' create error: %s",
-		                p->conf.dir, strerror(errno));
+		                p->conf->dir, strerror(errno));
 	return 1;
 }
 
@@ -142,10 +142,10 @@ sl_poolrecover(slpool *p)
 		{ "log", 1, 0 },
 		{ NULL,  0, 0 }
 	};
-	int rc = sr_dirread(&list, p->r->a, types, p->conf.dir);
+	int rc = sr_dirread(&list, p->r->a, types, p->conf->dir);
 	if (srunlikely(rc == -1))
 		return sr_error(p->r->e, "log directory '%s' open error",
-		                p->conf.dir);
+		                p->conf->dir);
 	sriter i;
 	sr_iterinit(&i, &sr_bufiter, p->r);
 	sr_iteropen(&i, &list, sizeof(srdirid));
@@ -173,7 +173,7 @@ int sl_poolopen(slpool *p)
 {
 	if (srunlikely(! p->enabled))
 		return 0;
-	int exists = sr_fileexists(p->conf.dir);
+	int exists = sr_fileexists(p->conf->dir);
 	int rc;
 	if (! exists)
 		rc = sl_poolcreate(p);
@@ -202,14 +202,14 @@ int sl_poolrotate(slpool *p)
 	p->n++;
 	sr_spinunlock(&p->lock);
 	if (log) {
-		/*
-		int rc = sr_filesync(&log->file);
-		if (srunlikely(rc == -1)) {
-			sr_error(p->r->e, "log file '%s' sync error: %s",
-			         log->file.file, strerror(errno));
-			return -1;
+		if (p->conf->sync_on_rotate) {
+			int rc = sr_filesync(&log->file);
+			if (srunlikely(rc == -1)) {
+				sr_error(p->r->e, "log file '%s' sync error: %s",
+						 log->file.file, strerror(errno));
+				return -1;
+			}
 		}
-		*/
 	}
 	return 0;
 }
@@ -346,6 +346,7 @@ int sl_write(sltx *t, svlog *vlog)
 {
 	slpool *p = t->p;
 	sl *l = t->l;
+	int rc;
 	uint64_t lsn = sr_seq(p->r->seq, SR_LSNNEXT);
 	if (srunlikely(! p->enabled))
 		return sl_write_disabled(t, vlog, lsn);
@@ -353,6 +354,7 @@ int sl_write(sltx *t, svlog *vlog)
 	slv lvbuf[341]; /* 1 + 340 per syscall */
 	int lvp;
 	lvp = 0;
+
 	/* begin */
 	slv *lv = &lvbuf[0];
 	lv->lsn       = lsn;
@@ -372,7 +374,7 @@ int sl_write(sltx *t, svlog *vlog)
 		svlsnset(v, lsn);
 
 		if (srunlikely(! sr_iovensure(&p->iov, 3))) {
-			int rc = sr_filewritev(&l->file, &p->iov);
+			rc = sr_filewritev(&l->file, &p->iov);
 			if (srunlikely(rc == -1)) {
 				sr_error(p->r->e, "log file '%s' write error: %s",
 				         l->file.file, strerror(errno));
@@ -397,7 +399,7 @@ int sl_write(sltx *t, svlog *vlog)
 		lvp++;
 	}
 	if (srlikely(sr_iovhas(&p->iov))) {
-		int rc = sr_filewritev(&l->file, &p->iov);
+		rc = sr_filewritev(&l->file, &p->iov);
 		if (srunlikely(rc == -1)) {
 			sr_error(p->r->e, "log file '%s' write error: %s",
 			         l->file.file, strerror(errno));
@@ -406,5 +408,15 @@ int sl_write(sltx *t, svlog *vlog)
 		sr_iovreset(&p->iov);
 	}
 	sr_gcmark(&l->gc, sv_logn(vlog));
+
+	/* sync */
+	if (p->conf->sync_on_write) {
+		rc = sr_filesync(&l->file);
+		if (srunlikely(rc == -1)) {
+			sr_error(p->r->e, "log file '%s' sync error: %s",
+					 l->file.file, strerror(errno));
+			return -1;
+		}
+	}
 	return 0;
 }

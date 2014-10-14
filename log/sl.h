@@ -25,7 +25,7 @@ struct sl {
 
 struct slpool {
 	srspinlock lock;
-	slconf conf;
+	slconf *conf;
 	srlist list;
 	int enabled;
 	int n;

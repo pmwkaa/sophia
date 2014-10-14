@@ -156,6 +156,11 @@ si_mergeof(si *index, sr *r, sdc *c, uint64_t lsvn,
 	sr_iteropen(&i, result, sizeof(sinode*));
 	for (; sr_iterhas(&i); sr_iternext(&i)) {
 		n = sr_iterof(&i);
+		if (index->conf->sync) {
+			rc = si_nodesync(n, r);
+			if (srunlikely(rc == -1))
+				return -1;
+		}
 		rc = si_nodeseal(n, r, index->conf);
 		if (srunlikely(rc == -1))
 			return -1;

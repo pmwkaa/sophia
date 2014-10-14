@@ -19,7 +19,10 @@ deadlock_test0(stc *cx)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "db.test.logdir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "db.test.logdir_sync", "0") == 0 );
+	t( sp_set(c, "db.test.logdir_rotate_sync", "0") == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
 	t( sp_set(c, "db.test.cmp", sr_cmpu32) == 0 );
 	t( sp_set(c, "db.test.threads", "0") == 0 );
 	void *db = sp_get(c, "db.test");
@@ -53,7 +56,10 @@ deadlock_test1(stc *cx)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "db.test.logdir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "db.test.logdir_sync", "0") == 0 );
+	t( sp_set(c, "db.test.logdir_rotate_sync", "0") == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
 	t( sp_set(c, "db.test.cmp", sr_cmpu32) == 0 );
 	t( sp_set(c, "db.test.threads", "0") == 0 );
 	void *db = sp_get(c, "db.test");
@@ -99,7 +105,10 @@ deadlock_test2(stc *cx)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "db.test.logdir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "db.test.logdir_sync", "0") == 0 );
+	t( sp_set(c, "db.test.logdir_rotate_sync", "0") == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
 	t( sp_set(c, "db.test.cmp", sr_cmpu32) == 0 );
 	t( sp_set(c, "db.test.threads", "0") == 0 );
 	void *db = sp_get(c, "db.test");
@@ -163,7 +172,10 @@ deadlock_test3(stc *cx)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "db.test.logdir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "db.test.logdir_sync", "0") == 0 );
+	t( sp_set(c, "db.test.logdir_rotate_sync", "0") == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
 	t( sp_set(c, "db.test.cmp", sr_cmpu32) == 0 );
 	t( sp_set(c, "db.test.threads", "0") == 0 );
 	void *db = sp_get(c, "db.test");

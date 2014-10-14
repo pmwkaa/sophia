@@ -19,7 +19,10 @@ profiler_count(stc *cx srunused)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "db.test.logdir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "db.test.logdir_sync", "0") == 0 );
+	t( sp_set(c, "db.test.logdir_rotate_sync", "0") == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
 	t( sp_set(c, "db.test.cmp", sr_cmpu32) == 0 );
 	t( sp_set(c, "db.test.threads", "0") == 0 );
 	t( sp_set(c, "db.test.node_branch_wm", "0") == 0 );

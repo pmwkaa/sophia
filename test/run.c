@@ -83,8 +83,8 @@ main(int argc, char *argv[])
 	plan = st_plan("default");
 	st_planscene(plan, st_sceneof(&s, "rmrf"));
 	st_planscene(plan, st_sceneof(&s, "create"));
-	st_planscene(plan, st_sceneof(&s, "open"));
 	st_planscene(plan, st_sceneof(&s, "phase"));
+	st_planscene(plan, st_sceneof(&s, "open"));
 	st_planscene(plan, st_sceneof(&s, "test"));
 	st_planscene(plan, st_sceneof(&s, "destroy"));
 	st_planscene(plan, st_sceneof(&s, "pass"));
@@ -96,8 +96,8 @@ main(int argc, char *argv[])
 	plan = st_plan("truncate-repeat");
 	st_planscene(plan, st_sceneof(&s, "rmrf"));
 	st_planscene(plan, st_sceneof(&s, "create"));
-	st_planscene(plan, st_sceneof(&s, "open"));
 	st_planscene(plan, st_sceneof(&s, "phase"));
+	st_planscene(plan, st_sceneof(&s, "open"));
 	st_planscene(plan, st_sceneof(&s, "test"));
 	st_planscene(plan, st_sceneof(&s, "truncate"));
 	st_planscene(plan, st_sceneof(&s, "test"));
@@ -113,8 +113,8 @@ main(int argc, char *argv[])
 	plan = st_plan("truncate-recover-repeat");
 	st_planscene(plan, st_sceneof(&s, "rmrf"));
 	st_planscene(plan, st_sceneof(&s, "create"));
-	st_planscene(plan, st_sceneof(&s, "open"));
 	st_planscene(plan, st_sceneof(&s, "phase"));
+	st_planscene(plan, st_sceneof(&s, "open"));
 	st_planscene(plan, st_sceneof(&s, "test"));
 	st_planscene(plan, st_sceneof(&s, "truncate"));
 	st_planscene(plan, st_sceneof(&s, "destroy"));

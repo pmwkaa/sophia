@@ -44,6 +44,7 @@ sinode *si_nodenew(sr*);
 int si_nodecreate(sinode*, sr*, siconf*, sdid*, sdindex*, sdbuild*);
 int si_nodecreate_attach(sinode*, sr*, siconf*, sdid*, sdindex*, sdbuild*);
 int si_nodeopen(sinode*, sr*, srpath*);
+int si_nodesync(sinode*, sr*);
 int si_nodefree(sinode*, sr*);
 int si_nodefree_all(sinode*, sr*);
 int si_nodecmp(sinode*, void*, int, srcomparator*);

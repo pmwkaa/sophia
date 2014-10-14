@@ -57,7 +57,10 @@ st_scene_create(stscene *g, stc *cx)
 	void *c = sp_ctl(cx->env);
 	t( c != NULL );
 	t( sp_set(c, "db.test.logdir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "db.test.logdir_sync", "0") == 0 );
+	t( sp_set(c, "db.test.logdir_rotate_sync", "0") == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
 	t( sp_set(c, "db.test.cmp", sr_cmpu32) == 0 );
 	t( sp_set(c, "db.test.threads", "0") == 0 );
 	cx->db = sp_get(c, "db.test");
@@ -129,14 +132,17 @@ st_scene_phase(stscene *g, stc *cx)
 	cx->commit = st_phase_commit;
 	cx->phase_scene = g->state;
 	cx->phase = 0;
+	/*void *c = sp_ctl(cx->env);*/
 	switch (g->state) {
 	case 0:
 		printf(".branch");
 		fflush(NULL);
+		/*t( sp_set(c, "db.test.node_branch_wm", "0") == 0 );*/
 		break;
 	case 1:
 		printf(".merge");
 		fflush(NULL);
+		/*t( sp_set(c, "db.test.node_branch_wm", "0") == 0 );*/
 		break;
 	case 2:
 		printf(".logrotate");
@@ -145,10 +151,12 @@ st_scene_phase(stscene *g, stc *cx)
 	case 3:
 		printf(".branch+merge");
 		fflush(NULL);
+		/*t( sp_set(c, "db.test.node_branch_wm", "0") == 0 );*/
 		break;
 	case 4:
 		printf(".branch+logrotate");
 		fflush(NULL);
+		/*t( sp_set(c, "db.test.node_branch_wm", "0") == 0 );*/
 		break;
 	}
 }

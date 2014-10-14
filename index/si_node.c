@@ -132,6 +132,17 @@ error:
 	return -1;
 }
 
+int si_nodesync(sinode *n, sr *r)
+{
+	int rc = sr_filesync(&n->file);
+	if (srunlikely(rc == -1)) {
+		sr_error(r->e, "db file '%s' sync error: %s",
+		         n->file.file, strerror(errno));
+		return -1;
+	}
+	return 0;
+}
+
 int si_nodefree(sinode *n, sr *r)
 {
 	int rc = si_nodeclose(n, r);
@@ -198,7 +209,6 @@ int si_nodecmp(sinode *n, void *key, int size, srcomparator *c)
 
 int si_nodeseal(sinode *n, sr *r, siconf *conf)
 {
-	/* sync */
 	srpath path;
 	sr_pathAB(&path, conf->dir, n->id.parent, n->id.id, ".db.seal");
 	int rc = sr_filerename(&n->file, path.path);
