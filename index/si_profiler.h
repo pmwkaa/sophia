@@ -13,14 +13,19 @@ typedef struct siprofiler siprofiler;
 
 struct siprofiler {
 	si *i;
-	uint32_t total_node_count;
-	uint64_t total_node_size;
-	uint32_t total_branch_count;
-	uint32_t total_branch_max;
-	uint64_t total_branch_size;
-	uint64_t memory_used;
-	uint64_t count;
-	srseq    seq;
+	uint32_t  total_node_count;
+	uint64_t  total_node_size;
+	uint32_t  total_branch_count;
+	uint32_t  total_branch_avg;
+	uint32_t  total_branch_max;
+	uint64_t  total_branch_size;
+	uint64_t  memory_used;
+	uint64_t  count;
+	int       histogram_branch[20];
+	int       histogram_branch_20plus;
+	char      histogram_branch_sz[512];
+	char     *histogram_branch_ptr;
+	srseq     seq;
 };
 
 int si_profilerbegin(siprofiler*, si*);

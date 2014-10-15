@@ -201,18 +201,20 @@ static inline void
 so_dbprofiler_prepare(srctl *t, siprofiler *pf)
 {
 	srctl *p = t;
-	p = sr_ctladd(p, "total_node_count",   SR_CTLU32|SR_CTLRO, &pf->total_node_count,   NULL);
-	p = sr_ctladd(p, "total_node_size",    SR_CTLU64|SR_CTLRO, &pf->total_node_size,    NULL);
-	p = sr_ctladd(p, "total_branch_count", SR_CTLU32|SR_CTLRO, &pf->total_branch_count, NULL);
-	p = sr_ctladd(p, "total_branch_max",   SR_CTLU32|SR_CTLRO, &pf->total_branch_max,   NULL);
-	p = sr_ctladd(p, "total_branch_size",  SR_CTLU64|SR_CTLRO, &pf->total_branch_size,  NULL);
-	p = sr_ctladd(p, "memory_used",        SR_CTLU64|SR_CTLRO, &pf->memory_used,        NULL);
-	p = sr_ctladd(p, "count",              SR_CTLU64|SR_CTLRO, &pf->count,              NULL);
-	p = sr_ctladd(p, "seq_nsn",            SR_CTLU32|SR_CTLRO, &pf->seq.nsn,            NULL);
-	p = sr_ctladd(p, "seq_lsn",            SR_CTLU64|SR_CTLRO, &pf->seq.lsn,            NULL);
-	p = sr_ctladd(p, "seq_lfsn",           SR_CTLU32|SR_CTLRO, &pf->seq.lfsn,           NULL);
-	p = sr_ctladd(p, "seq_tsn",            SR_CTLU32|SR_CTLRO, &pf->seq.tsn,            NULL);
-	p = sr_ctladd(p,  NULL,                0,                  NULL,                    NULL);
+	p = sr_ctladd(p, "total_node_count",   SR_CTLU32|SR_CTLRO,    &pf->total_node_count,    NULL);
+	p = sr_ctladd(p, "total_node_size",    SR_CTLU64|SR_CTLRO,    &pf->total_node_size,     NULL);
+	p = sr_ctladd(p, "total_branch_count", SR_CTLU32|SR_CTLRO,    &pf->total_branch_count,  NULL);
+	p = sr_ctladd(p, "total_branch_avg",   SR_CTLU32|SR_CTLRO,    &pf->total_branch_avg,    NULL);
+	p = sr_ctladd(p, "total_branch_max",   SR_CTLU32|SR_CTLRO,    &pf->total_branch_max,    NULL);
+	p = sr_ctladd(p, "total_branch_size",  SR_CTLU64|SR_CTLRO,    &pf->total_branch_size,   NULL);
+	p = sr_ctladd(p, "memory_used",        SR_CTLU64|SR_CTLRO,    &pf->memory_used,         NULL);
+	p = sr_ctladd(p, "count",              SR_CTLU64|SR_CTLRO,    &pf->count,               NULL);
+	p = sr_ctladd(p, "seq_nsn",            SR_CTLU32|SR_CTLRO,    &pf->seq.nsn,             NULL);
+	p = sr_ctladd(p, "seq_lsn",            SR_CTLU64|SR_CTLRO,    &pf->seq.lsn,             NULL);
+	p = sr_ctladd(p, "seq_lfsn",           SR_CTLU32|SR_CTLRO,    &pf->seq.lfsn,            NULL);
+	p = sr_ctladd(p, "seq_tsn",            SR_CTLU32|SR_CTLRO,    &pf->seq.tsn,             NULL);
+	p = sr_ctladd(p, "histogram_branch",   SR_CTLSTRING|SR_CTLRO, pf->histogram_branch_ptr, NULL);
+	p = sr_ctladd(p,  NULL,                0,                     NULL,                     NULL);
 }
 
 static inline void
