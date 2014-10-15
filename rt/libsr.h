@@ -36,7 +36,10 @@
 #include <sr_version.h>
 #include <sr_spinlock.h>
 #include <sr_list.h>
+#include <sr_pager.h>
 #include <sr_a.h>
+#include <sr_astd.h>
+#include <sr_aslab.h>
 #include <sr_error.h>
 #include <sr_gc.h>
 #include <sr_seq.h>

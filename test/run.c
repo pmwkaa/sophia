@@ -11,16 +11,18 @@
 #include <libst.h>
 #include <sophia.h>
 
+extern stgroup *srpager_group(void);
+extern stgroup *sraslab_group(void);
+extern stgroup *svindex_group(void);
+extern stgroup *svindexiter_group(void);
+extern stgroup *svmergeiter_group(void);
+extern stgroup *svseaveiter_group(void);
 extern stgroup *sl_group(void);
 extern stgroup *sliter_group(void);
 extern stgroup *sdbuild_group(void);
 extern stgroup *sdv_group(void);
 extern stgroup *sditer_group(void);
 extern stgroup *sdpageiter_group(void);
-extern stgroup *svindex_group(void);
-extern stgroup *svindexiter_group(void);
-extern stgroup *svmergeiter_group(void);
-extern stgroup *svseaveiter_group(void);
 extern stgroup *ctl_group(void);
 extern stgroup *error_group(void);
 extern stgroup *method_group(void);
@@ -56,16 +58,18 @@ main(int argc, char *argv[])
 	st_planscene(plan, st_sceneof(&s, "rmrf"));
 	st_planscene(plan, st_sceneof(&s, "test"));
 	st_planscene(plan, st_sceneof(&s, "pass"));
+	st_planadd(plan, srpager_group());
+	st_planadd(plan, sraslab_group());
+	st_planadd(plan, svindex_group());
+	st_planadd(plan, svindexiter_group());
+	st_planadd(plan, svmergeiter_group());
+	st_planadd(plan, svseaveiter_group());
 	st_planadd(plan, sl_group());
 	st_planadd(plan, sliter_group());
 	st_planadd(plan, sdbuild_group());
 	st_planadd(plan, sdv_group());
 	st_planadd(plan, sditer_group());
 	st_planadd(plan, sdpageiter_group());
-	st_planadd(plan, svindex_group());
-	st_planadd(plan, svindexiter_group());
-	st_planadd(plan, svmergeiter_group());
-	st_planadd(plan, svseaveiter_group());
 	st_add(&s, plan);
 
 	plan = st_plan("separate");
@@ -151,11 +155,13 @@ main(int argc, char *argv[])
 	st_planscene(plan, st_sceneof(&s, "destroy"));
 	st_planscene(plan, st_sceneof(&s, "rerun"));
 	st_planscene(plan, st_sceneof(&s, "create"));
+	st_planscene(plan, st_sceneof(&s, "multithread"));
 	st_planscene(plan, st_sceneof(&s, "open"));
 	st_planscene(plan, st_sceneof(&s, "test"));
 	st_planscene(plan, st_sceneof(&s, "destroy"));
 	st_planscene(plan, st_sceneof(&s, "rerun"));
 	st_planscene(plan, st_sceneof(&s, "create"));
+	st_planscene(plan, st_sceneof(&s, "multithread"));
 	st_planscene(plan, st_sceneof(&s, "open"));
 	st_planscene(plan, st_sceneof(&s, "test"));
 	st_planscene(plan, st_sceneof(&s, "destroy"));

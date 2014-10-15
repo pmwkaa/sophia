@@ -9,47 +9,56 @@
  * BSD License
 */
 
-typedef void *(*srallocf)(void *ptr, size_t size, void *arg);
-
+typedef struct sraif sraif;
 typedef struct sra sra;
 
-struct sra {
-	srallocf alloc;
-	void *arg;
+struct sraif {
+	int   (*open)(sra*, va_list);
+	int   (*close)(sra*);
+	void *(*malloc)(sra*, int);
+	void *(*realloc)(sra*, void*, int);
+	void  (*free)(sra*, void*);
 };
 
+struct sra {
+	sraif *i;
+	char priv[32];
+};
+
+static inline int
+sr_allocopen(sra *a, sraif *i, ...) {
+	a->i = i;
+	va_list args;
+	va_start(args, i);
+	int rc = i->open(a, args);
+	va_end(args);
+	return rc;
+}
+
+static inline int
+sr_allocclose(sra *a) {
+	return a->i->close(a);
+}
+
+static inline void*
+sr_malloc(sra *a, int size) {
+	return a->i->malloc(a, size);
+}
+
+static inline void*
+sr_realloc(sra *a, void *ptr, int size) {
+	return a->i->realloc(a, ptr, size);
+}
+
 static inline void
-sr_allocinit(sra *a, srallocf f, void *arg) {
-	a->alloc = f;
-	a->arg = arg;
-}
-
-static inline void*
-sr_allocstd(void *ptr, size_t size, void *arg srunused) {
-	if (srlikely(size > 0)) {
-		if (ptr != NULL)
-			return realloc(ptr, size);
-		return malloc(size);
-	}
-	assert(ptr != NULL);
-	free(ptr);
-	return NULL;
-}
-
-static inline void*
-sr_realloc(sra *a, void *ptr, size_t size) {
-	return a->alloc(ptr, size, a->arg);
-}
-
-static inline void*
-sr_malloc(sra *a, size_t size) {
-	return a->alloc(NULL, size, a->arg);
+sr_free(sra *a, void *ptr) {
+	a->i->free(a, ptr);
 }
 
 static inline char*
 sr_strdup(sra *a, char *str) {
 	int sz = strlen(str) + 1;
-	char *s = a->alloc(NULL, sz, a->arg);
+	char *s = sr_malloc(a, sz);
 	if (srunlikely(s == NULL))
 		return NULL;
 	memcpy(s, str, sz);
@@ -58,16 +67,11 @@ sr_strdup(sra *a, char *str) {
 
 static inline char*
 sr_memdup(sra *a, void *ptr, size_t size) {
-	char *s = a->alloc(NULL, size, a->arg);
+	char *s = sr_malloc(a, size);
 	if (srunlikely(s == NULL))
 		return NULL;
 	memcpy(s, ptr, size);
 	return s;
-}
-
-static inline void
-sr_free(sra *a, void *ptr) {
-	a->alloc(ptr, 0, a->arg);
 }
 
 #endif

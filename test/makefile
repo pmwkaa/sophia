@@ -1,16 +1,18 @@
 LIBST_O = st.o \
           st_scene.o \
           run.o \
+          srpager.test.o \
+          sraslab.test.o \
+          svindex.test.o \
+          svindexiter.test.o \
+          svmergeiter.test.o \
+          svseaveiter.test.o \
           sl.test.o \
           sliter.test.o \
           sdbuild.test.o \
           sdv.test.o \
           sditer.test.o \
           sdpageiter.test.o \
-          svindex.test.o \
-          svindexiter.test.o \
-          svmergeiter.test.o \
-          svseaveiter.test.o \
           ctl.test.o \
           error.test.o \
           method.test.o \

@@ -27,7 +27,7 @@ static void
 svmergeiter_merge_a(stc *cx srunused)
 {
 	sra a;
-	sr_allocinit(&a, sr_allocstd, NULL);
+	sr_allocopen(&a, &sr_astd);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -101,7 +101,7 @@ static void
 svmergeiter_merge_b(stc *cx srunused)
 {
 	sra a;
-	sr_allocinit(&a, sr_allocstd, NULL);
+	sr_allocopen(&a, &sr_astd);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -175,7 +175,7 @@ static void
 svmergeiter_merge_ab(stc *cx srunused)
 {
 	sra a;
-	sr_allocinit(&a, sr_allocstd, NULL);
+	sr_allocopen(&a, &sr_astd);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -273,7 +273,7 @@ static void
 svmergeiter_merge_abc(stc *cx srunused)
 {
 	sra a;
-	sr_allocinit(&a, sr_allocstd, NULL);
+	sr_allocopen(&a, &sr_astd);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -401,7 +401,7 @@ static void
 svmergeiter_merge_ba(stc *cx srunused)
 {
 	sra a;
-	sr_allocinit(&a, sr_allocstd, NULL);
+	sr_allocopen(&a, &sr_astd);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -499,7 +499,7 @@ static void
 svmergeiter_merge_dup_ab(stc *cx srunused)
 {
 	sra a;
-	sr_allocinit(&a, sr_allocstd, NULL);
+	sr_allocopen(&a, &sr_astd);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -607,7 +607,7 @@ static void
 svmergeiter_merge_dup_a_chain(stc *cx srunused)
 {
 	sra a;
-	sr_allocinit(&a, sr_allocstd, NULL);
+	sr_allocopen(&a, &sr_astd);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -697,7 +697,7 @@ static void
 svmergeiter_merge_dup_ab_chain(stc *cx srunused)
 {
 	sra a;
-	sr_allocinit(&a, sr_allocstd, NULL);
+	sr_allocopen(&a, &sr_astd);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -803,7 +803,7 @@ static void
 svmergeiter_merge_dup_abc_chain(stc *cx srunused)
 {
 	sra a;
-	sr_allocinit(&a, sr_allocstd, NULL);
+	sr_allocopen(&a, &sr_astd);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);

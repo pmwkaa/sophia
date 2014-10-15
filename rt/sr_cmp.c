@@ -9,7 +9,7 @@
 
 #include <libsr.h>
 
-int srhot
+srhot int
 sr_cmpu32(char *a, size_t asz, char *b, size_t bsz,
           void *arg srunused)
 {
@@ -22,7 +22,7 @@ sr_cmpu32(char *a, size_t asz, char *b, size_t bsz,
 	return (av > bv) ? 1 : -1;
 }
 
-int srhot
+srhot int
 sr_cmpstring(char *a, size_t asz, char *b, size_t bsz,
              void *arg srunused)
 {

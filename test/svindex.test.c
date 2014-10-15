@@ -42,7 +42,7 @@ static void
 svindex_replace0(stc *cx srunused)
 {
 	sra a;
-	sr_allocinit(&a, sr_allocstd, NULL);
+	sr_allocopen(&a, &sr_astd);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -73,7 +73,7 @@ static void
 svindex_replace1(stc *cx srunused)
 {
 	sra a;
-	sr_allocinit(&a, sr_allocstd, NULL);
+	sr_allocopen(&a, &sr_astd);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -107,7 +107,7 @@ static void
 svindex_replace2(stc *cx srunused)
 {
 	sra a;
-	sr_allocinit(&a, sr_allocstd, NULL);
+	sr_allocopen(&a, &sr_astd);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);

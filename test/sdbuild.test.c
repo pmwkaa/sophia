@@ -33,7 +33,7 @@ static void
 sdbuild_empty(stc *cx srunused)
 {
 	sra a;
-	sr_allocinit(&a, sr_allocstd, NULL);
+	sr_allocopen(&a, &sr_astd);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -54,7 +54,7 @@ static void
 sdbuild_page0(stc *cx srunused)
 {
 	sra a;
-	sr_allocinit(&a, sr_allocstd, NULL);
+	sr_allocopen(&a, &sr_astd);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -82,7 +82,7 @@ static void
 sdbuild_page1(stc *cx srunused)
 {
 	sra a;
-	sr_allocinit(&a, sr_allocstd, NULL);
+	sr_allocopen(&a, &sr_astd);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);

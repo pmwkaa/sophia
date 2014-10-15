@@ -56,6 +56,7 @@ so_destroy(soobj *o)
 		rcret = -1;
 	sr_mutexfree(&e->apilock);
 	sr_seqfree(&e->seq);
+	sr_allocclose(&e->a);
 	free(e);
 	return rcret;
 }
@@ -96,7 +97,7 @@ soobj *so_new(void)
 	so_objindex_init(&e->ctlcursor);
 	sr_mutexinit(&e->apilock);
 	sr_seqinit(&e->seq);
-	sr_allocinit(&e->a, sr_allocstd, NULL);
+	sr_allocopen(&e->a, &sr_astd);
 	sr_errorinit(&e->error);
 	sr_init(&e->r, &e->error, &e->a, &e->seq, NULL, NULL);
 	return &e->o;
