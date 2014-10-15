@@ -20,10 +20,11 @@ struct siprofiler {
 	uint64_t total_branch_size;
 	uint64_t memory_used;
 	uint64_t count;
+	srseq    seq;
 };
 
 int si_profilerbegin(siprofiler*, si*);
 int si_profilerend(siprofiler*);
-int si_profiler(siprofiler*);
+int si_profiler(siprofiler*, sr*);
 
 #endif

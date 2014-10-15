@@ -26,8 +26,11 @@ int si_profilerend(siprofiler *p)
 	return 0;
 }
 
-int si_profiler(siprofiler *p)
+int si_profiler(siprofiler *p, sr *r)
 {
+	sr_seqlock(r->seq);
+	p->seq = *r->seq;
+	sr_sequnlock(r->seq);
 	srrbnode *pn;
 	sinode *n;
 	pn = sr_rbmin(&p->i->i);

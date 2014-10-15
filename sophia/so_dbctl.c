@@ -208,6 +208,10 @@ so_dbprofiler_prepare(srctl *t, siprofiler *pf)
 	p = sr_ctladd(p, "total_branch_size",  SR_CTLU64|SR_CTLRO, &pf->total_branch_size,  NULL);
 	p = sr_ctladd(p, "memory_used",        SR_CTLU64|SR_CTLRO, &pf->memory_used,        NULL);
 	p = sr_ctladd(p, "count",              SR_CTLU64|SR_CTLRO, &pf->count,              NULL);
+	p = sr_ctladd(p, "seq_nsn",            SR_CTLU32|SR_CTLRO, &pf->seq.nsn,            NULL);
+	p = sr_ctladd(p, "seq_lsn",            SR_CTLU64|SR_CTLRO, &pf->seq.lsn,            NULL);
+	p = sr_ctladd(p, "seq_lfsn",           SR_CTLU32|SR_CTLRO, &pf->seq.lfsn,           NULL);
+	p = sr_ctladd(p, "seq_tsn",            SR_CTLU32|SR_CTLRO, &pf->seq.tsn,            NULL);
 	p = sr_ctladd(p,  NULL,                0,                  NULL,                    NULL);
 }
 
@@ -230,7 +234,7 @@ so_dbprofiler_get(sodb *db, char *path)
 {
 	siprofiler pf;
 	si_profilerbegin(&pf, &db->index);
-	si_profiler(&pf);
+	si_profiler(&pf, &db->r);
 	si_profilerend(&pf);
 	srctl ctls[30];
 	so_dbprofiler_prepare(&ctls[0], &pf);
@@ -249,7 +253,7 @@ so_dbprofiler_dump(sodb *db, srbuf *dump)
 {
 	siprofiler pf;
 	si_profilerbegin(&pf, &db->index);
-	si_profiler(&pf);
+	si_profiler(&pf, &db->r);
 	si_profilerend(&pf);
 	srctl ctls[30];
 	so_dbprofiler_prepare(&ctls[0], &pf);

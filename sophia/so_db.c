@@ -126,9 +126,12 @@ so_dbdestroy(soobj *obj)
 	rc = so_workersshutdown(&o->workers, &o->r);
 	if (srunlikely(rc == -1))
 		rcret = -1;
-	/* destroy */
-	so_objindex_free(&o->tx);
-	so_objindex_free(&o->cursor);
+	rc = so_objindex_destroy(&o->tx);
+	if (srunlikely(rc == -1))
+		rcret = -1;
+	rc = so_objindex_destroy(&o->cursor);
+	if (srunlikely(rc == -1))
+		rcret = -1;
 	sm_free(&o->mvcc);
 	rc = sl_poolshutdown(&o->lp);
 	if (srunlikely(rc == -1))

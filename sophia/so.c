@@ -48,16 +48,12 @@ so_destroy(soobj *o)
 	int rcret = 0;
 	int rc;
 	so_statusset(&e->status, SO_SHUTDOWN);
-	srlist *i, *n;
-	sr_listforeach_safe(&e->db.list, i, n) {
-		soobj *o = srcast(i, soobj, link);
-		rc = so_objdestroy(o);
-		if (srunlikely(rc == -1))
-			rcret = -1;
-	}
-	/* destroy */
-	so_objindex_free(&e->ctlcursor);
-	so_objindex_free(&e->db);
+	rc = so_objindex_destroy(&e->ctlcursor);
+	if (srunlikely(rc == -1))
+		rcret = -1;
+	rc = so_objindex_destroy(&e->db);
+	if (srunlikely(rc == -1))
+		rcret = -1;
 	sr_mutexfree(&e->apilock);
 	sr_seqfree(&e->seq);
 	free(e);

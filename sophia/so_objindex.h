@@ -23,11 +23,21 @@ so_objindex_init(soobjindex *i)
 	i->n = 0;
 }
 
-static inline void
-so_objindex_free(soobjindex *i)
+static inline int
+so_objindex_destroy(soobjindex *i)
 {
-	sr_listinit(&i->list);
+	int rcret = 0;
+	int rc;
+	srlist *p, *n;
+	sr_listforeach_safe(&i->list, p, n) {
+		soobj *o = srcast(p, soobj, link);
+		rc = so_objdestroy(o);
+		if (srunlikely(rc == -1))
+			rcret = -1;
+	}
 	i->n = 0;
+	sr_listinit(&i->list);
+	return rcret;
 }
 
 static inline void
