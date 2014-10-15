@@ -114,7 +114,7 @@ so_dbctl_merge(srctl *c srunused, void *arg, va_list args srunused)
 }
 
 static int
-so_dbctl_deadlock(srctl *c srunused, void *arg, va_list args)
+so_dbctl_lockdetect(srctl *c srunused, void *arg, va_list args)
 {
 	sodb *db = arg;
 	sotx *tx = va_arg(args, sotx*);
@@ -191,24 +191,27 @@ so_dbctl_prepare(srctl *t, sodbctl *c, sodbctlinfo *info)
 	p = sr_ctladd(p, "run_branch",         SR_CTLTRIGGER,         NULL,                   so_dbctl_branch);
 	p = sr_ctladd(p, "run_merge",          SR_CTLTRIGGER,         NULL,                   so_dbctl_merge);
 	p = sr_ctladd(p, "run_logrotate",      SR_CTLTRIGGER,         NULL,                   so_dbctl_logrotate);
-	p = sr_ctladd(p, "run_deadlock",       SR_CTLTRIGGER,         NULL,                   so_dbctl_deadlock);
+	p = sr_ctladd(p, "run_lockdetect",     SR_CTLTRIGGER,         NULL,                   so_dbctl_lockdetect);
 	p = sr_ctladd(p, "profiler",           SR_CTLSUB,             NULL,                   NULL);
 	p = sr_ctladd(p, "error_injection",    SR_CTLSUB,             NULL,                   NULL);
 	p = sr_ctladd(p,  NULL,                0,                     NULL,                   NULL);
 }
 
 static inline void
-so_dbprofiler_prepare(srctl *t, siprofiler *pf)
+so_dbprofiler_prepare(srctl *t, siprofiler *pf, srpager *pager)
 {
 	srctl *p = t;
-	p = sr_ctladd(p, "total_node_count",   SR_CTLU32|SR_CTLRO,    &pf->total_node_count,    NULL);
-	p = sr_ctladd(p, "total_node_size",    SR_CTLU64|SR_CTLRO,    &pf->total_node_size,     NULL);
-	p = sr_ctladd(p, "total_branch_count", SR_CTLU32|SR_CTLRO,    &pf->total_branch_count,  NULL);
-	p = sr_ctladd(p, "total_branch_avg",   SR_CTLU32|SR_CTLRO,    &pf->total_branch_avg,    NULL);
-	p = sr_ctladd(p, "total_branch_max",   SR_CTLU32|SR_CTLRO,    &pf->total_branch_max,    NULL);
-	p = sr_ctladd(p, "total_branch_size",  SR_CTLU64|SR_CTLRO,    &pf->total_branch_size,   NULL);
-	p = sr_ctladd(p, "memory_used",        SR_CTLU64|SR_CTLRO,    &pf->memory_used,         NULL);
-	p = sr_ctladd(p, "count",              SR_CTLU64|SR_CTLRO,    &pf->count,               NULL);
+	p = sr_ctladd(p, "pager_pool_size",    SR_CTLU32|SR_CTLRO,    &pager->pool_size,       NULL);
+	p = sr_ctladd(p, "pager_page_size",    SR_CTLU32|SR_CTLRO,    &pager->page_size,       NULL);
+	p = sr_ctladd(p, "pager_pools",        SR_CTLINT|SR_CTLRO,    &pager->pools,           NULL);
+	p = sr_ctladd(p, "index_node_count",   SR_CTLU32|SR_CTLRO,    &pf->total_node_count,    NULL);
+	p = sr_ctladd(p, "index_node_size",    SR_CTLU64|SR_CTLRO,    &pf->total_node_size,     NULL);
+	p = sr_ctladd(p, "index_branch_count", SR_CTLU32|SR_CTLRO,    &pf->total_branch_count,  NULL);
+	p = sr_ctladd(p, "index_branch_avg",   SR_CTLU32|SR_CTLRO,    &pf->total_branch_avg,    NULL);
+	p = sr_ctladd(p, "index_branch_max",   SR_CTLU32|SR_CTLRO,    &pf->total_branch_max,    NULL);
+	p = sr_ctladd(p, "index_branch_size",  SR_CTLU64|SR_CTLRO,    &pf->total_branch_size,   NULL);
+	p = sr_ctladd(p, "index_memory_used",  SR_CTLU64|SR_CTLRO,    &pf->memory_used,         NULL);
+	p = sr_ctladd(p, "index_count",        SR_CTLU64|SR_CTLRO,    &pf->count,               NULL);
 	p = sr_ctladd(p, "seq_nsn",            SR_CTLU32|SR_CTLRO,    &pf->seq.nsn,             NULL);
 	p = sr_ctladd(p, "seq_lsn",            SR_CTLU64|SR_CTLRO,    &pf->seq.lsn,             NULL);
 	p = sr_ctladd(p, "seq_lfsn",           SR_CTLU32|SR_CTLRO,    &pf->seq.lfsn,            NULL);
@@ -239,7 +242,7 @@ so_dbprofiler_get(sodb *db, char *path)
 	si_profiler(&pf, &db->r);
 	si_profilerend(&pf);
 	srctl ctls[30];
-	so_dbprofiler_prepare(&ctls[0], &pf);
+	so_dbprofiler_prepare(&ctls[0], &pf, &db->e->pager);
 	srctl *match = NULL;
 	int rc = sr_ctlget(&ctls[0], &path, &match);
 	if (srunlikely(rc == 1 || rc == -1)) {
@@ -258,7 +261,7 @@ so_dbprofiler_dump(sodb *db, srbuf *dump)
 	si_profiler(&pf, &db->r);
 	si_profilerend(&pf);
 	srctl ctls[30];
-	so_dbprofiler_prepare(&ctls[0], &pf);
+	so_dbprofiler_prepare(&ctls[0], &pf, &db->e->pager);
 	char prefix[64];
 	snprintf(prefix, sizeof(prefix), "db.%s.profiler.", db->ctl.name);
 	int rc = sr_ctlserialize(&ctls[0], &db->e->a, prefix, dump);
@@ -305,6 +308,7 @@ so_dbei_get(sodb *db, char *path)
 	return so_ctlreturn(match, db->e);
 }
 
+#if 0
 static int
 so_dbei_dump(sodb *db, srbuf *dump)
 {
@@ -320,6 +324,7 @@ so_dbei_dump(sodb *db, srbuf *dump)
 	}
 	return 0;
 }
+#endif
 
 int so_dbctl_set(sodbctl *c, char *path, va_list args)
 {
@@ -398,9 +403,6 @@ int so_dbctl_dump(sodbctl *c, srbuf *dump)
 		return -1;
 	}
 	rc = so_dbprofiler_dump(db, dump);
-	if (srunlikely(rc == -1))
-		return -1;
-	rc = so_dbei_dump(db, dump);
 	if (srunlikely(rc == -1))
 		return -1;
 	return 0;

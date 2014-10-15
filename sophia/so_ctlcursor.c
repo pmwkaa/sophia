@@ -25,7 +25,7 @@ so_ctlcursor_destroy(soobj *o)
 	if (c->v)
 		so_objdestroy(c->v);
 	so_objindex_unregister(&e->ctlcursor, &c->o);
-	sr_free(&e->a, c);
+	sr_free(&e->a_ctlcursor, c);
 	return 0;
 }
 
@@ -138,7 +138,7 @@ so_ctlcursor_open(soctlcursor *c)
 soobj *so_ctlcursor_new(void *o)
 {
 	so *e = o;
-	soctlcursor *c = sr_malloc(&e->a, sizeof(soctlcursor));
+	soctlcursor *c = sr_malloc(&e->a_ctlcursor, sizeof(soctlcursor));
 	if (srunlikely(c == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");
 		sr_error_recoverable(&e->error);

@@ -74,7 +74,7 @@ so_cursordestroy(soobj *o)
 	}
 	so_vrelease(&c->v);
 	so_objindex_unregister(&c->db->cursor, &c->o);
-	sr_free(&c->db->e->a, c);
+	sr_free(&c->db->e->a_cursor, c);
 	return 0;
 }
 
@@ -157,7 +157,7 @@ soobj *so_cursornew(sodb *db, va_list args)
 	} else {
 		goto error;
 	}
-	c = sr_malloc(&e->a, sizeof(socursor));
+	c = sr_malloc(&e->a_cursor, sizeof(socursor));
 	if (srunlikely(c == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");
 		sr_error_recoverable(&e->error);
@@ -207,6 +207,6 @@ error:
 	if (keyobj)
 		so_objdestroy(keyobj);
 	if (c)
-		sr_free(&e->a, c);
+		sr_free(&e->a_cursor, c);
 	return NULL;
 }

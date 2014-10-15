@@ -27,7 +27,7 @@ struct sodb {
 	srinjection ei;
 	sr r;
 	so *e;
-};
+} srpacked;
 
 static inline int
 so_dbactive(sodb *o) {

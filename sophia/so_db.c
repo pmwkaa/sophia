@@ -142,7 +142,7 @@ so_dbdestroy(soobj *obj)
 	so_dbctl_free(&o->ctl);
 	sd_cfree(&o->dc, &o->r);
 	so_objindex_unregister(&o->e->db, &o->o);
-	sr_free(&o->e->a, o);
+	sr_free(&o->e->a_db, o);
 	return rcret;
 }
 
@@ -226,7 +226,7 @@ static soobjif sodbif =
 
 soobj *so_dbnew(so *e, char *name)
 {
-	sodb *o = sr_malloc(&e->a, sizeof(sodb));
+	sodb *o = sr_malloc(&e->a_db, sizeof(sodb));
 	if (srunlikely(o == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");
 		sr_error_recoverable(&e->error);
@@ -243,7 +243,7 @@ soobj *so_dbnew(so *e, char *name)
 	o->r.i   = &o->ei;
 	int rc = so_dbctl_init(&o->ctl, name, o);
 	if (srunlikely(rc == -1)) {
-		sr_free(&e->a, o);
+		sr_free(&e->a_db, o);
 		return NULL;
 	}
 	sm_init(&o->mvcc, &o->r);

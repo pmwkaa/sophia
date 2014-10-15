@@ -24,7 +24,7 @@ struct srsa {
 	srsachunk *chunk;
 	srpage *pu;
 	srpager *pager;
-};
+} srpacked;
 
 static inline int
 sr_sagrow(srsa *s)
@@ -54,7 +54,7 @@ sr_aslabclose(sra *a)
 
 static inline int
 sr_aslabopen(sra *a, va_list args) {
-	assert(sizeof(a->priv) <= sizeof(srsa));
+	assert(sizeof(srsa) <= sizeof(a->priv));
 	srsa *s = (srsa*)a->priv;
 	memset(s, 0, sizeof(*s));
 	s->pager       = va_arg(args, srpager*);

@@ -22,7 +22,7 @@ struct sraif {
 
 struct sra {
 	sraif *i;
-	char priv[32];
+	char priv[48];
 };
 
 static inline int

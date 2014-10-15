@@ -15,7 +15,7 @@ struct sotx {
 	soobj o;
 	smtx t;
 	sodb *db;
-};
+} srpacked;
 
 soobj *so_txnew(sodb*);
 

@@ -274,7 +274,7 @@ so_txrollback(soobj *o)
 	sm_rollback(&t->t);
 	sm_end(&t->t);
 	so_objindex_unregister(&t->db->tx, &t->o);
-	sr_free(&t->db->e->a, t);
+	sr_free(&t->db->e->a_tx, t);
 	return 0;
 }
 
@@ -302,7 +302,7 @@ so_txcommit_recover(soobj *o, va_list args)
 		sm_commit(&t->t);
 		sm_end(&t->t);
 		so_objindex_unregister(&db->tx, &t->o);
-		sr_free(&e->a, t);
+		sr_free(&e->a_tx, t);
 		return 0;
 	}
 
@@ -326,7 +326,7 @@ so_txcommit_recover(soobj *o, va_list args)
 	sm_end(&t->t);
 
 	so_objindex_unregister(&db->tx, &t->o);
-	sr_free(&e->a, t);
+	sr_free(&e->a_tx, t);
 	return 0;
 }
 
@@ -351,7 +351,7 @@ so_txcommit(soobj *o, va_list args)
 		sm_commit(&t->t);
 		sm_end(&t->t);
 		so_objindex_unregister(&db->tx, &t->o);
-		sr_free(&e->a, t);
+		sr_free(&e->a_tx, t);
 		return 0;
 	}
 
@@ -383,7 +383,7 @@ so_txcommit(soobj *o, va_list args)
 	sm_end(&t->t);
 
 	so_objindex_unregister(&db->tx, &t->o);
-	sr_free(&e->a, t);
+	sr_free(&e->a_tx, t);
 	return 0;
 }
 
@@ -413,7 +413,7 @@ static soobjif sotxif =
 soobj *so_txnew(sodb *db)
 {
 	so *e = db->e;
-	sotx *t = sr_malloc(&e->a, sizeof(sotx));
+	sotx *t = sr_malloc(&e->a_tx, sizeof(sotx));
 	if (srunlikely(t == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");
 		sr_error_recoverable(&e->error);

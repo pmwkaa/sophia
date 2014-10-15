@@ -19,7 +19,7 @@ struct socursor {
 	sov v;
 	soobj *key;
 	sodb *db;
-};
+} srpacked;
 
 soobj *so_cursornew(sodb*, va_list);
 

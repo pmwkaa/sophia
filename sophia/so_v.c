@@ -23,7 +23,7 @@ so_vdestroy(soobj *obj)
 	if (v->flags & SO_VIMMUTABLE)
 		return 0;
 	so_vrelease(v);
-	sr_free(&v->e->a, v);
+	sr_free(&v->e->a_v, v);
 	return 0;
 }
 
@@ -106,7 +106,7 @@ so_vcopy(soobj *o srunused, va_list args srunused)
 		if (srunlikely(dup == NULL)) {
 			sr_error(&v->e->error, "%s", "memory allocation failed");
 			sr_error_recoverable(&v->e->error);
-			sr_free(&v->e->a, copy);
+			sr_free(&v->e->a_v, copy);
 			return NULL;
 		}
 		copy->flags = SO_VALLOCATED|SO_VRO;
@@ -151,7 +151,7 @@ soobj *so_vinit(sov *v, so *e)
 
 soobj *so_vnew(so *e)
 {
-	sov *v = sr_malloc(&e->a, sizeof(sov));
+	sov *v = sr_malloc(&e->a_v, sizeof(sov));
 	if (srunlikely(v == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");
 		sr_error_recoverable(&e->error);

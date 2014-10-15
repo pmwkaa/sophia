@@ -36,7 +36,7 @@ struct sodbctl {
 	int           threads_branch;
 	int           threads_merge;
 	int           threads;
-};
+} srpacked;
 
 int   so_dbctl_init(sodbctl*, char*, void*);
 int   so_dbctl_free(sodbctl*);

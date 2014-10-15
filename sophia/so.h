@@ -13,13 +13,19 @@ typedef struct so so;
 
 struct so {
 	soobj o;
+	srmutex apilock;
 	soobjindex db;
 	soobjindex ctlcursor;
 	sostatus status;
 	soctl ctl;
-	sra a;
 	srseq seq;
-	srmutex apilock;
+	srpager pager;
+	sra a;
+	sra a_db;
+	sra a_v;
+	sra a_cursor;
+	sra a_ctlcursor;
+	sra a_tx;
 	srerror error;
 	sr r;
 };

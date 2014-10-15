@@ -30,11 +30,11 @@ profiler_count(stc *cx srunused)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	void *o = sp_get(c, "db.test.profiler.total_branch_count");
+	void *o = sp_get(c, "db.test.profiler.index_branch_count");
 	t( o != NULL );
 	t( strcmp( sp_get(o, "value", NULL), "0") == 0 );
 	sp_destroy(o);
-	o = sp_get(c, "db.test.profiler.total_node_count");
+	o = sp_get(c, "db.test.profiler.index_node_count");
 	t( o != NULL );
 	t( strcmp( sp_get(o, "value", NULL), "1") == 0 );
 	sp_destroy(o);
@@ -46,18 +46,18 @@ profiler_count(stc *cx srunused)
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
-	o = sp_get(c, "db.test.profiler.count");
+	o = sp_get(c, "db.test.profiler.index_count");
 	t( o != NULL );
 	t( strcmp( sp_get(o, "value", NULL), "100") == 0 );
 	sp_destroy(o);
 	t( sp_set(c, "db.test.run_branch") == 0 );
 
-	o = sp_get(c, "db.test.profiler.total_branch_count");
+	o = sp_get(c, "db.test.profiler.index_branch_count");
 	t( o != NULL );
 	t( strcmp( sp_get(o, "value", NULL), "1") == 0 );
 	sp_destroy(o);
 
-	o = sp_get(c, "db.test.profiler.count");
+	o = sp_get(c, "db.test.profiler.index_count");
 	t( o != NULL );
 	t( strcmp( sp_get(o, "value", NULL), "100") == 0 );
 	sp_destroy(o);
@@ -70,7 +70,7 @@ profiler_count(stc *cx srunused)
 		i++;
 	}
 
-	o = sp_get(c, "db.test.profiler.count");
+	o = sp_get(c, "db.test.profiler.index_count");
 	t( o != NULL );
 	t( strcmp( sp_get(o, "value", NULL), "110") == 0 );
 	sp_destroy(o);
@@ -78,7 +78,7 @@ profiler_count(stc *cx srunused)
 	t( sp_set(c, "db.test.run_branch") == 0 );
 	t( sp_set(c, "db.test.run_merge") == 0 );
 
-	o = sp_get(c, "db.test.profiler.count");
+	o = sp_get(c, "db.test.profiler.index_count");
 	t( o != NULL );
 	t( strcmp( sp_get(o, "value", NULL), "100") == 0 );
 	sp_destroy(o);

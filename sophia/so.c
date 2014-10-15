@@ -56,7 +56,7 @@ so_destroy(soobj *o)
 		rcret = -1;
 	sr_mutexfree(&e->apilock);
 	sr_seqfree(&e->seq);
-	sr_allocclose(&e->a);
+	sr_pagerfree(&e->pager);
 	free(e);
 	return rcret;
 }
@@ -90,14 +90,26 @@ soobj *so_new(void)
 	if (srunlikely(e == NULL))
 		return NULL;
 	memset(e, 0, sizeof(*e));
-	so_statusset(&e->status, SO_OFFLINE);
 	so_objinit(&e->o, SOENV, &soif, &e->o /* self */);
+	/* init allocation family */
+	sr_pagerinit(&e->pager, 10, 1024);
+	int rc = sr_pageradd(&e->pager);
+	if (srunlikely(rc == -1)) {
+		free(e);
+		return NULL;
+	}
+	sr_allocopen(&e->a, &sr_astd);
+	sr_allocopen(&e->a_db, &sr_aslab, &e->pager, sizeof(sodb));
+	sr_allocopen(&e->a_v, &sr_aslab, &e->pager, sizeof(sov));
+	sr_allocopen(&e->a_cursor, &sr_aslab, &e->pager, sizeof(socursor));
+	sr_allocopen(&e->a_ctlcursor, &sr_aslab, &e->pager, sizeof(soctlcursor));
+	sr_allocopen(&e->a_tx, &sr_aslab, &e->pager, sizeof(sotx));
+	so_statusset(&e->status, SO_OFFLINE);
 	so_ctlinit(&e->ctl, e);
 	so_objindex_init(&e->db);
 	so_objindex_init(&e->ctlcursor);
 	sr_mutexinit(&e->apilock);
 	sr_seqinit(&e->seq);
-	sr_allocopen(&e->a, &sr_astd);
 	sr_errorinit(&e->error);
 	sr_init(&e->r, &e->error, &e->a, &e->seq, NULL, NULL);
 	return &e->o;
