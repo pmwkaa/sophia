@@ -114,11 +114,10 @@ so_ctlsophia_get(soctl *c, char *path, va_list args srunused)
 		error = errorsz;
 	srctl ctls[30];
 	srctl *p = ctls;
-	p = sr_ctladd(p, "version",       SR_CTLSTRING|SR_CTLRO, version_ptr,    NULL);
-	p = sr_ctladd(p, "version_major", SR_CTLINT|SR_CTLRO,    &version_major, NULL);
-	p = sr_ctladd(p, "version_minor", SR_CTLINT|SR_CTLRO,    &version_minor, NULL);
-	p = sr_ctladd(p, "error",         SR_CTLSTRING|SR_CTLRO, error,          NULL);
-	p = sr_ctladd(p,  NULL,           0,                     NULL,           NULL);
+	p = sr_ctladd(p, "version", SR_CTLSTRING|SR_CTLRO, version_ptr,       NULL);
+	p = sr_ctladd(p, "build",   SR_CTLSTRING|SR_CTLRO, SR_VERSION_COMMIT, NULL);
+	p = sr_ctladd(p, "error",   SR_CTLSTRING|SR_CTLRO, error,             NULL);
+	p = sr_ctladd(p,  NULL,     0,                     NULL,              NULL);
 	srctl *match = NULL;
 	int rc = sr_ctlget(&ctls[0], &path, &match);
 	if (srunlikely(rc == 1 || rc == -1)) {
@@ -150,11 +149,10 @@ so_ctlsophia_dump(soctl *c, srbuf *dump)
 		error = errorsz;
 	srctl ctls[30];
 	srctl *p = ctls;
-	p = sr_ctladd(p, "version",       SR_CTLSTRING|SR_CTLRO, version_ptr,    NULL);
-	p = sr_ctladd(p, "version_major", SR_CTLINT|SR_CTLRO,    &version_major, NULL);
-	p = sr_ctladd(p, "version_minor", SR_CTLINT|SR_CTLRO,    &version_minor, NULL);
-	p = sr_ctladd(p, "error",         SR_CTLSTRING|SR_CTLRO, error,          NULL);
-	p = sr_ctladd(p,  NULL,           0,                     NULL,           NULL);
+	p = sr_ctladd(p, "version", SR_CTLSTRING|SR_CTLRO, version_ptr,       NULL);
+	p = sr_ctladd(p, "build",   SR_CTLSTRING|SR_CTLRO, SR_VERSION_COMMIT, NULL);
+	p = sr_ctladd(p, "error",   SR_CTLSTRING|SR_CTLRO, error,             NULL);
+	p = sr_ctladd(p,  NULL,     0,                     NULL,              NULL);
 	int rc = sr_ctlserialize(&ctls[0], &e->a, "sophia.", dump);
 	if (srunlikely(rc == -1)) {
 		sr_error(&e->error, "%s", "memory allocation failed");

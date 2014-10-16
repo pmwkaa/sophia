@@ -4,6 +4,7 @@
 
 SOPHIA_VMAJOR   = 1
 SOPHIA_VMINOR   = 2
+SOPHIA_BUILD   := $(shell git rev-parse --short HEAD)
 SOPHIA_DIRS     = rt version mvcc log database index sophia
 SOPHIA_STATIC   = libsophia.a
 SOPHIA_DSOLIB   = libsophia.so.$(SOPHIA_VMAJOR).$(SOPHIA_VMINOR)
@@ -15,7 +16,6 @@ AR              = ar
 RM              = rm
 LN              = ln
 STRIP           = strip
-
 E               = @echo
 ifndef VERBOSE
 Q               = @
@@ -43,13 +43,15 @@ CFLAGS_DEBUG    = -g -DSR_INJECTION_ENABLE
 CFLAGS_OPT      = -O0
 CFLAGS_STRICT   = -std=c99 -pedantic -Wextra -Wall
 CFLAGS_MISC     = -fPIC -fvisibility=hidden
+CFLAGS_BUILD    = -DSOPHIA_BUILD='"${SOPHIA_BUILD}"'
 CFLAGS_SOPHIA   = $(CFLAGS_INCLUDE) \
                   $(CFLAGS_OPT) \
                   $(CFLAGS_COVERAGE) \
                   $(CFLAGS_DEBUG) \
                   $(CFLAGS_STRICT) \
                   $(CFLAGS_MISC) \
-                  $(CFLAGS)
+                  $(CFLAGS_BUILD) \
+                  $(CFLAGS) \
 
 LDFLAGS_SOPHIA ?= -shared -soname $(SOPHIA_DSO).$(SOPHIA_VMAJOR) $(LDFLAGS)
 

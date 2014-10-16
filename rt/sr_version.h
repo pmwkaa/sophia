@@ -9,9 +9,10 @@
  * BSD License
 */
 
-#define SR_VERSION_MAGIC  8529643324614668147ULL
-#define SR_VERSION_MAJOR '1'
-#define SR_VERSION_MINOR '2'
+#define SR_VERSION_MAGIC   8529643324614668147ULL
+#define SR_VERSION_MAJOR  '1'
+#define SR_VERSION_MINOR  '2'
+#define SR_VERSION_COMMIT SOPHIA_BUILD
 
 typedef struct srversion srversion;
 
