@@ -114,7 +114,7 @@ so_dbopen(soobj *obj, va_list args srunused)
 	sodb *o = (sodb*)obj;
 	int status = so_status(&o->status);
 	if (status == SO_RECOVER) {
-		assert(o->ctl.edr == 1);
+		so_recover_complete(o);
 		return so_dbonline(obj);
 	}
 	if (status != SO_OFFLINE)

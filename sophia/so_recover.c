@@ -32,9 +32,6 @@ so_recoverlog(sodb *db, sl *log)
 			break;
 
 		uint64_t lsn = svlsn(v);
-		if (lsn > db->r.seq->lsn)
-			db->r.seq->lsn = lsn;
-
 		tx = so_objbegin(&db->o);
 		if (srunlikely(tx == NULL))
 			goto error;
@@ -129,12 +126,12 @@ int so_recover(sodb *db)
 	rc = si_open(&db->index, &db->r);
 	if (srunlikely(rc == -1))
 		goto error;
-	int index_isnew = rc;
+	db->ctl.dir_created = rc;
 
 	/* recover log files */
 	if (db->ctl.edr)
 		return 0;
-	if (! index_isnew) {
+	if (! db->ctl.dir_created) {
 		rc = so_recoverlogpool(db);
 		if (srunlikely(rc == -1))
 			goto error;
@@ -146,4 +143,12 @@ int so_recover(sodb *db)
 error:
 	so_dbmalfunction(db);
 	return -1;
+}
+
+int so_recover_complete(sodb *db)
+{
+	assert(db->ctl.edr == 1);
+	if (sr_seq(db->r.seq, SR_LSN) > 1)
+		sr_seq(db->r.seq, SR_LSNNEXT);
+	return 0;
 }

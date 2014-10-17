@@ -118,9 +118,11 @@ smstate sm_prepare(smtx *t, smpreparef prepare, void *arg)
 			return SMWAIT;
 		/* check that new key has not been committed by
 		 * a concurrent transaction */
-		s = prepare(t, vp, arg);
-		if (srunlikely(s != SMPREPARE))
-			return s;
+		if (prepare) {
+			s = prepare(t, vp, arg);
+			if (srunlikely(s != SMPREPARE))
+				return s;
+		}
 	}
 	s = SMPREPARE;
 	t->s = s;

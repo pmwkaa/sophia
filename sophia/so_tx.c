@@ -280,9 +280,17 @@ so_txcommit_recover(soobj *o, va_list args)
 	uint64_t lsn = va_arg(args, uint64_t);
 	sl *log = va_arg(args, sl*);
 
+	if (lsn > db->r.seq->lsn)
+		db->r.seq->lsn = lsn;
+
+	smstate s = sm_prepare(&t->t, NULL, NULL);
+	if (srunlikely(s != SMPREPARE)) {
+		so_txrollback(&t->o);
+		return -1;
+	}
 	sm_commit(&t->t);
 	sl_logupdate(&t->t.log, log, lsn);
-	uint64_t lsvn = sm_lsvn(&db->mvcc);
+	uint64_t lsvn = sr_seq(db->r.seq, SR_LSN) - 1;
 	sitx ti;
 	si_begin(&ti, &db->r, &db->index, lsvn, &t->t.log, NULL);
 	si_writelog_check(&ti);
@@ -299,6 +307,10 @@ so_txcommit(soobj *o, va_list args)
 	sotx *t  = (sotx*)o;
 	sodb *db = t->db;
 	so *e    = t->db->e;
+
+	/* handle recover mode */
+	if (so_status(&db->status) == SO_RECOVER)
+		return so_txcommit_recover(o, args);
 
 	smstate s = sm_prepare(&t->t, so_txprepare, t);
 	if (s == SMWAIT) {
@@ -317,10 +329,6 @@ so_txcommit(soobj *o, va_list args)
 		sr_free(&e->a_tx, t);
 		return 0;
 	}
-
-	/* handle recover mode */
-	if (so_status(&db->status) == SO_RECOVER)
-		return so_txcommit_recover(o, args);
 
 	/* log write */
 	sltx tl;

@@ -26,6 +26,7 @@ struct sodbctl {
 	char         *dir;
 	int           dir_write;
 	int           dir_create;
+	int           dir_created;
 	int           dir_sync;
 	int           edr;
 	uint64_t      memory_limit;

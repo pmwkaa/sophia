@@ -34,6 +34,7 @@ int so_dbctl_init(sodbctl *c, char *name, void *db)
 	c->logdir_rotate_sync = 1;
 	c->edr                = 0;
 	c->dir_create         = 1;
+	c->dir_created        = 0;
 	c->dir_write          = 1;
 	c->dir_sync           = 1;
 	c->cmp.cmp            = sr_cmpstring;

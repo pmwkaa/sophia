@@ -47,7 +47,6 @@ edr_test0(stc *cx srunused)
 	t( sp_destroy(env) == 0 );
 }
 
-#if 0
 static void
 edr_test1(stc *cx srunused)
 {
@@ -62,6 +61,7 @@ edr_test1(stc *cx srunused)
 	t( sp_set(c, "db.test.edr", "1") == 0 );
 	t( sp_set(c, "db.test.cmp", sr_cmpu32) == 0 );
 	t( sp_set(c, "db.test.threads", "0") == 0 );
+	t( sp_set(c, "db.test.node_branch_wm", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(db) == 0 );
@@ -73,7 +73,7 @@ edr_test1(stc *cx srunused)
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(db, o) == 0 );
-	t( sp_set(sp_ctl(c), "db.test.run_branch") == 0 );
+	t( sp_set(c, "db.test.run_branch") == 0 );
 	key = 7;
 	value = 9;
 	o = sp_object(db);
@@ -98,38 +98,32 @@ edr_test1(stc *cx srunused)
 	t( db != NULL );
 	t( sp_open(db) == 0 );
 
-	void *o = sp_get(c, "db.test.status");
+	o = sp_get(c, "db.test.status");
 	t( o != NULL );
 	t( strcmp(sp_get(o, "value", NULL), "recover") == 0 );
 	sp_destroy(o);
 
-	/*
-	int value = 8;
-	void *o = sp_object(db);
+	void *tx = sp_begin(db);
+	t( tx != NULL );
+	key = 7;
+	value = 8;
+	o = sp_object(db);
 	t( o != NULL );
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(o, "value", &value, sizeof(value)) == 0 );
-	t( sp_set(db, o) == 0 );
-	t( sp_set(sp_ctl(c), "db.test.run_branch") == 0 );
-	*/
-	/*
+	t( sp_set(tx, o) == 0 );
+	t( sp_commit(tx, 1ULL, NULL) == 0 ); /* skip */
+
+	tx = sp_begin(db);
+	t( tx != NULL );
 	key = 7;
 	value = 9;
 	o = sp_object(db);
 	t( o != NULL );
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(o, "value", &value, sizeof(value)) == 0 );
-	t( sp_set(db, o) == 0 );
-	t( sp_destroy(env) == 0 );
-	*/
-
-	t( sp_open(db) == 0 );
-
-
-	void *o = sp_get(c, "db.test.status");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "recover") == 0 );
-	sp_destroy(o);
+	t( sp_set(tx, o) == 0 );
+	t( sp_commit(tx, 2ULL, NULL) == 0 );
 
 	t( sp_open(db) == 0 );
 
@@ -138,16 +132,22 @@ edr_test1(stc *cx srunused)
 	t( strcmp(sp_get(o, "value", NULL), "online") == 0 );
 	sp_destroy(o);
 
-	t( sp_open(db) == -1 );
+	o = sp_object(db);
+	t( o != NULL );
+	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+	o = sp_get(db, o);
+	t( o != NULL );
+	t( *(int*)sp_get(o, "value", NULL) == 9 );
+	t( *(uint64_t*)sp_get(o, "lsn", NULL) == 2ULL );
+	t( sp_destroy(o) == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
-#endif
 
 stgroup *edr_group(void)
 {
 	stgroup *group = st_group("edr");
 	st_groupadd(group, st_test("recover_open", edr_test0));
-	/*st_groupadd(group, st_test("recover_reply", edr_test1));*/
+	st_groupadd(group, st_test("recover_reply", edr_test1));
 	return group;
 }
