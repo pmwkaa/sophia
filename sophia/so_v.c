@@ -46,10 +46,6 @@ so_vset(soobj *obj, va_list args)
 		v->lv.value = va_arg(args, char*);
 		v->lv.valuesize = va_arg(args, int);
 		return 0;
-	} else
-	if (strcmp(name, "lsn") == 0) {
-		v->lv.lsn = va_arg(args, uint64_t);
-		return 0;
 	}
 	return -1;
 }

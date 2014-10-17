@@ -38,15 +38,11 @@ void si_begin(sitx *t, sr *r, si *index, uint64_t lsvn, svlog *log, svv *v)
 	si_lock(index);
 }
 
-void si_commit(sitx *t)
-{
+void si_commit(sitx *t) {
 	si_unlock(t->index);
 }
 
-void si_rollback(sitx *t)
-{
-	(void)t;
-	/* xxx */
+void si_rollback(sitx *t) {
 	si_unlock(t->index);
 }
 
@@ -95,6 +91,23 @@ void si_writelog(sitx *t)
 	{
 		sv *vp = sr_iterof(&i);
 		svv *v = vp->v;
+		si_set(t->index, t->r, t->lsvn, v);
+	}
+}
+
+void si_writelog_check(sitx *t)
+{
+	sriter i;
+	sr_iterinit(&i, &sr_bufiter, t->r);
+	sr_iteropen(&i, &t->log->buf, sizeof(sv));
+	for (; sr_iterhas(&i); sr_iternext(&i))
+	{
+		sv *vp = sr_iterof(&i);
+		svv *v = vp->v;
+		if (si_querycommited(t->index, t->r, vp)) {
+			si_vgc(t->r->a, v);
+			return;
+		}
 		si_set(t->index, t->r, t->lsvn, v);
 	}
 }

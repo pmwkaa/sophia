@@ -30,26 +30,27 @@ so_recoverlog(sodb *db, sl *log)
 		sv *v = sr_iterof(&i);
 		if (srunlikely(v == NULL))
 			break;
+
 		uint64_t lsn = svlsn(v);
 		if (lsn > db->r.seq->lsn)
 			db->r.seq->lsn = lsn;
-		/* ensure that this update was not previously
-		 * merged to disk */
-		if (si_querycommited(&db->index, &db->r, v))
-		{
-			/* skip commited stmt */
-			sr_gcmark(&log->gc, 1);
-			sr_gcsweep(&log->gc, 1);
-			sr_iternext(&i);
-			goto next;
-		}
+
 		tx = so_objbegin(&db->o);
 		if (srunlikely(tx == NULL))
 			goto error;
 		while (sr_iterhas(&i)) {
 			v = sr_iterof(&i);
 			assert(svlsn(v) == lsn);
-			rc = so_objset(tx, v);
+			void *o = so_objobject(&db->o);
+			if (srunlikely(o == NULL))
+				goto rlb;
+			so_objset(o, "key", svkey(v), svkeysize(v));
+			so_objset(o, "value", svvalue(v), svvaluesize(v));
+			if (svflags(v) == SVSET)
+				rc = so_objset(tx, o);
+			else
+			if (svflags(v) == SVDELETE)
+				rc = so_objdelete(tx, o);
 			if (srunlikely(rc == -1))
 				goto rlb;
 			sr_gcmark(&log->gc, 1);
@@ -60,7 +61,7 @@ so_recoverlog(sodb *db, sl *log)
 		rc = so_objcommit(tx, lsn, log);
 		if (srunlikely(rc != 0))
 			goto error;
-next:
+
 		rc = sl_itercontinue(&i);
 		if (srunlikely(rc == -1))
 			goto error;

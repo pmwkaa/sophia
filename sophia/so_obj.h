@@ -66,6 +66,16 @@ so_objdestroy(soobj *o) {
 	return o->i->destroy(o);
 }
 
+static inline void*
+so_objobject(soobj *o, ...)
+{
+	va_list args;
+	va_start(args, o);
+	void *h = o->i->object(o, args);
+	va_end(args);
+	return h;
+}
+
 static inline int
 so_objset(soobj *o, ...)
 {
@@ -84,6 +94,16 @@ so_objget(soobj *o, ...)
 	void *h = o->i->get(o, args);
 	va_end(args);
 	return h;
+}
+
+static inline int
+so_objdelete(soobj *o, ...)
+{
+	va_list args;
+	va_start(args, o);
+	int rc = o->i->del(o, args);
+	va_end(args);
+	return rc;
 }
 
 static inline void*

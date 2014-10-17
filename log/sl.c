@@ -327,16 +327,14 @@ int sl_rollback(sltx *t)
 	return rc;
 }
 
-static inline int
-sl_write_disabled(sltx *t, svlog *vlog, uint64_t lsn)
+int sl_logupdate(svlog *vlog, sl *log, uint64_t lsn)
 {
-	slpool *p = t->p;
 	sriter i;
-	sr_iterinit(&i, &sr_bufiter, p->r);
+	sr_iterinit(&i, &sr_bufiter, NULL);
 	sr_iteropen(&i, &vlog->buf, sizeof(sv));
 	for (; sr_iterhas(&i); sr_iternext(&i)) {
 		sv *v = sr_iterof(&i);
-		((svv*)v->v)->log = NULL;
+		((svv*)v->v)->log = log;
 		svlsnset(v, lsn);
 	}
 	return 0;
@@ -349,7 +347,7 @@ int sl_write(sltx *t, svlog *vlog)
 	int rc;
 	uint64_t lsn = sr_seq(p->r->seq, SR_LSNNEXT);
 	if (srunlikely(! p->enabled))
-		return sl_write_disabled(t, vlog, lsn);
+		return sl_logupdate(vlog, NULL, lsn);
 
 	slv lvbuf[341]; /* 1 + 340 per syscall */
 	int lvp;
@@ -372,6 +370,8 @@ int sl_write(sltx *t, svlog *vlog)
 	{
 		sv *v = sr_iterof(&i);
 		svlsnset(v, lsn);
+
+		((svv*)v->v)->log = t->l;
 
 		if (srunlikely(! sr_iovensure(&p->iov, 3))) {
 			rc = sr_filewritev(&l->file, &p->iov);

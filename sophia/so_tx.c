@@ -19,7 +19,10 @@
 int so_txdbset(sodb *db, uint8_t flags, va_list args)
 {
 	int rc;
-	if (srunlikely(! so_dbactive(db)))
+	int status = so_status(&db->status);
+	if (srunlikely(! so_statusactive_is(status)))
+		return -1;
+	if (srunlikely(status == SO_RECOVER))
 		return -1;
 	soobj *o = va_arg(args, soobj*);
 	sv *ov = NULL;
@@ -35,8 +38,8 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 		goto error;
 	}
 	svlocal l;
-	l.lsn         = 0;
 	l.flags       = flags;
+	l.lsn         = 0;
 	l.key         = svkey(ov);
 	l.keysize     = svkeysize(ov);
 	l.value       = svvalue(ov);
@@ -44,6 +47,17 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	l.valueoffset = 0;
 	sv vp;
 	svinit(&vp, &sv_localif, &l, NULL);
+	/* concurrency */
+	smstate s = sm_set_stmt(&db->mvcc, &vp);
+	rc = 1; /* rlb */
+	switch (s) {
+	case SMWAIT: rc = 2;
+	case SMROLLBACK:
+		so_objdestroy(o);
+		return rc;
+	default:
+		break;
+	}
 	svv *v = sv_valloc(db->r.a, &vp);
 	if (srunlikely(v == NULL)) {
 		sr_error(&db->e->error, "%s", "memory allocation failed");
@@ -51,18 +65,6 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 		goto error;
 	}
 	svinit(&vp, &sv_vif, v, NULL);
-	/* update */
-	smstate s = sm_set_stmt(&db->mvcc, v);
-	rc = 1; /* rlb */
-	switch (s) {
-	case SMWAIT: rc = 2;
-	case SMROLLBACK:
-		sv_vfree(db->r.a, v);
-		so_objdestroy(o);
-		return rc;
-	default:
-		break;
-	}
 	/* log write */
 	sltx tl;
 	sl_begin(&db->lp, &tl);
@@ -133,16 +135,6 @@ so_txdo(soobj *obj, uint8_t flags, va_list args)
 	sodb *db = t->db;
 	svv *v;
 	int rc;
-	if (srunlikely(so_status(&t->db->status) == SO_RECOVER)) {
-		sv *recover_v = va_arg(args, sv*);
-		v = sv_valloc(db->r.a, recover_v);
-		if (srunlikely(v == NULL)) {
-			sr_error(&db->e->error, "%s", "memory allocation failed");
-			return -1;
-		}
-		rc = sm_set(&t->t, v);
-		return rc;
-	}
 	/* prepare object */
 	soobj *o = va_arg(args, soobj*);
 	sv *ov = NULL;
@@ -158,8 +150,8 @@ so_txdo(soobj *obj, uint8_t flags, va_list args)
 		goto error;
 	}
 	svlocal l;
-	l.lsn         = 0;
 	l.flags       = flags;
+	l.lsn         = 0;
 	l.key         = svkey(ov);
 	l.keysize     = svkeysize(ov);
 	l.value       = svvalue(ov);
@@ -253,7 +245,7 @@ so_txprepare(smtx *t, sv *v, void *arg)
 {
 	sotx *te = arg;
 	uint64_t lsn = sr_seq(te->db->r.seq, SR_LSN);
-	if ((lsn - 1) == t->lsvn) /* last txn' lsn? */
+	if ((lsn - 1) == t->lsvn)
 		return SMPREPARE;
 	siquery q;
 	si_queryopen(&q, &te->db->r, &te->db->index, SR_UPDATE,
@@ -287,44 +279,15 @@ so_txcommit_recover(soobj *o, va_list args)
 
 	uint64_t lsn = va_arg(args, uint64_t);
 	sl *log = va_arg(args, sl*);
-	(void)log;
 
-	smstate s = sm_prepare(&t->t, so_txprepare, t);
-	if (s == SMWAIT)
-		return 2;
-	if (s == SMROLLBACK) {
-		so_txrollback(&t->o);
-		return 1;
-	}
-	assert(s == SMPREPARE);
-
-	if (srunlikely(! sv_logn(&t->t.log))) {
-		sm_commit(&t->t);
-		sm_end(&t->t);
-		so_objindex_unregister(&db->tx, &t->o);
-		sr_free(&e->a_tx, t);
-		return 0;
-	}
-
-	/* recover lsn number */
-	sriter i;
-	sr_iterinit(&i, &sr_bufiter, &db->r);
-	sr_iteropen(&i, &t->t.log.buf, sizeof(sv));
-	for (; sr_iterhas(&i); sr_iternext(&i)) {
-		sv *v = sr_iterof(&i);
-		((svv*)v->v)->log = log;
-		svlsnset(v, lsn);
-	}
-
-	/* database write */
 	sm_commit(&t->t);
+	sl_logupdate(&t->t.log, log, lsn);
 	uint64_t lsvn = sm_lsvn(&db->mvcc);
 	sitx ti;
 	si_begin(&ti, &db->r, &db->index, lsvn, &t->t.log, NULL);
-	si_writelog(&ti);
+	si_writelog_check(&ti);
 	si_commit(&ti);
 	sm_end(&t->t);
-
 	so_objindex_unregister(&db->tx, &t->o);
 	sr_free(&e->a_tx, t);
 	return 0;
@@ -336,8 +299,7 @@ so_txcommit(soobj *o, va_list args)
 	sotx *t  = (sotx*)o;
 	sodb *db = t->db;
 	so *e    = t->db->e;
-	if (so_status(&db->status) == SO_RECOVER)
-		return so_txcommit_recover(o, args);
+
 	smstate s = sm_prepare(&t->t, so_txprepare, t);
 	if (s == SMWAIT) {
 		return 2;
@@ -347,6 +309,7 @@ so_txcommit(soobj *o, va_list args)
 		return 1;
 	}
 	assert(s == SMPREPARE);
+
 	if (srunlikely(! sv_logn(&t->t.log))) {
 		sm_commit(&t->t);
 		sm_end(&t->t);
@@ -355,7 +318,11 @@ so_txcommit(soobj *o, va_list args)
 		return 0;
 	}
 
-	/* commit data */
+	/* handle recover mode */
+	if (so_status(&db->status) == SO_RECOVER)
+		return so_txcommit_recover(o, args);
+
+	/* log write */
 	sltx tl;
 	sl_begin(&db->lp, &tl);
 	int rc = sl_write(&tl, &t->t.log);
@@ -365,14 +332,7 @@ so_txcommit(soobj *o, va_list args)
 		return -1;
 	}
 
-	sriter i;
-	sr_iterinit(&i, &sr_bufiter, &db->r);
-	sr_iteropen(&i, &t->t.log.buf, sizeof(sv));
-	for (; sr_iterhas(&i); sr_iternext(&i)) {
-		sv *v = sr_iterof(&i);
-		((svv*)v->v)->log = tl.l;
-	}
-
+	/* index and log commit */
 	sm_commit(&t->t);
 	sl_commit(&tl); 
 	uint64_t lsvn = sm_lsvn(&db->mvcc);

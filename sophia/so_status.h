@@ -86,9 +86,7 @@ so_statusof(sostatus *s)
 }
 
 static inline int
-so_statusactive(sostatus *s) {
-
-	int status = so_status(s);
+so_statusactive_is(int status) {
 	switch (status) {
 	case SO_ONLINE:
 	case SO_RECOVER:
@@ -100,6 +98,11 @@ so_statusactive(sostatus *s) {
 	}
 	assert(0);
 	return 0;
+}
+
+static inline int
+so_statusactive(sostatus *s) {
+	return so_statusactive_is(so_status(s));
 }
 
 #endif

@@ -256,11 +256,10 @@ int sm_get(smtx *t, sv *key, sv *result)
 	return 1;
 }
 
-smstate sm_set_stmt(sm *c, svv *v)
+smstate sm_set_stmt(sm *c, sv *v)
 {
 	srrbnode *n = NULL;
-	int rc = sm_match(&c->i, c->r->cmp, sv_vkey(v),
-	                  v->keysize, &n);
+	int rc = sm_match(&c->i, c->r->cmp, svkey(v), svkeysize(v), &n);
 	if (rc == 0 && n)
 		return SMWAIT;
 	sr_seq(c->r->seq, SR_TSNNEXT);

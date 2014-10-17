@@ -55,7 +55,7 @@ uint64_t sm_lsvn(sm*);
 int sm_set(smtx*, svv*);
 int sm_get(smtx*, sv*, sv*);
 
-smstate sm_set_stmt(sm*, svv*);
+smstate sm_set_stmt(sm*, sv*);
 smstate sm_get_stmt(sm*);
 
 #endif
