@@ -32,6 +32,7 @@ int so_dbctl_init(sodbctl *c, char *name, void *db)
 	c->logdir_rotate_wm   = 500000;
 	c->logdir_sync        = 0;
 	c->logdir_rotate_sync = 1;
+	c->edr                = 0;
 	c->dir_create         = 1;
 	c->dir_write          = 1;
 	c->dir_sync           = 1;
@@ -180,6 +181,7 @@ so_dbctl_prepare(srctl *t, sodbctl *c, sodbctlinfo *info)
 	p = sr_ctladd(p, "logdir_sync",        SR_CTLINT,             &c->logdir_sync,        NULL);
 	p = sr_ctladd(p, "logdir_rotate_wm",   SR_CTLINT,             &c->logdir_rotate_wm,   NULL);
 	p = sr_ctladd(p, "logdir_rotate_sync", SR_CTLINT,             &c->logdir_rotate_sync, NULL);
+	p = sr_ctladd(p, "edr",                SR_CTLINT,             &c->edr,                NULL);
 	p = sr_ctladd(p, "node_size",          SR_CTLINT,             &c->node_size,          NULL);
 	p = sr_ctladd(p, "node_page_size",     SR_CTLINT,             &c->node_page_size,     NULL);
 	p = sr_ctladd(p, "node_branch_wm",     SR_CTLINT,             &c->node_branch_wm,     NULL);

@@ -87,21 +87,13 @@ static inline void *so_brancher(void *arg)
 }
 
 static int
-so_dbopen(soobj *obj, va_list args srunused)
+so_dbonline(soobj *obj)
 {
 	sodb *o = (sodb*)obj;
-	if (so_dbactive(o))
-		return -1;
-	int rc;
-	rc = so_dbctl_validate(&o->ctl);
-	if (srunlikely(rc == -1))
-		return -1;
-	o->r.cmp = &o->ctl.cmp;
-	rc = so_recover(o);
-	if (srunlikely(rc == -1))
-		return -1;
+	si_qosenable(&o->index, 1);
 	so_statusset(&o->status, SO_ONLINE);
 	int threads = o->ctl.threads;
+	int rc;
 	if (threads) {
 		rc = so_workersnew(&o->workers, &o->r, 1, so_brancher, o);
 		if (srunlikely(rc == -1))
@@ -114,6 +106,30 @@ so_dbopen(soobj *obj, va_list args srunused)
 			return -1;
 	}
 	return 0;
+}
+
+static int
+so_dbopen(soobj *obj, va_list args srunused)
+{
+	sodb *o = (sodb*)obj;
+	int status = so_status(&o->status);
+	if (status == SO_RECOVER) {
+		assert(o->ctl.edr == 1);
+		return so_dbonline(obj);
+	}
+	if (status != SO_OFFLINE)
+		return -1;
+	int rc;
+	rc = so_dbctl_validate(&o->ctl);
+	if (srunlikely(rc == -1))
+		return -1;
+	o->r.cmp = &o->ctl.cmp;
+	rc = so_recover(o);
+	if (srunlikely(rc == -1))
+		return -1;
+	if (o->ctl.edr)
+		return 0;
+	return so_dbonline(obj);
 }
 
 static int

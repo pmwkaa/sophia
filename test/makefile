@@ -17,6 +17,7 @@ LIBST_O = st.o \
           error.test.o \
           method.test.o \
           dml.test.o \
+          edr.test.o \
           profiler.test.o \
           object.test.o \
           transaction.test.o \

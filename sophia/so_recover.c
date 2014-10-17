@@ -96,6 +96,9 @@ int so_recover(sodb *db)
 {
 	so_statusset(&db->status, SO_RECOVER);
 
+	/* turn off memory limits during recovery */
+	si_qosenable(&db->index, 0);
+
 	/* open logdir */
 	slconf *lc = &db->lpconf;
 	lc->dir            = db->ctl.logdir;
@@ -129,7 +132,8 @@ int so_recover(sodb *db)
 	int index_isnew = rc;
 
 	/* recover log files */
-	si_qosenable(&db->index, 0);
+	if (db->ctl.edr)
+		return 0;
 	if (! index_isnew) {
 		rc = so_recoverlogpool(db);
 		if (srunlikely(rc == -1))
@@ -138,7 +142,6 @@ int so_recover(sodb *db)
 	rc = sl_poolrotate(&db->lp);
 	if (srunlikely(rc == -1))
 		goto error;
-	si_qosenable(&db->index, 1);
 	return 0;
 error:
 	so_dbmalfunction(db);

@@ -37,9 +37,12 @@ int sr_ctlset(srctl *c, sra *a, void *arg, va_list args)
 	case SR_CTLU64: *((uint64_t*)c->v) = sr_atoi(value);
 		break;
 	case SR_CTLSTRINGREF: {
-		char *nsz = sr_strdup(a, value);
-		if (srunlikely(nsz == NULL))
-			return -1;
+		char *nsz = NULL;
+		if (value) {
+			nsz = sr_strdup(a, value);
+			if (srunlikely(nsz == NULL))
+				return -1;
+		}
 		char **sz = (char**)c->v;
 		if (*sz)
 			sr_free(a, *sz);
