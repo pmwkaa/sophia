@@ -37,17 +37,11 @@ so_recoverlog(sodb *db, sl *log)
 		 * merged to disk */
 		if (si_querycommited(&db->index, &db->r, v))
 		{
-			/* skip transaction */
-			while (sr_iterhas(&i)) {
-				sr_gcmark(&log->gc, 1);
-				sr_gcsweep(&log->gc, 1);
-				sr_iternext(&i);
-			}
-			if (srunlikely(sl_itererror(&i)))
-				goto error;
-			if (! sl_itercontinue(&i) )
-				break;
-			continue;
+			/* skip commited stmt */
+			sr_gcmark(&log->gc, 1);
+			sr_gcsweep(&log->gc, 1);
+			sr_iternext(&i);
+			goto next;
 		}
 		tx = so_objbegin(&db->o);
 		if (srunlikely(tx == NULL))
@@ -66,6 +60,7 @@ so_recoverlog(sodb *db, sl *log)
 		rc = so_objcommit(tx, lsn, log);
 		if (srunlikely(rc != 0))
 			goto error;
+next:
 		rc = sl_itercontinue(&i);
 		if (srunlikely(rc == -1))
 			goto error;
