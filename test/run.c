@@ -35,7 +35,8 @@ extern stgroup *deadlock_group(void);
 extern stgroup *cursor_group(void);
 extern stgroup *recoverloop_group(void);
 extern stgroup *recovercrash_group(void);
-extern stgroup *multithread_group(void);
+extern stgroup *mt_group(void);
+extern stgroup *mt_backend_group(void);
 
 int
 main(int argc, char *argv[])
@@ -148,7 +149,14 @@ main(int argc, char *argv[])
 	st_planadd(plan, recoverloop_group());
 	st_add(&s, plan);
 
-	plan = st_plan("multithreaded");
+	plan = st_plan("multithreaded_frontend");
+	st_planscene(plan, st_sceneof(&s, "rmrf"));
+	st_planscene(plan, st_sceneof(&s, "test"));
+	st_planscene(plan, st_sceneof(&s, "pass"));
+	st_planadd(plan, mt_group());
+	st_add(&s, plan);
+
+	plan = st_plan("multithreaded_backend");
 	st_planscene(plan, st_sceneof(&s, "rmrf"));
 	st_planscene(plan, st_sceneof(&s, "create"));
 	st_planscene(plan, st_sceneof(&s, "multithread"));
@@ -168,7 +176,7 @@ main(int argc, char *argv[])
 	st_planscene(plan, st_sceneof(&s, "test"));
 	st_planscene(plan, st_sceneof(&s, "destroy"));
 	st_planscene(plan, st_sceneof(&s, "pass"));
-	st_planadd(plan, multithread_group());
+	st_planadd(plan, mt_backend_group());
 	st_add(&s, plan);
 
 	st_run(&s);

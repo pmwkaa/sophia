@@ -67,7 +67,7 @@ static inline void
 sv_vfree(sra *a, svv *v)
 {
 	while (v) {
-		register svv *n = v->next;
+		svv *n = v->next;
 		sr_free(a, v);
 		v = n;
 	}

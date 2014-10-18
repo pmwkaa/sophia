@@ -11,7 +11,7 @@
 
 static inline svv*
 sm_vmatch(svv *head, uint32_t id) {
-	register svv *c = head;
+	svv *c = head;
 	while (c) {
 		if (c->id.tx.id == id)
 			break;
@@ -32,11 +32,12 @@ sm_vreplace(svv *v, svv *n) {
 
 static inline void
 sm_vlink(svv *head, svv *v) {
-	register svv *c = head;
+	svv *c = head;
 	while (c->next)
 		c = c->next;
 	c->next = v;
 	v->prev = c;
+	v->next = NULL;
 }
 
 static inline void
@@ -51,7 +52,7 @@ sm_vunlink(svv *v) {
 
 static inline void
 sm_vabortwaiters(svv *v) {
-	register svv *c = v->next;
+	svv *c = v->next;
 	while (c) {
 		c->flags |= SVABORT;
 		c = c->next;

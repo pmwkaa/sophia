@@ -57,6 +57,7 @@ so_destroy(soobj *o)
 	sr_mutexfree(&e->apilock);
 	sr_seqfree(&e->seq);
 	sr_pagerfree(&e->pager);
+	so_statusfree(&e->status);
 	free(e);
 	return rcret;
 }
@@ -104,6 +105,7 @@ soobj *so_new(void)
 	sr_allocopen(&e->a_cursor, &sr_aslab, &e->pager, sizeof(socursor));
 	sr_allocopen(&e->a_ctlcursor, &sr_aslab, &e->pager, sizeof(soctlcursor));
 	sr_allocopen(&e->a_tx, &sr_aslab, &e->pager, sizeof(sotx));
+	so_statusinit(&e->status);
 	so_statusset(&e->status, SO_OFFLINE);
 	so_ctlinit(&e->ctl, e);
 	so_objindex_init(&e->db);

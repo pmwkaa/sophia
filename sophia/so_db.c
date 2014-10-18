@@ -157,6 +157,7 @@ so_dbdestroy(soobj *obj)
 		rcret = -1;
 	so_dbctl_free(&o->ctl);
 	sd_cfree(&o->dc, &o->r);
+	so_statusfree(&o->status);
 	so_objindex_unregister(&o->e->db, &o->o);
 	sr_free(&o->e->a_db, o);
 	return rcret;
@@ -252,6 +253,7 @@ soobj *so_dbnew(so *e, char *name)
 	so_objinit(&o->o, SODB, &sodbif, &e->o);
 	so_objindex_init(&o->tx);
 	so_objindex_init(&o->cursor);
+	so_statusinit(&o->status);
 	so_statusset(&o->status, SO_OFFLINE);
 	o->e     = e;
 	o->r     = e->r;

@@ -132,10 +132,8 @@ sd_indextotal_kv(sdindex *i)
 static inline int
 sd_indexpage_cmp(sdindexpage *p, void *key, int size, srcomparator *c)
 {
-	register int l =
-		sr_compare(c, sd_indexpage_min(p), p->sizemin, key, size);
-	register int r =
-		sr_compare(c, sd_indexpage_max(p), p->sizemax, key, size);
+	int l = sr_compare(c, sd_indexpage_min(p), p->sizemin, key, size);
+	int r = sr_compare(c, sd_indexpage_max(p), p->sizemax, key, size);
 	/* inside page range */
 	if (l <= 0 && r >= 0)
 		return 0;

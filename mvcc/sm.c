@@ -142,16 +142,14 @@ smstate sm_commit(smtx *t)
 		svv *v = vp->v;
 		/* mark waiters as aborted */
 		sm_vabortwaiters(v);
-		/* unlink version */
-		sm_vunlink(v);
 		/* remove from concurrent index and replace
 		 * head with a first waiter */
 		if (v->next == NULL)
 			sr_rbremove(&c->i, &v->node);
 		else
 			sr_rbreplace(&c->i, &v->node, &v->next->node);
-		v->next = NULL;
-		v->prev = NULL;
+		/* unlink version */
+		sm_vunlink(v);
 	}
 	t->s = SMCOMMIT;
 	return SMCOMMIT;
@@ -167,17 +165,17 @@ smstate sm_rollback(smtx *t)
 	{
 		sv *vp = sr_iterof(&i);
 		svv *v = vp->v;
-		/* unlink version */
-		sm_vunlink(v);
 		/* remove from index and replace head with
 		 * a first waiter */
-		if (v->prev) 
-			continue;
+		if (v->prev)
+			goto unlink;
 		if (v->next == NULL)
 			sr_rbremove(&c->i, &v->node);
 		else
 			sr_rbreplace(&c->i, &v->node, &v->next->node);
-		sv_vfree(c->r->a, v);
+unlink:
+		sm_vunlink(v);
+		sr_free(c->r->a, v);
 	}
 	t->s = SMROLLBACK;
 	return SMROLLBACK;
@@ -197,7 +195,7 @@ int sm_set(smtx *t, svv *v)
 	v->id.tx.id = t->id;
 	v->id.tx.lo = 0;
 
-	/* try to update concurrent index */
+	/* update concurrent index */
 	srrbnode *n = NULL;
 	int rc = sm_match(&c->i, c->r->cmp, sv_vkey(v), v->keysize, &n);
 	if (rc == 0 && n) {
@@ -222,13 +220,13 @@ int sm_set(smtx *t, svv *v)
 			sr_rbreplace(&c->i, &own->node, &v->node);
 		/* update log */
 		sv_logreplace(&t->log, v->id.tx.lo, &vv);
-		sv_vfree(c->r->a, own);
+		sr_free(c->r->a, own);
 		return 0;
 	}
 	/* update log */
 	rc = sv_logadd(&t->log, c->r->a, &vv);
 	if (srunlikely(rc == -1)) {
-		sv_vfree(c->r->a, v);
+		sr_free(c->r->a, v);
 		return sr_error(t->c->r->e, "%s", "memory allocation failed");
 	}
 	/* add version */

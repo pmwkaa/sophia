@@ -109,9 +109,9 @@ setget(stc *cx)
 	}
 }
 
-stgroup *multithread_group(void)
+stgroup *mt_backend_group(void)
 {
-	stgroup *group = st_group("multithread");
+	stgroup *group = st_group("mt_backend");
 	st_groupadd(group, st_test("setget", setget));
 	return group;
 }

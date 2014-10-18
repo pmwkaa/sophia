@@ -25,7 +25,8 @@ LIBST_O = st.o \
           cursor.test.o \
           recover_crash.test.o \
           recover_loop.test.o \
-          multithread.test.o
+          mt.test.o \
+          mt_backend.test.o
 LIBST_OBJECTS = $(addprefix test-ref/, $(LIBST_O))
 OBJECTS = $(LIBST_O)
 include ../build/config

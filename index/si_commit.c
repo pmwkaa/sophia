@@ -18,7 +18,7 @@ si_vgc(sra *a, svv *gc)
 {
 	svv *v = gc;
 	while (v) {
-		register svv *n = v->next;
+		svv *n = v->next;
 		sl *log = (sl*)v->log;
 		if (log) {
 			sr_gcsweep(&log->gc, 1);
