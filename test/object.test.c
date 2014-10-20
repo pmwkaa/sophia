@@ -154,6 +154,29 @@ object_readonly1(stc *cx)
 	sp_destroy(c);
 }
 
+static void
+object_transaction(stc *cx)
+{
+	void *db = cx->db;
+
+	void *tx = sp_begin(db);
+	t( tx != NULL );
+	int key = 9;
+	void *o = sp_object( tx );
+	t(o != NULL);
+	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_set(tx, o) == 0 );
+	t( sp_commit(tx) == 0 );
+
+	o = sp_object(db);
+	t(o != NULL);
+	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+	o = sp_get(db, o);
+	t( o != NULL );
+	sp_destroy(o);
+}
+
 stgroup *object_group(void)
 {
 	stgroup *group = st_group("object");
@@ -164,5 +187,6 @@ stgroup *object_group(void)
 	st_groupadd(group, st_test("lsn0", object_lsn0));
 	st_groupadd(group, st_test("readonly0", object_readonly0));
 	st_groupadd(group, st_test("readonly1", object_readonly1));
+	st_groupadd(group, st_test("transaction", object_transaction));
 	return group;
 }

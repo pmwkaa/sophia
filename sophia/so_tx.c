@@ -356,6 +356,13 @@ so_txcommit(soobj *o, va_list args)
 }
 
 static void*
+so_txobject(soobj *o, va_list args srunused)
+{
+	sotx *t = (sotx*)o;
+	return so_objobject(&t->db->o);
+}
+
+static void*
 so_txtype(soobj *o srunused, va_list args srunused) {
 	return "transaction";
 }
@@ -373,7 +380,7 @@ static soobjif sotxif =
 	.commit   = so_txcommit,
 	.rollback = so_txrollback,
 	.cursor   = NULL,
-	.object   = NULL,
+	.object   = so_txobject,
 	.type     = so_txtype,
 	.copy     = NULL
 };
