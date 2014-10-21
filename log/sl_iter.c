@@ -18,8 +18,9 @@ struct sliter {
 	int error;
 	srfile *log;
 	srmap map;
-	slv *begin;
 	slv *v;
+	slv *next;
+	uint32_t count;
 	uint32_t pos;
 	sv current;
 } srpacked;
@@ -36,77 +37,110 @@ static void
 sl_iterseterror(sliter *i)
 {
 	i->error = 1;
-	i->begin = NULL;
 	i->v     = NULL;
+	i->next  = NULL;
 }
 
-static inline int
-sl_iterset(sriter *it, slv *v)
+static int
+sl_iternext_of(sriter *i, slv *next, int validate)
 {
-	sliter *i = (sliter*)it->priv;
-	if (srunlikely((char*)v >= ((char*)i->map.p + i->map.size))) {
-		sr_error(it->r->e, "corrupted log file '%s': bad record size",
-		         i->log->file);
-		sl_iterseterror(i);
+	sliter *li = (sliter*)i->priv;
+	if (next == NULL)
+		return 0;
+	char *eof   = (char*)li->map.p + li->map.size;
+	char *start = (char*)next;
+	char *end   = start + next->keysize + next->valuesize;
+
+	/* eof */
+	if (srunlikely(start == eof)) {
+		if (li->count != li->pos) {
+			sr_error(i->r->e, "corrupted log file '%s': transaction is incomplete",
+			         li->log->file);
+			sl_iterseterror(li);
+			return -1;
+		}
+		li->v = NULL;
+		li->next = NULL;
+		return 0;
+	}
+	if (srunlikely((start > eof || (end > eof)))) {
+		sr_error(i->r->e, "corrupted log file '%s': bad record size",
+		         li->log->file);
+		sl_iterseterror(li);
 		return -1;
 	}
-	if (i->validate) {
-		char *end = (char*)v + v->keysize + v->valuesize;
-		if (srunlikely(end > ((char*)i->map.p + i->map.size))) {
-			sr_error(it->r->e, "corrupted log file '%s': bad record size",
-			         i->log->file);
-			sl_iterseterror(i);
-			return -1;
+	if (validate && li->validate)
+	{
+		uint32_t crc = 0;
+		if (! (next->flags & SVBEGIN)) {
+			crc = sr_crcp(start + sizeof(slv), next->keysize, 0);
+			crc = sr_crcp(start + sizeof(slv) + next->keysize,
+			              next->valuesize, crc);
 		}
-		uint32_t crc;
-		crc = sr_crcp((char*)v + sizeof(slv), v->keysize, 0);
-		crc = sr_crcp((char*)v + sizeof(slv) + v->keysize, v->valuesize, crc);
-		crc = sr_crcs(v, sizeof(slv), crc);
-		if (srunlikely(crc != v->crc)) {
-			sl_iterseterror(i);
+		crc = sr_crcs(start, sizeof(slv), crc);
+		if (srunlikely(crc != next->crc)) {
+			sr_error(i->r->e, "corrupted log file '%s': bad record crc",
+			         li->log->file);
+			sl_iterseterror(li);
 			return -1;
 		}
 	}
-	svinit(&i->current, &sl_vif, v, NULL);
-	i->v = v;
-	return 0;
+	li->pos++;
+	if (li->pos > li->count) {
+		/* next transaction */
+		li->v     = NULL;
+		li->pos   = 0;
+		li->count = 0;
+		li->next  = next;
+		return 0;
+	}
+	li->v = next;
+	svinit(&li->current, &sl_vif, li->v, NULL);
+	return 1;
+}
+
+int sl_itercontinue_of(sriter *i)
+{
+	sliter *li = (sliter*)i->priv;
+	if (srunlikely(li->error))
+		return -1;
+	if (srunlikely(li->v))
+		return 1;
+	if (srunlikely(li->next == NULL))
+		return 0;
+	int validate = 0;
+	li->pos   = 0;
+	li->count = 0;
+	slv *v = li->next;
+	if (v->flags & SVBEGIN) {
+		validate = 1;
+		li->count = v->valuesize;
+		v = (slv*)((char*)li->next + sizeof(slv));
+	} else {
+		li->count = 1;
+		v = li->next;
+	}
+	return sl_iternext_of(i, v, validate);
 }
 
 static inline int
-sl_iterprepare(sriter *it)
+sl_iterprepare(sriter *i)
 {
-	sliter *i = (sliter*)it->priv;
-	srversion *ver = (srversion*)i->map.p;
+	sliter *li = (sliter*)i->priv;
+	srversion *ver = (srversion*)li->map.p;
 	if (! sr_versioncheck(ver))
-		return sr_error(it->r->e, "bad log file '%s' version",
-		                i->log->file);
-	if (srunlikely(i->log->size < (sizeof(srversion) + sizeof(slv)))) {
-		sr_error(it->r->e, "corrupted log file '%s': bad size",
-		         i->log->file);
+		return sr_error(i->r->e, "bad log file '%s' version",
+		                li->log->file);
+	if (srunlikely(li->log->size < (sizeof(srversion))))
+		return sr_error(i->r->e, "corrupted log file '%s': bad size",
+		                li->log->file);
+	slv *next = (slv*)((char*)li->map.p + sizeof(srversion));
+	int rc = sl_iternext_of(i, next, 1);
+	if (srunlikely(rc == -1))
 		return -1;
-	}
-	i->begin = (slv*)((char*)i->map.p + sizeof(srversion));
-	if (srunlikely( !(i->begin->flags & SVBEGIN))) {
-		sr_error(it->r->e, "corrupted log file '%s': bad record flags",
-		         i->log->file);
-		return -1;
-	}
-	if (i->begin->valuesize == 0) {
-		sr_error(it->r->e, "corrupted log file '%s': bad record size",
-		         i->log->file);
-		return -1;
-	}
-	if (i->validate) {
-		uint32_t crc = sr_crcs(i->begin, sizeof(slv), 0);
-		if (srunlikely(crc != i->begin->crc)) {
-			sr_error(it->r->e, "corrupted log file '%s': bad record crc",
-			         i->log->file);
-			sl_iterseterror(i);
-			return -1;
-		}
-	}
-	slv *v = (slv*)((char*)i->begin + sizeof(slv));
-	return sl_iterset(it, v);
+	if (srlikely(li->next))
+		return sl_itercontinue_of(i);
+	return 0;
 }
 
 static int
@@ -116,8 +150,9 @@ sl_iteropen(sriter *i, va_list args)
 	li->log      = va_arg(args, srfile*);
 	li->validate = va_arg(args, int);
 	li->v        = NULL;
-	li->begin    = NULL;
+	li->next     = NULL;
 	li->pos      = 0;
+	li->count    = 0;
 	if (srunlikely(li->log->size < sizeof(srversion))) {
 		sr_error(i->r->e, "corrupted log file '%s': bad size",
 		         li->log->file);
@@ -164,51 +199,13 @@ static void
 sl_iternext(sriter *i)
 {
 	sliter *li = (sliter*)i->priv;
-	if (srunlikely(li->begin == NULL))
-		return;
 	if (srunlikely(li->v == NULL))
 		return;
-	li->pos++;
-
 	slv *next =
 		(slv*)((char*)li->v + sizeof(slv) +
 	           li->v->keysize +
 	           li->v->valuesize);
-	if (srunlikely((char*)next >= ((char*)li->map.p + li->map.size))) {
-		/* eof */
-		if (li->pos != li->begin->valuesize) {
-			sr_error(i->r->e, "corrupted log file '%s': bad record size",
-			         li->log->file);
-			sl_iterseterror(li);
-			return;
-		}
-		li->v = NULL;
-		li->begin = NULL;
-		return;
-	}
-
-	if (srunlikely(next->flags & SVBEGIN)) {
-		if (li->pos != li->begin->valuesize) {
-			sr_error(i->r->e, "corrupted log file '%s': bad record size",
-			         li->log->file);
-			sl_iterseterror(li);
-			return;
-		}
-		li->begin = next;
-		li->v     = NULL;
-		li->pos   = 0;
-		if (li->validate) {
-			uint32_t crc = sr_crcs(li->begin, sizeof(slv), 0);
-			if (srunlikely(crc != li->begin->crc)) {
-				sr_error(i->r->e, "corrupted log file '%s': bad record crc",
-				         li->log->file);
-				sl_iterseterror(li);
-			}
-		}
-		return;
-	}
-	if (srunlikely(sl_iterset(i, next) == -1))
-		return;
+	sl_iternext_of(i, next, 1);
 }
 
 sriterif sl_iter =
@@ -229,17 +226,5 @@ int sl_itererror(sriter *i)
 
 int sl_itercontinue(sriter *i)
 {
-	sliter *li = (sliter*)i->priv;
-	if (srunlikely(li->begin == NULL))
-		return 0;
-	if (srunlikely(li->v))
-		return 1;
-	if (srunlikely(li->error))
-		return -1;
-	li->pos = 0;
-	slv *v = (slv*)((char*)li->begin + sizeof(slv));
-	int rc = sl_iterset(i, v);
-	if (srunlikely(rc == -1))
-		return -1;
-	return 1;
+	return sl_itercontinue_of(i);
 }

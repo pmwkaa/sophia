@@ -340,20 +340,51 @@ int sl_logupdate(svlog *vlog, sl *log, uint64_t lsn)
 	return 0;
 }
 
-int sl_write(sltx *t, svlog *vlog)
+static inline void
+sl_write_prepare(slpool *p, sl *l, slv *lv, sv *v, uint64_t lsn)
+{
+	lv->lsn       = lsn;
+	lv->flags     = svflags(v);
+	lv->valuesize = svvaluesize(v);
+	lv->keysize   = svkeysize(v);
+	lv->crc       = sr_crcp(svkey(v), lv->keysize, 0);
+	lv->crc       = sr_crcp(svvalue(v), lv->valuesize, lv->crc);
+	lv->crc       = sr_crcs(lv, sizeof(slv), lv->crc);
+	sr_iovadd(&p->iov, lv, sizeof(slv));
+	sr_iovadd(&p->iov, svkey(v), lv->keysize);
+	sr_iovadd(&p->iov, svvalue(v), lv->valuesize);
+	((svv*)v->v)->log = l;
+	svlsnset(v, lsn);
+}
+
+static inline int
+sl_write_stmt(sltx *t, svlog *vlog, uint64_t lsn)
+{
+	slpool *p = t->p;
+	slv lv;
+	sv *v = (sv*)vlog->buf.s;
+	sl_write_prepare(t->p, t->l, &lv, v, lsn);
+	int rc = sr_filewritev(&t->l->file, &p->iov);
+	if (srunlikely(rc == -1)) {
+		sr_error(p->r->e, "log file '%s' write error: %s",
+		         t->l->file.file, strerror(errno));
+		return -1;
+	}
+	sr_gcmark(&t->l->gc, 1);
+	sr_iovreset(&p->iov);
+	return 0;
+}
+
+static int
+sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 {
 	slpool *p = t->p;
 	sl *l = t->l;
-	int rc;
-	uint64_t lsn = sr_seq(p->r->seq, SR_LSNNEXT);
-	if (srunlikely(! p->enabled))
-		return sl_logupdate(vlog, NULL, lsn);
-
 	slv lvbuf[341]; /* 1 + 340 per syscall */
 	int lvp;
+	int rc;
 	lvp = 0;
-
-	/* begin */
+	/* transaction header */
 	slv *lv = &lvbuf[0];
 	lv->lsn       = lsn;
 	lv->flags     = SVBEGIN;
@@ -362,17 +393,12 @@ int sl_write(sltx *t, svlog *vlog)
 	lv->crc       = sr_crcs(lv, sizeof(slv), 0);
 	sr_iovadd(&p->iov, lv, sizeof(slv));
 	lvp++;
-
+	/* body */
 	sriter i;
 	sr_iterinit(&i, &sr_bufiter, p->r);
 	sr_iteropen(&i, &vlog->buf, sizeof(sv));
 	for (; sr_iterhas(&i); sr_iternext(&i))
 	{
-		sv *v = sr_iterof(&i);
-		svlsnset(v, lsn);
-
-		((svv*)v->v)->log = t->l;
-
 		if (srunlikely(! sr_iovensure(&p->iov, 3))) {
 			rc = sr_filewritev(&l->file, &p->iov);
 			if (srunlikely(rc == -1)) {
@@ -383,19 +409,9 @@ int sl_write(sltx *t, svlog *vlog)
 			sr_iovreset(&p->iov);
 			lvp = 0;
 		}
-		/* prepare header */
+		sv *v = sr_iterof(&i);
 		lv = &lvbuf[lvp];
-		lv->lsn       = lsn;
-		lv->flags     = svflags(v);
-		lv->valuesize = svvaluesize(v);
-		lv->keysize   = svkeysize(v);
-		lv->crc       = sr_crcp(svkey(v), lv->keysize, 0);
-		lv->crc       = sr_crcp(svvalue(v), lv->valuesize, lv->crc);
-		lv->crc       = sr_crcs(lv, sizeof(slv), lv->crc);
-		/* prepare to write */
-		sr_iovadd(&p->iov, lv, sizeof(slv));
-		sr_iovadd(&p->iov, svkey(v), lv->keysize);
-		sr_iovadd(&p->iov, svvalue(v), lv->valuesize);
+		sl_write_prepare(p, l, lv, v, lsn);
 		lvp++;
 	}
 	if (srlikely(sr_iovhas(&p->iov))) {
@@ -408,13 +424,28 @@ int sl_write(sltx *t, svlog *vlog)
 		sr_iovreset(&p->iov);
 	}
 	sr_gcmark(&l->gc, sv_logn(vlog));
+	return 0;
+}
 
+int sl_write(sltx *t, svlog *vlog)
+{
+	uint64_t lsn = sr_seq(t->p->r->seq, SR_LSNNEXT);
+	if (srunlikely(! t->p->enabled))
+		return sl_logupdate(vlog, NULL, lsn);
+	int count = sv_logn(vlog);
+	int rc;
+	if (srlikely(count == 1))
+		rc = sl_write_stmt(t, vlog, lsn);
+	else
+		rc = sl_write_multi_stmt(t, vlog, lsn);
+	if (srunlikely(rc == -1))
+		return -1;
 	/* sync */
-	if (p->conf->sync_on_write) {
-		rc = sr_filesync(&l->file);
+	if (t->p->conf->sync_on_write) {
+		rc = sr_filesync(&t->l->file);
 		if (srunlikely(rc == -1)) {
-			sr_error(p->r->e, "log file '%s' sync error: %s",
-					 l->file.file, strerror(errno));
+			sr_error(t->p->r->e, "log file '%s' sync error: %s",
+			         t->l->file.file, strerror(errno));
 			return -1;
 		}
 	}
