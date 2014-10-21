@@ -98,12 +98,13 @@ int so_recover(sodb *db)
 
 	/* open logdir */
 	slconf *lc = &db->lpconf;
-	lc->dir            = db->ctl.logdir;
-	lc->dir_write      = db->ctl.logdir_write;
-	lc->dir_create     = db->ctl.logdir_create;
-	lc->rotatewm       = db->ctl.logdir_rotate_wm;
-	lc->sync_on_rotate = db->ctl.logdir_rotate_sync;
-	lc->sync_on_write  = db->ctl.logdir_sync;
+	lc->dir            = db->ctl.log_dir;
+	lc->dir_write      = db->ctl.log_dirwrite;
+	lc->dir_create     = db->ctl.log_dircreate;
+	lc->rotatewm       = db->ctl.log_rotate_wm;
+	lc->sync_on_rotate = db->ctl.log_rotate_sync;
+	lc->sync_on_write  = db->ctl.log_sync;
+	lc->expand         = db->ctl.log_expand;
 	int rc = sl_poolinit(&db->lp, &db->r, lc);
 	if (srunlikely(rc == -1))
 		return -1;

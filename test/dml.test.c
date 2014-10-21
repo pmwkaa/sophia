@@ -18,7 +18,7 @@ dml_precreate(stc *cx srunused)
 	t( env != NULL );
 	void *c = sp_ctl(env);
 	t( c != NULL );
-	t( sp_set(c, "db.test.logdir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "db.test.log_dir", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.cmp", sr_cmpu32) == 0 );
 	t( sp_set(c, "db.test.threads", "0") == 0 );
@@ -36,7 +36,7 @@ dml_create_online0(stc *cx srunused)
 	t( sp_open(env) == 0 );
 	void *c = sp_ctl(env);
 	t( c != NULL );
-	t( sp_set(c, "db.test.logdir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "db.test.log_dir", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.cmp", sr_cmpu32) == 0 );
 	t( sp_set(c, "db.test.threads", "0") == 0 );
@@ -54,7 +54,7 @@ dml_create_online1(stc *cx srunused)
 	t( sp_open(env) == 0 );
 	void *c = sp_ctl(env);
 	t( c != NULL );
-	t( sp_set(c, "db.test.logdir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "db.test.log_dir", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.cmp", sr_cmpu32) == 0 );
 	t( sp_set(c, "db.test.threads", "0") == 0 );
@@ -79,7 +79,7 @@ dml_create_online2(stc *cx srunused)
 
 	void *c = sp_ctl(env);
 	t( c != NULL );
-	t( sp_set(c, "db.s0.logdir", "logdir0") == 0 );
+	t( sp_set(c, "db.s0.log_dir", "logdir0") == 0 );
 	t( sp_set(c, "db.s0.dir", "dir0") == 0 );
 	t( sp_set(c, "db.s0.cmp", sr_cmpu32) == 0 );
 	t( sp_set(c, "db.s0.threads", "0") == 0 );
@@ -100,7 +100,7 @@ dml_create_online2(stc *cx srunused)
 	sp_set(o, "key", &key, sizeof(key));
 	t( sp_set(s0, o) == 0 );
 
-	t( sp_set(c, "db.s1.logdir", "logdir1") == 0 );
+	t( sp_set(c, "db.s1.log_dir", "logdir1") == 0 );
 	t( sp_set(c, "db.s1.dir", "dir1") == 0 );
 	t( sp_set(c, "db.s1.cmp", sr_cmpu32) == 0 );
 	t( sp_set(c, "db.s1.threads", "0") == 0 );

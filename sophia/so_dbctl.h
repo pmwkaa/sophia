@@ -16,12 +16,13 @@ struct sodbctl {
 	char         *name;
 	srcomparator  cmp;
 	/* sl */
-	char         *logdir;
-	int           logdir_write;
-	int           logdir_create;
-	int           logdir_sync;
-	int           logdir_rotate_wm;
-	int           logdir_rotate_sync;
+	char         *log_dir;
+	int           log_dirwrite;
+	int           log_dircreate;
+	int           log_sync;
+	int           log_rotate_wm;
+	int           log_rotate_sync;
+	int           log_expand;
 	/* si */
 	char         *dir;
 	int           dir_write;

@@ -289,7 +289,7 @@ so_txcommit_recover(soobj *o, va_list args)
 		return -1;
 	}
 	sm_commit(&t->t);
-	sl_logupdate(&t->t.log, log, lsn);
+	sl_writelsn(&t->t.log, log, lsn);
 	uint64_t lsvn = sr_seq(db->r.seq, SR_LSN) - 1;
 	sitx ti;
 	si_begin(&ti, &db->r, &db->index, lsvn, &t->t.log, NULL);

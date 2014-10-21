@@ -43,9 +43,9 @@ mt_single_stmt(stc *cx)
 	t( cx->env != NULL );
 	void *c = sp_ctl(cx->env);
 	t( c != NULL );
-	t( sp_set(c, "db.test.logdir", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db.test.logdir_sync", "0") == 0 );
-	t( sp_set(c, "db.test.logdir_rotate_sync", "0") == 0 );
+	t( sp_set(c, "db.test.log_dir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "db.test.log_sync", "0") == 0 );
+	t( sp_set(c, "db.test.log_rotate_sync", "0") == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
 	t( sp_set(c, "db.test.threads", "3") == 0 );
@@ -112,9 +112,9 @@ mt_multi_stmt(stc *cx)
 	t( cx->env != NULL );
 	void *c = sp_ctl(cx->env);
 	t( c != NULL );
-	t( sp_set(c, "db.test.logdir", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db.test.logdir_sync", "0") == 0 );
-	t( sp_set(c, "db.test.logdir_rotate_sync", "0") == 0 );
+	t( sp_set(c, "db.test.log_dir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "db.test.log_sync", "0") == 0 );
+	t( sp_set(c, "db.test.log_rotate_sync", "0") == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
 	t( sp_set(c, "db.test.threads", "3") == 0 );
@@ -177,9 +177,9 @@ mt_multi_stmt_conflict(stc *cx)
 	t( cx->env != NULL );
 	void *c = sp_ctl(cx->env);
 	t( c != NULL );
-	t( sp_set(c, "db.test.logdir", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db.test.logdir_sync", "0") == 0 );
-	t( sp_set(c, "db.test.logdir_rotate_sync", "0") == 0 );
+	t( sp_set(c, "db.test.log_dir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "db.test.log_sync", "0") == 0 );
+	t( sp_set(c, "db.test.log_rotate_sync", "0") == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
 	t( sp_set(c, "db.test.cmp", sr_cmpu32) == 0 );

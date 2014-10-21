@@ -26,27 +26,28 @@ int so_dbctl_init(sodbctl *c, char *name, void *db)
 		sr_error_recoverable(&o->e->error);
 		return -1;
 	}
-	c->parent             = db;
-	c->logdir_create      = 1;
-	c->logdir_write       = 1;
-	c->logdir_rotate_wm   = 500000;
-	c->logdir_sync        = 0;
-	c->logdir_rotate_sync = 1;
-	c->edr                = 0;
-	c->dir_create         = 1;
-	c->dir_created        = 0;
-	c->dir_write          = 1;
-	c->dir_sync           = 1;
-	c->cmp.cmp            = sr_cmpstring;
-	c->cmp.cmparg         = NULL;
-	c->memory_limit       = 0;
-	c->node_size          = 128 * 1024 * 1024;
-	c->node_page_size     = 128 * 1024;
-	c->node_branch_wm     = 10 * 1024 * 1024;
-	c->node_merge_wm      = 1;
-	c->threads_merge      = 4;
-	c->threads_branch     = 1;
-	c->threads            = 5;
+	c->parent          = db;
+	c->log_dircreate   = 1;
+	c->log_dirwrite    = 1;
+	c->log_rotate_wm   = 500000;
+	c->log_sync        = 0;
+	c->log_rotate_sync = 1;
+	c->log_expand      = 0;
+	c->edr             = 0;
+	c->dir_create      = 1;
+	c->dir_created     = 0;
+	c->dir_write       = 1;
+	c->dir_sync        = 1;
+	c->cmp.cmp         = sr_cmpstring;
+	c->cmp.cmparg      = NULL;
+	c->memory_limit    = 0;
+	c->node_size       = 128 * 1024 * 1024;
+	c->node_page_size  = 128 * 1024;
+	c->node_branch_wm  = 10 * 1024 * 1024;
+	c->node_merge_wm   = 1;
+	c->threads_merge   = 4;
+	c->threads_branch  = 1;
+	c->threads         = 5;
 	return 0;
 }
 
@@ -63,9 +64,9 @@ int so_dbctl_free(sodbctl *c)
 		sr_free(&o->e->a, c->dir);
 		c->dir = NULL;
 	}
-	if (c->logdir) {
-		sr_free(&o->e->a, c->logdir);
-		c->logdir = NULL;
+	if (c->log_dir) {
+		sr_free(&o->e->a, c->log_dir);
+		c->log_dir = NULL;
 	}
 	return 0;
 }
@@ -170,43 +171,44 @@ so_dbctl_prepare(srctl *t, sodbctl *c, sodbctlinfo *info)
 	sodb *db = c->parent;
 	so_dbctl_info(db, info);
 	srctl *p = t;
-	p = sr_ctladd(p, "name",               SR_CTLSTRING|SR_CTLRO, c->name,                NULL);
-	p = sr_ctladd(p, "status",             SR_CTLSTRING|SR_CTLRO, info->status,           NULL);
-	p = sr_ctladd(p, "dir",                SR_CTLSTRINGREF,       &c->dir,                NULL);
-	p = sr_ctladd(p, "dir_write",          SR_CTLINT,             &c->dir_write,          NULL);
-	p = sr_ctladd(p, "dir_create",         SR_CTLINT,             &c->dir_create,         NULL);
-	p = sr_ctladd(p, "dir_sync",           SR_CTLINT,             &c->dir_sync,           NULL);
-	p = sr_ctladd(p, "logdir",             SR_CTLSTRINGREF,       &c->logdir,             NULL);
-	p = sr_ctladd(p, "logdir_write",       SR_CTLINT,             &c->logdir_write,       NULL);
-	p = sr_ctladd(p, "logdir_create",      SR_CTLINT,             &c->logdir_create,      NULL);
-	p = sr_ctladd(p, "logdir_sync",        SR_CTLINT,             &c->logdir_sync,        NULL);
-	p = sr_ctladd(p, "logdir_rotate_wm",   SR_CTLINT,             &c->logdir_rotate_wm,   NULL);
-	p = sr_ctladd(p, "logdir_rotate_sync", SR_CTLINT,             &c->logdir_rotate_sync, NULL);
-	p = sr_ctladd(p, "edr",                SR_CTLINT,             &c->edr,                NULL);
-	p = sr_ctladd(p, "node_size",          SR_CTLINT,             &c->node_size,          NULL);
-	p = sr_ctladd(p, "node_page_size",     SR_CTLINT,             &c->node_page_size,     NULL);
-	p = sr_ctladd(p, "node_branch_wm",     SR_CTLINT,             &c->node_branch_wm,     NULL);
-	p = sr_ctladd(p, "node_merge_wm",      SR_CTLINT,             &c->node_merge_wm,      NULL);
-	p = sr_ctladd(p, "threads",            SR_CTLINT,             &c->threads,            NULL);
-	p = sr_ctladd(p, "memory_limit",       SR_CTLU64,             &c->memory_limit,       NULL);
-	p = sr_ctladd(p, "cmp",                SR_CTLTRIGGER,         NULL,                   so_dbctl_cmp);
-	p = sr_ctladd(p, "cmp_arg",            SR_CTLTRIGGER,         NULL,                   so_dbctl_cmparg);
-	p = sr_ctladd(p, "run_branch",         SR_CTLTRIGGER,         NULL,                   so_dbctl_branch);
-	p = sr_ctladd(p, "run_merge",          SR_CTLTRIGGER,         NULL,                   so_dbctl_merge);
-	p = sr_ctladd(p, "run_logrotate",      SR_CTLTRIGGER,         NULL,                   so_dbctl_logrotate);
-	p = sr_ctladd(p, "run_lockdetect",     SR_CTLTRIGGER,         NULL,                   so_dbctl_lockdetect);
-	p = sr_ctladd(p, "profiler",           SR_CTLSUB,             NULL,                   NULL);
-	p = sr_ctladd(p, "error_injection",    SR_CTLSUB,             NULL,                   NULL);
-	p = sr_ctladd(p,  NULL,                0,                     NULL,                   NULL);
+	p = sr_ctladd(p, "name",               SR_CTLSTRING|SR_CTLRO, c->name,             NULL);
+	p = sr_ctladd(p, "status",             SR_CTLSTRING|SR_CTLRO, info->status,        NULL);
+	p = sr_ctladd(p, "dir",                SR_CTLSTRINGREF,       &c->dir,             NULL);
+	p = sr_ctladd(p, "dir_write",          SR_CTLINT,             &c->dir_write,       NULL);
+	p = sr_ctladd(p, "dir_create",         SR_CTLINT,             &c->dir_create,      NULL);
+	p = sr_ctladd(p, "dir_sync",           SR_CTLINT,             &c->dir_sync,        NULL);
+	p = sr_ctladd(p, "log_dir",            SR_CTLSTRINGREF,       &c->log_dir,         NULL);
+	p = sr_ctladd(p, "log_dirwrite",       SR_CTLINT,             &c->log_dirwrite,    NULL);
+	p = sr_ctladd(p, "log_dircreate",      SR_CTLINT,             &c->log_dircreate,   NULL);
+	p = sr_ctladd(p, "log_sync",           SR_CTLINT,             &c->log_sync,        NULL);
+	p = sr_ctladd(p, "log_rotate_wm",      SR_CTLINT,             &c->log_rotate_wm,   NULL);
+	p = sr_ctladd(p, "log_rotate_sync",    SR_CTLINT,             &c->log_rotate_sync, NULL);
+	p = sr_ctladd(p, "log_expand",         SR_CTLINT,             &c->log_expand,      NULL);
+	p = sr_ctladd(p, "edr",                SR_CTLINT,             &c->edr,             NULL);
+	p = sr_ctladd(p, "node_size",          SR_CTLINT,             &c->node_size,       NULL);
+	p = sr_ctladd(p, "node_page_size",     SR_CTLINT,             &c->node_page_size,  NULL);
+	p = sr_ctladd(p, "node_branch_wm",     SR_CTLINT,             &c->node_branch_wm,  NULL);
+	p = sr_ctladd(p, "node_merge_wm",      SR_CTLINT,             &c->node_merge_wm,   NULL);
+	p = sr_ctladd(p, "threads",            SR_CTLINT,             &c->threads,         NULL);
+	p = sr_ctladd(p, "memory_limit",       SR_CTLU64,             &c->memory_limit,    NULL);
+	p = sr_ctladd(p, "cmp",                SR_CTLTRIGGER,         NULL,                so_dbctl_cmp);
+	p = sr_ctladd(p, "cmp_arg",            SR_CTLTRIGGER,         NULL,                so_dbctl_cmparg);
+	p = sr_ctladd(p, "run_branch",         SR_CTLTRIGGER,         NULL,                so_dbctl_branch);
+	p = sr_ctladd(p, "run_merge",          SR_CTLTRIGGER,         NULL,                so_dbctl_merge);
+	p = sr_ctladd(p, "run_logrotate",      SR_CTLTRIGGER,         NULL,                so_dbctl_logrotate);
+	p = sr_ctladd(p, "run_lockdetect",     SR_CTLTRIGGER,         NULL,                so_dbctl_lockdetect);
+	p = sr_ctladd(p, "profiler",           SR_CTLSUB,             NULL,                NULL);
+	p = sr_ctladd(p, "error_injection",    SR_CTLSUB,             NULL,                NULL);
+	p = sr_ctladd(p,  NULL,                0,                     NULL,                NULL);
 }
 
 static inline void
 so_dbprofiler_prepare(srctl *t, siprofiler *pf, srpager *pager)
 {
 	srctl *p = t;
-	p = sr_ctladd(p, "pager_pool_size",    SR_CTLU32|SR_CTLRO,    &pager->pool_size,       NULL);
-	p = sr_ctladd(p, "pager_page_size",    SR_CTLU32|SR_CTLRO,    &pager->page_size,       NULL);
-	p = sr_ctladd(p, "pager_pools",        SR_CTLINT|SR_CTLRO,    &pager->pools,           NULL);
+	p = sr_ctladd(p, "pager_pool_size",    SR_CTLU32|SR_CTLRO,    &pager->pool_size,        NULL);
+	p = sr_ctladd(p, "pager_page_size",    SR_CTLU32|SR_CTLRO,    &pager->page_size,        NULL);
+	p = sr_ctladd(p, "pager_pools",        SR_CTLINT|SR_CTLRO,    &pager->pools,            NULL);
 	p = sr_ctladd(p, "index_node_count",   SR_CTLU32|SR_CTLRO,    &pf->total_node_count,    NULL);
 	p = sr_ctladd(p, "index_node_size",    SR_CTLU64|SR_CTLRO,    &pf->total_node_size,     NULL);
 	p = sr_ctladd(p, "index_branch_count", SR_CTLU32|SR_CTLRO,    &pf->total_branch_count,  NULL);

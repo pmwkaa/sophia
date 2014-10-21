@@ -72,7 +72,7 @@ static inline void *so_brancher(void *arg)
 			so_dbmalfunction(o);
 			break;
 		}
-		rc = sl_poolrotate_ready(&o->lp, o->ctl.logdir_rotate_wm);
+		rc = sl_poolrotate_ready(&o->lp, o->ctl.log_rotate_wm);
 		if (rc) {
 			rc = sl_poolrotate(&o->lp);
 			if (srunlikely(rc == -1)) {

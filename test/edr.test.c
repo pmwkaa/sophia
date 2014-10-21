@@ -19,7 +19,7 @@ edr_test0(stc *cx srunused)
 	t( sp_open(env) == 0 );
 	void *c = sp_ctl(env);
 	t( c != NULL );
-	t( sp_set(c, "db.test.logdir", NULL) == 0 );
+	t( sp_set(c, "db.test.log_dir", NULL) == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
 	t( sp_set(c, "db.test.edr", "1") == 0 );
@@ -55,7 +55,7 @@ edr_test1(stc *cx srunused)
 	t( sp_open(env) == 0 );
 	void *c = sp_ctl(env);
 	t( c != NULL );
-	t( sp_set(c, "db.test.logdir", NULL) == 0 );
+	t( sp_set(c, "db.test.log_dir", NULL) == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
 	t( sp_set(c, "db.test.edr", "1") == 0 );
@@ -88,7 +88,7 @@ edr_test1(stc *cx srunused)
 	t( sp_open(env) == 0 );
 	c = sp_ctl(env);
 	t( c != NULL );
-	t( sp_set(c, "db.test.logdir", NULL) == 0 );
+	t( sp_set(c, "db.test.log_dir", NULL) == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
 	t( sp_set(c, "db.test.edr", "1") == 0 );

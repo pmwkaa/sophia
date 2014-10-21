@@ -19,6 +19,7 @@ struct slconf {
 	int   sync_on_rotate;
 	int   sync_on_write;
 	int   rotatewm;
+	int   expand;
 };
 
 #endif
