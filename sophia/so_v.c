@@ -80,6 +80,12 @@ so_vget(soobj *obj, va_list args)
 		else
 		if (v->v.i == &sv_vif)
 			lsnp = &((svv*)(v->v.v))->lsn;
+		else
+		if (v->v.i == &sm_vif)
+			lsnp = &((smv*)(v->v.v))->v->lsn;
+		else {
+			assert(0);
+		}
 		int *valuesize = va_arg(args, int*);
 		if (valuesize)
 			*valuesize = sizeof(uint64_t);

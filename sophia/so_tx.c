@@ -66,11 +66,12 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	}
 	svinit(&vp, &sv_vif, v, NULL);
 	/* log write */
-	sltx tl;
-	sl_begin(&db->lp, &tl);
 	svlog log;
 	sv_loginit(&log);
 	sv_logadd(&log, NULL, &vp);
+	sltx tl;
+	sl_begin(&db->lp, &tl);
+	sl_prepare(&db->lp, &log);
 	rc = sl_write(&tl, &log);
 	if (srunlikely(rc == -1)) {
 		sl_rollback(&tl);
@@ -245,14 +246,21 @@ so_txget(soobj *obj, va_list args)
 	return ret;
 }
 
+static inline void
+so_txend(sotx *t)
+{
+	so_objindex_destroy(&t->logcursor);
+	so_objindex_unregister(&t->db->tx, &t->o);
+	sr_free(&t->db->e->a_tx, t);
+}
+
 static int
 so_txrollback(soobj *o)
 {
 	sotx *t = (sotx*)o;
 	sm_rollback(&t->t);
 	sm_end(&t->t);
-	so_objindex_unregister(&t->db->tx, &t->o);
-	sr_free(&t->db->e->a_tx, t);
+	so_txend(t);
 	return 0;
 }
 
@@ -296,6 +304,8 @@ so_txprepare(soobj *o, va_list args srunused)
 		return 1;
 	}
 	assert(s == SMPREPARE);
+	/* assign lsn */
+	sl_prepare(&db->lp, &t->t.log);
 	return 0;
 }
 
@@ -304,7 +314,6 @@ so_txcommit_recover(soobj *o, va_list args)
 {
 	sotx *t  = (sotx*)o;
 	sodb *db = t->db;
-	so *e    = t->db->e;
 
 	uint64_t lsn = va_arg(args, uint64_t);
 	sl *log = va_arg(args, sl*);
@@ -324,8 +333,7 @@ so_txcommit_recover(soobj *o, va_list args)
 	si_writelog_check(&ti);
 	si_commit(&ti);
 	sm_end(&t->t);
-	so_objindex_unregister(&db->tx, &t->o);
-	sr_free(&e->a_tx, t);
+	so_txend(t);
 	return 0;
 }
 
@@ -334,7 +342,6 @@ so_txcommit(soobj *o, va_list args)
 {
 	sotx *t  = (sotx*)o;
 	sodb *db = t->db;
-	so *e    = t->db->e;
 
 	/* handle recover mode */
 	if (so_status(&db->status) == SO_RECOVER)
@@ -353,13 +360,12 @@ so_txcommit(soobj *o, va_list args)
 	if (srunlikely(! sv_logn(&t->t.log))) {
 		sm_commit(&t->t);
 		sm_end(&t->t);
-		so_objindex_unregister(&db->tx, &t->o);
-		sr_free(&e->a_tx, t);
+		so_txend(t);
 		return 0;
 	}
 	sm_commit(&t->t);
 
-	/* log commit */
+	/* log commit (lsn numbers are set)*/
 	sltx tl;
 	sl_begin(&db->lp, &tl);
 	rc = sl_write(&tl, &t->t.log);
@@ -378,9 +384,18 @@ so_txcommit(soobj *o, va_list args)
 	si_commit(&ti);
 	sm_end(&t->t);
 
-	so_objindex_unregister(&db->tx, &t->o);
-	sr_free(&e->a_tx, t);
+	so_txend(t);
 	return 0;
+}
+
+static void*
+so_txctl(soobj *obj, va_list args)
+{
+	sotx *t = (sotx*)obj;
+	char *name = va_arg(args, char*);
+	if (strcmp(name, "log_cursor") == 0)
+		return so_logcursor_new(t);
+	return NULL;
 }
 
 static void*
@@ -397,7 +412,7 @@ so_txtype(soobj *o srunused, va_list args srunused) {
 
 static soobjif sotxif =
 {
-	.ctl      = NULL,
+	.ctl      = so_txctl,
 	.open     = NULL,
 	.destroy  = so_txrollback,
 	.error    = NULL,
@@ -423,6 +438,7 @@ soobj *so_txnew(sodb *db)
 		return NULL;
 	}
 	so_objinit(&t->o, SOTX, &sotxif, &e->o);
+	so_objindex_init(&t->logcursor);
 	t->db = db;
 	sm_begin(&db->mvcc, &t->t);
 	so_objindex_register(&db->tx, &t->o);

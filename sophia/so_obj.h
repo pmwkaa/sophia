@@ -17,6 +17,7 @@ typedef enum {
 	SOV         = 0x2FABCDE2L,
 	SODB        = 0x34591111L,
 	SOTX        = 0x13491FABL,
+	SOLOGCURSOR = 0x19315400L,
 	SOCURSOR    = 0x45ABCDFAL
 } soobjid;
 

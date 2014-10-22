@@ -6,6 +6,7 @@ SOPHIA_O = so_worker.o \
            so_dbctl.o \
            so_db.o \
            so_tx.o \
+           so_logcursor.o \
            so_cursor.o \
            so_recover.o \
            sophia.o

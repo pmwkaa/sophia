@@ -327,7 +327,7 @@ int sl_rollback(sltx *t)
 	return rc;
 }
 
-int sl_writelsn(svlog *vlog, sl *log, uint64_t lsn)
+int sl_writelsn(svlog *vlog, sl *l, uint64_t lsn)
 {
 	sriter i;
 	sr_iterinit(&i, &sr_bufiter, NULL);
@@ -335,16 +335,29 @@ int sl_writelsn(svlog *vlog, sl *log, uint64_t lsn)
 	for (; sr_iterhas(&i); sr_iternext(&i)) {
 		sv *v = sr_iterof(&i);
 		assert(v->i == &sv_vif);
-		((svv*)v->v)->log = log;
+		svlsnset(v, lsn);
+		((svv*)v->v)->log = l;
+	}
+	return 0;
+}
+
+int sl_prepare(slpool *p, svlog *vlog)
+{
+	uint64_t lsn = sr_seq(p->r->seq, SR_LSNNEXT);
+	sriter i;
+	sr_iterinit(&i, &sr_bufiter, NULL);
+	sr_iteropen(&i, &vlog->buf, sizeof(sv));
+	for (; sr_iterhas(&i); sr_iternext(&i)) {
+		sv *v = sr_iterof(&i);
 		svlsnset(v, lsn);
 	}
 	return 0;
 }
 
 static inline void
-sl_write_prepare(slpool *p, sl *l, slv *lv, sv *v, uint64_t lsn)
+sl_write_prepare(slpool *p, sl *l, slv *lv, sv *v)
 {
-	lv->lsn       = lsn;
+	lv->lsn       = svlsn(v);
 	lv->flags     = svflags(v);
 	lv->valuesize = svvaluesize(v);
 	lv->keysize   = svkeysize(v);
@@ -355,16 +368,15 @@ sl_write_prepare(slpool *p, sl *l, slv *lv, sv *v, uint64_t lsn)
 	sr_iovadd(&p->iov, svkey(v), lv->keysize);
 	sr_iovadd(&p->iov, svvalue(v), lv->valuesize);
 	((svv*)v->v)->log = l;
-	svlsnset(v, lsn);
 }
 
 static inline int
-sl_write_stmt(sltx *t, svlog *vlog, uint64_t lsn)
+sl_write_stmt(sltx *t, svlog *vlog)
 {
 	slpool *p = t->p;
 	slv lv;
 	sv *v = (sv*)vlog->buf.s;
-	sl_write_prepare(t->p, t->l, &lv, v, lsn);
+	sl_write_prepare(t->p, t->l, &lv, v);
 	int rc = sr_filewritev(&t->l->file, &p->iov);
 	if (srunlikely(rc == -1)) {
 		sr_error(p->r->e, "log file '%s' write error: %s",
@@ -413,7 +425,7 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 		sv *v = sr_iterof(&i);
 		assert(v->i == &sv_vif);
 		lv = &lvbuf[lvp];
-		sl_write_prepare(p, l, lv, v, lsn);
+		sl_write_prepare(p, t->l, lv, v);
 		lvp++;
 	}
 	if (srlikely(sr_iovhas(&p->iov))) {
@@ -431,18 +443,20 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 
 int sl_write(sltx *t, svlog *vlog)
 {
-	uint64_t lsn = sr_seq(t->p->r->seq, SR_LSNNEXT);
+	/* assume transaction log is prepared
+	 * (lsn set) */
 	if (srunlikely(! t->p->enabled))
-		return sl_writelsn(vlog, NULL, lsn);
+		return 0;
 	int count = sv_logn(vlog);
 	int rc;
-	if (srlikely(count == 1))
-		rc = sl_write_stmt(t, vlog, lsn);
-	else
+	if (srlikely(count == 1)) {
+		rc = sl_write_stmt(t, vlog);
+	} else {
+		uint64_t lsn = svlsn((sv*)vlog->buf.s);
 		rc = sl_write_multi_stmt(t, vlog, lsn);
+	}
 	if (srunlikely(rc == -1))
 		return -1;
-
 	/* sync */
 	if (t->p->enabled && t->p->conf->sync_on_write) {
 		rc = sr_filesync(&t->l->file);

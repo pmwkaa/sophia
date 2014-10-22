@@ -14,12 +14,13 @@ typedef struct sotx sotx;
 struct sotx {
 	soobj o;
 	smtx t;
+	soobjindex logcursor;
 	sodb *db;
 } srpacked;
 
-soobj *so_txnew(sodb*);
+int    so_txdbset(sodb*, uint8_t, va_list);
+void  *so_txdbget(sodb*, va_list);
 
-int   so_txdbset(sodb*, uint8_t, va_list);
-void *so_txdbget(sodb*, va_list);
+soobj *so_txnew(sodb*);
 
 #endif

@@ -22,6 +22,7 @@ LIBST_O = st.o \
           object.test.o \
           transaction.test.o \
           tpc.test.o \
+          log_cursor.test.o \
           deadlock.test.o \
           cursor.test.o \
           recover_crash.test.o \
