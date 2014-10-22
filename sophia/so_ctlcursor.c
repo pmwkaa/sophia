@@ -113,12 +113,12 @@ static soobjif soctlcursorif =
 	.get      = so_ctlcursor_get,
 	.del      = NULL,
 	.begin    = NULL,
+	.prepare  = NULL,
 	.commit   = NULL,
 	.rollback = NULL,
 	.cursor   = NULL,
 	.object   = so_ctlcursor_obj,
-	.type     = so_ctlcursor_type,
-	.copy     = NULL
+	.type     = so_ctlcursor_type
 };
 
 static inline int

@@ -149,6 +149,11 @@ so_txdo(soobj *obj, uint8_t flags, va_list args)
 		sr_error_recoverable(&db->e->error);
 		goto error;
 	}
+	if (t->t.s == SMPREPARE) {
+		sr_error(&db->e->error, "%s", "transaction is in 'prepare' state (read-only)");
+		sr_error_recoverable(&db->e->error);
+		goto error;
+	}
 	svlocal l;
 	l.flags       = flags;
 	l.lsn         = 0;
@@ -240,8 +245,19 @@ so_txget(soobj *obj, va_list args)
 	return ret;
 }
 
+static int
+so_txrollback(soobj *o)
+{
+	sotx *t = (sotx*)o;
+	sm_rollback(&t->t);
+	sm_end(&t->t);
+	so_objindex_unregister(&t->db->tx, &t->o);
+	sr_free(&t->db->e->a_tx, t);
+	return 0;
+}
+
 static smstate
-so_txprepare(smtx *t, sv *v, void *arg)
+so_txprepare_trigger(smtx *t, sv *v, void *arg)
 {
 	sotx *te = arg;
 	uint64_t lsn = sr_seq(te->db->r.seq, SR_LSN);
@@ -260,13 +276,26 @@ so_txprepare(smtx *t, sv *v, void *arg)
 }
 
 static int
-so_txrollback(soobj *o)
+so_txprepare(soobj *o, va_list args srunused)
 {
-	sotx *t = (sotx*)o;
-	sm_rollback(&t->t);
-	sm_end(&t->t);
-	so_objindex_unregister(&t->db->tx, &t->o);
-	sr_free(&t->db->e->a_tx, t);
+	sotx *t  = (sotx*)o;
+	sodb *db = t->db;
+	int status = so_status(&db->status);
+	if (srunlikely(! so_statusactive_is(status)))
+		return -1;
+	if (srunlikely(status == SO_RECOVER))
+		return -1;
+	if (t->t.s == SMPREPARE)
+		return 0;
+	smstate s = sm_prepare(&t->t, so_txprepare_trigger, t);
+	if (s == SMWAIT) {
+		return 2;
+	}
+	if (s == SMROLLBACK) {
+		so_txrollback(&t->o);
+		return 1;
+	}
+	assert(s == SMPREPARE);
 	return 0;
 }
 
@@ -282,7 +311,6 @@ so_txcommit_recover(soobj *o, va_list args)
 
 	if (lsn > db->r.seq->lsn)
 		db->r.seq->lsn = lsn;
-
 	smstate s = sm_prepare(&t->t, NULL, NULL);
 	if (srunlikely(s != SMPREPARE)) {
 		so_txrollback(&t->o);
@@ -312,15 +340,15 @@ so_txcommit(soobj *o, va_list args)
 	if (so_status(&db->status) == SO_RECOVER)
 		return so_txcommit_recover(o, args);
 
-	smstate s = sm_prepare(&t->t, so_txprepare, t);
-	if (s == SMWAIT) {
-		return 2;
+	/* prepare transaction for commit */
+	assert (t->t.s == SMPREPARE || t->t.s == SMREADY);
+	int rc;
+	if (t->t.s == SMREADY) {
+		rc = so_txprepare(o, args);
+		if (srunlikely(rc != 0))
+			return rc;
 	}
-	if (s == SMROLLBACK) {
-		so_txrollback(&t->o);
-		return 1;
-	}
-	assert(s == SMPREPARE);
+	assert(t->t.s == SMPREPARE);
 
 	if (srunlikely(! sv_logn(&t->t.log))) {
 		sm_commit(&t->t);
@@ -334,7 +362,7 @@ so_txcommit(soobj *o, va_list args)
 	/* log commit */
 	sltx tl;
 	sl_begin(&db->lp, &tl);
-	int rc = sl_write(&tl, &t->t.log);
+	rc = sl_write(&tl, &t->t.log);
 	if (srunlikely(rc == -1)) {
 		sl_rollback(&tl);
 		so_txrollback(&t->o);
@@ -377,12 +405,12 @@ static soobjif sotxif =
 	.del      = so_txdelete,
 	.get      = so_txget,
 	.begin    = NULL,
+	.prepare  = so_txprepare,
 	.commit   = so_txcommit,
 	.rollback = so_txrollback,
 	.cursor   = NULL,
 	.object   = so_txobject,
-	.type     = so_txtype,
-	.copy     = NULL
+	.type     = so_txtype
 };
 
 soobj *so_txnew(sodb *db)

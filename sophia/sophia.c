@@ -188,6 +188,24 @@ sp_begin(void *o, ...)
 }
 
 SP_API int
+sp_prepare(void *o, ...)
+{
+	soobj *obj = o;
+	if (srunlikely(obj->i->prepare == NULL)) {
+		sp_error_unsupported_method(o, __FUNCTION__);
+		return -1;
+	}
+	soobj *env = obj->env;
+	va_list args;
+	va_start(args, o);
+	so_apilock(env);
+	int rc = obj->i->prepare(o, args);
+	so_apiunlock(env);
+	va_end(args);
+	return rc;
+}
+
+SP_API int
 sp_commit(void *o, ...)
 {
 	soobj *obj = o;
@@ -248,22 +266,6 @@ SP_API void *sp_type(void *o, ...)
 	va_start(args, o);
 	so_apilock(obj->env);
 	void *h = obj->i->type(o, args);
-	so_apiunlock(obj->env);
-	va_end(args);
-	return h;
-}
-
-SP_API void *sp_copy(void *o, ...)
-{
-	soobj *obj = o;
-	if (srunlikely(obj->i->copy == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
-		return NULL;
-	}
-	va_list args;
-	va_start(args, o);
-	so_apilock(obj->env);
-	void *h = obj->i->copy(o, args);
 	so_apiunlock(obj->env);
 	va_end(args);
 	return h;

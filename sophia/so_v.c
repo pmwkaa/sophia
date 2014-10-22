@@ -89,31 +89,6 @@ so_vget(soobj *obj, va_list args)
 }
 
 static void*
-so_vcopy(soobj *o srunused, va_list args srunused)
-{
-	sov *v = (sov*)o;
-	sov *copy = (sov*)so_vnew(v->e);
-	if (srunlikely(copy == NULL))
-		return NULL;
-	copy->lv = v->lv;
-	copy->v  = v->v;
-	if (v->flags & SO_VALLOCATED) {
-		svv *dup = sv_valloc(&v->e->a, &v->v);
-		if (srunlikely(dup == NULL)) {
-			sr_error(&v->e->error, "%s", "memory allocation failed");
-			sr_error_recoverable(&v->e->error);
-			sr_free(&v->e->a_v, copy);
-			return NULL;
-		}
-		copy->flags = SO_VALLOCATED|SO_VRO;
-		sv result;
-		svinit(&result, &sv_vif, dup, NULL);
-		so_vput(copy, &result);
-	}
-	return copy;
-}
-
-static void*
 so_vtype(soobj *o srunused, va_list args srunused) {
 	return "object";
 }
@@ -128,12 +103,12 @@ static soobjif sovif =
 	.get      = so_vget,
 	.del      = NULL,
 	.begin    = NULL,
+	.prepare  = NULL,
 	.commit   = NULL,
 	.rollback = NULL,
 	.cursor   = NULL,
 	.object   = NULL,
-	.type     = so_vtype,
-	.copy     = so_vcopy
+	.type     = so_vtype
 };
 
 soobj *so_vinit(sov *v, so *e)

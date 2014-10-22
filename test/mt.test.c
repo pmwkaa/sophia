@@ -24,7 +24,8 @@ static inline void *single_stmt_thread(void *arg)
 	int i = 0;
 	while (i < 20000) {
 		char key[100];
-		int keylen = snprintf(key, sizeof(key), "key_%llu_%d", (unsigned long long)self, i);
+		int keylen = snprintf(key, sizeof(key), "key_%" PRIiPTR " _%d",
+		                      (uintptr_t)self, i);
 		void *o = sp_object(db);
 		assert(o != NULL);
 		sp_set(o, "key", key, keylen);
@@ -85,7 +86,8 @@ static inline void *multi_stmt_thread(void *arg)
 		int j = 0;
 		while (j < 10) {
 			char key[100];
-			int keylen = snprintf(key, sizeof(key), "key_%llu_%d_%d", (unsigned long long)self, i, j);
+			int keylen = snprintf(key, sizeof(key), "key_%" PRIiPTR " _%d_%d",
+			                      (uintptr_t)self, i, j);
 			void *o = sp_object(db);
 			assert(o != NULL);
 			sp_set(o, "key", key, keylen);

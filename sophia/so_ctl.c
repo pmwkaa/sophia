@@ -300,12 +300,12 @@ static soobjif soctlif =
 	.get      = so_ctlget,
 	.del      = NULL,
 	.begin    = NULL,
+	.prepare  = NULL,
 	.commit   = NULL,
 	.rollback = NULL,
 	.cursor   = so_ctlcursor,
 	.object   = NULL,
-	.type     = so_ctltype,
-	.copy     = NULL
+	.type     = so_ctltype
 };
 
 void so_ctlinit(soctl *c, void *e)

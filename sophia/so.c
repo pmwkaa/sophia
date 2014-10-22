@@ -77,12 +77,12 @@ static soobjif soif =
 	.get      = NULL,
 	.del      = NULL,
 	.begin    = NULL,
+	.prepare  = NULL,
 	.commit   = NULL,
 	.rollback = NULL,
 	.cursor   = NULL,
 	.object   = NULL,
-	.type     = so_type,
-	.copy     = NULL
+	.type     = so_type
 };
 
 soobj *so_new(void)

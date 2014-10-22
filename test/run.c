@@ -31,6 +31,7 @@ extern stgroup *tpr_group(void);
 extern stgroup *object_group(void);
 extern stgroup *profiler_group(void);
 extern stgroup *transaction_group(void);
+extern stgroup *tpc_group(void);
 extern stgroup *deadlock_group(void);
 extern stgroup *cursor_group(void);
 extern stgroup *recoverloop_group(void);
@@ -97,6 +98,7 @@ main(int argc, char *argv[])
 	st_planscene(plan, st_sceneof(&s, "pass"));
 	st_planadd(plan, object_group());
 	st_planadd(plan, transaction_group());
+	st_planadd(plan, tpc_group());
 	st_planadd(plan, cursor_group());
 	st_add(&s, plan);
 
@@ -114,6 +116,7 @@ main(int argc, char *argv[])
 	st_planscene(plan, st_sceneof(&s, "pass"));
 	st_planadd(plan, object_group());
 	st_planadd(plan, transaction_group());
+	st_planadd(plan, tpc_group());
 	st_planadd(plan, cursor_group());
 	st_add(&s, plan);
 
@@ -132,6 +135,7 @@ main(int argc, char *argv[])
 	st_planscene(plan, st_sceneof(&s, "pass"));
 	st_planadd(plan, object_group());
 	st_planadd(plan, transaction_group());
+	st_planadd(plan, tpc_group());
 	st_planadd(plan, cursor_group());
 	st_add(&s, plan);
 

@@ -32,10 +32,10 @@ SP_API int   sp_set(void*, ...);
 SP_API void *sp_get(void*, ...);
 SP_API int   sp_delete(void*, ...);
 SP_API void *sp_begin(void*, ...);
+SP_API int   sp_prepare(void*, ...);
 SP_API int   sp_commit(void*, ...);
 SP_API int   sp_rollback(void*, ...);
 SP_API void *sp_cursor(void*, ...);
-SP_API void *sp_copy(void*, ...);
 SP_API void *sp_type(void*, ...);
 
 #ifdef __cplusplus

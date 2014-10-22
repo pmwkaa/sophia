@@ -37,12 +37,12 @@ struct soobjif {
 	void *(*get)(soobj*, va_list);
 	int   (*del)(soobj*, va_list);
 	void *(*begin)(soobj*);
+	int   (*prepare)(soobj*, va_list);
 	int   (*commit)(soobj*, va_list);
 	int   (*rollback)(soobj*);
 	void *(*cursor)(soobj*, va_list);
 	void *(*object)(soobj*, va_list);
 	void *(*type)(soobj*, va_list);
-	void *(*copy)(soobj*, va_list);
 };
 
 struct soobj {

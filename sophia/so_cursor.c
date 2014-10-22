@@ -121,12 +121,12 @@ static soobjif socursorif =
 	.get      = so_cursorget,
 	.del      = NULL,
 	.begin    = NULL,
+	.prepare  = NULL,
 	.commit   = NULL,
 	.rollback = NULL,
 	.cursor   = NULL,
 	.object   = so_cursorobj,
-	.type     = so_cursortype,
-	.copy     = NULL
+	.type     = so_cursortype
 };
 
 soobj *so_cursornew(sodb *db, va_list args)

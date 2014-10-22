@@ -233,12 +233,12 @@ static soobjif sodbif =
 	.get      = so_dbget,
 	.del      = so_dbdel,
 	.begin    = so_dbbegin,
+	.prepare  = NULL,
 	.commit   = NULL,
 	.rollback = NULL,
 	.cursor   = so_dbcursor,
 	.object   = so_dbobj,
-	.type     = so_dbtype,
-	.copy     = NULL
+	.type     = so_dbtype
 };
 
 soobj *so_dbnew(so *e, char *name)
