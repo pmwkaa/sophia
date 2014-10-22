@@ -60,7 +60,9 @@ sr_aslabopen(sra *a, va_list args) {
 	s->pager       = va_arg(args, srpager*);
 	s->chunk_size  = va_arg(args, uint32_t);
 	s->chunk_count = 0;
-	s->chunk_max   = s->pager->page_size / (sizeof(srsachunk) + s->chunk_size);
+	s->chunk_max   =
+		(s->pager->page_size - sizeof(srpage)) /
+	     (sizeof(srsachunk) + s->chunk_size);
 	s->chunk_used  = 0;
 	s->chunk       = NULL;
 	s->pu          = NULL;
