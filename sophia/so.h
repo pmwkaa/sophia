@@ -26,6 +26,7 @@ struct so {
 	sra a_cursor;
 	sra a_ctlcursor;
 	sra a_tx;
+	sra a_smv;
 	srerror error;
 	sr r;
 };

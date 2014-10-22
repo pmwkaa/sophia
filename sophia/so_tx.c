@@ -329,8 +329,9 @@ so_txcommit(soobj *o, va_list args)
 		sr_free(&e->a_tx, t);
 		return 0;
 	}
+	sm_commit(&t->t);
 
-	/* log write */
+	/* log commit */
 	sltx tl;
 	sl_begin(&db->lp, &tl);
 	int rc = sl_write(&tl, &t->t.log);
@@ -339,10 +340,9 @@ so_txcommit(soobj *o, va_list args)
 		so_txrollback(&t->o);
 		return -1;
 	}
-
-	/* index and log commit */
-	sm_commit(&t->t);
 	sl_commit(&tl); 
+
+	/* index commit */
 	uint64_t lsvn = sm_lsvn(&db->mvcc);
 	sitx ti;
 	si_begin(&ti, &db->r, &db->index, lsvn, &t->t.log, NULL);

@@ -23,11 +23,11 @@ sm_deadlock_in(sm *c, srlist *mark, smtx *t, smtx *p)
 	for (; sr_iterhas(&i); sr_iternext(&i))
 	{
 		sv *vp = sr_iterof(&i);
-		svv *v = vp->v;
+		smv *v = vp->v;
 		if (v->prev == NULL)
 			continue;
 		do {
-			smtx *n = sm_find(c, v->id.tx.id);
+			smtx *n = sm_find(c, v->id);
 			assert(n != NULL);
 			if (srunlikely(n == t))
 				return 1;
@@ -55,17 +55,16 @@ int sm_deadlock(smtx *t)
 	sm *c = t->c;
 	srlist mark;
 	sr_listinit(&mark);
-
 	sriter i;
 	sr_iterinit(&i, &sr_bufiter, c->r);
 	sr_iteropen(&i, &t->log.buf, sizeof(sv));
 	for (; sr_iterhas(&i); sr_iternext(&i))
 	{
 		sv *vp = sr_iterof(&i);
-		svv *v = vp->v;
+		smv *v = vp->v;
 		if (v->prev == NULL)
 			continue;
-		smtx *p = sm_find(c, v->prev->id.tx.id);
+		smtx *p = sm_find(c, v->prev->id);
 		assert(p != NULL);
 		int rc = sm_deadlock_in(c, &mark, t, p);
 		if (srunlikely(rc)) {

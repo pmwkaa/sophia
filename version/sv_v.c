@@ -17,12 +17,12 @@ sv_vifflags(sv *v) {
 
 static uint64_t
 sv_viflsn(sv *v) {
-	return ((svv*)v->v)->id.lsn;
+	return ((svv*)v->v)->lsn;
 }
 
 static void
 sv_viflsnset(sv *v, uint64_t lsn) {
-	((svv*)v->v)->id.lsn = lsn;
+	((svv*)v->v)->lsn = lsn;
 }
 
 static char*

@@ -105,6 +105,7 @@ soobj *so_new(void)
 	sr_allocopen(&e->a_cursor, &sr_aslab, &e->pager, sizeof(socursor));
 	sr_allocopen(&e->a_ctlcursor, &sr_aslab, &e->pager, sizeof(soctlcursor));
 	sr_allocopen(&e->a_tx, &sr_aslab, &e->pager, sizeof(sotx));
+	sr_allocopen(&e->a_smv, &sr_aslab, &e->pager, sizeof(smv));
 	so_statusinit(&e->status);
 	so_statusset(&e->status, SO_OFFLINE);
 	so_ctlinit(&e->ctl, e);

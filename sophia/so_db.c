@@ -264,7 +264,7 @@ soobj *so_dbnew(so *e, char *name)
 		sr_free(&e->a_db, o);
 		return NULL;
 	}
-	sm_init(&o->mvcc, &o->r);
+	sm_init(&o->mvcc, &o->r, &e->a_smv);
 	sd_cinit(&o->dc, &o->r);
 	so_workersinit(&o->workers);
 	return &o->o;

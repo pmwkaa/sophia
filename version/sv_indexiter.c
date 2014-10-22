@@ -140,7 +140,7 @@ sv_indexiter_open(sriter *i, va_list args)
 		if (rc == 0 && ii->v) {
 			svv *v = srcast(ii->v, svv, node);
 			ii->vcur = v;
-			return v->id.lsn > ii->lsvn;
+			return v->lsn > ii->lsvn;
 		}
 		return 0;
 	default: assert(0);

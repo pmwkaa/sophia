@@ -11,24 +11,27 @@
 #include <libsv.h>
 #include <libsm.h>
 
-int sm_init(sm *c, sr *r)
+int sm_init(sm *c, sr *r, sra *asmv)
 {
 	sr_rbinit(&c->t);
 	sr_rbinit(&c->i);
 	sr_spinlockinit(&c->lock);
 	c->tn = 0;
+	c->asmv = asmv;
 	c->r = r;
 	return 0;
 }
 
 sr_rbtruncate(sm_truncate,
-              sv_vfree((sra*)arg, srcast(n, svv, node)))
+              sm_vfree(((sra**)arg)[0],
+                       ((sra**)arg)[1], srcast(n, smv, node)))
 
 int sm_free(sm *c)
 {
 	/* rollback active transactions */
+	sra *allocators[2] = { c->r->a, c->asmv };
 	if (c->i.root)
-		sm_truncate(c->i.root, c->r->a);
+		sm_truncate(c->i.root, allocators);
 	sr_spinlockfree(&c->lock);
 	return 0;
 }
@@ -71,7 +74,6 @@ smstate sm_begin(sm *c, smtx *t)
 	sr_sequnlock(c->r->seq);
 	sv_loginit(&t->log);
 	sr_listinit(&t->deadlock);
-
 	sr_spinlock(&c->lock);
 	srrbnode *n = NULL;
 	int rc = sm_matchtx(&c->t, NULL, (char*)&t->id, sizeof(t->id), &n);
@@ -108,10 +110,10 @@ smstate sm_prepare(smtx *t, smpreparef prepare, void *arg)
 	for (; sr_iterhas(&i); sr_iternext(&i))
 	{
 		sv *vp = sr_iterof(&i);
-		svv *v = vp->v;
+		smv *v = vp->v;
 		/* cancelled by a concurrent commited
 		 * transaction */
-		if (v->flags & SVABORT)
+		if (v->v->flags & SVABORT)
 			return SMROLLBACK;
 		/* concurrent update in progress */
 		if (v->prev != NULL)
@@ -139,7 +141,7 @@ smstate sm_commit(smtx *t)
 	for (; sr_iterhas(&i); sr_iternext(&i))
 	{
 		sv *vp = sr_iterof(&i);
-		svv *v = vp->v;
+		smv *v = vp->v;
 		/* mark waiters as aborted */
 		sm_vabortwaiters(v);
 		/* remove from concurrent index and replace
@@ -150,6 +152,9 @@ smstate sm_commit(smtx *t)
 			sr_rbreplace(&c->i, &v->node, &v->next->node);
 		/* unlink version */
 		sm_vunlink(v);
+		/* translate log version from smv to svv */
+		svinit(vp, &sv_vif, v->v, NULL);
+		sr_free(c->asmv, v);
 	}
 	t->s = SMCOMMIT;
 	return SMCOMMIT;
@@ -164,7 +169,7 @@ smstate sm_rollback(smtx *t)
 	for (; sr_iterhas(&i); sr_iternext(&i))
 	{
 		sv *vp = sr_iterof(&i);
-		svv *v = vp->v;
+		smv *v = vp->v;
 		/* remove from index and replace head with
 		 * a first waiter */
 		if (v->prev)
@@ -175,58 +180,60 @@ smstate sm_rollback(smtx *t)
 			sr_rbreplace(&c->i, &v->node, &v->next->node);
 unlink:
 		sm_vunlink(v);
-		sr_free(c->r->a, v);
+		sm_vfree(c->r->a, c->asmv, v);
 	}
 	t->s = SMROLLBACK;
 	return SMROLLBACK;
 }
 
 sr_rbget(sm_match,
-         sr_compare(cmp, sv_vkey(srcast(n, svv, node)),
-                    (srcast(n, svv, node))->keysize,
+         sr_compare(cmp, sv_vkey((srcast(n, smv, node))->v),
+                    (srcast(n, smv, node))->v->keysize,
                     key, keysize))
 
-int sm_set(smtx *t, svv *v)
+int sm_set(smtx *t, svv *version)
 {
-	/* allocate new version */
 	sm *c = t->c;
+	/* allocate mvcc container */
+	smv *v = sm_valloc(c->asmv, version);
+	if (srunlikely(v == NULL))
+		return -1;
+	v->id = t->id;
 	sv vv;
-	svinit(&vv, &sv_vif, v, NULL);
-	v->id.tx.id = t->id;
-	v->id.tx.lo = 0;
-
+	svinit(&vv, &sm_vif, v, NULL);
 	/* update concurrent index */
 	srrbnode *n = NULL;
-	int rc = sm_match(&c->i, c->r->cmp, sv_vkey(v), v->keysize, &n);
+	int rc = sm_match(&c->i, c->r->cmp,
+	                  sv_vkey(version), version->keysize, &n);
 	if (rc == 0 && n) {
 		/* exists */
 	} else {
 		/* unique */
-		v->id.tx.lo = sv_logn(&t->log);
+		v->lo = sv_logn(&t->log);
 		if (srunlikely(sv_logadd(&t->log, c->r->a, &vv) == -1))
 			return sr_error(t->c->r->e, "%s", "memory allocation failed");
 		sr_rbset(&c->i, n, rc, &v->node);
 		return 0;
 	}
-	svv *head = srcast(n, svv, node);
+	smv *head = srcast(n, smv, node);
 	/* match previous update made by current
 	 * transaction */
-	svv *own = sm_vmatch(head, t->id);
+	smv *own = sm_vmatch(head, t->id);
 	if (srunlikely(own)) {
 		/* replace old object with the new one */
-		v->id.tx.lo = own->id.tx.lo;
+		v->lo = own->lo;
 		sm_vreplace(own, v);
 		if (srlikely(head == own))
 			sr_rbreplace(&c->i, &own->node, &v->node);
 		/* update log */
-		sv_logreplace(&t->log, v->id.tx.lo, &vv);
-		sr_free(c->r->a, own);
+		sv_logreplace(&t->log, v->lo, &vv);
+		sm_vfree(c->r->a, c->asmv, own);
 		return 0;
 	}
 	/* update log */
 	rc = sv_logadd(&t->log, c->r->a, &vv);
 	if (srunlikely(rc == -1)) {
-		sr_free(c->r->a, v);
+		sm_vfree(c->r->a, c->asmv, v);
 		return sr_error(t->c->r->e, "%s", "memory allocation failed");
 	}
 	/* add version */
@@ -241,14 +248,14 @@ int sm_get(smtx *t, sv *key, sv *result)
 	int rc = sm_match(&c->i, c->r->cmp, svkey(key), svkeysize(key), &n);
 	if (! (rc == 0 && n))
 		return 0;
-	svv *head = srcast(n, svv, node);
-	svv *v = sm_vmatch(head, t->id);
+	smv *head = srcast(n, smv, node);
+	smv *v = sm_vmatch(head, t->id);
 	if (v == NULL)
 		return 0;
-	if (srunlikely((v->flags & SVDELETE) > 0))
+	if (srunlikely((v->v->flags & SVDELETE) > 0))
 		return 2;
 	sv vv;
-	svinit(&vv, &sv_vif, v, NULL);
+	svinit(&vv, &sv_vif, v->v, NULL);
 	svv *ret = sv_valloc(c->r->a, &vv);
 	if (srunlikely(ret == NULL))
 		return sr_error(t->c->r->e, "%s", "memory allocation failed");

@@ -16,7 +16,7 @@ typedef struct smiter smiter;
 struct smiter {
 	sm *index;
 	srrbnode *v;
-	svv *vcur;
+	smv *vcur;
 	sv current;
 	srorder order;
 	void *key;
@@ -37,7 +37,7 @@ static inline void
 sm_iterfwd(smiter *i)
 {
 	while (i->v) {
-		svv *v = srcast(i->v, svv, node);
+		smv *v = srcast(i->v, smv, node);
 		i->vcur = sm_vmatch(v, i->id);
 		if (srlikely(i->vcur))
 			return;
@@ -49,7 +49,7 @@ static inline void
 sm_iterbkw(smiter *i)
 {
 	while (i->v) {
-		svv *v = srcast(i->v, svv, node);
+		smv *v = srcast(i->v, smv, node);
 		i->vcur = sm_vmatch(v, i->id);
 		if (srlikely(i->vcur))
 			return;
@@ -58,8 +58,8 @@ sm_iterbkw(smiter *i)
 }
 
 sr_rbget(sm_itermatch,
-         sr_compare(cmp, sv_vkey(srcast(n, svv, node)),
-                    (srcast(n, svv, node))->keysize,
+         sr_compare(cmp, sv_vkey((srcast(n, smv, node))->v),
+                    (srcast(n, smv, node))->v->keysize,
                     key, keysize))
 
 static int
@@ -147,7 +147,7 @@ sm_iterof(sriter *i)
 	if (srunlikely(ii->v == NULL))
 		return NULL;
 	assert(ii->vcur != NULL);
-	svinit(&ii->current, &sv_vif, ii->vcur, NULL);
+	svinit(&ii->current, &sm_vif, ii->vcur, NULL);
 	return &ii->current;
 }
 

@@ -79,7 +79,7 @@ so_vget(soobj *obj, va_list args)
 			lsnp = &v->lv.lsn;
 		else
 		if (v->v.i == &sv_vif)
-			lsnp = &((svv*)(v->v.v))->id.lsn;
+			lsnp = &((svv*)(v->v.v))->lsn;
 		int *valuesize = va_arg(args, int*);
 		if (valuesize)
 			*valuesize = sizeof(uint64_t);

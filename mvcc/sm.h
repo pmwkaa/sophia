@@ -16,9 +16,9 @@ typedef enum {
 	SMUNDEF,
 	SMREADY,
 	SMCOMMIT,
+	SMPREPARE,
 	SMROLLBACK,
-	SMWAIT,
-	SMPREPARE
+	SMWAIT
 } smstate;
 
 typedef smstate (*smpreparef)(smtx*, sv*, void*);
@@ -28,6 +28,7 @@ struct sm {
 	int tn;
 	srrb t;
 	srrb i;
+	sra *asmv;
 	sr *r;
 };
 
@@ -41,7 +42,7 @@ struct smtx {
 	srrbnode node;
 };
 
-int sm_init(sm*, sr*);
+int sm_init(sm*, sr*, sra*);
 int sm_free(sm*);
 
 smtx   *sm_find(sm*, uint32_t);

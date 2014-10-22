@@ -12,19 +12,12 @@
 typedef struct svv svv;
 
 struct svv {
-	union {
-		uint64_t lsn;
-		struct {
-			uint32_t id;
-			uint32_t lo;
-		} tx;
-	} id;
-	uint32_t valuesize;
-	uint16_t keysize;
-	uint8_t  flags;
-	svv *next;
-	svv *prev;
-	void *log;
+	uint64_t  lsn;
+	uint32_t  valuesize;
+	uint16_t  keysize;
+	uint8_t   flags;
+	void     *log;
+	svv      *next;
 	srrbnode node;
 } srpacked;
 
@@ -52,9 +45,8 @@ sv_valloc(sra *a, sv *v)
 	vv->keysize   = keysize; 
 	vv->valuesize = valuesize;
 	vv->flags     = svflags(v);
-	vv->id.lsn    = svlsn(v);
+	vv->lsn       = svlsn(v);
 	vv->next      = NULL;
-	vv->prev      = NULL;
 	vv->log       = NULL;
 	memset(&vv->node, 0, sizeof(vv->node));
 	char *key = sv_vkey(vv);
@@ -75,7 +67,7 @@ sv_vfree(sra *a, svv *v)
 
 static inline svv*
 sv_visible(svv *v, uint64_t lsvn) {
-	while (v && v->id.lsn > lsvn)
+	while (v && v->lsn > lsvn)
 		v = v->next;
 	return v;
 }

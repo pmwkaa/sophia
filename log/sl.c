@@ -334,6 +334,7 @@ int sl_writelsn(svlog *vlog, sl *log, uint64_t lsn)
 	sr_iteropen(&i, &vlog->buf, sizeof(sv));
 	for (; sr_iterhas(&i); sr_iternext(&i)) {
 		sv *v = sr_iterof(&i);
+		assert(v->i == &sv_vif);
 		((svv*)v->v)->log = log;
 		svlsnset(v, lsn);
 	}
@@ -410,6 +411,7 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 			lvp = 0;
 		}
 		sv *v = sr_iterof(&i);
+		assert(v->i == &sv_vif);
 		lv = &lvbuf[lvp];
 		sl_write_prepare(p, l, lv, v, lsn);
 		lvp++;
