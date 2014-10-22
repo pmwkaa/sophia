@@ -12,7 +12,7 @@
 #include <sophia.h>
 
 static void
-edr_test0(stc *cx srunused)
+tpr_test0(stc *cx srunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -22,7 +22,7 @@ edr_test0(stc *cx srunused)
 	t( sp_set(c, "db.test.log_dir", NULL) == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
-	t( sp_set(c, "db.test.edr", "1") == 0 );
+	t( sp_set(c, "db.test.two_phase_recover", "1") == 0 );
 	t( sp_set(c, "db.test.cmp", sr_cmpu32) == 0 );
 	t( sp_set(c, "db.test.threads", "0") == 0 );
 	void *db = sp_get(c, "db.test");
@@ -48,7 +48,7 @@ edr_test0(stc *cx srunused)
 }
 
 static void
-edr_test1(stc *cx srunused)
+tpr_test1(stc *cx srunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -58,7 +58,7 @@ edr_test1(stc *cx srunused)
 	t( sp_set(c, "db.test.log_dir", NULL) == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
-	t( sp_set(c, "db.test.edr", "1") == 0 );
+	t( sp_set(c, "db.test.two_phase_recover", "1") == 0 );
 	t( sp_set(c, "db.test.cmp", sr_cmpu32) == 0 );
 	t( sp_set(c, "db.test.threads", "0") == 0 );
 	t( sp_set(c, "db.test.node_branch_wm", "1") == 0 );
@@ -91,7 +91,7 @@ edr_test1(stc *cx srunused)
 	t( sp_set(c, "db.test.log_dir", NULL) == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
-	t( sp_set(c, "db.test.edr", "1") == 0 );
+	t( sp_set(c, "db.test.two_phase_recover", "1") == 0 );
 	t( sp_set(c, "db.test.cmp", sr_cmpu32) == 0 );
 	t( sp_set(c, "db.test.threads", "0") == 0 );
 	db = sp_get(c, "db.test");
@@ -144,10 +144,10 @@ edr_test1(stc *cx srunused)
 	t( sp_destroy(env) == 0 );
 }
 
-stgroup *edr_group(void)
+stgroup *tpr_group(void)
 {
-	stgroup *group = st_group("edr");
-	st_groupadd(group, st_test("recover_open", edr_test0));
-	st_groupadd(group, st_test("recover_reply", edr_test1));
+	stgroup *group = st_group("two_phase_recover");
+	st_groupadd(group, st_test("recover_open", tpr_test0));
+	st_groupadd(group, st_test("recover_reply", tpr_test1));
 	return group;
 }

@@ -104,7 +104,6 @@ int so_recover(sodb *db)
 	lc->rotatewm       = db->ctl.log_rotate_wm;
 	lc->sync_on_rotate = db->ctl.log_rotate_sync;
 	lc->sync_on_write  = db->ctl.log_sync;
-	lc->expand         = db->ctl.log_expand;
 	int rc = sl_poolinit(&db->lp, &db->r, lc);
 	if (srunlikely(rc == -1))
 		return -1;
@@ -130,7 +129,7 @@ int so_recover(sodb *db)
 	db->ctl.dir_created = rc;
 
 	/* recover log files */
-	if (db->ctl.edr)
+	if (db->ctl.two_phase_recover)
 		return 0;
 	if (! db->ctl.dir_created) {
 		rc = so_recoverlogpool(db);
@@ -148,7 +147,7 @@ error:
 
 int so_recover_complete(sodb *db)
 {
-	assert(db->ctl.edr == 1);
+	assert(db->ctl.two_phase_recover == 1);
 	if (sr_seq(db->r.seq, SR_LSN) > 1)
 		sr_seq(db->r.seq, SR_LSNNEXT);
 	return 0;

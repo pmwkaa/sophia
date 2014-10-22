@@ -127,7 +127,7 @@ so_dbopen(soobj *obj, va_list args srunused)
 	rc = so_recover(o);
 	if (srunlikely(rc == -1))
 		return -1;
-	if (o->ctl.edr)
+	if (o->ctl.two_phase_recover)
 		return 0;
 	return so_dbonline(obj);
 }

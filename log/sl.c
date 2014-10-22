@@ -101,8 +101,6 @@ int sl_poolinit(slpool *p, sr *r, slconf *conf)
 	p->enabled = 1;
 	if (conf->dir == NULL)
 		p->enabled = 0;
-	if (p->enabled && p->conf->expand)
-		return sr_error(r->e, "%s", "'log_expand' works only with logger disabled");
 	struct iovec *iov =
 		sr_malloc(r->a, sizeof(struct iovec) * 1021);
 	if (srunlikely(iov == NULL))
@@ -429,32 +427,11 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 	return 0;
 }
 
-static inline int
-sl_write_offline(sltx *t, svlog *vlog)
-{
-	uint64_t lsn;
-	if (t->p->conf->expand == 0) {
-		lsn = sr_seq(t->p->r->seq, SR_LSNNEXT);
-		return sl_writelsn(vlog, NULL, lsn);
-	}
-	sriter i;
-	sr_iterinit(&i, &sr_bufiter, NULL);
-	sr_iteropen(&i, &vlog->buf, sizeof(sv));
-	for (; sr_iterhas(&i); sr_iternext(&i)) {
-		sv *v = sr_iterof(&i);
-		((svv*)v->v)->log = NULL;
-		lsn = sr_seq(t->p->r->seq, SR_LSNNEXT);
-		svlsnset(v, lsn);
-	}
-	return 0;
-}
-
 int sl_write(sltx *t, svlog *vlog)
 {
-	if (srunlikely(! t->p->enabled))
-		return sl_write_offline(t, vlog);
-
 	uint64_t lsn = sr_seq(t->p->r->seq, SR_LSNNEXT);
+	if (srunlikely(! t->p->enabled))
+		return sl_writelsn(vlog, NULL, lsn);
 	int count = sv_logn(vlog);
 	int rc;
 	if (srlikely(count == 1))

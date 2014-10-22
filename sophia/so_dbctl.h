@@ -15,27 +15,27 @@ struct sodbctl {
 	void         *parent;
 	char         *name;
 	srcomparator  cmp;
-	/* sl */
+	/* logger */
 	char         *log_dir;
 	int           log_dirwrite;
 	int           log_dircreate;
 	int           log_sync;
 	int           log_rotate_wm;
 	int           log_rotate_sync;
-	int           log_expand;
-	/* si */
+	/* index and mvcc */
 	char         *dir;
 	int           dir_write;
 	int           dir_create;
 	int           dir_created;
 	int           dir_sync;
-	int           edr;
+	int           two_phase_recover;
+	int           two_phase_commit;
 	uint64_t      memory_limit;
 	uint32_t      node_size;
 	uint32_t      node_page_size;
 	uint32_t      node_branch_wm;
 	uint32_t      node_merge_wm;
-	/* so_db */
+	/* env */
 	int           threads_branch;
 	int           threads_merge;
 	int           threads;
