@@ -60,6 +60,10 @@ so_vset(soobj *obj, va_list args)
 	if (strcmp(name, "lsn") == 0) {
 		svlsnset(&v->v, va_arg(args, uint64_t));
 		return 0;
+	} else
+	if (strcmp(name, "log") == 0) {
+		v->log = va_arg(args, void*);
+		return 0;
 	}
 	return -1;
 }

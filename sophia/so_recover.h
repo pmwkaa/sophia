@@ -10,6 +10,5 @@
 */
 
 int so_recover(sodb*);
-int so_recover_complete(sodb*);
 
 #endif

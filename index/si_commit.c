@@ -28,13 +28,12 @@ si_vgc(sra *a, svv *gc)
 	}
 }
 
-void si_begin(sitx *t, sr *r, si *index, uint64_t lsvn, svlog *log, svv *v)
+void si_begin(sitx *t, sr *r, si *index, uint64_t lsvn, svlog *log)
 {
 	t->index = index;
 	t->lsvn  = lsvn;
 	t->r     = r;
 	t->log   = log;
-	t->v     = v;
 	si_lock(index);
 }
 
@@ -77,12 +76,7 @@ si_set(si *index, sr *r, uint64_t lsvn, svv *v)
 		si_vgc(r->a, vgc);
 }
 
-void si_write(sitx *t)
-{
-	si_set(t->index, t->r, t->lsvn, t->v);
-}
-
-void si_writelog(sitx *t)
+void si_write(sitx *t, int check)
 {
 	sriter i;
 	sr_iterinit(&i, &sr_bufiter, t->r);
@@ -91,22 +85,9 @@ void si_writelog(sitx *t)
 	{
 		sv *vp = sr_iterof(&i);
 		svv *v = vp->v;
-		si_set(t->index, t->r, t->lsvn, v);
-	}
-}
-
-void si_writelog_check(sitx *t)
-{
-	sriter i;
-	sr_iterinit(&i, &sr_bufiter, t->r);
-	sr_iteropen(&i, &t->log->buf, sizeof(sv));
-	for (; sr_iterhas(&i); sr_iternext(&i))
-	{
-		sv *vp = sr_iterof(&i);
-		svv *v = vp->v;
-		if (si_querycommited(t->index, t->r, vp)) {
+		if (check && si_querycommited(t->index, t->r, vp)) {
 			si_vgc(t->r->a, v);
-			return;
+			continue;
 		}
 		si_set(t->index, t->r, t->lsvn, v);
 	}

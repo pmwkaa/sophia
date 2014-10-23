@@ -20,6 +20,7 @@ struct sov {
 	uint8_t flags;
 	svlocal lv;
 	sv v;
+	void *log;
 	so *e;
 } srpacked;
 

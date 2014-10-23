@@ -442,10 +442,9 @@ si_recoverindex(si *i, sr *r)
 	rc = si_recovercomplete(&track, r, i, &buf);
 	if (srunlikely(rc == -1))
 		goto error;
-	/* complete node recover */
+	/* set actual metrics */
 	r->seq->nsn = track.nsn + 1;
-	/* expect to be completed by logpool */
-	r->seq->lsn = track.lsn;
+	r->seq->lsn = track.lsn + 1;
 	sr_buffree(&buf, r->a);
 	return 0;
 error:

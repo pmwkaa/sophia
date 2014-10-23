@@ -48,9 +48,9 @@ int sl_poolgc(slpool*);
 
 int sl_begin(slpool*, sltx*);
 int sl_prepare(slpool*, svlog*);
+int sl_follow(slpool*, svlog*);
 int sl_commit(sltx*);
 int sl_rollback(sltx*);
 int sl_write(sltx*, svlog*);
-int sl_writelsn(svlog*, sl*, uint64_t);
 
 #endif

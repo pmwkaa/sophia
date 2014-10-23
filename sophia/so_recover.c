@@ -43,6 +43,8 @@ so_recoverlog(sodb *db, sl *log)
 				goto rlb;
 			so_objset(o, "key", svkey(v), svkeysize(v));
 			so_objset(o, "value", svvalue(v), svvaluesize(v));
+			so_objset(o, "lsn", lsn);
+			so_objset(o, "log", log);
 			if (svflags(v) == SVSET)
 				rc = so_objset(tx, o);
 			else
@@ -55,7 +57,7 @@ so_recoverlog(sodb *db, sl *log)
 		}
 		if (srunlikely(sl_itererror(&i)))
 			goto rlb;
-		rc = so_objcommit(tx, lsn, log);
+		rc = so_objcommit(tx);
 		if (srunlikely(rc != 0))
 			goto error;
 
@@ -85,7 +87,6 @@ so_recoverlogpool(sodb *db)
 			return -1;
 		sr_gccomplete(&log->gc);
 	}
-	sr_seq(db->r.seq, SR_LSNNEXT);
 	return 0;
 }
 
@@ -143,12 +144,4 @@ int so_recover(sodb *db)
 error:
 	so_dbmalfunction(db);
 	return -1;
-}
-
-int so_recover_complete(sodb *db)
-{
-	assert(db->ctl.two_phase_recover == 1);
-	if (sr_seq(db->r.seq, SR_LSN) > 1)
-		sr_seq(db->r.seq, SR_LSNNEXT);
-	return 0;
 }

@@ -81,8 +81,8 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	sl_commit(&tl);
 	uint64_t lsvn = sm_lsvn(&db->mvcc);
 	sitx tx;
-	si_begin(&tx, &db->r, &db->index, lsvn, NULL, v);
-	si_write(&tx);
+	si_begin(&tx, &db->r, &db->index, lsvn, &log);
+	si_write(&tx, 0);
 	si_commit(&tx);
 	so_objdestroy(o);
 	return 0;
@@ -157,7 +157,7 @@ so_txdo(soobj *obj, uint8_t flags, va_list args)
 	}
 	svlocal l;
 	l.flags       = flags;
-	l.lsn         = 0;
+	l.lsn         = svlsn(ov);
 	l.key         = svkey(ov);
 	l.keysize     = svkeysize(ov);
 	l.value       = svvalue(ov);
@@ -171,6 +171,7 @@ so_txdo(soobj *obj, uint8_t flags, va_list args)
 		sr_error_recoverable(&db->e->error);
 		goto error;
 	}
+	v->log = ((sov*)o)->log;
 	rc = sm_set(&t->t, v);
 	so_objdestroy(o);
 	return rc;
@@ -291,49 +292,24 @@ so_txprepare(soobj *o, va_list args srunused)
 	int status = so_status(&db->status);
 	if (srunlikely(! so_statusactive_is(status)))
 		return -1;
-	if (srunlikely(status == SO_RECOVER))
-		return -1;
 	if (t->t.s == SMPREPARE)
 		return 0;
-	smstate s = sm_prepare(&t->t, so_txprepare_trigger, t);
-	if (s == SMWAIT) {
+	/* resolve conflicts */
+	smpreparef prepare_trigger = so_txprepare_trigger;
+	if (srunlikely(status == SO_RECOVER))
+		prepare_trigger = NULL;
+	smstate s = sm_prepare(&t->t, prepare_trigger, t);
+	if (s == SMWAIT)
 		return 2;
-	}
 	if (s == SMROLLBACK) {
 		so_txrollback(&t->o);
 		return 1;
 	}
 	assert(s == SMPREPARE);
+	if (db->ctl.commit_lsn || status == SO_RECOVER)
+		return 0;
 	/* assign lsn */
 	sl_prepare(&db->lp, &t->t.log);
-	return 0;
-}
-
-static int
-so_txcommit_recover(soobj *o, va_list args)
-{
-	sotx *t  = (sotx*)o;
-	sodb *db = t->db;
-
-	uint64_t lsn = va_arg(args, uint64_t);
-	sl *log = va_arg(args, sl*);
-
-	if (lsn > db->r.seq->lsn)
-		db->r.seq->lsn = lsn;
-	smstate s = sm_prepare(&t->t, NULL, NULL);
-	if (srunlikely(s != SMPREPARE)) {
-		so_txrollback(&t->o);
-		return -1;
-	}
-	sm_commit(&t->t);
-	sl_writelsn(&t->t.log, log, lsn);
-	uint64_t lsvn = sr_seq(db->r.seq, SR_LSN) - 1;
-	sitx ti;
-	si_begin(&ti, &db->r, &db->index, lsvn, &t->t.log, NULL);
-	si_writelog_check(&ti);
-	si_commit(&ti);
-	sm_end(&t->t);
-	so_txend(t);
 	return 0;
 }
 
@@ -342,10 +318,9 @@ so_txcommit(soobj *o, va_list args)
 {
 	sotx *t  = (sotx*)o;
 	sodb *db = t->db;
-
-	/* handle recover mode */
-	if (so_status(&db->status) == SO_RECOVER)
-		return so_txcommit_recover(o, args);
+	int status = so_status(&db->status);
+	if (srunlikely(! so_statusactive_is(status)))
+		return -1;
 
 	/* prepare transaction for commit */
 	assert (t->t.s == SMPREPARE || t->t.s == SMREADY);
@@ -365,22 +340,35 @@ so_txcommit(soobj *o, va_list args)
 	}
 	sm_commit(&t->t);
 
-	/* log commit (lsn numbers are set)*/
-	sltx tl;
-	sl_begin(&db->lp, &tl);
-	rc = sl_write(&tl, &t->t.log);
-	if (srunlikely(rc == -1)) {
-		sl_rollback(&tl);
-		so_txrollback(&t->o);
-		return -1;
+	/* synchronize lsn */
+	sl_follow(&db->lp, &t->t.log);
+
+	/* log commit */
+	if (status == SO_ONLINE) {
+		sltx tl;
+		sl_begin(&db->lp, &tl);
+		rc = sl_write(&tl, &t->t.log);
+		if (srunlikely(rc == -1)) {
+			sl_rollback(&tl);
+			so_txrollback(&t->o);
+			return -1;
+		}
+		sl_commit(&tl);
 	}
-	sl_commit(&tl); 
 
 	/* index commit */
-	uint64_t lsvn = sm_lsvn(&db->mvcc);
+	int check_if_exists;
+	uint64_t lsvn;
+	if (srunlikely(status == SO_RECOVER)) {
+		check_if_exists = 1;
+		lsvn = sr_seq(db->r.seq, SR_LSN) - 1;
+	} else {
+		check_if_exists = 0;
+		lsvn = sm_lsvn(&db->mvcc);
+	}
 	sitx ti;
-	si_begin(&ti, &db->r, &db->index, lsvn, &t->t.log, NULL);
-	si_writelog(&ti);
+	si_begin(&ti, &db->r, &db->index, lsvn, &t->t.log);
+	si_write(&ti, check_if_exists);
 	si_commit(&ti);
 	sm_end(&t->t);
 

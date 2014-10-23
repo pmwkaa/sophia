@@ -29,6 +29,7 @@ struct sodbctl {
 	int           dir_created;
 	int           dir_sync;
 	int           two_phase_recover;
+	int           commit_lsn;
 	uint64_t      memory_limit;
 	uint32_t      node_size;
 	uint32_t      node_page_size;
