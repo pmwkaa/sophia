@@ -89,7 +89,7 @@ static inline void
 so_logcursor_open(sologcursor *c)
 {
 	so_vinit(&c->v, c->t->db->e);
-	c->v.flags = SO_VRO|SO_VIMMUTABLE;
+	c->v.flags = SO_VIMMUTABLE;
 	c->pos = (sv*)c->t->t.log.buf.s;
 	if (c->pos >= (sv*)c->t->t.log.buf.p)
 		c->pos = NULL;
