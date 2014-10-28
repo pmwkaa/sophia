@@ -16,6 +16,7 @@ sr_rbtruncate(sv_indextruncate,
 int sv_indexinit(svindex *i)
 {
 	i->keymax = 0;
+	i->lsnmin = UINT64_MAX;
 	i->count  = 0;
 	sr_rbinit(&i->i);
 	return 0;
@@ -71,6 +72,8 @@ int sv_indexset(svindex *i, sr *r, uint64_t lsvn, svv *v, svv **gc)
 {
 	srrbnode *n = NULL;
 	svv *head = NULL;
+	if (v->lsn < i->lsnmin)
+		i->lsnmin = v->lsn;
 	int rc = sv_indexmatch(&i->i, r->cmp, sv_vkey(v), v->keysize, &n);
 	if (rc == 0 && n) {
 		head = srcast(n, svv, node);

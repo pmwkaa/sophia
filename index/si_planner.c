@@ -122,7 +122,8 @@ si_plannerpeek_branch(siplanner *p, siplan *plan)
 		if ((plan->condition & SI_BRANCH_SIZE) && n->iused >= plan->a)
 			break;
 		if ((plan->condition & SI_BRANCH_LSN)) {
-			// compate index
+			if (n->i0.lsnmin <= plan->b)
+				break;
 			continue;
 		}
 		return NULL;
