@@ -91,7 +91,12 @@ so_dbctl_branch(srctl *c srunused, void *arg, va_list args srunused)
 	int rc;
 	while (1) {
 		uint64_t lsvn = sm_lsvn(&db->mvcc);
-		rc = si_branch(&db->index, &db->r, &dc, lsvn, db->ctl.node_branch_wm);
+		siplan plan = {
+			.plan      = SI_BRANCH,
+			.condition = SI_BRANCH_SIZE,
+			.a         = db->ctl.node_branch_wm
+		};
+		rc = si_branch(&db->index, &db->r, &dc, &plan, lsvn);
 		if (srunlikely(rc <= 0))
 			break;
 	}
@@ -108,7 +113,12 @@ so_dbctl_merge(srctl *c srunused, void *arg, va_list args srunused)
 	int rc;
 	while (1) {
 		uint64_t lsvn = sm_lsvn(&db->mvcc);
-		rc = si_merge(&db->index, &db->r, &dc, lsvn, db->ctl.node_merge_wm);
+		siplan plan = {
+			.plan      = SI_MERGE,
+			.condition = SI_MERGE_DEEP,
+			.a         = db->ctl.node_merge_wm
+		};
+		rc = si_merge(&db->index, &db->r, &dc, &plan, lsvn);
 		if (srunlikely(rc <= 0))
 			break;
 	}

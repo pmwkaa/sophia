@@ -71,7 +71,7 @@ si_set(si *index, sr *r, uint64_t lsvn, svv *v)
 		si_qos(index, 1, size_vgc);
 	}
 	/* schedule node */
-	si_plan(&index->plan, SI_BRANCH, node);
+	si_plannerupdate(&index->p, SI_BRANCH, node);
 	if (srunlikely(vgc))
 		si_vgc(r->a, vgc);
 }

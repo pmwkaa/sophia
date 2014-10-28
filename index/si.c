@@ -14,7 +14,7 @@
 
 int si_init(si *i, siconf *conf)
 {
-	si_planinit(&i->plan);
+	si_plannerinit(&i->p);
 	sr_rbinit(&i->i);
 	sr_mutexinit(&i->lock);
 	sr_condinit(&i->cond);

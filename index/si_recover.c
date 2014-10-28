@@ -419,7 +419,7 @@ si_recovercomplete(sitrack *track, sr *r, si *index, srbuf *buf)
 		}
 		n->recover = SI_RDB;
 		si_insert(index, r, n);
-		si_plan(&index->plan, SI_MERGE, n);
+		si_plannerupdate(&index->p, SI_MERGE, n);
 	}
 	return 0;
 }

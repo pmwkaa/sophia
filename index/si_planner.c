@@ -12,7 +12,7 @@
 #include <libsd.h>
 #include <libsi.h>
 
-int si_planinit(siplan *p)
+int si_plannerinit(siplanner *p)
 {
 	sr_rbinit(&p->branch);
 	sr_rbinit(&p->merge);
@@ -20,7 +20,7 @@ int si_planinit(siplan *p)
 }
 
 srhot static inline int
-si_planmerge_cmp(sinode *a, sinode *b)
+si_plannermerge_cmp(sinode *a, sinode *b)
 {
 	if (a->lv != b->lv)
 		return (a->lv > b->lv) ? 1 : -1;
@@ -29,17 +29,18 @@ si_planmerge_cmp(sinode *a, sinode *b)
 	return (a->id.id > b->id.id) ? 1 : -1;
 }
 
-sr_rbget(si_planmerge_match,
-         si_planmerge_cmp(srcast(n, sinode, nodemerge), (sinode*)key))
+sr_rbget(si_plannermerge_match,
+         si_plannermerge_cmp(srcast(n, sinode, nodemerge), (sinode*)key))
 
 static inline int
-si_planmerge(siplan *p, sinode *n)
+si_plannermerge(siplanner *p, sinode *n)
 {
 	sr_rbremove(&p->merge, &n->nodemerge);
 	srrbnode *pn = NULL;
-	int rc = si_planmerge_match(&p->merge, NULL, n, 0, &pn);
+	int rc = si_plannermerge_match(&p->merge, NULL, n, 0, &pn);
 	assert(! (rc == 0 && pn));
 	sr_rbset(&p->merge, pn, rc, &n->nodemerge);
+#if 0
 	pn = sr_rbmax(&p->merge);
 	if (pn == NULL)
 		return 0;
@@ -52,11 +53,12 @@ si_planmerge(siplan *p, sinode *n)
 		lvlast = n->lv;
 		pn = sr_rbprev(&p->merge, pn);
 	}
+#endif
 	return 0;
 }
 
 srhot static inline int
-si_planbranch_cmp(sinode *a, sinode *b)
+si_plannerbranch_cmp(sinode *a, sinode *b)
 {
 	if (a->iused != b->iused)
 		return (a->iused > b->iused) ? 1 : -1;
@@ -65,17 +67,18 @@ si_planbranch_cmp(sinode *a, sinode *b)
 	return (a->id.id > b->id.id) ? 1 : -1;
 }
 
-sr_rbget(si_planbranch_match,
-         si_planbranch_cmp(srcast(n, sinode, nodebranch), (sinode*)key))
+sr_rbget(si_plannerbranch_match,
+         si_plannerbranch_cmp(srcast(n, sinode, nodebranch), (sinode*)key))
 
 static inline int
-si_planbranch(siplan *p, sinode *n)
+si_plannerbranch(siplanner *p, sinode *n)
 {
 	sr_rbremove(&p->branch, &n->nodebranch);
 	srrbnode *pn = NULL;
-	int rc = si_planbranch_match(&p->branch, NULL, n, 0, &pn);
+	int rc = si_plannerbranch_match(&p->branch, NULL, n, 0, &pn);
 	assert(! (rc == 0 && pn));
 	sr_rbset(&p->branch, pn, rc, &n->nodebranch);
+#if 0
 	pn = sr_rbmax(&p->branch);
 	if (pn == NULL)
 		return 0;
@@ -88,20 +91,21 @@ si_planbranch(siplan *p, sinode *n)
 		iusedlast = n->iused;
 		pn = sr_rbprev(&p->branch, pn);
 	}
+#endif
 	return 0;
 }
 
-int si_plan(siplan *p, int mask, sinode *n)
+int si_plannerupdate(siplanner *p, int mask, sinode *n)
 {
 	if (mask & SI_BRANCH)
-		si_planbranch(p, n);
+		si_plannerbranch(p, n);
 	if (mask & SI_MERGE)
-		si_planmerge(p, n);
+		si_plannermerge(p, n);
 	return 0;
 }
 
 static inline sinode*
-si_planpeek_branch(siplan *p, uint32_t wm)
+si_plannerpeek_branch(siplanner *p, siplan *plan)
 {
 	srrbnode *pn;
 	sinode *n;
@@ -113,9 +117,15 @@ si_planpeek_branch(siplan *p, uint32_t wm)
 			pn = sr_rbprev(&p->branch, pn);
 			continue;
 		}
-		if (n->iused < wm)
-			return NULL;
-		break;
+		if (srunlikely(plan->condition & SI_BRANCH_FORCE))
+			break;
+		if ((plan->condition & SI_BRANCH_SIZE) && n->iused >= plan->a)
+			break;
+		if ((plan->condition & SI_BRANCH_LSN)) {
+			// compate index
+			continue;
+		}
+		return NULL;
 	}
 	if (srunlikely(pn == NULL))
 		return NULL;
@@ -126,7 +136,7 @@ si_planpeek_branch(siplan *p, uint32_t wm)
 }
 
 static inline sinode*
-si_planpeek_merge(siplan *p, uint32_t wm)
+si_plannerpeek_merge(siplanner *p, siplan *plan)
 {
 	srrbnode *pn;
 	sinode *n;
@@ -138,9 +148,11 @@ si_planpeek_merge(siplan *p, uint32_t wm)
 			pn = sr_rbprev(&p->merge, pn);
 			continue;
 		}
-		if (n->lv < wm)
-			return NULL;
-		break;
+		if (srunlikely(plan->condition & SI_MERGE_FORCE))
+			break;
+		if ((plan->condition & SI_MERGE_DEEP) && n->lv >= plan->a)
+			break;
+		return NULL;
 	}
 	if (srunlikely(pn == NULL))
 		return NULL;
@@ -151,16 +163,16 @@ si_planpeek_merge(siplan *p, uint32_t wm)
 }
 
 sinode*
-si_planpeek(siplan *p, int op, uint32_t wm)
+si_planner(siplanner *p, siplan *plan)
 {
-	switch (op) {
-	case SI_BRANCH: return si_planpeek_branch(p, wm);
-	case SI_MERGE:  return si_planpeek_merge(p, wm);
+	switch (plan->plan) {
+	case SI_BRANCH: return si_plannerpeek_branch(p, plan);
+	case SI_MERGE:  return si_plannerpeek_merge(p, plan);
 	}
 	return NULL;
 }
 
-int si_planremove(siplan *p, int mask, sinode *n)
+int si_plannerremove(siplanner *p, int mask, sinode *n)
 {
 	if (mask & SI_BRANCH)
 		sr_rbremove(&p->branch, &n->nodebranch);
@@ -169,8 +181,9 @@ int si_planremove(siplan *p, int mask, sinode *n)
 	return 0;
 }
 
+#if 0
 void
-si_planprint_branch(siplan *p)
+si_plannerprint_branch(siplanner *p)
 {
 	srrbnode *pn;
 	sinode *n;
@@ -192,7 +205,7 @@ si_planprint_branch(siplan *p)
 }
 
 void
-si_planprint_merge(siplan *p)
+si_plannerprint_merge(siplanner *p)
 {
 	srrbnode *pn;
 	sinode *n;
@@ -212,3 +225,4 @@ si_planprint_merge(siplan *p)
 		pn = sr_rbprev(&p->merge, pn);
 	}
 }
+#endif

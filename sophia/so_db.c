@@ -34,10 +34,13 @@ static inline void *so_merger(void *arg)
 		if (srunlikely(rc == 0))
 			break;
 		uint64_t lsvn = sm_lsvn(&o->mvcc);
-		rc = si_merge(&o->index,
-		              &o->r, &self->dc,
-		              lsvn,
-		              o->ctl.node_merge_wm);
+		siplan plan = {
+			.plan      = SI_MERGE,
+			.condition = SI_MERGE_DEEP,
+			.a         = o->ctl.node_merge_wm
+		};
+		rc = si_merge(&o->index, &o->r, &self->dc,
+		              &plan, lsvn);
 		if (srunlikely(rc == -1)) {
 			so_dbmalfunction(o);
 			break;
@@ -58,10 +61,13 @@ static inline void *so_brancher(void *arg)
 		if (srunlikely(rc == 0))
 			break;
 		uint64_t lsvn = sm_lsvn(&o->mvcc);
-		rc = si_branch(&o->index,
-		               &o->r, &self->dc,
-		               lsvn,
-		               o->ctl.node_branch_wm);
+		siplan plan = {
+			.plan      = SI_BRANCH,
+			.condition = SI_BRANCH_SIZE,
+			.a         = o->ctl.node_branch_wm
+		};
+		rc = si_branch(&o->index, &o->r, &self->dc,
+		               &plan, lsvn);
 		if (srunlikely(rc == -1)) {
 			so_dbmalfunction(o);
 			break;

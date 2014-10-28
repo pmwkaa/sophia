@@ -9,6 +9,6 @@
  * BSD License
 */
 
-int si_merge(si*, sr*, sdc*, uint64_t, uint32_t);
+int si_merge(si*, sr*, sdc*, siplan*, uint64_t);
 
 #endif

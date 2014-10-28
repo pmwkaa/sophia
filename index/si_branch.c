@@ -13,18 +13,20 @@
 #include <libsd.h>
 #include <libsi.h>
 
-int si_branch(si *index, sr *r, sdc *c, uint64_t lsvn, uint32_t wm)
+int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t lsvn)
 {
 	si_lock(index);
-	uint32_t limit = wm;
-	if (si_qoslimit(index))
-		limit = 0;
-	sinode *n = si_planpeek(&index->plan, SI_BRANCH, limit);
+	/*
+	if (plan->condition & SI_BRANCH_LIMIT) {
+		if (si_qoslimit(index))
+			plan->condition = SI_BRANCH_FORCE;
+	}
+	*/
+	sinode *n = si_planner(&index->p, plan);
 	if (srunlikely(n == NULL)) {
 		si_unlock(index);
 		return 0;
 	}
-	/*si_planprint_branch(&index->plan);*/
 	uint32_t iused   = n->iused;
 	uint32_t iusedkv = n->iusedkv;
 	uint32_t icount  = n->icount;
@@ -39,7 +41,7 @@ int si_branch(si *index, sr *r, sdc *c, uint64_t lsvn, uint32_t wm)
 
 	sd_creset(c);
 	srbuf *result = &c->a;
-	
+
 	/* dump index */
 	sriter indexi;
 	sr_iterinit(&indexi, &sv_indexiterraw, r);
@@ -96,7 +98,7 @@ int si_branch(si *index, sr *r, sdc *c, uint64_t lsvn, uint32_t wm)
 	n->iused   -= iused;
 	n->iusedkv -= iusedkv;
 	n->icount  -= icount;
-	si_plan(&index->plan, SI_BRANCH|SI_MERGE, n);
+	si_plannerupdate(&index->p, SI_BRANCH|SI_MERGE, n);
 	si_qos(index, 1, iused);
 	si_unlock(index);
 

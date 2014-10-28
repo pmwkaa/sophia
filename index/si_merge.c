@@ -113,7 +113,7 @@ si_mergeof(si *index, sr *r, sdc *c, uint64_t lsvn,
 	             return -1);
 
 	si_lock(index);
-	si_planremove(&index->plan, SI_MERGE|SI_BRANCH, node);
+	si_plannerremove(&index->p, SI_MERGE|SI_BRANCH, node);
 	sinode *n;
 	if (srlikely(count == 1)) {
 		n = *(sinode**)result->s;
@@ -124,7 +124,7 @@ si_mergeof(si *index, sr *r, sdc *c, uint64_t lsvn,
 		n->flags  |= SI_MERGE|SI_BRANCH;
 		sv_indexinit(&node->i0);
 		si_replace(index, node, n);
-		si_plan(&index->plan, SI_MERGE|SI_BRANCH, n);
+		si_plannerupdate(&index->p, SI_MERGE|SI_BRANCH, n);
 	} else {
 		rc = si_redistribute(r, c, node, result, s.lsvn);
 		if (srunlikely(rc == -1)) {
@@ -138,13 +138,13 @@ si_mergeof(si *index, sr *r, sdc *c, uint64_t lsvn,
 		n = sr_iterof(&i);
 		n->flags |= SI_MERGE|SI_BRANCH;
 		si_replace(index, node, n);
-		si_plan(&index->plan, SI_MERGE|SI_BRANCH, n);
+		si_plannerupdate(&index->p, SI_MERGE|SI_BRANCH, n);
 		for (sr_iternext(&i); sr_iterhas(&i);
 			 sr_iternext(&i)) {
 			n = sr_iterof(&i);
 			n->flags |= SI_MERGE|SI_BRANCH;
 			si_insert(index, r, n);
-			si_plan(&index->plan, SI_MERGE|SI_BRANCH, n);
+			si_plannerupdate(&index->p, SI_MERGE|SI_BRANCH, n);
 		}
 	}
 	si_unlock(index);
@@ -226,15 +226,14 @@ si_mergeadd(svmerge *m, sr *r, sinode *n,
 	return 0;
 }
 
-int si_merge(si *index, sr *r, sdc *c, uint64_t lsvn, uint32_t wm)
+int si_merge(si *index, sr *r, sdc *c, siplan *plan, uint64_t lsvn)
 {
 	si_lock(index);
-	sinode *node = si_planpeek(&index->plan, SI_MERGE, wm);
+	sinode *node = si_planner(&index->p, plan);
 	if (srunlikely(node == NULL)) {
 		si_unlock(index);
 		return 0;
 	}
-	/*si_planprint_merge(&index->plan);*/
 	si_unlock(index);
 	sd_creset(c);
 	svmerge merge;

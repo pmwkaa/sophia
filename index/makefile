@@ -1,5 +1,5 @@
 LIBSI_O = si_node.o \
-          si_plan.o \
+          si_planner.o \
           si.o \
           si_qos.o \
           si_commit.o \

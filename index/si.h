@@ -14,8 +14,8 @@ typedef struct si si;
 struct si {
 	srmutex lock;
 	srcond cond;
-	siplan plan;
 	srrb i;
+	siplanner p;
 	uint64_t qos_limit;
 	uint64_t qos_used;
 	int qos_wait;
