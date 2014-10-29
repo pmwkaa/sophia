@@ -30,15 +30,6 @@ struct sodbctl {
 	int           dir_sync;
 	int           two_phase_recover;
 	int           commit_lsn;
-	uint64_t      memory_limit;
-	uint32_t      node_size;
-	uint32_t      node_page_size;
-	uint32_t      node_branch_wm;
-	uint32_t      node_merge_wm;
-	/* env */
-	int           threads_branch;
-	int           threads_merge;
-	int           threads;
 } srpacked;
 
 int   so_dbctl_init(sodbctl*, char*, void*);

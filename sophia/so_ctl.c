@@ -217,6 +217,145 @@ so_ctldb_dump(soctl *c, srbuf *dump)
 	return 0;
 }
 
+static inline void
+so_ctlmemory_prepare(srctl *t, soctl *c, srpager *pager)
+{
+	srctl *p = t;
+	p = sr_ctladd(p, "limit",           SR_CTLU64,          &c->memory_limit,  NULL);
+	p = sr_ctladd(p, "pager_pool_size", SR_CTLU32|SR_CTLRO, &pager->pool_size, NULL);
+	p = sr_ctladd(p, "pager_page_size", SR_CTLU32|SR_CTLRO, &pager->page_size, NULL);
+	p = sr_ctladd(p, "pager_pools",     SR_CTLINT|SR_CTLRO, &pager->pools,     NULL);
+	p = sr_ctladd(p,  NULL,             0,                  NULL,              NULL);
+}
+
+static int
+so_ctlmemory_set(so *o, char *path, va_list args)
+{
+	srctl ctls[30];
+	so_ctlmemory_prepare(&ctls[0], &o->ctl, &o->pager);
+	srctl *match = NULL;
+	int rc = sr_ctlget(&ctls[0], &path, &match);
+	if (srunlikely(rc ==  1))
+		return -1; /* self */
+	if (srunlikely(rc == -1)) {
+		sr_error(&o->error, "%s", "bad control path");
+		sr_error_recoverable(&o->error);
+		return -1;
+	}
+	int type = match->type & ~SR_CTLRO;
+	if (so_active(o) && (type != SR_CTLTRIGGER)) {
+		sr_error(&o->error, "%s", "failed to set control path");
+		sr_error_recoverable(&o->error);
+		return -1;
+	}
+	rc = sr_ctlset(match, &o->a, NULL, args);
+	if (srunlikely(rc == -1)) {
+		sr_error_recoverable(&o->error);
+		return -1;
+	}
+	return rc;
+}
+
+static void*
+so_ctlmemory_get(soctl *c, char *path, va_list args srunused)
+{
+	so *e = c->e;
+	srctl ctls[30];
+	so_ctlmemory_prepare(&ctls[0], &e->ctl, &e->pager);
+	srctl *match = NULL;
+	int rc = sr_ctlget(&ctls[0], &path, &match);
+	if (srunlikely(rc ==  1))
+		return NULL; /* self */
+	return so_ctlreturn(match, e);
+}
+
+static int
+so_ctlmemory_dump(soctl *c, srbuf *dump)
+{
+	so *e = c->e;
+	srctl ctls[30];
+	so_ctlmemory_prepare(&ctls[0], &e->ctl, &e->pager);
+	char prefix[64];
+	snprintf(prefix, sizeof(prefix), "memory.");
+	int rc = sr_ctlserialize(&ctls[0], &e->a, prefix, dump);
+	if (srunlikely(rc == -1)) {
+		sr_error(&e->error, "%s", "memory allocation failed");
+		sr_error_recoverable(&e->error);
+		return -1;
+	}
+	return 0;
+}
+
+static inline void
+so_ctlscheduler_prepare(srctl *t, soctl *c)
+{
+	srctl *p = t;
+	p = sr_ctladd(p, "threads",        SR_CTLU32, &c->threads,        NULL);
+	p = sr_ctladd(p, "node_size",      SR_CTLU32, &c->node_size,      NULL);
+	p = sr_ctladd(p, "node_page_size", SR_CTLU32, &c->node_page_size, NULL);
+	p = sr_ctladd(p, "node_branch_wm", SR_CTLU32, &c->node_branch_wm, NULL);
+	p = sr_ctladd(p, "node_merge_wm",  SR_CTLU32, &c->node_merge_wm,  NULL);
+	p = sr_ctladd(p,  NULL,            0,         NULL,               NULL);
+}
+
+static int
+so_ctlscheduler_set(so *o, char *path, va_list args)
+{
+	srctl ctls[30];
+	so_ctlscheduler_prepare(&ctls[0], &o->ctl);
+	srctl *match = NULL;
+	int rc = sr_ctlget(&ctls[0], &path, &match);
+	if (srunlikely(rc ==  1))
+		return -1; /* self */
+	if (srunlikely(rc == -1)) {
+		sr_error(&o->error, "%s", "bad control path");
+		sr_error_recoverable(&o->error);
+		return -1;
+	}
+	int type = match->type & ~SR_CTLRO;
+	if (so_active(o) && (type != SR_CTLTRIGGER)) {
+		sr_error(&o->error, "%s", "failed to set control path");
+		sr_error_recoverable(&o->error);
+		return -1;
+	}
+	rc = sr_ctlset(match, &o->a, NULL, args);
+	if (srunlikely(rc == -1)) {
+		sr_error_recoverable(&o->error);
+		return -1;
+	}
+	return rc;
+}
+
+static void*
+so_ctlscheduler_get(soctl *c, char *path, va_list args srunused)
+{
+	so *e = c->e;
+	srctl ctls[30];
+	so_ctlscheduler_prepare(&ctls[0], &e->ctl);
+	srctl *match = NULL;
+	int rc = sr_ctlget(&ctls[0], &path, &match);
+	if (srunlikely(rc ==  1))
+		return NULL; /* self */
+	return so_ctlreturn(match, e);
+}
+
+static int
+so_ctlscheduler_dump(soctl *c, srbuf *dump)
+{
+	so *e = c->e;
+	srctl ctls[30];
+	so_ctlscheduler_prepare(&ctls[0], &e->ctl);
+	char prefix[64];
+	snprintf(prefix, sizeof(prefix), "scheduler.");
+	int rc = sr_ctlserialize(&ctls[0], &e->a, prefix, dump);
+	if (srunlikely(rc == -1)) {
+		sr_error(&e->error, "%s", "memory allocation failed");
+		sr_error_recoverable(&e->error);
+		return -1;
+	}
+	return 0;
+}
+
 static int
 so_ctlset(soobj *obj, va_list args)
 {
@@ -235,6 +374,13 @@ so_ctlset(soobj *obj, va_list args)
 	}
 	if (strcmp(token, "sophia") == 0)
 		return so_ctlsophia_set(c, ptr, args);
+	else
+	if (strcmp(token, "memory") == 0)
+		return so_ctlmemory_set(e, ptr, args);
+	else
+	if (strcmp(token, "scheduler") == 0)
+		return so_ctlscheduler_set(e, ptr, args);
+	else
 	if (strcmp(token, "db") == 0)
 		return so_ctldb_set(c, ptr, args);
 	sr_error(&e->error, "%s", "unknown control path");
@@ -260,6 +406,13 @@ so_ctlget(soobj *obj, va_list args)
 	}
 	if (strcmp(token, "sophia") == 0)
 		return so_ctlsophia_get(c, ptr, args);
+	else
+	if (strcmp(token, "memory") == 0)
+		return so_ctlmemory_get(c, ptr, args);
+	else
+	if (strcmp(token, "scheduler") == 0)
+		return so_ctlscheduler_get(c, ptr, args);
+	else
 	if (strcmp(token, "db") == 0)
 		return so_ctldb_get(c, ptr, args);
 	sr_error(&e->error, "%s", "unknown control path");
@@ -270,6 +423,12 @@ so_ctlget(soobj *obj, va_list args)
 int so_ctldump(soctl *c, srbuf *dump)
 {
 	int rc = so_ctlsophia_dump(c, dump);
+	if (srunlikely(rc == -1))
+		return -1;
+	rc = so_ctlmemory_dump(c, dump);
+	if (srunlikely(rc == -1))
+		return -1;
+	rc = so_ctlscheduler_dump(c, dump);
 	if (srunlikely(rc == -1))
 		return -1;
 	rc = so_ctldb_dump(c, dump);
@@ -312,4 +471,10 @@ void so_ctlinit(soctl *c, void *e)
 {
 	so_objinit(&c->o, SOCTL, &soctlif, e);
 	c->e = e;
+	c->memory_limit   = 0;
+	c->node_size      = 128 * 1024 * 1024;
+	c->node_page_size = 128 * 1024;
+	c->node_branch_wm = 10 * 1024 * 1024;
+	c->node_merge_wm  = 1;
+	c->threads        = 5;
 }

@@ -49,7 +49,7 @@ mt_single_stmt(stc *cx)
 	t( sp_set(c, "db.test.log_rotate_sync", "0") == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
-	t( sp_set(c, "db.test.threads", "3") == 0 );
+	t( sp_set(c, "scheduler.threads", "3") == 0 );
 	cx->db = sp_get(c, "db.test");
 	t( cx->db != NULL );
 	t( sp_open(cx->env) == 0 );
@@ -66,7 +66,7 @@ mt_single_stmt(stc *cx)
 	t( so_workersnew(&w, &r, 5, single_stmt_thread, cx->db) == 0 );
 	t( so_workersshutdown(&w, &r) == 0 );
 
-	void *o = sp_get(c, "db.test.profiler.index_count");
+	void *o = sp_get(c, "db.test.index.count");
 	t( o != NULL );
 	t( strcmp( sp_get(o, "value", NULL), "100000") == 0 );
 	sp_destroy(o);
@@ -119,7 +119,7 @@ mt_multi_stmt(stc *cx)
 	t( sp_set(c, "db.test.log_rotate_sync", "0") == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
-	t( sp_set(c, "db.test.threads", "3") == 0 );
+	t( sp_set(c, "scheduler.threads", "3") == 0 );
 	cx->db = sp_get(c, "db.test");
 	t( cx->db != NULL );
 	t( sp_open(cx->env) == 0 );
@@ -136,7 +136,7 @@ mt_multi_stmt(stc *cx)
 	t( so_workersnew(&w, &r, 5, multi_stmt_thread, cx->db) == 0 );
 	t( so_workersshutdown(&w, &r) == 0 );
 
-	void *o = sp_get(c, "db.test.profiler.index_count");
+	void *o = sp_get(c, "db.test.index.count");
 	t( o != NULL );
 	t( strcmp( sp_get(o, "value", NULL), "100000") == 0 );
 	sp_destroy(o);
@@ -184,8 +184,8 @@ mt_multi_stmt_conflict(stc *cx)
 	t( sp_set(c, "db.test.log_rotate_sync", "0") == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
-	t( sp_set(c, "db.test.cmp", sr_cmpu32) == 0 );
-	t( sp_set(c, "db.test.threads", "3") == 0 );
+	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "scheduler.threads", "3") == 0 );
 	cx->db = sp_get(c, "db.test");
 	t( cx->db != NULL );
 	t( sp_open(cx->env) == 0 );

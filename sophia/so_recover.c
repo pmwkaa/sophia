@@ -114,11 +114,10 @@ int so_recover(sodb *db)
 
 	/* open and recover repository */
 	siconf *c = &db->indexconf;
-	c->node_size      = db->ctl.node_size;
-	c->node_page_size = db->ctl.node_page_size;
-	c->node_branch_wm = db->ctl.node_branch_wm;
-	c->node_merge_wm  = db->ctl.node_merge_wm;
-	c->memory_limit   = db->ctl.memory_limit;
+	c->node_size      = db->e->ctl.node_size;
+	c->node_page_size = db->e->ctl.node_page_size;
+	c->node_branch_wm = db->e->ctl.node_branch_wm;
+	c->node_merge_wm  = db->e->ctl.node_merge_wm;
 	c->dir            = db->ctl.dir;
 	c->dir_write      = db->ctl.dir_write;
 	c->dir_create     = db->ctl.dir_create;

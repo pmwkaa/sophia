@@ -37,7 +37,7 @@ static inline void *so_merger(void *arg)
 		siplan plan = {
 			.plan      = SI_MERGE,
 			.condition = SI_MERGE_DEEP,
-			.a         = o->ctl.node_merge_wm
+			.a         = o->e->ctl.node_merge_wm
 		};
 		rc = si_merge(&o->index, &o->r, &self->dc,
 		              &plan, lsvn);
@@ -64,7 +64,7 @@ static inline void *so_brancher(void *arg)
 		siplan plan = {
 			.plan      = SI_BRANCH,
 			.condition = SI_BRANCH_SIZE,
-			.a         = o->ctl.node_branch_wm
+			.a         = o->e->ctl.node_branch_wm
 		};
 		rc = si_branch(&o->index, &o->r, &self->dc,
 		               &plan, lsvn);
@@ -98,7 +98,8 @@ so_dbonline(soobj *obj)
 	sodb *o = (sodb*)obj;
 	si_qosenable(&o->index, 1);
 	so_statusset(&o->status, SO_ONLINE);
-	int threads = o->ctl.threads;
+
+	int threads = o->e->ctl.threads;
 	int rc;
 	if (threads) {
 		rc = so_workersnew(&o->workers, &o->r, 1, so_brancher, o);
