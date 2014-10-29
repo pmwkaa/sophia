@@ -37,6 +37,7 @@ struct sltx {
 	slpool *p;
 	sl *l;
 	uint64_t svp;
+	uint32_t dsn;
 };
 
 int sl_poolinit(slpool*, sr*, slconf*);
@@ -46,7 +47,7 @@ int sl_poolrotate_ready(slpool*, int);
 int sl_poolshutdown(slpool*);
 int sl_poolgc(slpool*);
 
-int sl_begin(slpool*, sltx*);
+int sl_begin(slpool*, sltx*, uint32_t);
 int sl_prepare(slpool*, svlog*);
 int sl_follow(slpool*, svlog*);
 int sl_commit(sltx*);

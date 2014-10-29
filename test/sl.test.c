@@ -76,7 +76,7 @@ sl_begin_commit(stc *cx)
 	alloclogv(&log, &a, 0, SVSET, 7);
 
 	sltx ltx;
-	t( sl_begin(&lp, &ltx) == 0 );
+	t( sl_begin(&lp, &ltx, 0) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );
 
@@ -114,7 +114,7 @@ sl_begin_rollback(stc *cx)
 	alloclogv(&log, &a, 0, SVSET, 7);
 
 	sltx ltx;
-	t( sl_begin(&lp, &ltx) == 0 );
+	t( sl_begin(&lp, &ltx, 0) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_rollback(&ltx) == 0 );
 

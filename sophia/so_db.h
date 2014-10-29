@@ -13,6 +13,7 @@ typedef struct sodb sodb;
 
 struct sodb {
 	soobj o;
+	uint32_t id;
 	sostatus status;
 	sodbctl ctl;
 	soobjindex tx;

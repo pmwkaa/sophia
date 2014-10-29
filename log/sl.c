@@ -289,7 +289,7 @@ int sl_poolgc(slpool *p)
 	return 0;
 }
 
-int sl_begin(slpool *p, sltx *t)
+int sl_begin(slpool *p, sltx *t, uint32_t dsn)
 {
 	memset(t, 0, sizeof(*t));
 	sr_spinlock(&p->lock);
@@ -302,6 +302,7 @@ int sl_begin(slpool *p, sltx *t)
 	t->svp = sr_filesvp(&l->file);
 	t->l = l;
 	t->p = p;
+	t->dsn = dsn;
 	return 0;
 }
 
@@ -362,9 +363,10 @@ int sl_follow(slpool *p, svlog *vlog)
 }
 
 static inline void
-sl_write_prepare(slpool *p, sl *l, slv *lv, sv *v)
+sl_write_prepare(slpool *p, sltx *t, slv *lv, sv *v)
 {
 	lv->lsn       = svlsn(v);
+	lv->dsn       = t->dsn;
 	lv->flags     = svflags(v);
 	lv->valuesize = svvaluesize(v);
 	lv->keysize   = svkeysize(v);
@@ -374,7 +376,7 @@ sl_write_prepare(slpool *p, sl *l, slv *lv, sv *v)
 	sr_iovadd(&p->iov, lv, sizeof(slv));
 	sr_iovadd(&p->iov, svkey(v), lv->keysize);
 	sr_iovadd(&p->iov, svvalue(v), lv->valuesize);
-	((svv*)v->v)->log = l;
+	((svv*)v->v)->log = t->l;
 }
 
 static inline int
@@ -383,7 +385,7 @@ sl_write_stmt(sltx *t, svlog *vlog)
 	slpool *p = t->p;
 	slv lv;
 	sv *v = (sv*)vlog->buf.s;
-	sl_write_prepare(t->p, t->l, &lv, v);
+	sl_write_prepare(t->p, t, &lv, v);
 	int rc = sr_filewritev(&t->l->file, &p->iov);
 	if (srunlikely(rc == -1)) {
 		sr_error(p->r->e, "log file '%s' write error: %s",
@@ -407,6 +409,7 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 	/* transaction header */
 	slv *lv = &lvbuf[0];
 	lv->lsn       = lsn;
+	lv->dsn       = t->dsn;
 	lv->flags     = SVBEGIN;
 	lv->valuesize = sv_logn(vlog);
 	lv->keysize   = 0;
@@ -432,7 +435,7 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 		sv *v = sr_iterof(&i);
 		assert(v->i == &sv_vif);
 		lv = &lvbuf[lvp];
-		sl_write_prepare(p, t->l, lv, v);
+		sl_write_prepare(p, t, lv, v);
 		lvp++;
 	}
 	if (srlikely(sr_iovhas(&p->iov))) {

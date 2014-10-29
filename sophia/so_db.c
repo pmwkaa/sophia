@@ -262,6 +262,7 @@ soobj *so_dbnew(so *e, char *name)
 	so_objindex_init(&o->cursor);
 	so_statusinit(&o->status);
 	so_statusset(&o->status, SO_OFFLINE);
+	o->id    = sr_seq(&e->seq, SR_DSNNEXT);
 	o->e     = e;
 	o->r     = e->r;
 	o->r.cmp = &o->ctl.cmp;

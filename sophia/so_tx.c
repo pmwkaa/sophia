@@ -70,7 +70,7 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	sv_loginit(&log);
 	sv_logadd(&log, NULL, &vp);
 	sltx tl;
-	sl_begin(&db->lp, &tl);
+	sl_begin(&db->lp, &tl, db->id);
 	sl_prepare(&db->lp, &log);
 	rc = sl_write(&tl, &log);
 	if (srunlikely(rc == -1)) {
@@ -346,7 +346,7 @@ so_txcommit(soobj *o, va_list args)
 	/* log commit */
 	if (status == SO_ONLINE) {
 		sltx tl;
-		sl_begin(&db->lp, &tl);
+		sl_begin(&db->lp, &tl, db->id);
 		rc = sl_write(&tl, &t->t.log);
 		if (srunlikely(rc == -1)) {
 			sl_rollback(&tl);
