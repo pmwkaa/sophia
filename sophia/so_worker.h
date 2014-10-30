@@ -14,6 +14,7 @@ typedef struct soworkers soworkers;
 
 struct soworker {
 	srthread t;
+	srtrace trace;
 	void *arg;
 	sdc dc;
 	srlist link;

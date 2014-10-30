@@ -41,6 +41,7 @@
 #include <sr_astd.h>
 #include <sr_aslab.h>
 #include <sr_error.h>
+#include <sr_trace.h>
 #include <sr_gc.h>
 #include <sr_seq.h>
 #include <sr_order.h>

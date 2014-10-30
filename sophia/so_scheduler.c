@@ -294,9 +294,7 @@ so_schedule(soscheduler *s, sotask *task)
 static int
 so_rotate(soscheduler *s, soworker *w)
 {
-	/* todo: set w->r->trace */
-	(void)w;
-
+	sr_trace(&w->trace, "%s", "log rotation");
 	so *e = s->env;
 	int rc = sl_poolgc(&e->lp);
 	if (srunlikely(rc == -1))
@@ -313,9 +311,12 @@ so_rotate(soscheduler *s, soworker *w)
 static int
 so_execute(soscheduler *s, sotask *t, soworker *w)
 {
-	/* todo: set w->r->trace */
-	(void)s;
-
+	char *op;
+	if (t->plan.plan == SI_BRANCH)
+		op = "branch";
+	else
+		op = "merge";
+	sr_trace(&w->trace, "%s (%s)", op, t->plan.node->file.file);
 	sodb *db = t->db;
 	uint64_t lsvn = sm_lsvn(&db->mvcc);
 	int rc = si_execute(&db->index, &db->r, &w->dc, &t->plan, lsvn);
@@ -341,5 +342,6 @@ int so_scheduler(soscheduler *s, soworker *w)
 	}
 	if (srunlikely(! job))
 		return 0;
+	sr_trace(&w->trace, "%s", "sleep");
 	return so_execute(s, &task, w);
 }

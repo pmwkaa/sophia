@@ -32,6 +32,7 @@ so_workershutdown(soworker *w, sr *r)
 		sr_error(r->e, "failed to join a thread: %s",
 		         strerror(errno));
 	sd_cfree(&w->dc, r);
+	sr_tracefree(&w->trace);
 	sr_free(r->a, w);
 	return rc;
 }
@@ -61,6 +62,7 @@ so_workernew(sr *r, srthreadf f, void *arg)
 	p->arg = arg;
 	sd_cinit(&p->dc, r);
 	sr_listinit(&p->link);
+	sr_traceinit(&p->trace);
 	int rc = sr_threadnew(&p->t, f, p);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "failed to create thread: %s",
