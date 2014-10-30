@@ -60,7 +60,7 @@ ctl_cursor(stc *cx srunused)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "db.test") == 0 );
-	void *o = sp_get(c, "db.test.run_branch");
+	void *o = sp_get(c, "db.test.branch");
 	t( o != NULL );
 	sp_destroy(o);
 	void *cur = sp_cursor(c, ">=", NULL);

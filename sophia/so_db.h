@@ -13,7 +13,6 @@ typedef struct sodb sodb;
 
 struct sodb {
 	soobj o;
-	uint32_t id;
 	sostatus status;
 	sodbctl ctl;
 	soobjindex tx;
@@ -22,9 +21,6 @@ struct sodb {
 	sdc dc;
 	siconf indexconf;
 	si index;
-	slconf lpconf;
-	slpool lp;
-	soworkers workers;
 	srinjection ei;
 	sr r;
 	so *e;
@@ -37,6 +33,7 @@ so_dbactive(sodb *o) {
 
 soobj *so_dbnew(so*, char*);
 soobj *so_dbmatch(so*, char*);
+soobj *so_dbmatch_id(so*, uint32_t);
 int    so_dbmalfunction(sodb *o);
 
 #endif

@@ -27,17 +27,42 @@ static int
 so_open(soobj *o, va_list args)
 {
 	so *e = (so*)o;
-	if (so_active(e))
+	int status = so_status(&e->status);
+	if (status == SO_RECOVER) {
+		assert(e->ctl.two_phase_recover == 1);
+		goto online;
+	}
+	if (status != SO_OFFLINE)
 		return -1;
 	so_statusset(&e->status, SO_RECOVER);
+	int rc;
+	/* start databases recover */
 	srlist *i, *n;
 	sr_listforeach_safe(&e->db.list, i, n) {
 		soobj *o = srcast(i, soobj, link);
-		int rc = o->i->open(o, args);
+		rc = o->i->open(o, args);
+		if (srunlikely(rc == -1))
+			return -1;
+	}
+	/* recover logpool */
+	rc = so_recover(e);
+	if (srunlikely(rc == -1))
+		return -1;
+	if (e->ctl.two_phase_recover)
+		return 0;
+	/* complete */
+online:
+	sr_listforeach_safe(&e->db.list, i, n) {
+		soobj *o = srcast(i, soobj, link);
+		rc = o->i->open(o, args);
 		if (srunlikely(rc == -1))
 			return -1;
 	}
 	so_statusset(&e->status, SO_ONLINE);
+	/* run thread-pool and scheduler */
+	rc = so_scheduler_run(&e->sched);
+	if (srunlikely(rc == -1))
+		return -1;
 	return 0;
 }
 
@@ -48,12 +73,19 @@ so_destroy(soobj *o)
 	int rcret = 0;
 	int rc;
 	so_statusset(&e->status, SO_SHUTDOWN);
+	rc = so_scheduler_shutdown(&e->sched);
+	if (srunlikely(rc == -1))
+		rcret = -1;
 	rc = so_objindex_destroy(&e->ctlcursor);
 	if (srunlikely(rc == -1))
 		rcret = -1;
 	rc = so_objindex_destroy(&e->db);
 	if (srunlikely(rc == -1))
 		rcret = -1;
+	rc = sl_poolshutdown(&e->lp);
+	if (srunlikely(rc == -1))
+		rcret = -1;
+	so_ctlfree(&e->ctl);
 	sr_mutexfree(&e->apilock);
 	sr_seqfree(&e->seq);
 	sr_pagerfree(&e->pager);
@@ -92,7 +124,6 @@ soobj *so_new(void)
 		return NULL;
 	memset(e, 0, sizeof(*e));
 	so_objinit(&e->o, SOENV, &soif, &e->o /* self */);
-	/* init allocation family */
 	sr_pagerinit(&e->pager, 10, 1024);
 	int rc = sr_pageradd(&e->pager);
 	if (srunlikely(rc == -1)) {
@@ -116,5 +147,6 @@ soobj *so_new(void)
 	sr_seqinit(&e->seq);
 	sr_errorinit(&e->error);
 	sr_init(&e->r, &e->error, &e->a, &e->seq, NULL, NULL);
+	so_scheduler_init(&e->sched, e);
 	return &e->o;
 }

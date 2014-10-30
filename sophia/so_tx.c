@@ -70,8 +70,8 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	sv_loginit(&log);
 	sv_logadd(&log, NULL, &vp);
 	sltx tl;
-	sl_begin(&db->lp, &tl, db->id);
-	sl_prepare(&db->lp, &log);
+	sl_begin(&db->e->lp, &tl, db->ctl.id);
+	sl_prepare(&db->e->lp, &log);
 	rc = sl_write(&tl, &log);
 	if (srunlikely(rc == -1)) {
 		sl_rollback(&tl);
@@ -306,10 +306,10 @@ so_txprepare(soobj *o, va_list args srunused)
 		return 1;
 	}
 	assert(s == SMPREPARE);
-	if (db->ctl.commit_lsn || status == SO_RECOVER)
+	if (db->e->ctl.commit_lsn || status == SO_RECOVER)
 		return 0;
 	/* assign lsn */
-	sl_prepare(&db->lp, &t->t.log);
+	sl_prepare(&db->e->lp, &t->t.log);
 	return 0;
 }
 
@@ -341,12 +341,12 @@ so_txcommit(soobj *o, va_list args)
 	sm_commit(&t->t);
 
 	/* synchronize lsn */
-	sl_follow(&db->lp, &t->t.log);
+	sl_follow(&db->e->lp, &t->t.log);
 
 	/* log commit */
 	if (status == SO_ONLINE) {
 		sltx tl;
-		sl_begin(&db->lp, &tl, db->id);
+		sl_begin(&db->e->lp, &tl, db->ctl.id);
 		rc = sl_write(&tl, &t->t.log);
 		if (srunlikely(rc == -1)) {
 			sl_rollback(&tl);

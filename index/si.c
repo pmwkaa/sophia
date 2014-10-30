@@ -67,3 +67,28 @@ int si_replace(si *i, sinode *o, sinode *n)
 	sr_rbreplace(&i->i, &o->node, &n->node);
 	return 0;
 }
+
+int si_plan(si *i, siplan *plan)
+{
+	si_lock(i);
+	sinode *n = si_planner(&i->p, plan);
+	if (srunlikely(n == NULL)) {
+		si_unlock(i);
+		return 0;
+	}
+	si_unlock(i);
+	plan->node = n;
+	return 1;
+}
+
+int si_execute(si *i, sr *r, sdc *c, siplan *plan, uint64_t lsvn)
+{
+	assert(plan->node != NULL);
+	int rc = -1;
+	if (plan->plan == SI_BRANCH)
+		rc = si_branch(i, r, c, plan, lsvn);
+	else
+	if (plan->plan == SI_MERGE)
+		rc = si_merge(i, r, c, plan, lsvn);
+	return rc;
+}

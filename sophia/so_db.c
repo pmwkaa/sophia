@@ -16,114 +16,13 @@
 #include <libso.h>
 #include <sophia.h>
 
-static inline void so_sleep(void)
-{
-	struct timespec ts;
-	ts.tv_sec  = 0;
-	ts.tv_nsec = 10000000; /* 10 ms */
-	nanosleep(&ts, NULL);
-}
-
-static inline void *so_merger(void *arg) 
-{
-	soworker *self = arg;
-	sodb *o = self->arg;
-	for (;;)
-	{
-		int rc = so_active(o->e) && so_dbactive(o);
-		if (srunlikely(rc == 0))
-			break;
-		uint64_t lsvn = sm_lsvn(&o->mvcc);
-		siplan plan = {
-			.plan      = SI_MERGE,
-			.condition = SI_MERGE_DEEP,
-			.a         = o->e->ctl.node_merge_wm
-		};
-		rc = si_merge(&o->index, &o->r, &self->dc,
-		              &plan, lsvn);
-		if (srunlikely(rc == -1)) {
-			so_dbmalfunction(o);
-			break;
-		}
-		if (rc == 0)
-			so_sleep();
-	}
-	return NULL;
-}
-
-static inline void *so_brancher(void *arg) 
-{
-	soworker *self = arg;
-	sodb *o = self->arg;
-	for (;;)
-	{
-		int rc = so_active(o->e) && so_dbactive(o);
-		if (srunlikely(rc == 0))
-			break;
-		uint64_t lsvn = sm_lsvn(&o->mvcc);
-		siplan plan = {
-			.plan      = SI_BRANCH,
-			.condition = SI_BRANCH_SIZE,
-			.a         = o->e->ctl.node_branch_wm
-		};
-		rc = si_branch(&o->index, &o->r, &self->dc,
-		               &plan, lsvn);
-		if (srunlikely(rc == -1)) {
-			so_dbmalfunction(o);
-			break;
-		}
-		int nojob = rc == 0;
-		rc = sl_poolgc(&o->lp);
-		if (srunlikely(rc == -1)) {
-			so_dbmalfunction(o);
-			break;
-		}
-		rc = sl_poolrotate_ready(&o->lp, o->ctl.log_rotate_wm);
-		if (rc) {
-			rc = sl_poolrotate(&o->lp);
-			if (srunlikely(rc == -1)) {
-				so_dbmalfunction(o);
-				break;
-			}
-		}
-		if (nojob)
-			so_sleep();
-	}
-	return NULL;
-}
-
-static int
-so_dbonline(soobj *obj)
-{
-	sodb *o = (sodb*)obj;
-	si_qosenable(&o->index, 1);
-	so_statusset(&o->status, SO_ONLINE);
-
-	int threads = o->e->ctl.threads;
-	int rc;
-	if (threads) {
-		rc = so_workersnew(&o->workers, &o->r, 1, so_brancher, o);
-		if (srunlikely(rc == -1))
-			return -1;
-		threads--;
-	}
-	if (threads) {
-		rc = so_workersnew(&o->workers, &o->r, threads, so_merger, o);
-		if (srunlikely(rc == -1))
-			return -1;
-	}
-	return 0;
-}
-
 static int
 so_dbopen(soobj *obj, va_list args srunused)
 {
 	sodb *o = (sodb*)obj;
 	int status = so_status(&o->status);
-	if (status == SO_RECOVER) {
-		assert(o->ctl.two_phase_recover == 1);
-		return so_dbonline(obj);
-	}
+	if (status == SO_RECOVER)
+		goto online;
 	if (status != SO_OFFLINE)
 		return -1;
 	int rc;
@@ -131,12 +30,17 @@ so_dbopen(soobj *obj, va_list args srunused)
 	if (srunlikely(rc == -1))
 		return -1;
 	o->r.cmp = &o->ctl.cmp;
-	rc = so_recover(o);
+	rc = so_recoverbegin(o);
 	if (srunlikely(rc == -1))
 		return -1;
-	if (o->ctl.two_phase_recover)
+	if (so_status(&o->e->status) == SO_RECOVER)
 		return 0;
-	return so_dbonline(obj);
+online:
+	so_recoverend(o);
+	rc = so_scheduler_add(&o->e->sched, o);
+	if (srunlikely(rc == -1))
+		return -1;
+	return 0;
 }
 
 static int
@@ -146,7 +50,7 @@ so_dbdestroy(soobj *obj)
 	so_statusset(&o->status, SO_SHUTDOWN);
 	int rcret = 0;
 	int rc;
-	rc = so_workersshutdown(&o->workers, &o->r);
+	rc = so_scheduler_del(&o->e->sched, o);
 	if (srunlikely(rc == -1))
 		rcret = -1;
 	rc = so_objindex_destroy(&o->tx);
@@ -156,9 +60,6 @@ so_dbdestroy(soobj *obj)
 	if (srunlikely(rc == -1))
 		rcret = -1;
 	sm_free(&o->mvcc);
-	rc = sl_poolshutdown(&o->lp);
-	if (srunlikely(rc == -1))
-		rcret = -1;
 	rc = si_close(&o->index, &o->r);
 	if (srunlikely(rc == -1))
 		rcret = -1;
@@ -262,7 +163,6 @@ soobj *so_dbnew(so *e, char *name)
 	so_objindex_init(&o->cursor);
 	so_statusinit(&o->status);
 	so_statusset(&o->status, SO_OFFLINE);
-	o->id    = sr_seq(&e->seq, SR_DSNNEXT);
 	o->e     = e;
 	o->r     = e->r;
 	o->r.cmp = &o->ctl.cmp;
@@ -272,9 +172,9 @@ soobj *so_dbnew(so *e, char *name)
 		sr_free(&e->a_db, o);
 		return NULL;
 	}
+	o->ctl.id = sr_seq(&e->seq, SR_DSNNEXT);
 	sm_init(&o->mvcc, &o->r, &e->a_smv);
 	sd_cinit(&o->dc, &o->r);
-	so_workersinit(&o->workers);
 	return &o->o;
 }
 
@@ -285,6 +185,18 @@ soobj *so_dbmatch(so *e, char *name)
 		soobj *o = srcast(i, soobj, link);
 		sodb *db = (sodb*)o;
 		if (strcmp(db->ctl.name, name) == 0)
+			return o;
+	}
+	return NULL;
+}
+
+soobj *so_dbmatch_id(so *e, uint32_t id)
+{
+	srlist *i;
+	sr_listforeach(&e->db.list, i) {
+		soobj *o = srcast(i, soobj, link);
+		sodb *db = (sodb*)o;
+		if (db->ctl.id == id)
 			return o;
 	}
 	return NULL;

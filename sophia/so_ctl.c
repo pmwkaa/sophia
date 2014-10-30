@@ -248,7 +248,7 @@ so_ctlmemory_set(so *o, char *path, va_list args)
 		sr_error_recoverable(&o->error);
 		return -1;
 	}
-	rc = sr_ctlset(match, &o->a, NULL, args);
+	rc = sr_ctlset(match, &o->a, o, args);
 	if (srunlikely(rc == -1)) {
 		sr_error_recoverable(&o->error);
 		return -1;
@@ -318,7 +318,7 @@ so_ctlscheduler_set(so *o, char *path, va_list args)
 		sr_error_recoverable(&o->error);
 		return -1;
 	}
-	rc = sr_ctlset(match, &o->a, NULL, args);
+	rc = sr_ctlset(match, &o->a, o, args);
 	if (srunlikely(rc == -1)) {
 		sr_error_recoverable(&o->error);
 		return -1;
@@ -357,6 +357,87 @@ so_ctlscheduler_dump(soctl *c, srbuf *dump)
 }
 
 static int
+so_ctllog_rotate(srctl *c srunused, void *arg, va_list args srunused)
+{
+	so *e = arg;
+	return sl_poolrotate(&e->lp);
+}
+
+static inline void
+so_ctllog_prepare(srctl *t, soctl *c)
+{
+	srctl *p = t;
+	p = sr_ctladd(p, "dir",               SR_CTLSTRINGREF, &c->log_dir,           NULL);
+	p = sr_ctladd(p, "dir_write",         SR_CTLINT,       &c->log_dirwrite,      NULL);
+	p = sr_ctladd(p, "dir_create",        SR_CTLINT,       &c->log_dircreate,     NULL);
+	p = sr_ctladd(p, "sync",              SR_CTLINT,       &c->log_sync,          NULL);
+	p = sr_ctladd(p, "rotate_wm",         SR_CTLINT,       &c->log_rotate_wm,     NULL);
+	p = sr_ctladd(p, "rotate_sync",       SR_CTLINT,       &c->log_rotate_sync,   NULL);
+	p = sr_ctladd(p, "rotate",            SR_CTLTRIGGER,   NULL,                  so_ctllog_rotate);
+	p = sr_ctladd(p, "two_phase_recover", SR_CTLINT,       &c->two_phase_recover, NULL);
+	p = sr_ctladd(p, "commit_lsn",        SR_CTLINT,       &c->commit_lsn,        NULL);
+	p = sr_ctladd(p,  NULL,               0,               NULL,                  NULL);
+}
+
+static int
+so_ctllog_set(so *o, char *path, va_list args)
+{
+	srctl ctls[30];
+	so_ctllog_prepare(&ctls[0], &o->ctl);
+	srctl *match = NULL;
+	int rc = sr_ctlget(&ctls[0], &path, &match);
+	if (srunlikely(rc ==  1))
+		return -1; /* self */
+	if (srunlikely(rc == -1)) {
+		sr_error(&o->error, "%s", "bad control path");
+		sr_error_recoverable(&o->error);
+		return -1;
+	}
+	int type = match->type & ~SR_CTLRO;
+	if (so_active(o) && (type != SR_CTLTRIGGER)) {
+		sr_error(&o->error, "%s", "failed to set control path");
+		sr_error_recoverable(&o->error);
+		return -1;
+	}
+	rc = sr_ctlset(match, &o->a, o, args);
+	if (srunlikely(rc == -1)) {
+		sr_error_recoverable(&o->error);
+		return -1;
+	}
+	return rc;
+}
+
+static void*
+so_ctllog_get(soctl *c, char *path, va_list args srunused)
+{
+	so *e = c->e;
+	srctl ctls[30];
+	so_ctllog_prepare(&ctls[0], &e->ctl);
+	srctl *match = NULL;
+	int rc = sr_ctlget(&ctls[0], &path, &match);
+	if (srunlikely(rc ==  1))
+		return NULL; /* self */
+	return so_ctlreturn(match, e);
+}
+
+static int
+so_ctllog_dump(soctl *c, srbuf *dump)
+{
+	so *e = c->e;
+	srctl ctls[30];
+	so_ctllog_prepare(&ctls[0], &e->ctl);
+	char prefix[64];
+	snprintf(prefix, sizeof(prefix), "log.");
+	int rc = sr_ctlserialize(&ctls[0], &e->a, prefix, dump);
+	if (srunlikely(rc == -1)) {
+		sr_error(&e->error, "%s", "memory allocation failed");
+		sr_error_recoverable(&e->error);
+		return -1;
+	}
+	return 0;
+}
+
+static int
 so_ctlset(soobj *obj, va_list args)
 {
 	soctl *c = (soctl*)obj;
@@ -380,6 +461,9 @@ so_ctlset(soobj *obj, va_list args)
 	else
 	if (strcmp(token, "scheduler") == 0)
 		return so_ctlscheduler_set(e, ptr, args);
+	else
+	if (strcmp(token, "log") == 0)
+		return so_ctllog_set(e, ptr, args);
 	else
 	if (strcmp(token, "db") == 0)
 		return so_ctldb_set(c, ptr, args);
@@ -413,6 +497,9 @@ so_ctlget(soobj *obj, va_list args)
 	if (strcmp(token, "scheduler") == 0)
 		return so_ctlscheduler_get(c, ptr, args);
 	else
+	if (strcmp(token, "log") == 0)
+		return so_ctllog_get(c, ptr, args);
+	else
 	if (strcmp(token, "db") == 0)
 		return so_ctldb_get(c, ptr, args);
 	sr_error(&e->error, "%s", "unknown control path");
@@ -429,6 +516,9 @@ int so_ctldump(soctl *c, srbuf *dump)
 	if (srunlikely(rc == -1))
 		return -1;
 	rc = so_ctlscheduler_dump(c, dump);
+	if (srunlikely(rc == -1))
+		return -1;
+	rc = so_ctllog_dump(c, dump);
 	if (srunlikely(rc == -1))
 		return -1;
 	rc = so_ctldb_dump(c, dump);
@@ -470,11 +560,27 @@ static soobjif soctlif =
 void so_ctlinit(soctl *c, void *e)
 {
 	so_objinit(&c->o, SOCTL, &soctlif, e);
-	c->e = e;
-	c->memory_limit   = 0;
-	c->node_size      = 128 * 1024 * 1024;
-	c->node_page_size = 128 * 1024;
-	c->node_branch_wm = 10 * 1024 * 1024;
-	c->node_merge_wm  = 1;
-	c->threads        = 5;
+	c->memory_limit      = 0;
+	c->node_size         = 128 * 1024 * 1024;
+	c->node_page_size    = 128 * 1024;
+	c->node_branch_wm    = 10 * 1024 * 1024;
+	c->node_merge_wm     = 1;
+	c->threads           = 5;
+	c->log_dir           = NULL;
+	c->log_dircreate     = 1;
+	c->log_dirwrite      = 1;
+	c->log_rotate_wm     = 500000;
+	c->log_sync          = 0;
+	c->log_rotate_sync   = 1;
+	c->two_phase_recover = 0;
+	c->commit_lsn        = 0;
+	c->e                 = e;
+}
+
+void so_ctlfree(soctl *c)
+{
+	if (c->log_dir) {
+		sr_free(&((so*)c->e)->a, c->log_dir);
+		c->log_dir = NULL;
+	}
 }

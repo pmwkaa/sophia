@@ -28,6 +28,9 @@ struct so {
 	sra a_logcursor;
 	sra a_tx;
 	sra a_smv;
+	slconf lpconf;
+	slpool lp;
+	soscheduler sched;
 	srerror error;
 	sr r;
 };

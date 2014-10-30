@@ -16,17 +16,7 @@
 int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t lsvn)
 {
 	si_lock(index);
-	/*
-	if (plan->condition & SI_BRANCH_LIMIT) {
-		if (si_qoslimit(index))
-			plan->condition = SI_BRANCH_FORCE;
-	}
-	*/
-	sinode *n = si_planner(&index->p, plan);
-	if (srunlikely(n == NULL)) {
-		si_unlock(index);
-		return 0;
-	}
+	sinode *n = plan->node;
 	uint32_t iused   = n->iused;
 	uint32_t iusedkv = n->iusedkv;
 	uint32_t icount  = n->icount;

@@ -11,6 +11,7 @@
 
 typedef struct sinode sinode;
 
+#define SI_NONE       0
 #define SI_MERGE      1
 #define SI_BRANCH     4
 #define SI_I1         16

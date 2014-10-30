@@ -14,22 +14,13 @@ typedef struct sodbctl sodbctl;
 struct sodbctl {
 	void         *parent;
 	char         *name;
+	uint32_t      id;
 	srcomparator  cmp;
-	/* logger */
-	char         *log_dir;
-	int           log_dirwrite;
-	int           log_dircreate;
-	int           log_sync;
-	int           log_rotate_wm;
-	int           log_rotate_sync;
-	/* index and mvcc */
 	char         *dir;
 	int           dir_write;
 	int           dir_create;
 	int           dir_created;
 	int           dir_sync;
-	int           two_phase_recover;
-	int           commit_lsn;
 } srpacked;
 
 int   so_dbctl_init(sodbctl*, char*, void*);

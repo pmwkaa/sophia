@@ -57,9 +57,9 @@ st_scene_create(stscene *g, stc *cx)
 	void *c = sp_ctl(cx->env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "db.test.log_dir", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db.test.log_sync", "0") == 0 );
-	t( sp_set(c, "db.test.log_rotate_sync", "0") == 0 );
+	t( sp_set(c, "log.dir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "log.sync", "0") == 0 );
+	t( sp_set(c, "log.rotate_sync", "0") == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -89,36 +89,36 @@ st_phase_commit(stc *cx)
 {
 	switch (cx->phase_scene) {
 	case 0:
-		t( sp_set(sp_ctl(cx->env), "db.test.run_branch") == 0 );
+		t( sp_set(sp_ctl(cx->env), "db.test.branch") == 0 );
 		break;
 	case 1:
-		t( sp_set(sp_ctl(cx->env), "db.test.run_branch") == 0 );
-		t( sp_set(sp_ctl(cx->env), "db.test.run_merge") == 0 );
+		t( sp_set(sp_ctl(cx->env), "db.test.branch") == 0 );
+		t( sp_set(sp_ctl(cx->env), "db.test.merge") == 0 );
 		break;
 	case 2:
-		t( sp_set(sp_ctl(cx->env), "db.test.run_logrotate") == 0 );
+		t( sp_set(sp_ctl(cx->env), "log.rotate") == 0 );
 		break;
 	case 3:
 		if (cx->phase == 0) {
-			t( sp_set(sp_ctl(cx->env), "db.test.run_branch") == 0 );
+			t( sp_set(sp_ctl(cx->env), "db.test.branch") == 0 );
 			cx->phase = 1;
 		} else
 		if (cx->phase == 1) {
-			t( sp_set(sp_ctl(cx->env), "db.test.run_merge") == 0 );
+			t( sp_set(sp_ctl(cx->env), "db.test.merge") == 0 );
 			cx->phase = 0;
 		}
 		break;
 	case 4:
 		if (cx->phase == 0) {
-			t( sp_set(sp_ctl(cx->env), "db.test.run_branch") == 0 );
+			t( sp_set(sp_ctl(cx->env), "db.test.branch") == 0 );
 			cx->phase = 1;
 		} else
 		if (cx->phase == 1) {
-			t( sp_set(sp_ctl(cx->env), "db.test.run_merge") == 0 );
+			t( sp_set(sp_ctl(cx->env), "db.test.merge") == 0 );
 			cx->phase = 2;
 		} else
 		if (cx->phase == 2) {
-			t( sp_set(sp_ctl(cx->env), "db.test.run_logrotate") == 0 );
+			t( sp_set(sp_ctl(cx->env), "log.rotate") == 0 );
 			cx->phase = 0;
 		}
 		break;

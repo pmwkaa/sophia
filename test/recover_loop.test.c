@@ -26,10 +26,10 @@ recover_loop(stc *cx)
 		void *c = sp_ctl(cx->env);
 		t( c != NULL );
 		t( sp_set(c, "scheduler.threads", "0") == 0 );
-		t( sp_set(c, "scheduler.node_branch_wm", "0") == 0 );
-		t( sp_set(c, "db.test.log_dir", cx->suite->logdir) == 0 );
-		t( sp_set(c, "db.test.log_sync", "0") == 0 );
-		t( sp_set(c, "db.test.log_rotate_sync", "0") == 0 );
+		t( sp_set(c, "scheduler.node_branch_wm", "1") == 0 );
+		t( sp_set(c, "log.dir", cx->suite->logdir) == 0 );
+		t( sp_set(c, "log.sync", "0") == 0 );
+		t( sp_set(c, "log.rotate_sync", "0") == 0 );
 		t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
 		t( sp_set(c, "db.test.dir_sync", "0") == 0 );
 		t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -51,7 +51,7 @@ recover_loop(stc *cx)
 				sp_destroy(o);
 				i++;
 			}
-			t( sp_set(c, "db.test.run_branch") == 0 );
+			t( sp_set(c, "db.test.branch") == 0 );
 		}
 
 		srand(seed);
@@ -78,10 +78,10 @@ recover_loop(stc *cx)
 	void *c = sp_ctl(cx->env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "scheduler.node_branch_wm", "0") == 0 );
-	t( sp_set(c, "db.test.log_dir", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db.test.log_sync", "0") == 0 );
-	t( sp_set(c, "db.test.log_rotate_sync", "0") == 0 );
+	t( sp_set(c, "scheduler.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "log.dir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "log.sync", "0") == 0 );
+	t( sp_set(c, "log.rotate_sync", "0") == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );

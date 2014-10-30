@@ -228,14 +228,9 @@ si_mergeadd(svmerge *m, sr *r, sinode *n,
 
 int si_merge(si *index, sr *r, sdc *c, siplan *plan, uint64_t lsvn)
 {
-	si_lock(index);
-	sinode *node = si_planner(&index->p, plan);
-	if (srunlikely(node == NULL)) {
-		si_unlock(index);
-		return 0;
-	}
-	si_unlock(index);
+	sinode *node = plan->node;
 	sd_creset(c);
+
 	svmerge merge;
 	sv_mergeinit(&merge);
 	int rc = sv_mergeprepare(&merge, r, node->lv + 1, 0);

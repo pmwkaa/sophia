@@ -19,9 +19,9 @@ deadlock_test0(stc *cx)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "db.test.log_dir", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db.test.log_sync", "0") == 0 );
-	t( sp_set(c, "db.test.log_rotate_sync", "0") == 0 );
+	t( sp_set(c, "log.dir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "log.sync", "0") == 0 );
+	t( sp_set(c, "log.rotate_sync", "0") == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -40,7 +40,7 @@ deadlock_test0(stc *cx)
 	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 
-	t( sp_set(c, "db.test.run_lockdetect", tx) == 0 );
+	t( sp_set(c, "db.test.lockdetect", tx) == 0 );
 
 	rc = sp_commit(tx);
 	t( rc == 0 );
@@ -56,9 +56,9 @@ deadlock_test1(stc *cx)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "db.test.log_dir", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db.test.log_sync", "0") == 0 );
-	t( sp_set(c, "db.test.log_rotate_sync", "0") == 0 );
+	t( sp_set(c, "log.dir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "log.sync", "0") == 0 );
+	t( sp_set(c, "log.rotate_sync", "0") == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -86,8 +86,8 @@ deadlock_test1(stc *cx)
 	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(t1, o) == 0 );
 
-	t( sp_set(c, "db.test.run_lockdetect", t0) == 0 );
-	t( sp_set(c, "db.test.run_lockdetect", t1) == 0 );
+	t( sp_set(c, "db.test.lockdetect", t0) == 0 );
+	t( sp_set(c, "db.test.lockdetect", t1) == 0 );
 
 	rc = sp_commit(t0);
 	t( rc == 0 );
@@ -105,9 +105,9 @@ deadlock_test2(stc *cx)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "db.test.log_dir", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db.test.log_sync", "0") == 0 );
-	t( sp_set(c, "db.test.log_rotate_sync", "0") == 0 );
+	t( sp_set(c, "log.dir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "log.sync", "0") == 0 );
+	t( sp_set(c, "log.rotate_sync", "0") == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -153,11 +153,11 @@ deadlock_test2(stc *cx)
 	rc = sp_commit(t1);
 	t( rc == 2 ); /* wait */
 
-	t( sp_set(c, "db.test.run_lockdetect", t0) == 1 );
-	t( sp_set(c, "db.test.run_lockdetect", t1) == 1 );
+	t( sp_set(c, "db.test.lockdetect", t0) == 1 );
+	t( sp_set(c, "db.test.lockdetect", t1) == 1 );
 
 	t( sp_rollback(t0) == 0 ) ;
-	t( sp_set(c, "db.test.run_lockdetect", t1) == 0 );
+	t( sp_set(c, "db.test.lockdetect", t1) == 0 );
 	rc = sp_commit(t1);
 	t( rc == 0 );
 
@@ -172,9 +172,9 @@ deadlock_test3(stc *cx)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "db.test.log_dir", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db.test.log_sync", "0") == 0 );
-	t( sp_set(c, "db.test.log_rotate_sync", "0") == 0 );
+	t( sp_set(c, "log.dir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "log.sync", "0") == 0 );
+	t( sp_set(c, "log.rotate_sync", "0") == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -220,11 +220,11 @@ deadlock_test3(stc *cx)
 	rc = sp_commit(t1);
 	t( rc == 2 ); /* lock */
 
-	t( sp_set(c, "db.test.run_lockdetect", t0) == 1 );
-	t( sp_set(c, "db.test.run_lockdetect", t1) == 1 );
+	t( sp_set(c, "db.test.lockdetect", t0) == 1 );
+	t( sp_set(c, "db.test.lockdetect", t1) == 1 );
 
 	t( sp_rollback(t1) == 0 ) ;
-	t( sp_set(c, "db.test.run_lockdetect", t0) == 0 );
+	t( sp_set(c, "db.test.lockdetect", t0) == 0 );
 	rc = sp_commit(t0);
 	t( rc == 0 );
 

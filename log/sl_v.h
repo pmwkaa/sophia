@@ -22,4 +22,9 @@ struct slv {
 
 extern svif sl_vif;
 
+static inline uint32_t
+sl_vdsn(sv *v) {
+	return ((slv*)v->v)->dsn;
+}
+
 #endif

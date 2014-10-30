@@ -20,15 +20,15 @@ struct siplanner {
 #define SI_MERGE_FORCE  1
 #define SI_MERGE_DEEP   2
 #define SI_BRANCH_FORCE 1
-#define SI_BRANCH_LIMIT 2
-#define SI_BRANCH_SIZE  4
-#define SI_BRANCH_LSN   8
+#define SI_BRANCH_SIZE  2
+#define SI_BRANCH_LSN   4
 
 struct siplan {
 	int plan;
 	int condition;
 	uint64_t a; /* deep, size */
-	uint64_t b; /* lsn */
+	uint64_t b; /* timediff, lsn */
+	sinode *node;
 };
 
 int si_plannerinit(siplanner*);

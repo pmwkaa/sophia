@@ -18,14 +18,14 @@ profiler_count(stc *cx srunused)
 	t( env != NULL );
 	void *c = sp_ctl(env);
 	t( c != NULL );
-	t( sp_set(c, "scheduler.node_branch_wm", "0") == 0 );
-	t( sp_set(c, "db.test.log_dir", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db.test.log_sync", "0") == 0 );
-	t( sp_set(c, "db.test.log_rotate_sync", "0") == 0 );
+	t( sp_set(c, "scheduler.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "scheduler.threads", "0") == 0 );
+	t( sp_set(c, "log.dir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "log.sync", "0") == 0 );
+	t( sp_set(c, "log.rotate_sync", "0") == 0 );
 	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
-	t( sp_set(c, "scheduler.threads", "3") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -50,7 +50,7 @@ profiler_count(stc *cx srunused)
 	t( o != NULL );
 	t( strcmp( sp_get(o, "value", NULL), "100") == 0 );
 	sp_destroy(o);
-	t( sp_set(c, "db.test.run_branch") == 0 );
+	t( sp_set(c, "db.test.branch") == 0 );
 
 	o = sp_get(c, "db.test.index.branch_count");
 	t( o != NULL );
@@ -75,8 +75,8 @@ profiler_count(stc *cx srunused)
 	t( strcmp( sp_get(o, "value", NULL), "110") == 0 );
 	sp_destroy(o);
 
-	t( sp_set(c, "db.test.run_branch") == 0 );
-	t( sp_set(c, "db.test.run_merge") == 0 );
+	t( sp_set(c, "db.test.branch") == 0 );
+	t( sp_set(c, "db.test.merge") == 0 );
 
 	o = sp_get(c, "db.test.index.count");
 	t( o != NULL );

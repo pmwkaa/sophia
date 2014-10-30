@@ -9,6 +9,8 @@
  * BSD License
 */
 
-int so_recover(sodb*);
+int so_recoverbegin(sodb*);
+int so_recoverend(sodb*);
+int so_recover(so*);
 
 #endif

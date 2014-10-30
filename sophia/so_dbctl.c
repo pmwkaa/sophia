@@ -26,20 +26,13 @@ int so_dbctl_init(sodbctl *c, char *name, void *db)
 		sr_error_recoverable(&o->e->error);
 		return -1;
 	}
-	c->parent            = db;
-	c->log_dircreate     = 1;
-	c->log_dirwrite      = 1;
-	c->log_rotate_wm     = 500000;
-	c->log_sync          = 0;
-	c->log_rotate_sync   = 1;
-	c->two_phase_recover = 0;
-	c->dir_create        = 1;
-	c->dir_created       = 0;
-	c->dir_write         = 1;
-	c->dir_sync          = 1;
-	c->cmp.cmp           = sr_cmpstring;
-	c->cmp.cmparg        = NULL;
-	c->commit_lsn        = 0;
+	c->parent      = db;
+	c->dir_create  = 1;
+	c->dir_created = 0;
+	c->dir_write   = 1;
+	c->dir_sync    = 1;
+	c->cmp.cmp     = sr_cmpstring;
+	c->cmp.cmparg  = NULL;
 	return 0;
 }
 
@@ -55,10 +48,6 @@ int so_dbctl_free(sodbctl *c)
 	if (c->dir) {
 		sr_free(&o->e->a, c->dir);
 		c->dir = NULL;
-	}
-	if (c->log_dir) {
-		sr_free(&o->e->a, c->log_dir);
-		c->log_dir = NULL;
 	}
 	return 0;
 }
@@ -77,45 +66,13 @@ int so_dbctl_validate(sodbctl *c)
 static int
 so_dbctl_branch(srctl *c srunused, void *arg, va_list args srunused)
 {
-	sodb *db = arg;
-	sdc dc;
-	sd_cinit(&dc, &db->r);
-	int rc;
-	while (1) {
-		uint64_t lsvn = sm_lsvn(&db->mvcc);
-		siplan plan = {
-			.plan      = SI_BRANCH,
-			.condition = SI_BRANCH_SIZE,
-			.a         = db->e->ctl.node_branch_wm
-		};
-		rc = si_branch(&db->index, &db->r, &dc, &plan, lsvn);
-		if (srunlikely(rc <= 0))
-			break;
-	}
-	sd_cfree(&dc, &db->r);
-	return rc;
+	return so_scheduler_branch(arg);
 }
 
 static int
 so_dbctl_merge(srctl *c srunused, void *arg, va_list args srunused)
 {
-	sodb *db = arg;
-	sdc dc;
-	sd_cinit(&dc, &db->r);
-	int rc;
-	while (1) {
-		uint64_t lsvn = sm_lsvn(&db->mvcc);
-		siplan plan = {
-			.plan      = SI_MERGE,
-			.condition = SI_MERGE_DEEP,
-			.a         = db->e->ctl.node_merge_wm
-		};
-		rc = si_merge(&db->index, &db->r, &dc, &plan, lsvn);
-		if (srunlikely(rc <= 0))
-			break;
-	}
-	sd_cfree(&dc, &db->r);
-	return rc;
+	return so_scheduler_merge(arg);
 }
 
 static int
@@ -130,29 +87,6 @@ so_dbctl_lockdetect(srctl *c srunused, void *arg, va_list args)
 	}
 	int rc = sm_deadlock(&tx->t);
 	return rc;
-}
-
-static int
-so_dbctl_logrotate(srctl *c srunused, void *arg, va_list args srunused)
-{
-	sodb *db = arg;
-	return sl_poolrotate(&db->lp);
-}
-
-static int
-so_dbctl_cmp(srctl *c srunused, void *arg, va_list args)
-{
-	sodb *db = arg;
-	db->ctl.cmp.cmp = va_arg(args, srcmpf);
-	return 0;
-}
-
-static int
-so_dbctl_cmparg(srctl *c srunused, void *arg, va_list args srunused)
-{
-	sodb *db = arg;
-	db->ctl.cmp.cmparg = va_arg(args, void*);
-	return 0;
 }
 
 typedef struct sodbctlinfo sodbctlinfo;
@@ -173,35 +107,43 @@ so_dbctl_prepare(srctl *t, sodbctl *c, sodbctlinfo *info)
 	sodb *db = c->parent;
 	so_dbctl_info(db, info);
 	srctl *p = t;
-	p = sr_ctladd(p, "name",               SR_CTLSTRING|SR_CTLRO, c->name,               NULL);
-	p = sr_ctladd(p, "status",             SR_CTLSTRING|SR_CTLRO, info->status,          NULL);
-	p = sr_ctladd(p, "dir",                SR_CTLSTRINGREF,       &c->dir,               NULL);
-	p = sr_ctladd(p, "dir_write",          SR_CTLINT,             &c->dir_write,         NULL);
-	p = sr_ctladd(p, "dir_create",         SR_CTLINT,             &c->dir_create,        NULL);
-	p = sr_ctladd(p, "dir_sync",           SR_CTLINT,             &c->dir_sync,          NULL);
-	p = sr_ctladd(p, "log_dir",            SR_CTLSTRINGREF,       &c->log_dir,           NULL);
-	p = sr_ctladd(p, "log_dirwrite",       SR_CTLINT,             &c->log_dirwrite,      NULL);
-	p = sr_ctladd(p, "log_dircreate",      SR_CTLINT,             &c->log_dircreate,     NULL);
-	p = sr_ctladd(p, "log_sync",           SR_CTLINT,             &c->log_sync,          NULL);
-	p = sr_ctladd(p, "log_rotate_wm",      SR_CTLINT,             &c->log_rotate_wm,     NULL);
-	p = sr_ctladd(p, "log_rotate_sync",    SR_CTLINT,             &c->log_rotate_sync,   NULL);
-	p = sr_ctladd(p, "two_phase_recover",  SR_CTLINT,             &c->two_phase_recover, NULL);
-	p = sr_ctladd(p, "commit_lsn",         SR_CTLINT,             &c->commit_lsn,        NULL);
-	p = sr_ctladd(p, "run_branch",         SR_CTLTRIGGER,         NULL,                  so_dbctl_branch);
-	p = sr_ctladd(p, "run_merge",          SR_CTLTRIGGER,         NULL,                  so_dbctl_merge);
-	p = sr_ctladd(p, "run_logrotate",      SR_CTLTRIGGER,         NULL,                  so_dbctl_logrotate);
-	p = sr_ctladd(p, "run_lockdetect",     SR_CTLTRIGGER,         NULL,                  so_dbctl_lockdetect);
-	p = sr_ctladd(p, "index",              SR_CTLSUB,             NULL,                  NULL);
-	p = sr_ctladd(p, "error_injection",    SR_CTLSUB,             NULL,                  NULL);
-	p = sr_ctladd(p,  NULL,                0,                     NULL,                  NULL);
+	p = sr_ctladd(p, "name",            SR_CTLSTRING|SR_CTLRO, c->name,        NULL);
+	p = sr_ctladd(p, "id",              SR_CTLU32,             &c->id,         NULL);
+	p = sr_ctladd(p, "status",          SR_CTLSTRING|SR_CTLRO, info->status,   NULL);
+	p = sr_ctladd(p, "dir",             SR_CTLSTRINGREF,       &c->dir,        NULL);
+	p = sr_ctladd(p, "dir_write",       SR_CTLINT,             &c->dir_write,  NULL);
+	p = sr_ctladd(p, "dir_create",      SR_CTLINT,             &c->dir_create, NULL);
+	p = sr_ctladd(p, "dir_sync",        SR_CTLINT,             &c->dir_sync,   NULL);
+	p = sr_ctladd(p, "branch",          SR_CTLTRIGGER,         NULL,           so_dbctl_branch);
+	p = sr_ctladd(p, "merge",           SR_CTLTRIGGER,         NULL,           so_dbctl_merge);
+	p = sr_ctladd(p, "lockdetect",      SR_CTLTRIGGER,         NULL,           so_dbctl_lockdetect);
+	p = sr_ctladd(p, "index",           SR_CTLSUB,             NULL,           NULL);
+	p = sr_ctladd(p, "error_injection", SR_CTLSUB,             NULL,           NULL);
+	p = sr_ctladd(p,  NULL,             0,                     NULL,           NULL);
+}
+
+static int
+so_dbindex_cmp(srctl *c srunused, void *arg, va_list args)
+{
+	sodb *db = arg;
+	db->ctl.cmp.cmp = va_arg(args, srcmpf);
+	return 0;
+}
+
+static int
+so_dbindex_cmparg(srctl *c srunused, void *arg, va_list args srunused)
+{
+	sodb *db = arg;
+	db->ctl.cmp.cmparg = va_arg(args, void*);
+	return 0;
 }
 
 static inline void
 so_dbindex_prepare(srctl *t, siprofiler *pf)
 {
 	srctl *p = t;
-	p = sr_ctladd(p, "cmp",              SR_CTLTRIGGER,         NULL,                     so_dbctl_cmp);
-	p = sr_ctladd(p, "cmp_arg",          SR_CTLTRIGGER,         NULL,                     so_dbctl_cmparg);
+	p = sr_ctladd(p, "cmp",              SR_CTLTRIGGER,         NULL,                     so_dbindex_cmp);
+	p = sr_ctladd(p, "cmp_arg",          SR_CTLTRIGGER,         NULL,                     so_dbindex_cmparg);
 	p = sr_ctladd(p, "node_count",       SR_CTLU32|SR_CTLRO,    &pf->total_node_count,    NULL);
 	p = sr_ctladd(p, "node_size",        SR_CTLU64|SR_CTLRO,    &pf->total_node_size,     NULL);
 	p = sr_ctladd(p, "branch_count",     SR_CTLU32|SR_CTLRO,    &pf->total_branch_count,  NULL);
@@ -210,6 +152,7 @@ so_dbindex_prepare(srctl *t, siprofiler *pf)
 	p = sr_ctladd(p, "branch_size",      SR_CTLU64|SR_CTLRO,    &pf->total_branch_size,   NULL);
 	p = sr_ctladd(p, "memory_used",      SR_CTLU64|SR_CTLRO,    &pf->memory_used,         NULL);
 	p = sr_ctladd(p, "count",            SR_CTLU64|SR_CTLRO,    &pf->count,               NULL);
+	p = sr_ctladd(p, "seq_dsn",          SR_CTLU32|SR_CTLRO,    &pf->seq.dsn,             NULL);
 	p = sr_ctladd(p, "seq_nsn",          SR_CTLU32|SR_CTLRO,    &pf->seq.nsn,             NULL);
 	p = sr_ctladd(p, "seq_lsn",          SR_CTLU64|SR_CTLRO,    &pf->seq.lsn,             NULL);
 	p = sr_ctladd(p, "seq_lfsn",         SR_CTLU32|SR_CTLRO,    &pf->seq.lfsn,            NULL);
