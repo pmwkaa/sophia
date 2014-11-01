@@ -49,7 +49,6 @@ sl_iternext_of(sriter *i, slv *next, int validate)
 		return 0;
 	char *eof   = (char*)li->map.p + li->map.size;
 	char *start = (char*)next;
-	char *end   = start + next->keysize + next->valuesize;
 
 	/* eof */
 	if (srunlikely(start == eof)) {
@@ -63,6 +62,8 @@ sl_iternext_of(sriter *i, slv *next, int validate)
 		li->next = NULL;
 		return 0;
 	}
+
+	char *end = start + next->keysize + next->valuesize;
 	if (srunlikely((start > eof || (end > eof)))) {
 		sr_error(i->r->e, "corrupted log file '%s': bad record size",
 		         li->log->file);
