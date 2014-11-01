@@ -158,7 +158,7 @@ stgroup *object_group(void)
 	st_groupadd(group, st_test("db", object_db));
 	st_groupadd(group, st_test("setget", object_set_get));
 	st_groupadd(group, st_test("lsn0", object_lsn0));
-	st_groupadd(group, st_test("lsn0", object_lsn1));
+	st_groupadd(group, st_test("lsn1", object_lsn1));
 	st_groupadd(group, st_test("readonly0", object_readonly0));
 	st_groupadd(group, st_test("readonly1", object_readonly1));
 	st_groupadd(group, st_test("transaction", object_transaction));

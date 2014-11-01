@@ -227,8 +227,10 @@ first_half:
 }
 
 static int
-so_schedule(soscheduler *s, sotask *task)
+so_schedule(soscheduler *s, sotask *task, soworker *w)
 {
+	sr_trace(&w->trace, "%s", "schedule");
+
 	sr_spinlock(&s->lock);
 	so *e = s->env;
 
@@ -236,6 +238,7 @@ so_schedule(soscheduler *s, sotask *task)
 	/* todo: snapshot, branch force by lsn */
 
 	/* schedule log rotation and log gc task */
+	task->rotate = 0;
 	if (s->rotate == 0) {
 		s->rotate = 1;
 		task->rotate = 1;
@@ -294,13 +297,14 @@ so_schedule(soscheduler *s, sotask *task)
 static int
 so_rotate(soscheduler *s, soworker *w)
 {
-	sr_trace(&w->trace, "%s", "log rotation");
+	sr_trace(&w->trace, "%s", "log gc");
 	so *e = s->env;
 	int rc = sl_poolgc(&e->lp);
 	if (srunlikely(rc == -1))
 		return -1;
 	rc = sl_poolrotate_ready(&e->lp, e->ctl.log_rotate_wm);
 	if (rc) {
+		sr_trace(&w->trace, "%s", "log rotation");
 		rc = sl_poolrotate(&e->lp);
 		if (srunlikely(rc == -1))
 			return -1;
@@ -311,12 +315,7 @@ so_rotate(soscheduler *s, soworker *w)
 static int
 so_execute(soscheduler *s, sotask *t, soworker *w)
 {
-	char *op;
-	if (t->plan.plan == SI_BRANCH)
-		op = "branch";
-	else
-		op = "merge";
-	sr_trace(&w->trace, "%s (%s)", op, t->plan.node->file.file);
+	si_plannertrace(&t->plan, &w->trace);
 	sodb *db = t->db;
 	uint64_t lsvn = sm_lsvn(&db->mvcc);
 	int rc = si_execute(&db->index, &db->r, &w->dc, &t->plan, lsvn);
@@ -330,18 +329,37 @@ so_execute(soscheduler *s, sotask *t, soworker *w)
 	return rc;
 }
 
+static int
+so_complete(soscheduler *s, sotask *t)
+{
+	sr_spinlock(&s->lock);
+	if (t->plan.plan == SI_BRANCH)
+		s->branch--;
+	if (t->rotate == 1)
+		s->rotate = 0;
+	sr_spinunlock(&s->lock);
+	return 0;
+}
+
 int so_scheduler(soscheduler *s, soworker *w)
 {
 	sotask task;
-	int rc = so_schedule(s, &task);
+	int rc = so_schedule(s, &task, w);
 	int job = rc;
 	if (task.rotate) {
 		rc = so_rotate(s, w);
 		if (srunlikely(rc == -1))
-			return -1;
+			goto error;
 	}
-	if (srunlikely(! job))
-		return 0;
+	if (job) {
+		rc = so_execute(s, &task, w);
+		if (srunlikely(rc == -1))
+			goto error;
+	}
+	so_complete(s, &task);
 	sr_trace(&w->trace, "%s", "sleep");
-	return so_execute(s, &task, w);
+	return rc;
+error:
+	sr_trace(&w->trace, "%s", "malfunction");
+	return -1;
 }

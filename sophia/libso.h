@@ -15,6 +15,7 @@
 #include <so_objindex.h>
 #include <so_ctl.h>
 #include <so_scheduler.h>
+#include <so_schedulerctl.h>
 #include <so.h>
 #include <so_v.h>
 #include <so_ctlcursor.h>

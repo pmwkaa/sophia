@@ -67,10 +67,31 @@ setget(stc *cx)
 	}
 	sr_histogram_print(&h);
 }
+
+static void
+stats(stc *cx)
+{
+	void *c = sp_ctl(cx->env);
+	t( c != NULL );
+	void *cur = sp_cursor(c, ">=", NULL);
+	t( cur != NULL );
+	printf("\n");
+	void *o;
+	while ((o = sp_get(cur))) {
+		char *key = sp_get(o, "key", NULL);
+		char *value = sp_get(o, "value", NULL);
+		printf("%s", key);
+		if (value)
+			printf(" = %s\n", value);
+		else
+			printf(" = \n");
+	}
+	t( sp_destroy(cur) == 0 );
+}
 #endif
 
 static inline void
-print_current(int i) {
+print_current(stc *cx srunused, int i) {
 	if (i > 0 && (i % 100000) == 0) {
 		printf(" %.1fM", i / 1000000.0);
 		fflush(NULL);
@@ -93,7 +114,7 @@ setget(stc *cx)
 		t( sp_set(o, "key", &k, sizeof(k)) == 0 );
 		t( sp_set(o, "value", value, sizeof(value)) == 0 );
 		t( sp_set(cx->db, o) == 0 );
-		print_current(i);
+		print_current(cx, i);
 	}
 	srand(82351);
 	for (i = 0; i < n; i++) {
@@ -105,7 +126,7 @@ setget(stc *cx)
 		t( o != NULL );
 		t( *(uint32_t*)sp_get(o, "value", NULL) == k );
 		sp_destroy(o);
-		print_current(i);
+		print_current(cx, i);
 	}
 }
 

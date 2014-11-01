@@ -33,6 +33,14 @@ sr_tracefree(srtrace *t) {
 	sr_spinlockfree(&t->lock);
 }
 
+static inline int
+sr_tracecopy(srtrace *t, char *buf, int bufsize) {
+	sr_spinlock(&t->lock);
+	int len = snprintf(buf, bufsize, "%s", t->message);
+	sr_spinunlock(&t->lock);
+	return len;
+}
+
 static inline void
 sr_vtrace(srtrace *t,
           const char *file,

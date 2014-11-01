@@ -52,17 +52,19 @@ int so_workersshutdown(soworkers *w, sr *r)
 }
 
 static inline soworker*
-so_workernew(sr *r, srthreadf f, void *arg)
+so_workernew(sr *r, int id, srthreadf f, void *arg)
 {
 	soworker *p = sr_malloc(r->a, sizeof(soworker));
 	if (srunlikely(p == NULL)) {
 		sr_error(r->e, "%s", "memory allocation failed");
 		return NULL;
 	}
+	snprintf(p->name, sizeof(p->name), "%d", id);
 	p->arg = arg;
 	sd_cinit(&p->dc, r);
 	sr_listinit(&p->link);
 	sr_traceinit(&p->trace);
+	sr_trace(&p->trace, "%s", "init");
 	int rc = sr_threadnew(&p->t, f, p);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "failed to create thread: %s",
@@ -76,13 +78,15 @@ so_workernew(sr *r, srthreadf f, void *arg)
 int so_workersnew(soworkers *w, sr *r, int n, srthreadf f, void *arg)
 {
 	int i = 0;
+	int id = 0;
 	while (i < n) {
-		soworker *p = so_workernew(r, f, arg);
+		soworker *p = so_workernew(r, id, f, arg);
 		if (srunlikely(p == NULL))
 			return -1;
 		sr_listappend(&w->list, &p->link);
 		w->n++;
 		i++;
+		id++;
 	}
 	return 0;
 }

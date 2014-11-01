@@ -19,6 +19,16 @@ int si_plannerinit(siplanner *p)
 	return 0;
 }
 
+int si_plannertrace(siplan *plan, srtrace *t)
+{
+	if (plan->plan == SI_BRANCH) {
+		sr_trace(t, "branch (node: %" PRIu32 ")", plan->node->id.id);
+		return 0;
+	}
+	sr_trace(t, "merge (node: %" PRIu32 ")", plan->node->id.id);
+	return 0;
+}
+
 srhot static inline int
 si_plannermerge_cmp(sinode *a, sinode *b)
 {
