@@ -93,7 +93,7 @@ st_phase_commit(stc *cx)
 		break;
 	case 1:
 		t( sp_set(sp_ctl(cx->env), "db.test.branch") == 0 );
-		t( sp_set(sp_ctl(cx->env), "db.test.merge") == 0 );
+		t( sp_set(sp_ctl(cx->env), "db.test.compact") == 0 );
 		break;
 	case 2:
 		t( sp_set(sp_ctl(cx->env), "log.rotate") == 0 );
@@ -104,7 +104,7 @@ st_phase_commit(stc *cx)
 			cx->phase = 1;
 		} else
 		if (cx->phase == 1) {
-			t( sp_set(sp_ctl(cx->env), "db.test.merge") == 0 );
+			t( sp_set(sp_ctl(cx->env), "db.test.compact") == 0 );
 			cx->phase = 0;
 		}
 		break;
@@ -114,7 +114,7 @@ st_phase_commit(stc *cx)
 			cx->phase = 1;
 		} else
 		if (cx->phase == 1) {
-			t( sp_set(sp_ctl(cx->env), "db.test.merge") == 0 );
+			t( sp_set(sp_ctl(cx->env), "db.test.compact") == 0 );
 			cx->phase = 2;
 		} else
 		if (cx->phase == 2) {
@@ -139,7 +139,7 @@ st_scene_phase(stscene *g, stc *cx)
 		fflush(NULL);
 		break;
 	case 1:
-		printf(".merge");
+		printf(".compact");
 		fflush(NULL);
 		break;
 	case 2:
@@ -147,7 +147,7 @@ st_scene_phase(stscene *g, stc *cx)
 		fflush(NULL);
 		break;
 	case 3:
-		printf(".branch+merge");
+		printf(".branch+compact");
 		fflush(NULL);
 		break;
 	case 4:

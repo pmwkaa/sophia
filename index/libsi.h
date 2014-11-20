@@ -18,8 +18,9 @@
 #include <si_query.h>
 #include <si_iter.h>
 #include <si_split.h>
+#include <si_compaction.h>
+#include <si_compact.h>
 #include <si_branch.h>
-#include <si_merge.h>
 #include <si_recover.h>
 #include <si_profiler.h>
 

@@ -19,8 +19,6 @@ struct siconf {
 	uint64_t  memory_limit;
 	uint32_t  node_size;
 	uint32_t  node_page_size;
-	uint32_t  node_branch_wm;
-	uint32_t  node_merge_wm;
 };
 
 #endif

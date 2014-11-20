@@ -19,7 +19,7 @@
 	2. incomplete node without parent is corrupt
 	3. link branch node with head
 
-	II. merge
+	II. compaction
 	000000001.000000002.db.incomplete  (1)
 	000000001.000000002.db.seal        (2)
 	000000002.db                       (3)
@@ -201,7 +201,7 @@ si_trackdir(sitrack *track, sr *r, si *i)
 		case SI_RDB_DBI:
 		case SI_RDB_DBSEAL: {
 			/* find parent node and mark it as having
-			 * incomplete merge process */
+			 * incomplete compaction process */
 			head = si_trackget(track, id_parent);
 			if (srlikely(head == NULL)) {
 				head = si_nodenew(r);
@@ -212,7 +212,7 @@ si_trackdir(sitrack *track, sr *r, si *i)
 				si_trackset(track, head);
 			}
 			head->recover |= rc;
-			/* remove any incomplete file made during merge */
+			/* remove any incomplete file made during compaction */
 			if (rc == SI_RDB_DBI) {
 				sr_pathAB(&path, i->conf->path, id_parent, id, ".db.incomplete");
 				rc = sr_fileunlink(path.path);
@@ -419,7 +419,7 @@ si_recovercomplete(sitrack *track, sr *r, si *index, srbuf *buf)
 		}
 		n->recover = SI_RDB;
 		si_insert(index, r, n);
-		si_plannerupdate(&index->p, SI_MERGE, n);
+		si_plannerupdate(&index->p, SI_COMPACT, n);
 	}
 	return 0;
 }

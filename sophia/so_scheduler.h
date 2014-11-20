@@ -38,6 +38,6 @@ int so_scheduler_del(soscheduler*, void*);
 int so_scheduler(soscheduler*, soworker*);
 
 int so_scheduler_branch(void*);
-int so_scheduler_merge(void*);
+int so_scheduler_compact(void*);
 
 #endif

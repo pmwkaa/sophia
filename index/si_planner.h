@@ -14,19 +14,19 @@ typedef struct siplan siplan;
 
 struct siplanner {
 	srrb branch;
-	srrb merge;
+	srrb compact;
 };
 
 /* plan */
-#define SI_MERGE        1
-#define SI_BRANCH       2
+#define SI_BRANCH        1
+#define SI_COMPACT       2
 
 /* condition */
-#define SI_MERGE_FORCE  1
-#define SI_MERGE_DEEP   2
-#define SI_BRANCH_FORCE 1
-#define SI_BRANCH_SIZE  2
-#define SI_BRANCH_LSN   4
+#define SI_BRANCH_FORCE  1
+#define SI_BRANCH_SIZE   2
+#define SI_BRANCH_LSN    4
+#define SI_COMPACT_FORCE 1
+#define SI_COMPACT_DEEP  2
 
 struct siplan {
 	int plan;

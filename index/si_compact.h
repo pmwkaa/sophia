@@ -1,5 +1,5 @@
-#ifndef SI_MERGE_H_
-#define SI_MERGE_H_
+#ifndef SI_COMPACT_H_
+#define SI_COMPACT_H_
 
 /*
  * sophia database
@@ -9,6 +9,6 @@
  * BSD License
 */
 
-int si_merge(si*, sr*, sdc*, siplan*, uint64_t);
+int si_compact(si*, sr*, sdc*, siplan*, uint64_t);
 
 #endif

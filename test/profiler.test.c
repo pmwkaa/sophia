@@ -76,7 +76,7 @@ profiler_count(stc *cx srunused)
 	sp_destroy(o);
 
 	t( sp_set(c, "db.test.branch") == 0 );
-	t( sp_set(c, "db.test.merge") == 0 );
+	t( sp_set(c, "db.test.compact") == 0 );
 
 	o = sp_get(c, "db.test.index.count");
 	t( o != NULL );

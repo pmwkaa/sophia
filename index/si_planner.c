@@ -15,7 +15,7 @@
 int si_plannerinit(siplanner *p)
 {
 	sr_rbinit(&p->branch);
-	sr_rbinit(&p->merge);
+	sr_rbinit(&p->compact);
 	return 0;
 }
 
@@ -25,12 +25,12 @@ int si_plannertrace(siplan *plan, srtrace *t)
 		sr_trace(t, "branch (node: %" PRIu32 ")", plan->node->id.id);
 		return 0;
 	}
-	sr_trace(t, "merge (node: %" PRIu32 ")", plan->node->id.id);
+	sr_trace(t, "compact (node: %" PRIu32 ")", plan->node->id.id);
 	return 0;
 }
 
 srhot static inline int
-si_plannermerge_cmp(sinode *a, sinode *b)
+si_plannercompact_cmp(sinode *a, sinode *b)
 {
 	if (a->lv != b->lv)
 		return (a->lv > b->lv) ? 1 : -1;
@@ -39,29 +39,29 @@ si_plannermerge_cmp(sinode *a, sinode *b)
 	return (a->id.id > b->id.id) ? 1 : -1;
 }
 
-sr_rbget(si_plannermerge_match,
-         si_plannermerge_cmp(srcast(n, sinode, nodemerge), (sinode*)key))
+sr_rbget(si_plannercompact_match,
+         si_plannercompact_cmp(srcast(n, sinode, nodecompact), (sinode*)key))
 
 static inline int
-si_plannermerge(siplanner *p, sinode *n)
+si_plannercompact(siplanner *p, sinode *n)
 {
-	sr_rbremove(&p->merge, &n->nodemerge);
+	sr_rbremove(&p->compact, &n->nodecompact);
 	srrbnode *pn = NULL;
-	int rc = si_plannermerge_match(&p->merge, NULL, n, 0, &pn);
+	int rc = si_plannercompact_match(&p->compact, NULL, n, 0, &pn);
 	assert(! (rc == 0 && pn));
-	sr_rbset(&p->merge, pn, rc, &n->nodemerge);
+	sr_rbset(&p->compact, pn, rc, &n->nodecompact);
 #if 0
-	pn = sr_rbmax(&p->merge);
+	pn = sr_rbmax(&p->compact);
 	if (pn == NULL)
 		return 0;
-	n = srcast(pn, sinode, nodemerge);
+	n = srcast(pn, sinode, nodecompact);
 	uint32_t lvlast = n->lv;
-	pn = sr_rbprev(&p->merge, pn);
+	pn = sr_rbprev(&p->compact, pn);
 	while (pn) {
-		n = srcast(pn, sinode, nodemerge);
+		n = srcast(pn, sinode, nodecompact);
 		assert(n->lv <= lvlast);
 		lvlast = n->lv;
-		pn = sr_rbprev(&p->merge, pn);
+		pn = sr_rbprev(&p->compact, pn);
 	}
 #endif
 	return 0;
@@ -109,8 +109,8 @@ int si_plannerupdate(siplanner *p, int mask, sinode *n)
 {
 	if (mask & SI_BRANCH)
 		si_plannerbranch(p, n);
-	if (mask & SI_MERGE)
-		si_plannermerge(p, n);
+	if (mask & SI_COMPACT)
+		si_plannercompact(p, n);
 	return 0;
 }
 
@@ -144,20 +144,20 @@ si_plannerpeek_branch(siplanner *p, siplan *plan)
 }
 
 static inline sinode*
-si_plannerpeek_merge(siplanner *p, siplan *plan)
+si_plannerpeek_compact(siplanner *p, siplan *plan)
 {
 	srrbnode *pn;
 	sinode *n;
-	pn = sr_rbmax(&p->merge);
+	pn = sr_rbmax(&p->compact);
 	while (pn) {
-		n = srcast(pn, sinode, nodemerge);
+		n = srcast(pn, sinode, nodecompact);
 		if (n->flags & SI_LOCK) {
-			pn = sr_rbprev(&p->merge, pn);
+			pn = sr_rbprev(&p->compact, pn);
 			continue;
 		}
-		if (srunlikely(plan->condition & SI_MERGE_FORCE))
+		if (srunlikely(plan->condition & SI_COMPACT_FORCE))
 			break;
-		if ((plan->condition & SI_MERGE_DEEP) && n->lv >= plan->a)
+		if ((plan->condition & SI_COMPACT_DEEP) && n->lv >= plan->a)
 			break;
 		return NULL;
 	}
@@ -172,7 +172,7 @@ si_planner(siplanner *p, siplan *plan)
 {
 	switch (plan->plan) {
 	case SI_BRANCH: return si_plannerpeek_branch(p, plan);
-	case SI_MERGE:  return si_plannerpeek_merge(p, plan);
+	case SI_COMPACT:  return si_plannerpeek_compact(p, plan);
 	}
 	return NULL;
 }
@@ -181,7 +181,7 @@ int si_plannerremove(siplanner *p, int mask, sinode *n)
 {
 	if (mask & SI_BRANCH)
 		sr_rbremove(&p->branch, &n->nodebranch);
-	if (mask & SI_MERGE)
-		sr_rbremove(&p->merge, &n->nodemerge);
+	if (mask & SI_COMPACT)
+		sr_rbremove(&p->compact, &n->nodecompact);
 	return 0;
 }

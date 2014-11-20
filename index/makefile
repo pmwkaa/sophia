@@ -6,8 +6,9 @@ LIBSI_O = si_node.o \
           si_query.o \
           si_iter.o \
           si_split.o \
+          si_compaction.o \
+          si_compact.o \
           si_branch.o \
-          si_merge.o \
           si_profiler.o \
           si_recover.o
 LIBSI_OBJECTS = $(addprefix index/, $(LIBSI_O))

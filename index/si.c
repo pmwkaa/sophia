@@ -85,10 +85,13 @@ int si_execute(si *i, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 {
 	assert(plan->node != NULL);
 	int rc = -1;
-	if (plan->plan == SI_BRANCH)
+	switch (plan->plan) {
+	case SI_BRANCH:
 		rc = si_branch(i, r, c, plan, vlsn);
-	else
-	if (plan->plan == SI_MERGE)
-		rc = si_merge(i, r, c, plan, vlsn);
+		break;
+	case SI_COMPACT:
+		rc = si_compact(i, r, c, plan, vlsn);
+		break;
+	}
 	return rc;
 }

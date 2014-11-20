@@ -33,7 +33,7 @@ sinode *si_nodenew(sr *r)
 	n->next = NULL;
 	sr_mapinit(&n->map);
 	sr_rbinitnode(&n->node);
-	sr_rbinitnode(&n->nodemerge);
+	sr_rbinitnode(&n->nodecompact);
 	sr_rbinitnode(&n->nodebranch);
 	return n;
 }

@@ -88,7 +88,7 @@ int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	n->iused   -= iused;
 	n->iusedkv -= iusedkv;
 	n->icount  -= icount;
-	si_plannerupdate(&index->p, SI_BRANCH|SI_MERGE, n);
+	si_plannerupdate(&index->p, SI_BRANCH|SI_COMPACT, n);
 	si_qos(index, 1, iused);
 	si_unlock(index);
 

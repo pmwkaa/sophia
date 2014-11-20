@@ -17,7 +17,7 @@ struct soctl {
 	uint32_t node_size;
 	uint32_t node_page_size;
 	uint32_t node_branch_wm;
-	uint32_t node_merge_wm;
+	uint32_t node_compact_wm;
 	uint32_t threads;
 	/* memory */
 	uint64_t memory_limit;

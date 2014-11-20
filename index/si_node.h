@@ -36,7 +36,7 @@ struct sinode {
 	uint32_t  lv;
 	sinode   *next;
 	srrbnode  node;
-	srrbnode  nodemerge;
+	srrbnode  nodecompact;
 	srrbnode  nodebranch;
 } srpacked;
 
@@ -51,7 +51,6 @@ int si_nodecmp(sinode*, void*, int, srcomparator*);
 int si_nodegc(sinode*, sr*);
 int si_nodeseal(sinode*, sr*, siconf*);
 int si_nodecomplete(sinode*, sr*, siconf*);
-
 
 static inline svindex*
 si_noderotate(sinode *node) {

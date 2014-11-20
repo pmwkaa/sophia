@@ -70,9 +70,9 @@ so_dbctl_branch(srctl *c srunused, void *arg, va_list args srunused)
 }
 
 static int
-so_dbctl_merge(srctl *c srunused, void *arg, va_list args srunused)
+so_dbctl_compact(srctl *c srunused, void *arg, va_list args srunused)
 {
-	return so_scheduler_merge(arg);
+	return so_scheduler_compact(arg);
 }
 
 static int
@@ -115,7 +115,7 @@ so_dbctl_prepare(srctl *t, sodbctl *c, sodbctlinfo *info)
 	p = sr_ctladd(p, "create",          SR_CTLINT,             &c->create,    NULL);
 	p = sr_ctladd(p, "sync",            SR_CTLINT,             &c->sync,      NULL);
 	p = sr_ctladd(p, "branch",          SR_CTLTRIGGER,         NULL,          so_dbctl_branch);
-	p = sr_ctladd(p, "merge",           SR_CTLTRIGGER,         NULL,          so_dbctl_merge);
+	p = sr_ctladd(p, "compact",         SR_CTLTRIGGER,         NULL,          so_dbctl_compact);
 	p = sr_ctladd(p, "lockdetect",      SR_CTLTRIGGER,         NULL,          so_dbctl_lockdetect);
 	p = sr_ctladd(p, "index",           SR_CTLSUB,             NULL,          NULL);
 	p = sr_ctladd(p, "error_injection", SR_CTLSUB,             NULL,          NULL);
@@ -165,14 +165,14 @@ static inline void
 so_dbei_prepare(srctl *t, srinjection *i)
 {
 	srctl *p = t;
-	p = sr_ctladd(p, "si_branch_0", SR_CTLINT, &i->e[0], NULL);
-	p = sr_ctladd(p, "si_branch_1", SR_CTLINT, &i->e[1], NULL);
-	p = sr_ctladd(p, "si_merge_0",  SR_CTLINT, &i->e[2], NULL);
-	p = sr_ctladd(p, "si_merge_1",  SR_CTLINT, &i->e[3], NULL);
-	p = sr_ctladd(p, "si_merge_2",  SR_CTLINT, &i->e[4], NULL);
-	p = sr_ctladd(p, "si_merge_3",  SR_CTLINT, &i->e[5], NULL);
-	p = sr_ctladd(p, "si_merge_4",  SR_CTLINT, &i->e[6], NULL);
-	p = sr_ctladd(p,  NULL,         0,          NULL,    NULL);
+	p = sr_ctladd(p, "si_branch_0",     SR_CTLINT, &i->e[0], NULL);
+	p = sr_ctladd(p, "si_branch_1",     SR_CTLINT, &i->e[1], NULL);
+	p = sr_ctladd(p, "si_compaction_0", SR_CTLINT, &i->e[2], NULL);
+	p = sr_ctladd(p, "si_compaction_1", SR_CTLINT, &i->e[3], NULL);
+	p = sr_ctladd(p, "si_compaction_2", SR_CTLINT, &i->e[4], NULL);
+	p = sr_ctladd(p, "si_compaction_3", SR_CTLINT, &i->e[5], NULL);
+	p = sr_ctladd(p, "si_compaction_4", SR_CTLINT, &i->e[6], NULL);
+	p = sr_ctladd(p,  NULL,             0,          NULL,    NULL);
 }
 
 static int

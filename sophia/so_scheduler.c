@@ -42,7 +42,7 @@ int so_scheduler_branch(void *arg)
 	return rc;
 }
 
-int so_scheduler_merge(void *arg)
+int so_scheduler_compact(void *arg)
 {
 	sodb *db = arg;
 	sdc dc;
@@ -51,9 +51,9 @@ int so_scheduler_merge(void *arg)
 	while (1) {
 		uint64_t vlsn = sm_vlsn(&db->mvcc);
 		siplan plan = {
-			.plan      = SI_MERGE,
-			.condition = SI_MERGE_DEEP,
-			.a         = db->e->ctl.node_merge_wm,
+			.plan      = SI_COMPACT,
+			.condition = SI_COMPACT_DEEP,
+			.a         = db->e->ctl.node_compact_wm,
 			.b         = 0,
 			.node      = NULL
 		};
@@ -260,7 +260,7 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 		 *    which has oldest update time.
 		 *
 		 * c. if no branch work is needed, schedule a
-		 *    merge job
+		 *    compaction job
 		 */
 		task->plan.plan = SI_BRANCH;
 		task->plan.condition = SI_BRANCH_SIZE; /* | ttl */
@@ -275,13 +275,13 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 			return 1;
 		}
 	}
-	/* schedule merge task.
+	/* schedule compaction task.
 	 *
 	 * peek node with the largest branches count
 	 */
-	task->plan.plan = SI_MERGE;
-	task->plan.condition = SI_MERGE_DEEP;
-	task->plan.a = e->ctl.node_merge_wm;
+	task->plan.plan = SI_COMPACT;
+	task->plan.condition = SI_COMPACT_DEEP;
+	task->plan.a = e->ctl.node_compact_wm;
 	task->plan.b = 0;
 	task->plan.node = NULL;
 	db = so_schedule_plan(s, &task->plan);

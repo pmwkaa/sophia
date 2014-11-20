@@ -26,8 +26,6 @@ int so_recoverbegin(sodb *db)
 	siconf *c = &db->indexconf;
 	c->node_size      = e->ctl.node_size;
 	c->node_page_size = e->ctl.node_page_size;
-	c->node_branch_wm = e->ctl.node_branch_wm;
-	c->node_merge_wm  = e->ctl.node_merge_wm;
 	c->path           = db->ctl.path;
 	c->read_only      = db->ctl.read_only;
 	c->create         = db->ctl.create;

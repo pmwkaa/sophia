@@ -494,7 +494,7 @@ void so_ctlinit(soctl *c, void *e)
 	c->node_size         = 128 * 1024 * 1024;
 	c->node_page_size    = 128 * 1024;
 	c->node_branch_wm    = 10 * 1024 * 1024;
-	c->node_merge_wm     = 1;
+	c->node_compact_wm   = 1;
 	c->threads           = 5;
 	c->log_path          = NULL;
 	c->log_read_only     = 0;
