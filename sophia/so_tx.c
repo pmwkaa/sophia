@@ -79,9 +79,9 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	}
 	v->log = tl.l;
 	sl_commit(&tl);
-	uint64_t lsvn = sm_lsvn(&db->mvcc);
+	uint64_t vlsn = sm_vlsn(&db->mvcc);
 	sitx tx;
-	si_begin(&tx, &db->r, &db->index, lsvn, &log);
+	si_begin(&tx, &db->r, &db->index, vlsn, &log);
 	si_write(&tx, 0);
 	si_commit(&tx);
 	so_objdestroy(o);
@@ -111,10 +111,10 @@ void *so_txdbget(sodb *db, va_list args)
 		return NULL;
 	}
 	sm_get_stmt(&db->mvcc);
-	uint64_t lsvn = sr_seq(db->r.seq, SR_LSN) - 1;
+	uint64_t vlsn = sr_seq(db->r.seq, SR_LSN) - 1;
 	sv result;
 	siquery q;
-	si_queryopen(&q, &db->r, &db->index, SR_EQ, lsvn, key, keysize);
+	si_queryopen(&q, &db->r, &db->index, SR_EQ, vlsn, key, keysize);
 	int rc = si_query(&q);
 	if (rc) {
 		rc = si_querydup(&q, &result);
@@ -231,7 +231,7 @@ so_txget(soobj *obj, va_list args)
 		}
 	siquery q;
 	si_queryopen(&q, &t->db->r, &t->db->index, SR_EQ,
-	             t->t.lsvn,
+	             t->t.vlsn,
 	             key, svkeysize(&v->v));
 	rc = si_query(&q);
 	if (rc) {
@@ -270,11 +270,11 @@ so_txprepare_trigger(smtx *t, sv *v, void *arg)
 {
 	sotx *te = arg;
 	uint64_t lsn = sr_seq(te->db->r.seq, SR_LSN);
-	if ((lsn - 1) == t->lsvn)
+	if ((lsn - 1) == t->vlsn)
 		return SMPREPARE;
 	siquery q;
 	si_queryopen(&q, &te->db->r, &te->db->index, SR_UPDATE,
-	             t->lsvn,
+	             t->vlsn,
 	             svkey(v), svkeysize(v));
 	int rc;
 	rc = si_query(&q);
@@ -358,16 +358,16 @@ so_txcommit(soobj *o, va_list args)
 
 	/* index commit */
 	int check_if_exists;
-	uint64_t lsvn;
+	uint64_t vlsn;
 	if (srunlikely(status == SO_RECOVER)) {
 		check_if_exists = 1;
-		lsvn = sr_seq(db->r.seq, SR_LSN) - 1;
+		vlsn = sr_seq(db->r.seq, SR_LSN) - 1;
 	} else {
 		check_if_exists = 0;
-		lsvn = sm_lsvn(&db->mvcc);
+		vlsn = sm_vlsn(&db->mvcc);
 	}
 	sitx ti;
-	si_begin(&ti, &db->r, &db->index, lsvn, &t->t.log);
+	si_begin(&ti, &db->r, &db->index, vlsn, &t->t.log);
 	si_write(&ti, check_if_exists);
 	si_commit(&ti);
 	sm_end(&t->t);

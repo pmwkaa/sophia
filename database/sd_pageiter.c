@@ -21,7 +21,7 @@ struct sdpageiter {
 	srorder order;
 	void *key;
 	int keysize;
-	uint64_t lsvn;
+	uint64_t vlsn;
 } srpacked;
 
 static void
@@ -70,13 +70,13 @@ sd_pageiter_lv(sdpageiter *i, int64_t pos)
 	/* lower-visible bound */
 
 	/* find visible max: any first key which
-	 * lsn <= lsvn (max in dup chain) */
+	 * lsn <= vlsn (max in dup chain) */
 	int64_t maxpos = 0;
 	sdv *v;
 	sdv *max = NULL;
 	while (pos >= 0) {
 		v = sd_pagev(i->page, pos);
-		if (v->lsn <= i->lsvn) {
+		if (v->lsn <= i->vlsn) {
 			maxpos = pos;
 			max = v;
 		}
@@ -99,10 +99,10 @@ sd_pageiter_gv(sdpageiter *i, int64_t pos)
 	/* greater-visible bound */
 
 	/* find visible max: any first key which
-	 * lsn <= lsvn (max in dup chain) */
+	 * lsn <= vlsn (max in dup chain) */
 	while (pos < i->page->h->count ) {
 		sdv *v = sd_pagev(i->page, pos);
-		if (v->lsn <= i->lsvn) {
+		if (v->lsn <= i->vlsn) {
 			i->pos = pos;
 			i->v = v;
 			return;
@@ -118,17 +118,17 @@ sd_pageiter_lland(sdpageiter *i, int64_t pos)
 	/* reposition to a visible duplicate */
 	i->pos = pos;
 	i->v = sd_pagev(i->page, i->pos);
-	if (i->v->lsn == i->lsvn)
+	if (i->v->lsn == i->vlsn)
 		return;
-	if (i->v->lsn > i->lsvn) {
-		/* search max < i->lsvn */
+	if (i->v->lsn > i->vlsn) {
+		/* search max < i->vlsn */
 		pos++;
 		while (pos < i->page->h->count)
 		{
 			sdv *v = sd_pagev(i->page, pos);
 			if (! (v->flags & SVDUP))
 				break;
-			if (v->lsn <= i->lsvn) {
+			if (v->lsn <= i->vlsn) {
 				i->pos = pos;
 				i->v = v;
 				return;
@@ -145,17 +145,17 @@ sd_pageiter_gland(sdpageiter *i, int64_t pos)
 	/* reposition to a visible duplicate */
 	i->pos = pos;
 	i->v = sd_pagev(i->page, i->pos);
-	if (i->v->lsn == i->lsvn)
+	if (i->v->lsn == i->vlsn)
 		return;
 
-	if (i->v->lsn > i->lsvn) {
-		/* search max < i->lsvn */
+	if (i->v->lsn > i->vlsn) {
+		/* search max < i->vlsn */
 		pos++;
 		sd_pageiter_gv(i, pos);
 		return;
 	}
 
-	/* i->v->lsn < i->lsvn */
+	/* i->v->lsn < i->vlsn */
 	if (! (i->v->flags & SVDUP))
 		return;
 	int64_t maxpos = pos;
@@ -163,7 +163,7 @@ sd_pageiter_gland(sdpageiter *i, int64_t pos)
 	pos--;
 	while (pos >= 0) {
 		sdv *v = sd_pagev(i->page, pos);
-		if (v->lsn <= i->lsvn) {
+		if (v->lsn <= i->vlsn) {
 			maxpos = pos;
 			max = v;
 		}
@@ -221,7 +221,7 @@ sd_pageiter_fwd(sdpageiter *i)
 	while (pos < i->page->h->count)
 	{
 		sdv *v = sd_pagev(i->page, pos);
-		if (v->lsn <= i->lsvn) {
+		if (v->lsn <= i->vlsn) {
 			match = v;
 			break;
 		}
@@ -327,8 +327,8 @@ sd_pageiter_open(sriter *i, va_list args)
 	pi->order   = va_arg(args, srorder);
 	pi->key     = va_arg(args, void*);
 	pi->keysize = va_arg(args, int);
-	pi->lsvn    = va_arg(args, uint64_t);
-	if (srunlikely(pi->page->h->lsnmin > pi->lsvn &&
+	pi->vlsn    = va_arg(args, uint64_t);
+	if (srunlikely(pi->page->h->lsnmin > pi->vlsn &&
 	               pi->order != SR_UPDATE))
 		return 0;
 	int match;
@@ -340,12 +340,12 @@ sd_pageiter_open(sriter *i, va_list args)
 	case SR_EQ:     return sd_pageiter_lt(i, 1);
 	case SR_RANDOM: return sd_pageiter_random(i);
 	case SR_UPDATE: {
-		uint64_t lsvn = pi->lsvn;
-		pi->lsvn = (uint64_t)-1;
+		uint64_t vlsn = pi->vlsn;
+		pi->vlsn = (uint64_t)-1;
 		match = sd_pageiter_lt(i, 1);
 		if (match == 0)
 			return 0;
-		return pi->v->lsn > lsvn;
+		return pi->v->lsn > vlsn;
 	}
 	default: assert(0);
 	}

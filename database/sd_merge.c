@@ -17,7 +17,7 @@ int sd_mergeinit(sdmerge *m, sr *r, uint32_t parent, uint8_t flags,
                  uint32_t size_key,
                  uint32_t size_stream,
                  uint32_t size_node,
-                 uint32_t size_page, uint64_t lsvn)
+                 uint32_t size_page, uint64_t vlsn)
 {
 	m->r           = r;
 	m->parent      = parent;
@@ -29,7 +29,7 @@ int sd_mergeinit(sdmerge *m, sr *r, uint32_t parent, uint8_t flags,
 	m->size_page   = size_page;
 	sd_indexinit(&m->index);
 	sr_iterinit(&m->i, &sv_seaveiter, r);
-	sr_iteropen(&m->i, i, (uint64_t)size_page, sizeof(sdv), lsvn);
+	sr_iteropen(&m->i, i, (uint64_t)size_page, sizeof(sdv), vlsn);
 	return 0;
 }
 

@@ -15,7 +15,7 @@
 extern void si_vgc(sra*, svv*);
 
 static int
-si_redistribute(sr *r, sdc *c, sinode *node, srbuf *result, uint64_t lsvn)
+si_redistribute(sr *r, sdc *c, sinode *node, srbuf *result, uint64_t vlsn)
 {
 	sriter i;
 	sr_iterinit(&i, &sv_indexiterraw, r);
@@ -42,7 +42,7 @@ si_redistribute(sr *r, sdc *c, sinode *node, srbuf *result, uint64_t lsvn)
 			while (sr_iterhas(&i)) {
 				svv *v = sr_iterof(&i);
 				svv *vgc = NULL;
-				sv_indexset(&prev->i0, r, lsvn, v, &vgc);
+				sv_indexset(&prev->i0, r, vlsn, v, &vgc);
 				prev->iused += sv_vsize(v);
 				prev->iusedkv += v->keysize + v->valuesize;
 				prev->icount++;
@@ -61,7 +61,7 @@ si_redistribute(sr *r, sdc *c, sinode *node, srbuf *result, uint64_t lsvn)
 			                    sd_indexpage_min(page), page->sizemin);
 			if (srunlikely(rc >= 0))
 				break;
-			sv_indexset(&prev->i0, r, lsvn, v, &vgc);
+			sv_indexset(&prev->i0, r, vlsn, v, &vgc);
 			prev->iused += sv_vsize(v);
 			prev->iusedkv += v->keysize + v->valuesize;
 			prev->icount++;
@@ -80,7 +80,7 @@ si_redistribute(sr *r, sdc *c, sinode *node, srbuf *result, uint64_t lsvn)
 }
 
 static inline int
-si_mergeof(si *index, sr *r, sdc *c, uint64_t lsvn,
+si_mergeof(si *index, sr *r, sdc *c, uint64_t vlsn,
            sinode *node,
            sriter *stream,
            uint32_t size_stream,
@@ -99,7 +99,7 @@ si_mergeof(si *index, sr *r, sdc *c, uint64_t lsvn,
 		.size_stream  = size_stream,
 		.size_node    = index->conf->node_size,
 		.conf         = index->conf,
-		.lsvn         = lsvn
+		.vlsn         = vlsn
 	};
 	int rc = si_split(&s, r, c, result);
 	if (srunlikely(rc == -1))
@@ -126,7 +126,7 @@ si_mergeof(si *index, sr *r, sdc *c, uint64_t lsvn,
 		si_replace(index, node, n);
 		si_plannerupdate(&index->p, SI_MERGE|SI_BRANCH, n);
 	} else {
-		rc = si_redistribute(r, c, node, result, s.lsvn);
+		rc = si_redistribute(r, c, node, result, s.vlsn);
 		if (srunlikely(rc == -1)) {
 			si_unlock(index);
 			si_splitfree(result, r);
@@ -226,7 +226,7 @@ si_mergeadd(svmerge *m, sr *r, sinode *n,
 	return 0;
 }
 
-int si_merge(si *index, sr *r, sdc *c, siplan *plan, uint64_t lsvn)
+int si_merge(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 {
 	sinode *node = plan->node;
 	sd_creset(c);
@@ -245,7 +245,7 @@ int si_merge(si *index, sr *r, sdc *c, siplan *plan, uint64_t lsvn)
 	sriter i;
 	sr_iterinit(&i, &sv_mergeiter, r);
 	sr_iteropen(&i, &merge, SR_GTE);
-	rc = si_mergeof(index, r, c, lsvn, node, &i, size_stream, size_key);
+	rc = si_mergeof(index, r, c, vlsn, node, &i, size_stream, size_key);
 	if (srunlikely(rc == -1)) {
 		sv_mergefree(&merge, r->a);
 		return -1;

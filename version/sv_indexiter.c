@@ -20,7 +20,7 @@ struct svindexiter {
 	srorder order;
 	void *key;
 	int keysize;
-	uint64_t lsvn;
+	uint64_t vlsn;
 } srpacked;
 
 static void
@@ -37,7 +37,7 @@ sv_indexiter_fwd(svindexiter *i)
 {
 	while (i->v) {
 		svv *v = srcast(i->v, svv, node);
-		i->vcur = sv_visible(v, i->lsvn);
+		i->vcur = sv_visible(v, i->vlsn);
 		if (srlikely(i->vcur))
 			return;
 		i->v = sr_rbnext(&i->index->i, i->v);
@@ -49,7 +49,7 @@ sv_indexiter_bkw(svindexiter *i)
 {
 	while (i->v) {
 		svv *v = srcast(i->v, svv, node);
-		i->vcur = sv_visible(v, i->lsvn);
+		i->vcur = sv_visible(v, i->vlsn);
 		if (srlikely(i->vcur))
 			return;
 		i->v = sr_rbprev(&i->index->i, i->v);
@@ -64,7 +64,7 @@ sv_indexiter_open(sriter *i, va_list args)
 	ii->order   = va_arg(args, srorder);
 	ii->key     = va_arg(args, void*);
 	ii->keysize = va_arg(args, int);
-	ii->lsvn    = va_arg(args, uint64_t);
+	ii->vlsn    = va_arg(args, uint64_t);
 	srrbnode *n = NULL;
 	int eq = 0;
 	int rc;
@@ -140,7 +140,7 @@ sv_indexiter_open(sriter *i, va_list args)
 		if (rc == 0 && ii->v) {
 			svv *v = srcast(ii->v, svv, node);
 			ii->vcur = v;
-			return v->lsn > ii->lsvn;
+			return v->lsn > ii->vlsn;
 		}
 		return 0;
 	default: assert(0);

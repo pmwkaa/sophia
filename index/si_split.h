@@ -16,7 +16,7 @@ typedef struct {
 	uint32_t  size_node;
 	uint32_t  size_key;
 	uint32_t  size_stream;
-	uint64_t  lsvn;
+	uint64_t  vlsn;
 	siconf   *conf;
 } sisplit;
 

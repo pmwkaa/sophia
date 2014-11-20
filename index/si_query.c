@@ -13,13 +13,13 @@
 #include <libsi.h>
 
 int si_queryopen(siquery *q, sr *r, si *i, srorder o,
-                 uint64_t lsvn,
+                 uint64_t vlsn,
                  void *key, uint32_t keysize)
 {
 	q->order    = o;
 	q->key      = key;
 	q->keysize  = keysize;
-	q->lsvn     = lsvn;
+	q->vlsn     = vlsn;
 	q->index    = i;
 	q->r        = r;
 	q->firstsrc = NULL;
@@ -53,13 +53,13 @@ si_qmatchindex(siquery *q, sinode *node)
 {
 	sriter i;
 	sr_iterinit(&i, &sv_indexiter, q->r);
-	int rc = sr_iteropen(&i, &node->i0, q->order, q->key, q->keysize, q->lsvn);
+	int rc = sr_iteropen(&i, &node->i0, q->order, q->key, q->keysize, q->vlsn);
 	if (rc)
 		return si_qresult(q, &i);
 	if (! (node->flags & SI_I1))
 		return 0;
 	sr_iterinit(&i, &sv_indexiter, q->r);
-	rc = sr_iteropen(&i, &node->i1, q->order, q->key, q->keysize, q->lsvn);
+	rc = sr_iteropen(&i, &node->i1, q->order, q->key, q->keysize, q->vlsn);
 	if (rc)
 		return si_qresult(q, &i);
 	return 0;
@@ -79,7 +79,7 @@ si_qmatchnode(siquery *q, sinode *n)
 	sdpage page;
 	sd_pageinit(&page, h);
 	sr_iterinit(&i, &sd_pageiter, q->r);
-	int rc = sr_iteropen(&i, &page, q->order, q->key, q->keysize, q->lsvn);
+	int rc = sr_iteropen(&i, &page, q->order, q->key, q->keysize, q->vlsn);
 	if (rc == 0)
 		return 0;
 	return si_qresult(q, &i);
@@ -148,7 +148,7 @@ si_qfetchnode(siquery *q, sinode *n, svmerge *m)
 		(sdpageheader*)((char*)n->map.p + pageref->offset);
 	sd_pageinit(page, h);
 	sr_iterinit(&s->i, &sd_pageiter, q->r);
-	sr_iteropen(&s->i, page, q->order, q->key, q->keysize, q->lsvn);
+	sr_iteropen(&s->i, page, q->order, q->key, q->keysize, q->vlsn);
 }
 
 static inline int
@@ -177,10 +177,10 @@ si_qfetch(siquery *q)
 	*/
 	s = sv_mergeadd(m);
 	sr_iterinit(&s->i, &sv_indexiter, q->r);
-	sr_iteropen(&s->i, &node->i1, q->order, q->key, q->keysize, q->lsvn);
+	sr_iteropen(&s->i, &node->i1, q->order, q->key, q->keysize, q->vlsn);
 	s = sv_mergeadd(m);
 	sr_iterinit(&s->i, &sv_indexiter, q->r);
-	sr_iteropen(&s->i, &node->i0, q->order, q->key, q->keysize, q->lsvn);
+	sr_iteropen(&s->i, &node->i0, q->order, q->key, q->keysize, q->vlsn);
 	sinode *n = node->next;
 	while (n) {
 		si_qfetchnode(q, n, m);
@@ -192,7 +192,7 @@ si_qfetch(siquery *q)
 	sr_iteropen(&i, m, q->order);
 	sriter j;
 	sr_iterinit(&j, &sv_seaveiter, q->r);
-	sr_iteropen(&j, &i, UINT64_MAX, 0, q->lsvn);
+	sr_iteropen(&j, &i, UINT64_MAX, 0, q->vlsn);
 	rc = si_qresult(q, &j);
 	return rc;
 }

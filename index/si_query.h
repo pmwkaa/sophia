@@ -15,7 +15,7 @@ struct siquery {
 	srorder order;
 	void *key;
 	uint32_t keysize;
-	uint64_t lsvn;
+	uint64_t vlsn;
 	sriter *firstsrc;
 	svmerge merge;
 	sv result;

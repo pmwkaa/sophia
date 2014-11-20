@@ -30,7 +30,7 @@ so_cursorseek(socursor *c, void *key, int keysize)
 {
 	siquery q;
 	si_queryopen(&q, &c->db->r, &c->db->index, c->order,
-	             c->t.lsvn, key, keysize);
+	             c->t.vlsn, key, keysize);
 	si_query(&q);
 	so_vrelease(&c->v);
 	if (q.result.v) {

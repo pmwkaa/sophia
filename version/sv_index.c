@@ -54,12 +54,12 @@ sv_vset(svv *head, svv *v)
 }
 
 static inline svv*
-sv_vgc(svv *v, uint64_t lsvn)
+sv_vgc(svv *v, uint64_t vlsn)
 {
 	svv *prev = v;
 	svv *c = v->next;
 	while (c) {
-		if (c->lsn < lsvn) {
+		if (c->lsn < vlsn) {
 			prev->next = NULL;
 			return c;
 		}
@@ -68,7 +68,7 @@ sv_vgc(svv *v, uint64_t lsvn)
 	return NULL;
 }
 
-int sv_indexset(svindex *i, sr *r, uint64_t lsvn, svv *v, svv **gc)
+int sv_indexset(svindex *i, sr *r, uint64_t vlsn, svv *v, svv **gc)
 {
 	srrbnode *n = NULL;
 	svv *head = NULL;
@@ -80,7 +80,7 @@ int sv_indexset(svindex *i, sr *r, uint64_t lsvn, svv *v, svv **gc)
 		svv *update = sv_vset(head, v);
 		if (head != update)
 			sr_rbreplace(&i->i, n, &update->node);
-		*gc = sv_vgc(update, lsvn);
+		*gc = sv_vgc(update, vlsn);
 	} else {
 		sr_rbset(&i->i, n, rc, &v->node);
 		i->count++;

@@ -28,10 +28,10 @@ si_vgc(sra *a, svv *gc)
 	}
 }
 
-void si_begin(sitx *t, sr *r, si *index, uint64_t lsvn, svlog *log)
+void si_begin(sitx *t, sr *r, si *index, uint64_t vlsn, svlog *log)
 {
 	t->index = index;
-	t->lsvn  = lsvn;
+	t->vlsn  = vlsn;
 	t->r     = r;
 	t->log   = log;
 	si_lock(index);
@@ -46,7 +46,7 @@ void si_rollback(sitx *t) {
 }
 
 static void
-si_set(si *index, sr *r, uint64_t lsvn, svv *v)
+si_set(si *index, sr *r, uint64_t vlsn, svv *v)
 {
 	uint32_t size = sv_vsize(v);
 	/* ensure memory limit */
@@ -60,7 +60,7 @@ si_set(si *index, sr *r, uint64_t lsvn, svv *v)
 	/* update node */
 	svindex *vindex = si_nodeindex(node);
 	svv *vgc = NULL;
-	sv_indexset(vindex, r, lsvn, v, &vgc);
+	sv_indexset(vindex, r, vlsn, v, &vgc);
 	node->icount++;
 	node->iused += size;
 	node->iusedkv += v->keysize + v->valuesize;
@@ -89,6 +89,6 @@ void si_write(sitx *t, int check)
 			si_vgc(t->r->a, v);
 			continue;
 		}
-		si_set(t->index, t->r, t->lsvn, v);
+		si_set(t->index, t->r, t->vlsn, v);
 	}
 }

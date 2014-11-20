@@ -81,14 +81,14 @@ int si_plan(si *i, siplan *plan)
 	return 1;
 }
 
-int si_execute(si *i, sr *r, sdc *c, siplan *plan, uint64_t lsvn)
+int si_execute(si *i, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 {
 	assert(plan->node != NULL);
 	int rc = -1;
 	if (plan->plan == SI_BRANCH)
-		rc = si_branch(i, r, c, plan, lsvn);
+		rc = si_branch(i, r, c, plan, vlsn);
 	else
 	if (plan->plan == SI_MERGE)
-		rc = si_merge(i, r, c, plan, lsvn);
+		rc = si_merge(i, r, c, plan, vlsn);
 	return rc;
 }

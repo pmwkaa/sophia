@@ -23,7 +23,7 @@ int so_scheduler_branch(void *arg)
 	sd_cinit(&dc, &db->r);
 	int rc;
 	while (1) {
-		uint64_t lsvn = sm_lsvn(&db->mvcc);
+		uint64_t vlsn = sm_vlsn(&db->mvcc);
 		siplan plan = {
 			.plan      = SI_BRANCH,
 			.condition = SI_BRANCH_SIZE,
@@ -34,7 +34,7 @@ int so_scheduler_branch(void *arg)
 		rc = si_plan(&db->index, &plan);
 		if (rc == 0)
 			break;
-		rc = si_execute(&db->index, &db->r, &dc, &plan, lsvn);
+		rc = si_execute(&db->index, &db->r, &dc, &plan, vlsn);
 		if (srunlikely(rc == -1))
 			break;
 	}
@@ -49,7 +49,7 @@ int so_scheduler_merge(void *arg)
 	sd_cinit(&dc, &db->r);
 	int rc;
 	while (1) {
-		uint64_t lsvn = sm_lsvn(&db->mvcc);
+		uint64_t vlsn = sm_vlsn(&db->mvcc);
 		siplan plan = {
 			.plan      = SI_MERGE,
 			.condition = SI_MERGE_DEEP,
@@ -60,7 +60,7 @@ int so_scheduler_merge(void *arg)
 		rc = si_plan(&db->index, &plan);
 		if (rc == 0)
 			break;
-		rc = si_execute(&db->index, &db->r, &dc, &plan, lsvn);
+		rc = si_execute(&db->index, &db->r, &dc, &plan, vlsn);
 		if (srunlikely(rc == -1))
 			break;
 	}
@@ -317,8 +317,8 @@ so_execute(soscheduler *s, sotask *t, soworker *w)
 {
 	si_plannertrace(&t->plan, &w->trace);
 	sodb *db = t->db;
-	uint64_t lsvn = sm_lsvn(&db->mvcc);
-	int rc = si_execute(&db->index, &db->r, &w->dc, &t->plan, lsvn);
+	uint64_t vlsn = sm_vlsn(&db->mvcc);
+	int rc = si_execute(&db->index, &db->r, &w->dc, &t->plan, vlsn);
 	if (srunlikely(rc == -1))
 		so_dbmalfunction(db);
 	if (t->plan.plan == SI_BRANCH) {

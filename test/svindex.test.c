@@ -29,11 +29,11 @@ allocv(sra *a, uint64_t lsn, uint8_t flags, uint32_t *key)
 }
 
 static inline svv*
-getv(svindex *i, sr *r, uint64_t lsvn, uint32_t *key) {
+getv(svindex *i, sr *r, uint64_t vlsn, uint32_t *key) {
 	srrbnode *n = NULL;
 	int rc = sv_indexmatch(&i->i, r->cmp, (char*)key, sizeof(uint32_t), &n);
 	if (rc == 0 && n) {
-		return sv_visible(srcast(n, svv, node), lsvn);
+		return sv_visible(srcast(n, svv, node), vlsn);
 	}
 	return NULL;
 }

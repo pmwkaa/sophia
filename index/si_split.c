@@ -34,7 +34,7 @@ int si_split(sisplit *s, sr *r, sdc *c, srbuf *result)
 	             s->size_key,
 	             s->size_stream,
 	             s->size_node,
-	             s->conf->node_page_size, s->lsvn);
+	             s->conf->node_page_size, s->vlsn);
 	while ((rc = sd_merge(&merge)) > 0)
 	{
 		sinode *n = si_nodenew(r);

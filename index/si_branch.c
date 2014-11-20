@@ -13,7 +13,7 @@
 #include <libsd.h>
 #include <libsi.h>
 
-int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t lsvn)
+int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 {
 	si_lock(index);
 	sinode *n = plan->node;
@@ -43,7 +43,7 @@ int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t lsvn)
 		.size_key    = i->keymax,
 		.size_stream = iusedkv,
 		.size_node   = UINT32_MAX,
-		.lsvn        = lsvn,
+		.vlsn        = vlsn,
 		.conf        = index->conf
 	};
 	int rc = si_split(&s, r, c, result);

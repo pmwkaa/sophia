@@ -36,19 +36,19 @@ int sm_free(sm *c)
 	return 0;
 }
 
-uint64_t sm_lsvn(sm *c)
+uint64_t sm_vlsn(sm *c)
 {
 	sr_spinlock(&c->lock);
-	uint64_t lsvn;
+	uint64_t vlsn;
 	if (c->tn) {
 		srrbnode *node = sr_rbmin(&c->t);
 		smtx *min = srcast(node, smtx, node);
-		lsvn = min->lsvn;
+		vlsn = min->vlsn;
 	} else {
-		lsvn = sr_seq(c->r->seq, SR_LSN) - 1;
+		vlsn = sr_seq(c->r->seq, SR_LSN) - 1;
 	}
 	sr_spinunlock(&c->lock);
-	return lsvn;
+	return vlsn;
 }
 
 sr_rbget(sm_matchtx,
@@ -70,7 +70,7 @@ smstate sm_begin(sm *c, smtx *t)
 	t->c = c;
 	sr_seqlock(c->r->seq);
 	t->id   = sr_seqdo(c->r->seq, SR_TSNNEXT);
-	t->lsvn = sr_seqdo(c->r->seq, SR_LSN) - 1;
+	t->vlsn = sr_seqdo(c->r->seq, SR_LSN) - 1;
 	sr_sequnlock(c->r->seq);
 	sv_loginit(&t->log);
 	sr_listinit(&t->deadlock);

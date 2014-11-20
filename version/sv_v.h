@@ -66,8 +66,8 @@ sv_vfree(sra *a, svv *v)
 }
 
 static inline svv*
-sv_visible(svv *v, uint64_t lsvn) {
-	while (v && v->lsn > lsvn)
+sv_visible(svv *v, uint64_t vlsn) {
+	while (v && v->lsn > vlsn)
 		v = v->next;
 	return v;
 }

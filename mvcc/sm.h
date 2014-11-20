@@ -35,7 +35,7 @@ struct sm {
 struct smtx {
 	uint32_t id;
 	smstate s;
-	uint64_t lsvn;
+	uint64_t vlsn;
 	svlog log;
 	sm *c;
 	srlist deadlock;
@@ -52,7 +52,7 @@ smstate sm_prepare(smtx*, smpreparef, void*);
 smstate sm_commit(smtx*);
 smstate sm_rollback(smtx*);
 
-uint64_t sm_lsvn(sm*);
+uint64_t sm_vlsn(sm*);
 int sm_set(smtx*, svv*);
 int sm_get(smtx*, sv*, sv*);
 

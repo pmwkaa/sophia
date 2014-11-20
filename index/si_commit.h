@@ -12,7 +12,7 @@
 typedef struct sitx sitx;
 
 struct sitx {
-	uint64_t lsvn;
+	uint64_t vlsn;
 	svlog *log;
 	si *index;
 	sr *r;
