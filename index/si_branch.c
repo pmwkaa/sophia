@@ -21,7 +21,7 @@ int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	uint32_t iusedkv = n->iusedkv;
 	uint32_t icount  = n->icount;
 	if (srunlikely(iused == 0)) {
-		n->flags &= ~SI_BRANCH;
+		si_nodeunlock(n);
 		si_unlock(index);
 		return 0;
 	}
@@ -80,9 +80,9 @@ int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	svindex swap = *i;
 
 	si_lock(index);
-	n->flags &= ~SI_BRANCH;
 	q->next = n->next;
 	n->next = q;
+	si_nodeunlock(n);
 	si_nodeunrotate(n);
 	n->lv++;
 	n->iused   -= iused;

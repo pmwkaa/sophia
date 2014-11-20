@@ -122,8 +122,7 @@ si_plannerpeek_branch(siplanner *p, siplan *plan)
 	pn = sr_rbmax(&p->branch);
 	while (pn) {
 		n = srcast(pn, sinode, nodebranch);
-		if (n->flags & SI_MERGE ||
-		    n->flags & SI_BRANCH) {
+		if (n->flags & SI_LOCK) {
 			pn = sr_rbprev(&p->branch, pn);
 			continue;
 		}
@@ -140,9 +139,7 @@ si_plannerpeek_branch(siplanner *p, siplan *plan)
 	}
 	if (srunlikely(pn == NULL))
 		return NULL;
-	assert(! (n->flags & SI_MERGE));
-	assert(! (n->flags & SI_BRANCH));
-	n->flags |= SI_BRANCH;
+	si_nodelock(n);
 	return n;
 }
 
@@ -154,8 +151,7 @@ si_plannerpeek_merge(siplanner *p, siplan *plan)
 	pn = sr_rbmax(&p->merge);
 	while (pn) {
 		n = srcast(pn, sinode, nodemerge);
-		if (n->flags & SI_MERGE ||
-		    n->flags & SI_BRANCH) {
+		if (n->flags & SI_LOCK) {
 			pn = sr_rbprev(&p->merge, pn);
 			continue;
 		}
@@ -167,9 +163,7 @@ si_plannerpeek_merge(siplanner *p, siplan *plan)
 	}
 	if (srunlikely(pn == NULL))
 		return NULL;
-	assert(! (n->flags & SI_MERGE));
-	assert(! (n->flags & SI_BRANCH));
-	n->flags |= SI_MERGE;
+	si_nodelock(n);
 	return n;
 }
 
@@ -191,49 +185,3 @@ int si_plannerremove(siplanner *p, int mask, sinode *n)
 		sr_rbremove(&p->merge, &n->nodemerge);
 	return 0;
 }
-
-#if 0
-void
-si_plannerprint_branch(siplanner *p)
-{
-	srrbnode *pn;
-	sinode *n;
-	printf("BRANCH\n");
-	pn = sr_rbmax(&p->branch);
-	while (pn) {
-		n = srcast(pn, sinode, nodebranch);
-		if (n->flags == 0)
-			break;
-		printf("(%d) iused: %d, icount: %d, lv: %d, flags: ",
-		       n->id.id, n->iused, n->icount, n->lv);
-		if (n->flags & SI_BRANCH)
-			printf("SI_BRANCH");
-		if (n->flags & SI_MERGE)
-			printf(" SI_MERGE");
-		printf("\n");
-		pn = sr_rbprev(&p->branch, pn);
-	}
-}
-
-void
-si_plannerprint_merge(siplanner *p)
-{
-	srrbnode *pn;
-	sinode *n;
-	printf("MERGE\n");
-	pn = sr_rbmax(&p->merge);
-	while (pn) {
-		n = srcast(pn, sinode, nodemerge);
-		if (n->flags == 0)
-			break;
-		printf("(%d) iused: %d, icount: %d, lv: %d, flags: ",
-		       n->id.id, n->iused, n->icount, n->lv);
-		if (n->flags & SI_BRANCH)
-			printf("SI_BRANCH");
-		if (n->flags & SI_MERGE)
-			printf(" SI_MERGE");
-		printf("\n");
-		pn = sr_rbprev(&p->merge, pn);
-	}
-}
-#endif

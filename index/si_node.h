@@ -12,9 +12,8 @@
 typedef struct sinode sinode;
 
 #define SI_NONE       0
-#define SI_MERGE      1
-#define SI_BRANCH     4
-#define SI_I1         16
+#define SI_LOCK       1
+#define SI_I1         2
 
 #define SI_RDB        32
 #define SI_RDBI       64
@@ -53,6 +52,7 @@ int si_nodegc(sinode*, sr*);
 int si_nodeseal(sinode*, sr*, siconf*);
 int si_nodecomplete(sinode*, sr*, siconf*);
 
+
 static inline svindex*
 si_noderotate(sinode *node) {
 	node->flags |= SI_I1;
@@ -64,6 +64,18 @@ si_nodeunrotate(sinode *node) {
 	node->flags &= ~SI_I1;
 	node->i0 = node->i1;
 	sv_indexinit(&node->i1);
+}
+
+static inline void
+si_nodelock(sinode *node) {
+	assert(! (node->flags & SI_LOCK));
+	node->flags |= SI_LOCK;
+}
+
+static inline void
+si_nodeunlock(sinode *node) {
+	assert((node->flags & SI_LOCK) > 0);
+	node->flags &= ~SI_LOCK;
 }
 
 static inline svindex*

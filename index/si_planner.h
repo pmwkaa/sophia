@@ -17,6 +17,11 @@ struct siplanner {
 	srrb merge;
 };
 
+/* plan */
+#define SI_MERGE        1
+#define SI_BRANCH       2
+
+/* condition */
 #define SI_MERGE_FORCE  1
 #define SI_MERGE_DEEP   2
 #define SI_BRANCH_FORCE 1

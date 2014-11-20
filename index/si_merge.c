@@ -121,7 +121,7 @@ si_mergeof(si *index, sr *r, sdc *c, uint64_t vlsn,
 		n->iusedkv = node->iusedkv;
 		n->icount  = node->icount;
 		n->i0      = node->i0;
-		n->flags  |= SI_MERGE|SI_BRANCH;
+		si_nodelock(n);
 		sv_indexinit(&node->i0);
 		si_replace(index, node, n);
 		si_plannerupdate(&index->p, SI_MERGE|SI_BRANCH, n);
@@ -136,13 +136,13 @@ si_mergeof(si *index, sr *r, sdc *c, uint64_t vlsn,
 		sr_iterinit(&i, &sr_bufiterref, NULL);
 		sr_iteropen(&i, result, sizeof(sinode*));
 		n = sr_iterof(&i);
-		n->flags |= SI_MERGE|SI_BRANCH;
+		si_nodelock(n);
 		si_replace(index, node, n);
 		si_plannerupdate(&index->p, SI_MERGE|SI_BRANCH, n);
 		for (sr_iternext(&i); sr_iterhas(&i);
 			 sr_iternext(&i)) {
 			n = sr_iterof(&i);
-			n->flags |= SI_MERGE|SI_BRANCH;
+			si_nodelock(n);
 			si_insert(index, r, n);
 			si_plannerupdate(&index->p, SI_MERGE|SI_BRANCH, n);
 		}
@@ -203,8 +203,7 @@ si_mergeof(si *index, sr *r, sdc *c, uint64_t vlsn,
 	sr_iteropen(&i, result, sizeof(sinode*));
 	for (; sr_iterhas(&i); sr_iternext(&i)) {
 		n = sr_iterof(&i);
-		n->flags &= ~SI_BRANCH;
-		n->flags &= ~SI_MERGE;
+		si_nodeunlock(n);
 	}
 	si_unlock(index);
 	return 0;
