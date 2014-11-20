@@ -19,9 +19,9 @@ logcursor_empty0(stc *cx)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.dir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_open(env) == 0 );
-	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
@@ -46,9 +46,9 @@ logcursor_empty1(stc *cx)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.dir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_open(env) == 0 );
-	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
@@ -72,9 +72,9 @@ logcursor_iterate(stc *cx)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.dir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_open(env) == 0 );
-	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
@@ -118,9 +118,9 @@ logcursor_iterate_prepare(stc *cx)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.dir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_open(env) == 0 );
-	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );

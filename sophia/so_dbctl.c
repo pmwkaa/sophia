@@ -26,13 +26,13 @@ int so_dbctl_init(sodbctl *c, char *name, void *db)
 		sr_error_recoverable(&o->e->error);
 		return -1;
 	}
-	c->parent      = db;
-	c->dir_create  = 1;
-	c->dir_created = 0;
-	c->dir_write   = 1;
-	c->dir_sync    = 1;
-	c->cmp.cmp     = sr_cmpstring;
-	c->cmp.cmparg  = NULL;
+	c->parent     = db;
+	c->read_only  = 0;
+	c->create     = 1;
+	c->created    = 0;
+	c->sync       = 1;
+	c->cmp.cmp    = sr_cmpstring;
+	c->cmp.cmparg = NULL;
 	return 0;
 }
 
@@ -45,9 +45,9 @@ int so_dbctl_free(sodbctl *c)
 		sr_free(&o->e->a, c->name);
 		c->name = NULL;
 	}
-	if (c->dir) {
-		sr_free(&o->e->a, c->dir);
-		c->dir = NULL;
+	if (c->path) {
+		sr_free(&o->e->a, c->path);
+		c->path = NULL;
 	}
 	return 0;
 }
@@ -55,7 +55,7 @@ int so_dbctl_free(sodbctl *c)
 int so_dbctl_validate(sodbctl *c)
 {
 	sodb *o = c->parent;
-	if (c->dir == NULL) {
+	if (c->path == NULL) {
 		sr_error(&o->e->error, "%s", "database directory is not set");
 		sr_error_recoverable(&o->e->error);
 		return -1;
@@ -107,19 +107,19 @@ so_dbctl_prepare(srctl *t, sodbctl *c, sodbctlinfo *info)
 	sodb *db = c->parent;
 	so_dbctl_info(db, info);
 	srctl *p = t;
-	p = sr_ctladd(p, "name",            SR_CTLSTRING|SR_CTLRO, c->name,        NULL);
-	p = sr_ctladd(p, "id",              SR_CTLU32,             &c->id,         NULL);
-	p = sr_ctladd(p, "status",          SR_CTLSTRING|SR_CTLRO, info->status,   NULL);
-	p = sr_ctladd(p, "dir",             SR_CTLSTRINGREF,       &c->dir,        NULL);
-	p = sr_ctladd(p, "dir_write",       SR_CTLINT,             &c->dir_write,  NULL);
-	p = sr_ctladd(p, "dir_create",      SR_CTLINT,             &c->dir_create, NULL);
-	p = sr_ctladd(p, "dir_sync",        SR_CTLINT,             &c->dir_sync,   NULL);
-	p = sr_ctladd(p, "branch",          SR_CTLTRIGGER,         NULL,           so_dbctl_branch);
-	p = sr_ctladd(p, "merge",           SR_CTLTRIGGER,         NULL,           so_dbctl_merge);
-	p = sr_ctladd(p, "lockdetect",      SR_CTLTRIGGER,         NULL,           so_dbctl_lockdetect);
-	p = sr_ctladd(p, "index",           SR_CTLSUB,             NULL,           NULL);
-	p = sr_ctladd(p, "error_injection", SR_CTLSUB,             NULL,           NULL);
-	p = sr_ctladd(p,  NULL,             0,                     NULL,           NULL);
+	p = sr_ctladd(p, "name",            SR_CTLSTRING|SR_CTLRO, c->name,       NULL);
+	p = sr_ctladd(p, "id",              SR_CTLU32,             &c->id,        NULL);
+	p = sr_ctladd(p, "status",          SR_CTLSTRING|SR_CTLRO, info->status,  NULL);
+	p = sr_ctladd(p, "path",            SR_CTLSTRINGREF,       &c->path,      NULL);
+	p = sr_ctladd(p, "read_only",       SR_CTLINT,             &c->read_only, NULL);
+	p = sr_ctladd(p, "create",          SR_CTLINT,             &c->create,    NULL);
+	p = sr_ctladd(p, "sync",            SR_CTLINT,             &c->sync,      NULL);
+	p = sr_ctladd(p, "branch",          SR_CTLTRIGGER,         NULL,          so_dbctl_branch);
+	p = sr_ctladd(p, "merge",           SR_CTLTRIGGER,         NULL,          so_dbctl_merge);
+	p = sr_ctladd(p, "lockdetect",      SR_CTLTRIGGER,         NULL,          so_dbctl_lockdetect);
+	p = sr_ctladd(p, "index",           SR_CTLSUB,             NULL,          NULL);
+	p = sr_ctladd(p, "error_injection", SR_CTLSUB,             NULL,          NULL);
+	p = sr_ctladd(p,  NULL,             0,                     NULL,          NULL);
 }
 
 static int

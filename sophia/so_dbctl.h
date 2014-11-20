@@ -16,11 +16,11 @@ struct sodbctl {
 	char         *name;
 	uint32_t      id;
 	srcomparator  cmp;
-	char         *dir;
-	int           dir_write;
-	int           dir_create;
-	int           dir_created;
-	int           dir_sync;
+	char         *path;
+	int           read_only;
+	int           create;
+	int           created;
+	int           sync;
 } srpacked;
 
 int   so_dbctl_init(sodbctl*, char*, void*);

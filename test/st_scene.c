@@ -57,11 +57,11 @@ st_scene_create(stscene *g, stc *cx)
 	void *c = sp_ctl(cx->env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.dir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
-	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
+	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
 	cx->db = sp_get(c, "db.test");
 	t( cx->db != NULL );

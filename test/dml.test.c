@@ -19,8 +19,8 @@ dml_precreate(stc *cx srunused)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.dir", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
+	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
+	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
@@ -36,9 +36,9 @@ dml_create_online0(stc *cx srunused)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.dir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_open(env) == 0 );
-	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
@@ -54,9 +54,9 @@ dml_create_online1(stc *cx srunused)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.dir", cx->suite->logdir) == 0 );
+	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_open(env) == 0 );
-	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
@@ -77,10 +77,10 @@ dml_create_online2(stc *cx srunused)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.dir", "logdir") == 0 );
+	t( sp_set(c, "log.path", "logdir") == 0 );
 	t( sp_open(env) == 0 );
 
-	t( sp_set(c, "db.s0.dir", "dir0") == 0 );
+	t( sp_set(c, "db.s0.path", "dir0") == 0 );
 	t( sp_set(c, "db.s0.index.cmp", sr_cmpu32) == 0 );
 	void *s0 = sp_get(c, "db.s0");
 	t( s0 != NULL );
@@ -99,7 +99,7 @@ dml_create_online2(stc *cx srunused)
 	sp_set(o, "key", &key, sizeof(key));
 	t( sp_set(s0, o) == 0 );
 
-	t( sp_set(c, "db.s1.dir", "dir1") == 0 );
+	t( sp_set(c, "db.s1.path", "dir1") == 0 );
 	t( sp_set(c, "db.s1.index.cmp", sr_cmpu32) == 0 );
 	void *s1 = sp_get(c, "db.s1");
 	t( s0 != NULL );

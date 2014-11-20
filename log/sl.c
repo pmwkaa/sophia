@@ -50,7 +50,7 @@ sl_open(slpool *p, uint32_t id)
 	if (srunlikely(l == NULL))
 		return NULL;
 	srpath path;
-	sr_pathA(&path, p->conf->dir, id, ".log");
+	sr_pathA(&path, p->conf->path, id, ".log");
 	int rc = sr_fileopen(&l->file, path.path);
 	if (srunlikely(rc == -1)) {
 		sr_error(p->r->e, "log file '%s' open error: %s",
@@ -70,7 +70,7 @@ sl_new(slpool *p, uint32_t id)
 	if (srunlikely(l == NULL))
 		return NULL;
 	srpath path;
-	sr_pathA(&path, p->conf->dir, id, ".log");
+	sr_pathA(&path, p->conf->path, id, ".log");
 	int rc = sr_filenew(&l->file, path.path);
 	if (srunlikely(rc == -1)) {
 		sr_error(p->r->e, "log file '%s' create error: %s",
@@ -99,7 +99,7 @@ int sl_poolinit(slpool *p, sr *r, slconf *conf)
 	p->r       = r;
 	p->conf    = conf;
 	p->enabled = 1;
-	if (conf->dir == NULL)
+	if (conf->path == NULL)
 		p->enabled = 0;
 	struct iovec *iov =
 		sr_malloc(r->a, sizeof(struct iovec) * 1021);
@@ -113,22 +113,22 @@ static inline int
 sl_poolcreate(slpool *p)
 {
 	int rc;
-	if (! p->conf->dir_create) {
+	if (! p->conf->create) {
 		sr_error(p->r->e, "log directory '%s' can't be created",
-		         p->conf->dir);
+		         p->conf->path);
 		sr_error_recoverable(p->r->e);
 		return -1;
 	}
-	if (! p->conf->dir_write) {
+	if (p->conf->read_only) {
 		sr_error(p->r->e, "log directory '%s' is read only",
-		         p->conf->dir);
+		         p->conf->path);
 		sr_error_recoverable(p->r->e);
 		return -1;
 	}
-	rc = sr_filemkdir(p->conf->dir);
+	rc = sr_filemkdir(p->conf->path);
 	if (srunlikely(rc == -1))
 		return sr_error(p->r->e, "log directory '%s' create error: %s",
-		                p->conf->dir, strerror(errno));
+		                p->conf->path, strerror(errno));
 	return 1;
 }
 
@@ -142,10 +142,10 @@ sl_poolrecover(slpool *p)
 		{ "log", 1, 0 },
 		{ NULL,  0, 0 }
 	};
-	int rc = sr_dirread(&list, p->r->a, types, p->conf->dir);
+	int rc = sr_dirread(&list, p->r->a, types, p->conf->path);
 	if (srunlikely(rc == -1))
 		return sr_error(p->r->e, "log directory '%s' open error",
-		                p->conf->dir);
+		                p->conf->path);
 	sriter i;
 	sr_iterinit(&i, &sr_bufiter, p->r);
 	sr_iteropen(&i, &list, sizeof(srdirid));
@@ -173,7 +173,7 @@ int sl_poolopen(slpool *p)
 {
 	if (srunlikely(! p->enabled))
 		return 0;
-	int exists = sr_fileexists(p->conf->dir);
+	int exists = sr_fileexists(p->conf->path);
 	int rc;
 	if (! exists)
 		rc = sl_poolcreate(p);

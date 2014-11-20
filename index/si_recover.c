@@ -49,22 +49,22 @@ static inline int
 si_deploy(si *i, sr *r)
 {
 	int rc;
-	if (! i->conf->dir_create) {
+	if (! i->conf->create) {
 		sr_error(r->e, "directory '%s' can't be created",
-		         i->conf->dir);
+		         i->conf->path);
 		sr_error_recoverable(r->e);
 		return -1;
 	}
-	if (! i->conf->dir_write) {
+	if (i->conf->read_only) {
 		sr_error(r->e, "directory '%s' is read-only",
-		         i->conf->dir);
+		         i->conf->path);
 		sr_error_recoverable(r->e);
 		return -1;
 	}
-	rc = sr_filemkdir(i->conf->dir);
+	rc = sr_filemkdir(i->conf->path);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "directory '%s' create error: %s",
-		         i->conf->dir, strerror(errno));
+		         i->conf->path, strerror(errno));
 		return -1;
 	}
 	sr_seq(r->seq, SR_LSNNEXT);
@@ -167,10 +167,10 @@ si_process(char *name, uint32_t *nsn, uint32_t *parent)
 static inline int
 si_trackdir(sitrack *track, sr *r, si *i)
 {
-	DIR *dir = opendir(i->conf->dir);
+	DIR *dir = opendir(i->conf->path);
 	if (srunlikely(dir == NULL)) {
 		sr_error(r->e, "directory '%s' open error: %s",
-		         i->conf->dir, strerror(errno));
+		         i->conf->path, strerror(errno));
 		return -1;
 	}
 	struct dirent *de;
@@ -190,7 +190,7 @@ si_trackdir(sitrack *track, sr *r, si *i)
 		switch (rc) {
 		case SI_RDBI:
 			/* remove any incomplete branch */
-			sr_pathA(&path, i->conf->dir, id, ".db.incomplete");
+			sr_pathA(&path, i->conf->path, id, ".db.incomplete");
 			rc = sr_fileunlink(path.path);
 			if (srunlikely(rc == -1)) {
 				sr_error(r->e, "db file '%s' unlink error: %s",
@@ -214,7 +214,7 @@ si_trackdir(sitrack *track, sr *r, si *i)
 			head->recover |= rc;
 			/* remove any incomplete file made during merge */
 			if (rc == SI_RDB_DBI) {
-				sr_pathAB(&path, i->conf->dir, id_parent, id, ".db.incomplete");
+				sr_pathAB(&path, i->conf->path, id_parent, id, ".db.incomplete");
 				rc = sr_fileunlink(path.path);
 				if (srunlikely(rc == -1)) {
 					sr_error(r->e, "db file '%s' unlink error: %s",
@@ -229,7 +229,7 @@ si_trackdir(sitrack *track, sr *r, si *i)
 			if (srunlikely(node == NULL))
 				goto error;
 			node->recover = SI_RDB_DBSEAL;
-			sr_pathAB(&path, i->conf->dir, id_parent, id, ".db.seal");
+			sr_pathAB(&path, i->conf->path, id_parent, id, ".db.seal");
 			rc = si_nodeopen(node, r, &path);
 			if (srunlikely(rc == -1)) {
 				si_nodefree(node, r);
@@ -247,7 +247,7 @@ si_trackdir(sitrack *track, sr *r, si *i)
 		if (srunlikely(node == NULL))
 			goto error;
 		node->recover = SI_RDB;
-		sr_pathA(&path, i->conf->dir, id, ".db");
+		sr_pathA(&path, i->conf->path, id, ".db");
 		rc = si_nodeopen(node, r, &path);
 		if (srunlikely(rc == -1)) {
 			si_nodefree(node, r);
@@ -386,7 +386,7 @@ si_trackvalidate(sitrack *track, srbuf *buf, sr *r, si *i)
 		default:
 			/* corrupted states */
 			return sr_error(r->e, "corrupted database repository: %s",
-			                i->conf->dir);
+			                i->conf->path);
 		}
 		p = sr_rbprev(&track->i, p);
 	}
@@ -455,7 +455,7 @@ error:
 
 int si_recover(si *i, sr *r)
 {
-	int exists = sr_fileexists(i->conf->dir);
+	int exists = sr_fileexists(i->conf->path);
 	if (exists == 0)
 		return si_deploy(i, r);
 	return si_recoverindex(i, r);

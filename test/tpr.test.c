@@ -20,12 +20,12 @@ tpr_test0(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "scheduler.node_branch_wm", "1") == 0 );
-	t( sp_set(c, "log.dir", NULL) == 0 );
+	t( sp_set(c, "log.path", NULL) == 0 );
 	t( sp_set(c, "log.two_phase_recover", "1") == 0 );
 	t( sp_open(env) == 0 );
 
-	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
+	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
@@ -58,12 +58,12 @@ tpr_test1(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "scheduler.node_branch_wm", "1") == 0 );
-	t( sp_set(c, "log.dir", NULL) == 0 );
+	t( sp_set(c, "log.path", NULL) == 0 );
 	t( sp_set(c, "log.two_phase_recover", "1") == 0 );
 	t( sp_open(env) == 0 );
 
-	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
+	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
@@ -91,11 +91,11 @@ tpr_test1(stc *cx srunused)
 	c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.dir", NULL) == 0 );
+	t( sp_set(c, "log.path", NULL) == 0 );
 	t( sp_set(c, "log.two_phase_recover", "1") == 0 );
 	t( sp_open(env) == 0 );
-	t( sp_set(c, "db.test.dir", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.dir_sync", "0") == 0 );
+	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );

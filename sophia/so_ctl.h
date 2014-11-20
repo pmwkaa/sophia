@@ -22,9 +22,9 @@ struct soctl {
 	/* memory */
 	uint64_t memory_limit;
 	/* log */
-	char    *log_dir;
-	int      log_dirwrite;
-	int      log_dircreate;
+	char    *log_path;
+	int      log_read_only;
+	int      log_create;
 	int      log_sync;
 	int      log_rotate_wm;
 	int      log_rotate_sync;

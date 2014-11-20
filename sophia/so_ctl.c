@@ -297,9 +297,9 @@ static inline void
 so_ctllog_prepare(srctl *t, soctl *c)
 {
 	srctl *p = t;
-	p = sr_ctladd(p, "dir",               SR_CTLSTRINGREF, &c->log_dir,           NULL);
-	p = sr_ctladd(p, "dir_write",         SR_CTLINT,       &c->log_dirwrite,      NULL);
-	p = sr_ctladd(p, "dir_create",        SR_CTLINT,       &c->log_dircreate,     NULL);
+	p = sr_ctladd(p, "path",              SR_CTLSTRINGREF, &c->log_path,          NULL);
+	p = sr_ctladd(p, "read_only",         SR_CTLINT,       &c->log_read_only,     NULL);
+	p = sr_ctladd(p, "create",            SR_CTLINT,       &c->log_create,        NULL);
 	p = sr_ctladd(p, "sync",              SR_CTLINT,       &c->log_sync,          NULL);
 	p = sr_ctladd(p, "rotate_wm",         SR_CTLINT,       &c->log_rotate_wm,     NULL);
 	p = sr_ctladd(p, "rotate_sync",       SR_CTLINT,       &c->log_rotate_sync,   NULL);
@@ -496,9 +496,9 @@ void so_ctlinit(soctl *c, void *e)
 	c->node_branch_wm    = 10 * 1024 * 1024;
 	c->node_merge_wm     = 1;
 	c->threads           = 5;
-	c->log_dir           = NULL;
-	c->log_dircreate     = 1;
-	c->log_dirwrite      = 1;
+	c->log_path          = NULL;
+	c->log_read_only     = 0;
+	c->log_create        = 1;
 	c->log_rotate_wm     = 500000;
 	c->log_sync          = 0;
 	c->log_rotate_sync   = 1;
@@ -509,8 +509,8 @@ void so_ctlinit(soctl *c, void *e)
 
 void so_ctlfree(soctl *c)
 {
-	if (c->log_dir) {
-		sr_free(&((so*)c->e)->a, c->log_dir);
-		c->log_dir = NULL;
+	if (c->log_path) {
+		sr_free(&((so*)c->e)->a, c->log_path);
+		c->log_path = NULL;
 	}
 }

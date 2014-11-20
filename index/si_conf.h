@@ -12,10 +12,9 @@
 typedef struct siconf siconf;
 
 struct siconf {
-	char     *dir;
-	int       dir_read;
-	int       dir_write;
-	int       dir_create;
+	char     *path;
+	int       read_only;
+	int       create;
 	int       sync;
 	uint64_t  memory_limit;
 	uint32_t  node_size;

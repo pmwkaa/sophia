@@ -28,15 +28,15 @@ int so_recoverbegin(sodb *db)
 	c->node_page_size = e->ctl.node_page_size;
 	c->node_branch_wm = e->ctl.node_branch_wm;
 	c->node_merge_wm  = e->ctl.node_merge_wm;
-	c->dir            = db->ctl.dir;
-	c->dir_write      = db->ctl.dir_write;
-	c->dir_create     = db->ctl.dir_create;
-	c->sync           = db->ctl.dir_sync;
+	c->path           = db->ctl.path;
+	c->read_only      = db->ctl.read_only;
+	c->create         = db->ctl.create;
+	c->sync           = db->ctl.sync;
 	si_init(&db->index, &db->indexconf);
 	int rc = si_open(&db->index, &db->r);
 	if (srunlikely(rc == -1))
 		goto error;
-	db->ctl.dir_created = rc;
+	db->ctl.created = rc;
 	return 0;
 error:
 	so_dbmalfunction(db);
@@ -140,9 +140,9 @@ so_recoverlogpool(so *e)
 int so_recover(so *e)
 {
 	slconf *lc = &e->lpconf;
-	lc->dir            = e->ctl.log_dir;
-	lc->dir_write      = e->ctl.log_dirwrite;
-	lc->dir_create     = e->ctl.log_dircreate;
+	lc->path           = e->ctl.log_path;
+	lc->read_only      = e->ctl.log_read_only;
+	lc->create         = e->ctl.log_create;
 	lc->rotatewm       = e->ctl.log_rotate_wm;
 	lc->sync_on_rotate = e->ctl.log_rotate_sync;
 	lc->sync_on_write  = e->ctl.log_sync;

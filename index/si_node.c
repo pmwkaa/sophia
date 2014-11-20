@@ -45,7 +45,7 @@ int si_nodecreate(sinode *n, sr *r, siconf *conf, sdid *id,
 	n->index = *i;
 	n->id = *id;
 	srpath path;
-	sr_pathA(&path, conf->dir, id->id, ".db.incomplete");
+	sr_pathA(&path, conf->path, id->id, ".db.incomplete");
 	int rc = sr_filenew(&n->file, path.path);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "db file '%s' create error: %s",
@@ -72,7 +72,7 @@ si_nodecreate_attach(sinode *n, sr *r, siconf *conf, sdid *id,
 	n->index = *i;
 	n->id = *id;
 	srpath path;
-	sr_pathAB(&path, conf->dir, id->parent, id->id, ".db.incomplete");
+	sr_pathAB(&path, conf->path, id->parent, id->id, ".db.incomplete");
 	int rc = sr_filenew(&n->file, path.path);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "db file '%s' create error: %s",
@@ -210,7 +210,7 @@ int si_nodecmp(sinode *n, void *key, int size, srcomparator *c)
 int si_nodeseal(sinode *n, sr *r, siconf *conf)
 {
 	srpath path;
-	sr_pathAB(&path, conf->dir, n->id.parent, n->id.id, ".db.seal");
+	sr_pathAB(&path, conf->path, n->id.parent, n->id.id, ".db.seal");
 	int rc = sr_filerename(&n->file, path.path);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "db file '%s' rename error: %s",
@@ -222,7 +222,7 @@ int si_nodeseal(sinode *n, sr *r, siconf *conf)
 int si_nodecomplete(sinode *n, sr *r, siconf *conf)
 {
 	srpath path;
-	sr_pathA(&path, conf->dir, n->id.id, ".db");
+	sr_pathA(&path, conf->path, n->id.id, ".db");
 	int rc = sr_filerename(&n->file, path.path);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "db file '%s' rename error: %s",
