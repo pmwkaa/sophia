@@ -54,3 +54,14 @@ int si_compact(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	sv_mergefree(&merge, r->a);
 	return 0;
 }
+
+int si_compactindex(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
+{
+	(void)index;
+	(void)r;
+	(void)c;
+	(void)plan;
+	(void)vlsn;
+	/* xxx: update qos on compaction end */
+	return 0;
+}

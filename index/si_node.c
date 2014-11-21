@@ -26,7 +26,6 @@ sinode *si_nodenew(sr *r)
 	sr_fileinit(&n->file, r->a);
 	sv_indexinit(&n->i0);
 	sv_indexinit(&n->i1);
-	n->icount = 0;
 	n->iused = 0;
 	n->iusedkv = 0;
 	n->lv = 0;

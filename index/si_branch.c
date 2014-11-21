@@ -19,7 +19,6 @@ int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	sinode *n = plan->node;
 	uint32_t iused   = n->iused;
 	uint32_t iusedkv = n->iusedkv;
-	uint32_t icount  = n->icount;
 	if (srunlikely(iused == 0)) {
 		si_nodeunlock(n);
 		si_unlock(index);
@@ -85,9 +84,9 @@ int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	si_nodeunlock(n);
 	si_nodeunrotate(n);
 	n->lv++;
+	/* xxx: set n->iused -= i->used */
 	n->iused   -= iused;
 	n->iusedkv -= iusedkv;
-	n->icount  -= icount;
 	si_plannerupdate(&index->p, SI_BRANCH|SI_COMPACT, n);
 	si_qos(index, 1, iused);
 	si_unlock(index);

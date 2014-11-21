@@ -61,7 +61,6 @@ si_set(si *index, sr *r, uint64_t vlsn, svv *v)
 	svindex *vindex = si_nodeindex(node);
 	svv *vgc = NULL;
 	sv_indexset(vindex, r, vlsn, v, &vgc);
-	node->icount++;
 	node->iused += size;
 	node->iusedkv += v->keysize + v->valuesize;
 	if (srunlikely(vgc)) {

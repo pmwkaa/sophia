@@ -105,7 +105,6 @@ si_qmatch(siquery *q)
 	/* search on disk */
 	sinode *n = node->next;
 	while (n) {
-		assert(n->icount == 0);
 		rc = si_qmatchnode(q, n);
 		switch (rc) {
 		case  2: rc = 0;

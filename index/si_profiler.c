@@ -68,7 +68,8 @@ int si_profiler(siprofiler *p, sr *r)
 		n = srcast(pn, sinode, node);
 		p->total_node_size += n->file.size;
 		p->total_node_count++;
-		p->count += n->icount;
+		p->count += n->i0.count;
+		p->count += n->i1.count;
 		p->count += n->index.h->keys;
 		p->total_branch_count += n->lv;
 		if (p->total_branch_max < n->lv)

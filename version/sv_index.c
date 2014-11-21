@@ -83,8 +83,8 @@ int sv_indexset(svindex *i, sr *r, uint64_t vlsn, svv *v, svv **gc)
 		*gc = sv_vgc(update, vlsn);
 	} else {
 		sr_rbset(&i->i, n, rc, &v->node);
-		i->count++;
 	}
+	i->count++;
 	if (srunlikely(v->keysize > i->keymax))
 		i->keymax = v->keysize;
 	return 0;

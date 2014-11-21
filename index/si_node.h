@@ -32,7 +32,6 @@ struct sinode {
 	svindex   i0, i1;
 	uint32_t  iused;
 	uint32_t  iusedkv;
-	uint32_t  icount;
 	uint32_t  lv;
 	sinode   *next;
 	srrbnode  node;
