@@ -17,9 +17,7 @@ int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 {
 	si_lock(index);
 	sinode *n = plan->node;
-	uint32_t iused   = n->iused;
-	uint32_t iusedkv = n->iusedkv;
-	if (srunlikely(iused == 0)) {
+	if (srunlikely(n->used == 0)) {
 		si_nodeunlock(n);
 		si_unlock(index);
 		return 0;
@@ -40,7 +38,7 @@ int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 		.flags       = SD_IDBRANCH,
 		.i           = &indexi,
 		.size_key    = i->keymax,
-		.size_stream = iusedkv,
+		.size_stream = i->used,
 		.size_node   = UINT32_MAX,
 		.vlsn        = vlsn,
 		.conf        = index->conf
@@ -81,14 +79,13 @@ int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	si_lock(index);
 	q->next = n->next;
 	n->next = q;
-	si_nodeunlock(n);
-	si_nodeunrotate(n);
 	n->lv++;
-	/* xxx: set n->iused -= i->used */
-	n->iused   -= iused;
-	n->iusedkv -= iusedkv;
+	uint32_t used = sv_indexused(i);
+	n->used -= used;
+	si_nodeunrotate(n);
+	si_nodeunlock(n);
 	si_plannerupdate(&index->p, SI_BRANCH|SI_COMPACT, n);
-	si_qos(index, 1, iused);
+	si_qos(index, 1, used);
 	si_unlock(index);
 
 	/* gc */

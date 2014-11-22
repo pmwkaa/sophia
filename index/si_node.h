@@ -30,8 +30,7 @@ struct sinode {
 	srmap     map;
 	sdindex   index;
 	svindex   i0, i1;
-	uint32_t  iused;
-	uint32_t  iusedkv;
+	uint32_t  used;
 	uint32_t  lv;
 	sinode   *next;
 	srrbnode  node;

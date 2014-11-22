@@ -18,6 +18,7 @@ int sv_indexinit(svindex *i)
 	i->keymax = 0;
 	i->lsnmin = UINT64_MAX;
 	i->count  = 0;
+	i->used   = 0;
 	sr_rbinit(&i->i);
 	return 0;
 }
@@ -68,6 +69,18 @@ sv_vgc(svv *v, uint64_t vlsn)
 	return NULL;
 }
 
+static inline uint32_t
+sv_vstat(svv *v, uint32_t *count) {
+	uint32_t size = 0;
+	*count = 0;
+	while (v) {
+		size += v->keysize + v->valuesize;
+		(*count)++;
+		v = v->next;
+	}
+	return size;
+}
+
 int sv_indexset(svindex *i, sr *r, uint64_t vlsn, svv *v, svv **gc)
 {
 	srrbnode *n = NULL;
@@ -81,10 +94,16 @@ int sv_indexset(svindex *i, sr *r, uint64_t vlsn, svv *v, svv **gc)
 		if (head != update)
 			sr_rbreplace(&i->i, n, &update->node);
 		*gc = sv_vgc(update, vlsn);
+		if (*gc) {
+			uint32_t count = 0;
+			i->used  -= sv_vstat(*gc, &count);
+			i->count -= count;
+		}
 	} else {
 		sr_rbset(&i->i, n, rc, &v->node);
 	}
 	i->count++;
+	i->used += v->keysize + v->valuesize;
 	if (srunlikely(v->keysize > i->keymax))
 		i->keymax = v->keysize;
 	return 0;

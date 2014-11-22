@@ -70,8 +70,8 @@ si_plannercompact(siplanner *p, sinode *n)
 srhot static inline int
 si_plannerbranch_cmp(sinode *a, sinode *b)
 {
-	if (a->iused != b->iused)
-		return (a->iused > b->iused) ? 1 : -1;
+	if (a->used != b->used)
+		return (a->used > b->used) ? 1 : -1;
 	if (a->id.id == b->id.id)
 		return 0;
 	return (a->id.id > b->id.id) ? 1 : -1;
@@ -128,7 +128,7 @@ si_plannerpeek_branch(siplanner *p, siplan *plan)
 		}
 		if (srunlikely(plan->condition & SI_BRANCH_FORCE))
 			break;
-		if ((plan->condition & SI_BRANCH_SIZE) && n->iused >= plan->a)
+		if ((plan->condition & SI_BRANCH_SIZE) && n->used >= plan->a)
 			break;
 		if ((plan->condition & SI_BRANCH_LSN)) {
 			if (n->i0.lsnmin <= plan->b)

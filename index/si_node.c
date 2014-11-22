@@ -26,8 +26,7 @@ sinode *si_nodenew(sr *r)
 	sr_fileinit(&n->file, r->a);
 	sv_indexinit(&n->i0);
 	sv_indexinit(&n->i1);
-	n->iused = 0;
-	n->iusedkv = 0;
+	n->used = 0;
 	n->lv = 0;
 	n->next = NULL;
 	sr_mapinit(&n->map);
