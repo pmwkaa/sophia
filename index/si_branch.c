@@ -9,7 +9,6 @@
 
 #include <libsr.h>
 #include <libsv.h>
-#include <libsl.h>
 #include <libsd.h>
 #include <libsi.h>
 
@@ -89,15 +88,6 @@ int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	si_unlock(index);
 
 	/* gc */
-	sr_iterinit(&indexi, &sv_indexiterraw, r);
-	sr_iteropen(&indexi, &swap);
-	for (; sr_iterhas(&indexi); sr_iternext(&indexi)) {
-		sv *v = sr_iterof(&indexi);
-		svv *vv = v->v;
-		if (vv->log) {
-			sr_gcsweep(&((sl*)vv->log)->gc, 1);
-		}
-	}
-	sv_indexfree(&swap, r);
+	si_nodegc_index(r, &swap);
 	return 1;
 }

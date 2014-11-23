@@ -10,6 +10,5 @@
 */
 
 int si_compact(si*, sr*, sdc*, siplan*, uint64_t);
-int si_compactindex(si*, sr*, sdc*, siplan*, uint64_t);
 
 #endif

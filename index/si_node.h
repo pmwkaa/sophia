@@ -47,6 +47,7 @@ int si_nodefree(sinode*, sr*);
 int si_nodefree_all(sinode*, sr*);
 int si_nodecmp(sinode*, void*, int, srcomparator*);
 int si_nodegc(sinode*, sr*);
+int si_nodegc_index(sr*, svindex*);
 int si_nodeseal(sinode*, sr*, siconf*);
 int si_nodecomplete(sinode*, sr*, siconf*);
 

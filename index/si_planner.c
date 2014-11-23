@@ -157,7 +157,7 @@ si_plannerpeek_compact(siplanner *p, siplan *plan)
 		}
 		if (srunlikely(plan->condition & SI_COMPACT_FORCE))
 			break;
-		if ((plan->condition & SI_COMPACT_DEEP) && n->lv >= plan->a)
+		if ((plan->condition & SI_COMPACT_BRANCH) && n->lv >= plan->a)
 			break;
 		return NULL;
 	}

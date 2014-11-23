@@ -52,7 +52,7 @@ int so_scheduler_compact(void *arg)
 		uint64_t vlsn = sm_vlsn(&db->mvcc);
 		siplan plan = {
 			.plan      = SI_COMPACT,
-			.condition = SI_COMPACT_DEEP,
+			.condition = SI_COMPACT_BRANCH,
 			.a         = db->e->ctl.node_compact_wm,
 			.b         = 0,
 			.node      = NULL
@@ -280,7 +280,7 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 	 * peek node with the largest branches count
 	 */
 	task->plan.plan = SI_COMPACT;
-	task->plan.condition = SI_COMPACT_DEEP;
+	task->plan.condition = SI_COMPACT_BRANCH;
 	task->plan.a = e->ctl.node_compact_wm;
 	task->plan.b = 0;
 	task->plan.node = NULL;
