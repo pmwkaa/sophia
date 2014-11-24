@@ -27,7 +27,6 @@ struct slpool {
 	srspinlock lock;
 	slconf *conf;
 	srlist list;
-	int enabled;
 	int n;
 	sriov iov;
 	sr *r;

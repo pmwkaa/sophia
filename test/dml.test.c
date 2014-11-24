@@ -18,6 +18,7 @@ dml_precreate(stc *cx srunused)
 	t( env != NULL );
 	void *c = sp_ctl(env);
 	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
@@ -35,6 +36,7 @@ dml_create_online0(stc *cx srunused)
 	t( env != NULL );
 	void *c = sp_ctl(env);
 	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_open(env) == 0 );
@@ -53,6 +55,7 @@ dml_create_online1(stc *cx srunused)
 	t( env != NULL );
 	void *c = sp_ctl(env);
 	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_open(env) == 0 );
@@ -76,6 +79,7 @@ dml_create_online2(stc *cx srunused)
 	t( env != NULL );
 	void *c = sp_ctl(env);
 	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "log.path", "logdir") == 0 );
 	t( sp_open(env) == 0 );

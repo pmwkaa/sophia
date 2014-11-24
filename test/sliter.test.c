@@ -59,10 +59,9 @@ sliter_tx(stc *cx)
 	sr r;
 	sr_init(&r, &error, &a, &seq, &cmp, NULL);
 	slconf conf = {
-		.path      = cx->suite->logdir,
-		.read_only = 0,
-		.create    = 1,
-		.rotatewm  = 1000
+		.path     = cx->suite->logdir,
+		.enabled  = 1,
+		.rotatewm = 1000
 	};
 	slpool lp;
 	t( sl_poolinit(&lp, &r, &conf) == 0 );
@@ -96,10 +95,9 @@ sliter_tx_read_empty(stc *cx)
 	sr r;
 	sr_init(&r, &error, &a, &seq, &cmp, NULL);
 	slconf conf = {
-		.path      = cx->suite->logdir,
-		.read_only = 0,
-		.create    = 1,
-		.rotatewm  = 1000
+		.path     = cx->suite->logdir,
+		.enabled  = 1,
+		.rotatewm = 1000
 	};
 	slpool lp;
 	t( sl_poolinit(&lp, &r, &conf) == 0 );
@@ -143,10 +141,9 @@ sliter_tx_read0(stc *cx)
 	sr r;
 	sr_init(&r, &error, &a, &seq, &cmp, NULL);
 	slconf conf = {
-		.path      = cx->suite->logdir,
-		.read_only = 0,
-		.create    = 1,
-		.rotatewm  = 1000
+		.path     = cx->suite->logdir,
+		.enabled  = 1,
+		.rotatewm = 1000
 	};
 	slpool lp;
 	t( sl_poolinit(&lp, &r, &conf) == 0 );
@@ -195,10 +192,9 @@ sliter_tx_read1(stc *cx)
 	sr r;
 	sr_init(&r, &error, &a, &seq, &cmp, NULL);
 	slconf conf = {
-		.path      = cx->suite->logdir,
-		.read_only = 0,
-		.create    = 1,
-		.rotatewm  = 1000
+		.path     = cx->suite->logdir,
+		.enabled  = 1,
+		.rotatewm = 1000
 	};
 	slpool lp;
 	t( sl_poolinit(&lp, &r, &conf) == 0 );
@@ -258,10 +254,9 @@ sliter_tx_read2(stc *cx)
 	sr r;
 	sr_init(&r, &error, &a, &seq, &cmp, NULL);
 	slconf conf = {
-		.path      = cx->suite->logdir,
-		.read_only = 0,
-		.create    = 1,
-		.rotatewm  = 1000
+		.path     = cx->suite->logdir,
+		.enabled  = 1,
+		.rotatewm = 1000
 	};
 	slpool lp;
 	t( sl_poolinit(&lp, &r, &conf) == 0 );
@@ -325,10 +320,9 @@ sliter_tx_read3(stc *cx)
 	sr r;
 	sr_init(&r, &error, &a, &seq, &cmp, NULL);
 	slconf conf = {
-		.path      = cx->suite->logdir,
-		.read_only = 0,
-		.create    = 1,
-		.rotatewm  = 1000
+		.path     = cx->suite->logdir,
+		.enabled  = 1,
+		.rotatewm = 1000
 	};
 	slpool lp;
 	t( sl_poolinit(&lp, &r, &conf) == 0 );

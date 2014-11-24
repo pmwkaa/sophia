@@ -13,6 +13,7 @@
 #include <libsl.h>
 #include <libsd.h>
 #include <libsi.h>
+#include <libse.h>
 #include <libso.h>
 #include <sophia.h>
 
@@ -25,12 +26,8 @@ so_dbopen(soobj *obj, va_list args srunused)
 		goto online;
 	if (status != SO_OFFLINE)
 		return -1;
-	int rc;
-	rc = so_dbctl_validate(&o->ctl);
-	if (srunlikely(rc == -1))
-		return -1;
 	o->r.cmp = &o->ctl.cmp;
-	rc = so_recoverbegin(o);
+	int rc = so_recoverbegin(o);
 	if (srunlikely(rc == -1))
 		return -1;
 	if (so_status(&o->e->status) == SO_RECOVER)

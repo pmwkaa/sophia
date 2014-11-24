@@ -28,6 +28,8 @@ struct so {
 	sra a_logcursor;
 	sra a_tx;
 	sra a_smv;
+	seconf seconf;
+	se se;
 	slconf lpconf;
 	slpool lp;
 	soscheduler sched;

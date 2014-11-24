@@ -59,10 +59,9 @@ sl_begin_commit(stc *cx)
 	sr_errorinit(&error);
 	sr_init(&r, &error, &a, &seq, &cmp, NULL);
 	slconf conf = {
-		.path      = cx->suite->logdir,
-		.read_only = 0,
-		.create    = 1,
-		.rotatewm  = 1000
+		.path     = cx->suite->logdir,
+		.enabled  = 1,
+		.rotatewm = 1000
 	};
 	slpool lp;
 	t( sl_poolinit(&lp, &r, &conf) == 0 );
@@ -96,10 +95,9 @@ sl_begin_rollback(stc *cx)
 	sr_errorinit(&error);
 	sr_init(&r, &error, &a, &seq, &cmp, NULL);
 	slconf conf = {
-		.path      = cx->suite->logdir,
-		.read_only = 0,
-		.create    = 1,
-		.rotatewm  = 1000
+		.path     = cx->suite->logdir,
+		.enabled  = 1,
+		.rotatewm = 1000
 	};
 	slpool lp;
 	t( sl_poolinit(&lp, &r, &conf) == 0 );

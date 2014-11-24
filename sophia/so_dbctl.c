@@ -13,6 +13,7 @@
 #include <libsl.h>
 #include <libsd.h>
 #include <libsi.h>
+#include <libse.h>
 #include <libso.h>
 #include <sophia.h>
 
@@ -27,8 +28,6 @@ int so_dbctl_init(sodbctl *c, char *name, void *db)
 		return -1;
 	}
 	c->parent     = db;
-	c->read_only  = 0;
-	c->create     = 1;
 	c->created    = 0;
 	c->sync       = 1;
 	c->cmp.cmp    = sr_cmpstring;
@@ -111,8 +110,6 @@ so_dbctl_prepare(srctl *t, sodbctl *c, sodbctlinfo *info)
 	p = sr_ctladd(p, "id",              SR_CTLU32,             &c->id,        NULL);
 	p = sr_ctladd(p, "status",          SR_CTLSTRING|SR_CTLRO, info->status,  NULL);
 	p = sr_ctladd(p, "path",            SR_CTLSTRINGREF,       &c->path,      NULL);
-	p = sr_ctladd(p, "read_only",       SR_CTLINT,             &c->read_only, NULL);
-	p = sr_ctladd(p, "create",          SR_CTLINT,             &c->create,    NULL);
 	p = sr_ctladd(p, "sync",            SR_CTLINT,             &c->sync,      NULL);
 	p = sr_ctladd(p, "branch",          SR_CTLTRIGGER,         NULL,          so_dbctl_branch);
 	p = sr_ctladd(p, "compact",         SR_CTLTRIGGER,         NULL,          so_dbctl_compact);

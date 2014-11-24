@@ -49,18 +49,6 @@ static inline int
 si_deploy(si *i, sr *r)
 {
 	int rc;
-	if (! i->conf->create) {
-		sr_error(r->e, "directory '%s' can't be created",
-		         i->conf->path);
-		sr_error_recoverable(r->e);
-		return -1;
-	}
-	if (i->conf->read_only) {
-		sr_error(r->e, "directory '%s' is read-only",
-		         i->conf->path);
-		sr_error_recoverable(r->e);
-		return -1;
-	}
 	rc = sr_filemkdir(i->conf->path);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "directory '%s' create error: %s",

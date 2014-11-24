@@ -13,6 +13,7 @@
 #include <libsl.h>
 #include <libsd.h>
 #include <libsi.h>
+#include <libse.h>
 #include <libso.h>
 #include <sophia.h>
 
@@ -36,7 +37,14 @@ so_open(soobj *o, va_list args)
 		return -1;
 	so_statusset(&e->status, SO_RECOVER);
 	int rc;
-	/* start databases recover */
+	rc = so_ctlvalidate(&e->ctl);
+	if (srunlikely(rc == -1))
+		return -1;
+	/* repository recover */
+	rc = so_recover_repository(e);
+	if (srunlikely(rc == -1))
+		return -1;
+	/* databases recover */
 	srlist *i, *n;
 	sr_listforeach_safe(&e->db.list, i, n) {
 		soobj *o = srcast(i, soobj, link);
@@ -83,6 +91,9 @@ so_destroy(soobj *o)
 	if (srunlikely(rc == -1))
 		rcret = -1;
 	rc = sl_poolshutdown(&e->lp);
+	if (srunlikely(rc == -1))
+		rcret = -1;
+	rc = se_close(&e->se);
 	if (srunlikely(rc == -1))
 		rcret = -1;
 	so_ctlfree(&e->ctl);
@@ -147,6 +158,7 @@ soobj *so_new(void)
 	sr_seqinit(&e->seq);
 	sr_errorinit(&e->error);
 	sr_init(&e->r, &e->error, &e->a, &e->seq, NULL, NULL);
+	se_init(&e->se);
 	so_scheduler_init(&e->sched, e);
 	return &e->o;
 }

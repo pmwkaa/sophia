@@ -13,6 +13,7 @@
 #include <libsl.h>
 #include <libsd.h>
 #include <libsi.h>
+#include <libse.h>
 #include <libso.h>
 #include <sophia.h>
 
@@ -88,9 +89,47 @@ static int
 so_ctlsophia_set(soctl *c, char *path srunused, va_list args srunused)
 {
 	so *e = c->e;
-	sr_error(&e->error, "%s", "control path is ready-only");
-	sr_error_recoverable(&e->error);
-	return -1;
+	int version_major = SR_VERSION_MAJOR - '0';
+	int version_minor = SR_VERSION_MINOR - '0';
+	char version[16];
+	char *version_ptr = version;
+	snprintf(version, sizeof(version), "%d.%d",
+	         version_major,
+	         version_minor);
+	char errorsz[128];
+	char *error;
+	errorsz[0] = 0;
+	int errorlen = sr_errorcopy(&e->error, errorsz, sizeof(errorsz));
+	if (srlikely(errorlen == 0))
+		error = NULL;
+	else
+		error = errorsz;
+	srctl ctls[30];
+	srctl *p = ctls;
+	p = sr_ctladd(p, "version", SR_CTLSTRING|SR_CTLRO, version_ptr,       NULL);
+	p = sr_ctladd(p, "build",   SR_CTLSTRING|SR_CTLRO, SR_VERSION_COMMIT, NULL);
+	p = sr_ctladd(p, "error",   SR_CTLSTRING|SR_CTLRO, error,             NULL);
+	p = sr_ctladd(p, "path",    SR_CTLSTRINGREF,       &c->path,          NULL);
+	p = sr_ctladd(p,  NULL,     0,                     NULL,              NULL);
+	srctl *match = NULL;
+	int rc = sr_ctlget(&ctls[0], &path, &match);
+	if (srunlikely(rc == 1 || rc == -1)) {
+		sr_error(&e->error, "%s", "bad control path");
+		sr_error_recoverable(&e->error);
+		return -1;
+	}
+	int type = match->type & ~SR_CTLRO;
+	if (so_active(e) && (type != SR_CTLTRIGGER)) {
+		sr_error(&e->error, "%s", "failed to set control path");
+		sr_error_recoverable(&e->error);
+		return -1;
+	}
+	rc = sr_ctlset(match, &e->a, e, args);
+	if (srunlikely(rc == -1)) {
+		sr_error_recoverable(&e->error);
+		return -1;
+	}
+	return rc;
 }
 
 static void*
@@ -117,6 +156,7 @@ so_ctlsophia_get(soctl *c, char *path, va_list args srunused)
 	p = sr_ctladd(p, "version", SR_CTLSTRING|SR_CTLRO, version_ptr,       NULL);
 	p = sr_ctladd(p, "build",   SR_CTLSTRING|SR_CTLRO, SR_VERSION_COMMIT, NULL);
 	p = sr_ctladd(p, "error",   SR_CTLSTRING|SR_CTLRO, error,             NULL);
+	p = sr_ctladd(p, "path",    SR_CTLSTRINGREF,       &c->path,          NULL);
 	p = sr_ctladd(p,  NULL,     0,                     NULL,              NULL);
 	srctl *match = NULL;
 	int rc = sr_ctlget(&ctls[0], &path, &match);
@@ -152,6 +192,7 @@ so_ctlsophia_dump(soctl *c, srbuf *dump)
 	p = sr_ctladd(p, "version", SR_CTLSTRING|SR_CTLRO, version_ptr,       NULL);
 	p = sr_ctladd(p, "build",   SR_CTLSTRING|SR_CTLRO, SR_VERSION_COMMIT, NULL);
 	p = sr_ctladd(p, "error",   SR_CTLSTRING|SR_CTLRO, error,             NULL);
+	p = sr_ctladd(p, "path",    SR_CTLSTRINGREF,       &c->path,          NULL);
 	p = sr_ctladd(p,  NULL,     0,                     NULL,              NULL);
 	int rc = sr_ctlserialize(&ctls[0], &e->a, "sophia.", dump);
 	if (srunlikely(rc == -1)) {
@@ -297,9 +338,8 @@ static inline void
 so_ctllog_prepare(srctl *t, soctl *c)
 {
 	srctl *p = t;
+	p = sr_ctladd(p, "enabled",           SR_CTLINT,       &c->log_enabled,       NULL);
 	p = sr_ctladd(p, "path",              SR_CTLSTRINGREF, &c->log_path,          NULL);
-	p = sr_ctladd(p, "read_only",         SR_CTLINT,       &c->log_read_only,     NULL);
-	p = sr_ctladd(p, "create",            SR_CTLINT,       &c->log_create,        NULL);
 	p = sr_ctladd(p, "sync",              SR_CTLINT,       &c->log_sync,          NULL);
 	p = sr_ctladd(p, "rotate_wm",         SR_CTLINT,       &c->log_rotate_wm,     NULL);
 	p = sr_ctladd(p, "rotate_sync",       SR_CTLINT,       &c->log_rotate_sync,   NULL);
@@ -568,15 +608,15 @@ static soobjif soctlif =
 void so_ctlinit(soctl *c, void *e)
 {
 	so_objinit(&c->o, SOCTL, &soctlif, e);
+	c->path              = NULL;
 	c->memory_limit      = 0;
 	c->node_size         = 128 * 1024 * 1024;
 	c->node_page_size    = 128 * 1024;
 	c->node_branch_wm    = 10 * 1024 * 1024;
 	c->node_compact_wm   = 1;
 	c->threads           = 5;
+	c->log_enabled       = 1;
 	c->log_path          = NULL;
-	c->log_read_only     = 0;
-	c->log_create        = 1;
 	c->log_rotate_wm     = 500000;
 	c->log_sync          = 0;
 	c->log_rotate_sync   = 1;
@@ -591,4 +631,39 @@ void so_ctlfree(soctl *c)
 		sr_free(&((so*)c->e)->a, c->log_path);
 		c->log_path = NULL;
 	}
+}
+
+int so_ctlvalidate(soctl *c)
+{
+	so *e = c->e;
+	if (c->path == NULL) {
+		sr_error(&e->error, "%s", "repository path is not set");
+		sr_error_recoverable(&e->error);
+		return -1;
+	}
+	char path[1024];
+	if (c->log_path == NULL) {
+		snprintf(path, sizeof(path), "%s/log", c->path);
+		c->log_path = sr_strdup(&e->a, path);
+		if (srunlikely(c->log_path == NULL)) {
+			sr_error(&e->error, "%s", "memory allocation failed");
+			sr_error_recoverable(&e->error);
+			return -1;
+		}
+	}
+	srlist *i;
+	sr_listforeach(&e->db.list, i) {
+		soobj *o = srcast(i, soobj, link);
+		sodb *db = (sodb*)o;
+		if (db->ctl.path == NULL) {
+			snprintf(path, sizeof(path), "%s/%s", c->path, db->ctl.name);
+			db->ctl.path = sr_strdup(&e->a, path);
+			if (srunlikely(db->ctl.path == NULL)) {
+				sr_error(&e->error, "%s", "memory allocation failed");
+				sr_error_recoverable(&e->error);
+				return -1;
+			}
+		}
+	}
+	return 0;
 }

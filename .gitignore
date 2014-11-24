@@ -8,6 +8,7 @@ out
 gyp-mac-tool
 sophia.Makefile
 .*.sw[op]
+test/sophia
 test/dir
 test/logdir
 test/run

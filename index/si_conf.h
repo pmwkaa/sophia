@@ -13,8 +13,6 @@ typedef struct siconf siconf;
 
 struct siconf {
 	char     *path;
-	int       read_only;
-	int       create;
 	int       sync;
 	uint64_t  memory_limit;
 	uint32_t  node_size;

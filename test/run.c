@@ -26,6 +26,7 @@ extern stgroup *sdpageiter_group(void);
 extern stgroup *ctl_group(void);
 extern stgroup *error_group(void);
 extern stgroup *method_group(void);
+extern stgroup *repository_group(void);
 extern stgroup *dml_group(void);
 extern stgroup *tpr_group(void);
 extern stgroup *object_group(void);
@@ -44,7 +45,7 @@ int
 main(int argc, char *argv[])
 {
 	st s;
-	st_init(&s, "./dir", "./logdir");
+	st_init(&s, "./sophia", "./dir", "./logdir");
 
 	st_addscene(&s, st_scene("rmrf", st_scene_rmrf, 1));
 	st_addscene(&s, st_scene("create", st_scene_create, 1));
@@ -84,6 +85,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, error_group());
 	st_planadd(plan, method_group());
 	st_planadd(plan, profiler_group());
+	st_planadd(plan, repository_group());
 	st_planadd(plan, dml_group());
 	st_planadd(plan, tpr_group());
 	st_planadd(plan, deadlock_group());

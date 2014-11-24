@@ -18,6 +18,7 @@ logcursor_empty0(stc *cx)
 	t( env != NULL );
 	void *c = sp_ctl(env);
 	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_open(env) == 0 );
@@ -45,6 +46,7 @@ logcursor_empty1(stc *cx)
 	t( env != NULL );
 	void *c = sp_ctl(env);
 	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_open(env) == 0 );
@@ -71,6 +73,7 @@ logcursor_iterate(stc *cx)
 	t( env != NULL );
 	void *c = sp_ctl(env);
 	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_open(env) == 0 );
@@ -117,6 +120,7 @@ logcursor_iterate_prepare(stc *cx)
 	t( env != NULL );
 	void *c = sp_ctl(env);
 	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_open(env) == 0 );

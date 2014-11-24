@@ -16,6 +16,7 @@ LIBST_O = st.o \
           ctl.test.o \
           error.test.o \
           method.test.o \
+          repository.test.o \
           dml.test.o \
           tpr.test.o \
           profiler.test.o \

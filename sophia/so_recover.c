@@ -13,6 +13,7 @@
 #include <libsl.h>
 #include <libsd.h>
 #include <libsi.h>
+#include <libse.h>
 #include <libso.h>
 #include <sophia.h>
 
@@ -27,8 +28,6 @@ int so_recoverbegin(sodb *db)
 	c->node_size      = e->ctl.node_size;
 	c->node_page_size = e->ctl.node_page_size;
 	c->path           = db->ctl.path;
-	c->read_only      = db->ctl.read_only;
-	c->create         = db->ctl.create;
 	c->sync           = db->ctl.sync;
 	si_init(&db->index, &db->indexconf);
 	int rc = si_open(&db->index, &db->r);
@@ -138,9 +137,8 @@ so_recoverlogpool(so *e)
 int so_recover(so *e)
 {
 	slconf *lc = &e->lpconf;
+	lc->enabled        = e->ctl.log_enabled;
 	lc->path           = e->ctl.log_path;
-	lc->read_only      = e->ctl.log_read_only;
-	lc->create         = e->ctl.log_create;
 	lc->rotatewm       = e->ctl.log_rotate_wm;
 	lc->sync_on_rotate = e->ctl.log_rotate_sync;
 	lc->sync_on_write  = e->ctl.log_sync;
@@ -163,4 +161,14 @@ int so_recover(so *e)
 error:
 	so_statusset(&e->status, SO_MALFUNCTION);
 	return -1;
+}
+
+int so_recover_repository(so *e)
+{
+	e->seconf.path = e->ctl.path;
+	int rc;
+	rc = se_open(&e->se, &e->r, &e->seconf);
+	if (srunlikely(rc == -1))
+		return -1;
+	return 0;
 }

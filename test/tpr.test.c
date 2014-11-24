@@ -18,9 +18,10 @@ tpr_test0(stc *cx srunused)
 	t( env != NULL );
 	void *c = sp_ctl(env);
 	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
-	t( sp_set(c, "log.path", NULL) == 0 );
+	t( sp_set(c, "log.enabled", "0") == 0 );
 	t( sp_set(c, "log.two_phase_recover", "1") == 0 );
 	t( sp_open(env) == 0 );
 
@@ -56,9 +57,10 @@ tpr_test1(stc *cx srunused)
 	t( env != NULL );
 	void *c = sp_ctl(env);
 	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
-	t( sp_set(c, "log.path", NULL) == 0 );
+	t( sp_set(c, "log.enabled", "0") == 0 );
 	t( sp_set(c, "log.two_phase_recover", "1") == 0 );
 	t( sp_open(env) == 0 );
 
@@ -90,8 +92,9 @@ tpr_test1(stc *cx srunused)
 	t( env != NULL );
 	c = sp_ctl(env);
 	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", NULL) == 0 );
+	t( sp_set(c, "log.enabled", "0") == 0 );
 	t( sp_set(c, "log.two_phase_recover", "1") == 0 );
 	t( sp_open(env) == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );

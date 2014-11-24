@@ -18,6 +18,7 @@ deadlock_test0(stc *cx)
 	t( env != NULL );
 	void *c = sp_ctl(env);
 	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
@@ -55,6 +56,7 @@ deadlock_test1(stc *cx)
 	t( env != NULL );
 	void *c = sp_ctl(env);
 	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
@@ -104,6 +106,7 @@ deadlock_test2(stc *cx)
 	t( env != NULL );
 	void *c = sp_ctl(env);
 	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
@@ -171,6 +174,7 @@ deadlock_test3(stc *cx)
 	t( env != NULL );
 	void *c = sp_ctl(env);
 	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );

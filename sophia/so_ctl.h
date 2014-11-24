@@ -13,6 +13,8 @@ typedef struct soctl soctl;
 
 struct soctl {
 	soobj o;
+	/* sophia */
+	char    *path;
 	/* compaction */
 	uint32_t node_size;
 	uint32_t node_page_size;
@@ -23,9 +25,8 @@ struct soctl {
 	/* memory */
 	uint64_t memory_limit;
 	/* log */
+	int      log_enabled;
 	char    *log_path;
-	int      log_read_only;
-	int      log_create;
 	int      log_sync;
 	int      log_rotate_wm;
 	int      log_rotate_sync;
@@ -36,6 +37,7 @@ struct soctl {
 
 void  so_ctlinit(soctl*, void*);
 void  so_ctlfree(soctl*);
+int   so_ctlvalidate(soctl*);
 int   so_ctldump(soctl*, srbuf*);
 void *so_ctlreturn(srctl*, void*);
 

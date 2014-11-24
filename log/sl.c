@@ -95,12 +95,9 @@ int sl_poolinit(slpool *p, sr *r, slconf *conf)
 {
 	sr_spinlockinit(&p->lock);
 	sr_listinit(&p->list);
-	p->n       = 0;
-	p->r       = r;
-	p->conf    = conf;
-	p->enabled = 1;
-	if (conf->path == NULL)
-		p->enabled = 0;
+	p->n    = 0;
+	p->r    = r;
+	p->conf = conf;
 	struct iovec *iov =
 		sr_malloc(r->a, sizeof(struct iovec) * 1021);
 	if (srunlikely(iov == NULL))
@@ -113,18 +110,6 @@ static inline int
 sl_poolcreate(slpool *p)
 {
 	int rc;
-	if (! p->conf->create) {
-		sr_error(p->r->e, "log directory '%s' can't be created",
-		         p->conf->path);
-		sr_error_recoverable(p->r->e);
-		return -1;
-	}
-	if (p->conf->read_only) {
-		sr_error(p->r->e, "log directory '%s' is read only",
-		         p->conf->path);
-		sr_error_recoverable(p->r->e);
-		return -1;
-	}
 	rc = sr_filemkdir(p->conf->path);
 	if (srunlikely(rc == -1))
 		return sr_error(p->r->e, "log directory '%s' create error: %s",
@@ -171,7 +156,7 @@ sl_poolrecover(slpool *p)
 
 int sl_poolopen(slpool *p)
 {
-	if (srunlikely(! p->enabled))
+	if (srunlikely(! p->conf->enabled))
 		return 0;
 	int exists = sr_fileexists(p->conf->path);
 	int rc;
@@ -186,7 +171,7 @@ int sl_poolopen(slpool *p)
 
 int sl_poolrotate(slpool *p)
 {
-	if (srunlikely(! p->enabled))
+	if (srunlikely(! p->conf->enabled))
 		return 0;
 	uint32_t lfsn = sr_seq(p->r->seq, SR_LFSNNEXT);
 	sl *l = sl_new(p, lfsn);
@@ -216,7 +201,7 @@ int sl_poolrotate(slpool *p)
 
 int sl_poolrotate_ready(slpool *p, int wm)
 {
-	if (srunlikely(! p->enabled))
+	if (srunlikely(! p->conf->enabled))
 		return 0;
 	sr_spinlock(&p->lock);
 	assert(p->n > 0);
@@ -262,7 +247,7 @@ sl_gc(slpool *p, sl *l)
 
 int sl_poolgc(slpool *p)
 {
-	if (srunlikely(! p->enabled))
+	if (srunlikely(! p->conf->enabled))
 		return 0;
 	for (;;) {
 		sr_spinlock(&p->lock);
@@ -294,7 +279,7 @@ int sl_begin(slpool *p, sltx *t, uint32_t dsn)
 	memset(t, 0, sizeof(*t));
 	sr_spinlock(&p->lock);
 	t->p = p;
-	if (! p->enabled)
+	if (! p->conf->enabled)
 		return 0;
 	assert(p->n > 0);
 	sl *l = srcast(p->list.prev, sl, link);
@@ -308,7 +293,7 @@ int sl_begin(slpool *p, sltx *t, uint32_t dsn)
 
 int sl_commit(sltx *t)
 {
-	if (t->p->enabled)
+	if (t->p->conf->enabled)
 		sr_mutexunlock(&t->l->filelock);
 	sr_spinunlock(&t->p->lock);
 	return 0;
@@ -317,7 +302,7 @@ int sl_commit(sltx *t)
 int sl_rollback(sltx *t)
 {
 	int rc = 0;
-	if (t->p->enabled) {
+	if (t->p->conf->enabled) {
 		rc = sr_filerlb(&t->l->file, t->svp);
 		if (srunlikely(rc == -1))
 			sr_error(t->p->r->e, "log file '%s' truncate error: %s",
@@ -455,7 +440,7 @@ int sl_write(sltx *t, svlog *vlog)
 {
 	/* assume transaction log is prepared
 	 * (lsn set) */
-	if (srunlikely(! t->p->enabled))
+	if (srunlikely(! t->p->conf->enabled))
 		return 0;
 	int count = sv_logn(vlog);
 	int rc;
@@ -468,7 +453,7 @@ int sl_write(sltx *t, svlog *vlog)
 	if (srunlikely(rc == -1))
 		return -1;
 	/* sync */
-	if (t->p->enabled && t->p->conf->sync_on_write) {
+	if (t->p->conf->enabled && t->p->conf->sync_on_write) {
 		rc = sr_filesync(&t->l->file);
 		if (srunlikely(rc == -1)) {
 			sr_error(t->p->r->e, "log file '%s' sync error: %s",
