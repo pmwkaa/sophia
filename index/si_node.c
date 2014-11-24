@@ -9,6 +9,7 @@
 
 #include <libsr.h>
 #include <libsv.h>
+#include <libsl.h>
 #include <libsd.h>
 #include <libsi.h>
 
@@ -26,8 +27,7 @@ sinode *si_nodenew(sr *r)
 	sr_fileinit(&n->file, r->a);
 	sv_indexinit(&n->i0);
 	sv_indexinit(&n->i1);
-	n->iused = 0;
-	n->iusedkv = 0;
+	n->used = 0;
 	n->lv = 0;
 	n->next = NULL;
 	sr_mapinit(&n->map);
@@ -102,8 +102,8 @@ si_nodeclose(sinode *n, sr *r)
 		rcret = -1;
 	}
 	sd_indexfree(&n->index, r);
-	sv_indexfree(&n->i0, r);
-	sv_indexfree(&n->i1, r);
+	si_nodegc_index(r, &n->i0);
+	si_nodegc_index(r, &n->i1);
 	return rcret;
 }
 
@@ -163,6 +163,25 @@ int si_nodefree_all(sinode *n, sr *r)
 		p = next;
 	}
 	return rcret;
+}
+
+static inline void
+si_nodegc_loggc(svv *v) {
+	if (v->log) {
+		sr_gcsweep(&((sl*)v->log)->gc, 1);
+	}
+}
+
+sr_rbtruncate(si_nodegc_indexgc,
+              si_nodegc_loggc(srcast(n, svv, node));
+              sv_vfree((sra*)arg, srcast(n, svv, node)))
+
+int si_nodegc_index(sr *r, svindex *i)
+{
+	if (i->i.root)
+		si_nodegc_indexgc(i->i.root, r->a);
+	sv_indexinit(i);
+	return 0;
 }
 
 int si_nodegc(sinode *n, sr *r)

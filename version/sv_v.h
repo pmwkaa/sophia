@@ -74,12 +74,7 @@ sv_visible(svv *v, uint64_t vlsn) {
 
 static inline uint32_t
 sv_vsize(svv *v) {
-	uint32_t size = 0;
-	while (v) {
-		size += sizeof(svv) + v->keysize + v->valuesize;
-		v = v->next;
-	}
-	return size;
+	return sizeof(svv) + v->keysize + v->valuesize;
 }
 
 #endif

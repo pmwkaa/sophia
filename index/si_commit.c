@@ -13,11 +13,13 @@
 #include <libsd.h>
 #include <libsi.h>
 
-void
+uint32_t
 si_vgc(sra *a, svv *gc)
 {
+	uint32_t used = 0;
 	svv *v = gc;
 	while (v) {
+		used += sv_vsize(v);
 		svv *n = v->next;
 		sl *log = (sl*)v->log;
 		if (log) {
@@ -26,6 +28,7 @@ si_vgc(sra *a, svv *gc)
 		sr_free(a, v);
 		v = n;
 	}
+	return used;
 }
 
 void si_begin(sitx *t, sr *r, si *index, uint64_t vlsn, svlog *log)
@@ -61,18 +64,14 @@ si_set(si *index, sr *r, uint64_t vlsn, svv *v)
 	svindex *vindex = si_nodeindex(node);
 	svv *vgc = NULL;
 	sv_indexset(vindex, r, vlsn, v, &vgc);
-	node->iused += size;
-	node->iusedkv += v->keysize + v->valuesize;
+	node->used += size;
 	if (srunlikely(vgc)) {
-		uint32_t size_vgc = sv_vsize(vgc);
-		node->iused -= size_vgc;
-		node->iusedkv -= vgc->keysize + vgc->valuesize;
+		uint32_t size_vgc = si_vgc(r->a, vgc);
+		node->used -= size_vgc;
 		si_qos(index, 1, size_vgc);
 	}
 	/* schedule node */
 	si_plannerupdate(&index->p, SI_BRANCH, node);
-	if (srunlikely(vgc))
-		si_vgc(r->a, vgc);
 }
 
 void si_write(sitx *t, int check)

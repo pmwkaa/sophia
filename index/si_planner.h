@@ -18,15 +18,16 @@ struct siplanner {
 };
 
 /* plan */
-#define SI_BRANCH        1
-#define SI_COMPACT       2
+#define SI_BRANCH         1
+#define SI_COMPACT        2
 
 /* condition */
-#define SI_BRANCH_FORCE  1
-#define SI_BRANCH_SIZE   2
-#define SI_BRANCH_LSN    4
-#define SI_COMPACT_FORCE 1
-#define SI_COMPACT_DEEP  2
+#define SI_BRANCH_FORCE   1
+#define SI_BRANCH_SIZE    2
+#define SI_BRANCH_LSN     4
+#define SI_COMPACT_FORCE  1
+#define SI_COMPACT_BRANCH 2
+#define SI_COMPACT_INDEX  4
 
 struct siplan {
 	int plan;

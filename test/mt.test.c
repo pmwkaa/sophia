@@ -24,11 +24,11 @@ static inline void *single_stmt_thread(void *arg)
 	int i = 0;
 	while (i < 20000) {
 		char key[100];
-		int keylen = snprintf(key, sizeof(key), "key_%" PRIiPTR " _%d",
+		int keylen = snprintf(key, sizeof(key), "key_%" PRIiPTR "_%d",
 		                      (uintptr_t)self, i);
 		void *o = sp_object(db);
 		assert(o != NULL);
-		sp_set(o, "key", key, keylen);
+		sp_set(o, "key", key, keylen + 1);
 		sp_set(o, "value", &i, sizeof(i));
 		int rc = sp_set(db, o);
 		assert(rc != -1);
@@ -86,11 +86,11 @@ static inline void *multi_stmt_thread(void *arg)
 		int j = 0;
 		while (j < 10) {
 			char key[100];
-			int keylen = snprintf(key, sizeof(key), "key_%" PRIiPTR " _%d_%d",
+			int keylen = snprintf(key, sizeof(key), "key_%" PRIiPTR "_%d_%d",
 			                      (uintptr_t)self, i, j);
 			void *o = sp_object(db);
 			assert(o != NULL);
-			sp_set(o, "key", key, keylen);
+			sp_set(o, "key", key, keylen + 1);
 			rc = sp_set(tx, o);
 			assert(rc != -1);
 			j++;

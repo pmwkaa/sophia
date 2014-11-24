@@ -58,7 +58,7 @@ name(srrb *t, \
 	return rc; \
 }
 
-#define sr_rbtruncate(name, func) \
+#define sr_rbtruncate(name, executable) \
 \
 static inline void \
 name(srrbnode *n, void *arg) \
@@ -67,7 +67,7 @@ name(srrbnode *n, void *arg) \
 		name(n->l, arg); \
 	if (n->r) \
 		name(n->r, arg); \
-	(func); \
+	executable; \
 }
 
 srrbnode *sr_rbmin(srrb*);

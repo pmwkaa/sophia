@@ -12,15 +12,16 @@
 #include <libsd.h>
 #include <libsi.h>
 
-extern void si_vgc(sra*, svv*);
+extern uint32_t si_vgc(sra*, svv*);
 
 static int
-si_redistribute(sr *r, sdc *c, sinode *node, srbuf *result, uint64_t vlsn)
+si_redistribute(si *index, sr *r, sdc *c, sinode *node, srbuf *result,
+                uint64_t vlsn)
 {
-	svindex *index = si_nodeindex(node);
+	svindex *vindex = si_nodeindex(node);
 	sriter i;
 	sr_iterinit(&i, &sv_indexiterraw, r);
-	sr_iteropen(&i, index);
+	sr_iteropen(&i, vindex);
 	for (; sr_iterhas(&i); sr_iternext(&i)) {
 		sv *v = sr_iterof(&i);
 		int rc = sr_bufadd(&c->c, r->a, &v->v, sizeof(svv**));
@@ -29,6 +30,7 @@ si_redistribute(sr *r, sdc *c, sinode *node, srbuf *result, uint64_t vlsn)
 	}
 	if (srunlikely(sr_bufused(&c->c) == 0))
 		return 0;
+	uint32_t gc = 0;
 	sr_iterinit(&i, &sr_bufiterref, NULL);
 	sr_iteropen(&i, &c->c, sizeof(svv*));
 	sriter j;
@@ -44,11 +46,9 @@ si_redistribute(sr *r, sdc *c, sinode *node, srbuf *result, uint64_t vlsn)
 				svv *v = sr_iterof(&i);
 				svv *vgc = NULL;
 				sv_indexset(&prev->i0, r, vlsn, v, &vgc);
-				prev->iused += sv_vsize(v);
-				prev->iusedkv += v->keysize + v->valuesize;
 				sr_iternext(&i);
 				if (vgc) {
-					si_vgc(r->a, vgc);
+					gc += si_vgc(r->a, vgc);
 				}
 			}
 			break;
@@ -62,11 +62,9 @@ si_redistribute(sr *r, sdc *c, sinode *node, srbuf *result, uint64_t vlsn)
 			if (srunlikely(rc >= 0))
 				break;
 			sv_indexset(&prev->i0, r, vlsn, v, &vgc);
-			prev->iused += sv_vsize(v);
-			prev->iusedkv += v->keysize + v->valuesize;
 			sr_iternext(&i);
 			if (vgc) {
-				si_vgc(r->a, vgc);
+				gc += si_vgc(r->a, vgc);
 			}
 		}
 		if (srunlikely(! sr_iterhas(&i)))
@@ -74,7 +72,9 @@ si_redistribute(sr *r, sdc *c, sinode *node, srbuf *result, uint64_t vlsn)
 		prev = p;
 		sr_iternext(&j);
 	}
-	/* xxx: qos from vgc */
+	if (gc) {
+		si_qos(index, 1, gc);
+	}
 	assert(sr_iterof(&i) == NULL);
 	return 0;
 }
@@ -118,15 +118,13 @@ si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 	sinode *n;
 	if (srlikely(count == 1)) {
 		n = *(sinode**)result->s;
-		/* xxx: set n->iused using j->used */
-		n->iused   = node->iused;
-		n->iusedkv = node->iusedkv;
-		n->i0      = *j;
+		n->i0    = *j;
+		n->used = sv_indexused(j);
 		si_nodelock(n);
 		si_replace(index, node, n);
 		si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH, n);
 	} else {
-		rc = si_redistribute(r, c, node, result, s.vlsn);
+		rc = si_redistribute(index, r, c, node, result, s.vlsn);
 		if (srunlikely(rc == -1)) {
 			si_unlock(index);
 			si_splitfree(result, r);
@@ -135,12 +133,14 @@ si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 		sr_iterinit(&i, &sr_bufiterref, NULL);
 		sr_iteropen(&i, result, sizeof(sinode*));
 		n = sr_iterof(&i);
+		n->used = sv_indexused(&n->i0);
 		si_nodelock(n);
 		si_replace(index, node, n);
 		si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH, n);
 		for (sr_iternext(&i); sr_iterhas(&i);
-			 sr_iternext(&i)) {
+		     sr_iternext(&i)) {
 			n = sr_iterof(&i);
+			n->used = sv_indexused(&n->i0);
 			si_nodelock(n);
 			si_insert(index, r, n);
 			si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH, n);
