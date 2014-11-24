@@ -367,6 +367,75 @@ so_ctllog_dump(soctl *c, srbuf *dump)
 	return 0;
 }
 
+static inline void
+so_ctlcompaction_prepare(srctl *t, soctl *c)
+{
+	srctl *p = t;
+	p = sr_ctladd(p, "node_size",       SR_CTLU32, &c->node_size,       NULL);
+	p = sr_ctladd(p, "node_page_size",  SR_CTLU32, &c->node_page_size,  NULL);
+	p = sr_ctladd(p, "node_branch_wm",  SR_CTLU32, &c->node_branch_wm,  NULL);
+	p = sr_ctladd(p, "node_compact_wm", SR_CTLU32, &c->node_compact_wm, NULL);
+	p = sr_ctladd(p,  NULL,             0,         NULL,                NULL);
+}
+
+static int
+so_ctlcompaction_set(so *o, char *path, va_list args)
+{
+	srctl ctls[30];
+	so_ctlcompaction_prepare(&ctls[0], &o->ctl);
+	srctl *match = NULL;
+	int rc = sr_ctlget(&ctls[0], &path, &match);
+	if (srunlikely(rc ==  1))
+		return -1; /* self */
+	if (srunlikely(rc == -1)) {
+		sr_error(&o->error, "%s", "bad control path");
+		sr_error_recoverable(&o->error);
+		return -1;
+	}
+	int type = match->type & ~SR_CTLRO;
+	if (so_active(o) && (type != SR_CTLTRIGGER)) {
+		sr_error(&o->error, "%s", "failed to set control path");
+		sr_error_recoverable(&o->error);
+		return -1;
+	}
+	rc = sr_ctlset(match, &o->a, o, args);
+	if (srunlikely(rc == -1)) {
+		sr_error_recoverable(&o->error);
+		return -1;
+	}
+	return rc;
+}
+
+static void*
+so_ctlcompaction_get(soctl *c, char *path, va_list args srunused)
+{
+	so *e = c->e;
+	srctl ctls[30];
+	so_ctlcompaction_prepare(&ctls[0], &e->ctl);
+	srctl *match = NULL;
+	int rc = sr_ctlget(&ctls[0], &path, &match);
+	if (srunlikely(rc ==  1))
+		return NULL; /* self */
+	return so_ctlreturn(match, e);
+}
+
+static int
+so_ctlcompaction_dump(soctl *c, srbuf *dump)
+{
+	so *e = c->e;
+	srctl ctls[30];
+	so_ctlcompaction_prepare(&ctls[0], &e->ctl);
+	char prefix[64];
+	snprintf(prefix, sizeof(prefix), "compaction.");
+	int rc = sr_ctlserialize(&ctls[0], &e->a, prefix, dump);
+	if (srunlikely(rc == -1)) {
+		sr_error(&e->error, "%s", "memory allocation failed");
+		sr_error_recoverable(&e->error);
+		return -1;
+	}
+	return 0;
+}
+
 static int
 so_ctlset(soobj *obj, va_list args)
 {
@@ -388,6 +457,9 @@ so_ctlset(soobj *obj, va_list args)
 	else
 	if (strcmp(token, "memory") == 0)
 		return so_ctlmemory_set(e, ptr, args);
+	else
+	if (strcmp(token, "compaction") == 0)
+		return so_ctlcompaction_set(e, ptr, args);
 	else
 	if (strcmp(token, "scheduler") == 0)
 		return so_schedulerctl_set(&e->o, ptr, args);
@@ -424,6 +496,9 @@ so_ctlget(soobj *obj, va_list args)
 	if (strcmp(token, "memory") == 0)
 		return so_ctlmemory_get(c, ptr, args);
 	else
+	if (strcmp(token, "compaction") == 0)
+		return so_ctlcompaction_get(c, ptr, args);
+	else
 	if (strcmp(token, "scheduler") == 0)
 		return so_schedulerctl_get(&e->o, ptr, args);
 	else
@@ -443,6 +518,9 @@ int so_ctldump(soctl *c, srbuf *dump)
 	if (srunlikely(rc == -1))
 		return -1;
 	rc = so_ctlmemory_dump(c, dump);
+	if (srunlikely(rc == -1))
+		return -1;
+	rc = so_ctlcompaction_dump(c, dump);
 	if (srunlikely(rc == -1))
 		return -1;
 	rc = so_schedulerctl_dump(c->e, dump);

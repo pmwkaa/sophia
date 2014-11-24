@@ -19,7 +19,7 @@ recovercrash_branch0(stc *cx srunused)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "scheduler.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -57,7 +57,7 @@ recovercrash_branch0(stc *cx srunused)
 	c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "scheduler.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -97,7 +97,7 @@ recovercrash_branch1(stc *cx srunused)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "scheduler.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -135,7 +135,7 @@ recovercrash_branch1(stc *cx srunused)
 	c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "scheduler.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -175,7 +175,7 @@ recovercrash_compact0(stc *cx srunused)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "scheduler.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -215,7 +215,7 @@ recovercrash_compact0(stc *cx srunused)
 	c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "scheduler.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -256,7 +256,7 @@ recovercrash_compact1(stc *cx srunused)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "scheduler.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -297,7 +297,7 @@ recovercrash_compact1(stc *cx srunused)
 	c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "scheduler.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -340,7 +340,7 @@ recovercrash_compact2(stc *cx srunused)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "scheduler.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -381,7 +381,7 @@ recovercrash_compact2(stc *cx srunused)
 	c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "scheduler.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -424,9 +424,9 @@ recovercrash_compact3(stc *cx srunused)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "scheduler.node_branch_wm", "1") == 0 );
-	t( sp_set(c, "scheduler.node_size", "8") == 0 );
-	t( sp_set(c, "scheduler.node_page_size", "31") == 0 );
+	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.node_size", "8") == 0 );
+	t( sp_set(c, "compaction.node_page_size", "31") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -463,7 +463,7 @@ recovercrash_compact3(stc *cx srunused)
 	c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "scheduler.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -502,9 +502,9 @@ recovercrash_compact4(stc *cx srunused)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "scheduler.node_branch_wm", "1") == 0 );
-	t( sp_set(c, "scheduler.node_size", "8") == 0 );
-	t( sp_set(c, "scheduler.node_page_size", "31") == 0 );
+	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.node_size", "8") == 0 );
+	t( sp_set(c, "compaction.node_page_size", "31") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -541,7 +541,7 @@ recovercrash_compact4(stc *cx srunused)
 	c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "scheduler.node_branch_wm", "8") == 0 );
+	t( sp_set(c, "compaction.node_branch_wm", "8") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -582,9 +582,9 @@ recovercrash_compact5(stc *cx srunused)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "scheduler.node_branch_wm", "1") == 0 );
-	t( sp_set(c, "scheduler.node_size", "8") == 0 );
-	t( sp_set(c, "scheduler.node_page_size", "31") == 0 );
+	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.node_size", "8") == 0 );
+	t( sp_set(c, "compaction.node_page_size", "31") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -621,7 +621,7 @@ recovercrash_compact5(stc *cx srunused)
 	c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "scheduler.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -662,9 +662,9 @@ recovercrash_compact6(stc *cx srunused)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "scheduler.node_branch_wm", "1") == 0 );
-	t( sp_set(c, "scheduler.node_size", "8") == 0 );
-	t( sp_set(c, "scheduler.node_page_size", "31") == 0 );
+	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.node_size", "8") == 0 );
+	t( sp_set(c, "compaction.node_page_size", "31") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -701,7 +701,7 @@ recovercrash_compact6(stc *cx srunused)
 	c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "scheduler.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -742,9 +742,9 @@ recovercrash_compact7(stc *cx srunused)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "scheduler.node_branch_wm", "1") == 0 );
-	t( sp_set(c, "scheduler.node_size", "8") == 0 );
-	t( sp_set(c, "scheduler.node_page_size", "31") == 0 );
+	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.node_size", "8") == 0 );
+	t( sp_set(c, "compaction.node_page_size", "31") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -782,7 +782,7 @@ recovercrash_compact7(stc *cx srunused)
 	c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "scheduler.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );

@@ -20,11 +20,7 @@ static inline void
 so_schedulerctl_prepare(srctl *t, so *o, soctl *c)
 {
 	srctl *p = t;
-	p = sr_ctladd(p, "threads",         SR_CTLU32, &c->threads,        NULL);
-	p = sr_ctladd(p, "node_size",       SR_CTLU32, &c->node_size,      NULL);
-	p = sr_ctladd(p, "node_page_size",  SR_CTLU32, &c->node_page_size, NULL);
-	p = sr_ctladd(p, "node_branch_wm",  SR_CTLU32, &c->node_branch_wm, NULL);
-	p = sr_ctladd(p, "node_compact_wm", SR_CTLU32, &c->node_compact_wm,  NULL);
+	p = sr_ctladd(p, "threads", SR_CTLU32, &c->threads, NULL);
 	srlist *i;
 	sr_listforeach(&o->sched.workers.list, i) {
 		soworker *w = srcast(i, soworker, link);
