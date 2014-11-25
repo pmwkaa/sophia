@@ -3,6 +3,7 @@
 *.so.1
 *.so
 *.mk
+*.dylib*
 out
 *.a
 gyp-mac-tool
