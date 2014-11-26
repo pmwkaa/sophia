@@ -12,7 +12,7 @@
 typedef struct slconf slconf;
 
 struct slconf {
-	int   enabled;
+	int   enable;
 	char *path;
 	int   sync_on_rotate;
 	int   sync_on_write;

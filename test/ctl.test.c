@@ -61,7 +61,7 @@ ctl_scheduler(stc *cx)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "scheduler.threads", "2") == 0 );
-	t( sp_set(c, "log.enabled", "0") == 0 );
+	t( sp_set(c, "log.enable", "0") == 0 );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 
 	void *o = sp_get(c, "scheduler.0.trace");

@@ -134,7 +134,7 @@ so_recoverlogpool(so *e)
 int so_recover(so *e)
 {
 	slconf *lc = &e->lpconf;
-	lc->enabled        = e->ctl.log_enabled;
+	lc->enable         = e->ctl.log_enable;
 	lc->path           = e->ctl.log_path;
 	lc->rotatewm       = e->ctl.log_rotate_wm;
 	lc->sync_on_rotate = e->ctl.log_rotate_sync;

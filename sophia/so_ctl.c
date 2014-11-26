@@ -338,7 +338,7 @@ static inline void
 so_ctllog_prepare(srctl *t, soctl *c)
 {
 	srctl *p = t;
-	p = sr_ctladd(p, "enabled",           SR_CTLINT,       &c->log_enabled,       NULL);
+	p = sr_ctladd(p, "enable",            SR_CTLINT,       &c->log_enable,        NULL);
 	p = sr_ctladd(p, "path",              SR_CTLSTRINGREF, &c->log_path,          NULL);
 	p = sr_ctladd(p, "sync",              SR_CTLINT,       &c->log_sync,          NULL);
 	p = sr_ctladd(p, "rotate_wm",         SR_CTLINT,       &c->log_rotate_wm,     NULL);
@@ -615,7 +615,7 @@ void so_ctlinit(soctl *c, void *e)
 	c->node_branch_wm    = 10 * 1024 * 1024;
 	c->node_compact_wm   = 1;
 	c->threads           = 5;
-	c->log_enabled       = 1;
+	c->log_enable        = 1;
 	c->log_path          = NULL;
 	c->log_rotate_wm     = 500000;
 	c->log_sync          = 0;

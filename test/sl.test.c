@@ -60,7 +60,7 @@ sl_begin_commit(stc *cx)
 	sr_init(&r, &error, &a, &seq, &cmp, NULL);
 	slconf conf = {
 		.path     = cx->suite->logdir,
-		.enabled  = 1,
+		.enable   = 1,
 		.rotatewm = 1000
 	};
 	slpool lp;
@@ -96,7 +96,7 @@ sl_begin_rollback(stc *cx)
 	sr_init(&r, &error, &a, &seq, &cmp, NULL);
 	slconf conf = {
 		.path     = cx->suite->logdir,
-		.enabled  = 1,
+		.enable   = 1,
 		.rotatewm = 1000
 	};
 	slpool lp;

@@ -25,7 +25,7 @@ struct soctl {
 	/* memory */
 	uint64_t memory_limit;
 	/* log */
-	int      log_enabled;
+	int      log_enable;
 	char    *log_path;
 	int      log_sync;
 	int      log_rotate_wm;

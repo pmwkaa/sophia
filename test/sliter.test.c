@@ -60,7 +60,7 @@ sliter_tx(stc *cx)
 	sr_init(&r, &error, &a, &seq, &cmp, NULL);
 	slconf conf = {
 		.path     = cx->suite->logdir,
-		.enabled  = 1,
+		.enable   = 1,
 		.rotatewm = 1000
 	};
 	slpool lp;
@@ -96,7 +96,7 @@ sliter_tx_read_empty(stc *cx)
 	sr_init(&r, &error, &a, &seq, &cmp, NULL);
 	slconf conf = {
 		.path     = cx->suite->logdir,
-		.enabled  = 1,
+		.enable   = 1,
 		.rotatewm = 1000
 	};
 	slpool lp;
@@ -142,7 +142,7 @@ sliter_tx_read0(stc *cx)
 	sr_init(&r, &error, &a, &seq, &cmp, NULL);
 	slconf conf = {
 		.path     = cx->suite->logdir,
-		.enabled  = 1,
+		.enable   = 1,
 		.rotatewm = 1000
 	};
 	slpool lp;
@@ -193,7 +193,7 @@ sliter_tx_read1(stc *cx)
 	sr_init(&r, &error, &a, &seq, &cmp, NULL);
 	slconf conf = {
 		.path     = cx->suite->logdir,
-		.enabled  = 1,
+		.enable   = 1,
 		.rotatewm = 1000
 	};
 	slpool lp;
@@ -255,7 +255,7 @@ sliter_tx_read2(stc *cx)
 	sr_init(&r, &error, &a, &seq, &cmp, NULL);
 	slconf conf = {
 		.path     = cx->suite->logdir,
-		.enabled  = 1,
+		.enable   = 1,
 		.rotatewm = 1000
 	};
 	slpool lp;
@@ -321,7 +321,7 @@ sliter_tx_read3(stc *cx)
 	sr_init(&r, &error, &a, &seq, &cmp, NULL);
 	slconf conf = {
 		.path     = cx->suite->logdir,
-		.enabled  = 1,
+		.enable   = 1,
 		.rotatewm = 1000
 	};
 	slpool lp;

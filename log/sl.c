@@ -156,7 +156,7 @@ sl_poolrecover(slpool *p)
 
 int sl_poolopen(slpool *p)
 {
-	if (srunlikely(! p->conf->enabled))
+	if (srunlikely(! p->conf->enable))
 		return 0;
 	int exists = sr_fileexists(p->conf->path);
 	int rc;
@@ -171,7 +171,7 @@ int sl_poolopen(slpool *p)
 
 int sl_poolrotate(slpool *p)
 {
-	if (srunlikely(! p->conf->enabled))
+	if (srunlikely(! p->conf->enable))
 		return 0;
 	uint32_t lfsn = sr_seq(p->r->seq, SR_LFSNNEXT);
 	sl *l = sl_new(p, lfsn);
@@ -201,7 +201,7 @@ int sl_poolrotate(slpool *p)
 
 int sl_poolrotate_ready(slpool *p, int wm)
 {
-	if (srunlikely(! p->conf->enabled))
+	if (srunlikely(! p->conf->enable))
 		return 0;
 	sr_spinlock(&p->lock);
 	assert(p->n > 0);
@@ -247,7 +247,7 @@ sl_gc(slpool *p, sl *l)
 
 int sl_poolgc(slpool *p)
 {
-	if (srunlikely(! p->conf->enabled))
+	if (srunlikely(! p->conf->enable))
 		return 0;
 	for (;;) {
 		sr_spinlock(&p->lock);
@@ -279,7 +279,7 @@ int sl_begin(slpool *p, sltx *t, uint32_t dsn)
 	memset(t, 0, sizeof(*t));
 	sr_spinlock(&p->lock);
 	t->p = p;
-	if (! p->conf->enabled)
+	if (! p->conf->enable)
 		return 0;
 	assert(p->n > 0);
 	sl *l = srcast(p->list.prev, sl, link);
@@ -293,7 +293,7 @@ int sl_begin(slpool *p, sltx *t, uint32_t dsn)
 
 int sl_commit(sltx *t)
 {
-	if (t->p->conf->enabled)
+	if (t->p->conf->enable)
 		sr_mutexunlock(&t->l->filelock);
 	sr_spinunlock(&t->p->lock);
 	return 0;
@@ -302,7 +302,7 @@ int sl_commit(sltx *t)
 int sl_rollback(sltx *t)
 {
 	int rc = 0;
-	if (t->p->conf->enabled) {
+	if (t->p->conf->enable) {
 		rc = sr_filerlb(&t->l->file, t->svp);
 		if (srunlikely(rc == -1))
 			sr_error(t->p->r->e, "log file '%s' truncate error: %s",
@@ -440,7 +440,7 @@ int sl_write(sltx *t, svlog *vlog)
 {
 	/* assume transaction log is prepared
 	 * (lsn set) */
-	if (srunlikely(! t->p->conf->enabled))
+	if (srunlikely(! t->p->conf->enable))
 		return 0;
 	int count = sv_logn(vlog);
 	int rc;
@@ -453,7 +453,7 @@ int sl_write(sltx *t, svlog *vlog)
 	if (srunlikely(rc == -1))
 		return -1;
 	/* sync */
-	if (t->p->conf->enabled && t->p->conf->sync_on_write) {
+	if (t->p->conf->enable && t->p->conf->sync_on_write) {
 		rc = sr_filesync(&t->l->file);
 		if (srunlikely(rc == -1)) {
 			sr_error(t->p->r->e, "log file '%s' sync error: %s",
