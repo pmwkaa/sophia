@@ -73,7 +73,8 @@ si_redistribute(si *index, sr *r, sdc *c, sinode *node, srbuf *result,
 		sr_iternext(&j);
 	}
 	if (gc) {
-		si_qos(index, 1, gc);
+		sr_quota(index->quota, SR_QREMOVE, gc);
+		index->used -= gc;
 	}
 	assert(sr_iterof(&i) == NULL);
 	return 0;

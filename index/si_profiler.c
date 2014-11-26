@@ -89,7 +89,7 @@ int si_profiler(siprofiler *p, sr *r)
 	if (p->total_node_count > 0)
 		p->total_branch_avg =
 			p->total_branch_count / p->total_node_count;
-	p->memory_used = p->i->qos_used;
+	p->memory_used = p->i->used;
 
 	si_profiler_histogram_branch(p);
 	return 0;

@@ -19,6 +19,7 @@ struct so {
 	sostatus status;
 	soctl ctl;
 	srseq seq;
+	srquota quota;
 	srpager pager;
 	sra a;
 	sra a_db;

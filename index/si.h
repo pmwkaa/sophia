@@ -14,13 +14,11 @@ typedef struct si si;
 struct si {
 	srmutex lock;
 	srcond cond;
-	srrb i;
 	siplanner p;
-	uint64_t qos_limit;
-	uint64_t qos_used;
-	int qos_wait;
-	int qos_on;
+	srrb i;
 	int n;
+	uint64_t used;
+	srquota *quota;
 	siconf *conf;
 };
 
@@ -34,7 +32,7 @@ si_unlock(si *i) {
 	sr_mutexunlock(&i->lock);
 }
 
-int si_init(si*, siconf*);
+int si_init(si*, srquota*, siconf*);
 int si_open(si*, sr*);
 int si_close(si*, sr*);
 int si_insert(si*, sr*, sinode*);

@@ -21,15 +21,13 @@ int so_recoverbegin(sodb *db)
 {
 	so_statusset(&db->status, SO_RECOVER);
 	so *e = db->e;
-	/* turn off memory limits during recovery */
-	si_qosenable(&db->index, 0);
 	/* open and recover repository */
 	siconf *c = &db->indexconf;
 	c->node_size      = e->ctl.node_size;
 	c->node_page_size = e->ctl.node_page_size;
 	c->path           = db->ctl.path;
 	c->sync           = db->ctl.sync;
-	si_init(&db->index, &db->indexconf);
+	si_init(&db->index, &e->quota, &db->indexconf);
 	int rc = si_open(&db->index, &db->r);
 	if (srunlikely(rc == -1))
 		goto error;
@@ -42,7 +40,6 @@ error:
 
 int so_recoverend(sodb *db)
 {
-	si_qosenable(&db->index, 1);
 	so_statusset(&db->status, SO_ONLINE);
 	return 0;
 }

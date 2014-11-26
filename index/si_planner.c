@@ -128,13 +128,13 @@ si_plannerpeek_branch(siplanner *p, siplan *plan)
 		}
 		if (srunlikely(plan->condition & SI_BRANCH_FORCE))
 			break;
-		if ((plan->condition & SI_BRANCH_SIZE) && n->used >= plan->a)
-			break;
 		if ((plan->condition & SI_BRANCH_LSN)) {
 			if (n->i0.lsnmin <= plan->b)
 				break;
 			continue;
 		}
+		if ((plan->condition & SI_BRANCH_SIZE) && n->used >= plan->a)
+			break;
 		return NULL;
 	}
 	if (srunlikely(pn == NULL))
@@ -171,8 +171,8 @@ sinode*
 si_planner(siplanner *p, siplan *plan)
 {
 	switch (plan->plan) {
-	case SI_BRANCH: return si_plannerpeek_branch(p, plan);
-	case SI_COMPACT:  return si_plannerpeek_compact(p, plan);
+	case SI_BRANCH:  return si_plannerpeek_branch(p, plan);
+	case SI_COMPACT: return si_plannerpeek_compact(p, plan);
 	}
 	return NULL;
 }

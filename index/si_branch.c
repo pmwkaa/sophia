@@ -81,11 +81,13 @@ int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	n->lv++;
 	uint32_t used = sv_indexused(i);
 	n->used -= used;
+	index->used -= used;
 	si_nodeunrotate(n);
 	si_nodeunlock(n);
 	si_plannerupdate(&index->p, SI_BRANCH|SI_COMPACT, n);
-	si_qos(index, 1, used);
 	si_unlock(index);
+
+	sr_quota(index->quota, SR_QREMOVE, used);
 
 	/* gc */
 	si_nodegc_index(r, &swap);

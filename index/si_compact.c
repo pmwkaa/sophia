@@ -79,8 +79,9 @@ int si_compact(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	}
 	sv_mergefree(&merge, r->a);
 	if (gc) {
+		sr_quota(index->quota, SR_QREMOVE, gc);
 		si_lock(index);
-		si_qos(index, 1, gc);
+		index->used -= gc;
 		si_unlock(index);
 	}
 	return 0;

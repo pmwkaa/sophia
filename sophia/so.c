@@ -40,10 +40,16 @@ so_open(soobj *o, va_list args)
 	rc = so_ctlvalidate(&e->ctl);
 	if (srunlikely(rc == -1))
 		return -1;
+
+	/* set memory quota (disable during recovery) */
+	sr_quotaset(&e->quota, e->ctl.memory_limit);
+	sr_quotaenable(&e->quota, 0);
+
 	/* repository recover */
 	rc = so_recover_repository(e);
 	if (srunlikely(rc == -1))
 		return -1;
+
 	/* databases recover */
 	srlist *i, *n;
 	sr_listforeach_safe(&e->db.list, i, n) {
@@ -52,20 +58,24 @@ so_open(soobj *o, va_list args)
 		if (srunlikely(rc == -1))
 			return -1;
 	}
+
 	/* recover logpool */
 	rc = so_recover(e);
 	if (srunlikely(rc == -1))
 		return -1;
 	if (e->ctl.two_phase_recover)
 		return 0;
-	/* complete */
+
 online:
+	/* complete */
 	sr_listforeach_safe(&e->db.list, i, n) {
 		soobj *o = srcast(i, soobj, link);
 		rc = o->i->open(o, args);
 		if (srunlikely(rc == -1))
 			return -1;
 	}
+	/* enable quota */
+	sr_quotaenable(&e->quota, 1);
 	so_statusset(&e->status, SO_ONLINE);
 	/* run thread-pool and scheduler */
 	rc = so_scheduler_run(&e->sched);
@@ -97,6 +107,7 @@ so_destroy(soobj *o)
 	if (srunlikely(rc == -1))
 		rcret = -1;
 	so_ctlfree(&e->ctl);
+	sr_quotafree(&e->quota);
 	sr_mutexfree(&e->apilock);
 	sr_seqfree(&e->seq);
 	sr_pagerfree(&e->pager);
@@ -155,6 +166,7 @@ soobj *so_new(void)
 	so_objindex_init(&e->db);
 	so_objindex_init(&e->ctlcursor);
 	sr_mutexinit(&e->apilock);
+	sr_quotainit(&e->quota);
 	sr_seqinit(&e->seq);
 	sr_errorinit(&e->error);
 	sr_init(&e->r, &e->error, &e->a, &e->seq, NULL, NULL);

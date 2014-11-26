@@ -48,6 +48,10 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	l.valueoffset = 0;
 	sv vp;
 	svinit(&vp, &sv_localif, &l, NULL);
+
+	/* ensure quota */
+	sr_quota(&db->e->quota, SR_QADD, sv_vsizeof(&vp));
+
 	/* concurrency */
 	smstate s = sm_set_stmt(&db->mvcc, &vp);
 	rc = 1; /* rlb */
@@ -166,6 +170,10 @@ so_txdo(soobj *obj, uint8_t flags, va_list args)
 	l.valueoffset = 0;
 	sv vp;
 	svinit(&vp, &sv_localif, &l, NULL);
+
+	/* ensure quota */
+	sr_quota(&db->e->quota, SR_QADD, sv_vsizeof(&vp));
+
 	v = sv_valloc(db->r.a, &vp);
 	if (srunlikely(v == NULL)) {
 		sr_error(&db->e->error, "%s", "memory allocation failed");

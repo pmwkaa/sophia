@@ -51,9 +51,6 @@ void si_rollback(sitx *t) {
 static void
 si_set(si *index, sr *r, uint64_t vlsn, svv *v)
 {
-	uint32_t size = sv_vsize(v);
-	/* ensure memory limit */
-	si_qos(index, 0, size);
 	/* match node */
 	sriter i;
 	sr_iterinit(&i, &si_iter, r);
@@ -64,11 +61,14 @@ si_set(si *index, sr *r, uint64_t vlsn, svv *v)
 	svindex *vindex = si_nodeindex(node);
 	svv *vgc = NULL;
 	sv_indexset(vindex, r, vlsn, v, &vgc);
-	node->used += size;
+	uint32_t size = sv_vsize(v);
+	node->used  += size;
+	index->used += size;
 	if (srunlikely(vgc)) {
 		uint32_t size_vgc = si_vgc(r->a, vgc);
-		node->used -= size_vgc;
-		si_qos(index, 1, size_vgc);
+		node->used  -= size_vgc;
+		index->used -= size_vgc;
+		sr_quota(index->quota, SR_QREMOVE, size_vgc);
 	}
 	/* schedule node */
 	si_plannerupdate(&index->p, SI_BRANCH, node);

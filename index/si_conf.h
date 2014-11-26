@@ -14,7 +14,6 @@ typedef struct siconf siconf;
 struct siconf {
 	char     *path;
 	int       sync;
-	uint64_t  memory_limit;
 	uint32_t  node_size;
 	uint32_t  node_page_size;
 };

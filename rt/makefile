@@ -3,6 +3,7 @@ LIBSR_O = sr_crc.o \
           sr_pager.o \
           sr_astd.o \
           sr_aslab.o \
+          sr_quota.o \
           sr_rb.o \
           sr_histogram.o \
           sr_bufiter.o \

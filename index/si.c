@@ -12,17 +12,15 @@
 #include <libsd.h>
 #include <libsi.h>
 
-int si_init(si *i, siconf *conf)
+int si_init(si *i, srquota *q, siconf *conf)
 {
 	si_plannerinit(&i->p);
 	sr_rbinit(&i->i);
 	sr_mutexinit(&i->lock);
 	sr_condinit(&i->cond);
-	i->qos_limit = conf->memory_limit;
-	i->qos_used  = 0;
-	i->qos_wait  = 0;
-	i->qos_on    = 1;
-	i->conf      = conf;
+	i->quota = q;
+	i->conf  = conf;
+	i->used  = 0;
 	return 0;
 }
 

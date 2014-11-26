@@ -13,7 +13,6 @@
 #include <si_node.h>
 #include <si_planner.h>
 #include <si.h>
-#include <si_qos.h>
 #include <si_commit.h>
 #include <si_query.h>
 #include <si_iter.h>

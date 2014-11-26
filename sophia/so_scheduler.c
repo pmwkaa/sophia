@@ -276,6 +276,7 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 			return 1;
 		}
 	}
+
 	/* schedule compaction task.
 	 *
 	 * peek node with the largest branches count

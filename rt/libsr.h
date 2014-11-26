@@ -55,6 +55,7 @@
 #include <sr_mutex.h>
 #include <sr_cond.h>
 #include <sr_thread.h>
+#include <sr_quota.h>
 #include <sr_crc.h>
 #include <sr_rb.h>
 #include <sr_histogram.h>

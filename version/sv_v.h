@@ -77,4 +77,9 @@ sv_vsize(svv *v) {
 	return sizeof(svv) + v->keysize + v->valuesize;
 }
 
+static inline uint32_t
+sv_vsizeof(sv *v) {
+	return sizeof(svv) + svkeysize(v) + svvaluesize(v);
+}
+
 #endif

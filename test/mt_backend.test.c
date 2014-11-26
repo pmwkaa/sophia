@@ -99,7 +99,7 @@ print_current(stc *cx srunused, int i) {
 }
 
 static void
-setget(stc *cx)
+mt_setget(stc *cx)
 {
 	char value[100];
 	memset(value, 0, sizeof(value));
@@ -133,6 +133,6 @@ setget(stc *cx)
 stgroup *mt_backend_group(void)
 {
 	stgroup *group = st_group("mt_backend");
-	st_groupadd(group, st_test("setget", setget));
+	st_groupadd(group, st_test("setget", mt_setget));
 	return group;
 }
