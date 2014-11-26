@@ -10,7 +10,7 @@ endif
 
 TEST_DEBUG     = -g -O0 -Wall
 TEST_CFLAGS    = -std=c99 $(CFLAGS_INCLUDE) $(TEST_DEBUG) -I. -I../sophia -pthread
-TEST_LDFLAGS   = $(LDFLAGS) $(TEST_DEBUG) ../sophia/libsophia.a -pthread -lm $(TEST_COVERAGE)
+TEST_LDFLAGS   = $(LDFLAGS) $(TEST_DEBUG) ../sophia/libsophia.a -pthread -lm -lrt $(TEST_COVERAGE)
 TEST_SOPHIADIR = sophia
 TEST_LOGDIR    = logdir
 TEST_DIR       = dir
