@@ -26,6 +26,6 @@ double sr_time(void)
 #else
 	struct timeval t;
 	gettimeofday(&t, NULL);
-	return t.tv_sec * 1e-9 + tv.tv_usec * 1000;
+	return t.tv_sec * 1e-9 + t.tv_usec * 1000;
 #endif
 }
