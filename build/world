@@ -37,7 +37,7 @@ dynamic_build: $(O)
 	$(Q) $(LD) $(O) $(LDFLAGS_SOPHIA) -o $(SOPHIA_OUTPUT)/$(SOPHIA_DSOLIB)
 	$(Q) $(LN) -sf $(SOPHIA_DSOLIB) $(SOPHIA_OUTPUT)/$(SOPHIA_DSO).$(SOPHIA_VMAJOR)
 	$(Q) $(LN) -sf $(SOPHIA_DSOLIB) $(SOPHIA_OUTPUT)/$(SOPHIA_DSO)
-	$(Q) $(STRIP) --strip-unneeded $(SOPHIA_OUTPUT)/$(SOPHIA_DSOLIB)
+	$(Q) $(STRIP) $(STRIP_FLAGS) $(SOPHIA_OUTPUT)/$(SOPHIA_DSOLIB)
 
 dynamic: banner dynamic_build
 

@@ -9,6 +9,10 @@
 
 #include <libsr.h>
 
+#if defined __APPLE__ && !defined MAP_ANONYMOUS
+#	define MAP_ANONYMOUS MAP_ANON
+#endif
+
 void sr_pagerinit(srpager *p, uint32_t pool_count, uint32_t page_size)
 {
 	p->page_size  = sizeof(srpage) + page_size;

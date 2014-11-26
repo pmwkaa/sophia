@@ -7,9 +7,27 @@ SOPHIA_VMINOR   = 2
 SOPHIA_BUILD   := $(shell git rev-parse --short HEAD)
 SOPHIA_DIRS     = rt version mvcc log database index repository sophia
 SOPHIA_STATIC   = libsophia.a
-SOPHIA_DSOLIB   = libsophia.so.$(SOPHIA_VMAJOR).$(SOPHIA_VMINOR)
-SOPHIA_DSO      = libsophia.so
 SOPHIA_OUTPUT   = sophia
+
+ifeq ($(shell uname -s), Darwin)
+SOPHIA_DSO     = libsophia.dylib
+SOPHIA_DSOLIB  = libsophia.dylib.$(SOPHIA_VMAJOR).$(SOPHIA_VMINOR)
+LDFLAGS_SOPHIA := -arch $(shell uname -m) \
+                  -dylib_current_version $(SOPHIA_VMAJOR).$(SOPHIA_VMINOR).0 \
+                  -compatibility_version $(SOPHIA_VMAJOR).$(SOPHIA_VMINOR).0 \
+                  -lc \
+                  -dylib \
+                  $(LDFLAGS)
+STRIP_FLAGS    = -S
+endif
+
+ifeq ($(shell uname -s), Linux)
+SOPHIA_DSO     = libsophia.so
+SOPHIA_DSOLIB  = libsophia.so.$(SOPHIA_VMAJOR).$(SOPHIA_VMINOR)
+LDFLAGS_SOPHIA ?= -shared -soname $(SOPHIA_DSO).$(SOPHIA_VMAJOR) $(LDFLAGS)
+STRIP_FLAGS    = --strip-unneeded
+endif
+
 
 CC             ?= gcc
 AR              = ar
@@ -28,12 +46,12 @@ INCLUDE_C       = -I../
 INCLUDE         = $(INCLUDE_A) $(INCLUDE_B) $(INCLUDE_C)
 else
 INCLUDE_A       = $(addprefix -I, $(SOPHIA_DIRS))
-INCLUDE_B       = 
+INCLUDE_B       =
 INCLUDE         = $(INCLUDE_A) $(INCLUDE_B)
 endif
 
 ifdef ENABLE_COVERAGE
-CFLAGS_COVERAGE = --coverage 
+CFLAGS_COVERAGE = --coverage
 else
 CFLAGS_COVERAGE =
 endif
@@ -52,7 +70,5 @@ CFLAGS_SOPHIA   = $(CFLAGS_INCLUDE) \
                   $(CFLAGS_MISC) \
                   $(CFLAGS_BUILD) \
                   $(CFLAGS) \
-
-LDFLAGS_SOPHIA ?= -shared -soname $(SOPHIA_DSO).$(SOPHIA_VMAJOR) $(LDFLAGS)
 
 # vim: syntax=make

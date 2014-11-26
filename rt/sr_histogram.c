@@ -37,6 +37,40 @@ sr_histogram_buckets[] =
 #define sr_histogram_count \
 	(sizeof(sr_histogram_buckets) / sizeof(*sr_histogram_buckets))
 
+#if defined __APPLE__
+
+#include <mach/mach_time.h>
+
+#if !defined CLOCK_MONOTONIC
+#	define CLOCK_MONOTONIC (-1)
+#endif
+
+static void
+clock_gettime(int flags, struct timespec *ts)
+{
+	(void)flags;
+
+	static const double NANO = +1.0E-9;
+	static const uint64_t GIGA = 1000000000;
+	//XXX be more careful in a multithreaded environement
+	static double timebase = 0.0;
+	static uint64_t timestart = 0;
+
+	if (!timestart) {
+		mach_timebase_info_data_t tb = { 0, 0 };
+		mach_timebase_info(&tb);
+		timebase = tb.numer;
+		timebase /= tb.denom;
+		timestart = mach_absolute_time();
+	}
+
+	const double diff = (mach_absolute_time() - timestart) * timebase;
+	ts->tv_sec = diff * NANO;
+	ts->tv_nsec = diff - (ts->tv_sec * GIGA);
+}
+
+#endif // __APPLE__
+
 void sr_histogram_init(srhistogram *h, int power)
 {
 	assert(sr_histogram_count == 155);

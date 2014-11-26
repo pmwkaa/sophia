@@ -2,6 +2,7 @@
 *.so.1.2
 *.so.1
 *.so
+*.dylib*
 *.mk
 out
 *.a
