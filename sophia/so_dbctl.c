@@ -54,9 +54,15 @@ int so_dbctl_free(sodbctl *c)
 int so_dbctl_validate(sodbctl *c)
 {
 	sodb *o = c->parent;
-	if (c->path == NULL) {
-		sr_error(&o->e->error, "%s", "database directory is not set");
-		sr_error_recoverable(&o->e->error);
+	so *e = o->e;
+	if (c->path)
+		return 0;
+	char path[1024];
+	snprintf(path, sizeof(path), "%s/%s", e->ctl.path, c->name);
+	c->path = sr_strdup(&e->a, path);
+	if (srunlikely(c->path == NULL)) {
+		sr_error(&e->error, "%s", "memory allocation failed");
+		sr_error_recoverable(&e->error);
 		return -1;
 	}
 	return 0;

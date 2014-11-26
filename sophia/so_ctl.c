@@ -651,19 +651,5 @@ int so_ctlvalidate(soctl *c)
 			return -1;
 		}
 	}
-	srlist *i;
-	sr_listforeach(&e->db.list, i) {
-		soobj *o = srcast(i, soobj, link);
-		sodb *db = (sodb*)o;
-		if (db->ctl.path == NULL) {
-			snprintf(path, sizeof(path), "%s/%s", c->path, db->ctl.name);
-			db->ctl.path = sr_strdup(&e->a, path);
-			if (srunlikely(db->ctl.path == NULL)) {
-				sr_error(&e->error, "%s", "memory allocation failed");
-				sr_error_recoverable(&e->error);
-				return -1;
-			}
-		}
-	}
 	return 0;
 }
