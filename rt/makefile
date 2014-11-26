@@ -1,4 +1,5 @@
 LIBSR_O = sr_crc.o \
+          sr_time.o \
           sr_cmp.o \
           sr_pager.o \
           sr_astd.o \

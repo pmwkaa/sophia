@@ -21,9 +21,6 @@ struct srhistogram {
 	size_t buckets[155];
 };
 
-double
-sr_histogram_time(void);
-
 void sr_histogram_init(srhistogram*, int);
 void sr_histogram_clean(srhistogram*);
 void sr_histogram_add(srhistogram*, double);

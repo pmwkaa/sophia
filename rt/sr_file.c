@@ -96,8 +96,13 @@ int sr_fileclose(srfile *f)
 	return 0;
 }
 
-int sr_filesync(srfile *f) {
+int sr_filesync(srfile *f)
+{
+#if defined(__APPLE__)
+	return fcntl(f->fd, F_FULLFSYNC);
+#else
 	return fdatasync(f->fd);
+#endif
 }
 
 int sr_fileresize(srfile *f, uint64_t size)

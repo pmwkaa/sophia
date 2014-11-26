@@ -34,6 +34,7 @@
 
 #include <sr_macro.h>
 #include <sr_version.h>
+#include <sr_time.h>
 #include <sr_spinlock.h>
 #include <sr_list.h>
 #include <sr_pager.h>

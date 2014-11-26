@@ -159,14 +159,6 @@ int so_scheduler_del(soscheduler *s, void *db)
 	return 0;
 }
 
-static inline void so_sleep(void)
-{
-	struct timespec ts;
-	ts.tv_sec  = 0;
-	ts.tv_nsec = 10000000; /* 10 ms */
-	nanosleep(&ts, NULL);
-}
-
 static void *so_worker(void *arg)
 {
 	soworker *self = arg;
@@ -180,7 +172,7 @@ static void *so_worker(void *arg)
 		if (srunlikely(rc == -1))
 			break;
 		if (srunlikely(rc == 0))
-			so_sleep();
+			sr_sleep(10000000); /* 10ms */
 	}
 	return NULL;
 }

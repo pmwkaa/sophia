@@ -53,7 +53,7 @@ int sr_pageradd(srpager *p)
 {
 	srpagepool *pp =
 		mmap(NULL, p->pool_size, PROT_READ|PROT_WRITE|PROT_EXEC,
-	         MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+	         MAP_PRIVATE|MAP_ANON, -1, 0);
 	if (srunlikely(p == MAP_FAILED))
 		return -1;
 	pp->used = 0;

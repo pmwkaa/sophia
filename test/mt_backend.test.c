@@ -35,14 +35,14 @@ setget(stc *cx)
 	sr_histogram_clean(&h);
 	for (i = 0; i < n; i++) {
 		k = rand();
-		double t0 = sr_histogram_time();
+		double t0 = sr_time();
 		*(uint32_t*)value = k;
 		void *o = sp_object(cx->db);
 		t( o != NULL );
 		t( sp_set(o, "key", &k, sizeof(k)) == 0 );
 		t( sp_set(o, "value", value, sizeof(value)) == 0 );
 		t( sp_set(cx->db, o) == 0 );
-		double t1 = sr_histogram_time();
+		double t1 = sr_time();
 		double td = t1 - t0;
 		sr_histogram_add(&h, td);
 		print_current(i);
@@ -52,14 +52,14 @@ setget(stc *cx)
 	sr_histogram_clean(&h);
 	for (i = 0; i < n; i++) {
 		k = rand();
-		double t0 = sr_histogram_time();
+		double t0 = sr_time();
 		void *o = sp_object(cx->db);
 		t( o != NULL );
 		t( sp_set(o, "key", &k, sizeof(k)) == 0 );
 		o = sp_get(cx->db, o);
 		t( o != NULL );
 		t( *(uint32_t*)sp_get(o, "value", NULL) == k );
-		double t1 = sr_histogram_time();
+		double t1 = sr_time();
 		double td = t1 - t0;
 		sr_histogram_add(&h, td);
 		sp_destroy(o);

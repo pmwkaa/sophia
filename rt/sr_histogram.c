@@ -158,11 +158,3 @@ sr_histogram_print(srhistogram *h)
 	printf("avg throughput    : %7.0lf ops/sec\n",
 	       (double)h->size / (h->sum * pow(10, -h->power)));
 }
-
-double
-sr_histogram_time(void)
-{
-	struct timespec t;
-	clock_gettime(CLOCK_MONOTONIC, &t);
-	return t.tv_sec + 1e-9 * t.tv_nsec;
-}
