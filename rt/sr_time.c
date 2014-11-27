@@ -17,7 +17,7 @@ void sr_sleep(uint64_t ns)
 	nanosleep(&ts, NULL);
 }
 
-double sr_utime(void)
+unsigned long long sr_utime(void)
 {
 	struct timeval t;
 	gettimeofday(&t, NULL);

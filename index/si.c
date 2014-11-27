@@ -90,6 +90,8 @@ int si_execute(si *i, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	case SI_COMPACT:
 		rc = si_compact(i, r, c, plan, vlsn);
 		break;
+	case SI_COMPACT_INDEX:
+		break;
 	}
 	return rc;
 }

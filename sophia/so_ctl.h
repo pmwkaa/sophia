@@ -19,6 +19,7 @@ struct soctl {
 	uint32_t node_size;
 	uint32_t node_page_size;
 	uint32_t node_branch_wm;
+	uint32_t node_branch_ttl;
 	uint32_t node_compact_wm;
 	/* scheduler */
 	uint32_t threads;

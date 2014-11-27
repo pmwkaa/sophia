@@ -126,15 +126,14 @@ si_plannerpeek_branch(siplanner *p, siplan *plan)
 			pn = sr_rbprev(&p->branch, pn);
 			continue;
 		}
-		if (srunlikely(plan->condition & SI_BRANCH_FORCE))
-			break;
-		if ((plan->condition & SI_BRANCH_LSN)) {
-			if (n->i0.lsnmin <= plan->b)
+		if ((plan->condition & SI_CLSN)) {
+			if (n->i0.lsnmin <= plan->c)
 				break;
 			continue;
 		}
-		if ((plan->condition & SI_BRANCH_SIZE) && n->used >= plan->a)
+		if (n->used >= plan->a)
 			break;
+		/* ttl */
 		return NULL;
 	}
 	if (srunlikely(pn == NULL))
@@ -155,9 +154,7 @@ si_plannerpeek_compact(siplanner *p, siplan *plan)
 			pn = sr_rbprev(&p->compact, pn);
 			continue;
 		}
-		if (srunlikely(plan->condition & SI_COMPACT_FORCE))
-			break;
-		if ((plan->condition & SI_COMPACT_BRANCH) && n->lv >= plan->a)
+		if (n->lv >= plan->a)
 			break;
 		return NULL;
 	}

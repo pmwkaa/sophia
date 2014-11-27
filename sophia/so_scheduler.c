@@ -27,9 +27,10 @@ int so_scheduler_branch(void *arg)
 		uint64_t vlsn = sm_vlsn(&db->mvcc);
 		siplan plan = {
 			.plan      = SI_BRANCH,
-			.condition = SI_BRANCH_SIZE,
+			.condition = 0,
 			.a         = db->e->ctl.node_branch_wm,
-			.b         = 0,
+			.b         = db->e->ctl.node_branch_ttl,
+			.c         = 0,
 			.node      = NULL
 		};
 		rc = si_plan(&db->index, &plan);
@@ -53,9 +54,10 @@ int so_scheduler_compact(void *arg)
 		uint64_t vlsn = sm_vlsn(&db->mvcc);
 		siplan plan = {
 			.plan      = SI_COMPACT,
-			.condition = SI_COMPACT_BRANCH,
+			.condition = 0,
 			.a         = db->e->ctl.node_compact_wm,
 			.b         = 0,
+			.c         = 0,
 			.node      = NULL
 		};
 		rc = si_plan(&db->index, &plan);
@@ -256,9 +258,10 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 		 *    compaction job
 		 */
 		task->plan.plan = SI_BRANCH;
-		task->plan.condition = SI_BRANCH_SIZE; /* | ttl */
+		task->plan.condition = 0;
 		task->plan.a = e->ctl.node_branch_wm;
-		task->plan.b = 0;
+		task->plan.b = e->ctl.node_branch_ttl;
+		task->plan.c = 0;
 		task->plan.node = NULL;
 		db = so_schedule_plan(s, &task->plan);
 		if (db) {
@@ -274,9 +277,10 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 	 * peek node with the largest branches count
 	 */
 	task->plan.plan = SI_COMPACT;
-	task->plan.condition = SI_COMPACT_BRANCH;
+	task->plan.condition = 0;
 	task->plan.a = e->ctl.node_compact_wm;
 	task->plan.b = 0;
+	task->plan.c = 0;
 	task->plan.node = NULL;
 	db = so_schedule_plan(s, &task->plan);
 	if (db) {

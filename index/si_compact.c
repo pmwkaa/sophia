@@ -48,8 +48,7 @@ int si_compact(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 {
 	sinode *node = plan->node;
 	sd_creset(c);
-	int compact_index =
-		(plan->condition & SI_COMPACT_INDEX) > 0;
+	int compact_index = plan->plan == SI_COMPACT_INDEX;
 	svmerge merge;
 	sv_mergeinit(&merge);
 	int rc = sv_mergeprepare(&merge, r, node->lv + 1 + compact_index, 0);
