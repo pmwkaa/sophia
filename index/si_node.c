@@ -29,6 +29,7 @@ sinode *si_nodenew(sr *r)
 	sv_indexinit(&n->i1);
 	n->used = 0;
 	n->lv = 0;
+	n->update_time = 0;
 	n->next = NULL;
 	sr_mapinit(&n->map);
 	sr_rbinitnode(&n->node);

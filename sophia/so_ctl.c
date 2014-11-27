@@ -414,6 +414,7 @@ so_ctlcompaction_prepare(srctl *t, soctl *c)
 	p = sr_ctladd(p, "node_size",       SR_CTLU32, &c->node_size,       NULL);
 	p = sr_ctladd(p, "node_page_size",  SR_CTLU32, &c->node_page_size,  NULL);
 	p = sr_ctladd(p, "node_branch_wm",  SR_CTLU32, &c->node_branch_wm,  NULL);
+	p = sr_ctladd(p, "node_branch_ttl", SR_CTLU32, &c->node_branch_ttl, NULL);
 	p = sr_ctladd(p, "node_compact_wm", SR_CTLU32, &c->node_compact_wm, NULL);
 	p = sr_ctladd(p,  NULL,             0,         NULL,                NULL);
 }

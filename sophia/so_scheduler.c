@@ -29,7 +29,7 @@ int so_scheduler_branch(void *arg)
 			.plan      = SI_BRANCH,
 			.condition = 0,
 			.a         = db->e->ctl.node_branch_wm,
-			.b         = db->e->ctl.node_branch_ttl,
+			.b         = db->e->ctl.node_branch_ttl * 1000000, /* ms */
 			.c         = 0,
 			.node      = NULL
 		};
@@ -260,7 +260,7 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 		task->plan.plan = SI_BRANCH;
 		task->plan.condition = 0;
 		task->plan.a = e->ctl.node_branch_wm;
-		task->plan.b = e->ctl.node_branch_ttl;
+		task->plan.b = e->ctl.node_branch_ttl * 1000000; /* ms */
 		task->plan.c = 0;
 		task->plan.node = NULL;
 		db = so_schedule_plan(s, &task->plan);

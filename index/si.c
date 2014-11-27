@@ -18,9 +18,10 @@ int si_init(si *i, srquota *q, siconf *conf)
 	sr_rbinit(&i->i);
 	sr_mutexinit(&i->lock);
 	sr_condinit(&i->cond);
-	i->quota = q;
-	i->conf  = conf;
-	i->used  = 0;
+	i->quota       = q;
+	i->conf        = conf;
+	i->used        = 0;
+	i->update_time = 0;
 	return 0;
 }
 

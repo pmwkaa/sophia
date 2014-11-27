@@ -32,6 +32,7 @@ struct sinode {
 	svindex   i0, i1;
 	uint32_t  used;
 	uint32_t  lv;
+	uint64_t  update_time;
 	sinode   *next;
 	srrbnode  node;
 	srrbnode  nodecompact;

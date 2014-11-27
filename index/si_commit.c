@@ -51,6 +51,7 @@ void si_rollback(sitx *t) {
 static void
 si_set(si *index, sr *r, uint64_t vlsn, svv *v)
 {
+	index->update_time = sr_utime();
 	/* match node */
 	sriter i;
 	sr_iterinit(&i, &si_iter, r);
@@ -70,6 +71,7 @@ si_set(si *index, sr *r, uint64_t vlsn, svv *v)
 		index->used -= size_vgc;
 		sr_quota(index->quota, SR_QREMOVE, size_vgc);
 	}
+	node->update_time = index->update_time;
 	/* schedule node */
 	si_plannerupdate(&index->p, SI_BRANCH, node);
 }
