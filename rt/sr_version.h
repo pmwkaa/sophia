@@ -12,7 +12,12 @@
 #define SR_VERSION_MAGIC   8529643324614668147ULL
 #define SR_VERSION_MAJOR  '1'
 #define SR_VERSION_MINOR  '2'
-#define SR_VERSION_COMMIT SOPHIA_BUILD
+
+#if defined(SOPHIA_BUILD)
+# define SR_VERSION_COMMIT SOPHIA_BUILD
+#else
+# define SR_VERSION_COMMIT "unknown"
+#endif
 
 typedef struct srversion srversion;
 

@@ -15,7 +15,6 @@
 #include <libsi.h>
 #include <libse.h>
 #include <libso.h>
-#include <sophia.h>
 
 static inline void
 sp_error_unsupported_method(soobj *o, const char *method, ...)

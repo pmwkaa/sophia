@@ -32,6 +32,9 @@ static_build: $(O)
 
 static: banner static_build
 
+amalgamation:
+	build/amalgamation.sh
+
 dynamic_build: $(O)
 	$(E) "ld   $(SOPHIA_OUTPUT)/$(SOPHIA_DSO)"
 	$(Q) $(LD) $(O) $(LDFLAGS_SOPHIA) -o $(SOPHIA_OUTPUT)/$(SOPHIA_DSOLIB)

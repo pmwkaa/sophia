@@ -15,7 +15,6 @@
 #include <libsi.h>
 #include <libse.h>
 #include <libso.h>
-#include <sophia.h>
 
 static inline void
 so_schedulerctl_prepare(srctl *t, so *o, soctl *c)

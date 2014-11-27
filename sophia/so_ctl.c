@@ -15,7 +15,6 @@
 #include <libsi.h>
 #include <libse.h>
 #include <libso.h>
-#include <sophia.h>
 
 void*
 so_ctlreturn(srctl *match, void *o)

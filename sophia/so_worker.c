@@ -15,7 +15,6 @@
 #include <libsi.h>
 #include <libse.h>
 #include <libso.h>
-#include <sophia.h>
 
 int so_workersinit(soworkers *w)
 {

@@ -20,6 +20,7 @@
 #include <si_compaction.h>
 #include <si_compact.h>
 #include <si_branch.h>
+#include <si_track.h>
 #include <si_recover.h>
 #include <si_profiler.h>
 

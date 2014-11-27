@@ -6,7 +6,6 @@ LIBSR_O = sr_crc.o \
           sr_aslab.o \
           sr_quota.o \
           sr_rb.o \
-          sr_histogram.o \
           sr_bufiter.o \
           sr_thread.o \
           sr_ctl.o \

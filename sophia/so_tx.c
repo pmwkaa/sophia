@@ -15,7 +15,6 @@
 #include <libsi.h>
 #include <libse.h>
 #include <libso.h>
-#include <sophia.h>
 
 int so_txdbset(sodb *db, uint8_t flags, va_list args)
 {

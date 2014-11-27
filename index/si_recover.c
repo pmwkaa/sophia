@@ -43,7 +43,6 @@
 #include <libsv.h>
 #include <libsd.h>
 #include <libsi.h>
-#include <si_track.h>
 
 static inline int
 si_deploy(si *i, sr *r)

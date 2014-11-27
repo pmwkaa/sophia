@@ -15,7 +15,6 @@
 #include <libsi.h>
 #include <libse.h>
 #include <libso.h>
-#include <sophia.h>
 
 static int
 so_dbopen(soobj *obj, va_list args srunused)

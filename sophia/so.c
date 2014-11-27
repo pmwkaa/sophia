@@ -15,7 +15,6 @@
 #include <libsi.h>
 #include <libse.h>
 #include <libso.h>
-#include <sophia.h>
 
 static void*
 so_ctl(soobj *obj, va_list args srunused)

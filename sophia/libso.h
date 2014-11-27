@@ -25,5 +25,6 @@
 #include <so_tx.h>
 #include <so_cursor.h>
 #include <so_logcursor.h>
+#include <sophia.h>
 
 #endif

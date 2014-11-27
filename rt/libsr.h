@@ -9,29 +9,7 @@
  * BSD License
 */
 
-#define _GNU_SOURCE 1
-
-#include <stdlib.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <inttypes.h>
-#include <limits.h>
-#include <string.h>
-#include <ctype.h>
-#include <assert.h>
-#include <pthread.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/uio.h>
-#include <sys/mman.h>
-#include <sys/time.h>
-#include <unistd.h>
-#include <time.h>
-#include <fcntl.h>
-#include <dirent.h>
-#include <errno.h>
-
+#include <sr_stdc.h>
 #include <sr_macro.h>
 #include <sr_version.h>
 #include <sr_time.h>
@@ -59,7 +37,6 @@
 #include <sr_quota.h>
 #include <sr_crc.h>
 #include <sr_rb.h>
-#include <sr_histogram.h>
 #include <sr_path.h>
 #include <sr_iov.h>
 #include <sr_file.h>
