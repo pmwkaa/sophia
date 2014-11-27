@@ -9,7 +9,7 @@
  * BSD License
 */
 
-void sr_sleep(uint64_t);
-double sr_time(void);
+void   sr_sleep(uint64_t);
+double sr_utime(void);
 
 #endif

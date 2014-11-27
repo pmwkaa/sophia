@@ -17,15 +17,9 @@ void sr_sleep(uint64_t ns)
 	nanosleep(&ts, NULL);
 }
 
-double sr_time(void)
+double sr_utime(void)
 {
-#if defined(CLOCK_MONOTONIC)
-	struct timespec t;
-	clock_gettime(CLOCK_MONOTONIC, &t);
-	return t.tv_sec * 1e-9 + t.tv_nsec;
-#else
 	struct timeval t;
 	gettimeofday(&t, NULL);
-	return t.tv_sec * 1e-9 + t.tv_usec * 1000;
-#endif
+	return t.tv_sec * 1000000 + t.tv_usec;
 }
