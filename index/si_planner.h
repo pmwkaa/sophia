@@ -23,9 +23,18 @@ struct siplanner {
 #define SI_COMPACT_INDEX 3
 
 /* condition */
-#define SI_CLSN          1
+#define SI_CCHECKPOINT   1
+
+/* explain */
+#define SI_ENONE         0
+#define SI_ERETRY        1
+#define SI_EINDEX_SIZE   2
+#define SI_EINDEX_TTL    4
+#define SI_EBRANCH_COUNT 3
+#define SI_ECHECKPOINT   5
 
 struct siplan {
+	int explain;
 	int plan;
 	/* branch:
 	 * compact_index:
@@ -48,6 +57,6 @@ int si_plannerinit(siplanner*);
 int si_plannertrace(siplan*, srtrace*);
 int si_plannerupdate(siplanner*, int, sinode*);
 int si_plannerremove(siplanner*, int, sinode*);
-sinode *si_planner(siplanner*, siplan*);
+int si_planner(siplanner*, siplan*);
 
 #endif

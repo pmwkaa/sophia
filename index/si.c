@@ -70,14 +70,9 @@ int si_replace(si *i, sinode *o, sinode *n)
 int si_plan(si *i, siplan *plan)
 {
 	si_lock(i);
-	sinode *n = si_planner(&i->p, plan);
-	if (srunlikely(n == NULL)) {
-		si_unlock(i);
-		return 0;
-	}
+	int rc = si_planner(&i->p, plan);
 	si_unlock(i);
-	plan->node = n;
-	return 1;
+	return rc;
 }
 
 int si_execute(si *i, sr *r, sdc *c, siplan *plan, uint64_t vlsn)

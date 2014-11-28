@@ -25,6 +25,7 @@ int so_scheduler_branch(void *arg)
 	while (1) {
 		uint64_t vlsn = sm_vlsn(&db->mvcc);
 		siplan plan = {
+			.explain   = SI_ENONE,
 			.plan      = SI_BRANCH,
 			.condition = 0,
 			.a         = db->e->ctl.node_branch_wm,
@@ -52,6 +53,7 @@ int so_scheduler_compact(void *arg)
 	while (1) {
 		uint64_t vlsn = sm_vlsn(&db->mvcc);
 		siplan plan = {
+			.explain   = SI_ENONE,
 			.plan      = SI_COMPACT,
 			.condition = 0,
 			.a         = db->e->ctl.node_compact_wm,
@@ -255,7 +257,9 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 		 *
 		 * c. if no branch work is needed, schedule a
 		 *    compaction job
+		 *
 		 */
+		task->plan.explain = SI_ENONE;
 		task->plan.plan = SI_BRANCH;
 		task->plan.condition = 0;
 		task->plan.a = e->ctl.node_branch_wm;
@@ -275,6 +279,7 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 	 *
 	 * peek node with the largest branches count
 	 */
+	task->plan.explain = SI_ENONE;
 	task->plan.plan = SI_COMPACT;
 	task->plan.condition = 0;
 	task->plan.a = e->ctl.node_compact_wm;
