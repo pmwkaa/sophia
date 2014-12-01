@@ -410,12 +410,13 @@ static inline void
 so_ctlcompaction_prepare(srctl *t, soctl *c)
 {
 	srctl *p = t;
-	p = sr_ctladd(p, "node_size",       SR_CTLU32, &c->node_size,       NULL);
-	p = sr_ctladd(p, "node_page_size",  SR_CTLU32, &c->node_page_size,  NULL);
-	p = sr_ctladd(p, "node_branch_wm",  SR_CTLU32, &c->node_branch_wm,  NULL);
-	p = sr_ctladd(p, "node_branch_ttl", SR_CTLU32, &c->node_branch_ttl, NULL);
-	p = sr_ctladd(p, "node_compact_wm", SR_CTLU32, &c->node_compact_wm, NULL);
-	p = sr_ctladd(p,  NULL,             0,         NULL,                NULL);
+	p = sr_ctladd(p, "node_size",          SR_CTLU32, &c->node_size,          NULL);
+	p = sr_ctladd(p, "node_page_size",     SR_CTLU32, &c->node_page_size,     NULL);
+	p = sr_ctladd(p, "node_branch_wm",     SR_CTLU32, &c->node_branch_wm,     NULL);
+	p = sr_ctladd(p, "node_branch_ttl",    SR_CTLU32, &c->node_branch_ttl,    NULL);
+	p = sr_ctladd(p, "node_branch_ttl_wm", SR_CTLU32, &c->node_branch_ttl_wm, NULL);
+	p = sr_ctladd(p, "node_compact_wm",    SR_CTLU32, &c->node_compact_wm,    NULL);
+	p = sr_ctladd(p,  NULL,                0,         NULL,                   NULL);
 }
 
 static int
@@ -608,22 +609,23 @@ static soobjif soctlif =
 void so_ctlinit(soctl *c, void *e)
 {
 	so_objinit(&c->o, SOCTL, &soctlif, e);
-	c->path              = NULL;
-	c->memory_limit      = 0;
-	c->node_size         = 128 * 1024 * 1024;
-	c->node_page_size    = 128 * 1024;
-	c->node_branch_wm    = 10 * 1024 * 1024;
-	c->node_branch_ttl   = 5;
-	c->node_compact_wm   = 1;
-	c->threads           = 5;
-	c->log_enable        = 1;
-	c->log_path          = NULL;
-	c->log_rotate_wm     = 500000;
-	c->log_sync          = 0;
-	c->log_rotate_sync   = 1;
-	c->two_phase_recover = 0;
-	c->commit_lsn        = 0;
-	c->e                 = e;
+	c->path               = NULL;
+	c->memory_limit       = 0;
+	c->node_size          = 128 * 1024 * 1024;
+	c->node_page_size     = 128 * 1024;
+	c->node_branch_wm     = 10 * 1024 * 1024;
+	c->node_branch_ttl    = 5;
+	c->node_branch_ttl_wm = 1 * 1024 * 1024;
+	c->node_compact_wm    = 1;
+	c->threads            = 5;
+	c->log_enable         = 1;
+	c->log_path           = NULL;
+	c->log_rotate_wm      = 500000;
+	c->log_sync           = 0;
+	c->log_rotate_sync    = 1;
+	c->two_phase_recover  = 0;
+	c->commit_lsn         = 0;
+	c->e                  = e;
 }
 
 void so_ctlfree(soctl *c)

@@ -150,7 +150,7 @@ si_plannerpeek_ttl(siplanner *p, siplan *plan, srrbnode *pn, uint64_t now)
 		n = srcast(pn, sinode, nodebranch);
 		if (n->flags & SI_LOCK)
 			continue;
-		if (n->used > 0 && ((now - n->update_time) >= plan->b))
+		if (n->used >= plan->c && ((now - n->update_time) >= plan->b))
 			goto match;
 	}
 	return 0;
@@ -173,7 +173,7 @@ si_plannerpeek_checkpoint(siplanner *p, siplan *plan)
 	pn = sr_rbmax(&p->branch);
 	for (; pn ; pn = sr_rbprev(&p->branch, pn)) {
 		n = srcast(pn, sinode, nodebranch);
-		if (n->i0.lsnmin <= plan->c) {
+		if (n->i0.lsnmin <= plan->d) {
 			if (n->flags & SI_LOCK) {
 				rc_inprogress = 2;
 				continue;

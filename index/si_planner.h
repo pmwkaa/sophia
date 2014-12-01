@@ -40,7 +40,8 @@ struct siplan {
 	 * compact_index:
 	 *   a: index_size
 	 *   b: ttl
-	 *   c: lsn
+	 *   c: ttl_wm
+	 *   d: lsn
 	 * compact:
 	 *   a: height
 	 *   b:
@@ -49,7 +50,8 @@ struct siplan {
 	int condition;
 	uint64_t a; /* index size, branches */
 	uint64_t b; /* ttl */
-	uint64_t c; /* lsn */
+	uint64_t c; /* ttl_wm */
+	uint64_t d; /* lsn */
 	sinode *node;
 };
 

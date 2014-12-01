@@ -30,7 +30,8 @@ int so_scheduler_branch(void *arg)
 			.condition = 0,
 			.a         = db->e->ctl.node_branch_wm,
 			.b         = db->e->ctl.node_branch_ttl * 1000000, /* ms */
-			.c         = 0,
+			.c         = db->e->ctl.node_branch_ttl_wm,
+			.d         = 0,
 			.node      = NULL
 		};
 		rc = si_plan(&db->index, &plan);
@@ -59,6 +60,7 @@ int so_scheduler_compact(void *arg)
 			.a         = db->e->ctl.node_compact_wm,
 			.b         = 0,
 			.c         = 0,
+			.d         = 0,
 			.node      = NULL
 		};
 		rc = si_plan(&db->index, &plan);
@@ -279,7 +281,8 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 		task->plan.condition = SI_CCHECKPOINT;
 		task->plan.a = 0;
 		task->plan.b = 0;
-		task->plan.c = s->checkpoint_lsn;
+		task->plan.c = 0;
+		task->plan.d = s->checkpoint_lsn;
 		task->plan.node = NULL;
 		rc = so_schedule_plan(s, &task->plan, &db);
 		switch (rc) {
@@ -320,7 +323,8 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 		task->plan.condition = 0;
 		task->plan.a = e->ctl.node_branch_wm;
 		task->plan.b = e->ctl.node_branch_ttl * 1000000; /* ms */
-		task->plan.c = 0;
+		task->plan.c = e->ctl.node_branch_ttl_wm;
+		task->plan.d = 0;
 		task->plan.node = NULL;
 		rc = so_schedule_plan(s, &task->plan, &db);
 		if (rc == 1) {
@@ -341,6 +345,7 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 	task->plan.a = e->ctl.node_compact_wm;
 	task->plan.b = 0;
 	task->plan.c = 0;
+	task->plan.d = 0;
 	task->plan.node = NULL;
 	rc = so_schedule_plan(s, &task->plan, &db);
 	if (rc == 1) {
