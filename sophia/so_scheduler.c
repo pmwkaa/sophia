@@ -72,16 +72,24 @@ int so_scheduler_compact(void *arg)
 	return rc;
 }
 
+int so_scheduler_checkpoint(void *arg)
+{
+	(void)arg;
+	return 0;
+}
+
 int so_scheduler_init(soscheduler *s, void *env)
 {
 	sr_spinlockinit(&s->lock);
-	s->branch       = 0;
-	s->branch_limit = 0;
-	s->rotate       = 0;
-	s->i            = NULL;
-	s->count        = 0;
-	s->rr           = 0;
-	s->env          = env;
+	s->branch            = 0;
+	s->branch_limit      = 0;
+	s->rotate            = 0;
+	s->i                 = NULL;
+	s->count             = 0;
+	s->rr                = 0;
+	s->env               = env;
+	s->checkpoint_lsn    = 0;
+	s->checkpoint_active = 0;
 	so_workersinit(&s->workers);
 	return 0;
 }

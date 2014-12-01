@@ -16,11 +16,29 @@
 #include <libse.h>
 #include <libso.h>
 
-static inline void
-so_schedulerctl_prepare(srctl *t, so *o, soctl *c)
+typedef struct {
+	int checkpoint_active;
+	uint64_t checkpoint_lsn;
+} soschedulerinfo;
+
+static int
+so_schedulerctl_checkpoint(srctl *c srunused, void *arg, va_list args srunused)
 {
+	return so_scheduler_checkpoint(arg);
+}
+
+static inline void
+so_schedulerctl_prepare(srctl *t, so *o, soctl *c, soschedulerinfo *si)
+{
+	sr_spinlock(&o->sched.lock);
+	si->checkpoint_active = o->sched.checkpoint_active;
+	si->checkpoint_lsn = o->sched.checkpoint_lsn;
+	sr_spinunlock(&o->sched.lock);
 	srctl *p = t;
-	p = sr_ctladd(p, "threads", SR_CTLU32, &c->threads, NULL);
+	p = sr_ctladd(p, "threads",           SR_CTLINT,          &c->threads,            NULL);
+	p = sr_ctladd(p, "checkpoint_active", SR_CTLINT|SR_CTLRO, &si->checkpoint_active, NULL);
+	p = sr_ctladd(p, "checkpoint_lsn",    SR_CTLU64|SR_CTLRO, &si->checkpoint_lsn,    NULL);
+	p = sr_ctladd(p, "checkpoint",        SR_CTLTRIGGER,      NULL,                   so_schedulerctl_checkpoint);
 	srlist *i;
 	sr_listforeach(&o->sched.workers.list, i) {
 		soworker *w = srcast(i, soworker, link);
@@ -32,8 +50,9 @@ so_schedulerctl_prepare(srctl *t, so *o, soctl *c)
 int so_schedulerctl_set(soobj *obj, char *path, va_list args)
 {
 	so *o = (so*)obj;
+	soschedulerinfo si;
 	srctl ctls[30];
-	so_schedulerctl_prepare(&ctls[0], o, &o->ctl);
+	so_schedulerctl_prepare(&ctls[0], o, &o->ctl, &si);
 	srctl *match = NULL;
 	int rc = sr_ctlget(&ctls[0], &path, &match);
 	if (srunlikely(rc == 1 || rc == -1)) {
@@ -108,8 +127,9 @@ void*
 so_schedulerctl_get(soobj *obj, char *path, va_list args srunused)
 {
 	so *o = (so*)obj;
+	soschedulerinfo si;
 	srctl ctls[30];
-	so_schedulerctl_prepare(&ctls[0], o, &o->ctl);
+	so_schedulerctl_prepare(&ctls[0], o, &o->ctl, &si);
 	srctl *match = NULL;
 	int rc = sr_ctlget(&ctls[0], &path, &match);
 	if (srunlikely(rc == 1 || rc == -1)) {
@@ -128,8 +148,9 @@ int
 so_schedulerctl_dump(soobj *obj, srbuf *dump)
 {
 	so *o = (so*)obj;
+	soschedulerinfo si;
 	srctl ctls[30];
-	so_schedulerctl_prepare(&ctls[0], o, &o->ctl);
+	so_schedulerctl_prepare(&ctls[0], o, &o->ctl, &si);
 	char prefix[64];
 	snprintf(prefix, sizeof(prefix), "scheduler.");
 	int rc = sr_ctlserialize(&ctls[0], &o->a, prefix, dump);

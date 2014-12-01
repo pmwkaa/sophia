@@ -21,6 +21,8 @@ struct sotask {
 struct soscheduler {
 	soworkers workers;
 	srspinlock lock;
+	uint64_t checkpoint_lsn;
+	int checkpoint_active;
 	int branch;
 	int branch_limit;
 	int rotate;
@@ -39,5 +41,6 @@ int so_scheduler(soscheduler*, soworker*);
 
 int so_scheduler_branch(void*);
 int so_scheduler_compact(void*);
+int so_scheduler_checkpoint(void*);
 
 #endif

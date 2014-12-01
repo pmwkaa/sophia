@@ -34,11 +34,11 @@ so_open(soobj *o, va_list args)
 	}
 	if (status != SO_OFFLINE)
 		return -1;
-	so_statusset(&e->status, SO_RECOVER);
 	int rc;
 	rc = so_ctlvalidate(&e->ctl);
 	if (srunlikely(rc == -1))
 		return -1;
+	so_statusset(&e->status, SO_RECOVER);
 
 	/* set memory quota (disable during recovery) */
 	sr_quotaset(&e->quota, e->ctl.memory_limit);
