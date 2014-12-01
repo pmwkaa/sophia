@@ -37,14 +37,14 @@ si_profiler_histogram_branch(siprofiler *p)
 			i++;
 			continue;
 		}
-		size += snprintf(p->histogram_branch_sz,
+		size += snprintf(p->histogram_branch_sz + size,
 		                 sizeof(p->histogram_branch_sz) - size,
 		                 "[%d]:%d ", i,
 		                 p->histogram_branch[i]);
 		i++;
 	}
 	if (p->histogram_branch_20plus) {
-		size += snprintf(p->histogram_branch_sz,
+		size += snprintf(p->histogram_branch_sz + size,
 		                 sizeof(p->histogram_branch_sz) - size,
 		                 "[20+]:%d ",
 		                 p->histogram_branch_20plus);
