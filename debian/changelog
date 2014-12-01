@@ -1,0 +1,5 @@
+libsophia (1.1-rc1) UNRELEASED; urgency=medium
+
+  * Initial .deb package release. 
+
+ -- Ivo Vachkov <ivachkov@xi-group.com>  Mon, 01 Dec 2014 08:13:36 +0000

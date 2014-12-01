@@ -3,6 +3,7 @@
 #
 
 CC             ?= gcc
+LD		= ld
 AR              = ar
 RM              = rm
 LN              = ln
@@ -15,7 +16,7 @@ TARGET_DSO      = libsophia.so
 TARGET_CFLAGS   = -I. -pthread -std=c99 -pedantic -Wextra -Wall -fPIC -fvisibility=hidden -O2 -DNDEBUG
 TARGET_LDFLAGS  = -shared -soname $(TARGET_DSO).$(VERMAJOR)
 CFLAGS         := $(TARGET_CFLAGS) $(CFLAGS) -fno-stack-protector
-LDFLAGS        := $(TARGET_LDFLAGS) -shared -soname $(TARGET_DSO).$(VERMAJOR) $(LDFLAGS)
+LDFLAGS        := $(TARGET_LDFLAGS) -shared -soname $(TARGET_DSO).$(VERMAJOR) 
 
 OBJS = file.o \
 	crc.o \

@@ -1,0 +1,10 @@
+#!/bin/sh 
+
+# Exit on errors
+set -e
+
+# Regenerate LD cache 
+ldconfig
+
+exit 0
+
