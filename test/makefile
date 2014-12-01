@@ -18,6 +18,7 @@ LIBST_O = st.o \
           method.test.o \
           repository.test.o \
           dml.test.o \
+          checkpoint.test.o \
           tpr.test.o \
           profiler.test.o \
           object.test.o \

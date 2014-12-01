@@ -19,8 +19,8 @@
 int so_scheduler_branch(void *arg)
 {
 	sodb *db = arg;
-	sdc dc;
-	sd_cinit(&dc, &db->r);
+	soworker stub;
+	so_workerstub_init(&stub, &db->r);
 	int rc;
 	while (1) {
 		uint64_t vlsn = sm_vlsn(&db->mvcc);
@@ -36,19 +36,19 @@ int so_scheduler_branch(void *arg)
 		rc = si_plan(&db->index, &plan);
 		if (rc == 0)
 			break;
-		rc = si_execute(&db->index, &db->r, &dc, &plan, vlsn);
+		rc = si_execute(&db->index, &db->r, &stub.dc, &plan, vlsn);
 		if (srunlikely(rc == -1))
 			break;
 	}
-	sd_cfree(&dc, &db->r);
+	so_workerstub_free(&stub, &db->r);
 	return rc;
 }
 
 int so_scheduler_compact(void *arg)
 {
 	sodb *db = arg;
-	sdc dc;
-	sd_cinit(&dc, &db->r);
+	soworker stub;
+	so_workerstub_init(&stub, &db->r);
 	int rc;
 	while (1) {
 		uint64_t vlsn = sm_vlsn(&db->mvcc);
@@ -64,32 +64,50 @@ int so_scheduler_compact(void *arg)
 		rc = si_plan(&db->index, &plan);
 		if (rc == 0)
 			break;
-		rc = si_execute(&db->index, &db->r, &dc, &plan, vlsn);
+		rc = si_execute(&db->index, &db->r, &stub.dc, &plan, vlsn);
 		if (srunlikely(rc == -1))
 			break;
 	}
-	sd_cfree(&dc, &db->r);
+	so_workerstub_free(&stub, &db->r);
 	return rc;
 }
 
 int so_scheduler_checkpoint(void *arg)
 {
-	(void)arg;
+	so *o = arg;
+	soscheduler *s = &o->sched;
+	uint64_t lsn = sr_seq(&o->seq, SR_LSN);
+	sr_spinlock(&s->lock);
+	s->checkpoint_lsn = lsn;
+	s->checkpoint = 1;
+	sr_spinunlock(&s->lock);
 	return 0;
+}
+
+int so_scheduler_call(void *arg)
+{
+	so *o = arg;
+	soscheduler *s = &o->sched;
+	soworker stub;
+	so_workerstub_init(&stub, &o->r);
+	int rc = so_scheduler(s, &stub);
+	so_workerstub_free(&stub, &o->r);
+	return rc;
 }
 
 int so_scheduler_init(soscheduler *s, void *env)
 {
 	sr_spinlockinit(&s->lock);
-	s->branch            = 0;
-	s->branch_limit      = 0;
-	s->rotate            = 0;
-	s->i                 = NULL;
-	s->count             = 0;
-	s->rr                = 0;
-	s->env               = env;
-	s->checkpoint_lsn    = 0;
-	s->checkpoint_active = 0;
+	s->branch              = 0;
+	s->branch_limit        = 0;
+	s->rotate              = 0;
+	s->i                   = NULL;
+	s->count               = 0;
+	s->rr                  = 0;
+	s->env                 = env;
+	s->checkpoint_lsn      = 0;
+	s->checkpoint_lsn_last = 0;
+	s->checkpoint          = 0;
 	so_workersinit(&s->workers);
 	return 0;
 }
@@ -200,13 +218,15 @@ int so_scheduler_run(soscheduler *s)
 	return 0;
 }
 
-static sodb*
-so_schedule_plan(soscheduler *s, siplan *plan)
+static int
+so_schedule_plan(soscheduler *s, siplan *plan, sodb **dbret)
 {
 	int start = s->rr;
 	int limit = s->count;
 	int i = start;
+	int rc_inprogress = 0;
 	int rc;
+	*dbret = NULL;
 first_half:
 	while (i < limit) {
 		sodb *db = s->i[i];
@@ -215,9 +235,13 @@ first_half:
 			continue;
 		}
 		rc = si_plan(&db->index, plan);
-		if (rc) {
+		switch (rc) {
+		case 1:
 			s->rr = i;
-			return db;
+			*dbret = db;
+			return 1;
+		case 2: rc_inprogress = rc;
+		case 0: break;
 		}
 		i++;
 	}
@@ -227,7 +251,7 @@ first_half:
 		goto first_half;
 	}
 	s->rr = 0;
-	return NULL;
+	return rc_inprogress;
 }
 
 static int
@@ -236,20 +260,44 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 	sr_trace(&w->trace, "%s", "schedule");
 
 	sr_spinlock(&s->lock);
+	int rc;
 	so *e = s->env;
-
-	/* todo: qos-limit: (if > /2 increse max job count) */
-	/* todo: snapshot, branch force by lsn */
+	sodb *db;
 
 	/* schedule log rotation and log gc task */
+	task->plan.plan = SI_NONE;
 	task->rotate = 0;
 	if (s->rotate == 0) {
-		s->rotate = 1;
 		task->rotate = 1;
+		s->rotate = 1;
 	}
 
-	task->plan.plan = SI_NONE;
-	sodb *db;
+	/* schedule checkpoint task */
+	if (s->checkpoint) {
+		task->plan.explain = SI_ENONE;
+		task->plan.plan = SI_BRANCH;
+		task->plan.condition = SI_CCHECKPOINT;
+		task->plan.a = 0;
+		task->plan.b = 0;
+		task->plan.c = s->checkpoint_lsn;
+		task->plan.node = NULL;
+		rc = so_schedule_plan(s, &task->plan, &db);
+		switch (rc) {
+		case 1:
+			s->branch++;
+			task->db = db;
+			sr_spinunlock(&s->lock);
+			return 1;
+		case 2: /* work in progress */
+			break;
+		case 0: /* complete checkpoint */
+			s->checkpoint = 0;
+			s->checkpoint_lsn_last = s->checkpoint_lsn;
+			s->checkpoint_lsn = 0;
+			break;
+		}
+	}
+
 	if (s->branch < s->branch_limit)
 	{
 		/* schedule branch task using following
@@ -274,8 +322,8 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 		task->plan.b = e->ctl.node_branch_ttl * 1000000; /* ms */
 		task->plan.c = 0;
 		task->plan.node = NULL;
-		db = so_schedule_plan(s, &task->plan);
-		if (db) {
+		rc = so_schedule_plan(s, &task->plan, &db);
+		if (rc == 1) {
 			s->branch++;
 			task->db = db;
 			sr_spinunlock(&s->lock);
@@ -294,8 +342,8 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 	task->plan.b = 0;
 	task->plan.c = 0;
 	task->plan.node = NULL;
-	db = so_schedule_plan(s, &task->plan);
-	if (db) {
+	rc = so_schedule_plan(s, &task->plan, &db);
+	if (rc == 1) {
 		task->db = db;
 		sr_spinunlock(&s->lock);
 		return 1;
@@ -331,11 +379,14 @@ so_execute(soscheduler *s, sotask *t, soworker *w)
 	int rc = si_execute(&db->index, &db->r, &w->dc, &t->plan, vlsn);
 	if (srunlikely(rc == -1))
 		so_dbmalfunction(db);
+	(void)s;
+	/*
 	if (t->plan.plan == SI_BRANCH) {
 		sr_spinlock(&s->lock);
 		s->branch--;
 		sr_spinunlock(&s->lock);
 	}
+	*/
 	return rc;
 }
 

@@ -49,9 +49,9 @@ void si_rollback(sitx *t) {
 }
 
 static void
-si_set(si *index, sr *r, uint64_t vlsn, svv *v)
+si_set(si *index, sr *r, uint64_t vlsn, uint64_t now, svv *v)
 {
-	index->update_time = sr_utime();
+	index->update_time = now;
 	/* match node */
 	sriter i;
 	sr_iterinit(&i, &si_iter, r);
@@ -62,6 +62,7 @@ si_set(si *index, sr *r, uint64_t vlsn, svv *v)
 	svindex *vindex = si_nodeindex(node);
 	svv *vgc = NULL;
 	sv_indexset(vindex, r, vlsn, v, &vgc);
+	node->update_time = index->update_time;
 	uint32_t size = sv_vsize(v);
 	node->used  += size;
 	index->used += size;
@@ -71,13 +72,13 @@ si_set(si *index, sr *r, uint64_t vlsn, svv *v)
 		index->used -= size_vgc;
 		sr_quota(index->quota, SR_QREMOVE, size_vgc);
 	}
-	node->update_time = index->update_time;
 	/* schedule node */
 	si_plannerupdate(&index->p, SI_BRANCH, node);
 }
 
 void si_write(sitx *t, int check)
 {
+	uint64_t now = sr_utime();
 	sriter i;
 	sr_iterinit(&i, &sr_bufiter, t->r);
 	sr_iteropen(&i, &t->log->buf, sizeof(sv));
@@ -89,6 +90,6 @@ void si_write(sitx *t, int check)
 			si_vgc(t->r->a, v);
 			continue;
 		}
-		si_set(t->index, t->r, t->vlsn, v);
+		si_set(t->index, t->r, t->vlsn, now, v);
 	}
 }

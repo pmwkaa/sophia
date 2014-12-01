@@ -40,6 +40,13 @@ mt_setget(stc *cx)
 		t( sp_set(cx->db, o) == 0 );
 		print_current(cx, i);
 	}
+
+#if 0
+	printf(" (checkpoint)");
+	void *c = sp_ctl(cx->env);
+	t( sp_set(c, "scheduler.run") == 0 );
+#endif
+
 	srand(82351);
 	for (i = 0; i < n; i++) {
 		k = rand();

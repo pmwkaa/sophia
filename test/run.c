@@ -34,6 +34,7 @@ extern stgroup *profiler_group(void);
 extern stgroup *transaction_group(void);
 extern stgroup *tpc_group(void);
 extern stgroup *deadlock_group(void);
+extern stgroup *checkpoint_group(void);
 extern stgroup *logcursor_group(void);
 extern stgroup *cursor_group(void);
 extern stgroup *recoverloop_group(void);
@@ -89,6 +90,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, dml_group());
 	st_planadd(plan, tpr_group());
 	st_planadd(plan, deadlock_group());
+	st_planadd(plan, checkpoint_group());
 	st_planadd(plan, logcursor_group());
 	st_add(&s, plan);
 
