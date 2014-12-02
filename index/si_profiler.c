@@ -61,6 +61,8 @@ int si_profiler(siprofiler *p, sr *r)
 	sr_seqlock(r->seq);
 	p->seq = *r->seq;
 	sr_sequnlock(r->seq);
+
+	uint64_t memory_used = 0;
 	srrbnode *pn;
 	sinode *n;
 	pn = sr_rbmin(&p->i->i);
@@ -78,6 +80,8 @@ int si_profiler(siprofiler *p, sr *r)
 			p->histogram_branch[n->lv]++;
 		else
 			p->histogram_branch_20plus++;
+		memory_used += sv_indexused(&n->i0);
+		memory_used += sv_indexused(&n->i1);
 		n = n->next;
 		while (n) {
 			p->count += n->index.h->keys;
@@ -89,8 +93,7 @@ int si_profiler(siprofiler *p, sr *r)
 	if (p->total_node_count > 0)
 		p->total_branch_avg =
 			p->total_branch_count / p->total_node_count;
-	p->memory_used = p->i->used;
-
+	p->memory_used = memory_used;
 	si_profiler_histogram_branch(p);
 	return 0;
 }

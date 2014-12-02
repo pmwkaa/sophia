@@ -20,7 +20,6 @@ int si_init(si *i, srquota *q, siconf *conf)
 	sr_condinit(&i->cond);
 	i->quota       = q;
 	i->conf        = conf;
-	i->used        = 0;
 	i->update_time = 0;
 	return 0;
 }

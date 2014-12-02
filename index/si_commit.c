@@ -63,14 +63,11 @@ si_set(si *index, sr *r, uint64_t vlsn, uint64_t now, svv *v)
 	svv *vgc = NULL;
 	sv_indexset(vindex, r, vlsn, v, &vgc);
 	node->update_time = index->update_time;
-	uint32_t size = sv_vsize(v);
-	node->used  += size;
-	index->used += size;
+	node->used += sv_vsize(v);
 	if (srunlikely(vgc)) {
-		uint32_t size_vgc = si_vgc(r->a, vgc);
-		node->used  -= size_vgc;
-		index->used -= size_vgc;
-		sr_quota(index->quota, SR_QREMOVE, size_vgc);
+		uint32_t gc = si_vgc(r->a, vgc);
+		node->used -= gc;
+		sr_quota(index->quota, SR_QREMOVE, gc);
 	}
 	/* schedule node */
 	si_plannerupdate(&index->p, SI_BRANCH, node);

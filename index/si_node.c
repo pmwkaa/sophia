@@ -27,10 +27,10 @@ sinode *si_nodenew(sr *r)
 	sr_fileinit(&n->file, r->a);
 	sv_indexinit(&n->i0);
 	sv_indexinit(&n->i1);
-	n->used = 0;
 	n->lv = 0;
 	n->update_time = 0;
 	n->next = NULL;
+	n->used = 0;
 	sr_mapinit(&n->map);
 	sr_rbinitnode(&n->node);
 	sr_rbinitnode(&n->nodecompact);

@@ -17,7 +17,6 @@ struct si {
 	siplanner p;
 	srrb i;
 	int n;
-	uint64_t used;
 	uint64_t update_time;
 	srquota *quota;
 	siconf *conf;
