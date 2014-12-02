@@ -257,11 +257,18 @@ so_ctldb_dump(soctl *c, srbuf *dump)
 	return 0;
 }
 
+typedef struct {
+	uint64_t used;
+} somemoryinfo;
+
 static inline void
-so_ctlmemory_prepare(srctl *t, soctl *c, srpager *pager)
+so_ctlmemory_prepare(srctl *t, soctl *c, srpager *pager, somemoryinfo *mi)
 {
+	so *e = c->e;
+	mi->used = sr_quotaused(&e->quota);
 	srctl *p = t;
 	p = sr_ctladd(p, "limit",           SR_CTLU64,          &c->memory_limit,  NULL);
+	p = sr_ctladd(p, "used",            SR_CTLU64|SR_CTLRO, &mi->used,         NULL);
 	p = sr_ctladd(p, "pager_pool_size", SR_CTLU32|SR_CTLRO, &pager->pool_size, NULL);
 	p = sr_ctladd(p, "pager_page_size", SR_CTLU32|SR_CTLRO, &pager->page_size, NULL);
 	p = sr_ctladd(p, "pager_pools",     SR_CTLINT|SR_CTLRO, &pager->pools,     NULL);
@@ -272,7 +279,8 @@ static int
 so_ctlmemory_set(so *o, char *path, va_list args)
 {
 	srctl ctls[30];
-	so_ctlmemory_prepare(&ctls[0], &o->ctl, &o->pager);
+	somemoryinfo mi;
+	so_ctlmemory_prepare(&ctls[0], &o->ctl, &o->pager, &mi);
 	srctl *match = NULL;
 	int rc = sr_ctlget(&ctls[0], &path, &match);
 	if (srunlikely(rc ==  1))
@@ -301,7 +309,8 @@ so_ctlmemory_get(soctl *c, char *path, va_list args srunused)
 {
 	so *e = c->e;
 	srctl ctls[30];
-	so_ctlmemory_prepare(&ctls[0], &e->ctl, &e->pager);
+	somemoryinfo mi;
+	so_ctlmemory_prepare(&ctls[0], &e->ctl, &e->pager, &mi);
 	srctl *match = NULL;
 	int rc = sr_ctlget(&ctls[0], &path, &match);
 	if (srunlikely(rc ==  1))
@@ -314,7 +323,8 @@ so_ctlmemory_dump(soctl *c, srbuf *dump)
 {
 	so *e = c->e;
 	srctl ctls[30];
-	so_ctlmemory_prepare(&ctls[0], &e->ctl, &e->pager);
+	somemoryinfo mi;
+	so_ctlmemory_prepare(&ctls[0], &e->ctl, &e->pager, &mi);
 	char prefix[64];
 	snprintf(prefix, sizeof(prefix), "memory.");
 	int rc = sr_ctlserialize(&ctls[0], &e->a, prefix, dump);

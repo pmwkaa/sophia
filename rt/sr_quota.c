@@ -44,18 +44,18 @@ int sr_quota(srquota *q, srquotaop op, uint64_t v)
 	sr_mutexlock(&q->lock);
 	switch (op) {
 	case SR_QADD:
-		q->used += v;
-		if (!q->enable || q->limit == 0)
-			break;
-		if (srunlikely(q->used + v >= q->limit)) {
-			q->wait++;
-			sr_condwait(&q->cond, &q->lock);
+		if (srunlikely(!q->enable || q->limit == 0)) {
+			/* .. */
+		} else {
+			if (srunlikely((q->used + v) >= q->limit)) {
+				q->wait++;
+				sr_condwait(&q->cond, &q->lock);
+			}
 		}
+		q->used += v;
 		break;
 	case SR_QREMOVE:
 		q->used -= v;
-		if (!q->enable || q->limit == 0)
-			break;
 		if (srunlikely(q->used < q->limit && q->wait)) {
 			q->wait--;
 			sr_condsignal(&q->cond);

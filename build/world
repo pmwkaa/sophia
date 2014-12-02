@@ -33,7 +33,7 @@ static_build: $(O)
 static: banner static_build
 
 amalgamation:
-	build/amalgamation.sh
+	sh build/amalgamation.sh . sophia.c
 
 dynamic_build: $(O)
 	$(E) "ld   $(SOPHIA_OUTPUT)/$(SOPHIA_DSO)"

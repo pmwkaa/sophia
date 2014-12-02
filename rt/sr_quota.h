@@ -31,4 +31,13 @@ int sr_quotaenable(srquota*, int);
 int sr_quotafree(srquota*);
 int sr_quota(srquota*, srquotaop, uint64_t);
 
+static inline uint64_t
+sr_quotaused(srquota *q)
+{
+	sr_mutexlock(&q->lock);
+	uint64_t used = q->used;
+	sr_mutexunlock(&q->lock);
+	return used;
+}
+
 #endif
