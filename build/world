@@ -28,7 +28,7 @@ banner:
 
 static_build: $(O)
 	$(E) "ar   $(SOPHIA_OUTPUT)/$(SOPHIA_STATIC)"
-	$(Q) $(AR) crus $(SOPHIA_OUTPUT)/$(SOPHIA_STATIC) $(O)
+	$(Q) $(AR) crs $(SOPHIA_OUTPUT)/$(SOPHIA_STATIC) $(O)
 
 static: banner static_build
 

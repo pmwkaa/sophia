@@ -82,8 +82,8 @@ sr_ctldump(srctl *c, sra *a, char *prefix, srbuf *buf)
 		.namelen  = 0,
 		.valuelen = 0
 	};
+	void *value = NULL;
 	int type = c->type & ~SR_CTLRO;
-	void *value;
 	switch (type) {
 	case SR_CTLINT:
 		dump.valuelen = sizeof(int);

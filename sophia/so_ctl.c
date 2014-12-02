@@ -22,8 +22,9 @@ so_ctlreturn(srctl *match, void *o)
 	so *e = o;
 	int size = 0;
 	int type = match->type & ~SR_CTLRO;
+	char *value = NULL;
+	char function_sz[] = "function";
 	char integer[64];
-	char *value;
 	switch (type) {
 	case SR_CTLINT:
 		size = snprintf(integer, sizeof(integer), "%d", *(int*)match->v);
@@ -48,9 +49,8 @@ so_ctlreturn(srctl *match, void *o)
 			size = strlen(value);
 		break;
 	case SR_CTLTRIGGER: {
-		char hint[] = "function";
-		value = hint;
-		size = sizeof(hint);
+		value = function_sz;
+		size = sizeof(function_sz);
 		break;
 	}
 	case SR_CTLSUB: assert(0);
