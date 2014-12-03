@@ -218,7 +218,7 @@ mt_quota(stc *cx)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "memory.limit", "524288") == 0 ); /* 512k */
-	t( sp_set(c, "compaction.node_branch_wm", "500000") == 0 ); /* 500k */
+	/* branch_wm should hit compaction.e zone */
 	t( sp_set(c, "scheduler.threads", "5") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
@@ -253,9 +253,10 @@ mt_quota_ttl(stc *cx)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "memory.limit", "524288") == 0 ); /* 512k */
-	/* use default branch_wm */
-	t( sp_set(c, "compaction.node_branch_ttl", "1") == 0 );
-	t( sp_set(c, "compaction.node_branch_ttl_wm", "500000") == 0 );
+	/* 100Mb branch_wm to avoid branching */
+	t( sp_set(c, "compaction.e.branch_wm", "104857600") == 0 );
+	t( sp_set(c, "compaction.e.branch_ttl", "1") == 0 );
+	t( sp_set(c, "compaction.e.branch_ttl_wm", "500000") == 0 );
 	t( sp_set(c, "scheduler.threads", "5") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );

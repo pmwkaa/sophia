@@ -16,9 +16,26 @@
 #include <libse.h>
 #include <libso.h>
 
+static inline soctlzone*
+so_zoneof(so *e)
+{
+	int zone = sr_quotazone(&e->quota);
+	switch (zone) {
+	case SR_QZONE_0: return &e->ctl.z0;
+	case SR_QZONE_A: return &e->ctl.za;
+	case SR_QZONE_B: return &e->ctl.zb;
+	case SR_QZONE_C: return &e->ctl.zc;
+	case SR_QZONE_D: return &e->ctl.zd;
+	case SR_QZONE_E: return &e->ctl.ze;
+	}
+	assert(0);
+	return NULL;
+}
+
 int so_scheduler_branch(void *arg)
 {
 	sodb *db = arg;
+	soctlzone *z = so_zoneof(db->e);
 	soworker stub;
 	so_workerstub_init(&stub, &db->r);
 	int rc;
@@ -28,9 +45,9 @@ int so_scheduler_branch(void *arg)
 			.explain   = SI_ENONE,
 			.plan      = SI_BRANCH,
 			.condition = 0,
-			.a         = db->e->ctl.node_branch_wm,
-			.b         = db->e->ctl.node_branch_ttl * 1000000, /* ms */
-			.c         = db->e->ctl.node_branch_ttl_wm,
+			.a         = z->branch_wm,
+			.b         = z->branch_ttl * 1000000, /* ms */
+			.c         = z->branch_ttl_wm,
 			.d         = 0,
 			.node      = NULL
 		};
@@ -48,6 +65,7 @@ int so_scheduler_branch(void *arg)
 int so_scheduler_compact(void *arg)
 {
 	sodb *db = arg;
+	soctlzone *z = so_zoneof(db->e);
 	soworker stub;
 	so_workerstub_init(&stub, &db->r);
 	int rc;
@@ -57,7 +75,7 @@ int so_scheduler_compact(void *arg)
 			.explain   = SI_ENONE,
 			.plan      = SI_COMPACT,
 			.condition = 0,
-			.a         = db->e->ctl.node_compact_wm,
+			.a         = z->compact_wm,
 			.b         = 0,
 			.c         = 0,
 			.d         = 0,
@@ -79,10 +97,10 @@ int so_scheduler_checkpoint(void *arg)
 	so *o = arg;
 	soscheduler *s = &o->sched;
 	uint64_t lsn = sr_seq(&o->seq, SR_LSN);
-	sr_spinlock(&s->lock);
+	sr_mutexlock(&s->lock);
 	s->checkpoint_lsn = lsn;
 	s->checkpoint = 1;
-	sr_spinunlock(&s->lock);
+	sr_mutexunlock(&s->lock);
 	return 0;
 }
 
@@ -99,9 +117,8 @@ int so_scheduler_call(void *arg)
 
 int so_scheduler_init(soscheduler *s, void *env)
 {
-	sr_spinlockinit(&s->lock);
+	sr_mutexinit(&s->lock);
 	s->branch              = 0;
-	s->branch_limit        = 0;
 	s->rotate              = 0;
 	s->i                   = NULL;
 	s->count               = 0;
@@ -125,18 +142,18 @@ int so_scheduler_shutdown(soscheduler *s)
 		sr_free(&e->a, s->i);
 		s->i = NULL;
 	}
-	sr_spinlockfree(&s->lock);
+	sr_mutexfree(&s->lock);
 	return rcret;
 }
 
 int so_scheduler_add(soscheduler *s , void *db)
 {
-	sr_spinlock(&s->lock);
+	sr_mutexlock(&s->lock);
 	so *e = s->env;
 	int count = s->count + 1;
 	void **i = sr_malloc(&e->a, count * sizeof(void*));
 	if (srunlikely(i == NULL)) {
-		sr_spinunlock(&s->lock);
+		sr_mutexunlock(&s->lock);
 		return -1;
 	}
 	memcpy(i, s->i, s->count * sizeof(void*));
@@ -144,7 +161,7 @@ int so_scheduler_add(soscheduler *s , void *db)
 	void *iprev = s->i;
 	s->i = i;
 	s->count = count;
-	sr_spinunlock(&s->lock);
+	sr_mutexunlock(&s->lock);
 	if (iprev)
 		sr_free(&e->a, iprev);
 	return 0;
@@ -154,19 +171,19 @@ int so_scheduler_del(soscheduler *s, void *db)
 {
 	if (srunlikely(s->i == NULL))
 		return 0;
-	sr_spinlock(&s->lock);
+	sr_mutexlock(&s->lock);
 	so *e = s->env;
 	int count = s->count - 1;
 	if (srunlikely(count == 0)) {
 		s->count = 0;
 		sr_free(&e->a, s->i);
 		s->i = NULL;
-		sr_spinunlock(&s->lock);
+		sr_mutexunlock(&s->lock);
 		return 0;
 	}
 	void **i = sr_malloc(&e->a, count * sizeof(void*));
 	if (srunlikely(i == NULL)) {
-		sr_spinunlock(&s->lock);
+		sr_mutexunlock(&s->lock);
 		return -1;
 	}
 	int j = 0;
@@ -185,7 +202,7 @@ int so_scheduler_del(soscheduler *s, void *db)
 	s->count = count;
 	if (srunlikely(s->rr >= s->count))
 		s->rr = 0;
-	sr_spinunlock(&s->lock);
+	sr_mutexunlock(&s->lock);
 	sr_free(&e->a, iprev);
 	return 0;
 }
@@ -211,7 +228,6 @@ static void *so_worker(void *arg)
 int so_scheduler_run(soscheduler *s)
 {
 	so *e = s->env;
-	s->branch_limit = 1;
 	int rc;
 	rc = so_workersnew(&s->workers, &e->r, e->ctl.threads,
 	                   so_worker, e);
@@ -260,36 +276,33 @@ static int
 so_schedule(soscheduler *s, sotask *task, soworker *w)
 {
 	sr_trace(&w->trace, "%s", "schedule");
+	si_planinit(&task->plan);
 
-	sr_spinlock(&s->lock);
-	int rc;
 	so *e = s->env;
-	sodb *db;
+	soctlzone *zone = so_zoneof(e);
 
-	/* schedule log rotation and log gc task */
-	task->plan.plan = SI_NONE;
+	sr_mutexlock(&s->lock);
+
+	/* log gc-rotation */
 	task->rotate = 0;
 	if (s->rotate == 0) {
 		task->rotate = 1;
 		s->rotate = 1;
 	}
 
-	/* schedule checkpoint task */
+	/* checkpoint */
+	sodb *db;
+	int rc;
 	if (s->checkpoint) {
-		task->plan.explain = SI_ENONE;
 		task->plan.plan = SI_BRANCH;
 		task->plan.condition = SI_CCHECKPOINT;
-		task->plan.a = 0;
-		task->plan.b = 0;
-		task->plan.c = 0;
 		task->plan.d = s->checkpoint_lsn;
-		task->plan.node = NULL;
 		rc = so_schedule_plan(s, &task->plan, &db);
 		switch (rc) {
 		case 1:
 			s->branch++;
 			task->db = db;
-			sr_spinunlock(&s->lock);
+			sr_mutexunlock(&s->lock);
 			return 1;
 		case 2: /* work in progress */
 			break;
@@ -301,7 +314,17 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 		}
 	}
 
-	if (s->branch < s->branch_limit)
+	/* apply zone policy */
+	switch (zone->mode) {
+	case 0:  /* compact_index */
+	case 1:  /* compact_index + branch_count prio */
+		assert(0);
+		break;
+	default: /* branch + compact */
+		assert(zone->mode == 2);
+	}
+
+	if (s->branch < zone->branch_prio)
 	{
 		/* schedule branch task using following
 		 * priority:
@@ -320,17 +343,14 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 		 */
 		task->plan.explain = SI_ENONE;
 		task->plan.plan = SI_BRANCH;
-		task->plan.condition = 0;
-		task->plan.a = e->ctl.node_branch_wm;
-		task->plan.b = e->ctl.node_branch_ttl * 1000000; /* ms */
-		task->plan.c = e->ctl.node_branch_ttl_wm;
-		task->plan.d = 0;
-		task->plan.node = NULL;
+		task->plan.a = zone->branch_wm;
+		task->plan.b = zone->branch_ttl * 1000000; /* ms */
+		task->plan.c = zone->branch_ttl_wm;
 		rc = so_schedule_plan(s, &task->plan, &db);
 		if (rc == 1) {
 			s->branch++;
 			task->db = db;
-			sr_spinunlock(&s->lock);
+			sr_mutexunlock(&s->lock);
 			return 1;
 		}
 	}
@@ -341,19 +361,15 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 	 */
 	task->plan.explain = SI_ENONE;
 	task->plan.plan = SI_COMPACT;
-	task->plan.condition = 0;
-	task->plan.a = e->ctl.node_compact_wm;
-	task->plan.b = 0;
-	task->plan.c = 0;
-	task->plan.d = 0;
-	task->plan.node = NULL;
+	task->plan.a = zone->compact_wm;
 	rc = so_schedule_plan(s, &task->plan, &db);
 	if (rc == 1) {
 		task->db = db;
-		sr_spinunlock(&s->lock);
+		sr_mutexunlock(&s->lock);
 		return 1;
 	}
-	sr_spinunlock(&s->lock);
+
+	sr_mutexunlock(&s->lock);
 	return 0;
 }
 
@@ -398,12 +414,12 @@ so_execute(soscheduler *s, sotask *t, soworker *w)
 static int
 so_complete(soscheduler *s, sotask *t)
 {
-	sr_spinlock(&s->lock);
+	sr_mutexlock(&s->lock);
 	if (t->plan.plan == SI_BRANCH)
 		s->branch--;
 	if (t->rotate == 1)
 		s->rotate = 0;
-	sr_spinunlock(&s->lock);
+	sr_mutexunlock(&s->lock);
 	return 0;
 }
 

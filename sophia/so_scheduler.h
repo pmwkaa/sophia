@@ -20,12 +20,11 @@ struct sotask {
 
 struct soscheduler {
 	soworkers workers;
-	srspinlock lock;
+	srmutex lock;
 	uint64_t checkpoint_lsn_last;
 	uint64_t checkpoint_lsn;
+	uint32_t branch;
 	int checkpoint;
-	int branch;
-	int branch_limit;
 	int rotate;
 	int rr;
 	void **i;

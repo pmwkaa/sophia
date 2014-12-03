@@ -55,6 +55,7 @@ struct siplan {
 	sinode *node;
 };
 
+int si_planinit(siplan*);
 int si_plannerinit(siplanner*);
 int si_plannertrace(siplan*, srtrace*);
 int si_plannerupdate(siplanner*, int, sinode*);

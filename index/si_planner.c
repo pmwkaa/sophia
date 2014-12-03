@@ -12,6 +12,19 @@
 #include <libsd.h>
 #include <libsi.h>
 
+int si_planinit(siplan *p)
+{
+	p->explain   = SI_ENONE;
+	p->plan      = SI_NONE;
+	p->condition = 0;
+	p->a         = 0;
+	p->b         = 0;
+	p->c         = 0;
+	p->d         = 0;
+	p->node      = NULL;
+	return 0;
+}
+
 int si_plannerinit(siplanner *p)
 {
 	sr_rbinit(&p->branch);

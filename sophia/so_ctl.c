@@ -420,20 +420,35 @@ static inline void
 so_ctlcompaction_prepare(srctl *t, soctl *c)
 {
 	srctl *p = t;
-	p = sr_ctladd(p, "node_size",          SR_CTLU32, &c->node_size,          NULL);
-	p = sr_ctladd(p, "node_page_size",     SR_CTLU32, &c->node_page_size,     NULL);
-	p = sr_ctladd(p, "node_branch_wm",     SR_CTLU32, &c->node_branch_wm,     NULL);
-	p = sr_ctladd(p, "node_branch_ttl",    SR_CTLU32, &c->node_branch_ttl,    NULL);
-	p = sr_ctladd(p, "node_branch_ttl_wm", SR_CTLU32, &c->node_branch_ttl_wm, NULL);
-	p = sr_ctladd(p, "node_compact_wm",    SR_CTLU32, &c->node_compact_wm,    NULL);
-	p = sr_ctladd(p,  NULL,                0,         NULL,                   NULL);
+	p = sr_ctladd(p, "node_size", SR_CTLU32, &c->node_size, NULL);
+	p = sr_ctladd(p, "page_size", SR_CTLU32, &c->page_size, NULL);
+	p = sr_ctladd(p, "0",         SR_CTLSUB, &c->z0,        NULL);
+	p = sr_ctladd(p, "a",         SR_CTLSUB, &c->za,        NULL);
+	p = sr_ctladd(p, "b",         SR_CTLSUB, &c->zb,        NULL);
+	p = sr_ctladd(p, "c",         SR_CTLSUB, &c->zc,        NULL);
+	p = sr_ctladd(p, "d",         SR_CTLSUB, &c->zd,        NULL);
+	p = sr_ctladd(p, "e",         SR_CTLSUB, &c->ze,        NULL);
+	p = sr_ctladd(p,  NULL,       0,         NULL,          NULL);
+}
+
+static inline void
+so_ctlzone_prepare(srctl *t, soctlzone *z)
+{
+	srctl *p = t;
+	p = sr_ctladd(p, "mode",          SR_CTLU32, &z->mode,          NULL);
+	p = sr_ctladd(p, "compact_wm",    SR_CTLU32, &z->compact_wm,    NULL);
+	p = sr_ctladd(p, "branch_prio",   SR_CTLU32, &z->branch_prio,   NULL);
+	p = sr_ctladd(p, "branch_wm",     SR_CTLU32, &z->branch_wm,     NULL);
+	p = sr_ctladd(p, "branch_ttl",    SR_CTLU32, &z->branch_ttl,    NULL);
+	p = sr_ctladd(p, "branch_ttl_wm", SR_CTLU32, &z->branch_ttl_wm, NULL);
+	p = sr_ctladd(p,  NULL,           0,         NULL,              NULL);
 }
 
 static int
-so_ctlcompaction_set(so *o, char *path, va_list args)
+so_ctlzone_set(so *o, soctlzone *z, char *path, va_list args)
 {
 	srctl ctls[30];
-	so_ctlcompaction_prepare(&ctls[0], &o->ctl);
+	so_ctlzone_prepare(&ctls[0], z);
 	srctl *match = NULL;
 	int rc = sr_ctlget(&ctls[0], &path, &match);
 	if (srunlikely(rc ==  1))
@@ -458,6 +473,67 @@ so_ctlcompaction_set(so *o, char *path, va_list args)
 }
 
 static void*
+so_ctlzone_get(soctl *c, soctlzone *z, char *path, va_list args srunused)
+{
+	so *e = c->e;
+	srctl ctls[30];
+	so_ctlzone_prepare(&ctls[0], z);
+	srctl *match = NULL;
+	int rc = sr_ctlget(&ctls[0], &path, &match);
+	if (srunlikely(rc ==  1))
+		return NULL; /* self */
+	return so_ctlreturn(match, e);
+}
+
+static int
+so_ctlzone_dump(soctl *c, soctlzone *z, char *name, srbuf *dump)
+{
+	so *e = c->e;
+	srctl ctls[30];
+	so_ctlzone_prepare(&ctls[0], z);
+	char prefix[64];
+	snprintf(prefix, sizeof(prefix), "compaction.%s.", name);
+	int rc = sr_ctlserialize(&ctls[0], &e->a, prefix, dump);
+	if (srunlikely(rc == -1)) {
+		sr_error(&e->error, "%s", "memory allocation failed");
+		sr_error_recoverable(&e->error);
+		return -1;
+	}
+	return 0;
+}
+
+static int
+so_ctlcompaction_set(so *o, char *path, va_list args)
+{
+	srctl ctls[30];
+	so_ctlcompaction_prepare(&ctls[0], &o->ctl);
+	srctl *match = NULL;
+	int rc = sr_ctlget(&ctls[0], &path, &match);
+	if (srunlikely(rc ==  1))
+		return -1; /* self */
+	if (srunlikely(rc == -1)) {
+		sr_error(&o->error, "%s", "bad control path");
+		sr_error_recoverable(&o->error);
+		return -1;
+	}
+	int type = match->type & ~SR_CTLRO;
+	if (so_active(o) && (type != SR_CTLTRIGGER)) {
+		sr_error(&o->error, "%s", "failed to set control path");
+		sr_error_recoverable(&o->error);
+		return -1;
+	}
+	if (type == SR_CTLSUB) {
+		return so_ctlzone_set(o, match->v, path, args);
+	}
+	rc = sr_ctlset(match, &o->a, o, args);
+	if (srunlikely(rc == -1)) {
+		sr_error_recoverable(&o->error);
+		return -1;
+	}
+	return rc;
+}
+
+static void*
 so_ctlcompaction_get(soctl *c, char *path, va_list args srunused)
 {
 	so *e = c->e;
@@ -467,6 +543,10 @@ so_ctlcompaction_get(soctl *c, char *path, va_list args srunused)
 	int rc = sr_ctlget(&ctls[0], &path, &match);
 	if (srunlikely(rc ==  1))
 		return NULL; /* self */
+	int type = match->type & ~SR_CTLRO;
+	if (type == SR_CTLSUB) {
+		return so_ctlzone_get(c, match->v, path, args);
+	}
 	return so_ctlreturn(match, e);
 }
 
@@ -484,6 +564,24 @@ so_ctlcompaction_dump(soctl *c, srbuf *dump)
 		sr_error_recoverable(&e->error);
 		return -1;
 	}
+	rc = so_ctlzone_dump(c, &c->z0, "0", dump);
+	if (srunlikely(rc == -1))
+		return -1;
+	rc = so_ctlzone_dump(c, &c->za, "a", dump);
+	if (srunlikely(rc == -1))
+		return -1;
+	rc = so_ctlzone_dump(c, &c->zb, "b", dump);
+	if (srunlikely(rc == -1))
+		return -1;
+	rc = so_ctlzone_dump(c, &c->zc, "c", dump);
+	if (srunlikely(rc == -1))
+		return -1;
+	rc = so_ctlzone_dump(c, &c->zd, "d", dump);
+	if (srunlikely(rc == -1))
+		return -1;
+	rc = so_ctlzone_dump(c, &c->ze, "e", dump);
+	if (srunlikely(rc == -1))
+		return -1;
 	return 0;
 }
 
@@ -621,12 +719,53 @@ void so_ctlinit(soctl *c, void *e)
 	so_objinit(&c->o, SOCTL, &soctlif, e);
 	c->path               = NULL;
 	c->memory_limit       = 0;
+
 	c->node_size          = 128 * 1024 * 1024;
-	c->node_page_size     = 128 * 1024;
-	c->node_branch_wm     = 10 * 1024 * 1024;
-	c->node_branch_ttl    = 5;
-	c->node_branch_ttl_wm = 1 * 1024 * 1024;
-	c->node_compact_wm    = 1;
+	c->page_size          = 128 * 1024;
+
+	/* no limit */
+	c->z0.mode            = 2; /* compact_index */
+	c->z0.compact_wm      = 1; /* 0 */
+	c->z0.branch_prio     = 1; /* 0 */
+	c->z0.branch_wm       = 10 * 1024 * 1024;
+	c->z0.branch_ttl      = 40;
+	c->z0.branch_ttl_wm   = 1 * 1024 * 1024;
+	/* <= 50 */
+	c->za.mode            = 2; /* compact index + branching */
+	c->za.compact_wm      = 1;
+	c->za.branch_prio     = 1;
+	c->za.branch_wm       = 10 * 1024 * 1024;
+	c->za.branch_ttl      = 40;
+	c->za.branch_ttl_wm   = 2 * 1024 * 1024;
+	/* <= 60 */
+	c->zb.mode            = 2; /* branch + compact */
+	c->zb.compact_wm      = 1;
+	c->zb.branch_prio     = 1;
+	c->zb.branch_wm       = 9 * 1024 * 1024;
+	c->zb.branch_ttl      = 30;
+	c->zb.branch_ttl_wm   = 1 * 1024 * 1024;
+	/* <= 70 */
+	c->zc.mode            = 2; /* branch + compact */
+	c->zc.compact_wm      = 1;
+	c->zc.branch_prio     = 2;
+	c->zc.branch_wm       = 6 * 1024 * 1024;
+	c->zc.branch_ttl      = 20;
+	c->zc.branch_ttl_wm   = 1 * 1024 * 1024;
+	/* <= 80 */
+	c->zd.mode            = 2; /* branch + compact */
+	c->zd.compact_wm      = 2;
+	c->zd.branch_prio     = 3;
+	c->zd.branch_wm       = 4 * 1024 * 1024;
+	c->zd.branch_ttl      = 15;
+	c->zd.branch_ttl_wm   = 1 * 1024 * 1024;
+	/*  > 80 */
+	c->ze.mode            = 2; /* branch + compact */
+	c->ze.compact_wm      = 3;
+	c->ze.branch_prio     = 4;
+	c->ze.branch_wm       = 1; /* any > 0 */
+	c->ze.branch_ttl      = 10;
+	c->ze.branch_ttl_wm   = 1 * 1024 * 1024;
+
 	c->threads            = 5;
 	c->log_enable         = 1;
 	c->log_path           = NULL;

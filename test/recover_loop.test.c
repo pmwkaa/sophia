@@ -27,7 +27,7 @@ recover_loop(stc *cx)
 		t( c != NULL );
 		t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 		t( sp_set(c, "scheduler.threads", "0") == 0 );
-		t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+		t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 		t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 		t( sp_set(c, "log.sync", "0") == 0 );
 		t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -80,7 +80,7 @@ recover_loop(stc *cx)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );

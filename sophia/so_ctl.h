@@ -10,30 +10,42 @@
 */
 
 typedef struct soctl soctl;
+typedef struct soctlzone soctlzone;
+
+struct soctlzone {
+	uint32_t mode;
+	uint32_t compact_wm;
+	uint32_t branch_prio;
+	uint32_t branch_wm;
+	uint32_t branch_ttl;
+	uint32_t branch_ttl_wm;
+};
 
 struct soctl {
 	soobj o;
 	/* sophia */
-	char    *path;
+	char      *path;
 	/* compaction */
-	uint32_t node_size;
-	uint32_t node_page_size;
-	uint32_t node_branch_wm;
-	uint32_t node_branch_ttl;
-	uint32_t node_branch_ttl_wm;
-	uint32_t node_compact_wm;
+	uint32_t   node_size;
+	uint32_t   page_size;
+	soctlzone  z0;
+	soctlzone  za;
+	soctlzone  zb;
+	soctlzone  zc;
+	soctlzone  zd;
+	soctlzone  ze;
 	/* scheduler */
-	uint32_t threads;
+	uint32_t   threads;
 	/* memory */
-	uint64_t memory_limit;
+	uint64_t   memory_limit;
 	/* log */
-	int      log_enable;
-	char    *log_path;
-	int      log_sync;
-	int      log_rotate_wm;
-	int      log_rotate_sync;
-	int      two_phase_recover;
-	int      commit_lsn;
+	int        log_enable;
+	char      *log_path;
+	int        log_sync;
+	int        log_rotate_wm;
+	int        log_rotate_sync;
+	int        two_phase_recover;
+	int        commit_lsn;
 	void *e;
 };
 

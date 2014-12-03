@@ -39,6 +39,32 @@ int sr_quotafree(srquota *q)
 	return 0;
 }
 
+int sr_quotazone(srquota *q)
+{
+	sr_mutexlock(&q->lock);
+	if (srunlikely(q->limit == 0)) {
+		sr_mutexunlock(&q->lock);
+		return SR_QZONE_0;
+	}
+	uint64_t proc = (q->used * 100) / q->limit;
+	int zone;
+	if (proc <= 50)
+		zone = SR_QZONE_A;
+	else
+	if (proc <= 60)
+		zone = SR_QZONE_B;
+	else
+	if (proc <= 70)
+		zone = SR_QZONE_C;
+	else
+	if (proc <= 80)
+		zone = SR_QZONE_D;
+	else
+		zone = SR_QZONE_E;
+	sr_mutexunlock(&q->lock);
+	return zone;
+}
+
 int sr_quota(srquota *q, srquotaop op, uint64_t v)
 {
 	sr_mutexlock(&q->lock);

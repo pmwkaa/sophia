@@ -23,7 +23,7 @@ int so_recoverbegin(sodb *db)
 	/* open and recover repository */
 	siconf *c = &db->indexconf;
 	c->node_size      = e->ctl.node_size;
-	c->node_page_size = e->ctl.node_page_size;
+	c->node_page_size = e->ctl.page_size;
 	c->path           = db->ctl.path;
 	c->sync           = db->ctl.sync;
 	si_init(&db->index, &e->quota, &db->indexconf);

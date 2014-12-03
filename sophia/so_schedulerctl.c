@@ -17,6 +17,7 @@
 #include <libso.h>
 
 typedef struct {
+	char *zone;
 	int checkpoint_active;
 	uint64_t checkpoint_lsn;
 	uint64_t checkpoint_lsn_last;
@@ -37,18 +38,35 @@ so_schedulerctl_run(srctl *c srunused, void *arg, va_list args srunused)
 static inline void
 so_schedulerctl_prepare(srctl *t, so *o, soctl *c, soschedulerinfo *si)
 {
-	sr_spinlock(&o->sched.lock);
+	int zone = sr_quotazone(&o->quota);
+	switch (zone) {
+	case SR_QZONE_0: si->zone = "0";
+		 break;
+	case SR_QZONE_A: si->zone = "a";
+		 break;
+	case SR_QZONE_B: si->zone = "b";
+		 break;
+	case SR_QZONE_C: si->zone = "c";
+		 break;
+	case SR_QZONE_D: si->zone = "d";
+		 break;
+	case SR_QZONE_E: si->zone = "e";
+		 break;
+	}
+	sr_mutexlock(&o->sched.lock);
 	si->checkpoint_active   = o->sched.checkpoint;
 	si->checkpoint_lsn_last = o->sched.checkpoint_lsn_last;
 	si->checkpoint_lsn      = o->sched.checkpoint_lsn;
-	sr_spinunlock(&o->sched.lock);
+	sr_mutexunlock(&o->sched.lock);
+
 	srctl *p = t;
-	p = sr_ctladd(p, "threads",             SR_CTLINT,          &c->threads,              NULL);
-	p = sr_ctladd(p, "checkpoint_active",   SR_CTLINT|SR_CTLRO, &si->checkpoint_active,   NULL);
-	p = sr_ctladd(p, "checkpoint_lsn",      SR_CTLU64|SR_CTLRO, &si->checkpoint_lsn,      NULL);
-	p = sr_ctladd(p, "checkpoint_lsn_last", SR_CTLU64|SR_CTLRO, &si->checkpoint_lsn_last, NULL);
-	p = sr_ctladd(p, "checkpoint",          SR_CTLTRIGGER,      NULL,                     so_schedulerctl_checkpoint);
-	p = sr_ctladd(p, "run",                 SR_CTLTRIGGER,      NULL,                     so_schedulerctl_run);
+	p = sr_ctladd(p, "threads",             SR_CTLINT,                &c->threads,              NULL);
+	p = sr_ctladd(p, "zone",                SR_CTLSTRINGREF|SR_CTLRO, &si->zone,                NULL);
+	p = sr_ctladd(p, "checkpoint_active",   SR_CTLINT|SR_CTLRO,       &si->checkpoint_active,   NULL);
+	p = sr_ctladd(p, "checkpoint_lsn",      SR_CTLU64|SR_CTLRO,       &si->checkpoint_lsn,      NULL);
+	p = sr_ctladd(p, "checkpoint_lsn_last", SR_CTLU64|SR_CTLRO,       &si->checkpoint_lsn_last, NULL);
+	p = sr_ctladd(p, "checkpoint",          SR_CTLTRIGGER,            NULL,                     so_schedulerctl_checkpoint);
+	p = sr_ctladd(p, "run",                 SR_CTLTRIGGER,            NULL,                     so_schedulerctl_run);
 	srlist *i;
 	sr_listforeach(&o->sched.workers.list, i) {
 		soworker *w = srcast(i, soworker, link);

@@ -20,7 +20,7 @@ recovercrash_branch0(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -59,7 +59,7 @@ recovercrash_branch0(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -100,7 +100,7 @@ recovercrash_branch1(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -139,7 +139,7 @@ recovercrash_branch1(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -180,7 +180,7 @@ recovercrash_compact0(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -221,7 +221,7 @@ recovercrash_compact0(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -263,7 +263,7 @@ recovercrash_compact1(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -305,7 +305,7 @@ recovercrash_compact1(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -349,7 +349,7 @@ recovercrash_compact2(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -391,7 +391,7 @@ recovercrash_compact2(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -435,9 +435,9 @@ recovercrash_compact3(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	t( sp_set(c, "compaction.node_size", "8") == 0 );
-	t( sp_set(c, "compaction.node_page_size", "31") == 0 );
+	t( sp_set(c, "compaction.page_size", "31") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -475,7 +475,7 @@ recovercrash_compact3(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -515,9 +515,9 @@ recovercrash_compact4(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	t( sp_set(c, "compaction.node_size", "8") == 0 );
-	t( sp_set(c, "compaction.node_page_size", "31") == 0 );
+	t( sp_set(c, "compaction.page_size", "31") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -555,7 +555,7 @@ recovercrash_compact4(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.node_branch_wm", "8") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "8") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -597,9 +597,9 @@ recovercrash_compact5(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	t( sp_set(c, "compaction.node_size", "8") == 0 );
-	t( sp_set(c, "compaction.node_page_size", "31") == 0 );
+	t( sp_set(c, "compaction.page_size", "31") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -637,7 +637,7 @@ recovercrash_compact5(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -679,9 +679,9 @@ recovercrash_compact6(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	t( sp_set(c, "compaction.node_size", "8") == 0 );
-	t( sp_set(c, "compaction.node_page_size", "31") == 0 );
+	t( sp_set(c, "compaction.page_size", "31") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -719,7 +719,7 @@ recovercrash_compact6(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -761,9 +761,9 @@ recovercrash_compact7(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	t( sp_set(c, "compaction.node_size", "8") == 0 );
-	t( sp_set(c, "compaction.node_page_size", "31") == 0 );
+	t( sp_set(c, "compaction.page_size", "31") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -802,7 +802,7 @@ recovercrash_compact7(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.node_branch_wm", "1") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );

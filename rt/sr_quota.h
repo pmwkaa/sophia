@@ -16,6 +16,15 @@ typedef enum srquotaop {
 	SR_QREMOVE
 } srquotaop;
 
+enum {
+	SR_QZONE_0,
+	SR_QZONE_A,
+	SR_QZONE_B,
+	SR_QZONE_C,
+	SR_QZONE_D,
+	SR_QZONE_E
+};
+
 struct srquota {
 	int enable;
 	int wait;
@@ -29,6 +38,7 @@ int sr_quotainit(srquota*);
 int sr_quotaset(srquota*, uint64_t);
 int sr_quotaenable(srquota*, int);
 int sr_quotafree(srquota*);
+int sr_quotazone(srquota*);
 int sr_quota(srquota*, srquotaop, uint64_t);
 
 static inline uint64_t
