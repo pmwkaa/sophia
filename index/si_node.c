@@ -103,8 +103,8 @@ si_nodeclose(sinode *n, sr *r)
 		rcret = -1;
 	}
 	sd_indexfree(&n->index, r);
-	si_nodegc_index(r, &n->i0);
-	si_nodegc_index(r, &n->i1);
+	sv_indexfree(&n->i0, r);
+	sv_indexfree(&n->i1, r);
 	return rcret;
 }
 
@@ -166,16 +166,10 @@ int si_nodefree_all(sinode *n, sr *r)
 	return rcret;
 }
 
-static inline void
-si_nodegc_loggc(svv *v) {
-	if (v->log) {
-		sr_gcsweep(&((sl*)v->log)->gc, 1);
-	}
-}
+uint32_t si_vgc(sra*, svv*);
 
 sr_rbtruncate(si_nodegc_indexgc,
-              si_nodegc_loggc(srcast(n, svv, node));
-              sv_vfree((sra*)arg, srcast(n, svv, node)))
+              si_vgc((sra*)arg, srcast(n, svv, node)))
 
 int si_nodegc_index(sr *r, svindex *i)
 {

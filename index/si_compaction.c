@@ -118,7 +118,7 @@ si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 	sinode *n;
 	if (srlikely(count == 1)) {
 		n = *(sinode**)result->s;
-		n->i0    = *j;
+		n->i0   = *j;
 		n->used = sv_indexused(j);
 		si_nodelock(n);
 		si_replace(index, node, n);
