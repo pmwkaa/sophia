@@ -34,6 +34,7 @@ extern stgroup *profiler_group(void);
 extern stgroup *transaction_group(void);
 extern stgroup *tpc_group(void);
 extern stgroup *deadlock_group(void);
+extern stgroup *branch_group(void);
 extern stgroup *checkpoint_group(void);
 extern stgroup *logcursor_group(void);
 extern stgroup *cursor_group(void);
@@ -41,6 +42,7 @@ extern stgroup *recoverloop_group(void);
 extern stgroup *recovercrash_group(void);
 extern stgroup *mt_group(void);
 extern stgroup *mt_backend_group(void);
+extern stgroup *mt_backend_multipass_group(void);
 
 int
 main(int argc, char *argv[])
@@ -90,6 +92,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, dml_group());
 	st_planadd(plan, tpr_group());
 	st_planadd(plan, deadlock_group());
+	st_planadd(plan, branch_group());
 	st_planadd(plan, checkpoint_group());
 	st_planadd(plan, logcursor_group());
 	st_add(&s, plan);
@@ -173,6 +176,17 @@ main(int argc, char *argv[])
 	st_planscene(plan, st_sceneof(&s, "open"));
 	st_planscene(plan, st_sceneof(&s, "test"));
 	st_planscene(plan, st_sceneof(&s, "destroy"));
+	st_planscene(plan, st_sceneof(&s, "pass"));
+	st_planadd(plan, mt_backend_group());
+	st_add(&s, plan);
+
+	plan = st_plan("multithreaded_multipass");
+	st_planscene(plan, st_sceneof(&s, "rmrf"));
+	st_planscene(plan, st_sceneof(&s, "create"));
+	st_planscene(plan, st_sceneof(&s, "multithread"));
+	st_planscene(plan, st_sceneof(&s, "open"));
+	st_planscene(plan, st_sceneof(&s, "test"));
+	st_planscene(plan, st_sceneof(&s, "destroy"));
 	st_planscene(plan, st_sceneof(&s, "rerun"));
 	st_planscene(plan, st_sceneof(&s, "create"));
 	st_planscene(plan, st_sceneof(&s, "multithread"));
@@ -186,7 +200,7 @@ main(int argc, char *argv[])
 	st_planscene(plan, st_sceneof(&s, "test"));
 	st_planscene(plan, st_sceneof(&s, "destroy"));
 	st_planscene(plan, st_sceneof(&s, "pass"));
-	st_planadd(plan, mt_backend_group());
+	st_planadd(plan, mt_backend_multipass_group());
 	st_add(&s, plan);
 
 	st_run(&s);

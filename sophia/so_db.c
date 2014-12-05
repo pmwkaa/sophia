@@ -171,6 +171,7 @@ soobj *so_dbnew(so *e, char *name)
 		sr_free(&e->a_db, o);
 		return NULL;
 	}
+	si_init(&o->index, &o->e->quota);
 	o->ctl.id = sr_seq(&e->seq, SR_DSNNEXT);
 	sm_init(&o->mvcc, &o->r, &e->a_smv);
 	sd_cinit(&o->dc, &o->r);

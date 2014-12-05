@@ -10,12 +10,15 @@
 #include <libsr.h>
 #include <libsv.h>
 #include <libsd.h>
+#include <libsl.h>
 #include <libsi.h>
 
 int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 {
-	si_lock(index);
 	sinode *n = plan->node;
+	assert(n->flags & SI_LOCK);
+
+	si_lock(index);
 	if (srunlikely(n->used == 0)) {
 		si_nodeunlock(n);
 		si_unlock(index);
@@ -73,14 +76,14 @@ int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	             return -1);
 
 	/* commit */
-	svindex swap = *i;
-
 	si_lock(index);
 	q->next = n->next;
 	n->next = q;
 	n->lv++;
 	uint32_t used = sv_indexused(i);
 	n->used -= used;
+	sr_quota(index->quota, SR_QREMOVE, used);
+	svindex swap = *i;
 	si_nodeunrotate(n);
 	si_nodeunlock(n);
 	si_plannerupdate(&index->p, SI_BRANCH|SI_COMPACT, n);
@@ -88,7 +91,5 @@ int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 
 	/* gc */
 	si_nodegc_index(r, &swap);
-
-	sr_quota(index->quota, SR_QREMOVE, used);
 	return 1;
 }

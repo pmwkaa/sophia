@@ -91,13 +91,13 @@ error:
 	return NULL;
 }
 
-int sl_poolinit(slpool *p, sr *r, slconf *conf)
+int sl_poolinit(slpool *p, sr *r)
 {
 	sr_spinlockinit(&p->lock);
 	sr_listinit(&p->list);
 	p->n    = 0;
 	p->r    = r;
-	p->conf = conf;
+	p->conf = NULL;
 	struct iovec *iov =
 		sr_malloc(r->a, sizeof(struct iovec) * 1021);
 	if (srunlikely(iov == NULL))
@@ -154,8 +154,9 @@ sl_poolrecover(slpool *p)
 	return 0;
 }
 
-int sl_poolopen(slpool *p)
+int sl_poolopen(slpool *p, slconf *conf)
 {
+	p->conf = conf;
 	if (srunlikely(! p->conf->enable))
 		return 0;
 	int exists = sr_fileexists(p->conf->path);
@@ -272,6 +273,14 @@ int sl_poolgc(slpool *p)
 		}
 	}
 	return 0;
+}
+
+int sl_poolfiles(slpool *p)
+{
+	sr_spinlock(&p->lock);
+	int n = p->n;
+	sr_spinunlock(&p->lock);
+	return n;
 }
 
 int sl_begin(slpool *p, sltx *t, uint32_t dsn)

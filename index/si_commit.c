@@ -22,9 +22,8 @@ si_vgc(sra *a, svv *gc)
 		used += sv_vsize(v);
 		svv *n = v->next;
 		sl *log = (sl*)v->log;
-		if (log) {
+		if (log)
 			sr_gcsweep(&log->gc, 1);
-		}
 		sr_free(a, v);
 		v = n;
 	}

@@ -222,8 +222,7 @@ si_plannerpeek_branch(siplanner *p, siplan *plan)
 		/* continue to match a ttl-ready node */
 		return si_plannerpeek_ttl(p, plan, pn, now);
 	}
-	if (srunlikely(pn == NULL))
-		return 0;
+	return 0;
 match:
 	si_nodelock(n);
 	plan->explain = SI_EINDEX_SIZE;
@@ -247,8 +246,7 @@ si_plannerpeek_compact(siplanner *p, siplan *plan)
 			goto match;
 		return 0;
 	}
-	if (srunlikely(pn == NULL))
-		return 0;
+	return 0;
 match:
 	si_nodelock(n);
 	plan->explain = SI_EBRANCH_COUNT;

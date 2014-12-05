@@ -343,26 +343,43 @@ so_ctllog_rotate(srctl *c srunused, void *arg, va_list args srunused)
 	return sl_poolrotate(&e->lp);
 }
 
-static inline void
-so_ctllog_prepare(srctl *t, soctl *c)
+static int
+so_ctllog_gc(srctl *c srunused, void *arg, va_list args srunused)
 {
+	so *e = arg;
+	return sl_poolgc(&e->lp);
+}
+
+typedef struct {
+	int files;
+} soctllog;
+
+static inline void
+so_ctllog_prepare(srctl *t, soctl *c, soctllog *l)
+{
+	so *e = c->e;
+	l->files = sl_poolfiles(&e->lp);
 	srctl *p = t;
-	p = sr_ctladd(p, "enable",            SR_CTLINT,       &c->log_enable,        NULL);
-	p = sr_ctladd(p, "path",              SR_CTLSTRINGREF, &c->log_path,          NULL);
-	p = sr_ctladd(p, "sync",              SR_CTLINT,       &c->log_sync,          NULL);
-	p = sr_ctladd(p, "rotate_wm",         SR_CTLINT,       &c->log_rotate_wm,     NULL);
-	p = sr_ctladd(p, "rotate_sync",       SR_CTLINT,       &c->log_rotate_sync,   NULL);
-	p = sr_ctladd(p, "rotate",            SR_CTLTRIGGER,   NULL,                  so_ctllog_rotate);
-	p = sr_ctladd(p, "two_phase_recover", SR_CTLINT,       &c->two_phase_recover, NULL);
-	p = sr_ctladd(p, "commit_lsn",        SR_CTLINT,       &c->commit_lsn,        NULL);
-	p = sr_ctladd(p,  NULL,               0,               NULL,                  NULL);
+	p = sr_ctladd(p, "enable",            SR_CTLINT,          &c->log_enable,        NULL);
+	p = sr_ctladd(p, "path",              SR_CTLSTRINGREF,    &c->log_path,          NULL);
+	p = sr_ctladd(p, "sync",              SR_CTLINT,          &c->log_sync,          NULL);
+	p = sr_ctladd(p, "rotate_wm",         SR_CTLINT,          &c->log_rotate_wm,     NULL);
+	p = sr_ctladd(p, "rotate_sync",       SR_CTLINT,          &c->log_rotate_sync,   NULL);
+	p = sr_ctladd(p, "rotate",            SR_CTLTRIGGER,      NULL,                  so_ctllog_rotate);
+	p = sr_ctladd(p, "gc",                SR_CTLTRIGGER,      NULL,                  so_ctllog_gc);
+	p = sr_ctladd(p, "files",             SR_CTLINT|SR_CTLRO, &l->files,             NULL);
+	p = sr_ctladd(p, "two_phase_recover", SR_CTLINT,          &c->two_phase_recover, NULL);
+	p = sr_ctladd(p, "commit_lsn",        SR_CTLINT,          &c->commit_lsn,        NULL);
+	p = sr_ctladd(p,  NULL,               0,                  NULL,                  NULL);
 }
 
 static int
 so_ctllog_set(so *o, char *path, va_list args)
 {
 	srctl ctls[30];
-	so_ctllog_prepare(&ctls[0], &o->ctl);
+	soctllog l;
+	memset(&l, 0, sizeof(l));
+	so_ctllog_prepare(&ctls[0], &o->ctl, &l);
 	srctl *match = NULL;
 	int rc = sr_ctlget(&ctls[0], &path, &match);
 	if (srunlikely(rc ==  1))
@@ -390,8 +407,10 @@ static void*
 so_ctllog_get(soctl *c, char *path, va_list args srunused)
 {
 	so *e = c->e;
+	soctllog l;
+	memset(&l, 0, sizeof(l));
 	srctl ctls[30];
-	so_ctllog_prepare(&ctls[0], &e->ctl);
+	so_ctllog_prepare(&ctls[0], &e->ctl, &l);
 	srctl *match = NULL;
 	int rc = sr_ctlget(&ctls[0], &path, &match);
 	if (srunlikely(rc ==  1))
@@ -403,8 +422,10 @@ static int
 so_ctllog_dump(soctl *c, srbuf *dump)
 {
 	so *e = c->e;
+	soctllog l;
+	memset(&l, 0, sizeof(l));
 	srctl ctls[30];
-	so_ctllog_prepare(&ctls[0], &e->ctl);
+	so_ctllog_prepare(&ctls[0], &e->ctl, &l);
 	char prefix[64];
 	snprintf(prefix, sizeof(prefix), "log.");
 	int rc = sr_ctlserialize(&ctls[0], &e->a, prefix, dump);

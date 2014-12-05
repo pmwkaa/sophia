@@ -64,8 +64,8 @@ sliter_tx(stc *cx)
 		.rotatewm = 1000
 	};
 	slpool lp;
-	t( sl_poolinit(&lp, &r, &conf) == 0 );
-	t( sl_poolopen(&lp) == 0 );
+	t( sl_poolinit(&lp, &r) == 0 );
+	t( sl_poolopen(&lp, &conf) == 0 );
 	t( sl_poolrotate(&lp) == 0 );
 
 	svlog log;
@@ -100,8 +100,8 @@ sliter_tx_read_empty(stc *cx)
 		.rotatewm = 1000
 	};
 	slpool lp;
-	t( sl_poolinit(&lp, &r, &conf) == 0 );
-	t( sl_poolopen(&lp) == 0 );
+	t( sl_poolinit(&lp, &r) == 0 );
+	t( sl_poolopen(&lp, &conf) == 0 );
 	t( sl_poolrotate(&lp) == 0 );
 	svlog log;
 	sv_loginit(&log);
@@ -146,8 +146,8 @@ sliter_tx_read0(stc *cx)
 		.rotatewm = 1000
 	};
 	slpool lp;
-	t( sl_poolinit(&lp, &r, &conf) == 0 );
-	t( sl_poolopen(&lp) == 0 );
+	t( sl_poolinit(&lp, &r) == 0 );
+	t( sl_poolopen(&lp, &conf) == 0 );
 	t( sl_poolrotate(&lp) == 0 );
 	svlog log;
 	sv_loginit(&log);
@@ -197,8 +197,8 @@ sliter_tx_read1(stc *cx)
 		.rotatewm = 1000
 	};
 	slpool lp;
-	t( sl_poolinit(&lp, &r, &conf) == 0 );
-	t( sl_poolopen(&lp) == 0 );
+	t( sl_poolinit(&lp, &r) == 0 );
+	t( sl_poolopen(&lp, &conf) == 0 );
 	t( sl_poolrotate(&lp) == 0 );
 	svlog log;
 	sv_loginit(&log);
@@ -259,8 +259,8 @@ sliter_tx_read2(stc *cx)
 		.rotatewm = 1000
 	};
 	slpool lp;
-	t( sl_poolinit(&lp, &r, &conf) == 0 );
-	t( sl_poolopen(&lp) == 0 );
+	t( sl_poolinit(&lp, &r) == 0 );
+	t( sl_poolopen(&lp, &conf) == 0 );
 	t( sl_poolrotate(&lp) == 0 );
 	svlog log;
 	sv_loginit(&log);
@@ -325,8 +325,8 @@ sliter_tx_read3(stc *cx)
 		.rotatewm = 1000
 	};
 	slpool lp;
-	t( sl_poolinit(&lp, &r, &conf) == 0 );
-	t( sl_poolopen(&lp) == 0 );
+	t( sl_poolinit(&lp, &r) == 0 );
+	t( sl_poolopen(&lp, &conf) == 0 );
 	t( sl_poolrotate(&lp) == 0 );
 	svlog log;
 

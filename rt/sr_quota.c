@@ -56,7 +56,7 @@ int sr_quota(srquota *q, srquotaop op, uint64_t v)
 		break;
 	case SR_QREMOVE:
 		q->used -= v;
-		if (srunlikely(q->used < q->limit && q->wait)) {
+		if (srunlikely(q->wait)) {
 			q->wait--;
 			sr_condsignal(&q->cond);
 		}

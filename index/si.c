@@ -12,20 +12,21 @@
 #include <libsd.h>
 #include <libsi.h>
 
-int si_init(si *i, srquota *q, siconf *conf)
+int si_init(si *i, srquota *q)
 {
 	si_plannerinit(&i->p);
 	sr_rbinit(&i->i);
 	sr_mutexinit(&i->lock);
 	sr_condinit(&i->cond);
 	i->quota       = q;
-	i->conf        = conf;
+	i->conf        = NULL;
 	i->update_time = 0;
 	return 0;
 }
 
-int si_open(si *i, sr *r)
+int si_open(si *i, sr *r, siconf *conf)
 {
+	i->conf = conf;
 	return si_recover(i, r);
 }
 

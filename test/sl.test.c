@@ -64,8 +64,8 @@ sl_begin_commit(stc *cx)
 		.rotatewm = 1000
 	};
 	slpool lp;
-	t( sl_poolinit(&lp, &r, &conf) == 0 );
-	t( sl_poolopen(&lp) == 0 );
+	t( sl_poolinit(&lp, &r) == 0 );
+	t( sl_poolopen(&lp, &conf) == 0 );
 	t( sl_poolrotate(&lp) == 0 );
 
 	svlog log;
@@ -100,8 +100,8 @@ sl_begin_rollback(stc *cx)
 		.rotatewm = 1000
 	};
 	slpool lp;
-	t( sl_poolinit(&lp, &r, &conf) == 0 );
-	t( sl_poolopen(&lp) == 0 );
+	t( sl_poolinit(&lp, &r) == 0 );
+	t( sl_poolopen(&lp, &conf) == 0 );
 	t( sl_poolrotate(&lp) == 0 );
 
 	svlog log;

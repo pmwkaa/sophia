@@ -47,6 +47,7 @@ si_compactadd(svmerge *m, sr *r, sinode *n,
 int si_compact(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 {
 	sinode *node = plan->node;
+	assert(node->flags & SI_LOCK);
 	sd_creset(c);
 	int compact_index = plan->plan == SI_COMPACT_INDEX;
 	svmerge merge;

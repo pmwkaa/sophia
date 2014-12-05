@@ -26,8 +26,7 @@ int so_recoverbegin(sodb *db)
 	c->node_page_size = e->ctl.page_size;
 	c->path           = db->ctl.path;
 	c->sync           = db->ctl.sync;
-	si_init(&db->index, &e->quota, &db->indexconf);
-	int rc = si_open(&db->index, &db->r);
+	int rc = si_open(&db->index, &db->r, &db->indexconf);
 	if (srunlikely(rc == -1))
 		goto error;
 	db->ctl.created = rc;
@@ -138,10 +137,7 @@ int so_recover(so *e)
 	lc->rotatewm       = e->ctl.log_rotate_wm;
 	lc->sync_on_rotate = e->ctl.log_rotate_sync;
 	lc->sync_on_write  = e->ctl.log_sync;
-	int rc = sl_poolinit(&e->lp, &e->r, lc);
-	if (srunlikely(rc == -1))
-		return -1;
-	rc = sl_poolopen(&e->lp);
+	int rc = sl_poolopen(&e->lp, lc);
 	if (srunlikely(rc == -1))
 		return -1;
 	if (e->ctl.two_phase_recover)

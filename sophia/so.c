@@ -170,6 +170,7 @@ soobj *so_new(void)
 	sr_errorinit(&e->error);
 	sr_init(&e->r, &e->error, &e->a, &e->seq, NULL, NULL);
 	se_init(&e->se);
+	sl_poolinit(&e->lp, &e->r);
 	so_scheduler_init(&e->sched, e);
 	return &e->o;
 }

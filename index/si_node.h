@@ -60,6 +60,7 @@ si_noderotate(sinode *node) {
 
 static inline void
 si_nodeunrotate(sinode *node) {
+	assert((node->flags & SI_I1) > 0);
 	node->flags &= ~SI_I1;
 	node->i0 = node->i1;
 	sv_indexinit(&node->i1);

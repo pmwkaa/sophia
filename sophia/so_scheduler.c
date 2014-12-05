@@ -280,6 +280,7 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 	}
 
 	/* checkpoint */
+	int in_progress = 0;
 	int rc;
 checkpoint:
 	if (s->checkpoint) {
@@ -293,6 +294,7 @@ checkpoint:
 			sr_mutexunlock(&s->lock);
 			return 1;
 		case 2: /* work in progress */
+			in_progress = 1;
 			break;
 		case 0: /* complete checkpoint */
 			s->checkpoint = 0;
@@ -310,6 +312,10 @@ checkpoint:
 		break;
 	case 2:  /* checkpoint */
 	{
+		if (in_progress) {
+			sr_mutexunlock(&s->lock);
+			return 0;
+		}
 		uint64_t lsn = sr_seq(&e->seq, SR_LSN);
 		s->checkpoint_lsn = lsn;
 		s->checkpoint = 1;
@@ -336,7 +342,6 @@ checkpoint:
 		 *    compaction job
 		 *
 		 */
-		task->plan.explain = SI_ENONE;
 		task->plan.plan = SI_BRANCH;
 		task->plan.a = zone->branch_wm;
 		task->plan.b = zone->branch_ttl * 1000000; /* ms */
@@ -354,7 +359,6 @@ checkpoint:
 	 *
 	 * peek node with the largest branches count
 	 */
-	task->plan.explain = SI_ENONE;
 	task->plan.plan = SI_COMPACT;
 	task->plan.a = zone->compact_wm;
 	rc = so_schedule_plan(s, &task->plan, &db);
@@ -387,7 +391,7 @@ so_rotate(soscheduler *s, soworker *w)
 }
 
 static int
-so_execute(soscheduler *s, sotask *t, soworker *w)
+so_execute(sotask *t, soworker *w)
 {
 	si_plannertrace(&t->plan, &w->trace);
 	sodb *db = t->db;
@@ -395,14 +399,6 @@ so_execute(soscheduler *s, sotask *t, soworker *w)
 	int rc = si_execute(&db->index, &db->r, &w->dc, &t->plan, vlsn);
 	if (srunlikely(rc == -1))
 		so_dbmalfunction(db);
-	(void)s;
-	/*
-	if (t->plan.plan == SI_BRANCH) {
-		sr_spinlock(&s->lock);
-		s->branch--;
-		sr_spinunlock(&s->lock);
-	}
-	*/
 	return rc;
 }
 
@@ -429,13 +425,13 @@ int so_scheduler(soscheduler *s, soworker *w)
 			goto error;
 	}
 	if (job) {
-		rc = so_execute(s, &task, w);
+		rc = so_execute(&task, w);
 		if (srunlikely(rc == -1))
 			goto error;
 	}
 	so_complete(s, &task);
 	sr_trace(&w->trace, "%s", "sleep");
-	return rc;
+	return job;
 error:
 	sr_trace(&w->trace, "%s", "malfunction");
 	return -1;
