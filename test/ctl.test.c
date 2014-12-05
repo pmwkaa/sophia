@@ -91,6 +91,43 @@ ctl_scheduler(stc *cx)
 }
 
 static void
+ctl_compaction(stc *cx)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	void *c = sp_ctl(env);
+	t( c != NULL );
+
+	char path[64];
+	snprintf(path, sizeof(path), "compaction.60");
+	void *o = sp_get(c, path);
+	t( o == NULL );
+
+	snprintf(path, sizeof(path), "compaction.58");
+	t( sp_set(c, path) == 0 );
+
+	snprintf(path, sizeof(path), "compaction.50.mode");
+	o = sp_get(c, path);
+	t( o != NULL );
+
+	int i = 10;
+	while (i < 100) {
+		snprintf(path, sizeof(path), "compaction.%d", i);
+		t( sp_set(c, path) == 0 );
+		i += 10;
+	}
+	i = 10;
+	while (i < 100) {
+		snprintf(path, sizeof(path), "compaction.%d.branch_wm", i);
+		o = sp_get(c, path);
+		t( o != NULL );
+		sp_destroy(o);
+		i += 10;
+	}
+	t( sp_destroy(env) == 0 );
+}
+
+static void
 ctl_cursor(stc *cx srunused)
 {
 	void *env = sp_env();
@@ -123,6 +160,7 @@ stgroup *ctl_group(void)
 	st_groupadd(group, st_test("version", ctl_version));
 	st_groupadd(group, st_test("error_injection", ctl_error_injection));
 	st_groupadd(group, st_test("scheduler", ctl_scheduler));
+	st_groupadd(group, st_test("compaction", ctl_compaction));
 	st_groupadd(group, st_test("cursor", ctl_cursor));
 	return group;
 }

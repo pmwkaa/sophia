@@ -219,6 +219,45 @@ mt_quota(stc *cx)
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "memory.limit", "524288") == 0 ); /* 512k */
 	/* branch_wm should hit compaction.e zone */
+	t( sp_set(c, "compaction.80.mode", "3") == 0 );
+	t( sp_set(c, "compaction.80.branch_wm", "500000") == 0 );
+	t( sp_set(c, "compaction.80.branch_prio", "3") == 0 );
+	t( sp_set(c, "compaction.80.branch_ttl", "100") == 0 );
+	t( sp_set(c, "scheduler.threads", "5") == 0 );
+	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
+	t( sp_set(c, "log.sync", "0") == 0 );
+	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
+	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	cx->db = sp_get(c, "db.test");
+	t( cx->db != NULL );
+	t( sp_open(cx->env) == 0 );
+	char value[1000];
+	memset(value, 0, sizeof(value));
+	int i = 0;
+	while (i < 20000) { /* ~ 20Mb */
+		void *o = sp_object(cx->db);
+		assert(o != NULL);
+		sp_set(o, "key", &i, sizeof(i));
+		sp_set(o, "value", value, sizeof(value));
+		int rc = sp_set(cx->db, o);
+		t( rc == 0 );
+		i++;
+	}
+	t( sp_destroy(cx->env) == 0 );
+}
+
+static void
+mt_quota_checkpoint(stc *cx)
+{
+	cx->env = sp_env();
+	t( cx->env != NULL );
+	void *c = sp_ctl(cx->env);
+	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
+	t( sp_set(c, "memory.limit", "524288") == 0 ); /* 512k */
+	/* use default settings */
 	t( sp_set(c, "scheduler.threads", "5") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
@@ -254,9 +293,11 @@ mt_quota_ttl(stc *cx)
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "memory.limit", "524288") == 0 ); /* 512k */
 	/* 100Mb branch_wm to avoid branching */
-	t( sp_set(c, "compaction.e.branch_wm", "104857600") == 0 );
-	t( sp_set(c, "compaction.e.branch_ttl", "1") == 0 );
-	t( sp_set(c, "compaction.e.branch_ttl_wm", "500000") == 0 );
+	t( sp_set(c, "compaction.80.mode", "3") == 0 );
+	t( sp_set(c, "compaction.80.branch_wm", "104857600") == 0 );
+	t( sp_set(c, "compaction.80.branch_ttl", "1") == 0 );
+	t( sp_set(c, "compaction.80.branch_prio", "3") == 0 );
+	t( sp_set(c, "compaction.80.branch_ttl_wm", "500000") == 0 );
 	t( sp_set(c, "scheduler.threads", "5") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
@@ -289,6 +330,7 @@ stgroup *mt_group(void)
 	st_groupadd(group, st_test("multi_stmt_conflict_less", mt_multi_stmt));
 	st_groupadd(group, st_test("multi_stmt_conflict", mt_multi_stmt_conflict));
 	st_groupadd(group, st_test("quota", mt_quota));
+	st_groupadd(group, st_test("quota_checkpoint", mt_quota_checkpoint));
 	st_groupadd(group, st_test("quota_ttl", mt_quota_ttl));
 	return group;
 }

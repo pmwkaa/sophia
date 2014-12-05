@@ -422,17 +422,19 @@ so_ctlcompaction_prepare(srctl *t, soctl *c)
 	srctl *p = t;
 	p = sr_ctladd(p, "node_size", SR_CTLU32, &c->node_size, NULL);
 	p = sr_ctladd(p, "page_size", SR_CTLU32, &c->page_size, NULL);
-	p = sr_ctladd(p, "0",         SR_CTLSUB, &c->z0,        NULL);
-	p = sr_ctladd(p, "a",         SR_CTLSUB, &c->za,        NULL);
-	p = sr_ctladd(p, "b",         SR_CTLSUB, &c->zb,        NULL);
-	p = sr_ctladd(p, "c",         SR_CTLSUB, &c->zc,        NULL);
-	p = sr_ctladd(p, "d",         SR_CTLSUB, &c->zd,        NULL);
-	p = sr_ctladd(p, "e",         SR_CTLSUB, &c->ze,        NULL);
-	p = sr_ctladd(p,  NULL,       0,         NULL,          NULL);
+	int i = 0;
+	while (i < 11) {
+		sizone *z = &c->zones.zones[i];
+		if (z->enable) {
+			p = sr_ctladd(p, z->name, SR_CTLSUB, z, NULL);
+		}
+		i++;
+	}
+	p = sr_ctladd(p, NULL, 0, NULL, NULL);
 }
 
 static inline void
-so_ctlzone_prepare(srctl *t, soctlzone *z)
+so_ctlzone_prepare(srctl *t, sizone *z)
 {
 	srctl *p = t;
 	p = sr_ctladd(p, "mode",          SR_CTLU32, &z->mode,          NULL);
@@ -445,14 +447,14 @@ so_ctlzone_prepare(srctl *t, soctlzone *z)
 }
 
 static int
-so_ctlzone_set(so *o, soctlzone *z, char *path, va_list args)
+so_ctlzone_set(so *o, sizone *z, char *path, va_list args)
 {
 	srctl ctls[30];
 	so_ctlzone_prepare(&ctls[0], z);
 	srctl *match = NULL;
 	int rc = sr_ctlget(&ctls[0], &path, &match);
 	if (srunlikely(rc ==  1))
-		return -1; /* self */
+		return  0; /* self */
 	if (srunlikely(rc == -1)) {
 		sr_error(&o->error, "%s", "bad control path");
 		sr_error_recoverable(&o->error);
@@ -473,7 +475,7 @@ so_ctlzone_set(so *o, soctlzone *z, char *path, va_list args)
 }
 
 static void*
-so_ctlzone_get(soctl *c, soctlzone *z, char *path, va_list args srunused)
+so_ctlzone_get(soctl *c, sizone *z, char *path, va_list args srunused)
 {
 	so *e = c->e;
 	srctl ctls[30];
@@ -486,7 +488,7 @@ so_ctlzone_get(soctl *c, soctlzone *z, char *path, va_list args srunused)
 }
 
 static int
-so_ctlzone_dump(soctl *c, soctlzone *z, char *name, srbuf *dump)
+so_ctlzone_dump(soctl *c, sizone *z, char *name, srbuf *dump)
 {
 	so *e = c->e;
 	srctl ctls[30];
@@ -507,21 +509,34 @@ so_ctlcompaction_set(so *o, char *path, va_list args)
 {
 	srctl ctls[30];
 	so_ctlcompaction_prepare(&ctls[0], &o->ctl);
-	srctl *match = NULL;
-	int rc = sr_ctlget(&ctls[0], &path, &match);
-	if (srunlikely(rc ==  1))
-		return -1; /* self */
-	if (srunlikely(rc == -1)) {
-		sr_error(&o->error, "%s", "bad control path");
-		sr_error_recoverable(&o->error);
-		return -1;
-	}
-	int type = match->type & ~SR_CTLRO;
-	if (so_active(o) && (type != SR_CTLTRIGGER)) {
+	if (so_active(o)) {
 		sr_error(&o->error, "%s", "failed to set control path");
 		sr_error_recoverable(&o->error);
 		return -1;
 	}
+	char *token;
+	token = strtok_r(NULL, ".", &path);
+	if (srunlikely(token == NULL)) {
+		sr_error(&o->error, "%s", "bad control path");
+		sr_error_recoverable(&o->error);
+		return -1;
+	}
+	srctl *match = NULL;
+	int rc = sr_ctlmatch(&ctls[0], token, &match);
+	if (srunlikely(rc == -1)) {
+		uint32_t percent = atoi(token);
+		if (percent > 100) {
+			sr_error(&o->error, "%s", "bad control path");
+			sr_error_recoverable(&o->error);
+			return -1;
+		}
+		sizone z;
+		memset(&z, 0, sizeof(z));
+		z.enable = 1;
+		si_zonemap_set(&o->ctl.zones, percent, &z);
+		return so_ctlzone_set(o, &z, path, args);
+	}
+	int type = match->type & ~SR_CTLRO;
 	if (type == SR_CTLSUB) {
 		return so_ctlzone_set(o, match->v, path, args);
 	}
@@ -543,6 +558,11 @@ so_ctlcompaction_get(soctl *c, char *path, va_list args srunused)
 	int rc = sr_ctlget(&ctls[0], &path, &match);
 	if (srunlikely(rc ==  1))
 		return NULL; /* self */
+	if (srunlikely(rc == -1)) {
+		sr_error(&e->error, "%s", "bad control path");
+		sr_error_recoverable(&e->error);
+		return NULL;
+	}
 	int type = match->type & ~SR_CTLRO;
 	if (type == SR_CTLSUB) {
 		return so_ctlzone_get(c, match->v, path, args);
@@ -564,24 +584,16 @@ so_ctlcompaction_dump(soctl *c, srbuf *dump)
 		sr_error_recoverable(&e->error);
 		return -1;
 	}
-	rc = so_ctlzone_dump(c, &c->z0, "0", dump);
-	if (srunlikely(rc == -1))
-		return -1;
-	rc = so_ctlzone_dump(c, &c->za, "a", dump);
-	if (srunlikely(rc == -1))
-		return -1;
-	rc = so_ctlzone_dump(c, &c->zb, "b", dump);
-	if (srunlikely(rc == -1))
-		return -1;
-	rc = so_ctlzone_dump(c, &c->zc, "c", dump);
-	if (srunlikely(rc == -1))
-		return -1;
-	rc = so_ctlzone_dump(c, &c->zd, "d", dump);
-	if (srunlikely(rc == -1))
-		return -1;
-	rc = so_ctlzone_dump(c, &c->ze, "e", dump);
-	if (srunlikely(rc == -1))
-		return -1;
+	int i = 0;
+	while (i < 11) {
+		sizone *z = &c->zones.zones[i];
+		if (z->enable) {
+			rc = so_ctlzone_dump(c, z, z->name, dump);
+			if (srunlikely(rc == -1))
+				return -1;
+		}
+		i++;
+	}
 	return 0;
 }
 
@@ -716,55 +728,80 @@ static soobjif soctlif =
 
 void so_ctlinit(soctl *c, void *e)
 {
+	so *o = e;
 	so_objinit(&c->o, SOCTL, &soctlif, e);
-	c->path               = NULL;
-	c->memory_limit       = 0;
 
-	c->node_size          = 128 * 1024 * 1024;
-	c->page_size          = 128 * 1024;
+	c->path         = NULL;
+	c->memory_limit = 0;
+	c->node_size    = 128 * 1024 * 1024;
+	c->page_size    = 128 * 1024;
 
-	/* no limit */
-	c->z0.mode            = 2; /* compact_index */
+	sizone unlimited = {
+		.enable        = 1,
+		.mode          = 3, /* branch + compact */
+		.compact_wm    = 1,
+		.branch_prio   = 1,
+		.branch_wm     = 10 * 1024 * 1024,
+		.branch_ttl    = 40,
+		.branch_ttl_wm = 1 * 1024 * 1024
+	};
+
+	sizone redzone = {
+		.enable        = 1,
+		.mode          = 2, /* checkpoint */
+		.compact_wm    = 0,
+		.branch_prio   = 0,
+		.branch_wm     = 0,
+		.branch_ttl    = 0,
+		.branch_ttl_wm = 0
+	};
+
+	si_zonemap_set(&o->ctl.zones,  0, &unlimited);
+	si_zonemap_set(&o->ctl.zones, 80, &redzone);
+
+#if 0
+	c->z0.mode            = 3; /* compact_index */
 	c->z0.compact_wm      = 1; /* 0 */
 	c->z0.branch_prio     = 1; /* 0 */
 	c->z0.branch_wm       = 10 * 1024 * 1024;
 	c->z0.branch_ttl      = 40;
 	c->z0.branch_ttl_wm   = 1 * 1024 * 1024;
 	/* <= 50 */
-	c->za.mode            = 2; /* compact index + branching */
+	c->za.mode            = 3; /* compact index + branching */
 	c->za.compact_wm      = 1;
 	c->za.branch_prio     = 1;
 	c->za.branch_wm       = 10 * 1024 * 1024;
 	c->za.branch_ttl      = 40;
 	c->za.branch_ttl_wm   = 2 * 1024 * 1024;
 	/* <= 60 */
-	c->zb.mode            = 2; /* branch + compact */
+	c->zb.mode            = 3; /* branch + compact */
 	c->zb.compact_wm      = 1;
 	c->zb.branch_prio     = 1;
 	c->zb.branch_wm       = 9 * 1024 * 1024;
 	c->zb.branch_ttl      = 30;
 	c->zb.branch_ttl_wm   = 1 * 1024 * 1024;
 	/* <= 70 */
-	c->zc.mode            = 2; /* branch + compact */
+	c->zc.mode            = 3; /* branch + compact */
 	c->zc.compact_wm      = 1;
 	c->zc.branch_prio     = 2;
 	c->zc.branch_wm       = 6 * 1024 * 1024;
 	c->zc.branch_ttl      = 20;
 	c->zc.branch_ttl_wm   = 1 * 1024 * 1024;
 	/* <= 80 */
-	c->zd.mode            = 2; /* branch + compact */
+	c->zd.mode            = 3; /* branch + compact */
 	c->zd.compact_wm      = 2;
 	c->zd.branch_prio     = 3;
 	c->zd.branch_wm       = 4 * 1024 * 1024;
 	c->zd.branch_ttl      = 15;
 	c->zd.branch_ttl_wm   = 1 * 1024 * 1024;
 	/*  > 80 */
-	c->ze.mode            = 2; /* branch + compact */
+	c->ze.mode            = 2; /* checkpoint */
 	c->ze.compact_wm      = 3;
 	c->ze.branch_prio     = 4;
 	c->ze.branch_wm       = 1; /* any > 0 */
 	c->ze.branch_ttl      = 10;
 	c->ze.branch_ttl_wm   = 1 * 1024 * 1024;
+#endif
 
 	c->threads            = 5;
 	c->log_enable         = 1;

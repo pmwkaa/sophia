@@ -14,14 +14,12 @@
 
 int si_planinit(siplan *p)
 {
-	p->explain   = SI_ENONE;
-	p->plan      = SI_NONE;
-	p->condition = 0;
-	p->a         = 0;
-	p->b         = 0;
-	p->c         = 0;
-	p->d         = 0;
-	p->node      = NULL;
+	p->plan    = SI_NONE;
+	p->explain = SI_ENONE;
+	p->a       = 0;
+	p->b       = 0;
+	p->c       = 0;
+	p->node    = NULL;
 	return 0;
 }
 
@@ -42,6 +40,8 @@ int si_plannertrace(siplan *p, srtrace *t)
 		break;
 	case SI_COMPACT_INDEX: plan = "compact index";
 		break;
+	case SI_CHECKPOINT: plan = "checkpoint";
+		break;
 	}
 	char *explain = NULL;;
 	switch (p->explain) {
@@ -49,22 +49,19 @@ int si_plannertrace(siplan *p, srtrace *t)
 		explain = "none";
 		break;
 	case SI_ERETRY:
-		explain = "retry needed";
+		explain = "retry expected";
 		break;
 	case SI_EINDEX_SIZE:
 		explain = "index size";
 		break;
 	case SI_EINDEX_TTL:
-		explain = "index ttl";
+		explain = "index age";
 		break;
 	case SI_EBRANCH_COUNT:
 		explain = "branch count";
 		break;
-	case SI_ECHECKPOINT:
-		explain = "checkpoint";
-		break;
 	}
-	sr_trace(t, "%s (node: %" PRIu32 ", explain: %s)",
+	sr_trace(t, "%s <#%" PRIu32 " explain: %s>",
 	         plan,
 	         p->node->id.id, explain);
 	return 0;
@@ -186,7 +183,7 @@ si_plannerpeek_checkpoint(siplanner *p, siplan *plan)
 	pn = sr_rbmax(&p->branch);
 	for (; pn ; pn = sr_rbprev(&p->branch, pn)) {
 		n = srcast(pn, sinode, nodebranch);
-		if (n->i0.lsnmin <= plan->d) {
+		if (n->i0.lsnmin <= plan->a) {
 			if (n->flags & SI_LOCK) {
 				rc_inprogress = 2;
 				continue;
@@ -199,7 +196,7 @@ si_plannerpeek_checkpoint(siplanner *p, siplan *plan)
 	return rc_inprogress;
 match:
 	si_nodelock(n);
-	plan->explain = SI_ECHECKPOINT;
+	plan->explain = SI_ENONE;
 	plan->node = n;
 	return 1;
 }
@@ -264,11 +261,11 @@ int si_planner(siplanner *p, siplan *plan)
 	switch (plan->plan) {
 	case SI_BRANCH:
 	case SI_COMPACT_INDEX:
-		if (plan->condition & SI_CCHECKPOINT)
-			return si_plannerpeek_checkpoint(p, plan);
 		return si_plannerpeek_branch(p, plan);
 	case SI_COMPACT:
 		return si_plannerpeek_compact(p, plan);
+	case SI_CHECKPOINT:
+		return si_plannerpeek_checkpoint(p, plan);
 	}
 	return -1;
 }

@@ -10,16 +10,6 @@
 */
 
 typedef struct soctl soctl;
-typedef struct soctlzone soctlzone;
-
-struct soctlzone {
-	uint32_t mode;
-	uint32_t compact_wm;
-	uint32_t branch_prio;
-	uint32_t branch_wm;
-	uint32_t branch_ttl;
-	uint32_t branch_ttl_wm;
-};
 
 struct soctl {
 	soobj o;
@@ -28,12 +18,7 @@ struct soctl {
 	/* compaction */
 	uint32_t   node_size;
 	uint32_t   page_size;
-	soctlzone  z0;
-	soctlzone  za;
-	soctlzone  zb;
-	soctlzone  zc;
-	soctlzone  zd;
-	soctlzone  ze;
+	sizonemap  zones;
 	/* scheduler */
 	uint32_t   threads;
 	/* memory */

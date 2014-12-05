@@ -21,9 +21,7 @@ struct siplanner {
 #define SI_BRANCH        1
 #define SI_COMPACT       2
 #define SI_COMPACT_INDEX 3
-
-/* condition */
-#define SI_CCHECKPOINT   1
+#define SI_CHECKPOINT    4
 
 /* explain */
 #define SI_ENONE         0
@@ -31,7 +29,6 @@ struct siplanner {
 #define SI_EINDEX_SIZE   2
 #define SI_EINDEX_TTL    4
 #define SI_EBRANCH_COUNT 3
-#define SI_ECHECKPOINT   5
 
 struct siplan {
 	int explain;
@@ -41,17 +38,16 @@ struct siplan {
 	 *   a: index_size
 	 *   b: ttl
 	 *   c: ttl_wm
-	 *   d: lsn
 	 * compact:
-	 *   a: height
+	 *   a: branches
+	 *   b:
+	 *   c:
+	 * checkpoint:
+	 *   a: lsn
 	 *   b:
 	 *   c:
 	 */
-	int condition;
-	uint64_t a; /* index size, branches */
-	uint64_t b; /* ttl */
-	uint64_t c; /* ttl_wm */
-	uint64_t d; /* lsn */
+	uint64_t a, b, c;
 	sinode *node;
 };
 

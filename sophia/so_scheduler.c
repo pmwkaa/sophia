@@ -16,26 +16,17 @@
 #include <libse.h>
 #include <libso.h>
 
-static inline soctlzone*
+static inline sizone*
 so_zoneof(so *e)
 {
-	int zone = sr_quotazone(&e->quota);
-	switch (zone) {
-	case SR_QZONE_0: return &e->ctl.z0;
-	case SR_QZONE_A: return &e->ctl.za;
-	case SR_QZONE_B: return &e->ctl.zb;
-	case SR_QZONE_C: return &e->ctl.zc;
-	case SR_QZONE_D: return &e->ctl.zd;
-	case SR_QZONE_E: return &e->ctl.ze;
-	}
-	assert(0);
-	return NULL;
+	int p = sr_quotaused_percent(&e->quota);
+	return si_zonemap(&e->ctl.zones, p);
 }
 
 int so_scheduler_branch(void *arg)
 {
 	sodb *db = arg;
-	soctlzone *z = so_zoneof(db->e);
+	sizone *z = so_zoneof(db->e);
 	soworker stub;
 	so_workerstub_init(&stub, &db->r);
 	int rc;
@@ -44,11 +35,9 @@ int so_scheduler_branch(void *arg)
 		siplan plan = {
 			.explain   = SI_ENONE,
 			.plan      = SI_BRANCH,
-			.condition = 0,
 			.a         = z->branch_wm,
 			.b         = z->branch_ttl * 1000000, /* ms */
 			.c         = z->branch_ttl_wm,
-			.d         = 0,
 			.node      = NULL
 		};
 		rc = si_plan(&db->index, &plan);
@@ -65,7 +54,7 @@ int so_scheduler_branch(void *arg)
 int so_scheduler_compact(void *arg)
 {
 	sodb *db = arg;
-	soctlzone *z = so_zoneof(db->e);
+	sizone *z = so_zoneof(db->e);
 	soworker stub;
 	so_workerstub_init(&stub, &db->r);
 	int rc;
@@ -74,11 +63,9 @@ int so_scheduler_compact(void *arg)
 		siplan plan = {
 			.explain   = SI_ENONE,
 			.plan      = SI_COMPACT,
-			.condition = 0,
 			.a         = z->compact_wm,
 			.b         = 0,
 			.c         = 0,
-			.d         = 0,
 			.node      = NULL
 		};
 		rc = si_plan(&db->index, &plan);
@@ -279,7 +266,9 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 	si_planinit(&task->plan);
 
 	so *e = s->env;
-	soctlzone *zone = so_zoneof(e);
+	sodb *db;
+	sizone *zone = so_zoneof(e);
+	assert(zone != NULL);
 
 	sr_mutexlock(&s->lock);
 
@@ -291,12 +280,11 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 	}
 
 	/* checkpoint */
-	sodb *db;
 	int rc;
+checkpoint:
 	if (s->checkpoint) {
-		task->plan.plan = SI_BRANCH;
-		task->plan.condition = SI_CCHECKPOINT;
-		task->plan.d = s->checkpoint_lsn;
+		task->plan.plan = SI_CHECKPOINT;
+		task->plan.a = s->checkpoint_lsn;
 		rc = so_schedule_plan(s, &task->plan, &db);
 		switch (rc) {
 		case 1:
@@ -320,8 +308,15 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 	case 1:  /* compact_index + branch_count prio */
 		assert(0);
 		break;
+	case 2:  /* checkpoint */
+	{
+		uint64_t lsn = sr_seq(&e->seq, SR_LSN);
+		s->checkpoint_lsn = lsn;
+		s->checkpoint = 1;
+		goto checkpoint;
+	}
 	default: /* branch + compact */
-		assert(zone->mode == 2);
+		assert(zone->mode == 3);
 	}
 
 	if (s->branch < zone->branch_prio)

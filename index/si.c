@@ -79,6 +79,7 @@ int si_execute(si *i, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	assert(plan->node != NULL);
 	int rc = -1;
 	switch (plan->plan) {
+	case SI_CHECKPOINT:
 	case SI_BRANCH:
 		rc = si_branch(i, r, c, plan, vlsn);
 		break;

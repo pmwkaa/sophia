@@ -10,6 +10,7 @@
 */
 
 #include <si_conf.h>
+#include <si_zone.h>
 #include <si_node.h>
 #include <si_planner.h>
 #include <si.h>

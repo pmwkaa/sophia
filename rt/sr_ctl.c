@@ -74,6 +74,20 @@ int sr_ctlget(srctl *list, char **path, srctl **result)
 	return -1;
 }
 
+int sr_ctlmatch(srctl *list, char *name, srctl **result)
+{
+	srctl *c = list;
+	while (c->name) {
+		if (strcmp(name, c->name) != 0) {
+			c++;
+			continue;
+		}
+		*result = c;
+		return 0;
+	}
+	return -1;
+}
+
 static int
 sr_ctldump(srctl *c, sra *a, char *prefix, srbuf *buf)
 {

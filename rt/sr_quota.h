@@ -16,15 +16,6 @@ typedef enum srquotaop {
 	SR_QREMOVE
 } srquotaop;
 
-enum {
-	SR_QZONE_0,
-	SR_QZONE_A,
-	SR_QZONE_B,
-	SR_QZONE_C,
-	SR_QZONE_D,
-	SR_QZONE_E
-};
-
 struct srquota {
 	int enable;
 	int wait;
@@ -38,7 +29,6 @@ int sr_quotainit(srquota*);
 int sr_quotaset(srquota*, uint64_t);
 int sr_quotaenable(srquota*, int);
 int sr_quotafree(srquota*);
-int sr_quotazone(srquota*);
 int sr_quota(srquota*, srquotaop, uint64_t);
 
 static inline uint64_t
@@ -48,6 +38,20 @@ sr_quotaused(srquota *q)
 	uint64_t used = q->used;
 	sr_mutexunlock(&q->lock);
 	return used;
+}
+
+static inline int
+sr_quotaused_percent(srquota *q)
+{
+	sr_mutexlock(&q->lock);
+	int percent;
+	if (q->limit == 0) {
+		percent = 0;
+	} else {
+		percent = (q->used * 100) / q->limit;
+	}
+	sr_mutexunlock(&q->lock);
+	return percent;
 }
 
 #endif

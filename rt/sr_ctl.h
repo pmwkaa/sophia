@@ -59,6 +59,7 @@ sr_ctldump_value(srctldump *c) {
 }
 
 int sr_ctlget(srctl*, char**, srctl**);
+int sr_ctlmatch(srctl*, char*, srctl**);
 int sr_ctlset(srctl*, sra*, void*, va_list);
 int sr_ctlserialize(srctl*, sra*, char*, srbuf*);
 
