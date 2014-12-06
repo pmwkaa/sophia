@@ -66,7 +66,7 @@ mt_set_checkpoint_get(stc *cx)
 {
 	char value[100];
 	memset(value, 0, sizeof(value));
-	uint32_t n = 100000;
+	uint32_t n = 300000;
 	uint32_t i, k;
 	srand(82351);
 	for (i = 0; i < n; i++) {
@@ -92,6 +92,13 @@ mt_set_checkpoint_get(stc *cx)
 			break;
 	}
 	printf("done)");
+
+	/* This works only with thread = 1.
+	 *
+	 * Real data flush can happed before index got
+	 * collected and any other worker trigger
+	 * checkpoint complete.
+	*/
 	t( sp_set(c, "log.gc") == 0 );
 	void *o = sp_get(c, "log.files");
 	t( o != NULL );
@@ -115,6 +122,6 @@ mt_set_checkpoint_get(stc *cx)
 stgroup *mt_backend_group(void)
 {
 	stgroup *group = st_group("mt_backend");
-	/*st_groupadd(group, st_test("set_checkpoint_get", mt_set_checkpoint_get));*/
+	st_groupadd(group, st_test("set_checkpoint_get", mt_set_checkpoint_get));
 	return group;
 }

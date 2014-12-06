@@ -79,6 +79,15 @@ void st_scene_multithread(stscene *g, stc *cx)
 	t( sp_set(c, "scheduler.threads", "5") == 0 );
 }
 
+void st_scene_multithread_1(stscene *g, stc *cx)
+{
+	printf(".multithread");
+	fflush(NULL);
+	void *c = sp_ctl(cx->env);
+	t( c != NULL );
+	t( sp_set(c, "scheduler.threads", "1") == 0 );
+}
+
 void
 st_scene_open(stscene *g, stc *cx)
 {

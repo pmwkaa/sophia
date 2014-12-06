@@ -12,6 +12,7 @@
 void st_scene_rmrf(stscene*, stc*);
 void st_scene_create(stscene*, stc*);
 void st_scene_multithread(stscene*, stc*);
+void st_scene_multithread_1(stscene*, stc*);
 void st_scene_open(stscene*, stc*);
 void st_scene_phase(stscene*, stc*);
 void st_scene_truncate(stscene*, stc*);

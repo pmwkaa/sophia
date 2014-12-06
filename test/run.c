@@ -53,6 +53,7 @@ main(int argc, char *argv[])
 	st_addscene(&s, st_scene("rmrf", st_scene_rmrf, 1));
 	st_addscene(&s, st_scene("create", st_scene_create, 1));
 	st_addscene(&s, st_scene("multithread", st_scene_multithread, 1));
+	st_addscene(&s, st_scene("multithread_1", st_scene_multithread_1, 1));
 	st_addscene(&s, st_scene("open", st_scene_open, 1));
 	st_addscene(&s, st_scene("phase", st_scene_phase, 5));
 	st_addscene(&s, st_scene("truncate", st_scene_truncate, 1));
@@ -172,7 +173,7 @@ main(int argc, char *argv[])
 	plan = st_plan("multithreaded_backend");
 	st_planscene(plan, st_sceneof(&s, "rmrf"));
 	st_planscene(plan, st_sceneof(&s, "create"));
-	st_planscene(plan, st_sceneof(&s, "multithread"));
+	st_planscene(plan, st_sceneof(&s, "multithread_1"));
 	st_planscene(plan, st_sceneof(&s, "open"));
 	st_planscene(plan, st_sceneof(&s, "test"));
 	st_planscene(plan, st_sceneof(&s, "destroy"));
