@@ -13,6 +13,8 @@ LIBST_O = st.o \
           sdv.test.o \
           sditer.test.o \
           sdpageiter.test.o \
+		  sdss.test.o \
+		  sdssiter.test.o \
           ctl.test.o \
           error.test.o \
           method.test.o \

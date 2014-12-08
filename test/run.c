@@ -23,6 +23,8 @@ extern stgroup *sdbuild_group(void);
 extern stgroup *sdv_group(void);
 extern stgroup *sditer_group(void);
 extern stgroup *sdpageiter_group(void);
+extern stgroup *sdss_group(void);
+extern stgroup *sdssiter_group(void);
 extern stgroup *ctl_group(void);
 extern stgroup *error_group(void);
 extern stgroup *method_group(void);
@@ -79,6 +81,8 @@ main(int argc, char *argv[])
 	st_planadd(plan, sdv_group());
 	st_planadd(plan, sditer_group());
 	st_planadd(plan, sdpageiter_group());
+	st_planadd(plan, sdss_group());
+	st_planadd(plan, sdssiter_group());
 	st_add(&s, plan);
 
 	plan = st_plan("separate");
