@@ -16,20 +16,20 @@ typedef struct sdss sdss;
 struct sdssheader {
 	uint32_t crc;
 	uint32_t count;
-};
+} srpacked;
 
 struct sdssrecord {
 	uint64_t lsn;
 	uint16_t namelen;
 	char name[];
-};
+} srpacked;
 
 struct sdss {
 	srbuf buf;
 };
 
-int sd_ssinit(sdss*, sr*);
-int sd_ssset(sdss*, sr*, srbuf*);
+int sd_ssinit(sdss*);
+int sd_ssopen(sdss*, sr*, srbuf*);
 int sd_ssfree(sdss*, sr*);
 int sd_ssadd(sdss*, sr*, uint64_t, char*);
 int sd_ssdelete(sdss*, sr*, char*);

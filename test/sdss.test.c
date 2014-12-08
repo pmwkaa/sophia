@@ -20,7 +20,7 @@ sdss_init(stc *cx srunused)
 	sr r;
 	sr_init(&r, NULL, &a, NULL, NULL, NULL);
 	sdss s;
-	t( sd_ssinit(&s, &r) == 0 );
+	t( sd_ssinit(&s) == 0 );
 	t( sd_ssfree(&s, &r) == 0 );
 }
 
@@ -32,7 +32,7 @@ sdss_add(stc *cx)
 	sr r;
 	sr_init(&r, NULL, &a, NULL, NULL, NULL);
 	sdss s;
-	t( sd_ssinit(&s, &r) == 0 );
+	t( sd_ssinit(&s) == 0 );
 	t( sd_ssadd(&s, &r, 1, "a") == 0 );
 	t( sd_ssadd(&s, &r, 2, "b") == 0 );
 	t( sd_ssadd(&s, &r, 2, "c") == 0 );
@@ -48,7 +48,7 @@ sdss_delete(stc *cx)
 	sr r;
 	sr_init(&r, NULL, &a, NULL, NULL, NULL);
 	sdss s;
-	t( sd_ssinit(&s, &r) == 0 );
+	t( sd_ssinit(&s) == 0 );
 	t( sd_ssadd(&s, &r, 1, "a") == 0 );
 	t( sd_ssdelete(&s, &r, "a") == 0 );
 	t( sd_ssadd(&s, &r, 1, "a") == 0 );

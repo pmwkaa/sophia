@@ -14,11 +14,26 @@ int sr_fileunlink(char *path)
 	return unlink(path);
 }
 
+int sr_filemove(char *a, char *b)
+{
+	return rename(a, b);
+}
+
 int sr_fileexists(char *path)
 {
 	struct stat st;
 	int rc = lstat(path, &st);
 	return rc == 0;
+}
+
+int sr_filesize(char *path, uint64_t *size)
+{
+	struct stat st;
+	int rc = lstat(path, &st);
+	if (srunlikely(rc == -1))
+		return -1;
+	*size = st.st_size;
+	return 0;
 }
 
 int sr_filemkdir(char *path)
@@ -70,7 +85,7 @@ int sr_filerename(srfile *f, char *path)
 	char *p = sr_strdup(f->a, path);
 	if (srunlikely(p == NULL))
 		return -1;
-	int rc = rename(f->file, p);
+	int rc = sr_filemove(f->file, p);
 	if (srunlikely(rc == -1)) {
 		sr_free(f->a, p);
 		return -1;

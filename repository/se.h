@@ -13,10 +13,14 @@ typedef struct se se;
 
 struct se {
 	seconf *conf;
+	srmutex lock;
+	sdss snapshot;
 };
 
 int se_init(se*);
 int se_open(se*, sr*, seconf*);
-int se_close(se*);
+int se_close(se*, sr*);
+int se_snapshot(se*, sr*, uint64_t, char*);
+int se_snapshot_remove(se*, sr*, char*);
 
 #endif

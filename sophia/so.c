@@ -102,7 +102,7 @@ so_destroy(soobj *o)
 	rc = sl_poolshutdown(&e->lp);
 	if (srunlikely(rc == -1))
 		rcret = -1;
-	rc = se_close(&e->se);
+	rc = se_close(&e->se, &e->r);
 	if (srunlikely(rc == -1))
 		rcret = -1;
 	so_ctlfree(&e->ctl);

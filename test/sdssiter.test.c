@@ -20,7 +20,7 @@ sdssiter_test0(stc *cx srunused)
 	sr r;
 	sr_init(&r, NULL, &a, NULL, NULL, NULL);
 	sdss s;
-	t( sd_ssinit(&s, &r) == 0 );
+	t( sd_ssinit(&s) == 0 );
 	sriter i;
 	sr_iterinit(&i, &sd_ssiter, &r);
 	t( sr_iteropen(&i, &s.buf, 1) == 0 );
@@ -36,7 +36,7 @@ sdssiter_test1(stc *cx srunused)
 	sr r;
 	sr_init(&r, NULL, &a, NULL, NULL, NULL);
 	sdss s;
-	t( sd_ssinit(&s, &r) == 0 );
+	t( sd_ssinit(&s) == 0 );
 	t( sd_ssadd(&s, &r, 1, "a") == 0 );
 	t( sd_ssadd(&s, &r, 2, "b") == 0 );
 	t( sd_ssadd(&s, &r, 2, "c") == 0 );
@@ -65,7 +65,7 @@ sdssiter_test2(stc *cx srunused)
 	sr r;
 	sr_init(&r, NULL, &a, NULL, NULL, NULL);
 	sdss s;
-	t( sd_ssinit(&s, &r) == 0 );
+	t( sd_ssinit(&s) == 0 );
 	t( sd_ssadd(&s, &r, 1, "a") == 0 );
 	t( sd_ssadd(&s, &r, 2, "b") == 0 );
 	t( sd_ssadd(&s, &r, 2, "c") == 0 );

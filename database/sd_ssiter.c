@@ -32,9 +32,11 @@ sd_ssiternext_do(sriter *it)
 {
 	sdssiter *i = (sdssiter*)it->priv;
 	if (i->v == NULL) {
+		if (sr_bufused(i->buf) == 0)
+			return 0;
 		sdssheader *h = (sdssheader*)i->buf->s;
 		if (i->validate) {
-			uint32_t crc = sr_crcs(h, sizeof(sdssheader), 0);
+			uint32_t crc = sr_crcs(h, sr_bufused(i->buf), 0);
 			if (srunlikely(crc != h->crc)) {
 				i->v = NULL;
 				sr_error(it->r->e, "%s", "bad snapshot header crc");
