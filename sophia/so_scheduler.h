@@ -15,6 +15,7 @@ typedef struct sotask sotask;
 struct sotask {
 	siplan plan;
 	int rotate;
+	int gc;
 	void *db;
 };
 

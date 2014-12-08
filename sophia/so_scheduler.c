@@ -272,8 +272,9 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 
 	sr_mutexlock(&s->lock);
 
-	/* log gc-rotation */
+	/* log gc and rotation */
 	task->rotate = 0;
+	task->gc = 0;
 	if (s->rotate == 0) {
 		task->rotate = 1;
 		s->rotate = 1;
@@ -291,6 +292,7 @@ checkpoint:
 		case 1:
 			s->branch++;
 			task->db = db;
+			task->gc = 1;
 			sr_mutexunlock(&s->lock);
 			return 1;
 		case 2: /* work in progress */
@@ -350,6 +352,7 @@ checkpoint:
 		if (rc == 1) {
 			s->branch++;
 			task->db = db;
+			task->gc = 1;
 			sr_mutexunlock(&s->lock);
 			return 1;
 		}
@@ -373,16 +376,23 @@ checkpoint:
 }
 
 static int
-so_rotate(soscheduler *s, soworker *w)
+so_gc(soscheduler *s, soworker *w)
 {
 	sr_trace(&w->trace, "%s", "log gc");
 	so *e = s->env;
 	int rc = sl_poolgc(&e->lp);
 	if (srunlikely(rc == -1))
 		return -1;
-	rc = sl_poolrotate_ready(&e->lp, e->ctl.log_rotate_wm);
+	return 0;
+}
+
+static int
+so_rotate(soscheduler *s, soworker *w)
+{
+	sr_trace(&w->trace, "%s", "log rotation");
+	so *e = s->env;
+	int rc = sl_poolrotate_ready(&e->lp, e->ctl.log_rotate_wm);
 	if (rc) {
-		sr_trace(&w->trace, "%s", "log rotation");
 		rc = sl_poolrotate(&e->lp);
 		if (srunlikely(rc == -1))
 			return -1;
@@ -406,7 +416,8 @@ static int
 so_complete(soscheduler *s, sotask *t)
 {
 	sr_mutexlock(&s->lock);
-	if (t->plan.plan == SI_BRANCH)
+	if (t->plan.plan == SI_BRANCH ||
+	    t->plan.plan == SI_CHECKPOINT)
 		s->branch--;
 	if (t->rotate == 1)
 		s->rotate = 0;
@@ -426,6 +437,11 @@ int so_scheduler(soscheduler *s, soworker *w)
 	}
 	if (job) {
 		rc = so_execute(&task, w);
+		if (srunlikely(rc == -1))
+			goto error;
+	}
+	if (task.gc) {
+		rc = so_gc(s, w);
 		if (srunlikely(rc == -1))
 			goto error;
 	}

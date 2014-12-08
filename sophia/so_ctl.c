@@ -754,8 +754,8 @@ void so_ctlinit(soctl *c, void *e)
 
 	c->path         = NULL;
 	c->memory_limit = 0;
-	c->node_size    = 128 * 1024 * 1024;
-	c->page_size    = 128 * 1024;
+	c->node_size    = 64 * 1024 * 1024;
+	c->page_size    = 64 * 1024;
 
 	sizone unlimited = {
 		.enable        = 1,
