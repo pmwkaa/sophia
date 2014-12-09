@@ -18,6 +18,10 @@ typedef struct srinjection srinjection;
 #define SR_INJECTION_SI_COMPACTION_2 4
 #define SR_INJECTION_SI_COMPACTION_3 5
 #define SR_INJECTION_SI_COMPACTION_4 6
+#define SR_INJECTION_SE_SNAPSHOT_0   7
+#define SR_INJECTION_SE_SNAPSHOT_1   8
+#define SR_INJECTION_SE_SNAPSHOT_2   9
+#define SR_INJECTION_SE_SNAPSHOT_3   10
 
 struct srinjection {
 	int e[7];

@@ -17,6 +17,16 @@ struct se {
 	sdss snapshot;
 };
 
+static inline void
+se_lock(se *e) {
+	sr_mutexlock(&e->lock);
+}
+
+static inline void
+se_unlock(se *e) {
+	sr_mutexunlock(&e->lock);
+}
+
 int se_init(se*);
 int se_open(se*, sr*, seconf*);
 int se_close(se*, sr*);

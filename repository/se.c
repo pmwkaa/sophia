@@ -174,7 +174,8 @@ int se_close(se *e, sr *r)
 static int
 se_snapshot_update(se *e, sr *r, uint64_t lsn, char *name, int remove)
 {
-	sr_mutexlock(&e->lock);
+	se_lock(e);
+
 	int rc = 0;
 	if (remove) {
 		rc = sd_ssdelete(&e->snapshot, r, name);
@@ -190,7 +191,11 @@ se_snapshot_update(se *e, sr *r, uint64_t lsn, char *name, int remove)
 	srpath path_b;
 	sr_pathset(&path_b, "%s/snapshot.incomplete", e->conf->path);
 
-	/* SR_INJECTION_SE_SNAPSHOT_0 */
+	SR_INJECTION(r->i, SR_INJECTION_SE_SNAPSHOT_0,
+	             se_unlock(e);
+	             sr_error(r->e, "%s", "error injection");
+	             return -1);
+
 	srfile file;
 	sr_fileinit(&file, r->a);
 	uint64_t size = 0;
@@ -208,7 +213,11 @@ se_snapshot_update(se *e, sr *r, uint64_t lsn, char *name, int remove)
 		goto error;
 	}
 
-	/* SR_INJECTION_SE_SNAPSHOT_1 */
+	SR_INJECTION(r->i, SR_INJECTION_SE_SNAPSHOT_1,
+	             se_unlock(e);
+	             sr_error(r->e, "%s", "error injection");
+	             return -1);
+
 	rc = sr_filesync(&file);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "snapshot file '%s' sync error: %s",
@@ -216,7 +225,11 @@ se_snapshot_update(se *e, sr *r, uint64_t lsn, char *name, int remove)
 		goto error;
 	}
 
-	/* SR_INJECTION_SE_SNAPSHOT_2 */
+	SR_INJECTION(r->i, SR_INJECTION_SE_SNAPSHOT_2,
+	             se_unlock(e);
+	             sr_error(r->e, "%s", "error injection");
+	             return -1);
+
 	rc = sr_fileunlink(path.path);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "snapshot file '%s' unlink error: %s",
@@ -224,7 +237,11 @@ se_snapshot_update(se *e, sr *r, uint64_t lsn, char *name, int remove)
 		return -1;
 	}
 
-	/* SR_INJECTION_SE_SNAPSHOT_3 */
+	SR_INJECTION(r->i, SR_INJECTION_SE_SNAPSHOT_3,
+	             se_unlock(e);
+	             sr_error(r->e, "%s", "error injection");
+	             return -1);
+
 	rc = sr_filemove(path_b.path, path.path);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "snapshot file '%s' rename error: %s",
@@ -232,11 +249,11 @@ se_snapshot_update(se *e, sr *r, uint64_t lsn, char *name, int remove)
 		return -1;
 	}
 
-	sr_mutexunlock(&e->lock);
+	se_unlock(e);
 	return 0;
 
 error:
-	sr_mutexunlock(&e->lock);
+	se_unlock(e);
 	return -1;
 }
 
