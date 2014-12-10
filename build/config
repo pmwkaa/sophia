@@ -42,7 +42,7 @@ CFLAGS_INCLUDE  = -pthread $(INCLUDE)
 CFLAGS_DEBUG    = -g -DSR_INJECTION_ENABLE
 CFLAGS_OPT      = -O0
 CFLAGS_STRICT   = -std=c99 -pedantic -Wextra -Wall
-CFLAGS_MISC     = -fPIC -fvisibility=hidden
+CFLAGS_MISC     = -fPIC -fno-stack-protector -fvisibility=hidden
 CFLAGS_BUILD    = -DSOPHIA_BUILD='"${SOPHIA_BUILD}"'
 CFLAGS_SOPHIA   = $(CFLAGS_INCLUDE) \
                   $(CFLAGS_OPT) \
