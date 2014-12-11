@@ -15,7 +15,7 @@ struct soctlcursor {
 	soobj o;
 	int ready;
 	srbuf dump;
-	srctldump *pos;
+	srcv *pos;
 	soobj *v;
 	void *e;
 } srpacked;

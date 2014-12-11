@@ -21,6 +21,7 @@ dml_precreate(stc *cx srunused)
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
 	void *db = sp_get(c, "db.test");
@@ -40,6 +41,7 @@ dml_create_online0(stc *cx srunused)
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_open(env) == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
 	void *db = sp_get(c, "db.test");
@@ -59,6 +61,7 @@ dml_create_online1(stc *cx srunused)
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_open(env) == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
 	void *db = sp_get(c, "db.test");
@@ -84,6 +87,7 @@ dml_create_online2(stc *cx srunused)
 	t( sp_set(c, "log.path", "logdir") == 0 );
 	t( sp_open(env) == 0 );
 
+	t( sp_set(c, "db", "s0") == 0 );
 	t( sp_set(c, "db.s0.path", "dir0") == 0 );
 	t( sp_set(c, "db.s0.index.cmp", sr_cmpu32) == 0 );
 	void *s0 = sp_get(c, "db.s0");
@@ -103,6 +107,7 @@ dml_create_online2(stc *cx srunused)
 	sp_set(o, "key", &key, sizeof(key));
 	t( sp_set(s0, o) == 0 );
 
+	t( sp_set(c, "db", "s1") == 0 );
 	t( sp_set(c, "db.s1.path", "dir1") == 0 );
 	t( sp_set(c, "db.s1.index.cmp", sr_cmpu32) == 0 );
 	void *s1 = sp_get(c, "db.s1");

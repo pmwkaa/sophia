@@ -16,44 +16,39 @@
 #include <libse.h>
 #include <libso.h>
 
-void*
-so_ctlreturn(srctl *match, void *o)
+void *so_ctlreturn(src *c, void *o)
 {
 	so *e = o;
 	int size = 0;
-	int type = match->type & ~SR_CTLRO;
+	int type = c->flags & ~SR_CRO;
 	char *value = NULL;
 	char function_sz[] = "function";
 	char integer[64];
 	switch (type) {
-	case SR_CTLINT:
-		size = snprintf(integer, sizeof(integer), "%d", *(int*)match->v);
+	case SR_CU32:
+		size = snprintf(integer, sizeof(integer), "%"PRIu32, *(uint32_t*)c->value);
 		value = integer;
 		break;
-	case SR_CTLU32:
-		size = snprintf(integer, sizeof(integer), "%"PRIu32, *(uint32_t*)match->v);
+	case SR_CU64:
+		size = snprintf(integer, sizeof(integer), "%"PRIu64, *(uint64_t*)c->value);
 		value = integer;
 		break;
-	case SR_CTLU64:
-		size = snprintf(integer, sizeof(integer), "%"PRIu64, *(uint64_t*)match->v);
-		value = integer;
-		break;
-	case SR_CTLSTRINGREF:
-		value = *(char**)match->v;
+	case SR_CSZREF:
+		value = *(char**)c->value;
 		if (value)
 			size = strlen(value);
 		break;
-	case SR_CTLSTRING:
-		value = match->v;
+	case SR_CSZ:
+		value = c->value;
 		if (value)
 			size = strlen(value);
 		break;
-	case SR_CTLTRIGGER: {
+	case SR_CVOID: {
 		value = function_sz;
 		size = sizeof(function_sz);
 		break;
 	}
-	case SR_CTLSUB: assert(0);
+	case SR_CC: assert(0);
 		break;
 	}
 	if (value)
@@ -61,8 +56,8 @@ so_ctlreturn(srctl *match, void *o)
 	svlocal l;
 	l.lsn       = 0;
 	l.flags     = 0;
-	l.keysize   = strlen(match->name) + 1;
-	l.key       = match->name;
+	l.keysize   = strlen(c->name) + 1;
+	l.key       = c->name;
 	l.valuesize = size;
 	l.value     = value;
 	sv vp;
@@ -84,537 +79,453 @@ so_ctlreturn(srctl *match, void *o)
 	return so_vput(result, &vp);
 }
 
-static int
-so_ctlsophia_set(soctl *c, char *path srunused, va_list args srunused)
+static inline int
+so_ctlv(src *c, srcstmt *s, va_list args)
 {
-	so *e = c->e;
-	int version_major = SR_VERSION_MAJOR - '0';
-	int version_minor = SR_VERSION_MINOR - '0';
-	char version[16];
-	char *version_ptr = version;
-	snprintf(version, sizeof(version), "%d.%d",
-	         version_major,
-	         version_minor);
-	char errorsz[128];
-	char *error;
-	errorsz[0] = 0;
-	int errorlen = sr_errorcopy(&e->error, errorsz, sizeof(errorsz));
-	if (srlikely(errorlen == 0))
-		error = NULL;
-	else
-		error = errorsz;
-	srctl ctls[30];
-	srctl *p = ctls;
-	p = sr_ctladd(p, "version", SR_CTLSTRING|SR_CTLRO, version_ptr,       NULL);
-	p = sr_ctladd(p, "build",   SR_CTLSTRING|SR_CTLRO, SR_VERSION_COMMIT, NULL);
-	p = sr_ctladd(p, "error",   SR_CTLSTRING|SR_CTLRO, error,             NULL);
-	p = sr_ctladd(p, "path",    SR_CTLSTRINGREF,       &c->path,          NULL);
-	p = sr_ctladd(p,  NULL,     0,                     NULL,              NULL);
-	srctl *match = NULL;
-	int rc = sr_ctlget(&ctls[0], &path, &match);
-	if (srunlikely(rc == 1 || rc == -1)) {
-		sr_error(&e->error, "%s", "bad control path");
-		sr_error_recoverable(&e->error);
-		return -1;
+	switch (s->op) {
+	case SR_CGET: {
+		void *ret = so_ctlreturn(c, s->ptr);
+		if ((srunlikely(ret == NULL)))
+			return -1;
+		*s->result = ret;
+		return 0;
 	}
-	int type = match->type & ~SR_CTLRO;
-	if (so_active(e) && (type != SR_CTLTRIGGER)) {
-		sr_error(&e->error, "%s", "failed to set control path");
-		sr_error_recoverable(&e->error);
-		return -1;
+	case SR_CSERIALIZE:
+		return sr_cserialize(c, s);
+	case SR_CSET: {
+		char *arg = va_arg(args, char*);
+		return sr_cset(c, s, arg);
 	}
-	rc = sr_ctlset(match, &e->a, e, args);
-	if (srunlikely(rc == -1)) {
-		sr_error_recoverable(&e->error);
-		return -1;
 	}
-	return rc;
+	assert(0);
+	return -1;
 }
 
-static void*
-so_ctlsophia_get(soctl *c, char *path, va_list args srunused)
+static inline int
+so_ctlsophia_error(src *c, srcstmt *s, va_list args srunused)
 {
-	so *e = c->e;
-	int version_major = SR_VERSION_MAJOR - '0';
-	int version_minor = SR_VERSION_MINOR - '0';
-	char version[16];
-	char *version_ptr = version;
-	snprintf(version, sizeof(version), "%d.%d",
-	         version_major,
-	         version_minor);
-	char errorsz[128];
-	char *error;
-	errorsz[0] = 0;
-	int errorlen = sr_errorcopy(&e->error, errorsz, sizeof(errorsz));
-	if (srlikely(errorlen == 0))
-		error = NULL;
+	so *e = s->ptr;
+	char *errorp;
+	char  error[128];
+	error[0] = 0;
+	int len = sr_errorcopy(&e->error, error, sizeof(error));
+	if (srlikely(len == 0))
+		errorp = NULL;
 	else
-		error = errorsz;
-	srctl ctls[30];
-	srctl *p = ctls;
-	p = sr_ctladd(p, "version", SR_CTLSTRING|SR_CTLRO, version_ptr,       NULL);
-	p = sr_ctladd(p, "build",   SR_CTLSTRING|SR_CTLRO, SR_VERSION_COMMIT, NULL);
-	p = sr_ctladd(p, "error",   SR_CTLSTRING|SR_CTLRO, error,             NULL);
-	p = sr_ctladd(p, "path",    SR_CTLSTRINGREF,       &c->path,          NULL);
-	p = sr_ctladd(p,  NULL,     0,                     NULL,              NULL);
-	srctl *match = NULL;
-	int rc = sr_ctlget(&ctls[0], &path, &match);
-	if (srunlikely(rc == 1 || rc == -1)) {
-		sr_error(&e->error, "%s", "bad control path");
-		sr_error_recoverable(&e->error);
-		return NULL;
-	}
-	return so_ctlreturn(match, c->e);
+		errorp = error;
+	src ctl = {
+		.name     = c->name,
+		.flags    = c->flags,
+		.function = NULL,
+		.value    = errorp,
+		.next     = NULL
+	};
+	return so_ctlv(&ctl, s, args);
 }
 
-static int
-so_ctlsophia_dump(soctl *c, srbuf *dump)
+static inline src*
+so_ctlsophia(so *e, soctlrt *rt, src **pc)
 {
-	so *e = c->e;
-	int version_major = SR_VERSION_MAJOR - '0';
-	int version_minor = SR_VERSION_MINOR - '0';
-	char version[16];
-	char *version_ptr = version;
-	snprintf(version, sizeof(version), "%d.%d",
-	         version_major,
-	         version_minor);
-	char errorsz[128];
-	char *error;
-	errorsz[0] = 0;
-	int errorlen = sr_errorcopy(&e->error, errorsz, sizeof(errorsz));
-	if (srlikely(errorlen == 0))
-		error = NULL;
-	else
-		error = errorsz;
-	srctl ctls[30];
-	srctl *p = ctls;
-	p = sr_ctladd(p, "version", SR_CTLSTRING|SR_CTLRO, version_ptr,       NULL);
-	p = sr_ctladd(p, "build",   SR_CTLSTRING|SR_CTLRO, SR_VERSION_COMMIT, NULL);
-	p = sr_ctladd(p, "error",   SR_CTLSTRING|SR_CTLRO, error,             NULL);
-	p = sr_ctladd(p, "path",    SR_CTLSTRINGREF,       &c->path,          NULL);
-	p = sr_ctladd(p,  NULL,     0,                     NULL,              NULL);
-	int rc = sr_ctlserialize(&ctls[0], &e->a, "sophia.", dump);
-	if (srunlikely(rc == -1)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
+	src *sophia = *pc;
+	src *p = NULL;
+	sr_clink(&p, sr_c(pc, so_ctlv,            "version", SR_CSZ|SR_CRO, rt->version));
+	sr_clink(&p, sr_c(pc, so_ctlv,            "build",   SR_CSZ|SR_CRO, SR_VERSION_COMMIT));
+	sr_clink(&p, sr_c(pc, so_ctlsophia_error, "error",   SR_CSZ|SR_CRO, NULL));
+	sr_clink(&p, sr_c(pc, so_ctlv,            "path",    SR_CSZREF,     &e->ctl.path));
+	return sr_c(pc, NULL, "sophia", SR_CC, sophia);
+}
+
+static inline src*
+so_ctlmemory(so *e, soctlrt *rt, src **pc)
+{
+	src *memory = *pc;
+	src *p = NULL;
+	sr_clink(&p, sr_c(pc, so_ctlv, "limit",           SR_CU64,        &e->ctl.memory_limit));
+	sr_clink(&p, sr_c(pc, so_ctlv, "used",            SR_CU64|SR_CRO, &rt->memory_used));
+	sr_clink(&p, sr_c(pc, so_ctlv, "pager_pool_size", SR_CU32|SR_CRO, &e->pager.pool_size));
+	sr_clink(&p, sr_c(pc, so_ctlv, "pager_page_size", SR_CU32|SR_CRO, &e->pager.page_size));
+	sr_clink(&p, sr_c(pc, so_ctlv, "pager_pools",     SR_CU32|SR_CRO, &e->pager.pools));
+	return sr_c(pc, NULL, "memory", SR_CC, memory);
+}
+
+static inline int
+so_ctlcompaction_set(src *c srunused, srcstmt *s, va_list args)
+{
+	so *e = s->ptr;
+	if (s->op != SR_CSET) {
+		sr_error(&e->error, "%s", "bad operation");
 		sr_error_recoverable(&e->error);
 		return -1;
 	}
+	/* validate argument */
+	char *arg = va_arg(args, char*);
+	uint32_t percent = atoi(arg);
+	if (percent > 100) {
+		sr_error(&e->error, "%s", "bad argument");
+		sr_error_recoverable(&e->error);
+		return -1;
+	}
+	sizone z;
+	memset(&z, 0, sizeof(z));
+	z.enable = 1;
+	si_zonemap_set(&e->ctl.zones, percent, &z);
 	return 0;
 }
 
-static int
-so_ctldb_set(soctl *c, char *path, va_list args)
+static inline src*
+so_ctlcompaction(so *e, soctlrt *rt srunused, src **pc)
 {
-	so *e = c->e;
-	char *token;
-	token = strtok_r(NULL, ".", &path);
-	if (srunlikely(token == NULL)) {
-		sr_error(&e->error, "%s", "bad control path");
-		sr_error_recoverable(&e->error);
-		return -1;
+	src *compaction = *pc;
+	src *prev;
+	src *p = NULL;
+	sr_clink(&p, sr_c(pc, so_ctlv, "node_size", SR_CU32, &e->ctl.node_size));
+	sr_clink(&p, sr_c(pc, so_ctlv, "page_size", SR_CU32, &e->ctl.page_size));
+	prev = p;
+	int i = 0;
+	for (; i < 11; i++) {
+		sizone *z = &e->ctl.zones.zones[i];
+		if (! z->enable)
+			continue;
+		src *zone = *pc;
+		p = NULL;
+		sr_clink(&p,    sr_c(pc, so_ctlv, "mode",          SR_CU32, &z->mode));
+		sr_clink(&p,    sr_c(pc, so_ctlv, "compact_wm",    SR_CU32, &z->compact_wm));
+		sr_clink(&p,    sr_c(pc, so_ctlv, "branch_prio",   SR_CU32, &z->branch_prio));
+		sr_clink(&p,    sr_c(pc, so_ctlv, "branch_wm",     SR_CU32, &z->branch_wm));
+		sr_clink(&p,    sr_c(pc, so_ctlv, "branch_ttl",    SR_CU32, &z->branch_ttl));
+		sr_clink(&p,    sr_c(pc, so_ctlv, "branch_ttl_wm", SR_CU32, &z->branch_ttl_wm));
+		sr_clink(&prev, sr_c(pc, NULL, z->name, SR_CC, zone));
 	}
-	char *name = token;
-	sodb *db = (sodb*)so_dbmatch(e, name);
-	if (db == NULL) {
-		db = (sodb*)so_dbnew(e, name);
-		if (srunlikely(db == NULL))
-			return -1;
-		so_objindex_register(&e->db, &db->o);
-	}
-	return so_dbctl_set(&db->ctl, path, args);
+	return sr_c(pc, so_ctlcompaction_set, "compaction", SR_CC, compaction);
 }
 
-static void*
-so_ctldb_get(soctl *c, char *path, va_list args)
+static inline int
+so_ctlscheduler_trace(src *c, srcstmt *s, va_list args srunused)
 {
-	so *e = c->e;
-	char *token;
-	token = strtok_r(NULL, ".", &path);
-	if (srunlikely(token == NULL)) {
-		sr_error(&e->error, "%s", "bad control path");
-		sr_error_recoverable(&e->error);
-		return NULL;
-	}
-	char *name = token;
-	sodb *db = (sodb*)so_dbmatch(e, name);
-	if (db == NULL)
-		return NULL;
-	return so_dbctl_get(&db->ctl, path, args);
+	soworker *w = c->value;
+	char tracesz[128];
+	char *trace;
+	int tracelen = sr_tracecopy(&w->trace, tracesz, sizeof(tracesz));
+	if (srlikely(tracelen == 0))
+		trace = NULL;
+	else
+		trace = tracesz;
+	src ctl = {
+		.name     = c->name,
+		.flags    = c->flags,
+		.function = NULL,
+		.value    = trace,
+		.next     = NULL
+	};
+	return so_ctlv(&ctl, s, args);
 }
 
-static int
-so_ctldb_dump(soctl *c, srbuf *dump)
+static inline int
+so_ctlscheduler_checkpoint(src *c, srcstmt *s, va_list args)
 {
-	so *e = c->e;
+	if (s->op != SR_CSET)
+		return so_ctlv(c, s, args);
+	so *e = s->ptr;
+	return so_scheduler_checkpoint(e);
+}
+
+static inline int
+so_ctlscheduler_run(src *c, srcstmt *s, va_list args)
+{
+	if (s->op != SR_CSET)
+		return so_ctlv(c, s, args);
+	so *e = s->ptr;
+	return so_scheduler_call(e);
+}
+
+static inline src*
+so_ctlscheduler(so *e, soctlrt *rt, src **pc)
+{
+	src *scheduler = *pc;
+	src *prev;
+	src *p = NULL;
+	sr_clink(&p, sr_c(pc, so_ctlv, "threads",             SR_CU32,        &e->ctl.threads));
+	sr_clink(&p, sr_c(pc, so_ctlv, "zone",                SR_CSZ|SR_CRO,  rt->zone));
+	sr_clink(&p, sr_c(pc, so_ctlv, "checkpoint_active",   SR_CU32|SR_CRO, &rt->checkpoint_active));
+	sr_clink(&p, sr_c(pc, so_ctlv, "checkpoint_lsn",      SR_CU64|SR_CRO, &rt->checkpoint_lsn));
+	sr_clink(&p, sr_c(pc, so_ctlv, "checkpoint_lsn_last", SR_CU64|SR_CRO, &rt->checkpoint_lsn_last));
+	sr_clink(&p, sr_c(pc, so_ctlscheduler_checkpoint, "checkpoint", SR_CVOID, NULL));
+	sr_clink(&p, sr_c(pc, so_ctlscheduler_run,        "run",        SR_CVOID, NULL));
+	prev = p;
 	srlist *i;
-	sr_listforeach(&e->db.list, i) {
-		soobj *o = srcast(i, soobj, link);
-		sodb *db = (sodb*)o;
-		int rc = so_dbctl_dump(&db->ctl, dump);
-		if (srunlikely(rc == -1))
-			return -1;
+	sr_listforeach(&e->sched.workers.list, i) {
+		soworker *w = srcast(i, soworker, link);
+		src *worker = *pc;
+		p = NULL;
+		sr_clink(&p,    sr_c(pc, so_ctlscheduler_trace, "trace", SR_CSZ|SR_CRO, w));
+		sr_clink(&prev, sr_c(pc, NULL, w->name, SR_CC, worker));
 	}
-	return 0;
+	return sr_c(pc, NULL, "scheduler", SR_CC, scheduler);
 }
 
-typedef struct {
-	uint64_t used;
-} somemoryinfo;
-
-static inline void
-so_ctlmemory_prepare(srctl *t, soctl *c, srpager *pager, somemoryinfo *mi)
+static inline int
+so_ctllog_rotate(src *c, srcstmt *s, va_list args)
 {
-	so *e = c->e;
-	mi->used = sr_quotaused(&e->quota);
-	srctl *p = t;
-	p = sr_ctladd(p, "limit",           SR_CTLU64,          &c->memory_limit,  NULL);
-	p = sr_ctladd(p, "used",            SR_CTLU64|SR_CTLRO, &mi->used,         NULL);
-	p = sr_ctladd(p, "pager_pool_size", SR_CTLU32|SR_CTLRO, &pager->pool_size, NULL);
-	p = sr_ctladd(p, "pager_page_size", SR_CTLU32|SR_CTLRO, &pager->page_size, NULL);
-	p = sr_ctladd(p, "pager_pools",     SR_CTLINT|SR_CTLRO, &pager->pools,     NULL);
-	p = sr_ctladd(p,  NULL,             0,                  NULL,              NULL);
-}
-
-static int
-so_ctlmemory_set(so *o, char *path, va_list args)
-{
-	srctl ctls[30];
-	somemoryinfo mi;
-	so_ctlmemory_prepare(&ctls[0], &o->ctl, &o->pager, &mi);
-	srctl *match = NULL;
-	int rc = sr_ctlget(&ctls[0], &path, &match);
-	if (srunlikely(rc ==  1))
-		return -1; /* self */
-	if (srunlikely(rc == -1)) {
-		sr_error(&o->error, "%s", "bad control path");
-		sr_error_recoverable(&o->error);
-		return -1;
-	}
-	int type = match->type & ~SR_CTLRO;
-	if (so_active(o) && (type != SR_CTLTRIGGER)) {
-		sr_error(&o->error, "%s", "failed to set control path");
-		sr_error_recoverable(&o->error);
-		return -1;
-	}
-	rc = sr_ctlset(match, &o->a, o, args);
-	if (srunlikely(rc == -1)) {
-		sr_error_recoverable(&o->error);
-		return -1;
-	}
-	return rc;
-}
-
-static void*
-so_ctlmemory_get(soctl *c, char *path, va_list args srunused)
-{
-	so *e = c->e;
-	srctl ctls[30];
-	somemoryinfo mi;
-	so_ctlmemory_prepare(&ctls[0], &e->ctl, &e->pager, &mi);
-	srctl *match = NULL;
-	int rc = sr_ctlget(&ctls[0], &path, &match);
-	if (srunlikely(rc ==  1))
-		return NULL; /* self */
-	return so_ctlreturn(match, e);
-}
-
-static int
-so_ctlmemory_dump(soctl *c, srbuf *dump)
-{
-	so *e = c->e;
-	srctl ctls[30];
-	somemoryinfo mi;
-	so_ctlmemory_prepare(&ctls[0], &e->ctl, &e->pager, &mi);
-	char prefix[64];
-	snprintf(prefix, sizeof(prefix), "memory.");
-	int rc = sr_ctlserialize(&ctls[0], &e->a, prefix, dump);
-	if (srunlikely(rc == -1)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
-		sr_error_recoverable(&e->error);
-		return -1;
-	}
-	return 0;
-}
-
-static int
-so_ctllog_rotate(srctl *c srunused, void *arg, va_list args srunused)
-{
-	so *e = arg;
+	if (s->op != SR_CSET)
+		return so_ctlv(c, s, args);
+	so *e = s->ptr;
 	return sl_poolrotate(&e->lp);
 }
 
-static int
-so_ctllog_gc(srctl *c srunused, void *arg, va_list args srunused)
+static inline int
+so_ctllog_gc(src *c, srcstmt *s, va_list args)
 {
-	so *e = arg;
+	if (s->op != SR_CSET)
+		return so_ctlv(c, s, args);
+	so *e = s->ptr;
 	return sl_poolgc(&e->lp);
 }
 
-typedef struct {
-	int files;
-} soctllog;
-
-static inline void
-so_ctllog_prepare(srctl *t, soctl *c, soctllog *l)
+static inline src*
+so_ctllog(so *e, soctlrt *rt, src **pc)
 {
-	so *e = c->e;
-	l->files = sl_poolfiles(&e->lp);
-	srctl *p = t;
-	p = sr_ctladd(p, "enable",            SR_CTLINT,          &c->log_enable,        NULL);
-	p = sr_ctladd(p, "path",              SR_CTLSTRINGREF,    &c->log_path,          NULL);
-	p = sr_ctladd(p, "sync",              SR_CTLINT,          &c->log_sync,          NULL);
-	p = sr_ctladd(p, "rotate_wm",         SR_CTLINT,          &c->log_rotate_wm,     NULL);
-	p = sr_ctladd(p, "rotate_sync",       SR_CTLINT,          &c->log_rotate_sync,   NULL);
-	p = sr_ctladd(p, "rotate",            SR_CTLTRIGGER,      NULL,                  so_ctllog_rotate);
-	p = sr_ctladd(p, "gc",                SR_CTLTRIGGER,      NULL,                  so_ctllog_gc);
-	p = sr_ctladd(p, "files",             SR_CTLINT|SR_CTLRO, &l->files,             NULL);
-	p = sr_ctladd(p, "two_phase_recover", SR_CTLINT,          &c->two_phase_recover, NULL);
-	p = sr_ctladd(p, "commit_lsn",        SR_CTLINT,          &c->commit_lsn,        NULL);
-	p = sr_ctladd(p,  NULL,               0,                  NULL,                  NULL);
+	src *log = *pc;
+	src *p = NULL;
+	sr_clink(&p, sr_c(pc, so_ctlv,          "enable",            SR_CU32,        &e->ctl.log_enable));
+	sr_clink(&p, sr_c(pc, so_ctlv,          "path",              SR_CSZREF,      &e->ctl.log_path));
+	sr_clink(&p, sr_c(pc, so_ctlv,          "sync",              SR_CU32,        &e->ctl.log_sync));
+	sr_clink(&p, sr_c(pc, so_ctlv,          "rotate_wm",         SR_CU32,        &e->ctl.log_rotate_wm));
+	sr_clink(&p, sr_c(pc, so_ctlv,          "rotate_sync",       SR_CU32,        &e->ctl.log_rotate_sync));
+	sr_clink(&p, sr_c(pc, so_ctllog_rotate, "rotate",            SR_CVOID,       NULL));
+	sr_clink(&p, sr_c(pc, so_ctllog_gc,     "gc",                SR_CVOID,       NULL));
+	sr_clink(&p, sr_c(pc, so_ctlv,          "files",             SR_CU32|SR_CRO, &rt->log_files));
+	sr_clink(&p, sr_c(pc, so_ctlv,          "two_phase_recover", SR_CU32,        &e->ctl.two_phase_recover));
+	sr_clink(&p, sr_c(pc, so_ctlv,          "commit_lsn",        SR_CU32,        &e->ctl.commit_lsn));
+	return sr_c(pc, NULL, "log", SR_CC, log);
 }
 
-static int
-so_ctllog_set(so *o, char *path, va_list args)
+static inline int
+so_ctldb_set(src *c srunused, srcstmt *s, va_list args)
 {
-	srctl ctls[30];
-	soctllog l;
-	memset(&l, 0, sizeof(l));
-	so_ctllog_prepare(&ctls[0], &o->ctl, &l);
-	srctl *match = NULL;
-	int rc = sr_ctlget(&ctls[0], &path, &match);
-	if (srunlikely(rc ==  1))
-		return -1; /* self */
-	if (srunlikely(rc == -1)) {
-		sr_error(&o->error, "%s", "bad control path");
-		sr_error_recoverable(&o->error);
-		return -1;
-	}
-	int type = match->type & ~SR_CTLRO;
-	if (so_active(o) && (type != SR_CTLTRIGGER)) {
-		sr_error(&o->error, "%s", "failed to set control path");
-		sr_error_recoverable(&o->error);
-		return -1;
-	}
-	rc = sr_ctlset(match, &o->a, o, args);
-	if (srunlikely(rc == -1)) {
-		sr_error_recoverable(&o->error);
-		return -1;
-	}
-	return rc;
-}
-
-static void*
-so_ctllog_get(soctl *c, char *path, va_list args srunused)
-{
-	so *e = c->e;
-	soctllog l;
-	memset(&l, 0, sizeof(l));
-	srctl ctls[30];
-	so_ctllog_prepare(&ctls[0], &e->ctl, &l);
-	srctl *match = NULL;
-	int rc = sr_ctlget(&ctls[0], &path, &match);
-	if (srunlikely(rc ==  1))
-		return NULL; /* self */
-	return so_ctlreturn(match, e);
-}
-
-static int
-so_ctllog_dump(soctl *c, srbuf *dump)
-{
-	so *e = c->e;
-	soctllog l;
-	memset(&l, 0, sizeof(l));
-	srctl ctls[30];
-	so_ctllog_prepare(&ctls[0], &e->ctl, &l);
-	char prefix[64];
-	snprintf(prefix, sizeof(prefix), "log.");
-	int rc = sr_ctlserialize(&ctls[0], &e->a, prefix, dump);
-	if (srunlikely(rc == -1)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
+	/* set(db) */
+	so *e = s->ptr;
+	if (s->op != SR_CSET) {
+		sr_error(&e->error, "%s", "bad operation");
 		sr_error_recoverable(&e->error);
 		return -1;
 	}
+	/* validate argument */
+	char *name = va_arg(args, char*);
+	sodb *db = (sodb*)so_dbmatch(e, name);
+	if (srunlikely(db)) {
+		sr_error(&e->error, "database '%s' is exists", name);
+		sr_error_recoverable(&e->error);
+		return -1;
+	}
+	db = (sodb*)so_dbnew(e, name);
+	if (srunlikely(db == NULL))
+		return -1;
+	so_objindex_register(&e->db, &db->o);
 	return 0;
 }
 
-static inline void
-so_ctlcompaction_prepare(srctl *t, soctl *c)
+static inline int
+so_ctldb_get(src *c, srcstmt *s, va_list args srunused)
 {
-	srctl *p = t;
-	p = sr_ctladd(p, "node_size", SR_CTLU32, &c->node_size, NULL);
-	p = sr_ctladd(p, "page_size", SR_CTLU32, &c->page_size, NULL);
-	int i = 0;
-	while (i < 11) {
-		sizone *z = &c->zones.zones[i];
-		if (z->enable) {
-			p = sr_ctladd(p, z->name, SR_CTLSUB, z, NULL);
-		}
-		i++;
-	}
-	p = sr_ctladd(p, NULL, 0, NULL, NULL);
-}
-
-static inline void
-so_ctlzone_prepare(srctl *t, sizone *z)
-{
-	srctl *p = t;
-	p = sr_ctladd(p, "mode",          SR_CTLU32, &z->mode,          NULL);
-	p = sr_ctladd(p, "compact_wm",    SR_CTLU32, &z->compact_wm,    NULL);
-	p = sr_ctladd(p, "branch_prio",   SR_CTLU32, &z->branch_prio,   NULL);
-	p = sr_ctladd(p, "branch_wm",     SR_CTLU32, &z->branch_wm,     NULL);
-	p = sr_ctladd(p, "branch_ttl",    SR_CTLU32, &z->branch_ttl,    NULL);
-	p = sr_ctladd(p, "branch_ttl_wm", SR_CTLU32, &z->branch_ttl_wm, NULL);
-	p = sr_ctladd(p,  NULL,           0,         NULL,              NULL);
-}
-
-static int
-so_ctlzone_set(so *o, sizone *z, char *path, va_list args)
-{
-	srctl ctls[30];
-	so_ctlzone_prepare(&ctls[0], z);
-	srctl *match = NULL;
-	int rc = sr_ctlget(&ctls[0], &path, &match);
-	if (srunlikely(rc ==  1))
-		return  0; /* self */
-	if (srunlikely(rc == -1)) {
-		sr_error(&o->error, "%s", "bad control path");
-		sr_error_recoverable(&o->error);
-		return -1;
-	}
-	int type = match->type & ~SR_CTLRO;
-	if (so_active(o) && (type != SR_CTLTRIGGER)) {
-		sr_error(&o->error, "%s", "failed to set control path");
-		sr_error_recoverable(&o->error);
-		return -1;
-	}
-	rc = sr_ctlset(match, &o->a, o, args);
-	if (srunlikely(rc == -1)) {
-		sr_error_recoverable(&o->error);
-		return -1;
-	}
-	return rc;
-}
-
-static void*
-so_ctlzone_get(soctl *c, sizone *z, char *path, va_list args srunused)
-{
-	so *e = c->e;
-	srctl ctls[30];
-	so_ctlzone_prepare(&ctls[0], z);
-	srctl *match = NULL;
-	int rc = sr_ctlget(&ctls[0], &path, &match);
-	if (srunlikely(rc ==  1))
-		return NULL; /* self */
-	return so_ctlreturn(match, e);
-}
-
-static int
-so_ctlzone_dump(soctl *c, sizone *z, char *name, srbuf *dump)
-{
-	so *e = c->e;
-	srctl ctls[30];
-	so_ctlzone_prepare(&ctls[0], z);
-	char prefix[64];
-	snprintf(prefix, sizeof(prefix), "compaction.%s.", name);
-	int rc = sr_ctlserialize(&ctls[0], &e->a, prefix, dump);
-	if (srunlikely(rc == -1)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
+	/* get(db.name) */
+	so *e = s->ptr;
+	if (s->op != SR_CGET) {
+		sr_error(&e->error, "%s", "bad operation");
 		sr_error_recoverable(&e->error);
 		return -1;
 	}
+	assert(c->ptr != NULL);
+	*s->result = c->ptr;
 	return 0;
 }
 
-static int
-so_ctlcompaction_set(so *o, char *path, va_list args)
+static inline int
+so_ctldb_cmp(src *c, srcstmt *s, va_list args)
 {
-	srctl ctls[30];
-	so_ctlcompaction_prepare(&ctls[0], &o->ctl);
-	if (so_active(o)) {
-		sr_error(&o->error, "%s", "failed to set control path");
-		sr_error_recoverable(&o->error);
+	if (s->op != SR_CSET)
+		return so_ctlv(c, s, args);
+	sodb *db = c->value;
+	db->ctl.cmp.cmp = va_arg(args, srcmpf);
+	return 0;
+}
+
+static inline int
+so_ctldb_cmparg(src *c, srcstmt *s, va_list args)
+{
+	if (s->op != SR_CSET)
+		return so_ctlv(c, s, args);
+	sodb *db = c->value;
+	db->ctl.cmp.cmparg = va_arg(args, void*);
+	return 0;
+}
+
+static inline int
+so_ctldb_status(src *c, srcstmt *s, va_list args)
+{
+	sodb *db = c->value;
+	char *status = so_statusof(&db->status);
+	src ctl = {
+		.name     = c->name,
+		.flags    = c->flags,
+		.function = NULL,
+		.value    = status,
+		.next     = NULL
+	};
+	return so_ctlv(&ctl, s, args);
+}
+
+static inline int
+so_ctldb_branch(src *c, srcstmt *s, va_list args)
+{
+	if (s->op != SR_CSET)
+		return so_ctlv(c, s, args);
+	sodb *db = c->value;
+	return so_scheduler_branch(db);
+}
+
+static inline int
+so_ctldb_compact(src *c, srcstmt *s, va_list args)
+{
+	if (s->op != SR_CSET)
+		return so_ctlv(c, s, args);
+	sodb *db = c->value;
+	return so_scheduler_compact(db);
+}
+
+static inline int
+so_ctldb_lockdetect(src *c, srcstmt *s, va_list args)
+{
+	if (s->op != SR_CSET)
+		return so_ctlv(c, s, args);
+	sodb *db = c->value;
+	sotx *tx = va_arg(args, sotx*);
+	if (srunlikely(tx->db != db)) {
+		sr_error(&db->e->error, "%s", "transaction does not match a parent db object");
+		sr_error_recoverable(&db->e->error);
 		return -1;
 	}
-	char *token;
-	token = strtok_r(NULL, ".", &path);
-	if (srunlikely(token == NULL)) {
-		sr_error(&o->error, "%s", "bad control path");
-		sr_error_recoverable(&o->error);
-		return -1;
-	}
-	srctl *match = NULL;
-	int rc = sr_ctlmatch(&ctls[0], token, &match);
-	if (srunlikely(rc == -1)) {
-		uint32_t percent = atoi(token);
-		if (percent > 100) {
-			sr_error(&o->error, "%s", "bad control path");
-			sr_error_recoverable(&o->error);
-			return -1;
-		}
-		sizone z;
-		memset(&z, 0, sizeof(z));
-		z.enable = 1;
-		si_zonemap_set(&o->ctl.zones, percent, &z);
-		return so_ctlzone_set(o, &z, path, args);
-	}
-	int type = match->type & ~SR_CTLRO;
-	if (type == SR_CTLSUB) {
-		return so_ctlzone_set(o, match->v, path, args);
-	}
-	rc = sr_ctlset(match, &o->a, o, args);
-	if (srunlikely(rc == -1)) {
-		sr_error_recoverable(&o->error);
-		return -1;
-	}
+	int rc = sm_deadlock(&tx->t);
 	return rc;
 }
 
-static void*
-so_ctlcompaction_get(soctl *c, char *path, va_list args srunused)
+static inline src*
+so_ctldb(so *e, soctlrt *rt srunused, src **pc)
 {
-	so *e = c->e;
-	srctl ctls[30];
-	so_ctlcompaction_prepare(&ctls[0], &e->ctl);
-	srctl *match = NULL;
-	int rc = sr_ctlget(&ctls[0], &path, &match);
-	if (srunlikely(rc ==  1))
-		return NULL; /* self */
-	if (srunlikely(rc == -1)) {
-		sr_error(&e->error, "%s", "bad control path");
-		sr_error_recoverable(&e->error);
-		return NULL;
+	src *db = NULL;
+	src *p;
+	srlist *i;
+	sr_listforeach(&e->db.list, i)
+	{
+		sodb *o = (sodb*)srcast(i, soobj, link);
+		si_profilerbegin(&o->ctl.rtp, &o->index);
+		si_profiler(&o->ctl.rtp, &o->r);
+		si_profilerend(&o->ctl.rtp);
+		src *index = *pc;
+		p = NULL;
+		sr_clink(&p, sr_c(pc, so_ctldb_cmp,        "cmp",              SR_CVOID,       o));
+		sr_clink(&p, sr_c(pc, so_ctldb_cmparg,     "cmp_arg",          SR_CVOID,       o));
+		sr_clink(&p, sr_c(pc, so_ctlv,             "node_count",       SR_CU32|SR_CRO, &o->ctl.rtp.total_node_count));
+		sr_clink(&p, sr_c(pc, so_ctlv,             "node_size",        SR_CU64|SR_CRO, &o->ctl.rtp.total_node_size));
+		sr_clink(&p, sr_c(pc, so_ctlv,             "branch_count",     SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_count));
+		sr_clink(&p, sr_c(pc, so_ctlv,             "branch_avg",       SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_avg));
+		sr_clink(&p, sr_c(pc, so_ctlv,             "branch_max",       SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_max));
+		sr_clink(&p, sr_c(pc, so_ctlv,             "branch_size",      SR_CU64|SR_CRO, &o->ctl.rtp.total_branch_size));
+		sr_clink(&p, sr_c(pc, so_ctlv,             "memory_used",      SR_CU64|SR_CRO, &o->ctl.rtp.memory_used));
+		sr_clink(&p, sr_c(pc, so_ctlv,             "count",            SR_CU64|SR_CRO, &o->ctl.rtp.count));
+		sr_clink(&p, sr_c(pc, so_ctlv,             "seq_dsn",          SR_CU32|SR_CRO, &o->ctl.rtp.seq.dsn));
+		sr_clink(&p, sr_c(pc, so_ctlv,             "seq_nsn",          SR_CU32|SR_CRO, &o->ctl.rtp.seq.nsn));
+		sr_clink(&p, sr_c(pc, so_ctlv,             "seq_lsn",          SR_CU64|SR_CRO, &o->ctl.rtp.seq.lsn));
+		sr_clink(&p, sr_c(pc, so_ctlv,             "seq_lfsn",         SR_CU32|SR_CRO, &o->ctl.rtp.seq.lfsn));
+		sr_clink(&p, sr_c(pc, so_ctlv,             "seq_tsn",          SR_CU32|SR_CRO, &o->ctl.rtp.seq.tsn));
+		sr_clink(&p, sr_c(pc, so_ctlv,             "histogram_branch", SR_CSZ|SR_CRO,  o->ctl.rtp.histogram_branch_ptr));
+		src *database = *pc;
+		p = NULL;
+		sr_clink(&p, sr_c(pc, so_ctlv,             "name",             SR_CSZ|SR_CRO,  o->ctl.name));
+		sr_clink(&p, sr_c(pc, so_ctlv,             "id",               SR_CU32,        &o->ctl.id));
+		sr_clink(&p, sr_c(pc, so_ctldb_status,     "status",           SR_CSZ|SR_CRO,  o));
+		sr_clink(&p, sr_c(pc, so_ctlv,             "path",             SR_CSZREF,      &o->ctl.path));
+		sr_clink(&p, sr_c(pc, so_ctlv,             "sync",             SR_CU32,        &o->ctl.sync));
+		sr_clink(&p, sr_c(pc, so_ctldb_branch,     "branch",           SR_CVOID,       o));
+		sr_clink(&p, sr_c(pc, so_ctldb_compact,    "compact",          SR_CVOID,       o));
+		sr_clink(&p, sr_c(pc, so_ctldb_lockdetect, "lockdetect",       SR_CVOID,       o));
+		sr_clink(&p, sr_c(pc, NULL,                "index",            SR_CC,          index));
+		database = sr_c(pc, so_ctldb_get, o->ctl.name, SR_CC, database);
+		database->ptr = o;
+		sr_clink(&db, database);
 	}
-	int type = match->type & ~SR_CTLRO;
-	if (type == SR_CTLSUB) {
-		return so_ctlzone_get(c, match->v, path, args);
-	}
-	return so_ctlreturn(match, e);
+	return sr_c(pc, so_ctldb_set, "db", SR_CC, db);
+}
+
+static inline src*
+so_ctldebug(so *e, soctlrt *rt srunused, src **pc)
+{
+	src *ei = *pc;
+	src *p = NULL;
+	sr_clink(&p, sr_c(pc, so_ctlv, "si_branch_0",     SR_CU32, &e->ei.e[0]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "si_branch_1",     SR_CU32, &e->ei.e[1]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "si_compaction_0", SR_CU32, &e->ei.e[2]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "si_compaction_1", SR_CU32, &e->ei.e[3]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "si_compaction_2", SR_CU32, &e->ei.e[4]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "si_compaction_3", SR_CU32, &e->ei.e[5]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "si_compaction_4", SR_CU32, &e->ei.e[6]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "se_snapshot_0",   SR_CU32, &e->ei.e[7]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "se_snapshot_1",   SR_CU32, &e->ei.e[8]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "se_snapshot_2",   SR_CU32, &e->ei.e[9]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "se_snapshot_3",   SR_CU32, &e->ei.e[10]));
+	ei = sr_c(pc, so_ctldb_set, "error_injection", SR_CC, ei);
+	return sr_c(pc, NULL, "debug", SR_CC, ei);
+}
+
+static src*
+so_ctlprepare(so *e, soctlrt *rt, src *c, int serialize)
+{
+	/* sophia */
+	src *pc = c;
+	src *sophia     = so_ctlsophia(e, rt, &pc);
+	src *memory     = so_ctlmemory(e, rt, &pc);
+	src *compaction = so_ctlcompaction(e, rt, &pc);
+	src *scheduler  = so_ctlscheduler(e, rt, &pc);
+	src *log        = so_ctllog(e, rt, &pc);
+	src *db         = so_ctldb(e, rt, &pc);
+	src *debug      = so_ctldebug(e, rt, &pc);
+
+	sophia->next     = memory;
+	memory->next     = compaction;
+	compaction->next = scheduler;
+	scheduler->next  = log;
+	log->next        = db;
+	/* snapshot */
+
+	if (! serialize)
+		db->next = debug;
+	return sophia;
 }
 
 static int
-so_ctlcompaction_dump(soctl *c, srbuf *dump)
+so_ctlrt(so *e, soctlrt *rt)
 {
-	so *e = c->e;
-	srctl ctls[30];
-	so_ctlcompaction_prepare(&ctls[0], &e->ctl);
-	char prefix[64];
-	snprintf(prefix, sizeof(prefix), "compaction.");
-	int rc = sr_ctlserialize(&ctls[0], &e->a, prefix, dump);
-	if (srunlikely(rc == -1)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
-		sr_error_recoverable(&e->error);
-		return -1;
-	}
-	int i = 0;
-	while (i < 11) {
-		sizone *z = &c->zones.zones[i];
-		if (z->enable) {
-			rc = so_ctlzone_dump(c, z, z->name, dump);
-			if (srunlikely(rc == -1))
-				return -1;
-		}
-		i++;
-	}
+	/* sophia */
+	snprintf(rt->version, sizeof(rt->version),
+	         "%d.%d",
+	         SR_VERSION_MAJOR - '0',
+	         SR_VERSION_MINOR - '0');
+
+	/* memory */
+	rt->memory_used = sr_quotaused(&e->quota);
+
+	/* scheduler */
+	sr_mutexlock(&e->sched.lock);
+	rt->checkpoint_active   = e->sched.checkpoint;
+	rt->checkpoint_lsn_last = e->sched.checkpoint_lsn_last;
+	rt->checkpoint_lsn      = e->sched.checkpoint_lsn;
+	sr_mutexunlock(&e->sched.lock);
+
+	int v = sr_quotaused_percent(&e->quota);
+	sizone *z = si_zonemap(&e->ctl.zones, v);
+	memcpy(rt->zone, z->name, sizeof(rt->zone));
+
+	/* log */
+	rt->log_files = sl_poolfiles(&e->lp);
 	return 0;
 }
 
@@ -623,37 +534,22 @@ so_ctlset(soobj *obj, va_list args)
 {
 	soctl *c = (soctl*)obj;
 	so *e = c->e;
+	soctlrt rt;
+	so_ctlrt(e, &rt);
+	src ctl[1024];
+
+	src *root;
+	root = so_ctlprepare(e, &rt, ctl, 0);
 	char *path = va_arg(args, char*);
-	char q[200];
-	snprintf(q, sizeof(q), "%s", path);
-	char *ptr = NULL;
-	char *token;
-	token = strtok_r(q, ".", &ptr);
-	if (srunlikely(token == NULL)) {
-		sr_error(&e->error, "%s", "bad control path");
-		sr_error_recoverable(&e->error);
-		return -1;
-	}
-	if (strcmp(token, "sophia") == 0)
-		return so_ctlsophia_set(c, ptr, args);
-	else
-	if (strcmp(token, "memory") == 0)
-		return so_ctlmemory_set(e, ptr, args);
-	else
-	if (strcmp(token, "compaction") == 0)
-		return so_ctlcompaction_set(e, ptr, args);
-	else
-	if (strcmp(token, "scheduler") == 0)
-		return so_schedulerctl_set(&e->o, ptr, args);
-	else
-	if (strcmp(token, "log") == 0)
-		return so_ctllog_set(e, ptr, args);
-	else
-	if (strcmp(token, "db") == 0)
-		return so_ctldb_set(c, ptr, args);
-	sr_error(&e->error, "%s", "unknown control path");
-	sr_error_recoverable(&e->error);
-	return -1;
+	srcstmt stmt = {
+		.op        = SR_CSET,
+		.path      = path,
+		.serialize = NULL,
+		.result    = NULL,
+		.ptr       = e,
+		.r         = &e->r
+	};
+	return sr_cexecv(root, &stmt, args);
 }
 
 static void*
@@ -661,60 +557,46 @@ so_ctlget(soobj *obj, va_list args)
 {
 	soctl *c = (soctl*)obj;
 	so *e = c->e;
-	char *path = va_arg(args, char*);
-	char q[200];
-	snprintf(q, sizeof(q), "%s", path);
-	char *ptr = NULL;
-	char *token;
-	token = strtok_r(q, ".", &ptr);
-	if (srunlikely(token == NULL)) {
-		sr_error(&e->error, "%s", "bad control path");
-		sr_error_recoverable(&e->error);
+	soctlrt rt;
+	so_ctlrt(e, &rt);
+	src ctl[1024];
+
+	src *root;
+	root = so_ctlprepare(e, &rt, ctl, 0);
+	char *path   = va_arg(args, char*);
+	void *result = NULL;
+	srcstmt stmt = {
+		.op        = SR_CGET,
+		.path      = path,
+		.serialize = NULL,
+		.result    = &result,
+		.ptr       = e,
+		.r         = &e->r
+	};
+	int rc = sr_cexecv(root, &stmt, args);
+	if (srunlikely(rc == -1))
 		return NULL;
-	}
-	if (strcmp(token, "sophia") == 0)
-		return so_ctlsophia_get(c, ptr, args);
-	else
-	if (strcmp(token, "memory") == 0)
-		return so_ctlmemory_get(c, ptr, args);
-	else
-	if (strcmp(token, "compaction") == 0)
-		return so_ctlcompaction_get(c, ptr, args);
-	else
-	if (strcmp(token, "scheduler") == 0)
-		return so_schedulerctl_get(&e->o, ptr, args);
-	else
-	if (strcmp(token, "log") == 0)
-		return so_ctllog_get(c, ptr, args);
-	else
-	if (strcmp(token, "db") == 0)
-		return so_ctldb_get(c, ptr, args);
-	sr_error(&e->error, "%s", "unknown control path");
-	sr_error_recoverable(&e->error);
-	return NULL;
+	return result;
 }
 
-int so_ctldump(soctl *c, srbuf *dump)
+int so_ctlserialize(soctl *c, srbuf *buf)
 {
-	int rc = so_ctlsophia_dump(c, dump);
-	if (srunlikely(rc == -1))
-		return -1;
-	rc = so_ctlmemory_dump(c, dump);
-	if (srunlikely(rc == -1))
-		return -1;
-	rc = so_ctlcompaction_dump(c, dump);
-	if (srunlikely(rc == -1))
-		return -1;
-	rc = so_schedulerctl_dump(c->e, dump);
-	if (srunlikely(rc == -1))
-		return -1;
-	rc = so_ctllog_dump(c, dump);
-	if (srunlikely(rc == -1))
-		return -1;
-	rc = so_ctldb_dump(c, dump);
-	if (srunlikely(rc == -1))
-		return -1;
-	return 0;
+	so *e = c->e;
+	soctlrt rt;
+	so_ctlrt(e, &rt);
+	src ctl[1024];
+
+	src *root;
+	root = so_ctlprepare(e, &rt, ctl, 1);
+	srcstmt stmt = {
+		.op        = SR_CSERIALIZE,
+		.path      = NULL,
+		.serialize = buf,
+		.result    = NULL,
+		.ptr       = e,
+		.r         = &e->r
+	};
+	return sr_cexec(root, &stmt);
 }
 
 static void*
@@ -752,12 +634,20 @@ void so_ctlinit(soctl *c, void *e)
 	so *o = e;
 	so_objinit(&c->o, SOCTL, &soctlif, e);
 
-	c->path         = NULL;
-	c->memory_limit = 0;
-	c->node_size    = 64 * 1024 * 1024;
-	c->page_size    = 64 * 1024;
-
-	sizone unlimited = {
+	c->path              = NULL;
+	c->memory_limit      = 0;
+	c->node_size         = 64 * 1024 * 1024;
+	c->page_size         = 64 * 1024;
+	c->threads           = 5;
+	c->log_enable        = 1;
+	c->log_path          = NULL;
+	c->log_rotate_wm     = 500000;
+	c->log_sync          = 0;
+	c->log_rotate_sync   = 1;
+	c->two_phase_recover = 0;
+	c->commit_lsn        = 0;
+	c->e                 = e;
+	sizone def = {
 		.enable        = 1,
 		.mode          = 3, /* branch + compact */
 		.compact_wm    = 1,
@@ -766,7 +656,6 @@ void so_ctlinit(soctl *c, void *e)
 		.branch_ttl    = 40,
 		.branch_ttl_wm = 1 * 1024 * 1024
 	};
-
 	sizone redzone = {
 		.enable        = 1,
 		.mode          = 2, /* checkpoint */
@@ -776,69 +665,19 @@ void so_ctlinit(soctl *c, void *e)
 		.branch_ttl    = 0,
 		.branch_ttl_wm = 0
 	};
-
-	si_zonemap_set(&o->ctl.zones,  0, &unlimited);
+	si_zonemap_set(&o->ctl.zones,  0, &def);
 	si_zonemap_set(&o->ctl.zones, 80, &redzone);
-
-#if 0
-	c->z0.mode            = 3; /* compact_index */
-	c->z0.compact_wm      = 1; /* 0 */
-	c->z0.branch_prio     = 1; /* 0 */
-	c->z0.branch_wm       = 10 * 1024 * 1024;
-	c->z0.branch_ttl      = 40;
-	c->z0.branch_ttl_wm   = 1 * 1024 * 1024;
-	/* <= 50 */
-	c->za.mode            = 3; /* compact index + branching */
-	c->za.compact_wm      = 1;
-	c->za.branch_prio     = 1;
-	c->za.branch_wm       = 10 * 1024 * 1024;
-	c->za.branch_ttl      = 40;
-	c->za.branch_ttl_wm   = 2 * 1024 * 1024;
-	/* <= 60 */
-	c->zb.mode            = 3; /* branch + compact */
-	c->zb.compact_wm      = 1;
-	c->zb.branch_prio     = 1;
-	c->zb.branch_wm       = 9 * 1024 * 1024;
-	c->zb.branch_ttl      = 30;
-	c->zb.branch_ttl_wm   = 1 * 1024 * 1024;
-	/* <= 70 */
-	c->zc.mode            = 3; /* branch + compact */
-	c->zc.compact_wm      = 1;
-	c->zc.branch_prio     = 2;
-	c->zc.branch_wm       = 6 * 1024 * 1024;
-	c->zc.branch_ttl      = 20;
-	c->zc.branch_ttl_wm   = 1 * 1024 * 1024;
-	/* <= 80 */
-	c->zd.mode            = 3; /* branch + compact */
-	c->zd.compact_wm      = 2;
-	c->zd.branch_prio     = 3;
-	c->zd.branch_wm       = 4 * 1024 * 1024;
-	c->zd.branch_ttl      = 15;
-	c->zd.branch_ttl_wm   = 1 * 1024 * 1024;
-	/*  > 80 */
-	c->ze.mode            = 2; /* checkpoint */
-	c->ze.compact_wm      = 3;
-	c->ze.branch_prio     = 4;
-	c->ze.branch_wm       = 1; /* any > 0 */
-	c->ze.branch_ttl      = 10;
-	c->ze.branch_ttl_wm   = 1 * 1024 * 1024;
-#endif
-
-	c->threads            = 5;
-	c->log_enable         = 1;
-	c->log_path           = NULL;
-	c->log_rotate_wm      = 500000;
-	c->log_sync           = 0;
-	c->log_rotate_sync    = 1;
-	c->two_phase_recover  = 0;
-	c->commit_lsn         = 0;
-	c->e                  = e;
 }
 
 void so_ctlfree(soctl *c)
 {
+	so *e = c->e;
+	if (c->path) {
+		sr_free(&e->a, c->path);
+		c->path = NULL;
+	}
 	if (c->log_path) {
-		sr_free(&((so*)c->e)->a, c->log_path);
+		sr_free(&e->a, c->log_path);
 		c->log_path = NULL;
 	}
 }

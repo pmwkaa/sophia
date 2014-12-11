@@ -1,6 +1,7 @@
 LIBST_O = st.o \
           st_scene.o \
           run.o \
+          srctl.test.o \
           srpager.test.o \
           sraslab.test.o \
           svindex.test.o \

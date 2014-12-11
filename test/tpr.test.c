@@ -25,6 +25,7 @@ tpr_test0(stc *cx srunused)
 	t( sp_set(c, "log.two_phase_recover", "1") == 0 );
 	t( sp_open(env) == 0 );
 
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -64,6 +65,7 @@ tpr_test1(stc *cx srunused)
 	t( sp_set(c, "log.two_phase_recover", "1") == 0 );
 	t( sp_open(env) == 0 );
 
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -97,6 +99,7 @@ tpr_test1(stc *cx srunused)
 	t( sp_set(c, "log.enable", "0") == 0 );
 	t( sp_set(c, "log.two_phase_recover", "1") == 0 );
 	t( sp_open(env) == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );

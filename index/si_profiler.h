@@ -26,7 +26,7 @@ struct siprofiler {
 	char      histogram_branch_sz[512];
 	char     *histogram_branch_ptr;
 	srseq     seq;
-};
+} srpacked;
 
 int si_profilerbegin(siprofiler*, si*);
 int si_profilerend(siprofiler*);

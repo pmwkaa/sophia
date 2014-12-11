@@ -35,12 +35,14 @@ so_ctlcursor_set(soctlcursor *c)
 	int type = c->pos->type;
 	void *value = NULL;
 	if (c->pos->valuelen > 0)
-		value = sr_ctldump_value(c->pos);
-	srctl match = {
-		.name = sr_ctldump_name(c->pos),
-		.v    = value,
-		.type = type,
-		.func = NULL
+		value = sr_cvvalue(c->pos);
+	src match = {
+		.name     = sr_cvname(c->pos),
+		.value    = value,
+		.flags    = type,
+		.ptr      = NULL,
+		.function = NULL,
+		.next     = NULL
 	};
 	void *v = so_ctlreturn(&match, c->e);
 	if (srunlikely(v == NULL))
@@ -56,11 +58,11 @@ so_ctlcursor_next(soctlcursor *c)
 {
 	int rc;
 	if (c->pos == NULL) {
-		assert( sr_bufsize(&c->dump) >= (int)sizeof(srctldump) );
-		c->pos = (srctldump*)c->dump.s;
+		assert( sr_bufsize(&c->dump) >= (int)sizeof(srcv) );
+		c->pos = (srcv*)c->dump.s;
 	} else {
-		int size = sizeof(srctldump) + c->pos->namelen + c->pos->valuelen;
-		c->pos = (srctldump*)((char*)c->pos + size);
+		int size = sizeof(srcv) + c->pos->namelen + c->pos->valuelen;
+		c->pos = (srcv*)((char*)c->pos + size);
 		if ((char*)c->pos >= c->dump.p)
 			c->pos = NULL;
 	}
@@ -125,7 +127,7 @@ static inline int
 so_ctlcursor_open(soctlcursor *c)
 {
 	so *e = c->e;
-	int rc = so_ctldump(&e->ctl, &c->dump);
+	int rc = so_ctlserialize(&e->ctl, &c->dump);
 	if (srunlikely(rc == -1))
 		return -1;
 	rc = so_ctlcursor_next(c);

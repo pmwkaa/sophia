@@ -145,7 +145,7 @@ soobj *so_new(void)
 		return NULL;
 	memset(e, 0, sizeof(*e));
 	so_objinit(&e->o, SOENV, &soif, &e->o /* self */);
-	sr_pagerinit(&e->pager, 10, 1024);
+	sr_pagerinit(&e->pager, 10, 4096);
 	int rc = sr_pageradd(&e->pager);
 	if (srunlikely(rc == -1)) {
 		free(e);
@@ -168,7 +168,7 @@ soobj *so_new(void)
 	sr_quotainit(&e->quota);
 	sr_seqinit(&e->seq);
 	sr_errorinit(&e->error);
-	sr_init(&e->r, &e->error, &e->a, &e->seq, NULL, NULL);
+	sr_init(&e->r, &e->error, &e->a, &e->seq, NULL, &e->ei);
 	se_init(&e->se);
 	sl_poolinit(&e->lp, &e->r);
 	so_scheduler_init(&e->sched, e);

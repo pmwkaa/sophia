@@ -63,6 +63,7 @@ st_scene_create(stscene *g, stc *cx)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -181,7 +182,6 @@ st_scene_truncate(stscene *g, stc *cx)
 {
 	printf(".truncate");
 	fflush(NULL);
-
 	void *c = sp_cursor(cx->db, ">=", NULL);
 	t( c != NULL );
 	void *o;
@@ -193,6 +193,7 @@ st_scene_truncate(stscene *g, stc *cx)
 		sp_set(k, "key", key, keysize);
 		t( sp_delete(cx->db, k) == 0 );
 	}
+	t( sp_destroy(c) == 0 );
 }
 
 void

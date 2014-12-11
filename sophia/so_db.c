@@ -17,6 +17,60 @@
 #include <libso.h>
 
 static int
+so_dbctl_init(sodbctl *c, char *name, void *db)
+{
+	memset(c, 0, sizeof(*c));
+	sodb *o = db;
+	c->name = sr_strdup(&o->e->a, name);
+	if (srunlikely(c->name == NULL)) {
+		sr_error(&o->e->error, "%s", "memory allocation failed");
+		sr_error_recoverable(&o->e->error);
+		return -1;
+	}
+	c->parent     = db;
+	c->created    = 0;
+	c->sync       = 1;
+	c->cmp.cmp    = sr_cmpstring;
+	c->cmp.cmparg = NULL;
+	return 0;
+}
+
+static int
+so_dbctl_free(sodbctl *c)
+{
+	sodb *o = c->parent;
+	if (so_dbactive(o))
+		return -1;
+	if (c->name) {
+		sr_free(&o->e->a, c->name);
+		c->name = NULL;
+	}
+	if (c->path) {
+		sr_free(&o->e->a, c->path);
+		c->path = NULL;
+	}
+	return 0;
+}
+
+static int
+so_dbctl_validate(sodbctl *c)
+{
+	sodb *o = c->parent;
+	so *e = o->e;
+	if (c->path)
+		return 0;
+	char path[1024];
+	snprintf(path, sizeof(path), "%s/%s", e->ctl.path, c->name);
+	c->path = sr_strdup(&e->a, path);
+	if (srunlikely(c->path == NULL)) {
+		sr_error(&e->error, "%s", "memory allocation failed");
+		sr_error_recoverable(&e->error);
+		return -1;
+	}
+	return 0;
+}
+
+static int
 so_dbopen(soobj *obj, va_list args srunused)
 {
 	sodb *o = (sodb*)obj;
@@ -165,7 +219,6 @@ soobj *so_dbnew(so *e, char *name)
 	o->e     = e;
 	o->r     = e->r;
 	o->r.cmp = &o->ctl.cmp;
-	o->r.i   = &o->ei;
 	int rc = so_dbctl_init(&o->ctl, name, o);
 	if (srunlikely(rc == -1)) {
 		sr_free(&e->a_db, o);

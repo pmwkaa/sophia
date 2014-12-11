@@ -31,6 +31,7 @@ recover_loop(stc *cx)
 		t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 		t( sp_set(c, "log.sync", "0") == 0 );
 		t( sp_set(c, "log.rotate_sync", "0") == 0 );
+		t( sp_set(c, "db", "test") == 0 );
 		t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 		t( sp_set(c, "db.test.sync", "0") == 0 );
 		t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -84,6 +85,7 @@ recover_loop(stc *cx)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );

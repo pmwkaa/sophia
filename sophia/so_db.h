@@ -9,7 +9,19 @@
  * BSD License
 */
 
+typedef struct sodbctl sodbctl;
 typedef struct sodb sodb;
+
+struct sodbctl {
+	void         *parent;
+	char         *name;
+	uint32_t      id;
+	srcomparator  cmp;
+	char         *path;
+	uint32_t      created;
+	uint32_t      sync;
+	siprofiler    rtp;
+} srpacked;
 
 struct sodb {
 	soobj o;
@@ -21,7 +33,6 @@ struct sodb {
 	sdc dc;
 	siconf indexconf;
 	si index;
-	srinjection ei;
 	sr r;
 	so *e;
 } srpacked;

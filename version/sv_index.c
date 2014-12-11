@@ -34,7 +34,7 @@ int sv_indexfree(svindex *i, sr *r)
 static inline svv*
 sv_vset(svv *head, svv *v)
 {
-	if (srunlikely(head->lsn < v->lsn)) {
+	if (srlikely(head->lsn < v->lsn)) {
 		v->next = head;
 		return v;
 	}
@@ -48,8 +48,8 @@ sv_vset(svv *head, svv *v)
 			v->next = c;
 			break;
 		}
-		c = c->next;
 		prev = c;
+		c = c->next;
 	}
 	return head;
 }
@@ -64,6 +64,7 @@ sv_vgc(svv *v, uint64_t vlsn)
 			prev->next = NULL;
 			return c;
 		}
+		prev = c;
 		c = c->next;
 	}
 	return NULL;

@@ -24,6 +24,7 @@ recovercrash_branch0(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -45,7 +46,7 @@ recovercrash_branch0(stc *cx srunused)
 	t( o != 0 );
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
-	t( sp_set(c, "db.test.error_injection.si_branch_0", "1") == 0 );
+	t( sp_set(c, "debug.error_injection.si_branch_0", "1") == 0 );
 	t( sp_set(c, "db.test.branch") == -1 );
 	t( sp_destroy(env) == 0 );
 
@@ -63,6 +64,7 @@ recovercrash_branch0(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -104,6 +106,7 @@ recovercrash_branch1(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -125,7 +128,7 @@ recovercrash_branch1(stc *cx srunused)
 	t( o != 0 );
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
-	t( sp_set(c, "db.test.error_injection.si_branch_1", "1") == 0 );
+	t( sp_set(c, "debug.error_injection.si_branch_1", "1") == 0 );
 	t( sp_set(c, "db.test.branch") == -1 );
 	t( sp_destroy(env) == 0 );
 
@@ -143,6 +146,7 @@ recovercrash_branch1(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -184,6 +188,7 @@ recovercrash_compact0(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -205,7 +210,7 @@ recovercrash_compact0(stc *cx srunused)
 	t( o != 0 );
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
-	t( sp_set(c, "db.test.error_injection.si_compaction_0", "1") == 0 );
+	t( sp_set(c, "debug.error_injection.si_compaction_0", "1") == 0 );
 	t( sp_set(c, "db.test.branch") == 0 );
 	t( sp_set(c, "db.test.compact") == -1 );
 	t( sp_destroy(env) == 0 );
@@ -225,6 +230,7 @@ recovercrash_compact0(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -267,6 +273,7 @@ recovercrash_compact1(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -288,7 +295,7 @@ recovercrash_compact1(stc *cx srunused)
 	t( o != 0 );
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
-	t( sp_set(c, "db.test.error_injection.si_compaction_1", "1") == 0 );
+	t( sp_set(c, "debug.error_injection.si_compaction_1", "1") == 0 );
 	t( sp_set(c, "db.test.branch") == 0 );
 	t( sp_set(c, "db.test.compact") == -1 );
 	t( sp_destroy(env) == 0 );
@@ -309,6 +316,7 @@ recovercrash_compact1(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -353,6 +361,7 @@ recovercrash_compact2(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -374,7 +383,7 @@ recovercrash_compact2(stc *cx srunused)
 	t( o != 0 );
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
-	t( sp_set(c, "db.test.error_injection.si_compaction_2", "1") == 0 );
+	t( sp_set(c, "debug.error_injection.si_compaction_2", "1") == 0 );
 	t( sp_set(c, "db.test.branch") == 0 );
 	t( sp_set(c, "db.test.compact") == -1 );
 	t( sp_destroy(env) == 0 );
@@ -395,6 +404,7 @@ recovercrash_compact2(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -441,6 +451,7 @@ recovercrash_compact3(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -456,7 +467,7 @@ recovercrash_compact3(stc *cx srunused)
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
-	t( sp_set(c, "db.test.error_injection.si_compaction_0", "1") == 0 );
+	t( sp_set(c, "debug.error_injection.si_compaction_0", "1") == 0 );
 	t( sp_set(c, "db.test.branch") == 0 );
 	t( sp_set(c, "db.test.compact") == -1 );
 	t( sp_destroy(env) == 0 );
@@ -479,6 +490,7 @@ recovercrash_compact3(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -521,6 +533,7 @@ recovercrash_compact4(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -536,7 +549,7 @@ recovercrash_compact4(stc *cx srunused)
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
-	t( sp_set(c, "db.test.error_injection.si_compaction_1", "1") == 0 );
+	t( sp_set(c, "debug.error_injection.si_compaction_1", "1") == 0 );
 	t( sp_set(c, "db.test.branch") == 0 );
 	t( sp_set(c, "db.test.compact") == -1 );
 	t( sp_destroy(env) == 0 );
@@ -559,6 +572,7 @@ recovercrash_compact4(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -603,6 +617,7 @@ recovercrash_compact5(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -618,7 +633,7 @@ recovercrash_compact5(stc *cx srunused)
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
-	t( sp_set(c, "db.test.error_injection.si_compaction_2", "1") == 0 );
+	t( sp_set(c, "debug.error_injection.si_compaction_2", "1") == 0 );
 	t( sp_set(c, "db.test.branch") == 0 );
 	t( sp_set(c, "db.test.compact") == -1 );
 	t( sp_destroy(env) == 0 );
@@ -641,6 +656,7 @@ recovercrash_compact5(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -685,6 +701,7 @@ recovercrash_compact6(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -700,7 +717,7 @@ recovercrash_compact6(stc *cx srunused)
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
-	t( sp_set(c, "db.test.error_injection.si_compaction_3", "1") == 0 );
+	t( sp_set(c, "debug.error_injection.si_compaction_3", "1") == 0 );
 	t( sp_set(c, "db.test.branch") == 0 );
 	t( sp_set(c, "db.test.compact") == -1 );
 	t( sp_destroy(env) == 0 );
@@ -723,6 +740,7 @@ recovercrash_compact6(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -767,6 +785,7 @@ recovercrash_compact7(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
@@ -782,7 +801,7 @@ recovercrash_compact7(stc *cx srunused)
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
-	t( sp_set(c, "db.test.error_injection.si_compaction_4", "1") == 0 );
+	t( sp_set(c, "debug.error_injection.si_compaction_4", "1") == 0 );
 	t( sp_set(c, "db.test.branch") == 0 );
 	t( sp_set(c, "db.test.compact") == -1 );
 	t( sp_destroy(env) == 0 );
@@ -806,6 +825,7 @@ recovercrash_compact7(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );

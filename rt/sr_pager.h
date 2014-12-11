@@ -27,7 +27,7 @@ struct srpager {
 	uint32_t page_size;
 	uint32_t pool_count;
 	uint32_t pool_size;
-	int pools;
+	uint32_t pools;
 	srpagepool *pp;
 	srpage *p;
 };

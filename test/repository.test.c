@@ -74,7 +74,7 @@ repository_test2(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", "sophia") == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "db.test") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_open(env) == 0 );
 	t( exists("sophia", "log") == 1 );
 	t( exists("sophia", "test") == 1 );
@@ -96,6 +96,7 @@ repository_test3(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", "sophia") == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", "dir") == 0 );
 	t( sp_open(env) == 0 );
 	t( exists("sophia", "log") == 1 );

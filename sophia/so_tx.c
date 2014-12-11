@@ -72,7 +72,7 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	/* log write */
 	svlog log;
 	sv_loginit(&log);
-	sv_logadd(&log, NULL, &vp);
+	sv_logadd(&log, db->r.a, &vp);
 	sltx tl;
 	sl_begin(&db->e->lp, &tl, db->ctl.id);
 	sl_prepare(&db->e->lp, &log);

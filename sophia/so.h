@@ -35,6 +35,7 @@ struct so {
 	slpool lp;
 	soscheduler sched;
 	srerror error;
+	srinjection ei;
 	sr r;
 };
 
