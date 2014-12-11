@@ -26,7 +26,12 @@ srhot int
 sr_cmpstring(char *a, size_t asz, char *b, size_t bsz,
              void *arg srunused)
 {
-	register size_t sz = (asz < bsz ? asz : bsz);
-	register int rc = memcmp(a, b, sz);
-	return (rc == 0 ? rc : (rc > 0 ? 1 : -1));
+	register int size = (asz < bsz) ? asz : bsz;
+	register int rc = memcmp(a, b, size);
+	if (srunlikely(rc == 0)) {
+		if (srlikely(asz == bsz))
+			return 0;
+		return (asz < bsz) ? -1 : 1;
+	}
+	return rc > 0 ? 1 : -1;
 }

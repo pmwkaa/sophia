@@ -34,23 +34,23 @@ int sv_indexfree(svindex *i, sr *r)
 static inline svv*
 sv_vset(svv *head, svv *v)
 {
+	/* default */
 	if (srlikely(head->lsn < v->lsn)) {
 		v->next = head;
 		return v;
 	}
-	svv *c = head;
-	svv *prev = NULL;
+	/* redistribution (starting from highest lsn) */
+	svv *prev = head;
+	svv *c = head->next;
 	while (c) {
+		assert(c->lsn != v->lsn);
 		if (c->lsn < v->lsn)
-		{
-			if (prev)
-				prev->next = v;
-			v->next = c;
 			break;
-		}
 		prev = c;
 		c = c->next;
 	}
+	prev->next = v;
+	v->next = c;
 	return head;
 }
 

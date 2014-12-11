@@ -44,6 +44,8 @@ si_redistribute(si *index, sr *r, sdc *c, sinode *node, srbuf *result,
 			assert(prev != NULL);
 			while (sr_iterhas(&i)) {
 				svv *v = sr_iterof(&i);
+				v->next = NULL;
+
 				svv *vgc = NULL;
 				sv_indexset(&prev->i0, r, vlsn, v, &vgc);
 				sr_iternext(&i);
@@ -55,6 +57,8 @@ si_redistribute(si *index, sr *r, sdc *c, sinode *node, srbuf *result,
 		}
 		while (sr_iterhas(&i)) {
 			svv *v = sr_iterof(&i);
+			v->next = NULL;
+
 			svv *vgc = NULL;
 			sdindexpage *page = sd_indexmin(&p->index);
 			int rc = sr_compare(r->cmp, sv_vkey(v), v->keysize,
