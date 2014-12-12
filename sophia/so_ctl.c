@@ -102,6 +102,19 @@ so_ctlv(src *c, srcstmt *s, va_list args)
 }
 
 static inline int
+so_ctlv_offline(src *c, srcstmt *s, va_list args)
+{
+	so *e = s->ptr;
+	if (srunlikely(s->op == SR_CSET && so_statusactive(&e->status))) {
+		sr_error(s->r->e, "write to %s is offline-only",
+		         s->path);
+		sr_error_recoverable(s->r->e);
+		return -1;
+	}
+	return so_ctlv(c, s, args);
+}
+
+static inline int
 so_ctlsophia_error(src *c, srcstmt *s, va_list args srunused)
 {
 	so *e = s->ptr;
@@ -131,7 +144,7 @@ so_ctlsophia(so *e, soctlrt *rt, src **pc)
 	sr_clink(&p, sr_c(pc, so_ctlv,            "version", SR_CSZ|SR_CRO, rt->version));
 	sr_clink(&p, sr_c(pc, so_ctlv,            "build",   SR_CSZ|SR_CRO, SR_VERSION_COMMIT));
 	sr_clink(&p, sr_c(pc, so_ctlsophia_error, "error",   SR_CSZ|SR_CRO, NULL));
-	sr_clink(&p, sr_c(pc, so_ctlv,            "path",    SR_CSZREF,     &e->ctl.path));
+	sr_clink(&p, sr_c(pc, so_ctlv_offline,    "path",    SR_CSZREF,     &e->ctl.path));
 	return sr_c(pc, NULL, "sophia", SR_CC, sophia);
 }
 
@@ -140,11 +153,11 @@ so_ctlmemory(so *e, soctlrt *rt, src **pc)
 {
 	src *memory = *pc;
 	src *p = NULL;
-	sr_clink(&p, sr_c(pc, so_ctlv, "limit",           SR_CU64,        &e->ctl.memory_limit));
-	sr_clink(&p, sr_c(pc, so_ctlv, "used",            SR_CU64|SR_CRO, &rt->memory_used));
-	sr_clink(&p, sr_c(pc, so_ctlv, "pager_pool_size", SR_CU32|SR_CRO, &e->pager.pool_size));
-	sr_clink(&p, sr_c(pc, so_ctlv, "pager_page_size", SR_CU32|SR_CRO, &e->pager.page_size));
-	sr_clink(&p, sr_c(pc, so_ctlv, "pager_pools",     SR_CU32|SR_CRO, &e->pager.pools));
+	sr_clink(&p, sr_c(pc, so_ctlv_offline, "limit",           SR_CU64,        &e->ctl.memory_limit));
+	sr_clink(&p, sr_c(pc, so_ctlv,         "used",            SR_CU64|SR_CRO, &rt->memory_used));
+	sr_clink(&p, sr_c(pc, so_ctlv,         "pager_pool_size", SR_CU32|SR_CRO, &e->pager.pool_size));
+	sr_clink(&p, sr_c(pc, so_ctlv,         "pager_page_size", SR_CU32|SR_CRO, &e->pager.page_size));
+	sr_clink(&p, sr_c(pc, so_ctlv,         "pager_pools",     SR_CU32|SR_CRO, &e->pager.pools));
 	return sr_c(pc, NULL, "memory", SR_CC, memory);
 }
 
@@ -155,6 +168,12 @@ so_ctlcompaction_set(src *c srunused, srcstmt *s, va_list args)
 	if (s->op != SR_CSET) {
 		sr_error(&e->error, "%s", "bad operation");
 		sr_error_recoverable(&e->error);
+		return -1;
+	}
+	if (srunlikely(so_statusactive(&e->status))) {
+		sr_error(s->r->e, "write to %s is offline-only",
+		         s->path);
+		sr_error_recoverable(s->r->e);
 		return -1;
 	}
 	/* validate argument */
@@ -178,8 +197,8 @@ so_ctlcompaction(so *e, soctlrt *rt srunused, src **pc)
 	src *compaction = *pc;
 	src *prev;
 	src *p = NULL;
-	sr_clink(&p, sr_c(pc, so_ctlv, "node_size", SR_CU32, &e->ctl.node_size));
-	sr_clink(&p, sr_c(pc, so_ctlv, "page_size", SR_CU32, &e->ctl.page_size));
+	sr_clink(&p, sr_c(pc, so_ctlv_offline, "node_size", SR_CU32, &e->ctl.node_size));
+	sr_clink(&p, sr_c(pc, so_ctlv_offline, "page_size", SR_CU32, &e->ctl.page_size));
 	prev = p;
 	int i = 0;
 	for (; i < 11; i++) {
@@ -188,12 +207,12 @@ so_ctlcompaction(so *e, soctlrt *rt srunused, src **pc)
 			continue;
 		src *zone = *pc;
 		p = NULL;
-		sr_clink(&p,    sr_c(pc, so_ctlv, "mode",          SR_CU32, &z->mode));
-		sr_clink(&p,    sr_c(pc, so_ctlv, "compact_wm",    SR_CU32, &z->compact_wm));
-		sr_clink(&p,    sr_c(pc, so_ctlv, "branch_prio",   SR_CU32, &z->branch_prio));
-		sr_clink(&p,    sr_c(pc, so_ctlv, "branch_wm",     SR_CU32, &z->branch_wm));
-		sr_clink(&p,    sr_c(pc, so_ctlv, "branch_ttl",    SR_CU32, &z->branch_ttl));
-		sr_clink(&p,    sr_c(pc, so_ctlv, "branch_ttl_wm", SR_CU32, &z->branch_ttl_wm));
+		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "mode",          SR_CU32, &z->mode));
+		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "compact_wm",    SR_CU32, &z->compact_wm));
+		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "branch_prio",   SR_CU32, &z->branch_prio));
+		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "branch_wm",     SR_CU32, &z->branch_wm));
+		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "branch_ttl",    SR_CU32, &z->branch_ttl));
+		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "branch_ttl_wm", SR_CU32, &z->branch_ttl_wm));
 		sr_clink(&prev, sr_c(pc, NULL, z->name, SR_CC, zone));
 	}
 	return sr_c(pc, so_ctlcompaction_set, "compaction", SR_CC, compaction);
@@ -244,11 +263,11 @@ so_ctlscheduler(so *e, soctlrt *rt, src **pc)
 	src *scheduler = *pc;
 	src *prev;
 	src *p = NULL;
-	sr_clink(&p, sr_c(pc, so_ctlv, "threads",             SR_CU32,        &e->ctl.threads));
-	sr_clink(&p, sr_c(pc, so_ctlv, "zone",                SR_CSZ|SR_CRO,  rt->zone));
-	sr_clink(&p, sr_c(pc, so_ctlv, "checkpoint_active",   SR_CU32|SR_CRO, &rt->checkpoint_active));
-	sr_clink(&p, sr_c(pc, so_ctlv, "checkpoint_lsn",      SR_CU64|SR_CRO, &rt->checkpoint_lsn));
-	sr_clink(&p, sr_c(pc, so_ctlv, "checkpoint_lsn_last", SR_CU64|SR_CRO, &rt->checkpoint_lsn_last));
+	sr_clink(&p, sr_c(pc, so_ctlv_offline, "threads",             SR_CU32,        &e->ctl.threads));
+	sr_clink(&p, sr_c(pc, so_ctlv,         "zone",                SR_CSZ|SR_CRO,  rt->zone));
+	sr_clink(&p, sr_c(pc, so_ctlv,         "checkpoint_active",   SR_CU32|SR_CRO, &rt->checkpoint_active));
+	sr_clink(&p, sr_c(pc, so_ctlv,         "checkpoint_lsn",      SR_CU64|SR_CRO, &rt->checkpoint_lsn));
+	sr_clink(&p, sr_c(pc, so_ctlv,         "checkpoint_lsn_last", SR_CU64|SR_CRO, &rt->checkpoint_lsn_last));
 	sr_clink(&p, sr_c(pc, so_ctlscheduler_checkpoint, "checkpoint", SR_CVOID, NULL));
 	sr_clink(&p, sr_c(pc, so_ctlscheduler_run,        "run",        SR_CVOID, NULL));
 	prev = p;
@@ -286,16 +305,16 @@ so_ctllog(so *e, soctlrt *rt, src **pc)
 {
 	src *log = *pc;
 	src *p = NULL;
-	sr_clink(&p, sr_c(pc, so_ctlv,          "enable",            SR_CU32,        &e->ctl.log_enable));
-	sr_clink(&p, sr_c(pc, so_ctlv,          "path",              SR_CSZREF,      &e->ctl.log_path));
-	sr_clink(&p, sr_c(pc, so_ctlv,          "sync",              SR_CU32,        &e->ctl.log_sync));
-	sr_clink(&p, sr_c(pc, so_ctlv,          "rotate_wm",         SR_CU32,        &e->ctl.log_rotate_wm));
-	sr_clink(&p, sr_c(pc, so_ctlv,          "rotate_sync",       SR_CU32,        &e->ctl.log_rotate_sync));
+	sr_clink(&p, sr_c(pc, so_ctlv_offline,  "enable",            SR_CU32,        &e->ctl.log_enable));
+	sr_clink(&p, sr_c(pc, so_ctlv_offline,  "path",              SR_CSZREF,      &e->ctl.log_path));
+	sr_clink(&p, sr_c(pc, so_ctlv_offline,  "sync",              SR_CU32,        &e->ctl.log_sync));
+	sr_clink(&p, sr_c(pc, so_ctlv_offline,  "rotate_wm",         SR_CU32,        &e->ctl.log_rotate_wm));
+	sr_clink(&p, sr_c(pc, so_ctlv_offline,  "rotate_sync",       SR_CU32,        &e->ctl.log_rotate_sync));
 	sr_clink(&p, sr_c(pc, so_ctllog_rotate, "rotate",            SR_CVOID,       NULL));
 	sr_clink(&p, sr_c(pc, so_ctllog_gc,     "gc",                SR_CVOID,       NULL));
 	sr_clink(&p, sr_c(pc, so_ctlv,          "files",             SR_CU32|SR_CRO, &rt->log_files));
-	sr_clink(&p, sr_c(pc, so_ctlv,          "two_phase_recover", SR_CU32,        &e->ctl.two_phase_recover));
-	sr_clink(&p, sr_c(pc, so_ctlv,          "commit_lsn",        SR_CU32,        &e->ctl.commit_lsn));
+	sr_clink(&p, sr_c(pc, so_ctlv_offline,  "two_phase_recover", SR_CU32,        &e->ctl.two_phase_recover));
+	sr_clink(&p, sr_c(pc, so_ctlv_offline,  "commit_lsn",        SR_CU32,        &e->ctl.commit_lsn));
 	return sr_c(pc, NULL, "log", SR_CC, log);
 }
 
@@ -345,6 +364,12 @@ so_ctldb_cmp(src *c, srcstmt *s, va_list args)
 	if (s->op != SR_CSET)
 		return so_ctlv(c, s, args);
 	sodb *db = c->value;
+	if (srunlikely(so_statusactive(&db->status))) {
+		sr_error(s->r->e, "write to %s is offline-only",
+		         s->path);
+		sr_error_recoverable(s->r->e);
+		return -1;
+	}
 	db->ctl.cmp.cmp = va_arg(args, srcmpf);
 	return 0;
 }
@@ -355,6 +380,12 @@ so_ctldb_cmparg(src *c, srcstmt *s, va_list args)
 	if (s->op != SR_CSET)
 		return so_ctlv(c, s, args);
 	sodb *db = c->value;
+	if (srunlikely(so_statusactive(&db->status))) {
+		sr_error(s->r->e, "write to %s is offline-only",
+		         s->path);
+		sr_error_recoverable(s->r->e);
+		return -1;
+	}
 	db->ctl.cmp.cmparg = va_arg(args, void*);
 	return 0;
 }
@@ -408,6 +439,19 @@ so_ctldb_lockdetect(src *c, srcstmt *s, va_list args)
 	return rc;
 }
 
+static inline int
+so_ctlv_dboffline(src *c, srcstmt *s, va_list args)
+{
+	sodb *db = c->ptr;
+	if (srunlikely(s->op == SR_CSET && so_statusactive(&db->status))) {
+		sr_error(s->r->e, "write to %s is offline-only",
+		         s->path);
+		sr_error_recoverable(s->r->e);
+		return -1;
+	}
+	return so_ctlv(c, s, args);
+}
+
 static inline src*
 so_ctldb(so *e, soctlrt *rt srunused, src **pc)
 {
@@ -422,36 +466,34 @@ so_ctldb(so *e, soctlrt *rt srunused, src **pc)
 		si_profilerend(&o->ctl.rtp);
 		src *index = *pc;
 		p = NULL;
-		sr_clink(&p, sr_c(pc, so_ctldb_cmp,        "cmp",              SR_CVOID,       o));
-		sr_clink(&p, sr_c(pc, so_ctldb_cmparg,     "cmp_arg",          SR_CVOID,       o));
-		sr_clink(&p, sr_c(pc, so_ctlv,             "node_count",       SR_CU32|SR_CRO, &o->ctl.rtp.total_node_count));
-		sr_clink(&p, sr_c(pc, so_ctlv,             "node_size",        SR_CU64|SR_CRO, &o->ctl.rtp.total_node_size));
-		sr_clink(&p, sr_c(pc, so_ctlv,             "branch_count",     SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_count));
-		sr_clink(&p, sr_c(pc, so_ctlv,             "branch_avg",       SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_avg));
-		sr_clink(&p, sr_c(pc, so_ctlv,             "branch_max",       SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_max));
-		sr_clink(&p, sr_c(pc, so_ctlv,             "branch_size",      SR_CU64|SR_CRO, &o->ctl.rtp.total_branch_size));
-		sr_clink(&p, sr_c(pc, so_ctlv,             "memory_used",      SR_CU64|SR_CRO, &o->ctl.rtp.memory_used));
-		sr_clink(&p, sr_c(pc, so_ctlv,             "count",            SR_CU64|SR_CRO, &o->ctl.rtp.count));
-		sr_clink(&p, sr_c(pc, so_ctlv,             "seq_dsn",          SR_CU32|SR_CRO, &o->ctl.rtp.seq.dsn));
-		sr_clink(&p, sr_c(pc, so_ctlv,             "seq_nsn",          SR_CU32|SR_CRO, &o->ctl.rtp.seq.nsn));
-		sr_clink(&p, sr_c(pc, so_ctlv,             "seq_lsn",          SR_CU64|SR_CRO, &o->ctl.rtp.seq.lsn));
-		sr_clink(&p, sr_c(pc, so_ctlv,             "seq_lfsn",         SR_CU32|SR_CRO, &o->ctl.rtp.seq.lfsn));
-		sr_clink(&p, sr_c(pc, so_ctlv,             "seq_tsn",          SR_CU32|SR_CRO, &o->ctl.rtp.seq.tsn));
-		sr_clink(&p, sr_c(pc, so_ctlv,             "histogram_branch", SR_CSZ|SR_CRO,  o->ctl.rtp.histogram_branch_ptr));
+		sr_clink(&p, sr_c(pc, so_ctldb_cmp,    "cmp",              SR_CVOID,       o));
+		sr_clink(&p, sr_c(pc, so_ctldb_cmparg, "cmp_arg",          SR_CVOID,       o));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "node_count",       SR_CU32|SR_CRO, &o->ctl.rtp.total_node_count));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "node_size",        SR_CU64|SR_CRO, &o->ctl.rtp.total_node_size));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "branch_count",     SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_count));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "branch_avg",       SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_avg));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "branch_max",       SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_max));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "branch_size",      SR_CU64|SR_CRO, &o->ctl.rtp.total_branch_size));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "memory_used",      SR_CU64|SR_CRO, &o->ctl.rtp.memory_used));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "count",            SR_CU64|SR_CRO, &o->ctl.rtp.count));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "seq_dsn",          SR_CU32|SR_CRO, &o->ctl.rtp.seq.dsn));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "seq_nsn",          SR_CU32|SR_CRO, &o->ctl.rtp.seq.nsn));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "seq_lsn",          SR_CU64|SR_CRO, &o->ctl.rtp.seq.lsn));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "seq_lfsn",         SR_CU32|SR_CRO, &o->ctl.rtp.seq.lfsn));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "seq_tsn",          SR_CU32|SR_CRO, &o->ctl.rtp.seq.tsn));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "histogram_branch", SR_CSZ|SR_CRO,  o->ctl.rtp.histogram_branch_ptr));
 		src *database = *pc;
 		p = NULL;
-		sr_clink(&p, sr_c(pc, so_ctlv,             "name",             SR_CSZ|SR_CRO,  o->ctl.name));
-		sr_clink(&p, sr_c(pc, so_ctlv,             "id",               SR_CU32,        &o->ctl.id));
-		sr_clink(&p, sr_c(pc, so_ctldb_status,     "status",           SR_CSZ|SR_CRO,  o));
-		sr_clink(&p, sr_c(pc, so_ctlv,             "path",             SR_CSZREF,      &o->ctl.path));
-		sr_clink(&p, sr_c(pc, so_ctlv,             "sync",             SR_CU32,        &o->ctl.sync));
-		sr_clink(&p, sr_c(pc, so_ctldb_branch,     "branch",           SR_CVOID,       o));
-		sr_clink(&p, sr_c(pc, so_ctldb_compact,    "compact",          SR_CVOID,       o));
-		sr_clink(&p, sr_c(pc, so_ctldb_lockdetect, "lockdetect",       SR_CVOID,       o));
-		sr_clink(&p, sr_c(pc, NULL,                "index",            SR_CC,          index));
-		database = sr_c(pc, so_ctldb_get, o->ctl.name, SR_CC, database);
-		database->ptr = o;
-		sr_clink(&db, database);
+		sr_clink(&p,          sr_c(pc, so_ctlv,             "name",       SR_CSZ|SR_CRO, o->ctl.name));
+		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv,             "id",         SR_CU32,       &o->ctl.id), o));
+		sr_clink(&p,          sr_c(pc, so_ctldb_status,     "status",     SR_CSZ|SR_CRO, o));
+		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,   "path",       SR_CSZREF,     &o->ctl.path), o));
+		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,   "sync",       SR_CU32,       &o->ctl.sync), o));
+		sr_clink(&p,          sr_c(pc, so_ctldb_branch,     "branch",     SR_CVOID,      o));
+		sr_clink(&p,          sr_c(pc, so_ctldb_compact,    "compact",    SR_CVOID,      o));
+		sr_clink(&p,          sr_c(pc, so_ctldb_lockdetect, "lockdetect", SR_CVOID,      o));
+		sr_clink(&p,          sr_c(pc, NULL,                "index",      SR_CC,         index));
+		sr_clink(&db, sr_cptr(sr_c(pc, so_ctldb_get, o->ctl.name, SR_CC, database), o));
 	}
 	return sr_c(pc, so_ctldb_set, "db", SR_CC, db);
 }

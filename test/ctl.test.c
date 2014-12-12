@@ -70,18 +70,14 @@ ctl_scheduler(stc *cx)
 
 	o = sp_get(c, "scheduler.0.trace");
 	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "init") == 0 ||
-	   strcmp(sp_get(o, "value", NULL), "sleep") == 0 ||
-	   strcmp(sp_get(o, "value", NULL), "schedule") == 0 ||
-	   strcmp(sp_get(o, "value", NULL), "log gc") == 0 );
+	char *v = sp_get(o, "value", NULL);
+	t( strcmp(v, "malfunction") != 0 );
 	sp_destroy(o);
 
 	o = sp_get(c, "scheduler.1.trace");
 	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "init") == 0 ||
-	   strcmp(sp_get(o, "value", NULL), "sleep") == 0 ||
-	   strcmp(sp_get(o, "value", NULL), "schedule") == 0 ||
-	   strcmp(sp_get(o, "value", NULL), "log gc") == 0 );
+	v = sp_get(o, "value", NULL);
+	t( strcmp(v, "malfunction") != 0 );
 	sp_destroy(o);
 
 	o = sp_get(c, "scheduler.2.trace");
@@ -128,6 +124,43 @@ ctl_compaction(stc *cx)
 }
 
 static void
+ctl_validation(stc *cx)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	void *c = sp_ctl(env);
+	t( c != NULL );
+	t( sp_set(c, "scheduler.threads", "0") == 0 );
+	t( sp_set(c, "log.enable", "0") == 0 );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
+	t( sp_open(env) == 0 );
+
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == -1 );
+	t( sp_set(c, "memory.limit", "0") == -1 );
+	t( sp_set(c, "compaction.page_size", "0") == -1 );
+	t( sp_set(c, "compaction.node_size", "0") == -1 );
+	t( sp_set(c, "scheduler.threads", "0") == -1 );
+
+	t( sp_set(c, "log.enable", "0") == -1 );
+	t( sp_set(c, "log.path", "path") == -1 );
+	t( sp_set(c, "log.sync", "0") == -1 );
+	t( sp_set(c, "log.rotate_wm", "0") == -1 );
+	t( sp_set(c, "log.rotate_sync", "0") == -1 );
+	t( sp_set(c, "log.two_phase_commit", "0") == -1 );
+	t( sp_set(c, "log.commit_lsn", "0") == -1 );
+
+	t( sp_set(c, "db", "test") == 0 );
+	void *db = sp_get(c, "db.test");
+	t( db != NULL );
+	t( sp_open(db) == 0 );
+	t( sp_set(c, "db.test.path", "path") == -1 );
+	t( sp_set(c, "db.test.index.cmp", NULL) == -1 );
+	t( sp_set(c, "db.test.index.cmp_arg", NULL) == -1 );
+
+	t( sp_destroy(env) == 0 );
+}
+
+static void
 ctl_cursor(stc *cx srunused)
 {
 	void *env = sp_env();
@@ -135,9 +168,7 @@ ctl_cursor(stc *cx srunused)
 	void *c = sp_ctl(env);
 	t( c != NULL );
 	t( sp_set(c, "db", "test") == 0 );
-	void *o = sp_get(c, "db.test.branch");
-	t( o != NULL );
-	sp_destroy(o);
+	void *o;
 	void *cur = sp_cursor(c, ">=", NULL);
 	t( cur != NULL );
 	printf("\n");
@@ -161,6 +192,7 @@ stgroup *ctl_group(void)
 	st_groupadd(group, st_test("error_injection", ctl_error_injection));
 	st_groupadd(group, st_test("scheduler", ctl_scheduler));
 	st_groupadd(group, st_test("compaction", ctl_compaction));
+	st_groupadd(group, st_test("validation", ctl_validation));
 	st_groupadd(group, st_test("cursor", ctl_cursor));
 	return group;
 }

@@ -104,4 +104,10 @@ static inline void sr_clink(src **prev, src *c) {
 	*prev = c;
 }
 
+static inline src*
+sr_cptr(src *c, void *ptr) {
+	c->ptr = ptr;
+	return c;
+}
+
 #endif
