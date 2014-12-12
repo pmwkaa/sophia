@@ -31,7 +31,7 @@ int so_scheduler_branch(void *arg)
 	so_workerstub_init(&stub, &db->r);
 	int rc;
 	while (1) {
-		uint64_t vlsn = sm_vlsn(&db->mvcc);
+		uint64_t vlsn = so_dbvlsn(db);
 		siplan plan = {
 			.explain   = SI_ENONE,
 			.plan      = SI_BRANCH,
@@ -59,7 +59,7 @@ int so_scheduler_compact(void *arg)
 	so_workerstub_init(&stub, &db->r);
 	int rc;
 	while (1) {
-		uint64_t vlsn = sm_vlsn(&db->mvcc);
+		uint64_t vlsn = so_dbvlsn(db);
 		siplan plan = {
 			.explain   = SI_ENONE,
 			.plan      = SI_COMPACT,
@@ -405,7 +405,7 @@ so_execute(sotask *t, soworker *w)
 {
 	si_plannertrace(&t->plan, &w->trace);
 	sodb *db = t->db;
-	uint64_t vlsn = sm_vlsn(&db->mvcc);
+	uint64_t vlsn = so_dbvlsn(db);
 	int rc = si_execute(&db->index, &db->r, &w->dc, &t->plan, vlsn);
 	if (srunlikely(rc == -1))
 		so_dbmalfunction(db);

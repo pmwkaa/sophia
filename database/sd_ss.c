@@ -52,6 +52,7 @@ sd_ssappend(sdss *s, sr *r, uint64_t lsn, char *name, int namelen)
 	if (create) {
 		h->count = 0;
 		h->crc = 0;
+		h->vlsn = 0;
 		sr_bufadvance(&s->buf, sizeof(sdssheader));
 	}
 	sdssrecord *rp;
@@ -60,6 +61,8 @@ sd_ssappend(sdss *s, sr *r, uint64_t lsn, char *name, int namelen)
 	rp->namelen = namelen;
 	memcpy(rp->name, name, namelen);
 	sr_bufadvance(&s->buf, sizerecord);
+	if (rp->lsn < h->vlsn)
+		h->vlsn = rp->lsn;
 	h->count++;
 	return 0;
 }
@@ -73,32 +76,39 @@ sd_sscrc(sdss *s)
 	h->crc = sr_crcs(h, sr_bufused(&s->buf), 0);
 }
 
-int sd_ssadd(sdss *s, sr *r, uint64_t lsn, char *name)
+int sd_ssadd(sdss *s, sdss *n, sr *r, uint64_t lsn, char *name)
 {
+	sd_ssinit(n);
 	int len = strlen(name);
+	int rc;
 	sdssrecord *rp;
 	sriter i;
 	sr_iterinit(&i, &sd_ssiter, r);
 	sr_iteropen(&i, &s->buf, 0);
 	for (; sr_iterhas(&i); sr_iternext(&i)) {
 		rp = sr_iterof(&i);
-		if (srunlikely(strncmp(rp->name, name, len) == 0))
+		if (srunlikely(strncmp(rp->name, name, len) == 0)) {
+			sd_ssfree(n, r);
 			return -1;
+		}
+		rc = sd_ssappend(n, r, rp->lsn, rp->name, rp->namelen);
+		if (srunlikely(rc == -1)) {
+			sd_ssfree(n, r);
+			return -1;
+		}
 	}
-	int rc = sd_ssappend(s, r, lsn, name, len + 1);
+	rc = sd_ssappend(n, r, lsn, name, len + 1);
 	if (srunlikely(rc == -1))
 		return -1;
-	sd_sscrc(s);
+	sd_sscrc(n);
 	return 0;
 }
 
-int sd_ssdelete(sdss *s, sr *r, char *name)
+int sd_ssdelete(sdss *s, sdss *n, sr *r, char *name)
 {
-	sdss n;
-	int rc = sd_ssinit(&n);
-	if (srunlikely(rc == -1))
-		return -1;
+	sd_ssinit(n);
 	int match = 0;
+	int rc;
 	sriter i;
 	sr_iterinit(&i, &sd_ssiter, r);
 	sr_iteropen(&i, &s->buf, 0);
@@ -107,19 +117,25 @@ int sd_ssdelete(sdss *s, sr *r, char *name)
 		if (srunlikely(strncmp(rp->name, name, rp->namelen) == 0)) {
 			match = 1;
 		} else {
-			rc = sd_ssappend(&n, r, rp->lsn, rp->name, rp->namelen);
+			rc = sd_ssappend(n, r, rp->lsn, rp->name, rp->namelen);
 			if (srunlikely(rc == -1)) {
-				sd_ssfree(&n, r);
+				sd_ssfree(n, r);
 				return -1;
 			}
 		}
 	}
 	if (srunlikely(! match)) {
-		sd_ssfree(&n, r);
+		sd_ssfree(n, r);
 		return -1;
 	}
-	sd_sscrc(&n);
-	sd_ssfree(s, r);
-	*s = n;
+	sd_sscrc(n);
 	return 0;
+}
+
+uint64_t sd_ssvlsn(sdss *s)
+{
+	if (srunlikely(! sr_bufused(&s->buf)))
+		return UINT64_MAX;
+	sdssheader *h = (sdssheader*)s->buf.s;
+	return h->vlsn;
 }

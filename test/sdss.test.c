@@ -31,12 +31,20 @@ sdss_add(stc *cx)
 	sr_allocopen(&a, &sr_astd);
 	sr r;
 	sr_init(&r, NULL, &a, NULL, NULL, NULL);
-	sdss s;
+	sdss s, n;
 	t( sd_ssinit(&s) == 0 );
-	t( sd_ssadd(&s, &r, 1, "a") == 0 );
-	t( sd_ssadd(&s, &r, 2, "b") == 0 );
-	t( sd_ssadd(&s, &r, 2, "c") == 0 );
-	t( sd_ssadd(&s, &r, 2, "b") == -1 );
+	t( sd_ssadd(&s, &n, &r, 1, "a") == 0 );
+	t( sd_ssfree(&s, &r) == 0 );
+	s = n;
+	t( sd_ssadd(&s, &n, &r, 2, "b") == 0 );
+	t( sd_ssfree(&s, &r) == 0 );
+	s = n;
+	t( sd_ssadd(&s, &n, &r, 2, "c") == 0 );
+	t( sd_ssfree(&s, &r) == 0 );
+	s = n;
+	t( sd_ssadd(&s, &n, &r, 2, "b") == -1 );
+	t( sd_ssfree(&s, &r) == 0 );
+	s = n;
 	t( sd_ssfree(&s, &r) == 0 );
 }
 
@@ -47,13 +55,24 @@ sdss_delete(stc *cx)
 	sr_allocopen(&a, &sr_astd);
 	sr r;
 	sr_init(&r, NULL, &a, NULL, NULL, NULL);
-	sdss s;
+	sdss s, n;
 	t( sd_ssinit(&s) == 0 );
-	t( sd_ssadd(&s, &r, 1, "a") == 0 );
-	t( sd_ssdelete(&s, &r, "a") == 0 );
-	t( sd_ssadd(&s, &r, 1, "a") == 0 );
-	t( sd_ssadd(&s, &r, 1, "b") == 0 );
-	t( sd_ssadd(&s, &r, 1, "c") == 0 );
+
+	t( sd_ssadd(&s, &n, &r, 1, "a") == 0 );
+	t( sd_ssfree(&s, &r) == 0 );
+	s = n;
+	t( sd_ssdelete(&s, &n, &r, "a") == 0 );
+	t( sd_ssfree(&s, &r) == 0 );
+	s = n;
+	t( sd_ssadd(&s, &n, &r, 1, "a") == 0 );
+	t( sd_ssfree(&s, &r) == 0 );
+	s = n;
+	t( sd_ssadd(&s, &n, &r, 1, "b") == 0 );
+	t( sd_ssfree(&s, &r) == 0 );
+	s = n;
+	t( sd_ssadd(&s, &n, &r, 1, "c") == 0 );
+	t( sd_ssfree(&s, &r) == 0 );
+	s = n;
 	t( sd_ssfree(&s, &r) == 0 );
 }
 

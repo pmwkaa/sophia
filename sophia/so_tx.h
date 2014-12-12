@@ -18,9 +18,10 @@ struct sotx {
 	sodb *db;
 } srpacked;
 
+uint64_t so_vlsn(sodb*);
+
 int    so_txdbset(sodb*, uint8_t, va_list);
 void  *so_txdbget(sodb*, va_list);
-
 soobj *so_txnew(sodb*);
 
 #endif

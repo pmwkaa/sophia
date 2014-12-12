@@ -16,7 +16,7 @@ int se_init(se *e)
 {
 	e->conf = NULL;
 	sd_ssinit(&e->snapshot);
-	sr_mutexinit(&e->lock);
+	sr_spinlockinit(&e->lock);
 	return 0;
 }
 
@@ -167,7 +167,7 @@ int se_open(se *e, sr *r, seconf *conf)
 int se_close(se *e, sr *r)
 {
 	sd_ssfree(&e->snapshot, r);
-	sr_mutexfree(&e->lock);
+	sr_spinlockfree(&e->lock);
 	return 0;
 }
 
@@ -175,16 +175,17 @@ static int
 se_snapshot_update(se *e, sr *r, uint64_t lsn, char *name, int remove)
 {
 	se_lock(e);
-
+	sdss n;
 	int rc = 0;
 	if (remove) {
-		rc = sd_ssdelete(&e->snapshot, r, name);
+		rc = sd_ssdelete(&e->snapshot, &n, r, name);
 		(void)lsn;
 	} else {
-		rc = sd_ssadd(&e->snapshot, r, lsn, name);
+		rc = sd_ssadd(&e->snapshot, &n, r, lsn, name);
 	}
+	se_unlock(e);
 	if (srunlikely(rc == -1))
-		goto error;
+		return -1;
 
 	srpath path;
 	sr_pathset(&path, "%s/snapshot", e->conf->path);
@@ -192,9 +193,8 @@ se_snapshot_update(se *e, sr *r, uint64_t lsn, char *name, int remove)
 	sr_pathset(&path_b, "%s/snapshot.incomplete", e->conf->path);
 
 	SR_INJECTION(r->i, SR_INJECTION_SE_SNAPSHOT_0,
-	             se_unlock(e);
 	             sr_error(r->e, "%s", "error injection");
-	             return -1);
+	             goto error);
 
 	srfile file;
 	sr_fileinit(&file, r->a);
@@ -203,7 +203,7 @@ se_snapshot_update(se *e, sr *r, uint64_t lsn, char *name, int remove)
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "snapshot file '%s' create error: %s",
 		         path.path, strerror(errno));
-		return -1;
+		goto error;
 	}
 
 	rc = sr_filewrite(&file, e->snapshot.buf.s, size);
@@ -214,9 +214,8 @@ se_snapshot_update(se *e, sr *r, uint64_t lsn, char *name, int remove)
 	}
 
 	SR_INJECTION(r->i, SR_INJECTION_SE_SNAPSHOT_1,
-	             se_unlock(e);
 	             sr_error(r->e, "%s", "error injection");
-	             return -1);
+	             goto error);
 
 	rc = sr_filesync(&file);
 	if (srunlikely(rc == -1)) {
@@ -226,34 +225,36 @@ se_snapshot_update(se *e, sr *r, uint64_t lsn, char *name, int remove)
 	}
 
 	SR_INJECTION(r->i, SR_INJECTION_SE_SNAPSHOT_2,
-	             se_unlock(e);
 	             sr_error(r->e, "%s", "error injection");
-	             return -1);
+	             goto error);
 
 	rc = sr_fileunlink(path.path);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "snapshot file '%s' unlink error: %s",
 		         path.path, strerror(errno));
-		return -1;
+		goto error;
 	}
 
 	SR_INJECTION(r->i, SR_INJECTION_SE_SNAPSHOT_3,
-	             se_unlock(e);
 	             sr_error(r->e, "%s", "error injection");
-	             return -1);
+	             goto error);
 
 	rc = sr_filemove(path_b.path, path.path);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "snapshot file '%s' rename error: %s",
 		         path_b.path, strerror(errno));
-		return -1;
+		goto error;
 	}
 
+	se_lock(e);
+	sdss prev = e->snapshot;
+	e->snapshot = n;
 	se_unlock(e);
+	sd_ssfree(&prev, r);
 	return 0;
 
 error:
-	se_unlock(e);
+	sd_ssfree(&n, r);
 	return -1;
 }
 
@@ -265,4 +266,12 @@ int se_snapshot(se *e, sr *r, uint64_t lsn, char *name)
 int se_snapshot_remove(se *e, sr *r, char *name)
 {
 	return se_snapshot_update(e, r, 0 /* unused */, name, 1);
+}
+
+uint64_t se_snapshot_vlsn(se *e)
+{
+	se_lock(e);
+	uint64_t vlsn = sd_ssvlsn(&e->snapshot);
+	se_unlock(e);
+	return vlsn;
 }

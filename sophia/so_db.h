@@ -42,9 +42,10 @@ so_dbactive(sodb *o) {
 	return so_statusactive(&o->status);
 }
 
-soobj *so_dbnew(so*, char*);
-soobj *so_dbmatch(so*, char*);
-soobj *so_dbmatch_id(so*, uint32_t);
-int    so_dbmalfunction(sodb *o);
+soobj    *so_dbnew(so*, char*);
+soobj    *so_dbmatch(so*, char*);
+soobj    *so_dbmatch_id(so*, uint32_t);
+int       so_dbmalfunction(sodb *o);
+uint64_t  so_dbvlsn(sodb*);
 
 #endif

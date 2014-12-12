@@ -260,3 +260,12 @@ int so_dbmalfunction(sodb *o)
 	so_statusset(&o->status, SO_MALFUNCTION);
 	return -1;
 }
+
+uint64_t so_dbvlsn(sodb *db)
+{
+	uint64_t vlsn = sm_vlsn(&db->mvcc);
+	uint64_t vlsn_b = se_snapshot_vlsn(&db->e->se);
+	if (vlsn_b < vlsn)
+		vlsn = vlsn_b;
+	return vlsn;
+}

@@ -83,7 +83,7 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	}
 	v->log = tl.l;
 	sl_commit(&tl);
-	uint64_t vlsn = sm_vlsn(&db->mvcc);
+	uint64_t vlsn = so_dbvlsn(db);
 	sitx tx;
 	si_begin(&tx, &db->r, &db->index, vlsn, &log);
 	si_write(&tx, 0);
@@ -372,7 +372,7 @@ so_txcommit(soobj *o, va_list args)
 		vlsn = sr_seq(db->r.seq, SR_LSN) - 1;
 	} else {
 		check_if_exists = 0;
-		vlsn = sm_vlsn(&db->mvcc);
+		vlsn = so_dbvlsn(db);
 	}
 	sitx ti;
 	si_begin(&ti, &db->r, &db->index, vlsn, &t->t.log);
