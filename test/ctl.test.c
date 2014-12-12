@@ -28,7 +28,6 @@ ctl_version(stc *cx srunused)
 	t( sp_destroy(env) == 0 );
 }
 
-#if 0
 static void
 ctl_error_injection(stc *cx srunused)
 {
@@ -39,20 +38,19 @@ ctl_error_injection(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "db", "test") == 0 );
 
-	void *o = sp_get(c, "db.test.error_injection.si_branch_0");
+	void *o = sp_get(c, "debug.error_injection.si_branch_0");
 	t( o != NULL );
 	t( strcmp(sp_get(o, "value", NULL), "0") == 0 );
 	sp_destroy(o);
 
-	t( sp_set(c, "db.test.error_injection.si_branch_0", "1") == 0 );
-	o = sp_get(c, "db.test.error_injection.si_branch_0");
+	t( sp_set(c, "debug.error_injection.si_branch_0", "1") == 0 );
+	o = sp_get(c, "debug.error_injection.si_branch_0");
 	t( o != NULL );
 	t( strcmp(sp_get(o, "value", NULL), "1") == 0 );
 	sp_destroy(o);
 
 	t( sp_destroy(env) == 0 );
 }
-#endif
 
 static void
 ctl_scheduler(stc *cx)
@@ -160,7 +158,7 @@ stgroup *ctl_group(void)
 {
 	stgroup *group = st_group("ctl");
 	st_groupadd(group, st_test("version", ctl_version));
-	/*st_groupadd(group, st_test("error_injection", ctl_error_injection));*/
+	st_groupadd(group, st_test("error_injection", ctl_error_injection));
 	st_groupadd(group, st_test("scheduler", ctl_scheduler));
 	st_groupadd(group, st_test("compaction", ctl_compaction));
 	st_groupadd(group, st_test("cursor", ctl_cursor));
