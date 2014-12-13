@@ -15,7 +15,9 @@ static void
 cursor_empty_gte(stc *cx)
 {
 	void *db = cx->db;
-	void *c = sp_cursor(db, ">=", NULL);
+	void *o = sp_object(db);
+	t( o != NULL );
+	void *c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
@@ -26,7 +28,9 @@ static void
 cursor_empty_gt(stc *cx)
 {
 	void *db = cx->db;
-	void *c = sp_cursor(db, ">", NULL);
+	void *o = sp_object(db);
+	t( o != NULL );
+	void *c = sp_cursor(db, ">", o);
 	t( c != NULL );
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
@@ -37,7 +41,9 @@ static void
 cursor_empty_lte(stc *cx)
 {
 	void *db = cx->db;
-	void *c = sp_cursor(db, "<=", NULL);
+	void *o = sp_object(db);
+	t( o != NULL );
+	void *c = sp_cursor(db, "<=", o);
 	t( c != NULL );
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
@@ -48,7 +54,9 @@ static void
 cursor_empty_lt(stc *cx)
 {
 	void *db = cx->db;
-	void *c = sp_cursor(db, "<=", NULL);
+	void *o = sp_object(db);
+	t( o != NULL );
+	void *c = sp_cursor(db, "<=", o);
 	t( c != NULL );
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
@@ -82,7 +90,9 @@ cursor_gte(stc *cx)
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_transaction(cx);
-	void *c = sp_cursor(db, ">=", NULL);
+	o = sp_object(db);
+	t( o != NULL );
+	void *c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -126,7 +136,9 @@ cursor_gt(stc *cx)
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_transaction(cx);
-	void *c = sp_cursor(db, ">=", NULL);
+	o = sp_object(db);
+	t( o != NULL );
+	void *c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -170,7 +182,9 @@ cursor_lte(stc *cx)
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_transaction(cx);
-	void *c = sp_cursor(db, "<=", NULL);
+	o = sp_object(db);
+	t( o != NULL );
+	void *c = sp_cursor(db, "<=", o);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -214,7 +228,9 @@ cursor_lt(stc *cx)
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_transaction(cx);
-	void *c = sp_cursor(db, "<", NULL);
+	o = sp_object(db);
+	t( o != NULL );
+	void *c = sp_cursor(db, "<", o);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -1326,11 +1342,13 @@ cursor_consistency0(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *c = sp_cursor(db, ">=", NULL);
+	void *o = sp_object(db);
+	t( o != NULL );
+	void *c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 	void *tx = sp_begin(db);
 	int key = 7;
-	void *o = sp_object(db);
+	o = sp_object(db);
 	t( o != NULL );
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
@@ -1382,7 +1400,9 @@ cursor_consistency1(stc *cx)
 	rc = sp_commit(tx);
 	t( rc == 0 );
 
-	void *c = sp_cursor(db, ">=", NULL);
+	o = sp_object(db);
+	t( o != NULL );
+	void *c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 	st_transaction(cx);
 
@@ -1448,7 +1468,9 @@ cursor_consistency2(stc *cx)
 	t( rc == 0 );
 	st_transaction(cx);
 
-	void *c = sp_cursor(db, ">=", NULL);
+	o = sp_object(db);
+	t( o != NULL );
+	void *c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 
 	tx = sp_begin(db);
@@ -1511,7 +1533,9 @@ cursor_consistency3(stc *cx)
 	t( rc == 0 );
 	st_transaction(cx);
 
-	void *c = sp_cursor(db, ">=", NULL);
+	o = sp_object(db);
+	t( o != NULL );
+	void *c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 
 	tx = sp_begin(db);
@@ -1581,7 +1605,9 @@ cursor_consistency4(stc *cx)
 	t( rc == 0 );
 	st_transaction(cx);
 
-	void *c = sp_cursor(db, ">=", NULL);
+	o = sp_object(db);
+	t( o != NULL );
+	void *c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 
 	tx = sp_begin(db);
@@ -1672,7 +1698,9 @@ cursor_consistency5(stc *cx)
 	t( rc == 0 );
 	st_transaction(cx);
 
-	void *c = sp_cursor(db, ">=", NULL);
+	o = sp_object(db);
+	t( o != NULL );
+	void *c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -1736,7 +1764,9 @@ cursor_consistency6(stc *cx)
 	t( rc == 0 );
 	st_transaction(cx);
 
-	void *c = sp_cursor(db, ">=", NULL);
+	o = sp_object(db);
+	t( o != NULL );
+	void *c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 
 	o = sp_get(c);
@@ -1815,7 +1845,9 @@ cursor_consistency7(stc *cx)
 	t( rc == 0 );
 	st_transaction(cx);
 
-	void *c = sp_cursor(db, ">=", NULL);
+	o = sp_object(db);
+	t( o != NULL );
+	void *c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -1907,7 +1939,9 @@ cursor_consistency8(stc *cx)
 	t( rc == 0 );
 	st_transaction(cx);
 
-	void *c = sp_cursor(db, ">=", NULL);
+	o = sp_object(db);
+	t( o != NULL );
+	void *c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -2016,7 +2050,9 @@ cursor_consistency9(stc *cx)
 	t( rc == 0 );
 	st_transaction(cx);
 
-	void *c = sp_cursor(db, ">=", NULL);
+	o = sp_object(db);
+	t( o != NULL );
+	void *c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -2108,7 +2144,9 @@ cursor_consistency9(stc *cx)
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
 
-	c = sp_cursor(db, ">=", NULL);
+	o = sp_object(db);
+	t( o != NULL );
+	c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 
 	o = sp_get(c);
@@ -2174,7 +2212,9 @@ cursor_consistencyN(stc *cx)
 	t( rc == 0 );
 	st_transaction(cx);
 
-	void *c = sp_cursor(db, ">=", NULL);
+	o = sp_object(db);
+	t( o != NULL );
+	void *c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -2212,7 +2252,9 @@ cursor_consistencyN(stc *cx)
 	t( rc == 0 );
 	st_transaction(cx);
 
-	void *c2 = sp_cursor(db, ">=", NULL);
+	o = sp_object(db);
+	t( o != NULL );
+	void *c2 = sp_cursor(db, ">=", o);
 	t( c2 != NULL );
 
 	o = sp_get(c);
@@ -2260,7 +2302,9 @@ static void
 cursor_consistency_rewrite0(stc *cx)
 {
 	void *db = cx->db;
-	void *c0 = sp_cursor(db, ">=", NULL, 0);
+	void *o = sp_object(db);
+	t( o != NULL );
+	void *c0 = sp_cursor(db, ">=", o);
 
 	void *tx = sp_begin(db);
 	t( tx != NULL );
@@ -2277,7 +2321,9 @@ cursor_consistency_rewrite0(stc *cx)
 	t( sp_commit(tx) == 0);
 	st_transaction(cx);
 
-	void *c1 = sp_cursor(db, ">=", NULL, 0);
+	o = sp_object(db);
+	t( o != NULL );
+	void *c1 = sp_cursor(db, ">=", o);
 
 	tx = sp_begin(db);
 	v = 20;
@@ -2293,7 +2339,9 @@ cursor_consistency_rewrite0(stc *cx)
 	t( sp_commit(tx) == 0);
 	st_transaction(cx);
 
-	void *c2 = sp_cursor(db, ">=", NULL);
+	o = sp_object(db);
+	t( o != NULL );
+	void *c2 = sp_cursor(db, ">=", o);
 
 	t( sp_get(c0) == NULL );
 
@@ -2325,7 +2373,9 @@ static void
 cursor_consistency_rewrite1(stc *cx)
 {
 	void *db = cx->db;
-	void *c0 = sp_cursor(db, ">=", NULL, 0);
+	void *o = sp_object(db);
+	t( o != NULL );
+	void *c0 = sp_cursor(db, ">=", o);
 
 	void *tx = sp_begin(db);
 	t( tx != NULL );
@@ -2342,7 +2392,9 @@ cursor_consistency_rewrite1(stc *cx)
 	t( sp_commit(tx) == 0 );
 	st_transaction(cx);
 
-	void *c1 = sp_cursor(db, ">=", NULL);
+	o = sp_object(db);
+	t( o != NULL );
+	void *c1 = sp_cursor(db, ">=", o);
 
 	tx = sp_begin(db);
 	v = 20;
@@ -2391,7 +2443,9 @@ static void
 cursor_consistency_rewrite2(stc *cx)
 {
 	void *db = cx->db;
-	void *c0 = sp_cursor(db, ">=", NULL, 0);
+	void *o = sp_object(db);
+	t( o != NULL );
+	void *c0 = sp_cursor(db, ">=", o);
 
 	void *tx = sp_begin(db);
 	t( tx != NULL );
@@ -2408,7 +2462,9 @@ cursor_consistency_rewrite2(stc *cx)
 	t( sp_commit(tx) == 0 );
 	st_transaction(cx);
 
-	void *c1 = sp_cursor(db, ">=", NULL);
+	o = sp_object(db);
+	t( o != NULL );
+	void *c1 = sp_cursor(db, ">=", o);
 	v = 20;
 	i = 0;
 	while (sp_get(c1)) {
@@ -2430,7 +2486,9 @@ cursor_consistency_rewrite2(stc *cx)
 
 	t( sp_get(c0) == 0 );
 
-	void *c2 = sp_cursor(db, ">=", NULL, 0);
+	o = sp_object(db);
+	t( o != NULL );
+	void *c2 = sp_cursor(db, ">=", o);
 	i = 0;
 	while (sp_get(c2)) {
 		void *o = sp_object(c2);
@@ -2450,7 +2508,9 @@ static void
 cursor_consistency_delete0(stc *cx)
 {
 	void *db = cx->db;
-	void *c0 = sp_cursor(db, ">=", NULL);
+	void *o = sp_object(db);
+	t( o != NULL );
+	void *c0 = sp_cursor(db, ">=", o);
 
 	void *tx = sp_begin(db);
 	int i = 0;
@@ -2485,10 +2545,11 @@ static void
 cursor_consistency_delete1(stc *cx)
 {
 	void *db = cx->db;
-	void *c0 = sp_cursor(db, ">=", NULL);
+	void *o = sp_object(db);
+	t( o != NULL );
+	void *c0 = sp_cursor(db, ">=", o);
 
 	void *tx = sp_begin(db);
-	void *o;
 	int i = 0;
 	while (i < 385) {
 		o = sp_object(db);
@@ -2501,7 +2562,9 @@ cursor_consistency_delete1(stc *cx)
 	st_transaction(cx);
 
 	tx = sp_begin(db);
-	void *c1 = sp_cursor(db, ">=", NULL);
+	o = sp_object(db);
+	t( o != NULL );
+	void *c1 = sp_cursor(db, ">=", o);
 	while ((o = sp_get(c1)))
 		t( sp_delete(tx, o) == 0 );
 	t( sp_commit(tx) == 0 );

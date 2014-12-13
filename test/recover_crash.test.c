@@ -72,7 +72,9 @@ recovercrash_branch0(stc *cx srunused)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	c = sp_cursor(db, ">=", NULL);
+	o = sp_object(db);
+	t( o != NULL );
+	c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -154,7 +156,8 @@ recovercrash_branch1(stc *cx srunused)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	c = sp_cursor(db, ">=", NULL);
+	o = sp_object(db);
+	c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -238,7 +241,8 @@ recovercrash_compact0(stc *cx srunused)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	c = sp_cursor(db, ">=", NULL);
+	o = sp_object(db);
+	c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -324,7 +328,8 @@ recovercrash_compact1(stc *cx srunused)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	c = sp_cursor(db, ">=", NULL);
+	o = sp_object(db);
+	c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -412,7 +417,8 @@ recovercrash_compact2(stc *cx srunused)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	c = sp_cursor(db, ">=", NULL);
+	o = sp_object(db);
+	c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -498,10 +504,10 @@ recovercrash_compact3(stc *cx srunused)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	c = sp_cursor(db, ">=", NULL);
+	void *o = sp_object(db);
+	c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 	i = 0;
-	void *o;
 	while ((o = sp_get(c))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		i++;
@@ -580,10 +586,10 @@ recovercrash_compact4(stc *cx srunused)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	c = sp_cursor(db, ">=", NULL);
+	void *o = sp_object(db);
+	c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 	i = 0;
-	void *o;
 	while ((o = sp_get(c))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		i++;
@@ -664,10 +670,10 @@ recovercrash_compact5(stc *cx srunused)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	c = sp_cursor(db, ">=", NULL);
+	void *o = sp_object(db);
+	c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 	i = 0;
-	void *o;
 	while ((o = sp_get(c))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		i++;
@@ -748,10 +754,10 @@ recovercrash_compact6(stc *cx srunused)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	c = sp_cursor(db, ">=", NULL);
+	void *o = sp_object(db);
+	c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 	i = 0;
-	void *o;
 	while ((o = sp_get(c))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		i++;
@@ -833,10 +839,10 @@ recovercrash_compact7(stc *cx srunused)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	c = sp_cursor(db, ">=", NULL);
+	void *o = sp_object(db);
+	c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 	i = 0;
-	void *o;
 	while ((o = sp_get(c))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		i++;

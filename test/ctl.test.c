@@ -169,7 +169,7 @@ ctl_cursor(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "db", "test") == 0 );
 	void *o;
-	void *cur = sp_cursor(c, ">=", NULL);
+	void *cur = sp_cursor(c);
 	t( cur != NULL );
 	printf("\n");
 	while ((o = sp_get(cur))) {

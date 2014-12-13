@@ -182,9 +182,10 @@ st_scene_truncate(stscene *g, stc *cx)
 {
 	printf(".truncate");
 	fflush(NULL);
-	void *c = sp_cursor(cx->db, ">=", NULL);
+	void *o = sp_object(cx->db);
+	t( o != NULL );
+	void *c = sp_cursor(cx->db, ">=", o);
 	t( c != NULL );
-	void *o;
 	while ((o = sp_get(c))) {
 		void *k = sp_object(cx->db);
 		t( k != NULL );

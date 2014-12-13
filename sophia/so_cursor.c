@@ -152,8 +152,6 @@ soobj *so_cursornew(sodb *db, va_list args)
 	} else
 	if (strcmp(order, "random") == 0) {
 		cmp = SR_RANDOM;
-		if (srunlikely(keyobj == NULL))
-			goto error;
 	} else {
 		goto error;
 	}
@@ -173,16 +171,14 @@ soobj *so_cursornew(sodb *db, va_list args)
 	/* open cursor */
 	void *key = NULL;
 	uint32_t keysize = 0;
-	if (keyobj) {
-		sv *ov = NULL;
-		if (srunlikely(keyobj->id != SOV))
-			goto error;
-		ov = &((sov*)keyobj)->v;
-		key = svkey(ov);
-		keysize = svkeysize(ov);
-		if (srunlikely(key == NULL))
-			goto error;
-	}
+	sv *ov = NULL;
+	if (srunlikely(keyobj->id != SOV))
+		goto error;
+	ov = &((sov*)keyobj)->v;
+	keysize = svkeysize(ov);
+	key = svkey(ov);
+	if (keysize == 0)
+		key = NULL;
 	int rc = so_cursoropen(c, key, keysize);
 	if (srunlikely(rc == -1))
 		goto error;
@@ -203,6 +199,7 @@ soobj *so_cursornew(sodb *db, va_list args)
 	c->order = o;
 	so_objindex_register(&db->cursor, &c->o);
 	return &c->o;
+
 error:
 	if (keyobj)
 		so_objdestroy(keyobj);

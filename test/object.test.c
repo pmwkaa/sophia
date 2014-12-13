@@ -50,7 +50,9 @@ object_lsn0(stc *cx)
 	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
 	t( *(uint64_t*)sp_get(o, "lsn", NULL) == 0ULL );
 	t( sp_set(db, o) == 0 );
-	void *c = sp_cursor(db, ">", NULL);
+	o = sp_object(db);
+	t(o != NULL);
+	void *c = sp_cursor(db, ">", o);
 	o = sp_get(c);
 	t( o != NULL );
 	int size = 0;
@@ -77,7 +79,9 @@ object_lsn1(stc *cx)
 	t( sp_set(o, "lsn", 123ULL) == 0 );
 	t( *(uint64_t*)sp_get(o, "lsn", NULL) == 123ULL );
 	t( sp_set(db, o) == 0 );
-	void *c = sp_cursor(db, ">", NULL);
+	o = sp_object(db);
+	t(o != NULL);
+	void *c = sp_cursor(db, ">", o);
 	o = sp_get(c);
 	t( o != NULL );
 	int size = 0;
@@ -122,7 +126,9 @@ object_readonly1(stc *cx)
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
-	void *c = sp_cursor(db, ">", NULL);
+	o = sp_object(db);
+	t( o != NULL );
+	void *c = sp_cursor(db, ">", o);
 	o = sp_get(c);
 	t( o != NULL );
 	t( sp_set(o, "key", &key, sizeof(key)) == -1 );

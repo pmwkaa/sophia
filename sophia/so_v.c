@@ -39,7 +39,7 @@ so_vset(soobj *obj, va_list args)
 	char *name = va_arg(args, char*);
 	if (strcmp(name, "key") == 0) {
 		if (v->v.i != &sv_localif) {
-			sr_error(&v->e->error, "%s", "bad object object operation");
+			sr_error(&v->e->error, "%s", "bad object operation");
 			sr_error_recoverable(&v->e->error);
 			return -1;
 		}
@@ -49,7 +49,7 @@ so_vset(soobj *obj, va_list args)
 	} else
 	if (strcmp(name, "value") == 0) {
 		if (v->v.i != &sv_localif) {
-			sr_error(&v->e->error, "%s", "bad object object operation");
+			sr_error(&v->e->error, "%s", "bad object operation");
 			sr_error_recoverable(&v->e->error);
 			return -1;
 		}
