@@ -28,9 +28,10 @@ alloclogv(svlog *log, sra *a, uint64_t lsn, uint8_t flags, int key)
 	sv lv;
 	svinit(&lv, &sv_localif, &l, NULL);
 	svv *v = sv_valloc(a, &lv);
-	sv vv;
-	svinit(&vv, &sv_vif, v, NULL);
-	sv_logadd(log, a, &vv);
+	svlogv logv;
+	logv.dsn = 0;
+	svinit(&logv.v, &sv_vif, v, NULL);
+	sv_logadd(log, a, &logv);
 }
 
 static void
@@ -38,10 +39,10 @@ freelog(svlog *log, sr *c)
 {
 	sriter i;
 	sr_iterinit(&i, &sr_bufiter, c);
-	sr_iteropen(&i, &log->buf, sizeof(sv));
+	sr_iteropen(&i, &log->buf, sizeof(svlogv));
 	for (; sr_iterhas(&i); sr_iternext(&i)) {
-		sv *v = sr_iterof(&i);
-		sr_free(c->a, v->v);
+		svlogv *v = sr_iterof(&i);
+		sr_free(c->a, v->v.v);
 	}
 	sv_logfree(log, c->a);
 }
@@ -74,7 +75,7 @@ sliter_tx(stc *cx)
 	alloclogv(&log, &a, 0, SVSET, 7);
 
 	sltx ltx;
-	t( sl_begin(&lp, &ltx, 0) == 0 );
+	t( sl_begin(&lp, &ltx) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );
 
@@ -153,7 +154,7 @@ sliter_tx_read0(stc *cx)
 	sv_loginit(&log);
 	alloclogv(&log, &a, 0, SVSET, 7);
 	sltx ltx;
-	t( sl_begin(&lp, &ltx, 0) == 0 );
+	t( sl_begin(&lp, &ltx) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );
 	freelog(&log, &r);
@@ -206,7 +207,7 @@ sliter_tx_read1(stc *cx)
 	alloclogv(&log, &a, 0, SVSET, 8);
 	alloclogv(&log, &a, 0, SVSET, 9);
 	sltx ltx;
-	t( sl_begin(&lp, &ltx, 0) == 0 );
+	t( sl_begin(&lp, &ltx) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );
 	freelog(&log, &r);
@@ -268,11 +269,11 @@ sliter_tx_read2(stc *cx)
 	alloclogv(&log, &a, 0, SVSET, 8);
 	alloclogv(&log, &a, 0, SVSET, 9);
 	sltx ltx;
-	t( sl_begin(&lp, &ltx, 0) == 0 );
+	t( sl_begin(&lp, &ltx) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );
 
-	t( sl_begin(&lp, &ltx, 0) == 0 );
+	t( sl_begin(&lp, &ltx) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );
 	freelog(&log, &r);
@@ -333,7 +334,7 @@ sliter_tx_read3(stc *cx)
 	sv_loginit(&log);
 	alloclogv(&log, &a, 0, SVSET, 7); /* single stmt */
 	sltx ltx;
-	t( sl_begin(&lp, &ltx, 0) == 0 );
+	t( sl_begin(&lp, &ltx) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );
 	freelog(&log, &r);
@@ -342,7 +343,7 @@ sliter_tx_read3(stc *cx)
 	alloclogv(&log, &a, 0, SVSET, 8); /* multi stmt */
 	alloclogv(&log, &a, 0, SVSET, 9);
 	alloclogv(&log, &a, 0, SVSET, 10);
-	t( sl_begin(&lp, &ltx, 0) == 0 );
+	t( sl_begin(&lp, &ltx) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );
 	freelog(&log, &r);
@@ -351,14 +352,14 @@ sliter_tx_read3(stc *cx)
 	alloclogv(&log, &a, 0, SVSET, 11); /* multi stmt */
 	alloclogv(&log, &a, 0, SVSET, 12);
 	alloclogv(&log, &a, 0, SVSET, 13);
-	t( sl_begin(&lp, &ltx, 0) == 0 );
+	t( sl_begin(&lp, &ltx) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );
 	freelog(&log, &r);
 
 	sv_loginit(&log);
 	alloclogv(&log, &a, 0, SVSET, 14); /* single stmt */
-	t( sl_begin(&lp, &ltx, 0) == 0 );
+	t( sl_begin(&lp, &ltx) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );
 	freelog(&log, &r);

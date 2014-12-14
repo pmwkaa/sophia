@@ -15,7 +15,7 @@ struct socursor {
 	soobj o;
 	int ready;
 	srorder order;
-	smtx t;
+	sx t;
 	sov v;
 	soobj *key;
 	sodb *db;

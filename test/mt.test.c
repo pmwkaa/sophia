@@ -9,7 +9,7 @@
 
 #include <libsr.h>
 #include <libsv.h>
-#include <libsm.h>
+#include <libsx.h>
 #include <libsl.h>
 #include <libsd.h>
 #include <libsi.h>
@@ -80,11 +80,12 @@ mt_single_stmt(stc *cx)
 static inline void *multi_stmt_thread(void *arg) 
 {
 	soworker *self = arg;
-	void *db = self->arg;
+	void *env = ((void**)self->arg)[0];
+	void *db  = ((void**)self->arg)[1];
 	int i = 0;
 	while (i < 2000) {
 		int rc;
-		void *tx = sp_begin(db);
+		void *tx = sp_begin(env);
 		assert( tx != NULL );
 		int j = 0;
 		while (j < 10) {
@@ -138,7 +139,8 @@ mt_multi_stmt(stc *cx)
 	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 	soworkers w;
 	so_workersinit(&w);
-	t( so_workersnew(&w, &r, 5, multi_stmt_thread, cx->db) == 0 );
+	void *ptr[2] = { cx->env, cx->db };
+	t( so_workersnew(&w, &r, 5, multi_stmt_thread, (void*)ptr) == 0 );
 	t( so_workersshutdown(&w, &r) == 0 );
 
 	void *o = sp_get(c, "db.test.index.count");
@@ -152,11 +154,12 @@ mt_multi_stmt(stc *cx)
 static inline void *multi_stmt_conflict_thread(void *arg) 
 {
 	soworker *self = arg;
-	void *db = self->arg;
+	void *env = ((void**)self->arg)[0];
+	void *db  = ((void**)self->arg)[1];
 	int i = 0;
 	while (i < 2000) {
 		int rc;
-		void *tx = sp_begin(db);
+		void *tx = sp_begin(env);
 		assert( tx != NULL );
 		int j = 0;
 		while (j < 10) {
@@ -206,7 +209,8 @@ mt_multi_stmt_conflict(stc *cx)
 	sr_init(&r, &error, &a, NULL, &cmp, NULL);
 	soworkers w;
 	so_workersinit(&w);
-	t( so_workersnew(&w, &r, 5, multi_stmt_conflict_thread, cx->db) == 0 );
+	void *ptr[2] = { cx->env, cx->db };
+	t( so_workersnew(&w, &r, 5, multi_stmt_conflict_thread, (void*)ptr) == 0 );
 	t( so_workersshutdown(&w, &r) == 0 );
 
 	t( sp_destroy(cx->env) == 0 );

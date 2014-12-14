@@ -9,7 +9,7 @@
 
 #include <libsr.h>
 #include <libsv.h>
-#include <libsm.h>
+#include <libsx.h>
 #include <libsl.h>
 #include <libsd.h>
 #include <libsi.h>
@@ -31,7 +31,7 @@ int so_scheduler_branch(void *arg)
 	so_workerstub_init(&stub, &db->r);
 	int rc;
 	while (1) {
-		uint64_t vlsn = so_dbvlsn(db);
+		uint64_t vlsn = sx_vlsn(&db->e->xm);
 		siplan plan = {
 			.explain   = SI_ENONE,
 			.plan      = SI_BRANCH,
@@ -59,7 +59,7 @@ int so_scheduler_compact(void *arg)
 	so_workerstub_init(&stub, &db->r);
 	int rc;
 	while (1) {
-		uint64_t vlsn = so_dbvlsn(db);
+		uint64_t vlsn = sx_vlsn(&db->e->xm);
 		siplan plan = {
 			.explain   = SI_ENONE,
 			.plan      = SI_COMPACT,
@@ -405,7 +405,7 @@ so_execute(sotask *t, soworker *w)
 {
 	si_plannertrace(&t->plan, &w->trace);
 	sodb *db = t->db;
-	uint64_t vlsn = so_dbvlsn(db);
+	uint64_t vlsn = sx_vlsn(&db->e->xm);
 	int rc = si_execute(&db->index, &db->r, &w->dc, &t->plan, vlsn);
 	if (srunlikely(rc == -1))
 		so_dbmalfunction(db);

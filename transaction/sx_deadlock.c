@@ -9,29 +9,29 @@
 
 #include <libsr.h>
 #include <libsv.h>
-#include <libsm.h>
+#include <libsx.h>
 
 static inline int
-sm_deadlock_in(sm *c, srlist *mark, smtx *t, smtx *p)
+sx_deadlock_in(sxmanager *m, srlist *mark, sx *t, sx *p)
 {
 	if (p->deadlock.next != &p->deadlock)
 		return 0;
 	sr_listappend(mark, &p->deadlock);
 	sriter i;
-	sr_iterinit(&i, &sr_bufiter, c->r);
-	sr_iteropen(&i, &p->log.buf, sizeof(sv));
+	sr_iterinit(&i, &sr_bufiter, m->r);
+	sr_iteropen(&i, &p->log.buf, sizeof(svlogv));
 	for (; sr_iterhas(&i); sr_iternext(&i))
 	{
-		sv *vp = sr_iterof(&i);
-		smv *v = vp->v;
+		svlogv *lv = sr_iterof(&i);
+		sxv *v = lv->v.v;
 		if (v->prev == NULL)
 			continue;
 		do {
-			smtx *n = sm_find(c, v->id);
+			sx *n = sx_find(m, v->id);
 			assert(n != NULL);
 			if (srunlikely(n == t))
 				return 1;
-			int rc = sm_deadlock_in(c, mark, t, n);
+			int rc = sx_deadlock_in(m, mark, t, n);
 			if (srunlikely(rc == 1))
 				return 1;
 			v = v->prev;
@@ -41,37 +41,37 @@ sm_deadlock_in(sm *c, srlist *mark, smtx *t, smtx *p)
 }
 
 static inline void
-sm_deadlock_unmark(srlist *mark)
+sx_deadlock_unmark(srlist *mark)
 {
 	srlist *i, *n;
 	sr_listforeach_safe(mark, i, n) {
-		smtx *t = srcast(i, smtx, deadlock);
+		sx *t = srcast(i, sx, deadlock);
 		sr_listinit(&t->deadlock);
 	}
 }
 
-int sm_deadlock(smtx *t)
+int sx_deadlock(sx *t)
 {
-	sm *c = t->c;
+	sxmanager *m = t->manager;
 	srlist mark;
 	sr_listinit(&mark);
 	sriter i;
-	sr_iterinit(&i, &sr_bufiter, c->r);
-	sr_iteropen(&i, &t->log.buf, sizeof(sv));
+	sr_iterinit(&i, &sr_bufiter, m->r);
+	sr_iteropen(&i, &t->log.buf, sizeof(svlogv));
 	for (; sr_iterhas(&i); sr_iternext(&i))
 	{
-		sv *vp = sr_iterof(&i);
-		smv *v = vp->v;
+		svlogv *lv = sr_iterof(&i);
+		sxv *v = lv->v.v;
 		if (v->prev == NULL)
 			continue;
-		smtx *p = sm_find(c, v->prev->id);
+		sx *p = sx_find(m, v->prev->id);
 		assert(p != NULL);
-		int rc = sm_deadlock_in(c, &mark, t, p);
+		int rc = sx_deadlock_in(m, &mark, t, p);
 		if (srunlikely(rc)) {
-			sm_deadlock_unmark(&mark);
+			sx_deadlock_unmark(&mark);
 			return 1;
 		}
 	}
-	sm_deadlock_unmark(&mark);
+	sx_deadlock_unmark(&mark);
 	return 0;
 }

@@ -9,7 +9,7 @@
 
 #include <libsr.h>
 #include <libsv.h>
-#include <libsm.h>
+#include <libsx.h>
 #include <libsl.h>
 #include <libsd.h>
 #include <libsi.h>
@@ -18,25 +18,32 @@
 
 int so_txdbset(sodb *db, uint8_t flags, va_list args)
 {
-	int rc;
-	int status = so_status(&db->status);
-	if (srunlikely(! so_statusactive_is(status)))
-		return -1;
-	if (srunlikely(status == SO_RECOVER))
-		return -1;
-	soobj *o = va_arg(args, soobj*);
-	sv *ov = NULL;
-	if (srunlikely(o->id != SOV)) {
+	/* validate call */
+	sov *o = va_arg(args, sov*);
+	if (srunlikely(o->o.id != SOV)) {
 		sr_error(&db->e->error, "%s", "bad arguments");
 		sr_error_recoverable(&db->e->error);
 		return -1;
 	}
-	ov = &((sov*)o)->v;
+	sv *ov = &o->v;
 	if (srunlikely(ov->v == NULL)) {
 		sr_error(&db->e->error, "%s", "bad arguments");
 		sr_error_recoverable(&db->e->error);
 		goto error;
 	}
+	soobj *parent = o->parent;
+	if (srunlikely(parent != &db->o)) {
+		sr_error(&db->e->error, "%s", "bad object parent");
+		sr_error_recoverable(&db->e->error);
+		goto error;
+	}
+	int status = so_status(&db->status);
+	if (srunlikely(! so_statusactive_is(status)))
+		goto error;
+	if (srunlikely(status == SO_RECOVER))
+		goto error;
+
+	/* prepare object */
 	svlocal l;
 	l.flags       = flags;
 	l.lsn         = 0;
@@ -52,12 +59,12 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	sr_quota(&db->e->quota, SR_QADD, sv_vsizeof(&vp));
 
 	/* concurrency */
-	smstate s = sm_set_stmt(&db->mvcc, &vp);
-	rc = 1; /* rlb */
+	sxstate s = sx_setstmt(&db->e->xm, &db->coindex, &vp);
+	int rc = 1; /* rlb */
 	switch (s) {
-	case SMWAIT: rc = 2;
-	case SMROLLBACK:
-		so_objdestroy(o);
+	case SXWAIT: rc = 2;
+	case SXROLLBACK:
+		so_objdestroy(&o->o);
 		return rc;
 	default:
 		break;
@@ -68,13 +75,17 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 		sr_error_recoverable(&db->e->error);
 		goto error;
 	}
-	svinit(&vp, &sv_vif, v, NULL);
+
 	/* log write */
+	svlogv lv;
+	lv.dsn = db->ctl.id;
+	lv.ptr = db;
+	svinit(&lv.v, &sv_vif, v, NULL);
 	svlog log;
 	sv_loginit(&log);
-	sv_logadd(&log, db->r.a, &vp);
+	sv_logadd(&log, db->r.a, &lv);
 	sltx tl;
-	sl_begin(&db->e->lp, &tl, db->ctl.id);
+	sl_begin(&db->e->lp, &tl);
 	sl_prepare(&db->e->lp, &log);
 	rc = sl_write(&tl, &log);
 	if (srunlikely(rc == -1)) {
@@ -83,38 +94,48 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	}
 	v->log = tl.l;
 	sl_commit(&tl);
-	uint64_t vlsn = so_dbvlsn(db);
+
+	/* commit */
+	uint64_t vlsn = sx_vlsn(&db->e->xm);
+	uint64_t now = sr_utime();
 	sitx tx;
-	si_begin(&tx, &db->r, &db->index, vlsn, &log);
+	si_begin(&tx, &db->r, &db->index, vlsn, now, &lv.v);
 	si_write(&tx, 0);
 	si_commit(&tx);
-	so_objdestroy(o);
+
+	so_objdestroy(&o->o);
 	return 0;
 error:
-	so_objdestroy(o);
+	so_objdestroy(&o->o);
 	return -1;
 }
 
 void *so_txdbget(sodb *db, va_list args)
 {
-	if (srunlikely(! so_dbactive(db)))
-		return NULL;
-	soobj *o = va_arg(args, soobj*);
-	if (srunlikely(o->id != SOV)) {
+	/* validate call */
+	sov *o = va_arg(args, sov*);
+	if (srunlikely(o->o.id != SOV)) {
 		sr_error(&db->e->error, "%s", "bad arguments");
 		sr_error_recoverable(&db->e->error);
 		return NULL;
 	}
-	sov *v = (sov*)o;
-	void *key = svkey(&v->v);
-	uint32_t keysize = svkeysize(&v->v);
+	uint32_t keysize = svkeysize(&o->v);
+	void *key = svkey(&o->v);
 	if (srunlikely(key == NULL)) {
-		so_objdestroy(o);
 		sr_error(&db->e->error, "%s", "bad arguments");
 		sr_error_recoverable(&db->e->error);
-		return NULL;
+		goto error;
 	}
-	sm_get_stmt(&db->mvcc);
+	soobj *parent = o->parent;
+	if (srunlikely(parent != &db->o)) {
+		sr_error(&db->e->error, "%s", "bad object parent");
+		sr_error_recoverable(&db->e->error);
+		goto error;
+	}
+	if (srunlikely(! so_dbactive(db)))
+		goto error;
+
+	sx_getstmt(&db->e->xm, &db->coindex);
 	uint64_t vlsn = sr_seq(db->r.seq, SR_LSN) - 1;
 	sv result;
 	siquery q;
@@ -124,41 +145,53 @@ void *so_txdbget(sodb *db, va_list args)
 		rc = si_querydup(&q, &result);
 	}
 	si_queryclose(&q);
-	so_objdestroy(o);
+	so_objdestroy(&o->o);
 	if (srunlikely(rc <= 0))
 		return NULL;
-	soobj *ret = so_vdup(db->e, &result);
+	soobj *ret = so_vdup(db->e, &db->o, &result);
 	if (srunlikely(ret == NULL))
 		sv_vfree(&db->e->a, (svv*)result.v);
 	return ret;
+error:
+	so_objdestroy(&o->o);
+	return NULL;
 }
 
 static int
 so_txdo(soobj *obj, uint8_t flags, va_list args)
 {
 	sotx *t = (sotx*)obj;
-	sodb *db = t->db;
-	svv *v;
-	int rc;
-	/* prepare object */
-	soobj *o = va_arg(args, soobj*);
-	sv *ov = NULL;
-	if (srunlikely(o->id != SOV)) {
-		sr_error(&db->e->error, "%s", "bad arguments");
-		sr_error_recoverable(&db->e->error);
+	so *e = t->e;
+
+	/* validate call */
+	sov *o = va_arg(args, sov*);
+	if (srunlikely(o->o.id != SOV)) {
+		sr_error(&e->error, "%s", "bad arguments");
+		sr_error_recoverable(&e->error);
 		return -1;
 	}
-	ov = &((sov*)o)->v;
+	sv *ov = &o->v;
 	if (srunlikely(ov->v == NULL)) {
-		sr_error(&db->e->error, "%s", "bad arguments");
-		sr_error_recoverable(&db->e->error);
+		sr_error(&e->error, "%s", "bad arguments");
+		sr_error_recoverable(&e->error);
 		goto error;
 	}
-	if (t->t.s == SMPREPARE) {
-		sr_error(&db->e->error, "%s", "transaction is in 'prepare' state (read-only)");
-		sr_error_recoverable(&db->e->error);
+	soobj *parent = o->parent;
+	if (parent == NULL || parent->id != SODB) {
+		sr_error(&e->error, "%s", "bad object parent");
+		sr_error_recoverable(&e->error);
 		goto error;
 	}
+	sodb *db = (sodb*)parent;
+	if (t->t.s == SXPREPARE) {
+		sr_error(&e->error, "%s", "transaction is in 'prepare' state (read-only)");
+		sr_error_recoverable(&e->error);
+		goto error;
+	}
+	if (srunlikely(! so_dbactive(db)))
+		goto error;
+
+	/* prepare object */
 	svlocal l;
 	l.flags       = flags;
 	l.lsn         = svlsn(ov);
@@ -173,18 +206,18 @@ so_txdo(soobj *obj, uint8_t flags, va_list args)
 	/* ensure quota */
 	sr_quota(&db->e->quota, SR_QADD, sv_vsizeof(&vp));
 
-	v = sv_valloc(db->r.a, &vp);
+	svv *v = sv_valloc(db->r.a, &vp);
 	if (srunlikely(v == NULL)) {
 		sr_error(&db->e->error, "%s", "memory allocation failed");
 		sr_error_recoverable(&db->e->error);
 		goto error;
 	}
-	v->log = ((sov*)o)->log;
-	rc = sm_set(&t->t, v);
-	so_objdestroy(o);
+	v->log = o->log;
+	int rc = sx_set(&t->t, &db->coindex, v);
+	so_objdestroy(&o->o);
 	return rc;
 error:
-	so_objdestroy(o);
+	so_objdestroy(&o->o);
 	return -1;
 }
 
@@ -203,158 +236,169 @@ so_txdelete(soobj *o, va_list args)
 static void*
 so_txget(soobj *obj, va_list args)
 {
-	sotx *t  = (sotx*)obj;
-	sodb *db = t->db;
-	if (srunlikely(! so_dbactive(db)))
-		return NULL;
-	soobj *o = va_arg(args, soobj*);
-	if (srunlikely(o->id != SOV)) {
-		sr_error(&db->e->error, "%s", "bad arguments");
-		sr_error_recoverable(&db->e->error);
+	sotx *t = (sotx*)obj;
+	so *e = t->e;
+
+	/* validate call */
+	sov *o = va_arg(args, sov*);
+	if (srunlikely(o->o.id != SOV)) {
+		sr_error(&e->error, "%s", "bad arguments");
+		sr_error_recoverable(&e->error);
 		return NULL;
 	}
-	sov *v = (sov*)o;
-	void *key = svkey(&v->v);
+	void *key = svkey(&o->v);
 	if (srunlikely(key == NULL)) {
-		so_objdestroy(o);
-		sr_error(&db->e->error, "%s", "bad arguments");
-		sr_error_recoverable(&db->e->error);
+		sr_error(&e->error, "%s", "bad arguments");
+		sr_error_recoverable(&e->error);
 		return NULL;
 	}
+	soobj *parent = o->parent;
+	if (parent == NULL || parent->id != SODB) {
+		sr_error(&e->error, "%s", "bad object parent");
+		sr_error_recoverable(&e->error);
+		goto error;
+	}
+	sodb *db = (sodb*)parent;
+	if (srunlikely(! so_dbactive(db)))
+		goto error;
+
 	soobj *ret;
 	sv result;
-	int rc;
-	rc = sm_get(&t->t, &v->v, &result);
+	int rc = sx_get(&t->t, &db->coindex, &o->v, &result);
 	switch (rc) {
 	case -1:
 	case  2: /* delete */
-		so_objdestroy(o);
+		so_objdestroy(&o->o);
 		return NULL;
 	case  1:
-		so_objdestroy(o);
-		ret = so_vdup(db->e, &result);
+		ret = so_vdup(e, &db->o, &result);
 		if (srunlikely(ret == NULL))
 			sv_vfree(&db->e->a, (svv*)result.v);
+		so_objdestroy(&o->o);
 		return ret;
-		}
+	}
 	siquery q;
-	si_queryopen(&q, &t->db->r, &t->db->index, SR_EQ,
+	si_queryopen(&q, &db->r, &db->index, SR_EQ,
 	             t->t.vlsn,
-	             key, svkeysize(&v->v));
+	             key, svkeysize(&o->v));
 	rc = si_query(&q);
 	if (rc) {
 		rc = si_querydup(&q, &result);
 	}
 	si_queryclose(&q);
-	so_objdestroy(o);
+	so_objdestroy(&o->o);
 	if (srunlikely(rc <= 0))
 		return NULL;
-	ret = so_vdup(db->e, &result);
+	ret = so_vdup(e, &db->o, &result);
 	if (srunlikely(ret == NULL))
-		sv_vfree(&db->e->a, (svv*)result.v);
+		sv_vfree(&e->a, (svv*)result.v);
 	return ret;
+error:
+	so_objdestroy(&o->o);
+	return NULL;
 }
 
 static inline void
 so_txend(sotx *t)
 {
 	so_objindex_destroy(&t->logcursor);
-	so_objindex_unregister(&t->db->tx, &t->o);
-	sr_free(&t->db->e->a_tx, t);
+	so_objindex_unregister(&t->e->tx, &t->o);
+	sr_free(&t->e->a_tx, t);
 }
 
 static int
 so_txrollback(soobj *o)
 {
 	sotx *t = (sotx*)o;
-	sm_rollback(&t->t);
-	sm_end(&t->t);
+	sx_rollback(&t->t);
+	sx_end(&t->t);
 	so_txend(t);
 	return 0;
 }
 
-static smstate
-so_txprepare_trigger(smtx *t, sv *v, void *arg)
+static sxstate
+so_txprepare_trigger(sx *t, sv *v, void *arg0, void *arg1)
 {
-	sotx *te = arg;
-	uint64_t lsn = sr_seq(te->db->r.seq, SR_LSN);
+	sotx *te = arg0;
+	sodb *db = arg1;
+	uint64_t lsn = sr_seq(te->e->r.seq, SR_LSN);
 	if ((lsn - 1) == t->vlsn)
-		return SMPREPARE;
+		return SXPREPARE;
 	siquery q;
-	si_queryopen(&q, &te->db->r, &te->db->index, SR_UPDATE,
+	si_queryopen(&q, &db->r, &db->index, SR_UPDATE,
 	             t->vlsn,
 	             svkey(v), svkeysize(v));
 	int rc;
 	rc = si_query(&q);
 	si_queryclose(&q);
 	if (srunlikely(rc))
-		return SMROLLBACK;
-	return SMPREPARE;
+		return SXROLLBACK;
+	return SXPREPARE;
 }
 
 static int
 so_txprepare(soobj *o, va_list args srunused)
 {
-	sotx *t  = (sotx*)o;
-	sodb *db = t->db;
-	int status = so_status(&db->status);
+	sotx *t = (sotx*)o;
+	so *e = t->e;
+	int status = so_status(&e->status);
 	if (srunlikely(! so_statusactive_is(status)))
 		return -1;
-	if (t->t.s == SMPREPARE)
+	if (t->t.s == SXPREPARE)
 		return 0;
 	/* resolve conflicts */
-	smpreparef prepare_trigger = so_txprepare_trigger;
+	sxpreparef prepare_trigger = so_txprepare_trigger;
 	if (srunlikely(status == SO_RECOVER))
 		prepare_trigger = NULL;
-	smstate s = sm_prepare(&t->t, prepare_trigger, t);
-	if (s == SMWAIT)
+	sxstate s = sx_prepare(&t->t, prepare_trigger, t);
+	if (s == SXWAIT)
 		return 2;
-	if (s == SMROLLBACK) {
+	if (s == SXROLLBACK) {
 		so_txrollback(&t->o);
 		return 1;
 	}
-	assert(s == SMPREPARE);
-	if (db->e->ctl.commit_lsn || status == SO_RECOVER)
+	assert(s == SXPREPARE);
+	if (e->ctl.commit_lsn || status == SO_RECOVER)
 		return 0;
 	/* assign lsn */
-	sl_prepare(&db->e->lp, &t->t.log);
+	sl_prepare(&e->lp, &t->t.log);
 	return 0;
 }
 
 static int
 so_txcommit(soobj *o, va_list args)
 {
-	sotx *t  = (sotx*)o;
-	sodb *db = t->db;
-	int status = so_status(&db->status);
+	sotx *t = (sotx*)o;
+	so *e = t->e;
+	int status = so_status(&e->status);
 	if (srunlikely(! so_statusactive_is(status)))
 		return -1;
 
 	/* prepare transaction for commit */
-	assert (t->t.s == SMPREPARE || t->t.s == SMREADY);
+	assert (t->t.s == SXPREPARE || t->t.s == SXREADY);
 	int rc;
-	if (t->t.s == SMREADY) {
+	if (t->t.s == SXREADY) {
 		rc = so_txprepare(o, args);
 		if (srunlikely(rc != 0))
 			return rc;
 	}
-	assert(t->t.s == SMPREPARE);
+	assert(t->t.s == SXPREPARE);
 
 	if (srunlikely(! sv_logn(&t->t.log))) {
-		sm_commit(&t->t);
-		sm_end(&t->t);
+		sx_commit(&t->t);
+		sx_end(&t->t);
 		so_txend(t);
 		return 0;
 	}
-	sm_commit(&t->t);
+	sx_commit(&t->t);
 
 	/* synchronize lsn */
-	sl_follow(&db->e->lp, &t->t.log);
+	sl_follow(&e->lp, &t->t.log);
 
 	/* log commit */
 	if (status == SO_ONLINE) {
 		sltx tl;
-		sl_begin(&db->e->lp, &tl, db->ctl.id);
+		sl_begin(&e->lp, &tl);
 		rc = sl_write(&tl, &t->t.log);
 		if (srunlikely(rc == -1)) {
 			sl_rollback(&tl);
@@ -364,21 +408,32 @@ so_txcommit(soobj *o, va_list args)
 		sl_commit(&tl);
 	}
 
-	/* index commit */
+	/* prepare commit */
 	int check_if_exists;
 	uint64_t vlsn;
 	if (srunlikely(status == SO_RECOVER)) {
 		check_if_exists = 1;
-		vlsn = sr_seq(db->r.seq, SR_LSN) - 1;
+		vlsn = sr_seq(e->r.seq, SR_LSN) - 1;
 	} else {
 		check_if_exists = 0;
-		vlsn = so_dbvlsn(db);
+		vlsn = sx_vlsn(&e->xm);
 	}
-	sitx ti;
-	si_begin(&ti, &db->r, &db->index, vlsn, &t->t.log);
-	si_write(&ti, check_if_exists);
-	si_commit(&ti);
-	sm_end(&t->t);
+
+	/* multi-index commit */
+	uint64_t now = sr_utime();
+	sriter i;
+	sr_iterinit(&i, &sr_bufiter, NULL);
+	sr_iteropen(&i, &t->t.log.buf, sizeof(svlogv));
+	for (; sr_iterhas(&i); sr_iternext(&i))
+	{
+		svlogv *lv = sr_iterof(&i);
+		sodb *db = lv->ptr;
+		sitx ti;
+		si_begin(&ti, &db->r, &db->index, vlsn, now, &lv->v);
+		si_write(&ti, check_if_exists);
+		si_commit(&ti);
+	}
+	sx_end(&t->t);
 
 	so_txend(t);
 	return 0;
@@ -392,13 +447,6 @@ so_txctl(soobj *obj, va_list args)
 	if (strcmp(name, "log_cursor") == 0)
 		return so_logcursor_new(t);
 	return NULL;
-}
-
-static void*
-so_txobject(soobj *o, va_list args srunused)
-{
-	sotx *t = (sotx*)o;
-	return so_objobject(&t->db->o);
 }
 
 static void*
@@ -420,13 +468,12 @@ static soobjif sotxif =
 	.commit   = so_txcommit,
 	.rollback = so_txrollback,
 	.cursor   = NULL,
-	.object   = so_txobject,
+	.object   = NULL,
 	.type     = so_txtype
 };
 
-soobj *so_txnew(sodb *db)
+soobj *so_txnew(so *e)
 {
-	so *e = db->e;
 	sotx *t = sr_malloc(&e->a_tx, sizeof(sotx));
 	if (srunlikely(t == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");
@@ -435,8 +482,8 @@ soobj *so_txnew(sodb *db)
 	}
 	so_objinit(&t->o, SOTX, &sotxif, &e->o);
 	so_objindex_init(&t->logcursor);
-	t->db = db;
-	sm_begin(&db->mvcc, &t->t);
-	so_objindex_register(&db->tx, &t->o);
+	t->e = e;
+	sx_begin(&e->xm, &t->t);
+	so_objindex_register(&e->tx, &t->o);
 	return &t->o;
 }

@@ -9,7 +9,7 @@
 
 #include <libsr.h>
 #include <libsv.h>
-#include <libsm.h>
+#include <libsx.h>
 #include <libsl.h>
 #include <libsd.h>
 #include <libsi.h>
@@ -93,6 +93,9 @@ so_destroy(soobj *o)
 	rc = so_scheduler_shutdown(&e->sched);
 	if (srunlikely(rc == -1))
 		rcret = -1;
+	rc = so_objindex_destroy(&e->tx);
+	if (srunlikely(rc == -1))
+		rcret = -1;
 	rc = so_objindex_destroy(&e->ctlcursor);
 	if (srunlikely(rc == -1))
 		rcret = -1;
@@ -105,6 +108,7 @@ so_destroy(soobj *o)
 	rc = se_close(&e->se, &e->r);
 	if (srunlikely(rc == -1))
 		rcret = -1;
+	sx_free(&e->xm);
 	so_ctlfree(&e->ctl);
 	sr_quotafree(&e->quota);
 	sr_mutexfree(&e->apilock);
@@ -113,6 +117,11 @@ so_destroy(soobj *o)
 	so_statusfree(&e->status);
 	free(e);
 	return rcret;
+}
+
+static void*
+so_begin(soobj *o) {
+	return so_txnew((so*)o);
 }
 
 static void*
@@ -129,7 +138,7 @@ static soobjif soif =
 	.set      = NULL,
 	.get      = NULL,
 	.del      = NULL,
-	.begin    = NULL,
+	.begin    = so_begin,
 	.prepare  = NULL,
 	.commit   = NULL,
 	.rollback = NULL,
@@ -158,11 +167,12 @@ soobj *so_new(void)
 	sr_allocopen(&e->a_ctlcursor, &sr_aslab, &e->pager, sizeof(soctlcursor));
 	sr_allocopen(&e->a_logcursor, &sr_aslab, &e->pager, sizeof(sologcursor));
 	sr_allocopen(&e->a_tx, &sr_aslab, &e->pager, sizeof(sotx));
-	sr_allocopen(&e->a_smv, &sr_aslab, &e->pager, sizeof(smv));
+	sr_allocopen(&e->a_sxv, &sr_aslab, &e->pager, sizeof(sxv));
 	so_statusinit(&e->status);
 	so_statusset(&e->status, SO_OFFLINE);
 	so_ctlinit(&e->ctl, e);
 	so_objindex_init(&e->db);
+	so_objindex_init(&e->tx);
 	so_objindex_init(&e->ctlcursor);
 	sr_mutexinit(&e->apilock);
 	sr_quotainit(&e->quota);
@@ -171,6 +181,7 @@ soobj *so_new(void)
 	sr_init(&e->r, &e->error, &e->a, &e->seq, NULL, &e->ei);
 	se_init(&e->se);
 	sl_poolinit(&e->lp, &e->r);
+	sx_init(&e->xm, &e->r, &e->a_sxv);
 	so_scheduler_init(&e->sched, e);
 	return &e->o;
 }

@@ -112,7 +112,7 @@ tpr_test1(stc *cx srunused)
 	t( strcmp(sp_get(o, "value", NULL), "recover") == 0 );
 	sp_destroy(o);
 
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(env);
 	t( tx != NULL );
 	key = 7;
 	value = 8;
@@ -124,7 +124,7 @@ tpr_test1(stc *cx srunused)
 	t( sp_set(tx, o) == 0 );
 	t( sp_commit(tx) == 0 ); /* skip */
 
-	tx = sp_begin(db);
+	tx = sp_begin(env);
 	t( tx != NULL );
 	key = 7;
 	value = 9;

@@ -68,7 +68,7 @@ cursor_gte(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
@@ -114,7 +114,7 @@ cursor_gt(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
@@ -160,7 +160,7 @@ cursor_lte(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
@@ -206,7 +206,7 @@ cursor_lt(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
@@ -252,7 +252,7 @@ cursor_pos_gte0(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
@@ -300,7 +300,7 @@ cursor_pos_gte1(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
@@ -345,7 +345,7 @@ cursor_pos_gte2(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
@@ -387,7 +387,7 @@ cursor_pos_gte3(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
@@ -426,7 +426,7 @@ cursor_pos_gte4(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int key = 73;
 	void *o = sp_object(db);
 	t( o != NULL );
@@ -471,7 +471,7 @@ cursor_pos_gte5(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
@@ -519,7 +519,7 @@ cursor_pos_gt0(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
@@ -564,7 +564,7 @@ cursor_pos_gt1(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
@@ -606,7 +606,7 @@ cursor_pos_gt2(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
@@ -645,7 +645,7 @@ cursor_pos_lte0(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
@@ -693,7 +693,7 @@ cursor_pos_lte1(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
@@ -738,7 +738,7 @@ cursor_pos_lte2(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
@@ -780,7 +780,7 @@ cursor_pos_lte3(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
@@ -819,7 +819,7 @@ cursor_pos_lte4(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
@@ -867,7 +867,7 @@ cursor_pos_lt0(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
@@ -912,7 +912,7 @@ cursor_pos_lt1(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
@@ -954,7 +954,7 @@ cursor_pos_lt2(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
@@ -993,7 +993,7 @@ cursor_pos_lt3(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
@@ -1032,7 +1032,7 @@ cursor_pos_lt4(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
@@ -1080,7 +1080,7 @@ cursor_pos_gte_range(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int i = 0;
 	while (i < 385) {
@@ -1116,7 +1116,7 @@ cursor_pos_gt_range(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int i = 0;
 	while (i < 385) {
@@ -1152,7 +1152,7 @@ cursor_pos_lte_range(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int i = 0;
 	while (i < 385) {
@@ -1188,7 +1188,7 @@ cursor_pos_lt_range(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int i = 0;
 	while (i < 385) {
@@ -1226,7 +1226,7 @@ cursor_pos_gte_random(stc *cx)
 	int rc;
 	unsigned int seed = time(NULL);
 	srand(seed);
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int i = 0;
 	while (i < 270) {
@@ -1267,7 +1267,7 @@ cursor_pos_lte_random(stc *cx)
 	int rc;
 	unsigned int seed = time(NULL);
 	srand(seed);
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int i = 0;
 	while (i < 403) {
@@ -1305,7 +1305,7 @@ static void
 cursor_random(stc *cx)
 {
 	void *db = cx->db;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int i = 0;
 	while (i < 385) {
 		void *o = sp_object(db);
@@ -1346,7 +1346,7 @@ cursor_consistency0(stc *cx)
 	t( o != NULL );
 	void *c = sp_cursor(db, ">=", o);
 	t( c != NULL );
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int key = 7;
 	o = sp_object(db);
 	t( o != NULL );
@@ -1378,7 +1378,7 @@ cursor_consistency1(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
@@ -1406,7 +1406,7 @@ cursor_consistency1(stc *cx)
 	t( c != NULL );
 	st_transaction(cx);
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	t( tx != NULL );
 	key = 0;
 	o = sp_object(db);
@@ -1444,7 +1444,7 @@ cursor_consistency2(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int k = 1;
 	int v = 2;
 	void *o = sp_object(db);
@@ -1473,7 +1473,7 @@ cursor_consistency2(stc *cx)
 	void *c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	t( tx != NULL );
 	k = 1;
 	v = 3;
@@ -1509,7 +1509,7 @@ cursor_consistency3(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int k = 1;
 	int v = 2;
 	void *o = sp_object(db);
@@ -1538,7 +1538,7 @@ cursor_consistency3(stc *cx)
 	void *c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	t( tx != NULL );
 	k = 1;
 	v = 3;
@@ -1581,7 +1581,7 @@ cursor_consistency4(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int k = 1;
 	int v = 2;
 	void *o = sp_object(db);
@@ -1610,7 +1610,7 @@ cursor_consistency4(stc *cx)
 	void *c = sp_cursor(db, ">=", o);
 	t( c != NULL );
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	t( tx != NULL );
 	k = 1;
 	v = 3;
@@ -1630,7 +1630,7 @@ cursor_consistency4(stc *cx)
 	t( rc == 0 );
 	st_transaction(cx);
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	t( tx != NULL );
 	k = 3;
 	v = 3;
@@ -1673,7 +1673,7 @@ cursor_consistency5(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int v = 2;
 	int k;
 	k = 1;
@@ -1707,7 +1707,7 @@ cursor_consistency5(stc *cx)
 	t( *(int*)sp_get(o, "key",  NULL) == 1 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	t( tx != NULL );
 	k = 2;
 	v = 3;
@@ -1739,7 +1739,7 @@ cursor_consistency6(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int v = 2;
 	int k;
 	k = 1;
@@ -1774,7 +1774,7 @@ cursor_consistency6(stc *cx)
 	t( *(int*)sp_get(o, "key",  NULL) == 1 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	t( tx != NULL );
 	k = 2;
 	v = 3;
@@ -1820,7 +1820,7 @@ cursor_consistency7(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int v = 2;
 	int k;
 	k = 1;
@@ -1854,7 +1854,7 @@ cursor_consistency7(stc *cx)
 	t( *(int*)sp_get(o, "key",  NULL) == 1 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	t( tx != NULL );
 	k = 0;
 	v = 3;
@@ -1914,7 +1914,7 @@ cursor_consistency8(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int v = 2;
 	int k;
 	k = 1;
@@ -1948,7 +1948,7 @@ cursor_consistency8(stc *cx)
 	t( *(int*)sp_get(o, "key",  NULL) == 1 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	t( tx != NULL );
 	k = 0;
 	v = 3;
@@ -1973,7 +1973,7 @@ cursor_consistency8(stc *cx)
 	t( *(int*)sp_get(o, "key",  NULL) == 4 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	t( tx != NULL );
 	k = 0;
 	o = sp_object(db);
@@ -2004,7 +2004,7 @@ cursor_consistency8(stc *cx)
 	t( *(int*)sp_get(o, "key",  NULL) == 6 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	t( tx != NULL );
 	k = 7;
 	v = 3;
@@ -2025,7 +2025,7 @@ cursor_consistency9(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int v = 2;
 	int k;
 	k = 1;
@@ -2059,7 +2059,7 @@ cursor_consistency9(stc *cx)
 	t( *(int*)sp_get(o, "key",  NULL) == 1 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	t( tx != NULL );
 	k = 0;
 	v = 3;
@@ -2079,7 +2079,7 @@ cursor_consistency9(stc *cx)
 	t( rc == 0 );
 	st_transaction(cx);
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	t( tx != NULL );
 	k = 4;
 	v = 3;
@@ -2097,7 +2097,7 @@ cursor_consistency9(stc *cx)
 	t( *(int*)sp_get(o, "key",  NULL) == 4 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	t( tx != NULL );
 	k = 5;
 	v = 3;
@@ -2122,7 +2122,7 @@ cursor_consistency9(stc *cx)
 	t( *(int*)sp_get(o, "key",  NULL) == 6 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	t( tx != NULL );
 	k = 7;
 	v = 3;
@@ -2187,7 +2187,7 @@ cursor_consistencyN(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int k;
 	int v = 2;
 	k = 1;
@@ -2221,7 +2221,7 @@ cursor_consistencyN(stc *cx)
 	t( *(int*)sp_get(o, "key",  NULL) == 1 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	t( tx != NULL );
 	k = 0;
 	o = sp_object(db);
@@ -2240,7 +2240,7 @@ cursor_consistencyN(stc *cx)
 	t( rc == 0 );
 	st_transaction(cx);
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	t( tx != NULL );
 	k = 4;
 	o = sp_object(db);
@@ -2306,7 +2306,7 @@ cursor_consistency_rewrite0(stc *cx)
 	t( o != NULL );
 	void *c0 = sp_cursor(db, ">=", o);
 
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int v = 15;
 	int i = 0;
@@ -2325,7 +2325,7 @@ cursor_consistency_rewrite0(stc *cx)
 	t( o != NULL );
 	void *c1 = sp_cursor(db, ">=", o);
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	v = 20;
 	i = 0;
 	while (i < 385) {
@@ -2377,7 +2377,7 @@ cursor_consistency_rewrite1(stc *cx)
 	t( o != NULL );
 	void *c0 = sp_cursor(db, ">=", o);
 
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int v = 15;
 	int i = 0;
@@ -2396,7 +2396,7 @@ cursor_consistency_rewrite1(stc *cx)
 	t( o != NULL );
 	void *c1 = sp_cursor(db, ">=", o);
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	v = 20;
 	i = 0;
 	while (i < 385) {
@@ -2447,7 +2447,7 @@ cursor_consistency_rewrite2(stc *cx)
 	t( o != NULL );
 	void *c0 = sp_cursor(db, ">=", o);
 
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int v = 15;
 	int i = 0;
@@ -2472,7 +2472,7 @@ cursor_consistency_rewrite2(stc *cx)
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		t( *(int*)sp_get(o, "value", NULL) == 15 );
 
-		tx = sp_begin(db);
+		tx = sp_begin(cx->env);
 		o = sp_object(db);
 		t( o != NULL );
 		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
@@ -2512,7 +2512,7 @@ cursor_consistency_delete0(stc *cx)
 	t( o != NULL );
 	void *c0 = sp_cursor(db, ">=", o);
 
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int i = 0;
 	while (i < 385) {
 		void *o = sp_object(db);
@@ -2524,7 +2524,7 @@ cursor_consistency_delete0(stc *cx)
 	t( sp_commit(tx) == 0 );
 	st_transaction(cx);
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	i = 0;
 	while (i < 385) {
 		void *o = sp_object(db);
@@ -2549,7 +2549,7 @@ cursor_consistency_delete1(stc *cx)
 	t( o != NULL );
 	void *c0 = sp_cursor(db, ">=", o);
 
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	int i = 0;
 	while (i < 385) {
 		o = sp_object(db);
@@ -2561,7 +2561,7 @@ cursor_consistency_delete1(stc *cx)
 	t( sp_commit(tx) == 0 );
 	st_transaction(cx);
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	o = sp_object(db);
 	t( o != NULL );
 	void *c1 = sp_cursor(db, ">=", o);

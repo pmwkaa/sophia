@@ -15,6 +15,7 @@ struct so {
 	soobj o;
 	srmutex apilock;
 	soobjindex db;
+	soobjindex tx;
 	soobjindex ctlcursor;
 	sostatus status;
 	soctl ctl;
@@ -28,11 +29,12 @@ struct so {
 	sra a_ctlcursor;
 	sra a_logcursor;
 	sra a_tx;
-	sra a_smv;
+	sra a_sxv;
 	seconf seconf;
 	se se;
 	slconf lpconf;
 	slpool lp;
+	sxmanager xm;
 	soscheduler sched;
 	srerror error;
 	srinjection ei;

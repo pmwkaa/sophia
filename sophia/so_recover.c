@@ -9,7 +9,7 @@
 
 #include <libsr.h>
 #include <libsv.h>
-#include <libsm.h>
+#include <libsx.h>
 #include <libsl.h>
 #include <libsd.h>
 #include <libsi.h>
@@ -59,24 +59,24 @@ so_recoverlog(so *e, sl *log)
 		if (srunlikely(v == NULL))
 			break;
 
-		/* match a database */
-		uint32_t dsn = sl_vdsn(v);
-		if (db == NULL || db->ctl.id != dsn)
-			db = (sodb*)so_dbmatch_id(e, dsn);
-		if (srunlikely(db == NULL)) {
-			sr_error(&e->error, "%s",
-			         "database id %" PRIu32 "is not declared", dsn);
-			goto error;
-		}
-
 		/* reply transaction */
 		uint64_t lsn = svlsn(v);
-		tx = so_objbegin(&db->o);
+		tx = so_objbegin(&e->o);
 		if (srunlikely(tx == NULL))
 			goto error;
+
 		while (sr_iterhas(&i)) {
 			v = sr_iterof(&i);
 			assert(svlsn(v) == lsn);
+			/* match a database */
+			uint32_t dsn = sl_vdsn(v);
+			if (db == NULL || db->ctl.id != dsn)
+				db = (sodb*)so_dbmatch_id(e, dsn);
+			if (srunlikely(db == NULL)) {
+				sr_error(&e->error, "%s",
+				         "database id %" PRIu32 "is not declared", dsn);
+				goto rlb;
+			}
 			void *o = so_objobject(&db->o);
 			if (srunlikely(o == NULL))
 				goto rlb;

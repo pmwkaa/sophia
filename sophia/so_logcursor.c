@@ -9,7 +9,7 @@
 
 #include <libsr.h>
 #include <libsv.h>
-#include <libsm.h>
+#include <libsx.h>
 #include <libsl.h>
 #include <libsd.h>
 #include <libsi.h>
@@ -20,7 +20,7 @@ static int
 so_logcursor_destroy(soobj *o)
 {
 	sologcursor *c = (sologcursor*)o;
-	so *e = c->t->db->e;
+	so *e = c->t->e;
 	so_objindex_unregister(&c->t->logcursor, &c->o);
 	sr_free(&e->a_logcursor, c);
 	return 0;
@@ -32,11 +32,11 @@ so_logcursor_next(sologcursor *c)
 	if (srunlikely(c->pos == NULL))
 		return 0;
 	c->pos++;
-	if (srunlikely(c->pos >= (sv*)c->t->t.log.buf.p)) {
+	if (srunlikely(c->pos >= (svlogv*)c->t->t.log.buf.p)) {
 		c->pos = NULL;
 		return 0;
 	}
-	c->v.v = *c->pos;
+	c->v.v = c->pos->v;
 	return 1;
 }
 
@@ -88,20 +88,20 @@ static soobjif sologcursorif =
 static inline void
 so_logcursor_open(sologcursor *c)
 {
-	so_vinit(&c->v, c->t->db->e);
+	so_vinit(&c->v, c->t->e, NULL);
 	c->v.flags = SO_VIMMUTABLE;
-	c->pos = (sv*)c->t->t.log.buf.s;
-	if (c->pos >= (sv*)c->t->t.log.buf.p)
+	c->pos = (svlogv*)c->t->t.log.buf.s;
+	if (c->pos >= (svlogv*)c->t->t.log.buf.p)
 		c->pos = NULL;
 	if (c->pos) {
-		c->v.v = *c->pos;
+		c->v.v = c->pos->v;
 		c->ready = 1;
 	}
 }
 
 soobj *so_logcursor_new(sotx *t)
 {
-	so *e = t->db->e;
+	so *e = t->e;
 	sologcursor *c = sr_malloc(&e->a_logcursor, sizeof(sologcursor));
 	if (srunlikely(c == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");

@@ -1,5 +1,5 @@
-#ifndef SM_ITER_H_
-#define SM_ITER_H_
+#ifndef SX_ITER_H_
+#define SX_ITER_H_
 
 /*
  * sophia database
@@ -9,6 +9,6 @@
  * BSD License
 */
 
-extern sriterif sm_iter;
+extern sriterif sx_iter;
 
 #endif

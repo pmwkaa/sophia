@@ -1,5 +1,5 @@
-#ifndef SM_V_H_
-#define SM_V_H_
+#ifndef SX_V_H_
+#define SX_V_H_
 
 /*
  * sophia database
@@ -9,43 +9,45 @@
  * BSD License
 */
 
-typedef struct smv smv;
+typedef struct sxv sxv;
 
-struct smv {
+struct sxv {
 	uint32_t id, lo;
+	void *index;
 	svv *v;
-	smv *next;
-	smv *prev;
+	sxv *next;
+	sxv *prev;
 	srrbnode node;
 } srpacked;
 
-extern svif sm_vif;
+extern svif sx_vif;
 
-static inline smv*
-sm_valloc(sra *asmv, svv *v)
+static inline sxv*
+sx_valloc(sra *asxv, svv *v)
 {
-	smv *mv = sr_malloc(asmv, sizeof(smv));
-	if (srunlikely(mv == NULL))
+	sxv *vv = sr_malloc(asxv, sizeof(sxv));
+	if (srunlikely(vv == NULL))
 		return NULL;
-	mv->id   = 0;
-	mv->lo   = 0;
-	mv->v    = v;
-	mv->next = NULL;
-	mv->prev = NULL;
-	memset(&mv->node, 0, sizeof(mv->node));
-	return mv;
+	vv->index = NULL;
+	vv->id    = 0;
+	vv->lo    = 0;
+	vv->v     = v;
+	vv->next  = NULL;
+	vv->prev  = NULL;
+	memset(&vv->node, 0, sizeof(vv->node));
+	return vv;
 }
 
 static inline void
-sm_vfree(sra *a, sra *asmv, smv *v)
+sx_vfree(sra *a, sra *asxv, sxv *v)
 {
 	sr_free(a, v->v);
-	sr_free(asmv, v);
+	sr_free(asxv, v);
 }
 
-static inline smv*
-sm_vmatch(smv *head, uint32_t id) {
-	smv *c = head;
+static inline sxv*
+sx_vmatch(sxv *head, uint32_t id) {
+	sxv *c = head;
 	while (c) {
 		if (c->id == id)
 			break;
@@ -55,7 +57,7 @@ sm_vmatch(smv *head, uint32_t id) {
 }
 
 static inline void
-sm_vreplace(smv *v, smv *n) {
+sx_vreplace(sxv *v, sxv *n) {
 	if (v->prev)
 		v->prev->next = n;
 	if (v->next)
@@ -65,8 +67,8 @@ sm_vreplace(smv *v, smv *n) {
 }
 
 static inline void
-sm_vlink(smv *head, smv *v) {
-	smv *c = head;
+sx_vlink(sxv *head, sxv *v) {
+	sxv *c = head;
 	while (c->next)
 		c = c->next;
 	c->next = v;
@@ -75,7 +77,7 @@ sm_vlink(smv *head, smv *v) {
 }
 
 static inline void
-sm_vunlink(smv *v) {
+sx_vunlink(sxv *v) {
 	if (v->prev)
 		v->prev->next = v->next;
 	if (v->next)
@@ -85,8 +87,8 @@ sm_vunlink(smv *v) {
 }
 
 static inline void
-sm_vabortwaiters(smv *v) {
-	smv *c = v->next;
+sx_vabortwaiters(sxv *v) {
+	sxv *c = v->next;
 	while (c) {
 		c->v->flags |= SVABORT;
 		c = c->next;

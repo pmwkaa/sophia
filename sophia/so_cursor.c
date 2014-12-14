@@ -9,7 +9,7 @@
 
 #include <libsr.h>
 #include <libsv.h>
-#include <libsm.h>
+#include <libsx.h>
 #include <libsl.h>
 #include <libsd.h>
 #include <libsi.h>
@@ -50,14 +50,14 @@ so_cursorseek(socursor *c, void *key, int keysize)
 static inline int
 so_cursoropen(socursor *c, void *key, int keysize)
 {
-	sm_begin(&c->db->mvcc, &c->t);
+	sx_begin(&c->db->e->xm, &c->t);
 	int rc;
 	do {
 		rc = so_cursorseek(c, key, keysize);
 	} while (rc == 1 && (svflags(&c->v.v) & SVDELETE) > 0);
 
 	if (srunlikely(rc == -1)) {
-		sm_end(&c->t);
+		sx_end(&c->t);
 		return -1;
 	}
 	return so_vhas(&c->v);
@@ -67,7 +67,7 @@ static int
 so_cursordestroy(soobj *o)
 {
 	socursor *c = (socursor*)o;
-	sm_end(&c->t);
+	sx_end(&c->t);
 	if (c->key) {
 		so_objdestroy(c->key);
 		c->key = NULL;
@@ -166,7 +166,7 @@ soobj *so_cursornew(sodb *db, va_list args)
 	c->db    = db;
 	c->ready = 1;
 	c->order = cmp;
-	so_vinit(&c->v, e);
+	so_vinit(&c->v, e, &db->o);
 
 	/* open cursor */
 	void *key = NULL;

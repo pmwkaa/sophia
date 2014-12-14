@@ -9,7 +9,7 @@
 
 #include <libsr.h>
 #include <libsv.h>
-#include <libsm.h>
+#include <libsx.h>
 #include <libsl.h>
 #include <libsd.h>
 #include <libsi.h>
@@ -99,8 +99,8 @@ so_vget(soobj *obj, va_list args)
 		if (v->v.i == &sv_vif)
 			lsnp = &((svv*)(v->v.v))->lsn;
 		else
-		if (v->v.i == &sm_vif)
-			lsnp = &((smv*)(v->v.v))->v->lsn;
+		if (v->v.i == &sx_vif)
+			lsnp = &((sxv*)(v->v.v))->v->lsn;
 		else {
 			assert(0);
 		}
@@ -135,16 +135,17 @@ static soobjif sovif =
 	.type     = so_vtype
 };
 
-soobj *so_vinit(sov *v, so *e)
+soobj *so_vinit(sov *v, so *e, soobj *parent)
 {
 	memset(v, 0, sizeof(*v));
 	so_objinit(&v->o, SOV, &sovif, &e->o);
 	svinit(&v->v, &sv_localif, &v->lv, NULL);
 	v->e = e;
+	v->parent = parent;
 	return &v->o;
 }
 
-soobj *so_vnew(so *e)
+soobj *so_vnew(so *e, soobj *parent)
 {
 	sov *v = sr_malloc(&e->a_v, sizeof(sov));
 	if (srunlikely(v == NULL)) {
@@ -152,7 +153,7 @@ soobj *so_vnew(so *e)
 		sr_error_recoverable(&e->error);
 		return NULL;
 	}
-	return so_vinit(v, e);
+	return so_vinit(v, e, parent);
 }
 
 soobj *so_vrelease(sov *v)
@@ -171,9 +172,9 @@ soobj *so_vput(sov *o, sv *v)
 	return &o->o;
 }
 
-soobj *so_vdup(so *e, sv *v)
+soobj *so_vdup(so *e, soobj *parent, sv *v)
 {
-	sov *ret = (sov*)so_vnew(e);
+	sov *ret = (sov*)so_vnew(e, parent);
 	if (srunlikely(ret == NULL))
 		return NULL;
 	ret->flags = SO_VALLOCATED|SO_VRO;

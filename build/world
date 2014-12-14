@@ -9,7 +9,7 @@ include $(addsuffix /makefile, $(SOPHIA_DIRS))
 
 OPLATFORM = $(LIBSR_OBJECTS) \
             $(LIBSV_OBJECTS) \
-            $(LIBSM_OBJECTS) \
+            $(LIBSX_OBJECTS) \
             $(LIBSL_OBJECTS) \
             $(LIBSD_OBJECTS) \
             $(LIBSI_OBJECTS) \

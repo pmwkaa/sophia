@@ -1,5 +1,5 @@
-#ifndef SM_DEADLOCK_H_
-#define SM_DEADLOCK_H_
+#ifndef SX_DEADLOCK_H_
+#define SX_DEADLOCK_H_
 
 /*
  * sophia database
@@ -9,6 +9,6 @@
  * BSD License
 */
 
-int sm_deadlock(smtx*);
+int sx_deadlock(sx*);
 
 #endif

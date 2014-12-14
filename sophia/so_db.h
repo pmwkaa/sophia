@@ -27,9 +27,8 @@ struct sodb {
 	soobj o;
 	sostatus status;
 	sodbctl ctl;
-	soobjindex tx;
 	soobjindex cursor;
-	sm mvcc;
+	sxindex coindex;
 	sdc dc;
 	siconf indexconf;
 	si index;
@@ -42,10 +41,9 @@ so_dbactive(sodb *o) {
 	return so_statusactive(&o->status);
 }
 
-soobj    *so_dbnew(so*, char*);
-soobj    *so_dbmatch(so*, char*);
-soobj    *so_dbmatch_id(so*, uint32_t);
-int       so_dbmalfunction(sodb *o);
-uint64_t  so_dbvlsn(sodb*);
+soobj *so_dbnew(so*, char*);
+soobj *so_dbmatch(so*, char*);
+soobj *so_dbmatch_id(so*, uint32_t);
+int    so_dbmalfunction(sodb *o);
 
 #endif

@@ -28,9 +28,10 @@ alloclogv(svlog *log, sra *a, uint64_t lsn, uint8_t flags, int key)
 	sv lv;
 	svinit(&lv, &sv_localif, &l, NULL);
 	svv *v = sv_valloc(a, &lv);
-	sv vv;
-	svinit(&vv, &sv_vif, v, NULL);
-	sv_logadd(log, a, &vv);
+	svlogv logv;
+	logv.dsn = 0;
+	svinit(&logv.v, &sv_vif, v, NULL);
+	sv_logadd(log, a, &logv);
 }
 
 static void
@@ -38,10 +39,10 @@ freelog(svlog *log, sr *c)
 {
 	sriter i;
 	sr_iterinit(&i, &sr_bufiter, c);
-	sr_iteropen(&i, &log->buf, sizeof(sv));
+	sr_iteropen(&i, &log->buf, sizeof(svlogv));
 	for (; sr_iterhas(&i); sr_iternext(&i)) {
-		sv *v = sr_iterof(&i);
-		sr_free(c->a, v->v);
+		svlogv *v = sr_iterof(&i);
+		sr_free(c->a, v->v.v);
 	}
 	sv_logfree(log, c->a);
 }
@@ -74,7 +75,7 @@ sl_begin_commit(stc *cx)
 	alloclogv(&log, &a, 0, SVSET, 7);
 
 	sltx ltx;
-	t( sl_begin(&lp, &ltx, 0) == 0 );
+	t( sl_begin(&lp, &ltx) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );
 
@@ -110,7 +111,7 @@ sl_begin_rollback(stc *cx)
 	alloclogv(&log, &a, 0, SVSET, 7);
 
 	sltx ltx;
-	t( sl_begin(&lp, &ltx, 0) == 0 );
+	t( sl_begin(&lp, &ltx) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_rollback(&ltx) == 0 );
 

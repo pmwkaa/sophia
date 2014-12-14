@@ -23,8 +23,6 @@ repository_empty(stc *cx srunused)
 static void
 repository_test0(stc *cx srunused)
 {
-	rmrf("./sophia/log");
-	rmrf("./sophia/test");
 	rmrf("./sophia");
 	rmrf("./logdir");
 	rmrf("./dir");
@@ -42,8 +40,6 @@ repository_test0(stc *cx srunused)
 static void
 repository_test1(stc *cx srunused)
 {
-	rmrf("./sophia/log");
-	rmrf("./sophia/test");
 	rmrf("./sophia");
 	rmrf("./logdir");
 	rmrf("./dir");
@@ -63,8 +59,6 @@ repository_test1(stc *cx srunused)
 static void
 repository_test2(stc *cx srunused)
 {
-	rmrf("./sophia/log");
-	rmrf("./sophia/test");
 	rmrf("./sophia");
 	rmrf("./logdir");
 	rmrf("./dir");
@@ -85,8 +79,6 @@ repository_test2(stc *cx srunused)
 static void
 repository_test3(stc *cx srunused)
 {
-	rmrf("./sophia/log");
-	rmrf("./sophia/test");
 	rmrf("./sophia");
 	rmrf("./logdir");
 	rmrf("./dir");

@@ -14,9 +14,8 @@
 static void
 tpc_prepare_commit_empty(stc *cx)
 {
-	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	rc = sp_prepare(tx);
 	t( rc == 0 );
@@ -28,9 +27,8 @@ tpc_prepare_commit_empty(stc *cx)
 static void
 tpc_prepare_rollback_empty(stc *cx)
 {
-	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	rc = sp_prepare(tx);
 	t( rc == 0 );
@@ -42,9 +40,8 @@ tpc_prepare_rollback_empty(stc *cx)
 static void
 tpc_prepare_prepare_empty(stc *cx)
 {
-	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	rc = sp_prepare(tx);
 	t( rc == 0 );
@@ -60,7 +57,7 @@ tpc_prepare_commit(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int key = 7;
 	void *o = sp_object(db);
@@ -86,7 +83,7 @@ tpc_prepare_rollback(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int key = 7;
 	void *o = sp_object(db);
@@ -112,7 +109,7 @@ tpc_prepare_prepare(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int key = 7;
 	void *o = sp_object(db);
@@ -140,7 +137,7 @@ tpc_prepare_set(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
 	int key = 7;
 	void *o = sp_object(db);
@@ -167,9 +164,9 @@ tpc_prepare_wait0(stc *cx)
 	void *db = cx->db;
 	int rc;
 
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
 
 	int key = 7;
@@ -209,9 +206,9 @@ tpc_prepare_wait1(stc *cx)
 	void *db = cx->db;
 	int rc;
 
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
 
 	int key = 7;

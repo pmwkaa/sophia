@@ -29,7 +29,7 @@ logcursor_empty0(stc *cx)
 	t( db != NULL );
 	t( sp_open(db) == 0 );
 
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(env);
 	t( tx != NULL );
 	void *lc = sp_ctl(tx, "log_cursor");
 	t( lc != NULL );
@@ -58,7 +58,7 @@ logcursor_empty1(stc *cx)
 	t( db != NULL );
 	t( sp_open(db) == 0 );
 
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(env);
 	t( tx != NULL );
 	void *lc = sp_ctl(tx, "log_cursor");
 	t( lc != NULL );
@@ -86,15 +86,15 @@ logcursor_iterate(stc *cx)
 	t( db != NULL );
 	t( sp_open(db) == 0 );
 
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(env);
 	t( tx != NULL );
 
 	int key = 7;
-	void *o = sp_object(tx);
+	void *o = sp_object(db);
 	sp_set(o, "key", &key, sizeof(key));
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = sp_object(tx);
+	o = sp_object(db);
 	sp_set(o, "key", &key, sizeof(key));
 	t( sp_set(tx, o) == 0 );
 
@@ -134,15 +134,15 @@ logcursor_iterate_prepare(stc *cx)
 	t( db != NULL );
 	t( sp_open(db) == 0 );
 
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(env);
 	t( tx != NULL );
 
 	int key = 7;
-	void *o = sp_object(tx);
+	void *o = sp_object(db);
 	sp_set(o, "key", &key, sizeof(key));
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = sp_object(tx);
+	o = sp_object(db);
 	sp_set(o, "key", &key, sizeof(key));
 	t( sp_set(tx, o) == 0 );
 	t( sp_prepare(tx) == 0 );

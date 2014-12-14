@@ -28,7 +28,12 @@ int rmrf(char *path)
 		if (de->d_name[0] == '.')
 			continue;
 		snprintf(file, sizeof(file), "%s/%s", path, de->d_name);
-		int rc = unlink(file);
+		int rc;
+		if (de->d_type == DT_DIR) {
+			rc = rmrf(file);
+		} else {
+			rc = unlink(file);
+		}
 		if (rc == -1) {
 			closedir(d);
 			return -1;

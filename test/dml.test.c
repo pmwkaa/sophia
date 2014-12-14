@@ -115,15 +115,15 @@ dml_create_online2(stc *cx srunused)
 	t( sp_open(s1) == 0 );
 
 	key = 7;
-	o = sp_object(s0);
+	o = sp_object(s1);
 	sp_set(o, "key", &key, sizeof(key));
 	t( sp_set(s1, o) == 0 );
 	key = 8;
-	o = sp_object(s0);
+	o = sp_object(s1);
 	sp_set(o, "key", &key, sizeof(key));
 	t( sp_set(s1, o) == 0 );
 	key = 9;
-	o = sp_object(s0);
+	o = sp_object(s1);
 	sp_set(o, "key", &key, sizeof(key));
 	t( sp_set(s1, o) == 0 );
 

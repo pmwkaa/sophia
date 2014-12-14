@@ -12,15 +12,15 @@
 typedef struct sitx sitx;
 
 struct sitx {
+	uint64_t time;
 	uint64_t vlsn;
-	svlog *log;
+	sv *v;
 	si *index;
 	sr *r;
 };
 
-void si_begin(sitx*, sr*, si*, uint64_t, svlog*);
+void si_begin(sitx*, sr*, si*, uint64_t, uint64_t, sv*);
 void si_commit(sitx*);
-void si_rollback(sitx*);
 void si_write(sitx*, int);
 
 #endif

@@ -32,7 +32,7 @@ deadlock_test0(stc *cx)
 	t( sp_open(env) == 0 );
 
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(env);
 	t( tx != NULL );
 
 	int key = 7;
@@ -71,9 +71,9 @@ deadlock_test1(stc *cx)
 	t( sp_open(env) == 0 );
 
 	int rc;
-	void *t0 = sp_begin(db);
+	void *t0 = sp_begin(env);
 	t( t0 != NULL );
-	void *t1 = sp_begin(db);
+	void *t1 = sp_begin(env);
 	t( t1 != NULL );
 
 	int key = 7;
@@ -122,9 +122,9 @@ deadlock_test2(stc *cx)
 	t( sp_open(env) == 0 );
 
 	int rc;
-	void *t0 = sp_begin(db);
+	void *t0 = sp_begin(env);
 	t( t0 != NULL );
-	void *t1 = sp_begin(db);
+	void *t1 = sp_begin(env);
 	t( t1 != NULL );
 
 	int key = 7;
@@ -191,9 +191,9 @@ deadlock_test3(stc *cx)
 	t( sp_open(env) == 0 );
 
 	int rc;
-	void *t0 = sp_begin(db);
+	void *t0 = sp_begin(env);
 	t( t0 != NULL );
-	void *t1 = sp_begin(db);
+	void *t1 = sp_begin(env);
 	t( t1 != NULL );
 
 	int key = 7;

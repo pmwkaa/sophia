@@ -9,7 +9,7 @@
 
 #include <libsr.h>
 #include <libsv.h>
-#include <libsm.h>
+#include <libsx.h>
 #include <libsl.h>
 #include <libsd.h>
 #include <libsi.h>
@@ -80,6 +80,7 @@ so_dbopen(soobj *obj, va_list args srunused)
 	if (status != SO_OFFLINE)
 		return -1;
 	o->r.cmp = &o->ctl.cmp;
+	sx_indexset(&o->coindex, o->ctl.id, o->r.cmp);
 	int rc = so_dbctl_validate(&o->ctl);
 	if (srunlikely(rc == -1))
 		return -1;
@@ -106,13 +107,10 @@ so_dbdestroy(soobj *obj)
 	rc = so_scheduler_del(&o->e->sched, o);
 	if (srunlikely(rc == -1))
 		rcret = -1;
-	rc = so_objindex_destroy(&o->tx);
-	if (srunlikely(rc == -1))
-		rcret = -1;
 	rc = so_objindex_destroy(&o->cursor);
 	if (srunlikely(rc == -1))
 		rcret = -1;
-	sm_free(&o->mvcc);
+	sx_indexfree(&o->coindex, &o->e->xm);
 	rc = si_close(&o->index, &o->r);
 	if (srunlikely(rc == -1))
 		rcret = -1;
@@ -159,13 +157,6 @@ so_dbdel(soobj *obj, va_list args)
 }
 
 static void*
-so_dbbegin(soobj *o)
-{
-	sodb *db = (sodb*)o;
-	return so_txnew(db);
-}
-
-static void*
 so_dbcursor(soobj *o, va_list args)
 {
 	sodb *db = (sodb*)o;
@@ -176,7 +167,7 @@ static void*
 so_dbobj(soobj *obj, va_list args srunused)
 {
 	sodb *o = (sodb*)obj;
-	return so_vnew(o->e);
+	return so_vnew(o->e, obj);
 }
 
 static void*
@@ -193,7 +184,7 @@ static soobjif sodbif =
 	.set      = so_dbset,
 	.get      = so_dbget,
 	.del      = so_dbdel,
-	.begin    = so_dbbegin,
+	.begin    = NULL,
 	.prepare  = NULL,
 	.commit   = NULL,
 	.rollback = NULL,
@@ -212,7 +203,6 @@ soobj *so_dbnew(so *e, char *name)
 	}
 	memset(o, 0, sizeof(*o));
 	so_objinit(&o->o, SODB, &sodbif, &e->o);
-	so_objindex_init(&o->tx);
 	so_objindex_init(&o->cursor);
 	so_statusinit(&o->status);
 	so_statusset(&o->status, SO_OFFLINE);
@@ -226,7 +216,7 @@ soobj *so_dbnew(so *e, char *name)
 	}
 	si_init(&o->index, &o->e->quota);
 	o->ctl.id = sr_seq(&e->seq, SR_DSNNEXT);
-	sm_init(&o->mvcc, &o->r, &e->a_smv);
+	sx_indexinit(&o->coindex, o);
 	sd_cinit(&o->dc, &o->r);
 	return &o->o;
 }
@@ -259,13 +249,4 @@ int so_dbmalfunction(sodb *o)
 {
 	so_statusset(&o->status, SO_MALFUNCTION);
 	return -1;
-}
-
-uint64_t so_dbvlsn(sodb *db)
-{
-	uint64_t vlsn = sm_vlsn(&db->mvcc);
-	uint64_t vlsn_b = se_snapshot_vlsn(&db->e->se);
-	if (vlsn_b < vlsn)
-		vlsn = vlsn_b;
-	return vlsn;
 }

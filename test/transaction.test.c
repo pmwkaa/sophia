@@ -14,9 +14,8 @@
 static void
 transaction_rollback(stc *cx)
 {
-	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	st_transaction(cx);
 	rc = sp_rollback(tx);
@@ -27,9 +26,8 @@ transaction_rollback(stc *cx)
 static void
 transaction_commit(stc *cx)
 {
-	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	st_transaction(cx);
 	rc = sp_commit(tx);
@@ -42,7 +40,7 @@ transaction_set_commit(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int key = 7;
 	void *o = sp_object(db);
@@ -60,7 +58,7 @@ transaction_set_get_commit(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int key = 7;
 	void *o = sp_object(db);
@@ -84,7 +82,7 @@ transaction_set_commit_get0(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int key = 7;
 	void *o = sp_object(db);
@@ -94,7 +92,7 @@ transaction_set_commit_get0(stc *cx)
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	o = sp_object(db);
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(tx, o);
@@ -111,7 +109,7 @@ transaction_set_commit_get1(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int key = 0;
 	while (key < 10) {
@@ -126,7 +124,7 @@ transaction_set_commit_get1(stc *cx)
 	t( rc == 0 );
 	st_transaction(cx);
 	key = 0;
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	while (key < 10) {
 		void *o = sp_object(db);
 		t( sp_set(o, "key", &key, sizeof(key)) == 0 );
@@ -146,7 +144,7 @@ transaction_set_rollback(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int key = 7;
 	void *o = sp_object(db);
@@ -164,7 +162,7 @@ transaction_set_rollback_get0(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int key = 7;
 	void *o = sp_object(db);
@@ -175,7 +173,7 @@ transaction_set_rollback_get0(stc *cx)
 	rc = sp_rollback(tx);
 	t( rc == 0 );
 	st_transaction(cx);
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	o = sp_object(db);
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(tx, o);
@@ -190,7 +188,7 @@ transaction_set_rollback_get1(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int key = 0;
 	while (key < 10) {
@@ -204,7 +202,7 @@ transaction_set_rollback_get1(stc *cx)
 	rc = sp_rollback(tx);
 	t( rc == 0 );
 	st_transaction(cx);
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	key = 0;
 	while (key < 10) {
 		void *o = sp_object(db);
@@ -223,7 +221,7 @@ transaction_set_set_commit(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int key = 7;
 	int value = key;
@@ -248,7 +246,7 @@ transaction_set_set_get_commit(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int key = 7;
 	int value = key;
@@ -279,7 +277,7 @@ transaction_set_set_commit_get(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int key = 7;
 	int value = key;
@@ -297,7 +295,7 @@ transaction_set_set_commit_get(stc *cx)
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_transaction(cx);
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	o = sp_object(db);
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(tx, o);
@@ -314,7 +312,7 @@ transaction_set_set_rollback_get(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int key = 7;
 	int value = key;
@@ -332,7 +330,7 @@ transaction_set_set_rollback_get(stc *cx)
 	rc = sp_rollback(tx);
 	t( rc == 0 );
 	st_transaction(cx);
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	o = sp_object(db);
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(tx, o);
@@ -347,7 +345,7 @@ transaction_set_delete_get_commit(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int key = 7;
 	int value = key;
@@ -374,7 +372,7 @@ transaction_set_delete_get_commit_get(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int key = 7;
 	int value = key;
@@ -406,7 +404,7 @@ transaction_set_delete_set_commit_get(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int key = 7;
 	int value = key;
@@ -451,7 +449,7 @@ transaction_set_delete_commit_get_set(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	int key = 7;
 	int value = key;
@@ -494,9 +492,9 @@ transaction_p_set_commit(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
 	int value = 10;
 	int key_a = 7;
@@ -526,9 +524,9 @@ transaction_p_set_get_commit(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
 	int value_a = 10;
 	int key_a = 7;
@@ -576,9 +574,9 @@ transaction_p_set_commit_get0(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
 	int value_a = 10;
 	int key_a = 7;
@@ -604,7 +602,7 @@ transaction_p_set_commit_get0(stc *cx)
 	t( rc == 0 );
 	st_transaction(cx);
 
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	o = sp_object(db);
 	t( sp_set(o, "key", &key_a, sizeof(key_a)) == 0 );
 	o = sp_get(tx, o);
@@ -626,9 +624,9 @@ transaction_p_set_commit_get1(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
 
 	int value_a = 10;
@@ -653,7 +651,7 @@ transaction_p_set_commit_get1(stc *cx)
 	t( rc == 0 );
 	st_transaction(cx);
 
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	o = sp_object(db);
 	t( sp_set(o, "key", &key_a, sizeof(key_a)) == 0 );
 	o = sp_get(tx, o);
@@ -675,9 +673,9 @@ transaction_p_set_commit_get2(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
 
 	int value_b = 15;
@@ -702,7 +700,7 @@ transaction_p_set_commit_get2(stc *cx)
 	t( rc == 0 );
 	st_transaction(cx);
 
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	o = sp_object(db);
 	t( sp_set(o, "key", &key_a, sizeof(key_a)) == 0 );
 	o = sp_get(tx, o);
@@ -724,9 +722,9 @@ transaction_p_set_rollback_get0(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
 	int value_a = 10;
 	int key_a = 7;
@@ -751,7 +749,7 @@ transaction_p_set_rollback_get0(stc *cx)
 	t( rc == 0 );
 	st_transaction(cx);
 
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	o = sp_object(db);
 	t( sp_set(o, "key", &key_a, sizeof(key_a)) == 0 );
 	o = sp_get(tx, o);
@@ -769,9 +767,9 @@ transaction_p_set_rollback_get1(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
 	int value_a = 10;
 	int key_a = 7;
@@ -795,7 +793,7 @@ transaction_p_set_rollback_get1(stc *cx)
 	t( rc == 0 );
 	st_transaction(cx);
 
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	o = sp_object(db);
 	t( sp_set(o, "key", &key_a, sizeof(key_a)) == 0 );
 	o = sp_get(tx, o);
@@ -813,9 +811,9 @@ transaction_p_set_rollback_get2(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
 
 	int value_b = 15;
@@ -840,7 +838,7 @@ transaction_p_set_rollback_get2(stc *cx)
 	t( rc == 0 );
 	st_transaction(cx);
 
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	o = sp_object(db);
 	t( sp_set(o, "key", &key_a, sizeof(key_a)) == 0 );
 	o = sp_get(tx, o);
@@ -858,9 +856,9 @@ transaction_c_set_commit0(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
 	int value = 10;
 	int key = 7;
@@ -888,9 +886,9 @@ transaction_c_set_commit1(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
 	int value = 10;
 	int key = 7;
@@ -918,9 +916,9 @@ transaction_c_set_commit2(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
 	int value = 10;
 	int key = 7;
@@ -950,9 +948,9 @@ transaction_c_set_commit_rollback_a0(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
 	int value = 10;
 	int key = 7;
@@ -983,9 +981,9 @@ transaction_c_set_commit_rollback_a1(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
 	int value = 10;
 	int key = 7;
@@ -1015,9 +1013,9 @@ transaction_c_set_commit_rollback_b0(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
 	int value = 10;
 	int key = 7;
@@ -1044,9 +1042,9 @@ transaction_c_set_commit_rollback_b1(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
 	int value = 10;
 	int key = 7;
@@ -1076,9 +1074,9 @@ transaction_c_set_commit_rollback_ab0(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
 	int value = 10;
 	int key = 7;
@@ -1106,9 +1104,9 @@ transaction_c_set_commit_rollback_ab1(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
 	int value = 10;
 	int key = 7;
@@ -1137,9 +1135,9 @@ transaction_c_set_commit_wait_a0(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
 	int value = 10;
 	int key = 7;
@@ -1172,9 +1170,9 @@ transaction_c_set_commit_wait_a1(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
 	int value = 10;
 	int key = 7;
@@ -1207,9 +1205,9 @@ transaction_c_set_commit_wait_b0(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
 	int value = 10;
 	int key = 7;
@@ -1242,9 +1240,9 @@ transaction_c_set_commit_wait_b1(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
 	int value = 10;
 	int key = 7;
@@ -1277,9 +1275,9 @@ transaction_c_set_commit_wait_rollback_a0(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
 	int value = 10;
 	int key = 7;
@@ -1312,9 +1310,9 @@ transaction_c_set_commit_wait_rollback_a1(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
 	int value = 10;
 	int key = 7;
@@ -1347,9 +1345,9 @@ transaction_c_set_commit_wait_rollback_b0(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
 	int value = 10;
 	int key = 7;
@@ -1382,9 +1380,9 @@ transaction_c_set_commit_wait_rollback_b1(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
 	int value = 10;
 	int key = 7;
@@ -1417,11 +1415,11 @@ transaction_c_set_commit_wait_n0(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
-	void *c = sp_begin(db);
+	void *c = sp_begin(cx->env);
 	t( c != NULL );
 
 	int value = 10;
@@ -1467,11 +1465,11 @@ transaction_c_set_commit_wait_n1(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
-	void *c = sp_begin(db);
+	void *c = sp_begin(cx->env);
 	t( c != NULL );
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
 
 	int value = 10;
@@ -1517,11 +1515,11 @@ transaction_c_set_commit_wait_rollback_n0(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
-	void *c = sp_begin(db);
+	void *c = sp_begin(cx->env);
 	t( c != NULL );
 
 	int value = 10;
@@ -1570,11 +1568,11 @@ transaction_c_set_commit_wait_rollback_n1(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
-	void *c = sp_begin(db);
+	void *c = sp_begin(cx->env);
 	t( c != NULL );
 
 	int value = 10;
@@ -1623,11 +1621,11 @@ transaction_c_set_commit_wait_rollback_n2(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
-	void *c = sp_begin(db);
+	void *c = sp_begin(cx->env);
 	t( c != NULL );
 
 	int value = 10;
@@ -1676,11 +1674,11 @@ transaction_c_set_commit_wait_rollback_n3(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
-	void *c = sp_begin(db);
+	void *c = sp_begin(cx->env);
 	t( c != NULL );
 
 	int value = 10;
@@ -1726,11 +1724,11 @@ transaction_c_set_commit_wait_rollback_n4(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
-	void *c = sp_begin(db);
+	void *c = sp_begin(cx->env);
 	t( c != NULL );
 
 	int value = 10;
@@ -1776,9 +1774,9 @@ transaction_c_set_get0(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
 	int value = 10;
 	int key = 7;
@@ -1806,7 +1804,7 @@ transaction_c_set_get0(stc *cx)
 	t( rc == 1 ); /* rlb */
 	st_transaction(cx);
 
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	o = sp_object(db);
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(tx, o);
@@ -1823,9 +1821,9 @@ transaction_c_set_get1(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
 	int value = 10;
 	int key = 7;
@@ -1854,7 +1852,7 @@ transaction_c_set_get1(stc *cx)
 	t( rc == 0 );
 	st_transaction(cx);
 
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	o = sp_object(db);
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(tx, o);
@@ -1871,9 +1869,9 @@ transaction_c_set_get2(stc *cx)
 {
 	void *db = cx->db;
 	int rc;
-	void *z = sp_begin(db);
+	void *z = sp_begin(cx->env);
 
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
 	int key = 7;
 	int value = 1;
@@ -1884,7 +1882,7 @@ transaction_c_set_get2(stc *cx)
 	t( sp_set(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(a, o) == 0 );
 
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
 	value = 2;
 
@@ -1894,7 +1892,7 @@ transaction_c_set_get2(stc *cx)
 	t( sp_set(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(b, o) == 0 );
 
-	void *c = sp_begin(db);
+	void *c = sp_begin(cx->env);
 	t( c != NULL );
 	value = 3;
 
@@ -1904,7 +1902,7 @@ transaction_c_set_get2(stc *cx)
 	t( sp_set(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(c, o) == 0 );
 
-	void *d = sp_begin(db);
+	void *d = sp_begin(cx->env);
 	t( d != NULL );
 	value = 4;
 
@@ -1914,7 +1912,7 @@ transaction_c_set_get2(stc *cx)
 	t( sp_set(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(d, o) == 0 );
 
-	void *e = sp_begin(db);
+	void *e = sp_begin(cx->env);
 	t( e != NULL );
 
 	o = sp_object(db);
@@ -1955,7 +1953,7 @@ transaction_c_set_get2(stc *cx)
 	o = sp_get(z, o);
 	t( o == NULL );
 
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	o = sp_object(db);
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(tx, o);
@@ -1982,13 +1980,13 @@ static void
 transaction_c_set_get3(stc *cx)
 {
 	void *db = cx->db;
-	void *z = sp_begin(db);
+	void *z = sp_begin(cx->env);
 
-	void *a = sp_begin(db);
+	void *a = sp_begin(cx->env);
 	t( a != NULL );
 	int key = 7;
 	int value = 1;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 
 	void *o = sp_object(db);
 	t( o != NULL );
@@ -1998,10 +1996,10 @@ transaction_c_set_get3(stc *cx)
 	t( sp_commit(tx) == 0 );
 	st_transaction(cx);
 
-	void *b = sp_begin(db);
+	void *b = sp_begin(cx->env);
 	t( b != NULL );
 	value = 2;
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	o = sp_object(db);
 	t( o != NULL );
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
@@ -2010,10 +2008,10 @@ transaction_c_set_get3(stc *cx)
 	t( sp_commit(tx) == 0 );
 	st_transaction(cx);
 
-	void *c = sp_begin(db);
+	void *c = sp_begin(cx->env);
 	t( c != NULL );
 	value = 3;
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	o = sp_object(db);
 	t( o != NULL );
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
@@ -2022,10 +2020,10 @@ transaction_c_set_get3(stc *cx)
 	t( sp_commit(tx) == 0 );
 	st_transaction(cx);
 
-	void *d = sp_begin(db);
+	void *d = sp_begin(cx->env);
 	t( d != NULL );
 	value = 4;
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	o = sp_object(db);
 	t( o != NULL );
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
@@ -2034,7 +2032,7 @@ transaction_c_set_get3(stc *cx)
 	t( sp_commit(tx) == 0 );
 	st_transaction(cx);
 
-	void *e = sp_begin(db);
+	void *e = sp_begin(cx->env);
 	t( e != NULL );
 
 	/* 0 */
@@ -2066,7 +2064,7 @@ transaction_c_set_get3(stc *cx)
 	t( *(int*)sp_get(o, "value", NULL) == 4 );
 	sp_destroy(o);
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	o = sp_object(db);
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(tx, o);
@@ -2110,7 +2108,7 @@ transaction_c_set_get3(stc *cx)
 	t( *(int*)sp_get(o, "value", NULL) == 4 );
 	sp_destroy(o);
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	o = sp_object(db);
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(tx, o);
@@ -2148,7 +2146,7 @@ transaction_c_set_get3(stc *cx)
 	t( *(int*)sp_get(o, "value", NULL) == 4 );
 	sp_destroy(o);
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	o = sp_object(db);
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(tx, o);
@@ -2178,7 +2176,7 @@ transaction_c_set_get3(stc *cx)
 	t( *(int*)sp_get(o, "value", NULL) == 4 );
 	sp_destroy(o);
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	o = sp_object(db);
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(tx, o);
@@ -2202,7 +2200,7 @@ transaction_c_set_get3(stc *cx)
 	t( sp_rollback(e) == 0 );
 	st_transaction(cx);
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	o = sp_object(db);
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(tx, o);
@@ -2228,7 +2226,7 @@ transaction_c_set_get3(stc *cx)
 	t( sp_rollback(z) == 0 );
 	st_transaction(cx);
 
-	tx = sp_begin(db);
+	tx = sp_begin(cx->env);
 	o = sp_object(db);
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(tx, o);
@@ -2245,7 +2243,7 @@ transaction_sc_set_wait(stc *cx)
 	void *db = cx->db;
 	int rc;
 	int key = 7;
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 
 	void *o = sp_object(db);
@@ -2288,7 +2286,7 @@ transaction_sc_get(stc *cx)
 	t( sp_set(db, o) == 0 );
 	st_transaction(cx);
 
-	void *tx = sp_begin(db);
+	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	v = 8;
 
@@ -2470,5 +2468,115 @@ stgroup *transaction_group(void)
 	st_groupadd(group, st_test("s_set_get", transaction_s_set_get));
 	st_groupadd(group, st_test("s_set_delete_get", transaction_s_set_delete_get));
 	st_groupadd(group, st_test("s_set_delete_set_get", transaction_s_set_delete_set_get));
+	return group;
+}
+
+static void
+transaction_md_set_commit(stc *cx)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	void *c = sp_ctl(env);
+	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
+	t( sp_set(c, "scheduler.threads", "0") == 0 );
+	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
+	t( sp_set(c, "db", "t0") == 0 );
+	t( sp_set(c, "db", "t1") == 0 );
+	t( sp_set(c, "db.t0.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "db.t1.index.cmp", sr_cmpu32) == 0 );
+
+	void *t0 = sp_get(c, "db.t0");
+	t( t0 != NULL );
+	void *t1 = sp_get(c, "db.t1");
+	t( t1 != NULL );
+	t( sp_open(env) == 0 );
+
+	uint32_t key = 7;
+	void *tx = sp_begin(env);
+	t( tx != NULL );
+	void *o = sp_object(t0);
+	t( o != NULL );
+	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_set(tx, o) == 0 );
+	o = sp_object(t1);
+	t( o != NULL );
+	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_set(tx, o) == 0 );
+	t( sp_commit(tx) == 0 );
+
+	o = sp_object(t0);
+	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+	o = sp_get(t0, o);
+	t( o != NULL );
+	t( *(int*)sp_get(o, "value", NULL) == key );
+	sp_destroy(o);
+
+	o = sp_object(t1);
+	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+	o = sp_get(t1, o);
+	t( o != NULL );
+	t( *(int*)sp_get(o, "value", NULL) == key );
+	sp_destroy(o);
+
+	t( sp_destroy(env) == 0 );
+}
+
+static void
+transaction_md_set_rollback(stc *cx)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	void *c = sp_ctl(env);
+	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
+	t( sp_set(c, "scheduler.threads", "0") == 0 );
+	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
+	t( sp_set(c, "db", "t0") == 0 );
+	t( sp_set(c, "db", "t1") == 0 );
+	t( sp_set(c, "db.t0.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "db.t1.index.cmp", sr_cmpu32) == 0 );
+
+	void *t0 = sp_get(c, "db.t0");
+	t( t0 != NULL );
+	void *t1 = sp_get(c, "db.t1");
+	t( t1 != NULL );
+	t( sp_open(env) == 0 );
+
+	uint32_t key = 7;
+	void *tx = sp_begin(env);
+	t( tx != NULL );
+	void *o = sp_object(t0);
+	t( o != NULL );
+	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_set(tx, o) == 0 );
+	o = sp_object(t1);
+	t( o != NULL );
+	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_set(tx, o) == 0 );
+	t( sp_rollback(tx) == 0 );
+
+	o = sp_object(t0);
+	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+	o = sp_get(t0, o);
+	t( o == NULL );
+
+	o = sp_object(t1);
+	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+	o = sp_get(t1, o);
+	t( o == NULL );
+
+	t( sp_destroy(env) == 0 );
+}
+
+stgroup *transaction_multidb_group(void)
+{
+	stgroup *group = st_group("transaction_multidb");
+	st_groupadd(group, st_test("md_set_commit_get", transaction_md_set_commit));
+	st_groupadd(group, st_test("md_set_rollback_get", transaction_md_set_rollback));
 	return group;
 }

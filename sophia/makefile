@@ -10,7 +10,6 @@ SOPHIA_O = so_ctl.o \
            so_cursor.o \
            so_recover.o \
            sophia.o
-
 SOPHIA_OBJECTS = $(addprefix sophia/, $(SOPHIA_O))
 OBJECTS = $(SOPHIA_O)
 ifndef buildworld

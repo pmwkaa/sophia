@@ -9,7 +9,7 @@
 
 #include <libsr.h>
 #include <libsv.h>
-#include <libsm.h>
+#include <libsx.h>
 #include <libsl.h>
 #include <libsd.h>
 #include <libsi.h>
@@ -68,7 +68,7 @@ void *so_ctlreturn(src *c, void *o)
 		sr_error_recoverable(&e->error);
 		return NULL;
 	}
-	sov *result = (sov*)so_vnew(e);
+	sov *result = (sov*)so_vnew(e, NULL);
 	if (srunlikely(result == NULL)) {
 		sv_vfree(&e->a, v);
 		sr_error(&e->error, "%s", "memory allocation failed");
@@ -428,14 +428,8 @@ so_ctldb_lockdetect(src *c, srcstmt *s, va_list args)
 {
 	if (s->op != SR_CSET)
 		return so_ctlv(c, s, args);
-	sodb *db = c->value;
 	sotx *tx = va_arg(args, sotx*);
-	if (srunlikely(tx->db != db)) {
-		sr_error(&db->e->error, "%s", "transaction does not match a parent db object");
-		sr_error_recoverable(&db->e->error);
-		return -1;
-	}
-	int rc = sm_deadlock(&tx->t);
+	int rc = sx_deadlock(&tx->t);
 	return rc;
 }
 
@@ -456,6 +450,7 @@ static inline src*
 so_ctldb(so *e, soctlrt *rt srunused, src **pc)
 {
 	src *db = NULL;
+	src *prev = NULL;
 	src *p;
 	srlist *i;
 	sr_listforeach(&e->db.list, i)
@@ -491,9 +486,11 @@ so_ctldb(so *e, soctlrt *rt srunused, src **pc)
 		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,   "sync",       SR_CU32,       &o->ctl.sync), o));
 		sr_clink(&p,          sr_c(pc, so_ctldb_branch,     "branch",     SR_CVOID,      o));
 		sr_clink(&p,          sr_c(pc, so_ctldb_compact,    "compact",    SR_CVOID,      o));
-		sr_clink(&p,          sr_c(pc, so_ctldb_lockdetect, "lockdetect", SR_CVOID,      o));
+		sr_clink(&p,          sr_c(pc, so_ctldb_lockdetect, "lockdetect", SR_CVOID,      NULL));
 		sr_clink(&p,          sr_c(pc, NULL,                "index",      SR_CC,         index));
-		sr_clink(&db, sr_cptr(sr_c(pc, so_ctldb_get, o->ctl.name, SR_CC, database), o));
+		sr_clink(&prev, sr_cptr(sr_c(pc, so_ctldb_get, o->ctl.name, SR_CC, database), o));
+		if (db == NULL)
+			db = prev;
 	}
 	return sr_c(pc, so_ctldb_set, "db", SR_CC, db);
 }

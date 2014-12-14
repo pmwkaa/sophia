@@ -14,7 +14,7 @@ typedef struct sologcursor sologcursor;
 struct sologcursor {
 	soobj o;
 	int ready;
-	sv *pos;
+	svlogv *pos;
 	sov v;
 	sotx *t;
 } srpacked;

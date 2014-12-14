@@ -9,12 +9,17 @@
  * BSD License
 */
 
+typedef struct svlogv svlogv;
 typedef struct svlog svlog;
 
-#define SV_PREALLOC 16
+struct svlogv {
+	uint32_t dsn;
+	void *ptr;
+	sv v;
+} srpacked;
 
 struct svlog {
-	sv reserve[SV_PREALLOC];
+	svlogv reserve[16];
 	srbuf buf;
 };
 
@@ -25,12 +30,12 @@ sv_loginit(svlog *l) {
 
 static inline int
 sv_logsize(svlog *l) {
-	return sr_bufsize(&l->buf) / sizeof(sv);
+	return sr_bufsize(&l->buf) / sizeof(svlogv);
 }
 
 static inline int
 sv_logn(svlog *l) {
-	return sr_bufused(&l->buf) / sizeof(sv);
+	return sr_bufused(&l->buf) / sizeof(svlogv);
 }
 
 static inline void
@@ -39,13 +44,13 @@ sv_logfree(svlog *l, sra *a) {
 }
 
 static inline int
-sv_logadd(svlog *l, sra *a, sv *v) {
-	return sr_bufadd(&l->buf, a, v, sizeof(sv));
+sv_logadd(svlog *l, sra *a, svlogv *v) {
+	return sr_bufadd(&l->buf, a, v, sizeof(svlogv));
 }
 
 static inline void
-sv_logreplace(svlog *l, int n, sv *v) {
-	sr_bufset(&l->buf, sizeof(sv), n, (char*)v, sizeof(sv));
+sv_logreplace(svlog *l, int n, svlogv *v) {
+	sr_bufset(&l->buf, sizeof(svlogv), n, (char*)v, sizeof(svlogv));
 }
 
 #endif

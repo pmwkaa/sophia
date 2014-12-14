@@ -21,6 +21,7 @@ struct sov {
 	svlocal lv;
 	sv v;
 	void *log;
+	soobj *parent;
 	so *e;
 } srpacked;
 
@@ -29,9 +30,9 @@ so_vhas(sov *v) {
 	return v->v.v != NULL;
 }
 
-soobj *so_vnew(so*);
-soobj *so_vdup(so*, sv*);
-soobj *so_vinit(sov*, so*);
+soobj *so_vnew(so*, soobj*);
+soobj *so_vdup(so*, soobj*, sv*);
+soobj *so_vinit(sov*, so*, soobj*);
 soobj *so_vrelease(sov*);
 soobj *so_vput(sov*, sv*);
 int    so_vimmutable(sov*);
