@@ -21,6 +21,6 @@ struct socursor {
 	sodb *db;
 } srpacked;
 
-soobj *so_cursornew(sodb*, va_list);
+soobj *so_cursornew(sodb*, uint64_t, va_list);
 
 #endif

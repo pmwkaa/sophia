@@ -21,6 +21,7 @@ LIBST_O = st.o \
           method.test.o \
           repository.test.o \
           dml.test.o \
+          snapshot.test.o \
           branch.test.o \
           checkpoint.test.o \
           tpr.test.o \

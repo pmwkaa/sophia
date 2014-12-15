@@ -161,13 +161,17 @@ ctl_validation(stc *cx)
 }
 
 static void
-ctl_cursor(stc *cx srunused)
+ctl_cursor(stc *cx)
 {
 	void *env = sp_env();
 	t( env != NULL );
 	void *c = sp_ctl(env);
 	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
+	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "db", "test") == 0 );
+	t( sp_open(env) == 0 );
+	t( sp_set(c, "snapshot", "test_snapshot0") == 0 );
 	void *o;
 	void *cur = sp_cursor(c);
 	t( cur != NULL );

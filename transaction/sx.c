@@ -85,13 +85,16 @@ sx *sx_find(sxmanager *m, uint32_t id)
 	return NULL;
 }
 
-sxstate sx_begin(sxmanager *m, sx *t)
+sxstate sx_begin(sxmanager *m, sx *t, uint64_t vlsn)
 {
 	t->s = SXREADY; 
 	t->manager = m;
 	sr_seqlock(m->r->seq);
-	t->id   = sr_seqdo(m->r->seq, SR_TSNNEXT);
-	t->vlsn = sr_seqdo(m->r->seq, SR_LSN) - 1;
+	t->id = sr_seqdo(m->r->seq, SR_TSNNEXT);
+	if (srlikely(vlsn == 0))
+		t->vlsn = sr_seqdo(m->r->seq, SR_LSN) - 1;
+	else
+		t->vlsn = vlsn;
 	sr_sequnlock(m->r->seq);
 	sv_loginit(&t->log);
 	sr_listinit(&t->deadlock);

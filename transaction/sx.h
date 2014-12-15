@@ -52,13 +52,11 @@ struct sxmanager {
 
 int       sx_init(sxmanager*, sr*, sra*);
 int       sx_free(sxmanager*);
-
 int       sx_indexinit(sxindex*, void*);
 int       sx_indexset(sxindex*, uint32_t, srcomparator*);
 int       sx_indexfree(sxindex*, sxmanager*);
-
 sx       *sx_find(sxmanager*, uint32_t);
-sxstate   sx_begin(sxmanager*, sx*);
+sxstate   sx_begin(sxmanager*, sx*, uint64_t);
 sxstate   sx_end(sx*);
 sxstate   sx_prepare(sx*, sxpreparef, void*);
 sxstate   sx_commit(sx*);
@@ -66,7 +64,6 @@ sxstate   sx_rollback(sx*);
 int       sx_set(sx*, sxindex*, svv*);
 int       sx_get(sx*, sxindex*, sv*, sv*);
 uint64_t  sx_vlsn(sxmanager*);
-
 sxstate   sx_setstmt(sxmanager*, sxindex*, sv*);
 sxstate   sx_getstmt(sxmanager*, sxindex*);
 

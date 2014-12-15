@@ -49,7 +49,7 @@ int si_nodecreate(sinode *n, sr *r, siconf *conf, sdid *id,
 	int rc = sr_filenew(&n->file, path.path);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "db file '%s' create error: %s",
-		         n->file.file, strerror(errno));
+		         path.path, strerror(errno));
 		return -1;
 	}
 	rc = sd_buildwrite(build, &n->index, &n->file);
@@ -76,7 +76,7 @@ si_nodecreate_attach(sinode *n, sr *r, siconf *conf, sdid *id,
 	int rc = sr_filenew(&n->file, path.path);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "db file '%s' create error: %s",
-		         n->file.file, strerror(errno));
+		         path.path, strerror(errno));
 		return -1;
 	}
 	rc = sd_buildwrite(build, &n->index, &n->file);

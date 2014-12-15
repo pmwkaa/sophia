@@ -158,9 +158,20 @@ error:
 int so_recover_repository(so *e)
 {
 	e->seconf.path = e->ctl.path;
+	e->seconf.sync = 0;
 	int rc;
 	rc = se_open(&e->se, &e->r, &e->seconf);
 	if (srunlikely(rc == -1))
 		return -1;
+	/* recreate snapshot objects */
+	sriter i;
+	sr_iterinit(&i, &sd_ssiter, NULL);
+	sr_iteropen(&i, &e->se.snapshot.buf, 0);
+	for (; sr_iterhas(&i); sr_iternext(&i)) {
+		sdssrecord *rp = sr_iterof(&i);
+		soobj *snapshot = so_snapshotnew(e, 0, rp->lsn, rp->name);
+		if (srunlikely(snapshot == NULL))
+			return -1;
+	}
 	return 0;
 }

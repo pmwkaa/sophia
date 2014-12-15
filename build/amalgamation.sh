@@ -32,7 +32,7 @@ touch $output
 
 process $root $output "libsr.h" "rt"
 process $root $output "libsv.h" "version"
-process $root $output "libsm.h" "mvcc"
+process $root $output "libsx.h" "transaction"
 process $root $output "libsl.h" "log"
 process $root $output "libsd.h" "database"
 process $root $output "libsi.h" "index"

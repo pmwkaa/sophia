@@ -110,7 +110,7 @@ error:
 	return -1;
 }
 
-void *so_txdbget(sodb *db, va_list args)
+void *so_txdbget(sodb *db, uint64_t vlsn, va_list args)
 {
 	/* validate call */
 	sov *o = va_arg(args, sov*);
@@ -136,7 +136,8 @@ void *so_txdbget(sodb *db, va_list args)
 		goto error;
 
 	sx_getstmt(&db->e->xm, &db->coindex);
-	uint64_t vlsn = sr_seq(db->r.seq, SR_LSN) - 1;
+	if (srlikely(vlsn == 0))
+		vlsn = sr_seq(db->r.seq, SR_LSN) - 1;
 	sv result;
 	siquery q;
 	si_queryopen(&q, &db->r, &db->index, SR_EQ, vlsn, key, keysize);
@@ -483,7 +484,7 @@ soobj *so_txnew(so *e)
 	so_objinit(&t->o, SOTX, &sotxif, &e->o);
 	so_objindex_init(&t->logcursor);
 	t->e = e;
-	sx_begin(&e->xm, &t->t);
+	sx_begin(&e->xm, &t->t, 0);
 	so_objindex_register(&e->tx, &t->o);
 	return &t->o;
 }

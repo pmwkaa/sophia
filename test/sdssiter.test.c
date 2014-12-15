@@ -37,6 +37,7 @@ sdssiter_test1(stc *cx srunused)
 	sr_init(&r, NULL, &a, NULL, NULL, NULL);
 	sdss s, n;
 	t( sd_ssinit(&s) == 0 );
+	t( sd_sscreate(&s, &r) == 0 );
 	t( sd_ssadd(&s, &n, &r, 1, "a") == 0 );
 	sd_ssfree(&s, &r);
 	s = n;
@@ -72,6 +73,7 @@ sdssiter_test2(stc *cx srunused)
 	sr_init(&r, NULL, &a, NULL, NULL, NULL);
 	sdss s, n;
 	t( sd_ssinit(&s) == 0 );
+	t( sd_sscreate(&s, &r) == 0 );
 	t( sd_ssadd(&s, &n, &r, 1, "a") == 0 );
 	sd_ssfree(&s, &r);
 	s = n;

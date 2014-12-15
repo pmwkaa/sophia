@@ -146,7 +146,7 @@ static void*
 so_dbget(soobj *obj, va_list args)
 {
 	sodb *o = (sodb*)obj;
-	return so_txdbget(o, args);
+	return so_txdbget(o, 0, args);
 }
 
 static int
@@ -160,7 +160,7 @@ static void*
 so_dbcursor(soobj *o, va_list args)
 {
 	sodb *db = (sodb*)o;
-	return so_cursornew(db, args);
+	return so_cursornew(db, 0, args);
 }
 
 static void*

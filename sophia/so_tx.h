@@ -19,7 +19,7 @@ struct sotx {
 } srpacked;
 
 int    so_txdbset(sodb*, uint8_t, va_list);
-void  *so_txdbget(sodb*, va_list);
+void  *so_txdbget(sodb*, uint64_t, va_list);
 soobj *so_txnew(so*);
 
 #endif

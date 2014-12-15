@@ -74,7 +74,7 @@ sl_new(slpool *p, uint32_t id)
 	int rc = sr_filenew(&l->file, path.path);
 	if (srunlikely(rc == -1)) {
 		sr_error(p->r->e, "log file '%s' create error: %s",
-		         l->file.file, strerror(errno));
+		         path.path, strerror(errno));
 		goto error;
 	}
 	srversion v;

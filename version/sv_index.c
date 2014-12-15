@@ -54,6 +54,7 @@ sv_vset(svv *head, svv *v)
 	return head;
 }
 
+#if 0
 static inline svv*
 sv_vgc(svv *v, uint64_t vlsn)
 {
@@ -81,8 +82,11 @@ sv_vstat(svv *v, uint32_t *count) {
 	}
 	return size;
 }
+#endif
 
-int sv_indexset(svindex *i, sr *r, uint64_t vlsn, svv *v, svv **gc)
+int sv_indexset(svindex *i, sr *r, uint64_t vlsn srunused,
+                svv  *v,
+                svv **gc srunused)
 {
 	srrbnode *n = NULL;
 	svv *head = NULL;
@@ -94,12 +98,14 @@ int sv_indexset(svindex *i, sr *r, uint64_t vlsn, svv *v, svv **gc)
 		svv *update = sv_vset(head, v);
 		if (head != update)
 			sr_rbreplace(&i->i, n, &update->node);
+#if 0
 		*gc = sv_vgc(update, vlsn);
 		if (*gc) {
 			uint32_t count = 0;
 			i->used  -= sv_vstat(*gc, &count);
 			i->count -= count;
 		}
+#endif
 	} else {
 		sr_rbset(&i->i, n, rc, &v->node);
 	}

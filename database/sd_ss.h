@@ -16,7 +16,6 @@ typedef struct sdss sdss;
 struct sdssheader {
 	uint32_t crc;
 	uint32_t count;
-	uint64_t vlsn;
 } srpacked;
 
 struct sdssrecord {
@@ -32,8 +31,8 @@ struct sdss {
 int sd_ssinit(sdss*);
 int sd_ssopen(sdss*, sr*, srbuf*);
 int sd_ssfree(sdss*, sr*);
+int sd_sscreate(sdss*, sr*);
 int sd_ssadd(sdss*, sdss*, sr*, uint64_t, char*);
 int sd_ssdelete(sdss*, sdss*, sr*, char*);
-uint64_t sd_ssvlsn(sdss*);
 
 #endif

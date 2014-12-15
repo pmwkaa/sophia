@@ -93,6 +93,9 @@ so_destroy(soobj *o)
 	rc = so_scheduler_shutdown(&e->sched);
 	if (srunlikely(rc == -1))
 		rcret = -1;
+	rc = so_objindex_destroy(&e->snapshot);
+	if (srunlikely(rc == -1))
+		rcret = -1;
 	rc = so_objindex_destroy(&e->tx);
 	if (srunlikely(rc == -1))
 		rcret = -1;
@@ -166,6 +169,7 @@ soobj *so_new(void)
 	sr_allocopen(&e->a_cursor, &sr_aslab, &e->pager, sizeof(socursor));
 	sr_allocopen(&e->a_ctlcursor, &sr_aslab, &e->pager, sizeof(soctlcursor));
 	sr_allocopen(&e->a_logcursor, &sr_aslab, &e->pager, sizeof(sologcursor));
+	sr_allocopen(&e->a_snapshot, &sr_aslab, &e->pager, sizeof(sosnapshot));
 	sr_allocopen(&e->a_tx, &sr_aslab, &e->pager, sizeof(sotx));
 	sr_allocopen(&e->a_sxv, &sr_aslab, &e->pager, sizeof(sxv));
 	so_statusinit(&e->status);
@@ -174,6 +178,7 @@ soobj *so_new(void)
 	so_objindex_init(&e->db);
 	so_objindex_init(&e->tx);
 	so_objindex_init(&e->ctlcursor);
+	so_objindex_init(&e->snapshot);
 	sr_mutexinit(&e->apilock);
 	sr_quotainit(&e->quota);
 	sr_seqinit(&e->seq);

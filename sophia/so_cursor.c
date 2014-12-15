@@ -48,9 +48,9 @@ so_cursorseek(socursor *c, void *key, int keysize)
 }
 
 static inline int
-so_cursoropen(socursor *c, void *key, int keysize)
+so_cursoropen(socursor *c, uint64_t vlsn, void *key, int keysize)
 {
-	sx_begin(&c->db->e->xm, &c->t);
+	sx_begin(&c->db->e->xm, &c->t, vlsn);
 	int rc;
 	do {
 		rc = so_cursorseek(c, key, keysize);
@@ -129,7 +129,7 @@ static soobjif socursorif =
 	.type     = so_cursortype
 };
 
-soobj *so_cursornew(sodb *db, va_list args)
+soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 {
 	so *e = db->e;
 	char *order = va_arg(args, char*);
@@ -179,7 +179,7 @@ soobj *so_cursornew(sodb *db, va_list args)
 	key = svkey(ov);
 	if (keysize == 0)
 		key = NULL;
-	int rc = so_cursoropen(c, key, keysize);
+	int rc = so_cursoropen(c, vlsn, key, keysize);
 	if (srunlikely(rc == -1))
 		goto error;
 

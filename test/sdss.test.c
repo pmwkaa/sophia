@@ -33,6 +33,7 @@ sdss_add(stc *cx)
 	sr_init(&r, NULL, &a, NULL, NULL, NULL);
 	sdss s, n;
 	t( sd_ssinit(&s) == 0 );
+	t( sd_sscreate(&s, &r) == 0 );
 	t( sd_ssadd(&s, &n, &r, 1, "a") == 0 );
 	t( sd_ssfree(&s, &r) == 0 );
 	s = n;
@@ -57,7 +58,7 @@ sdss_delete(stc *cx)
 	sr_init(&r, NULL, &a, NULL, NULL, NULL);
 	sdss s, n;
 	t( sd_ssinit(&s) == 0 );
-
+	t( sd_sscreate(&s, &r) == 0 );
 	t( sd_ssadd(&s, &n, &r, 1, "a") == 0 );
 	t( sd_ssfree(&s, &r) == 0 );
 	s = n;

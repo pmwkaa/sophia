@@ -495,6 +495,57 @@ so_ctldb(so *e, soctlrt *rt srunused, src **pc)
 	return sr_c(pc, so_ctldb_set, "db", SR_CC, db);
 }
 
+static inline int
+so_ctlsnapshot_set(src *c, srcstmt *s, va_list args)
+{
+	if (s->op != SR_CSET)
+		return so_ctlv(c, s, args);
+	so *e = s->ptr;
+	if (srunlikely(! so_statusactive(&e->status))) {
+		sr_error(&e->error, "%s", "bad operation");
+		sr_error_recoverable(&e->error);
+		return -1;
+	}
+	char *name = va_arg(args, char*);
+	uint64_t lsn = sr_seq(&e->seq, SR_LSN) - 1;
+	soobj *snapshot = so_snapshotnew(e, 1, lsn, name);
+	if (srunlikely(snapshot == NULL))
+		return -1;
+	return 0;
+}
+
+static inline int
+so_ctlsnapshot_get(src *c, srcstmt *s, va_list args srunused)
+{
+	/* get(snapshot.name) */
+	so *e = s->ptr;
+	if (s->op != SR_CGET) {
+		sr_error(&e->error, "%s", "bad operation");
+		sr_error_recoverable(&e->error);
+		return -1;
+	}
+	assert(c->ptr != NULL);
+	*s->result = c->ptr;
+	return 0;
+}
+
+static inline src*
+so_ctlsnapshot(so *e, soctlrt *rt srunused, src **pc)
+{
+	src *snapshot = NULL;
+	src *prev = NULL;
+	srlist *i;
+	sr_listforeach(&e->snapshot.list, i)
+	{
+		sosnapshot *s = (sosnapshot*)srcast(i, soobj, link);
+		src *p = sr_c(pc, so_ctlv, "lsn", SR_CU64|SR_CRO, &s->vlsn);
+		sr_clink(&prev, sr_cptr(sr_c(pc, so_ctlsnapshot_get, s->name, SR_CC, p), s));
+		if (snapshot == NULL)
+			snapshot = prev;
+	}
+	return sr_c(pc, so_ctlsnapshot_set, "snapshot", SR_CC, snapshot);
+}
+
 static inline src*
 so_ctldebug(so *e, soctlrt *rt srunused, src **pc)
 {
@@ -525,6 +576,7 @@ so_ctlprepare(so *e, soctlrt *rt, src *c, int serialize)
 	src *compaction = so_ctlcompaction(e, rt, &pc);
 	src *scheduler  = so_ctlscheduler(e, rt, &pc);
 	src *log        = so_ctllog(e, rt, &pc);
+	src *snapshot   = so_ctlsnapshot(e, rt, &pc);
 	src *db         = so_ctldb(e, rt, &pc);
 	src *debug      = so_ctldebug(e, rt, &pc);
 
@@ -532,9 +584,8 @@ so_ctlprepare(so *e, soctlrt *rt, src *c, int serialize)
 	memory->next     = compaction;
 	compaction->next = scheduler;
 	scheduler->next  = log;
-	log->next        = db;
-	/* snapshot */
-
+	log->next        = snapshot;
+	snapshot->next   = db;
 	if (! serialize)
 		db->next = debug;
 	return sophia;
