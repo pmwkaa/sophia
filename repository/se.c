@@ -246,10 +246,6 @@ se_snapshot_update(se *e, sr *r, uint64_t lsn, char *name, int remove)
 	srpath path_b;
 	sr_pathset(&path_b, "%s/snapshot.incomplete", e->conf->path);
 
-	SR_INJECTION(r->i, SR_INJECTION_SE_SNAPSHOT_0,
-	             sr_error(r->e, "%s", "error injection");
-	             goto e0);
-
 	srfile file;
 	sr_fileinit(&file, r->a);
 	rc = sr_filenew(&file, path_b.path);
@@ -258,6 +254,10 @@ se_snapshot_update(se *e, sr *r, uint64_t lsn, char *name, int remove)
 		         path.path, strerror(errno));
 		goto e0;
 	}
+
+	SR_INJECTION(r->i, SR_INJECTION_SE_SNAPSHOT_0,
+	             sr_error(r->e, "%s", "error injection");
+	             goto e0);
 
 	uint64_t size = sr_bufused(&n.buf);
 	rc = sr_filewrite(&file, n.buf.s, size);

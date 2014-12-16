@@ -35,6 +35,7 @@ extern stgroup *tpr_group(void);
 extern stgroup *object_group(void);
 extern stgroup *profiler_group(void);
 extern stgroup *snapshot_group(void);
+extern stgroup *snapshot_crash_group(void);
 extern stgroup *transaction_group(void);
 extern stgroup *transaction_multidb_group(void);
 extern stgroup *tpc_group(void);
@@ -106,6 +107,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, logcursor_group());
 	st_planadd(plan, transaction_multidb_group());
 	st_planadd(plan, snapshot_group());
+	st_planadd(plan, snapshot_crash_group());
 	st_add(&s, plan);
 
 	plan = st_plan("default");
