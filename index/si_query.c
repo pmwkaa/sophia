@@ -16,13 +16,12 @@ int si_queryopen(siquery *q, sr *r, si *i, srorder o,
                  uint64_t vlsn,
                  void *key, uint32_t keysize)
 {
-	q->order    = o;
-	q->key      = key;
-	q->keysize  = keysize;
-	q->vlsn     = vlsn;
-	q->index    = i;
-	q->r        = r;
-	q->firstsrc = NULL;
+	q->order   = o;
+	q->key     = key;
+	q->keysize = keysize;
+	q->vlsn    = vlsn;
+	q->index   = i;
+	q->r       = r;
 	memset(&q->result, 0, sizeof(q->result));
 	sv_mergeinit(&q->merge);
 	si_lock(q->index);
@@ -162,18 +161,13 @@ si_qfetch(siquery *q)
 		return 0;
 	/* prepare sources */
 	svmerge *m = &q->merge;
-	int count = 1 + 2 + node->lv + 1;
+	int count = 2 + node->lv + 1;
 	int rc = sv_mergeprepare(m, q->r, count, sizeof(sdpage));
 	if (srunlikely(rc == -1)) {
 		sr_error_recoverable(q->r->e);
 		return -1;
 	}
 	svmergesrc *s;
-	/*
-	s = sv_mergeadd(m);
-	assert(q->firstsrc != NULL);
-	s->i = *q->firstsrc;
-	*/
 	s = sv_mergeadd(m);
 	sr_iterinit(&s->i, &sv_indexiter, q->r);
 	sr_iteropen(&s->i, &node->i1, q->order, q->key, q->keysize, q->vlsn);
@@ -194,12 +188,6 @@ si_qfetch(siquery *q)
 	sr_iteropen(&j, &i, UINT64_MAX, 0, q->vlsn);
 	rc = si_qresult(q, &j);
 	return rc;
-}
-
-int si_queryfirstsrc(siquery *q, sriter *i)
-{
-	q->firstsrc = i;
-	return 0;
 }
 
 int si_query(siquery *q)
