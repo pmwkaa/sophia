@@ -76,8 +76,6 @@ so_snapshotcursor(soobj *o, va_list args)
 	sosnapshot *s = (sosnapshot*)o;
 	va_list va;
 	va_copy(va, args);
-	char *order = va_arg(va, char*);
-	(void)order;
 	sov *v = va_arg(va, sov*);
 	va_end(va);
 	if (srunlikely(v->o.id != SOV))
