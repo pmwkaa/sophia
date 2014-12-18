@@ -69,6 +69,9 @@ int sd_indexadd(sdindex *i, sr *r, uint32_t offset,
 	p->lsnmax  = lsnmax;
 	memcpy(sd_indexpage_min(p), min, sizemin);
 	memcpy(sd_indexpage_max(p), max, sizemax);
+	int padding = i->h->block - (sizeof(sdindexpage) + sizemin + sizemax);
+	if (padding > 0)
+		memset(sd_indexpage_max(p) + sizemax, 0, padding);
 	i->h->count++;
 	i->h->keys  += count;
 	i->h->total += size;

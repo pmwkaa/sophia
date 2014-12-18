@@ -64,6 +64,17 @@ so_vset(soobj *obj, va_list args)
 	if (strcmp(name, "log") == 0) {
 		v->log = va_arg(args, void*);
 		return 0;
+	} else
+	if (strcmp(name, "order") == 0) {
+		char *order = va_arg(args, void*);
+		srorder cmp = sr_orderof(order);
+		if (srunlikely(cmp == SR_STOP)) {
+			sr_error(&v->e->error, "%s", "bad order name");
+			sr_error_recoverable(&v->e->error);
+			return -1;
+		}
+		v->order = cmp;
+		return 0;
 	}
 	return -1;
 }
@@ -108,6 +119,20 @@ so_vget(soobj *obj, va_list args)
 		if (valuesize)
 			*valuesize = sizeof(uint64_t);
 		return lsnp;
+	} else
+	if (strcmp(name, "order") == 0) {
+		src order = {
+			.name     = "order",
+			.value    = sr_ordername(v->order),
+			.flags    = SR_CSZ,
+			.ptr      = NULL,
+			.function = NULL,
+			.next     = NULL
+		};
+		void *o = so_ctlreturn(&order, v->e);
+		if (srunlikely(o == NULL))
+			return NULL;
+		return o;
 	}
 	return NULL;
 }
@@ -140,6 +165,7 @@ soobj *so_vinit(sov *v, so *e, soobj *parent)
 	memset(v, 0, sizeof(*v));
 	so_objinit(&v->o, SOV, &sovif, &e->o);
 	svinit(&v->v, &sv_localif, &v->lv, NULL);
+	v->order = SR_GTE;
 	v->e = e;
 	v->parent = parent;
 	return &v->o;

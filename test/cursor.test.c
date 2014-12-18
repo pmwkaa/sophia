@@ -17,7 +17,8 @@ cursor_empty_gte(stc *cx)
 	void *db = cx->db;
 	void *o = sp_object(db);
 	t( o != NULL );
-	void *c = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	void *c = sp_cursor(db, o);
 	t( c != NULL );
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
@@ -30,7 +31,8 @@ cursor_empty_gt(stc *cx)
 	void *db = cx->db;
 	void *o = sp_object(db);
 	t( o != NULL );
-	void *c = sp_cursor(db, ">", o);
+	t( sp_set(o, "order", ">") == 0 );
+	void *c = sp_cursor(db, o);
 	t( c != NULL );
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
@@ -43,7 +45,8 @@ cursor_empty_lte(stc *cx)
 	void *db = cx->db;
 	void *o = sp_object(db);
 	t( o != NULL );
-	void *c = sp_cursor(db, "<=", o);
+	t( sp_set(o, "order", "<=") == 0 );
+	void *c = sp_cursor(db, o);
 	t( c != NULL );
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
@@ -56,7 +59,8 @@ cursor_empty_lt(stc *cx)
 	void *db = cx->db;
 	void *o = sp_object(db);
 	t( o != NULL );
-	void *c = sp_cursor(db, "<=", o);
+	t( sp_set(o, "order", "<") == 0 );
+	void *c = sp_cursor(db, o);
 	t( c != NULL );
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
@@ -92,7 +96,8 @@ cursor_gte(stc *cx)
 	st_transaction(cx);
 	o = sp_object(db);
 	t( o != NULL );
-	void *c = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	void *c = sp_cursor(db, o);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -138,7 +143,8 @@ cursor_gt(stc *cx)
 	st_transaction(cx);
 	o = sp_object(db);
 	t( o != NULL );
-	void *c = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">") == 0 );
+	void *c = sp_cursor(db, o);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -184,7 +190,8 @@ cursor_lte(stc *cx)
 	st_transaction(cx);
 	o = sp_object(db);
 	t( o != NULL );
-	void *c = sp_cursor(db, "<=", o);
+	t( sp_set(o, "order", "<=") == 0 );
+	void *c = sp_cursor(db, o);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -230,7 +237,8 @@ cursor_lt(stc *cx)
 	st_transaction(cx);
 	o = sp_object(db);
 	t( o != NULL );
-	void *c = sp_cursor(db, "<", o);
+	t( sp_set(o, "order", "<") == 0 );
+	void *c = sp_cursor(db, o);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -278,7 +286,8 @@ cursor_pos_gte0(stc *cx)
 	void *pos = sp_object(db);
 	t( pos != NULL );
 	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	void *c = sp_cursor(db, ">=", pos);
+	t( sp_set(pos, "order", ">=") == 0 );
+	void *c = sp_cursor(db, pos);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -326,7 +335,8 @@ cursor_pos_gte1(stc *cx)
 	void *pos = sp_object(db);
 	t( pos != NULL );
 	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	void *c = sp_cursor(db, ">=", pos);
+	t( sp_set(pos, "order", ">=") == 0 );
+	void *c = sp_cursor(db, pos);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -371,7 +381,8 @@ cursor_pos_gte2(stc *cx)
 	void *pos = sp_object(db);
 	t( pos != NULL );
 	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	void *c = sp_cursor(db, ">=", pos);
+	t( sp_set(pos, "order", ">=") == 0 );
+	void *c = sp_cursor(db, pos);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -413,7 +424,8 @@ cursor_pos_gte3(stc *cx)
 	void *pos = sp_object(db);
 	t( pos != NULL );
 	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	void *c = sp_cursor(db, ">=", pos);
+	t( sp_set(pos, "order", ">=") == 0 );
+	void *c = sp_cursor(db, pos);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o == NULL );
@@ -452,7 +464,8 @@ cursor_pos_gte4(stc *cx)
 	void *pos = sp_object(db);
 	t( pos != NULL );
 	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	void *c = sp_cursor(db, ">=", pos);
+	t( sp_set(pos, "order", ">=") == 0 );
+	void *c = sp_cursor(db, pos);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -497,7 +510,8 @@ cursor_pos_gte5(stc *cx)
 	void *pos = sp_object(db);
 	t( pos != NULL );
 	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	void *c = sp_cursor(db, ">=", pos);
+	t( sp_set(pos, "order", ">=") == 0 );
+	void *c = sp_cursor(db, pos);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -545,7 +559,8 @@ cursor_pos_gt0(stc *cx)
 	void *pos = sp_object(db);
 	t( pos != NULL );
 	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	void *c = sp_cursor(db, ">", pos);
+	t( sp_set(pos, "order", ">") == 0 );
+	void *c = sp_cursor(db, pos);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -590,7 +605,8 @@ cursor_pos_gt1(stc *cx)
 	void *pos = sp_object(db);
 	t( pos != NULL );
 	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	void *c = sp_cursor(db, ">", pos);
+	t( sp_set(pos, "order", ">") == 0 );
+	void *c = sp_cursor(db, pos);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -632,7 +648,8 @@ cursor_pos_gt2(stc *cx)
 	void *pos = sp_object(db);
 	t( pos != NULL );
 	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	void *c = sp_cursor(db, ">", pos);
+	t( sp_set(pos, "order", ">") == 0 );
+	void *c = sp_cursor(db, pos);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o == NULL );
@@ -671,7 +688,8 @@ cursor_pos_lte0(stc *cx)
 	void *pos = sp_object(db);
 	t( pos != NULL );
 	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	void *c = sp_cursor(db, "<=", pos);
+	t( sp_set(pos, "order", "<=") == 0 );
+	void *c = sp_cursor(db, pos);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -719,7 +737,8 @@ cursor_pos_lte1(stc *cx)
 	void *pos = sp_object(db);
 	t( pos != NULL );
 	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	void *c = sp_cursor(db, "<=", pos);
+	t( sp_set(pos, "order", "<=") == 0 );
+	void *c = sp_cursor(db, pos);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -764,7 +783,8 @@ cursor_pos_lte2(stc *cx)
 	void *pos = sp_object(db);
 	t( pos != NULL );
 	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	void *c = sp_cursor(db, "<=", pos);
+	t( sp_set(pos, "order", "<=") == 0 );
+	void *c = sp_cursor(db, pos);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -806,7 +826,8 @@ cursor_pos_lte3(stc *cx)
 	void *pos = sp_object(db);
 	t( pos != NULL );
 	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	void *c = sp_cursor(db, "<=", pos);
+	t( sp_set(pos, "order", "<=") == 0 );
+	void *c = sp_cursor(db, pos);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o == NULL );
@@ -845,7 +866,8 @@ cursor_pos_lte4(stc *cx)
 	void *pos = sp_object(db);
 	t( pos != NULL );
 	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	void *c = sp_cursor(db, "<=", pos);
+	t( sp_set(pos, "order", "<=") == 0 );
+	void *c = sp_cursor(db, pos);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -893,7 +915,8 @@ cursor_pos_lt0(stc *cx)
 	void *pos = sp_object(db);
 	t( pos != NULL );
 	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	void *c = sp_cursor(db, "<", pos);
+	t( sp_set(pos, "order", "<") == 0 );
+	void *c = sp_cursor(db, pos);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -938,7 +961,8 @@ cursor_pos_lt1(stc *cx)
 	void *pos = sp_object(db);
 	t( pos != NULL );
 	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	void *c = sp_cursor(db, "<", pos);
+	t( sp_set(pos, "order", "<") == 0 );
+	void *c = sp_cursor(db, pos);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -980,7 +1004,8 @@ cursor_pos_lt2(stc *cx)
 	void *pos = sp_object(db);
 	t( pos != NULL );
 	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	void *c = sp_cursor(db, "<", pos);
+	t( sp_set(pos, "order", "<") == 0 );
+	void *c = sp_cursor(db, pos);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o == NULL );
@@ -1019,7 +1044,8 @@ cursor_pos_lt3(stc *cx)
 	void *pos = sp_object(db);
 	t( pos != NULL );
 	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	void *c = sp_cursor(db, "<", pos);
+	t( sp_set(pos, "order", "<") == 0 );
+	void *c = sp_cursor(db, pos);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o == NULL );
@@ -1058,7 +1084,8 @@ cursor_pos_lt4(stc *cx)
 	void *pos = sp_object(db);
 	t( pos != NULL );
 	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	void *c = sp_cursor(db, "<", pos);
+	t( sp_set(pos, "order", "<") == 0 );
+	void *c = sp_cursor(db, pos);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -1099,7 +1126,8 @@ cursor_pos_gte_range(stc *cx)
 		void *o = sp_object(db);
 		t( o != NULL );
 		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		void *c = sp_cursor(db, ">=", o);
+		t( sp_set(o, "order", ">=") == 0 );
+		void *c = sp_cursor(db, o);
 		t( c != NULL );
 		void *v = sp_get(c);
 		t( v != NULL );
@@ -1135,7 +1163,8 @@ cursor_pos_gt_range(stc *cx)
 		void *o = sp_object(db);
 		t( o != NULL );
 		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		void *c = sp_cursor(db, ">", o);
+		t( sp_set(o, "order", ">") == 0 );
+		void *c = sp_cursor(db, o);
 		t( c != NULL );
 		void *v = sp_get(c);
 		t( v != NULL );
@@ -1171,7 +1200,8 @@ cursor_pos_lte_range(stc *cx)
 		void *o = sp_object(db);
 		t( o != NULL );
 		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		void *c = sp_cursor(db, "<=", o);
+		t( sp_set(o, "order", "<=") == 0 );
+		void *c = sp_cursor(db, o);
 		t( c != NULL );
 		void *v = sp_get(c);
 		t( v != NULL );
@@ -1207,7 +1237,8 @@ cursor_pos_lt_range(stc *cx)
 		void *o = sp_object(db);
 		t( o != NULL );
 		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		void *c = sp_cursor(db, "<", o);
+		t( sp_set(o, "order", "<") == 0 );
+		void *c = sp_cursor(db, o);
 		t( c != NULL );
 		void *v = sp_get(c);
 		t( v != NULL );
@@ -1248,7 +1279,8 @@ cursor_pos_gte_random(stc *cx)
 		void *o = sp_object(db);
 		t( o != NULL );
 		t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-		void *c = sp_cursor(db, ">=", o);
+		t( sp_set(o, "order", ">=") == 0 );
+		void *c = sp_cursor(db, o);
 		t( c != NULL );
 		void *v = sp_get(c);
 		t( v != NULL );
@@ -1289,7 +1321,8 @@ cursor_pos_lte_random(stc *cx)
 		void *o = sp_object(db);
 		t( o != NULL );
 		t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-		void *c = sp_cursor(db, "<=", o);
+		t( sp_set(o, "order", "<=") == 0 );
+		void *c = sp_cursor(db, o);
 		t( c != NULL );
 		void *v = sp_get(c);
 		t( v != NULL );
@@ -1323,7 +1356,8 @@ cursor_random(stc *cx)
 		void *o = sp_object(db);
 		t( o != NULL );
 		t( sp_set(o, "key", &rnd, sizeof(rnd)) == 0 );
-		void *c = sp_cursor(db, "random", o);
+		t( sp_set(o, "order", "random") == 0 );
+		void *c = sp_cursor(db, o);
 		t( c != NULL );
 		o = sp_get(c);
 		t( o != NULL );
@@ -1344,7 +1378,8 @@ cursor_consistency0(stc *cx)
 	int rc;
 	void *o = sp_object(db);
 	t( o != NULL );
-	void *c = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	void *c = sp_cursor(db, o);
 	t( c != NULL );
 	void *tx = sp_begin(cx->env);
 	int key = 7;
@@ -1402,7 +1437,8 @@ cursor_consistency1(stc *cx)
 
 	o = sp_object(db);
 	t( o != NULL );
-	void *c = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	void *c = sp_cursor(db, o);
 	t( c != NULL );
 	st_transaction(cx);
 
@@ -1470,7 +1506,8 @@ cursor_consistency2(stc *cx)
 
 	o = sp_object(db);
 	t( o != NULL );
-	void *c = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	void *c = sp_cursor(db, o);
 	t( c != NULL );
 
 	tx = sp_begin(cx->env);
@@ -1535,7 +1572,8 @@ cursor_consistency3(stc *cx)
 
 	o = sp_object(db);
 	t( o != NULL );
-	void *c = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	void *c = sp_cursor(db, o);
 	t( c != NULL );
 
 	tx = sp_begin(cx->env);
@@ -1607,7 +1645,8 @@ cursor_consistency4(stc *cx)
 
 	o = sp_object(db);
 	t( o != NULL );
-	void *c = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	void *c = sp_cursor(db, o);
 	t( c != NULL );
 
 	tx = sp_begin(cx->env);
@@ -1700,7 +1739,8 @@ cursor_consistency5(stc *cx)
 
 	o = sp_object(db);
 	t( o != NULL );
-	void *c = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	void *c = sp_cursor(db, o);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -1766,7 +1806,8 @@ cursor_consistency6(stc *cx)
 
 	o = sp_object(db);
 	t( o != NULL );
-	void *c = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	void *c = sp_cursor(db, o);
 	t( c != NULL );
 
 	o = sp_get(c);
@@ -1847,7 +1888,8 @@ cursor_consistency7(stc *cx)
 
 	o = sp_object(db);
 	t( o != NULL );
-	void *c = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	void *c = sp_cursor(db, o);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -1941,7 +1983,8 @@ cursor_consistency8(stc *cx)
 
 	o = sp_object(db);
 	t( o != NULL );
-	void *c = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	void *c = sp_cursor(db, o);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -2052,7 +2095,8 @@ cursor_consistency9(stc *cx)
 
 	o = sp_object(db);
 	t( o != NULL );
-	void *c = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	void *c = sp_cursor(db, o);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -2146,7 +2190,8 @@ cursor_consistency9(stc *cx)
 
 	o = sp_object(db);
 	t( o != NULL );
-	c = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	c = sp_cursor(db, o);
 	t( c != NULL );
 
 	o = sp_get(c);
@@ -2214,7 +2259,8 @@ cursor_consistencyN(stc *cx)
 
 	o = sp_object(db);
 	t( o != NULL );
-	void *c = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	void *c = sp_cursor(db, o);
 	t( c != NULL );
 	o = sp_get(c);
 	t( o != NULL );
@@ -2254,7 +2300,8 @@ cursor_consistencyN(stc *cx)
 
 	o = sp_object(db);
 	t( o != NULL );
-	void *c2 = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	void *c2 = sp_cursor(db, o);
 	t( c2 != NULL );
 
 	o = sp_get(c);
@@ -2304,7 +2351,8 @@ cursor_consistency_rewrite0(stc *cx)
 	void *db = cx->db;
 	void *o = sp_object(db);
 	t( o != NULL );
-	void *c0 = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	void *c0 = sp_cursor(db, o);
 
 	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
@@ -2323,7 +2371,8 @@ cursor_consistency_rewrite0(stc *cx)
 
 	o = sp_object(db);
 	t( o != NULL );
-	void *c1 = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	void *c1 = sp_cursor(db, o);
 
 	tx = sp_begin(cx->env);
 	v = 20;
@@ -2341,7 +2390,8 @@ cursor_consistency_rewrite0(stc *cx)
 
 	o = sp_object(db);
 	t( o != NULL );
-	void *c2 = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	void *c2 = sp_cursor(db, o);
 
 	t( sp_get(c0) == NULL );
 
@@ -2375,7 +2425,8 @@ cursor_consistency_rewrite1(stc *cx)
 	void *db = cx->db;
 	void *o = sp_object(db);
 	t( o != NULL );
-	void *c0 = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	void *c0 = sp_cursor(db, o);
 
 	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
@@ -2394,7 +2445,8 @@ cursor_consistency_rewrite1(stc *cx)
 
 	o = sp_object(db);
 	t( o != NULL );
-	void *c1 = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	void *c1 = sp_cursor(db, o);
 
 	tx = sp_begin(cx->env);
 	v = 20;
@@ -2425,7 +2477,8 @@ cursor_consistency_rewrite1(stc *cx)
 	while (i < 385) {
 		void *ckey = sp_object(db);
 		t( sp_set(ckey, "key", &i, sizeof(i)) == 0 );
-		void *c2 = sp_cursor(db, ">=", ckey);
+		t( sp_set(ckey, "order", ">=") == 0 );
+		void *c2 = sp_cursor(db, ckey);
 		t( c2 != NULL );
 		void *o = sp_object(c2);
 		t( *(int*)sp_get(o, "key", NULL) == i );
@@ -2445,7 +2498,8 @@ cursor_consistency_rewrite2(stc *cx)
 	void *db = cx->db;
 	void *o = sp_object(db);
 	t( o != NULL );
-	void *c0 = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	void *c0 = sp_cursor(db, o);
 
 	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
@@ -2464,7 +2518,8 @@ cursor_consistency_rewrite2(stc *cx)
 
 	o = sp_object(db);
 	t( o != NULL );
-	void *c1 = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	void *c1 = sp_cursor(db, o);
 	v = 20;
 	i = 0;
 	while (sp_get(c1)) {
@@ -2488,7 +2543,8 @@ cursor_consistency_rewrite2(stc *cx)
 
 	o = sp_object(db);
 	t( o != NULL );
-	void *c2 = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	void *c2 = sp_cursor(db, o);
 	i = 0;
 	while (sp_get(c2)) {
 		void *o = sp_object(c2);
@@ -2510,7 +2566,8 @@ cursor_consistency_delete0(stc *cx)
 	void *db = cx->db;
 	void *o = sp_object(db);
 	t( o != NULL );
-	void *c0 = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	void *c0 = sp_cursor(db, o);
 
 	void *tx = sp_begin(cx->env);
 	int i = 0;
@@ -2547,7 +2604,8 @@ cursor_consistency_delete1(stc *cx)
 	void *db = cx->db;
 	void *o = sp_object(db);
 	t( o != NULL );
-	void *c0 = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	void *c0 = sp_cursor(db, o);
 
 	void *tx = sp_begin(cx->env);
 	int i = 0;
@@ -2564,7 +2622,8 @@ cursor_consistency_delete1(stc *cx)
 	tx = sp_begin(cx->env);
 	o = sp_object(db);
 	t( o != NULL );
-	void *c1 = sp_cursor(db, ">=", o);
+	t( sp_set(o, "order", ">=") == 0 );
+	void *c1 = sp_cursor(db, o);
 	while ((o = sp_get(c1)))
 		t( sp_delete(tx, o) == 0 );
 	t( sp_commit(tx) == 0 );

@@ -132,30 +132,17 @@ static soobjif socursorif =
 soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 {
 	so *e = db->e;
-	char *order = va_arg(args, char*);
 	soobj *keyobj = va_arg(args, soobj*);
-	socursor *c = NULL;
 
-	/* prepare cursor */
-	srorder cmp;
-	if (strcmp(order, ">") == 0) {
-		cmp = SR_GT;
-	} else
-	if (strcmp(order, ">=") == 0) {
-		cmp = SR_GTE;
-	} else
-	if (strcmp(order, "<") == 0) {
-		cmp = SR_LT;
-	} else
-	if (strcmp(order, "<=") == 0) {
-		cmp = SR_LTE;
-	} else
-	if (strcmp(order, "random") == 0) {
-		cmp = SR_RANDOM;
-	} else {
-		goto error;
+	/* validate call */
+	sov *o = (sov*)keyobj;
+	if (srunlikely(o->o.id != SOV)) {
+		sr_error(&e->error, "%s", "bad arguments");
+		sr_error_recoverable(&e->error);
+		return NULL;
 	}
-	c = sr_malloc(&e->a_cursor, sizeof(socursor));
+	/* prepare cursor */
+	socursor *c = sr_malloc(&e->a_cursor, sizeof(socursor));
 	if (srunlikely(c == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");
 		sr_error_recoverable(&e->error);
@@ -165,18 +152,12 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 	c->key   = keyobj;
 	c->db    = db;
 	c->ready = 1;
-	c->order = cmp;
+	c->order = o->order;
 	so_vinit(&c->v, e, &db->o);
 
 	/* open cursor */
-	void *key = NULL;
-	uint32_t keysize = 0;
-	sv *ov = NULL;
-	if (srunlikely(keyobj->id != SOV))
-		goto error;
-	ov = &((sov*)keyobj)->v;
-	keysize = svkeysize(ov);
-	key = svkey(ov);
+	void *key = svkey(&o->v);
+	uint32_t keysize = svkeysize(&o->v);
 	if (keysize == 0)
 		key = NULL;
 	int rc = so_cursoropen(c, vlsn, key, keysize);
@@ -184,22 +165,21 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 		goto error;
 
 	/* prepare for iterations */
-	srorder o = SR_GTE;
+	srorder next = SR_GTE;
 	switch (c->order) {
 	case SR_LT:
-	case SR_LTE:    o = SR_LT;
+	case SR_LTE:    next = SR_LT;
 		break;
 	case SR_GT:
-	case SR_GTE:    o = SR_GT;
+	case SR_GTE:    next = SR_GT;
 		break;
-	case SR_RANDOM: o = SR_STOP;
+	case SR_RANDOM: next = SR_STOP;
 		break;
 	default: assert(0);
 	}
-	c->order = o;
+	c->order = next;
 	so_objindex_register(&db->cursor, &c->o);
 	return &c->o;
-
 error:
 	if (keyobj)
 		so_objdestroy(keyobj);

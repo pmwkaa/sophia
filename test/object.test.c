@@ -52,7 +52,8 @@ object_lsn0(stc *cx)
 	t( sp_set(db, o) == 0 );
 	o = sp_object(db);
 	t(o != NULL);
-	void *c = sp_cursor(db, ">", o);
+	t( sp_set(o, "order", ">") == 0 );
+	void *c = sp_cursor(db, o);
 	o = sp_get(c);
 	t( o != NULL );
 	int size = 0;
@@ -81,7 +82,8 @@ object_lsn1(stc *cx)
 	t( sp_set(db, o) == 0 );
 	o = sp_object(db);
 	t(o != NULL);
-	void *c = sp_cursor(db, ">", o);
+	t( sp_set(o, "order", ">") == 0 );
+	void *c = sp_cursor(db, o);
 	o = sp_get(c);
 	t( o != NULL );
 	int size = 0;
@@ -128,7 +130,8 @@ object_readonly1(stc *cx)
 	t( sp_set(db, o) == 0 );
 	o = sp_object(db);
 	t( o != NULL );
-	void *c = sp_cursor(db, ">", o);
+	t( sp_set(o, "order", ">") == 0 );
+	void *c = sp_cursor(db, o);
 	o = sp_get(c);
 	t( o != NULL );
 	t( sp_set(o, "key", &key, sizeof(key)) == -1 );

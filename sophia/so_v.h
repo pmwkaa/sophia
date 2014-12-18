@@ -20,6 +20,7 @@ struct sov {
 	uint8_t flags;
 	svlocal lv;
 	sv v;
+	srorder order;
 	void *log;
 	soobj *parent;
 	so *e;
