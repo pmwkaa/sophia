@@ -24,15 +24,15 @@ si_redistribute(si *index, sr *r, sdc *c, sinode *node, srbuf *result,
 	sr_iteropen(&i, vindex);
 	for (; sr_iterhas(&i); sr_iternext(&i)) {
 		sv *v = sr_iterof(&i);
-		int rc = sr_bufadd(&c->c, r->a, &v->v, sizeof(svv**));
+		int rc = sr_bufadd(&c->b, r->a, &v->v, sizeof(svv**));
 		if (srunlikely(rc == -1))
 			return sr_error(r->e, "%s", "memory allocation failed");
 	}
-	if (srunlikely(sr_bufused(&c->c) == 0))
+	if (srunlikely(sr_bufused(&c->b) == 0))
 		return 0;
 	uint32_t gc = 0;
 	sr_iterinit(&i, &sr_bufiterref, NULL);
-	sr_iteropen(&i, &c->c, sizeof(svv*));
+	sr_iteropen(&i, &c->b, sizeof(svv*));
 	sriter j;
 	sr_iterinit(&j, &sr_bufiterref, NULL);
 	sr_iteropen(&j, result, sizeof(sinode*));
@@ -60,7 +60,7 @@ si_redistribute(si *index, sr *r, sdc *c, sinode *node, srbuf *result,
 			v->next = NULL;
 
 			svv *vgc = NULL;
-			sdindexpage *page = sd_indexmin(&p->index);
+			sdindexpage *page = sd_indexmin(&p->self.index);
 			int rc = sr_compare(r->cmp, sv_vkey(v), v->keysize,
 			                    sd_indexpage_min(page), page->sizemin);
 			if (srunlikely(rc >= 0))
@@ -97,7 +97,6 @@ si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 	 * a new nodes */
 	sisplit s = {
 		.parent       = node,
-		.flags        = 0,
 		.i            = stream,
 		.size_key     = size_key,
 		.size_stream  = size_stream,
@@ -105,6 +104,7 @@ si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 		.conf         = index->conf,
 		.vlsn         = vlsn
 	};
+
 	int rc = si_split(&s, r, c, result);
 	if (srunlikely(rc == -1))
 		return -1;
@@ -169,18 +169,18 @@ si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 		if (srunlikely(rc == -1))
 			return -1;
 		SR_INJECTION(r->i, SR_INJECTION_SI_COMPACTION_3,
-		             si_nodefree_all(node, r);
+		             si_nodefree(node, r, 0);
 		             sr_error(r->e, "%s", "error injection");
 		             return -1);
 	}
 
 	SR_INJECTION(r->i, SR_INJECTION_SI_COMPACTION_1,
-	             si_nodefree_all(node, r);
+	             si_nodefree(node, r, 0);
 	             sr_error(r->e, "%s", "error injection");
 	             return -1);
 
-	/* remove old files */
-	rc = si_nodegc(node, r);
+	/* remove old node */
+	rc = si_nodefree(node, r, 1);
 	if (srunlikely(rc == -1))
 		return -1;
 

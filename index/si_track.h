@@ -27,7 +27,7 @@ si_trackinit(sitrack *t) {
 }
 
 sr_rbtruncate(si_tracktruncate,
-              si_nodefree_all(srcast(n, sinode, node), (sr*)arg))
+              si_nodefree(srcast(n, sinode, node), (sr*)arg, 0))
 
 static inline void
 si_trackfree(sitrack *t, sr *r) {
@@ -38,11 +38,15 @@ si_trackfree(sitrack *t, sr *r) {
 static inline void
 si_tracklsn(sitrack *t, sinode *n)
 {
-	sdindexheader *h = n->index.h;
-	if (h->lsnmin > t->lsn)
-		t->lsn = h->lsnmin;
-	if (h->lsnmax > t->lsn)
-		t->lsn = h->lsnmax;
+	sibranch *b = n->branch;
+	while (b) {
+		sdindexheader *h = b->index.h;
+		if (h->lsnmin > t->lsn)
+			t->lsn = h->lsnmin;
+		if (h->lsnmax > t->lsn)
+			t->lsn = h->lsnmax;
+		b = b->next;
+	}
 }
 
 static inline void
@@ -53,14 +57,15 @@ si_tracknsn(sitrack *t, uint32_t nsn)
 }
 
 sr_rbget(si_trackmatch,
-         sr_cmpu32((char*)&(srcast(n, sinode, node))->id.id, sizeof(uint32_t),
+         sr_cmpu32((char*)&(srcast(n, sinode, node))->self.id.id, sizeof(uint32_t),
                    (char*)key, sizeof(uint32_t), NULL))
 
 static inline void
 si_trackset(sitrack *t, sinode *n)
 {
 	srrbnode *p = NULL;
-	int rc = si_trackmatch(&t->i, NULL, (char*)&n->id.id, sizeof(n->id.id), &p);
+	int rc = si_trackmatch(&t->i, NULL, (char*)&n->self.id.id,
+	                       sizeof(n->self.id.id), &p);
 	assert(! (rc == 0 && p));
 	sr_rbset(&t->i, p, rc, &n->node);
 	t->count++;

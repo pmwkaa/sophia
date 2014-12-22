@@ -38,8 +38,6 @@ int si_plannertrace(siplan *p, srtrace *t)
 		break;
 	case SI_COMPACT: plan = "compact";
 		break;
-	case SI_COMPACT_INDEX: plan = "compact index";
-		break;
 	case SI_CHECKPOINT: plan = "checkpoint";
 		break;
 	}
@@ -63,18 +61,18 @@ int si_plannertrace(siplan *p, srtrace *t)
 	}
 	sr_trace(t, "%s <#%" PRIu32 " explain: %s>",
 	         plan,
-	         p->node->id.id, explain);
+	         p->node->self.id.id, explain);
 	return 0;
 }
 
 srhot static inline int
 si_plannercompact_cmp(sinode *a, sinode *b)
 {
-	if (a->lv != b->lv)
-		return (a->lv > b->lv) ? 1 : -1;
-	if (a->id.id == b->id.id)
+	if (a->branch_count != b->branch_count)
+		return (a->branch_count > b->branch_count) ? 1 : -1;
+	if (a->self.id.id == b->self.id.id)
 		return 0;
-	return (a->id.id > b->id.id) ? 1 : -1;
+	return (a->self.id.id > b->self.id.id) ? 1 : -1;
 }
 
 sr_rbget(si_plannercompact_match,
@@ -110,9 +108,9 @@ si_plannerbranch_cmp(sinode *a, sinode *b)
 {
 	if (a->used != b->used)
 		return (a->used > b->used) ? 1 : -1;
-	if (a->id.id == b->id.id)
+	if (a->self.id.id == b->self.id.id)
 		return 0;
-	return (a->id.id > b->id.id) ? 1 : -1;
+	return (a->self.id.id > b->self.id.id) ? 1 : -1;
 }
 
 sr_rbget(si_plannerbranch_match,
@@ -242,7 +240,7 @@ si_plannerpeek_compact(siplanner *p, siplan *plan)
 		n = srcast(pn, sinode, nodecompact);
 		if (n->flags & SI_LOCK)
 			continue;
-		if (n->lv >= plan->a)
+		if (n->branch_count >= plan->a)
 			goto match;
 		return 0;
 	}
@@ -258,7 +256,6 @@ int si_planner(siplanner *p, siplan *plan)
 {
 	switch (plan->plan) {
 	case SI_BRANCH:
-	case SI_COMPACT_INDEX:
 		return si_plannerpeek_branch(p, plan);
 	case SI_COMPACT:
 		return si_plannerpeek_compact(p, plan);

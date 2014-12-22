@@ -9,6 +9,45 @@
  * BSD License
 */
 
-int si_branch(si*, sr*, sdc*, siplan*, uint64_t);
+typedef struct sibranch sibranch;
+
+struct sibranch {
+	sdid id;
+	sdindex index;
+	sibranch *next;
+};
+
+static inline void
+si_branchinit(sibranch *b) {
+	memset(&b->id, 0, sizeof(b->id));
+	sd_indexinit(&b->index);
+	b->next = NULL;
+}
+
+static inline sibranch*
+si_branchnew(sr *r)
+{
+	sibranch *b = (sibranch*)sr_malloc(r->a, sizeof(sibranch));
+	if (srunlikely(b == NULL)) {
+		sr_error(r->e, "%s", "memory allocation failed");
+		return NULL;
+	}
+	si_branchinit(b);
+	return b;
+}
+
+static inline void
+si_branchset(sibranch *b, sdindex *i)
+{
+	b->id = i->h->id;
+	b->index = *i;
+}
+
+static inline void
+si_branchfree(sibranch *b, sr *r)
+{
+	sd_indexfree(&b->index, r);
+	sr_free(r->a, b);
+}
 
 #endif

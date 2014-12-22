@@ -17,6 +17,7 @@ LIBST_O = st.o \
 		  sdss.test.o \
 		  sdssiter.test.o \
           ctl.test.o \
+          cache.test.o \
           error.test.o \
           method.test.o \
           repository.test.o \

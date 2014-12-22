@@ -35,10 +35,17 @@ sditer_gt0(stc *cx srunused)
 	sra a;
 	sr_allocopen(&a, &sr_astd);
 	srcomparator cmp = { sr_cmpu32, NULL };
+	srinjection ij;
+	memset(&ij, 0, sizeof(ij));
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, &ij);
+
+	sdindex index;
+	sd_indexinit(&index);
+	t( sd_indexbegin(&index, &r, 0, 0) == 0 );
+
 	sdbuild b;
 	sd_buildinit(&b, &r);
 	t( sd_buildbegin(&b, sizeof(int)) == 0);
@@ -50,13 +57,26 @@ sditer_gt0(stc *cx srunused)
 	key = 9;
 	addv(&b, 5, SVSET, &key);
 	sd_buildend(&b);
-	sd_buildcommit(&b);
-	sdindex index;
-	sd_indexinit(&index);
-	t( sd_indexbegin(&index, &r, 0) == 0 );
+
+	sdpageheader *h = sd_buildheader(&b);
+	int rc;
+	rc = sd_indexadd(&index, &r,
+	                 sd_buildoffset(&b),
+	                 h->size + sizeof(sdpageheader),
+	                 h->sizekv,
+	                 h->count,
+	                 sd_buildmin(&b)->key,
+	                 sd_buildmin(&b)->keysize,
+	                 sd_buildmax(&b)->key,
+	                 sd_buildmax(&b)->keysize,
+	                 h->lsnmin,
+	                 h->lsnmax);
+	t( rc == 0 );
 	sdid id;
 	memset(&id, 0, sizeof(id));
-	t( sd_indexcommit(&index, &r, &id) == 0 );
+	sd_buildcommit(&b);
+
+	t( sd_indexcommit(&index, &id) == 0 );
 
 	srfile f;
 	sr_fileinit(&f, &a);
@@ -65,9 +85,13 @@ sditer_gt0(stc *cx srunused)
 	srmap map;
 	t( sr_mapfile(&map, &f, 1) == 0 );
 
+	sdindex i;
+	sd_indexinit(&i);
+	i.h = (sdindexheader*)(map.p);
+
 	sriter it;
 	sr_iterinit(&it, &sd_iter, &r);
-	sr_iteropen(&it, &map, 1);
+	sr_iteropen(&it, &i, map.p, 1);
 	t( sr_iterhas(&it) == 1 );
 
 	sv *v = sr_iterof(&it);
@@ -95,11 +119,18 @@ sditer_gt1(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
+	srinjection ij;
+	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, &ij);
+
+	sdindex index;
+	sd_indexinit(&index);
+	t( sd_indexbegin(&index, &r, 0, 0) == 0 );
+
 	sdbuild b;
 	sd_buildinit(&b, &r);
 	t( sd_buildbegin(&b, sizeof(int)) == 0);
@@ -111,6 +142,20 @@ sditer_gt1(stc *cx srunused)
 	key = 9;
 	addv(&b, 5, SVSET, &key);
 	sd_buildend(&b);
+	int rc;
+	sdpageheader *h = sd_buildheader(&b);
+	rc = sd_indexadd(&index, &r,
+	                 sd_buildoffset(&b),
+	                 h->size + sizeof(sdpageheader),
+	                 h->sizekv,
+	                 h->count,
+	                 sd_buildmin(&b)->key,
+	                 sd_buildmin(&b)->keysize,
+	                 sd_buildmax(&b)->key,
+	                 sd_buildmax(&b)->keysize,
+	                 h->lsnmin,
+	                 h->lsnmax);
+	t(rc == 0);
 	sd_buildcommit(&b);
 
 	t( sd_buildbegin(&b, sizeof(int)) == 0);
@@ -121,6 +166,19 @@ sditer_gt1(stc *cx srunused)
 	key = 13;
 	addv(&b, 8, SVSET, &key);
 	sd_buildend(&b);
+	h = sd_buildheader(&b);
+	rc = sd_indexadd(&index, &r,
+	                 sd_buildoffset(&b),
+	                 h->size + sizeof(sdpageheader),
+	                 h->sizekv,
+	                 h->count,
+	                 sd_buildmin(&b)->key,
+	                 sd_buildmin(&b)->keysize,
+	                 sd_buildmax(&b)->key,
+	                 sd_buildmax(&b)->keysize,
+	                 h->lsnmin,
+	                 h->lsnmax);
+	t(rc == 0);
 	sd_buildcommit(&b);
 
 	t( sd_buildbegin(&b, sizeof(int)) == 0);
@@ -131,14 +189,25 @@ sditer_gt1(stc *cx srunused)
 	key = 20;
 	addv(&b, 11, SVSET, &key);
 	sd_buildend(&b);
+	h = sd_buildheader(&b);
+	rc = sd_indexadd(&index, &r,
+	                 sd_buildoffset(&b),
+	                 h->size + sizeof(sdpageheader),
+	                 h->sizekv,
+	                 h->count,
+	                 sd_buildmin(&b)->key,
+	                 sd_buildmin(&b)->keysize,
+	                 sd_buildmax(&b)->key,
+	                 sd_buildmax(&b)->keysize,
+	                 h->lsnmin,
+	                 h->lsnmax);
+	t(rc == 0);
 	sd_buildcommit(&b);
 
-	sdindex index;
-	sd_indexinit(&index);
-	t( sd_indexbegin(&index, &r, 0) == 0 );
 	sdid id;
 	memset(&id, 0, sizeof(id));
-	t( sd_indexcommit(&index, &r, &id) == 0 );
+	t( sd_indexcommit(&index, &id) == 0 );
+
 	srfile f;
 	sr_fileinit(&f, &a);
 	t( sr_filenew(&f, "./0000.db") == 0 );
@@ -146,9 +215,12 @@ sditer_gt1(stc *cx srunused)
 	srmap map;
 	t( sr_mapfile(&map, &f, 1) == 0 );
 
+	sdindex i;
+	sd_indexinit(&i);
+	i.h = (sdindexheader*)(map.p);
 	sriter it;
 	sr_iterinit(&it, &sd_iter, &r);
-	sr_iteropen(&it, &map, 1);
+	sr_iteropen(&it, &i, map.p, 1);
 	t( sr_iterhas(&it) == 1 );
 
 	/* page 0 */

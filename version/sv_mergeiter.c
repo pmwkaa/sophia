@@ -59,13 +59,12 @@ sv_mergeiter_of(sriter *i)
 	svmergeiter *im = (svmergeiter*)i->priv;
 	if (srunlikely(im->v == NULL))
 		return NULL;
-	return sr_iterof(&im->v->i);
+	return sr_iterof(im->v->i);
 }
 
 static inline svmergesrc*
-sv_mergeiter_nextsrc(svmergeiter *im, svmergesrc *src) {
-	return (svmergesrc*)((char*)src + sizeof(svmergesrc) +
-	                     im->merge->reserve);
+sv_mergeiter_nextsrc(svmergesrc *src) {
+	return (svmergesrc*)((char*)src + sizeof(svmergesrc));
 }
 
 static inline void
@@ -74,9 +73,9 @@ sv_mergeiter_dupset(svmergeiter *im)
 	svmergesrc *v = im->src;
 	while (v != im->end) {
 		if (v->dup)
-			svsetdup(sr_iterof(&v->i));
+			svsetdup(sr_iterof(v->i));
 		v->dup = 0;
-		v = sv_mergeiter_nextsrc(im, v);
+		v = sv_mergeiter_nextsrc(v);
 	}
 }
 
@@ -86,7 +85,7 @@ sv_mergeiter_dupreset(svmergeiter *im, svmergesrc *pos)
 	svmergesrc *v = im->src;
 	while (v != pos) {
 		v->dup = 0;
-		v = sv_mergeiter_nextsrc(im, v);
+		v = sv_mergeiter_nextsrc(v);
 	}
 }
 
@@ -95,7 +94,7 @@ sv_mergeiter_gt(sriter *it)
 {
 	svmergeiter *im = (svmergeiter*)it->priv;
 	if (im->v) {
-		sr_iternext(&im->v->i);
+		sr_iternext(im->v->i);
 	}
 	im->v = NULL;
 	int dupn = 0;
@@ -105,9 +104,9 @@ sv_mergeiter_gt(sriter *it)
 	min  = NULL;
 	src  = im->src;
 	while (src < im->end) {
-		sv *v = sr_iterof(&src->i);
+		sv *v = sr_iterof(src->i);
 		if (v == NULL) {
-			src = sv_mergeiter_nextsrc(im, src);
+			src = sv_mergeiter_nextsrc(src);
 			continue;
 		}
 		if (min == NULL) {
@@ -129,7 +128,7 @@ sv_mergeiter_gt(sriter *it)
 				break;
 			}
 		}
-		src = sv_mergeiter_nextsrc(im, src);
+		src = sv_mergeiter_nextsrc(src);
 	}
 	if (srunlikely(min == NULL))
 		return;
@@ -144,7 +143,7 @@ sv_mergeiter_lt(sriter *it)
 {
 	svmergeiter *im = (svmergeiter*)it->priv;
 	if (im->v) {
-		sr_iternext(&im->v->i);
+		sr_iternext(im->v->i);
 	}
 	im->v = NULL;
 	int dupn = 0;
@@ -154,9 +153,9 @@ sv_mergeiter_lt(sriter *it)
 	max  = NULL;
 	src  = im->src;
 	while (src < im->end) {
-		sv *v = sr_iterof(&src->i);
+		sv *v = sr_iterof(src->i);
 		if (v == NULL) {
-			src = sv_mergeiter_nextsrc(im, src);
+			src = sv_mergeiter_nextsrc(src);
 			continue;
 		}
 		if (max == NULL) {
@@ -178,7 +177,7 @@ sv_mergeiter_lt(sriter *it)
 				break;
 			}
 		}
-		src = sv_mergeiter_nextsrc(im, src);
+		src = sv_mergeiter_nextsrc(src);
 	}
 	if (srunlikely(max == NULL))
 		return;

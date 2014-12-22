@@ -4,9 +4,10 @@ LIBSD_O = sd_v.o \
           sd_index.o \
           sd_indexiter.o \
           sd_merge.o \
-          sd_iter.o \
           sd_ss.o \
-          sd_ssiter.o
+          sd_ssiter.o \
+          sd_recover.o \
+          sd_iter.o
 LIBSD_OBJECTS = $(addprefix database/, $(LIBSD_O))
 OBJECTS = $(LIBSD_O)
 ifndef buildworld

@@ -18,6 +18,8 @@ struct si {
 	srrb i;
 	int n;
 	uint64_t update_time;
+	uint64_t read_disk;
+	uint64_t read_cache;
 	srquota *quota;
 	siconf *conf;
 };

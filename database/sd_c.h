@@ -14,9 +14,8 @@ typedef struct sdc sdc;
 struct sdc {
 	sdbuild build;
 	srbuf a; /* result */
-	srbuf b; /* split index */
-	srbuf c;
-	srbuf d;
+	srbuf b; /* redistribute buffer */
+	srbuf c; /* file buffer */
 };
 
 static inline void
@@ -26,7 +25,6 @@ sd_cinit(sdc *sc, sr *r)
 	sr_bufinit(&sc->a);
 	sr_bufinit(&sc->b);
 	sr_bufinit(&sc->c);
-	sr_bufinit(&sc->d);
 }
 
 static inline void
@@ -36,7 +34,6 @@ sd_cfree(sdc *sc, sr *r)
 	sr_buffree(&sc->a, r->a);
 	sr_buffree(&sc->b, r->a);
 	sr_buffree(&sc->c, r->a);
-	sr_buffree(&sc->d, r->a);
 }
 
 static inline void
@@ -46,7 +43,6 @@ sd_creset(sdc *sc)
 	sr_bufreset(&sc->a);
 	sr_bufreset(&sc->b);
 	sr_bufreset(&sc->c);
-	sr_bufreset(&sc->d);
 }
 
 #endif

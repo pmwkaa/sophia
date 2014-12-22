@@ -11,18 +11,19 @@
 #include <libsv.h>
 #include <libsd.h>
 
-int sd_mergeinit(sdmerge *m, sr *r, uint32_t parent, uint8_t flags,
+int sd_mergeinit(sdmerge *m, sr *r, uint32_t parent,
                  sriter *i,
                  sdbuild *build,
+                 uint64_t offset,
                  uint32_t size_key,
                  uint32_t size_stream,
-                 uint32_t size_node,
+                 uint64_t size_node,
                  uint32_t size_page, uint64_t vlsn)
 {
 	m->r           = r;
 	m->parent      = parent;
-	m->flags       = flags;
 	m->build       = build;
+	m->offset      = offset;
 	m->size_key    = size_key;
 	m->size_stream = size_stream;
 	m->size_node   = size_node;
@@ -46,15 +47,15 @@ int sd_merge(sdmerge *m)
 	sd_buildreset(m->build);
 
 	sd_indexinit(&m->index);
-	int rc = sd_indexbegin(&m->index, m->r, m->size_key);
+	int rc = sd_indexbegin(&m->index, m->r, m->size_key, m->offset);
 	if (srunlikely(rc == -1))
 		return -1;
 
 	uint32_t processed = sv_seaveiter_totalkv(&m->i);
 	uint32_t processed_last = 0;
 	assert(processed <= m->size_stream);
-	uint32_t left = (m->size_stream - processed);
-	uint32_t limit;
+	uint64_t left = (m->size_stream - processed);
+	uint64_t limit;
 	if (left >= (m->size_node * 2))
 		limit = m->size_node;
 	else
@@ -78,17 +79,23 @@ int sd_merge(sdmerge *m)
 		rc = sd_buildend(m->build);
 		if (srunlikely(rc == -1))
 			return -1;
+		sdpageheader *h = sd_buildheader(m->build);
+
+		/* page offset is relative to index:
+		 *
+		 * m->offset + (index_size) + page->offset
+		*/
 		rc = sd_indexadd(&m->index, m->r,
-		                 sd_buildoffset(m->build) + sizeof(srversion),
-		                 sd_buildheader(m->build)->size + sizeof(sdpageheader),
-		                 sd_buildheader(m->build)->sizekv,
-		                 sd_buildheader(m->build)->count,
+		                 sd_buildoffset(m->build),
+		                 h->size + sizeof(sdpageheader),
+		                 h->sizekv,
+		                 h->count,
 		                 sd_buildmin(m->build)->key,
 		                 sd_buildmin(m->build)->keysize,
 		                 sd_buildmax(m->build)->key,
 		                 sd_buildmax(m->build)->keysize,
-		                 sd_buildheader(m->build)->lsnmin,
-		                 sd_buildheader(m->build)->lsnmax);
+		                 h->lsnmin,
+		                 h->lsnmax);
 		if (srunlikely(rc == -1))
 			return -1;
 		sd_buildcommit(m->build);
@@ -98,11 +105,11 @@ int sd_merge(sdmerge *m)
 		if (srunlikely(! sv_seaveiter_resume(&m->i)))
 			break;
 	}
-
 	return 1;
 }
 
 int sd_mergecommit(sdmerge *m, sdid *id)
 {
-	return sd_indexcommit(&m->index, m->r, id);
+	sd_indexcommit(&m->index, id);
+	return 0;
 }

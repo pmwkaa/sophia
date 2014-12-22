@@ -12,7 +12,7 @@
 #include <libsd.h>
 #include <libsi.h>
 
-int si_queryopen(siquery *q, sr *r, si *i, srorder o,
+int si_queryopen(siquery *q, sr *r, sicache *c, si *i, srorder o,
                  uint64_t vlsn,
                  void *key, uint32_t keysize)
 {
@@ -22,6 +22,7 @@ int si_queryopen(siquery *q, sr *r, si *i, srorder o,
 	q->vlsn    = vlsn;
 	q->index   = i;
 	q->r       = r;
+	q->cache   = c;
 	memset(&q->result, 0, sizeof(q->result));
 	sv_mergeinit(&q->merge);
 	si_lock(q->index);
@@ -64,24 +65,59 @@ si_qmatchindex(siquery *q, sinode *node)
 	return 0;
 }
 
-static inline int
-si_qmatchnode(siquery *q, sinode *n)
+static inline sdpage*
+si_qread(srbuf *buf, sr *r, si *i, sinode *n,
+         sibranch *b, sdindexpage *ref)
 {
+	int size = sizeof(sdpage) + ref->size;
+	int rc = sr_bufensure(buf, r->a, size);
+	if (srunlikely(rc == -1)) {
+		sr_error(r->e, "%s", "memory allocation failed");
+		sr_error_recoverable(r->e);
+		return NULL;
+	}
+	uint64_t offset =
+		b->index.h->offset + sd_indexsize(b->index.h) +
+	    ref->offset;
+	rc = sr_filepread(&n->file, offset, buf->s + sizeof(sdpage), ref->size);
+	if (srunlikely(rc == -1)) {
+		sr_error(r->e, "db file '%s' read error: %s",
+		         n->file.file, strerror(errno));
+		sr_error_recoverable(r->e);
+		return NULL;
+	}
+	sr_bufadvance(buf, size);
+	i->read_disk++;
+	sdpageheader *h = (sdpageheader*)(buf->s + sizeof(sdpage));
+	sdpage *page = (sdpage*)(buf->s);
+	sd_pageinit(page, h);
+	return page;
+}
+
+static inline int
+si_qmatchbranch(siquery *q, sinode *n, sibranch *b)
+{
+	sicachebranch *cb = si_cachefollow(q->cache);
+	assert(cb->branch == b);
 	sriter i;
 	sr_iterinit(&i, &sd_indexiter, q->r);
-	sr_iteropen(&i, &n->index, SR_LTE, q->key, q->keysize);
-	sdindexpage *pageref = sr_iterof(&i);
-	if (pageref == NULL)
+	sr_iteropen(&i, &b->index, SR_LTE, q->key, q->keysize);
+	cb->ref = sr_iterof(&i);
+	if (cb->ref == NULL)
 		return 0;
-	sdpageheader *h =
-		(sdpageheader*)((char*)n->map.p + pageref->offset);
-	sdpage page;
-	sd_pageinit(&page, h);
-	sr_iterinit(&i, &sd_pageiter, q->r);
-	int rc = sr_iteropen(&i, &page, q->order, q->key, q->keysize, q->vlsn);
-	if (rc == 0)
+	sdpage *page = si_qread(&cb->buf, q->r, q->index, n, b, cb->ref);
+	if (srunlikely(page == NULL)) {
+		cb->ref = NULL;
+		return -1;
+	}
+	sr_iterinit(&cb->i, &sd_pageiter, q->r);
+	int rc;
+	rc = sr_iteropen(&cb->i, page, q->order, q->key, q->keysize, q->vlsn);
+	if (rc == 0) {
+		cb->ref = NULL;
 		return 0;
-	return si_qresult(q, &i);
+	}
+	return si_qresult(q, &cb->i);
 }
 
 static inline int
@@ -97,26 +133,29 @@ si_qmatch(siquery *q)
 	int rc;
 	rc = si_qmatchindex(q, node);
 	switch (rc) {
-	case   2: rc = 0; /* delete */
-	case  -1: /* error */
-	case   1: return rc;
+	case  2: rc = 0; /* delete */
+	case -1: /* error */
+	case  1: return rc;
+	}
+	/* */
+	rc = si_cachevalidate(q->cache, node);
+	if (srunlikely(rc == -1)) {
+		sr_error(q->r->e, "%s", "memory allocation failed");
+		sr_error_recoverable(q->r->e);
+		return -1;
 	}
 	/* search on disk */
-	sinode *n = node->next;
-	while (n) {
-		rc = si_qmatchnode(q, n);
+	sibranch *b = node->branch;
+	while (b) {
+		rc = si_qmatchbranch(q, node, b);
 		switch (rc) {
 		case  2: rc = 0;
 		case -1: 
 		case  1: return rc;
 		}
-		n = n->next;
+		b = b->next;
 	}
-	n = node;
-	rc = si_qmatchnode(q, n);
-	if (rc == 2)
-		rc = 0;
-	return rc;
+	return 0;
 }
 
 int si_querydup(siquery *q, sv *result)
@@ -132,21 +171,32 @@ int si_querydup(siquery *q, sv *result)
 }
 
 static inline void
-si_qfetchnode(siquery *q, sinode *n, svmerge *m)
+si_qfetchbranch(siquery *q, sinode *n, sibranch *b, svmerge *m)
 {
+	sicachebranch *cb = si_cachefollow(q->cache);
+	assert(cb->branch == b);
+	if (srlikely(cb->ref)) {
+		if (sr_iterhas(&cb->i)) {
+			sv_mergeadd(m, &cb->i);
+			sr_iternext(&cb->i);
+			q->index->read_cache++;
+			return;
+		}
+	}
 	sriter i;
 	sr_iterinit(&i, &sd_indexiter, q->r);
-	sr_iteropen(&i, &n->index, q->order, q->key, q->keysize);
-	sdindexpage *pageref = sr_iterof(&i);
-	if (pageref == NULL)
+	sr_iteropen(&i, &b->index, q->order, q->key, q->keysize);
+	cb->ref = sr_iterof(&i);
+	if (cb->ref == NULL)
 		return;
-	svmergesrc *s = sv_mergeadd(m);
-	sdpage *page = (sdpage*)((char*)s + sizeof(svmergesrc));
-	sdpageheader *h =
-		(sdpageheader*)((char*)n->map.p + pageref->offset);
-	sd_pageinit(page, h);
-	sr_iterinit(&s->i, &sd_pageiter, q->r);
-	sr_iteropen(&s->i, page, q->order, q->key, q->keysize, q->vlsn);
+	sdpage *page = si_qread(&cb->buf, q->r, q->index, n, b, cb->ref);
+	if (srunlikely(page == NULL)) {
+		cb->ref = NULL;
+		return;
+	}
+	sv_mergeadd(m, &cb->i);
+	sr_iterinit(&cb->i, &sd_pageiter, q->r);
+	sr_iteropen(&cb->i, page, q->order, q->key, q->keysize, q->vlsn);
 }
 
 static inline int
@@ -159,27 +209,35 @@ si_qfetch(siquery *q)
 	node = sr_iterof(&i);
 	if (srunlikely(node == NULL))
 		return 0;
+
 	/* prepare sources */
 	svmerge *m = &q->merge;
-	int count = 2 + node->lv + 1;
-	int rc = sv_mergeprepare(m, q->r, count, sizeof(sdpage));
+	int count = 2 + node->branch_count + 1;
+	int rc = sv_mergeprepare(m, q->r, count);
 	if (srunlikely(rc == -1)) {
 		sr_error_recoverable(q->r->e);
 		return -1;
 	}
 	svmergesrc *s;
-	s = sv_mergeadd(m);
-	sr_iterinit(&s->i, &sv_indexiter, q->r);
-	sr_iteropen(&s->i, &node->i1, q->order, q->key, q->keysize, q->vlsn);
-	s = sv_mergeadd(m);
-	sr_iterinit(&s->i, &sv_indexiter, q->r);
-	sr_iteropen(&s->i, &node->i0, q->order, q->key, q->keysize, q->vlsn);
-	sinode *n = node->next;
-	while (n) {
-		si_qfetchnode(q, n, m);
-		n = n->next;
+	s = sv_mergeadd(m, NULL);
+	sr_iterinit(&s->src, &sv_indexiter, q->r);
+	sr_iteropen(&s->src, &node->i1, q->order, q->key, q->keysize, q->vlsn);
+	s = sv_mergeadd(m, NULL);
+	sr_iterinit(&s->src, &sv_indexiter, q->r);
+	sr_iteropen(&s->src, &node->i0, q->order, q->key, q->keysize, q->vlsn);
+
+	/* */
+	rc = si_cachevalidate(q->cache, node);
+	if (srunlikely(rc == -1)) {
+		sr_error(q->r->e, "%s", "memory allocation failed");
+		sr_error_recoverable(q->r->e);
+		return -1;
 	}
-	si_qfetchnode(q, node, m);
+	sibranch *b = node->branch;
+	while (b) {
+		si_qfetchbranch(q, node, b, m);
+		b = b->next;
+	}
 	/* peek min/max */
 	sr_iterinit(&i, &sv_mergeiter, q->r);
 	sr_iteropen(&i, m, q->order);
@@ -209,11 +267,11 @@ int si_query(siquery *q)
 }
 
 static int
-si_querycommited_node(sr *r, sinode *n, sv *v)
+si_querycommited_branch(sr *r, sibranch *b, sv *v)
 {
 	sriter i;
 	sr_iterinit(&i, &sd_indexiter, r);
-	sr_iteropen(&i, &n->index, SR_LTE, svkey(v), svkeysize(v));
+	sr_iteropen(&i, &b->index, SR_LTE, svkey(v), svkeysize(v));
 	sdindexpage *page = sr_iterof(&i);
 	if (page == NULL)
 		return 0;
@@ -228,15 +286,14 @@ int si_querycommited(si *index, sr *r, sv *v)
 	sinode *node;
 	node = sr_iterof(&i);
 	assert(node != NULL);
-	sinode *n = node->next;
+	sibranch *b = node->branch;
 	int rc;
-	while (n) {
-		rc = si_querycommited_node(r, n, v);
+	while (b) {
+		rc = si_querycommited_branch(r, b, v);
 		if (rc)
 			return 1;
-		n = n->next;
+		b = b->next;
 	}
-	n = node;
-	rc = si_querycommited_node(r, n, v);
+	rc = si_querycommited_branch(r, &node->self, v);
 	return rc;
 }

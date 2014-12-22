@@ -468,8 +468,9 @@ so_ctldb(so *e, soctlrt *rt srunused, src **pc)
 		sr_clink(&p, sr_c(pc, so_ctlv,         "branch_count",     SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_count));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "branch_avg",       SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_avg));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "branch_max",       SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_max));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "branch_size",      SR_CU64|SR_CRO, &o->ctl.rtp.total_branch_size));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "memory_used",      SR_CU64|SR_CRO, &o->ctl.rtp.memory_used));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "read_disk",        SR_CU64|SR_CRO, &o->ctl.rtp.read_disk));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "read_cache",       SR_CU64|SR_CRO, &o->ctl.rtp.read_cache));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "count",            SR_CU64|SR_CRO, &o->ctl.rtp.count));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "seq_dsn",          SR_CU32|SR_CRO, &o->ctl.rtp.seq.dsn));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "seq_nsn",          SR_CU32|SR_CRO, &o->ctl.rtp.seq.nsn));
@@ -554,17 +555,18 @@ so_ctldebug(so *e, soctlrt *rt srunused, src **pc)
 {
 	src *ei = *pc;
 	src *p = NULL;
-	sr_clink(&p, sr_c(pc, so_ctlv, "si_branch_0",     SR_CU32, &e->ei.e[0]));
-	sr_clink(&p, sr_c(pc, so_ctlv, "si_branch_1",     SR_CU32, &e->ei.e[1]));
-	sr_clink(&p, sr_c(pc, so_ctlv, "si_compaction_0", SR_CU32, &e->ei.e[2]));
-	sr_clink(&p, sr_c(pc, so_ctlv, "si_compaction_1", SR_CU32, &e->ei.e[3]));
-	sr_clink(&p, sr_c(pc, so_ctlv, "si_compaction_2", SR_CU32, &e->ei.e[4]));
-	sr_clink(&p, sr_c(pc, so_ctlv, "si_compaction_3", SR_CU32, &e->ei.e[5]));
-	sr_clink(&p, sr_c(pc, so_ctlv, "si_compaction_4", SR_CU32, &e->ei.e[6]));
-	sr_clink(&p, sr_c(pc, so_ctlv, "se_snapshot_0",   SR_CU32, &e->ei.e[7]));
-	sr_clink(&p, sr_c(pc, so_ctlv, "se_snapshot_1",   SR_CU32, &e->ei.e[8]));
-	sr_clink(&p, sr_c(pc, so_ctlv, "se_snapshot_2",   SR_CU32, &e->ei.e[9]));
-	sr_clink(&p, sr_c(pc, so_ctlv, "se_snapshot_3",   SR_CU32, &e->ei.e[10]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "sd_build_0",      SR_CU32, &e->ei.e[0]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "sd_build_1",      SR_CU32, &e->ei.e[1]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "si_branch_0",     SR_CU32, &e->ei.e[2]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "si_compaction_0", SR_CU32, &e->ei.e[3]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "si_compaction_1", SR_CU32, &e->ei.e[4]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "si_compaction_2", SR_CU32, &e->ei.e[5]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "si_compaction_3", SR_CU32, &e->ei.e[6]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "si_compaction_4", SR_CU32, &e->ei.e[7]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "se_snapshot_0",   SR_CU32, &e->ei.e[8]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "se_snapshot_1",   SR_CU32, &e->ei.e[9]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "se_snapshot_2",   SR_CU32, &e->ei.e[10]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "se_snapshot_3",   SR_CU32, &e->ei.e[11]));
 	ei = sr_c(pc, so_ctldb_set, "error_injection", SR_CC, ei);
 	return sr_c(pc, NULL, "debug", SR_CC, ei);
 }
@@ -743,7 +745,7 @@ void so_ctlinit(soctl *c, void *e)
 	sizone def = {
 		.enable        = 1,
 		.mode          = 3, /* branch + compact */
-		.compact_wm    = 1,
+		.compact_wm    = 2,
 		.branch_prio   = 1,
 		.branch_wm     = 10 * 1024 * 1024,
 		.branch_ttl    = 40,

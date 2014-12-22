@@ -63,7 +63,7 @@ si_iteropen(sriter *i, va_list args)
 			if (ii->order == SR_LT) {
 				eq = 1;
 				sinode *n = si_nodeof(ii->v);
-				sdindexpage *min = sd_indexmin(&n->index);
+				sdindexpage *min = sd_indexmin(&n->self.index);
 				int l = sr_compare(i->r->cmp, sd_indexpage_min(min), min->sizemin,
 				                   ii->key, ii->keysize);
 				if (srunlikely(l == 0))
@@ -89,7 +89,7 @@ si_iteropen(sriter *i, va_list args)
 			if (ii->order == SR_GT) {
 				eq = 1;
 				sinode *n = si_nodeof(ii->v);
-				sdindexpage *max = sd_indexmax(&n->index);
+				sdindexpage *max = sd_indexmax(&n->self.index);
 				int r = sr_compare(i->r->cmp, sd_indexpage_max(max), max->sizemax,
 				                   ii->key, ii->keysize);
 				if (srunlikely(r == 0))

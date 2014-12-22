@@ -10,30 +10,24 @@
 */
 
 typedef struct sdindexheader sdindexheader;
-typedef struct sdindexfooter sdindexfooter;
 typedef struct sdindexpage sdindexpage;
 typedef struct sdindex sdindex;
 
 struct sdindexheader {
 	uint32_t crc;
+	uint64_t offset;
 	uint16_t block;
 	uint32_t count;
 	uint32_t keys;
-	uint32_t total;
-	uint32_t totalkv;
+	uint64_t total;
+	uint64_t totalkv;
 	uint64_t lsnmin;
 	uint64_t lsnmax;
 	sdid     id;
 } srpacked;
 
-struct sdindexfooter {
-	uint32_t crc;
-	uint32_t magic;
-	uint32_t size;
-} srpacked;
-
 struct sdindexpage {
-	uint32_t offset;
+	uint64_t offset;
 	uint32_t size;
 	uint16_t sizemin;
 	uint16_t sizemax;
@@ -44,7 +38,6 @@ struct sdindexpage {
 struct sdindex {
 	srbuf i;
 	sdindexheader *h;
-	sdindexfooter *f;
 };
 
 static inline char*
@@ -61,7 +54,6 @@ static inline void
 sd_indexinit(sdindex *i) {
 	sr_bufinit(&i->i);
 	i->h = NULL;
-	i->f = NULL;
 }
 
 static inline void
@@ -72,11 +64,6 @@ sd_indexfree(sdindex *i, sr *r) {
 static inline sdindexheader*
 sd_indexheader(sdindex *i) {
 	return (sdindexheader*)(i->i.s);
-}
-
-static inline sdindexfooter*
-sd_indexfooter(sdindex *i) {
-	return (sdindexfooter*)(i->i.p - sizeof(sdindexfooter));
 }
 
 static inline sdindexpage*
@@ -129,6 +116,12 @@ sd_indextotal_kv(sdindex *i)
 	return sd_indexheader(i)->totalkv;
 }
 
+static inline uint32_t
+sd_indexsize(sdindexheader *h)
+{
+	return sizeof(sdindexheader) + h->count * h->block;
+}
+
 static inline int
 sd_indexpage_cmp(sdindexpage *p, void *key, int size, srcomparator *c)
 {
@@ -145,13 +138,11 @@ sd_indexpage_cmp(sdindexpage *p, void *key, int size, srcomparator *c)
 	return 1;
 }
 
-int sd_indexbegin(sdindex*, sr*, uint32_t);
-int sd_indexcommit(sdindex*, sr*, sdid*);
-int sd_indexadd(sdindex*, sr*, uint32_t, uint32_t, uint32_t, uint32_t,
+int sd_indexbegin(sdindex*, sr*, uint32_t, uint64_t);
+int sd_indexcommit(sdindex*, sdid*);
+int sd_indexadd(sdindex*, sr*, uint64_t, uint32_t, uint32_t, uint32_t,
                 char*, int, char*, int,
                 uint64_t, uint64_t);
-sdindexheader*
-sd_indexvalidate(srmap*, sr*);
-int sd_indexrecover(sdindex*, sr*, srmap*);
+int sd_indexcopy(sdindex*, sr*, sdindexheader*);
 
 #endif

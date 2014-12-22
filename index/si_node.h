@@ -15,40 +15,35 @@ typedef struct sinode sinode;
 #define SI_LOCK       1
 #define SI_I1         2
 
-#define SI_RDB        32
-#define SI_RDBI       64
-#define SI_RDB_DBI    256
-#define SI_RDB_DBSEAL 512
-#define SI_RDB_UNDEF  1024
-#define SI_RDB_REMOVE 2048
+#define SI_RDB        16
+#define SI_RDB_DBI    32
+#define SI_RDB_DBSEAL 64
+#define SI_RDB_UNDEF  128
+#define SI_RDB_REMOVE 256
 
 struct sinode {
-	sdid      id;
-	uint8_t   flags;
 	uint32_t  recover;
-	srfile    file;
-	srmap     map;
-	sdindex   index;
-	svindex   i0, i1;
-	uint32_t  used;
-	uint32_t  lv;
+	uint8_t   flags;
 	uint64_t  update_time;
-	sinode   *next;
+	uint32_t  used;
+	sibranch  self;
+	sibranch *branch;
+	uint32_t  branch_count;
+	svindex   i0, i1;
+	srfile    file;
 	srrbnode  node;
 	srrbnode  nodecompact;
 	srrbnode  nodebranch;
 } srpacked;
 
 sinode *si_nodenew(sr*);
-int si_nodecreate(sinode*, sr*, siconf*, sdid*, sdindex*, sdbuild*);
-int si_nodecreate_attach(sinode*, sr*, siconf*, sdid*, sdindex*, sdbuild*);
 int si_nodeopen(sinode*, sr*, srpath*);
-int si_nodesync(sinode*, sr*);
-int si_nodefree(sinode*, sr*);
-int si_nodefree_all(sinode*, sr*);
-int si_nodecmp(sinode*, void*, int, srcomparator*);
-int si_nodegc(sinode*, sr*);
+int si_nodecreate(sinode*, sr*, siconf*, sdid*, sdindex*, sdbuild*);
+int si_nodefree(sinode*, sr*, int);
 int si_nodegc_index(sr*, svindex*);
+
+int si_nodesync(sinode*, sr*);
+int si_nodecmp(sinode*, void*, int, srcomparator*);
 int si_nodeseal(sinode*, sr*, siconf*);
 int si_nodecomplete(sinode*, sr*, siconf*);
 

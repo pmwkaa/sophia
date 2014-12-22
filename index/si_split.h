@@ -11,9 +11,8 @@
 
 typedef struct {
 	sinode   *parent;
-	int       flags;
 	sriter   *i;
-	uint32_t  size_node;
+	uint64_t  size_node;
 	uint32_t  size_key;
 	uint32_t  size_stream;
 	uint64_t  vlsn;

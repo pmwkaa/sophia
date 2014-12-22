@@ -21,6 +21,8 @@ int si_init(si *i, srquota *q)
 	i->quota       = q;
 	i->conf        = NULL;
 	i->update_time = 0;
+	i->read_disk   = 0;
+	i->read_cache  = 0;
 	return 0;
 }
 
@@ -31,7 +33,7 @@ int si_open(si *i, sr *r, siconf *conf)
 }
 
 sr_rbtruncate(si_truncate,
-              si_nodefree_all(srcast(n, sinode, node), (sr*)arg))
+              si_nodefree(srcast(n, sinode, node), (sr*)arg, 0))
 
 int si_close(si *i, sr *r)
 {
@@ -46,13 +48,13 @@ int si_close(si *i, sr *r)
 
 sr_rbget(si_match,
          sr_compare(cmp,
-                    sd_indexpage_min(sd_indexmin(&(srcast(n, sinode, node))->index)),
-                    sd_indexmin(&(srcast(n, sinode, node))->index)->sizemin,
+                    sd_indexpage_min(sd_indexmin(&(srcast(n, sinode, node))->self.index)),
+                    sd_indexmin(&(srcast(n, sinode, node))->self.index)->sizemin,
                     key, keysize))
 
 int si_insert(si *i, sr *r, sinode *n)
 {
-	sdindexpage *min = sd_indexmin(&n->index);
+	sdindexpage *min = sd_indexmin(&n->self.index);
 	srrbnode *p = NULL;
 	int rc = si_match(&i->i, r->cmp, sd_indexpage_min(min), min->sizemin, &p);
 	assert(! (rc == 0 && p));
@@ -86,8 +88,6 @@ int si_execute(si *i, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 		break;
 	case SI_COMPACT:
 		rc = si_compact(i, r, c, plan, vlsn);
-		break;
-	case SI_COMPACT_INDEX:
 		break;
 	}
 	return rc;

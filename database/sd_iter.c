@@ -15,10 +15,10 @@ typedef struct sditer sditer;
 
 struct sditer {
 	int validate;
-	srmap *map;
-	sdpage pagev;
+	sdindex *index;
+	char *start, *end;
 	char *page;
-	char *eof;
+	sdpage pagev;
 	uint32_t pos;
 	sdv *dv;
 	sv v;
@@ -38,7 +38,8 @@ static int
 sd_iteropen(sriter *i, va_list args)
 {
 	sditer *ii = (sditer*)i->priv;
-	ii->map      = va_arg(args, srmap*);
+	ii->index    = va_arg(args, sdindex*);
+	ii->start    = va_arg(args, char*);
 	ii->validate = va_arg(args, int);
 	return sd_iternextpage(i);
 }
@@ -76,20 +77,13 @@ sd_iternextpage(sriter *it)
 	char *page = NULL;
 	if (srunlikely(i->page == NULL))
 	{
-		srversion *ver = (srversion*)i->map->p;
-		if (! sr_versioncheck(ver)) {
-			sr_error(it->r->e, "%s", "bad index version");
-			return -1;
-		}
-		sdindexheader *h = sd_indexvalidate(i->map, it->r);
-		if (srunlikely(h == NULL))
-			return -1;
-		i->eof = (char*)h;
-		page = i->map->p + sizeof(srversion);
+		sdindexheader *h = i->index->h;
+		page = i->start + h->offset + sd_indexsize(i->index->h);
+		i->end = page + h->total;
 	} else {
 		page = i->page + sizeof(sdpageheader) + i->pagev.h->size;
 	}
-	if (srunlikely(page >= i->eof)) {
+	if (srunlikely(page >= i->end)) {
 		i->page = NULL;
 		return 0;
 	}

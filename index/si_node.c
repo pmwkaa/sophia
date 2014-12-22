@@ -20,81 +20,25 @@ sinode *si_nodenew(sr *r)
 		sr_error(r->e, "%s", "memory allocation failed");
 		return NULL;
 	}
-	memset(&n->id, 0, sizeof(n->id));
-	n->flags = 0;
 	n->recover = 0;
-	sd_indexinit(&n->index);
+	n->flags = 0;
+	n->update_time = 0;
+	n->used = 0;
+	si_branchinit(&n->self);
+	n->branch = NULL;
+	n->branch_count = 0;
 	sr_fileinit(&n->file, r->a);
 	sv_indexinit(&n->i0);
 	sv_indexinit(&n->i1);
-	n->lv = 0;
-	n->update_time = 0;
-	n->next = NULL;
-	n->used = 0;
-	sr_mapinit(&n->map);
 	sr_rbinitnode(&n->node);
 	sr_rbinitnode(&n->nodecompact);
 	sr_rbinitnode(&n->nodebranch);
 	return n;
 }
 
-int si_nodecreate(sinode *n, sr *r, siconf *conf, sdid *id,
-                  sdindex *i,
-                  sdbuild *build)
-{
-	n->index = *i;
-	n->id = *id;
-	srpath path;
-	sr_pathA(&path, conf->path, id->id, ".db.incomplete");
-	int rc = sr_filenew(&n->file, path.path);
-	if (srunlikely(rc == -1)) {
-		sr_error(r->e, "db file '%s' create error: %s",
-		         path.path, strerror(errno));
-		return -1;
-	}
-	rc = sd_buildwrite(build, &n->index, &n->file);
-	if (srunlikely(rc == -1))
-		return -1;
-	rc = sr_mapfile(&n->map, &n->file, 1);
-	if (srunlikely(rc == -1)) {
-		sr_error(r->e, "db file '%s' map error: %s",
-		         n->file.file, strerror(errno));
-		return -1;
-	}
-	return 0;
-}
-
-int
-si_nodecreate_attach(sinode *n, sr *r, siconf *conf, sdid *id,
-                     sdindex *i,
-                     sdbuild *build)
-{
-	n->index = *i;
-	n->id = *id;
-	srpath path;
-	sr_pathAB(&path, conf->path, id->parent, id->id, ".db.incomplete");
-	int rc = sr_filenew(&n->file, path.path);
-	if (srunlikely(rc == -1)) {
-		sr_error(r->e, "db file '%s' create error: %s",
-		         path.path, strerror(errno));
-		return -1;
-	}
-	rc = sd_buildwrite(build, &n->index, &n->file);
-	if (srunlikely(rc == -1))
-		return -1;
-	rc = sr_mapfile(&n->map, &n->file, 1);
-	if (srunlikely(rc == -1)) {
-		sr_error(r->e, "db file '%s' map error: %s",
-		         n->file.file, strerror(errno));
-		return -1;
-	}
-	return 0;
-}
-
 static inline int
 si_nodeclose(sinode *n, sr *r)
 {
-	sr_mapunmap(&n->map);
 	int rcret = 0;
 	int rc = sr_fileclose(&n->file);
 	if (srunlikely(rc == -1)) {
@@ -102,10 +46,52 @@ si_nodeclose(sinode *n, sr *r)
 		         n->file.file, strerror(errno));
 		rcret = -1;
 	}
-	sd_indexfree(&n->index, r);
 	sv_indexfree(&n->i0, r);
 	sv_indexfree(&n->i1, r);
 	return rcret;
+}
+
+static inline int
+si_noderecover(sinode *n, sr *r)
+{
+	/* recover branches */
+	sriter i;
+	sr_iterinit(&i, &sd_recover, r);
+	sr_iteropen(&i, &n->file);
+	int first = 1;
+	int rc;
+	while (sr_iterhas(&i)) {
+		sdindexheader *h = sr_iterof(&i);
+		sibranch *b;
+		if (first) {
+			b =  &n->self;
+		} else {
+			b = si_branchnew(r);
+			if (srunlikely(b == NULL))
+				goto error;
+		}
+		sdindex index;
+		sd_indexinit(&index);
+		rc = sd_indexcopy(&index, r, h);
+		if (srunlikely(rc == -1))
+			goto error;
+		si_branchset(b, &index);
+
+		b->next   = n->branch;
+		n->branch = b;
+		n->branch_count++;
+
+		first = 0;
+		sr_iternext(&i);
+	}
+	rc = sd_recovercomplete(&i);
+	if (srunlikely(rc == -1))
+		goto error;
+	sr_iterclose(&i);
+	return 0;
+error:
+	sr_iterclose(&i);
+	return -1;
 }
 
 int si_nodeopen(sinode *n, sr *r, srpath *path)
@@ -116,20 +102,38 @@ int si_nodeopen(sinode *n, sr *r, srpath *path)
 		         n->file.file, strerror(errno));
 		return -1;
 	}
-	rc = sr_mapfile(&n->map, &n->file, 1);
+	rc = sr_fileseek(&n->file, n->file.size);
 	if (srunlikely(rc == -1)) {
-		sr_error(r->e, "db file '%s' map error: %s",
+		si_nodeclose(n, r);
+		sr_error(r->e, "db file '%s' seek error: %s",
 		         n->file.file, strerror(errno));
-		goto error;
+		return -1;
 	}
-	rc = sd_indexrecover(&n->index, r, &n->map);
+	rc = si_noderecover(n, r);
 	if (srunlikely(rc == -1))
-		goto error;
-	n->id = n->index.h->id;
+		si_nodeclose(n, r);
+	return rc;
+}
+
+int si_nodecreate(sinode *n, sr *r, siconf *conf, sdid *id,
+                  sdindex *i,
+                  sdbuild *build)
+{
+	si_branchset(&n->self, i);
+	srpath path;
+	sr_pathAB(&path, conf->path, id->parent, id->id, ".db.incomplete");
+	int rc = sr_filenew(&n->file, path.path);
+	if (srunlikely(rc == -1)) {
+		sr_error(r->e, "db file '%s' create error: %s",
+		         path.path, strerror(errno));
+		return -1;
+	}
+	rc = sd_buildwrite(build, &n->self.index, &n->file);
+	if (srunlikely(rc == -1))
+		return -1;
+	n->branch = &n->self;
+	n->branch_count++;
 	return 0;
-error:
-	si_nodeclose(n, r);
-	return -1;
 }
 
 int si_nodesync(sinode *n, sr *r)
@@ -143,26 +147,36 @@ int si_nodesync(sinode *n, sr *r)
 	return 0;
 }
 
-int si_nodefree(sinode *n, sr *r)
+static inline void
+si_nodefree_branches(sinode *n, sr *r)
 {
-	int rc = si_nodeclose(n, r);
-	sr_free(r->a, n);
-	return rc;
+	sibranch *p = n->branch;
+	sibranch *next = NULL;
+	while (p && p != &n->self) {
+		next = p->next;
+		si_branchfree(p, r);
+		p = next;
+	}
+	sd_indexfree(&n->self.index, r);
 }
 
-int si_nodefree_all(sinode *n, sr *r)
+int si_nodefree(sinode *n, sr *r, int gc)
 {
 	int rcret = 0;
 	int rc;
-	sinode *next = NULL;
-	sinode *p = n;
-	while (p) {
-		next = p->next;
-		rc = si_nodefree(p, r);
-		if (srunlikely(rc == -1))
+	if (gc && n->file.file) {
+		rc = sr_fileunlink(n->file.file);
+		if (srunlikely(rc == -1)) {
+			sr_error(r->e, "db file '%s' unlink error: %s",
+			         n->file.file, strerror(errno));
 			rcret = -1;
-		p = next;
+		}
 	}
+	si_nodefree_branches(n, r);
+	rc = si_nodeclose(n, r);
+	if (srunlikely(rc == -1))
+		rcret = -1;
+	sr_free(r->a, n);
 	return rcret;
 }
 
@@ -179,34 +193,10 @@ int si_nodegc_index(sr *r, svindex *i)
 	return 0;
 }
 
-int si_nodegc(sinode *n, sr *r)
-{
-	int rcret = 0;
-	int rc;
-	sinode *next = NULL;
-	sinode *p = n;
-	while (p) {
-		next = p->next;
-		if (p->file.file) {
-			rc = sr_fileunlink(p->file.file);
-			if (srunlikely(rc == -1)) {
-				sr_error(r->e, "db file '%s' unlink error: %s",
-				         p->file.file, strerror(errno));
-				rcret = -1;
-			}
-		}
-		rc = si_nodefree(p, r);
-		if (srunlikely(rc == -1))
-			rcret = -1;
-		p = next;
-	}
-	return rcret;
-}
-
 int si_nodecmp(sinode *n, void *key, int size, srcomparator *c)
 {
-	sdindexpage *min = sd_indexmin(&n->index);
-	sdindexpage *max = sd_indexmax(&n->index);
+	sdindexpage *min = sd_indexmin(&n->self.index);
+	sdindexpage *max = sd_indexmax(&n->self.index);
 	int l = sr_compare(c, sd_indexpage_min(min), min->sizemin, key, size);
 	int r = sr_compare(c, sd_indexpage_max(max), max->sizemin, key, size);
 	/* inside range */
@@ -223,7 +213,8 @@ int si_nodecmp(sinode *n, void *key, int size, srcomparator *c)
 int si_nodeseal(sinode *n, sr *r, siconf *conf)
 {
 	srpath path;
-	sr_pathAB(&path, conf->path, n->id.parent, n->id.id, ".db.seal");
+	sr_pathAB(&path, conf->path, n->self.id.parent,
+	          n->self.id.id, ".db.seal");
 	int rc = sr_filerename(&n->file, path.path);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "db file '%s' rename error: %s",
@@ -235,7 +226,7 @@ int si_nodeseal(sinode *n, sr *r, siconf *conf)
 int si_nodecomplete(sinode *n, sr *r, siconf *conf)
 {
 	srpath path;
-	sr_pathA(&path, conf->path, n->id.id, ".db");
+	sr_pathA(&path, conf->path, n->self.id.id, ".db");
 	int rc = sr_filerename(&n->file, path.path);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "db file '%s' rename error: %s",

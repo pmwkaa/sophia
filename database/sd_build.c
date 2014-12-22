@@ -126,27 +126,35 @@ sd_buildiov(sdbuildiov *i, sriov *iov)
 
 int sd_buildwrite(sdbuild *b, sdindex *index, srfile *file)
 {
-	srversion v;
-	sr_version(&v);
-
+	sdseal seal;
+	sd_seal(&seal, index->h);
 	struct iovec iovv[1024];
 	sriov iov;
 	sr_iovinit(&iov, iovv, 1024);
-	sr_iovadd(&iov, &v, sizeof(v));
+	sr_iovadd(&iov, index->i.s, sr_bufused(&index->i));
+
+	SR_INJECTION(b->r->i, SR_INJECTION_SD_BUILD_0,
+	             sr_error(b->r->e, "%s", "error injection");
+	             assert( sr_filewritev(file, &iov) == 0 );
+	             return -1);
+
 	sdbuildiov iter;
 	sd_buildiov_init(&iter, b, 1022);
 	int more = 1;
 	while (more) {
 		more = sd_buildiov(&iter, &iov);
-		if (srlikely(! more))
-			sr_iovadd(&iov, index->i.s, sr_bufused(&index->i));
-		int rc = sr_filewritev(file, &iov);
+		if (srlikely(! more)) {
+			SR_INJECTION(b->r->i, SR_INJECTION_SD_BUILD_1,
+			             seal.crc++); /* corrupt seal */
+			sr_iovadd(&iov, &seal, sizeof(seal));
+		}
+		int rc;
+		rc = sr_filewritev(file, &iov);
 		if (srunlikely(rc == -1)) {
 			return sr_error(b->r->e, "file '%s' write error: %s",
 			                file->file, strerror(errno));
 		}
 		sr_iovreset(&iov);
 	}
-	/* sync? */
 	return 0;
 }

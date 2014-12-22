@@ -257,7 +257,7 @@ se_snapshot_update(se *e, sr *r, uint64_t lsn, char *name, int remove)
 
 	SR_INJECTION(r->i, SR_INJECTION_SE_SNAPSHOT_0,
 	             sr_error(r->e, "%s", "error injection");
-	             goto e0);
+	             goto e1);
 
 	uint64_t size = sr_bufused(&n.buf);
 	rc = sr_filewrite(&file, n.buf.s, size);
@@ -302,7 +302,7 @@ se_snapshot_update(se *e, sr *r, uint64_t lsn, char *name, int remove)
 
 	SR_INJECTION(r->i, SR_INJECTION_SE_SNAPSHOT_3,
 	             sr_error(r->e, "%s", "error injection");
-	             goto e1);
+	             goto e0);
 
 	rc = sr_filemove(path_b.path, path.path);
 	if (srunlikely(rc == -1)) {

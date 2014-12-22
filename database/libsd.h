@@ -15,11 +15,13 @@
 #include <sd_pageiter.h>
 #include <sd_index.h>
 #include <sd_indexiter.h>
+#include <sd_seal.h>
 #include <sd_build.h>
 #include <sd_c.h>
 #include <sd_merge.h>
 #include <sd_iter.h>
 #include <sd_ss.h>
 #include <sd_ssiter.h>
+#include <sd_recover.h>
 
 #endif

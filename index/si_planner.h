@@ -20,7 +20,6 @@ struct siplanner {
 /* plan */
 #define SI_BRANCH        1
 #define SI_COMPACT       2
-#define SI_COMPACT_INDEX 3
 #define SI_CHECKPOINT    4
 
 /* explain */
@@ -34,7 +33,6 @@ struct siplan {
 	int explain;
 	int plan;
 	/* branch:
-	 * compact_index:
 	 *   a: index_size
 	 *   b: ttl
 	 *   c: ttl_wm

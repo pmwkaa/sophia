@@ -35,7 +35,7 @@ profiler_count(stc *cx srunused)
 
 	void *o = sp_get(c, "db.test.index.branch_count");
 	t( o != NULL );
-	t( strcmp( sp_get(o, "value", NULL), "0") == 0 );
+	t( strcmp( sp_get(o, "value", NULL), "1") == 0 );
 	sp_destroy(o);
 	o = sp_get(c, "db.test.index.node_count");
 	t( o != NULL );
@@ -57,7 +57,7 @@ profiler_count(stc *cx srunused)
 
 	o = sp_get(c, "db.test.index.branch_count");
 	t( o != NULL );
-	t( strcmp( sp_get(o, "value", NULL), "1") == 0 );
+	t( strcmp( sp_get(o, "value", NULL), "2") == 0 );
 	sp_destroy(o);
 
 	o = sp_get(c, "db.test.index.count");

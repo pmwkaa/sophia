@@ -27,6 +27,7 @@ extern stgroup *sdpageiter_group(void);
 extern stgroup *sdss_group(void);
 extern stgroup *sdssiter_group(void);
 extern stgroup *ctl_group(void);
+extern stgroup *cache_group(void);
 extern stgroup *error_group(void);
 extern stgroup *method_group(void);
 extern stgroup *repository_group(void);
@@ -102,6 +103,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, dml_group());
 	st_planadd(plan, tpr_group());
 	st_planadd(plan, deadlock_group());
+	st_planadd(plan, cache_group());
 	st_planadd(plan, branch_group());
 	st_planadd(plan, checkpoint_group());
 	st_planadd(plan, logcursor_group());
@@ -109,6 +111,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, snapshot_group());
 	st_planadd(plan, snapshot_crash_group());
 	st_add(&s, plan);
+
 
 	plan = st_plan("default");
 	st_planscene(plan, st_sceneof(&s, "rmrf"));

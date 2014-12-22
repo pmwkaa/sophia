@@ -14,24 +14,21 @@ typedef struct svmerge svmerge;
 
 struct svmergesrc {
 	uint8_t dup;
-	sriter i;
+	sriter *i, src;
 } srpacked;
 
 struct svmerge {
-	int reserve;
 	srbuf buf;
 };
 
 static inline void
 sv_mergeinit(svmerge *m) {
-	m->reserve = 0;
 	sr_bufinit(&m->buf);
 }
 
 static inline int
-sv_mergeprepare(svmerge *m, sr *r, int count, int reserve) {
-	m->reserve = reserve;
-	int rc = sr_bufensure(&m->buf, r->a, (sizeof(svmergesrc) + reserve) * count);
+sv_mergeprepare(svmerge *m, sr *r, int count) {
+	int rc = sr_bufensure(&m->buf, r->a, sizeof(svmergesrc) * count);
 	if (srunlikely(rc == -1))
 		return sr_error(r->e, "%s", "memory allocation failed");
 	return 0;
@@ -43,12 +40,15 @@ sv_mergefree(svmerge *m, sra *a) {
 }
 
 static inline svmergesrc*
-sv_mergeadd(svmerge *m)
+sv_mergeadd(svmerge *m, sriter *i)
 {
 	assert(m->buf.p < m->buf.e);
 	svmergesrc *s = (svmergesrc*)m->buf.p;
 	s->dup = 0;
-	sr_bufadvance(&m->buf, sizeof(svmergesrc) + m->reserve);
+	s->i = i;
+	if (i == NULL)
+		s->i = &s->src;
+	sr_bufadvance(&m->buf, sizeof(svmergesrc));
 	return s;
 }
 

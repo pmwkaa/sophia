@@ -29,8 +29,9 @@ static inline int
 so_cursorseek(socursor *c, void *key, int keysize)
 {
 	siquery q;
-	si_queryopen(&q, &c->db->r, &c->db->index, c->order,
-	             c->t.vlsn, key, keysize);
+	si_queryopen(&q, &c->db->r, &c->cache,
+	             &c->db->index, c->order, c->t.vlsn,
+	             key, keysize);
 	si_query(&q);
 	so_vrelease(&c->v);
 	if (q.result.v) {
@@ -68,6 +69,7 @@ so_cursordestroy(soobj *o)
 {
 	socursor *c = (socursor*)o;
 	sx_end(&c->t);
+	si_cachefree(&c->cache, &c->db->r);
 	if (c->key) {
 		so_objdestroy(c->key);
 		c->key = NULL;
@@ -154,6 +156,7 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 	c->ready = 1;
 	c->order = o->order;
 	so_vinit(&c->v, e, &db->o);
+	si_cacheinit(&c->cache, &e->a_cursorcache);
 
 	/* open cursor */
 	void *key = svkey(&o->v);

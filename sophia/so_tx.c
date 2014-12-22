@@ -139,13 +139,19 @@ void *so_txdbget(sodb *db, uint64_t vlsn, va_list args)
 	if (srlikely(vlsn == 0))
 		vlsn = sr_seq(db->r.seq, SR_LSN) - 1;
 	sv result;
+
+	sicache cache;
+	si_cacheinit(&cache, &db->e->a_cursorcache);
 	siquery q;
-	si_queryopen(&q, &db->r, &db->index, SR_EQ, vlsn, key, keysize);
+	si_queryopen(&q, &db->r, &cache, &db->index,
+	             SR_EQ, vlsn, key, keysize);
 	int rc = si_query(&q);
-	if (rc) {
+	if (rc == 1) {
 		rc = si_querydup(&q, &result);
 	}
 	si_queryclose(&q);
+	si_cachefree(&cache, &db->r);
+
 	so_objdestroy(&o->o);
 	if (srunlikely(rc <= 0))
 		return NULL;
@@ -278,15 +284,20 @@ so_txget(soobj *obj, va_list args)
 		so_objdestroy(&o->o);
 		return ret;
 	}
+
+	sicache cache;
+	si_cacheinit(&cache, &db->e->a_cursorcache);
 	siquery q;
-	si_queryopen(&q, &db->r, &db->index, SR_EQ,
-	             t->t.vlsn,
+	si_queryopen(&q, &db->r, &cache, &db->index,
+	             SR_EQ, t->t.vlsn,
 	             key, svkeysize(&o->v));
 	rc = si_query(&q);
-	if (rc) {
+	if (rc == 1) {
 		rc = si_querydup(&q, &result);
 	}
 	si_queryclose(&q);
+	si_cachefree(&cache, &db->r);
+
 	so_objdestroy(&o->o);
 	if (srunlikely(rc <= 0))
 		return NULL;
@@ -325,13 +336,16 @@ so_txprepare_trigger(sx *t, sv *v, void *arg0, void *arg1)
 	uint64_t lsn = sr_seq(te->e->r.seq, SR_LSN);
 	if ((lsn - 1) == t->vlsn)
 		return SXPREPARE;
+	sicache cache;
+	si_cacheinit(&cache, &db->e->a_cursorcache);
 	siquery q;
-	si_queryopen(&q, &db->r, &db->index, SR_UPDATE,
-	             t->vlsn,
+	si_queryopen(&q, &db->r, &cache, &db->index,
+	             SR_UPDATE, t->vlsn,
 	             svkey(v), svkeysize(v));
 	int rc;
 	rc = si_query(&q);
 	si_queryclose(&q);
+	si_cachefree(&cache, &db->r);
 	if (srunlikely(rc))
 		return SXROLLBACK;
 	return SXPREPARE;

@@ -18,11 +18,12 @@ struct siquery {
 	uint64_t vlsn;
 	svmerge merge;
 	sv result;
+	sicache *cache;
 	sr *r;
 	si *index;
 };
 
-int si_queryopen(siquery*, sr*, si*, srorder, uint64_t,
+int si_queryopen(siquery*, sr*, sicache*, si*, srorder, uint64_t,
                  void*, uint32_t);
 int si_queryclose(siquery*);
 int si_querydup(siquery*, sv*);

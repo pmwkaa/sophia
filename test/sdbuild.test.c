@@ -34,11 +34,13 @@ sdbuild_empty(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
+	srinjection ij;
+	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 
 	sdbuild b;
 	sd_buildinit(&b, &r);
@@ -55,11 +57,13 @@ sdbuild_page0(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
+	srinjection ij;
+	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 
 	sdbuild b;
 	sd_buildinit(&b, &r);
@@ -83,11 +87,13 @@ sdbuild_page1(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
+	srinjection ij;
+	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, NULL);
+	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 
 	sdbuild b;
 	sd_buildinit(&b, &r);

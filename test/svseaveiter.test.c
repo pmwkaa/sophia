@@ -62,13 +62,13 @@ svseaveiter_seave(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
@@ -141,13 +141,13 @@ svseaveiter_limit(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
@@ -257,13 +257,13 @@ svseaveiter_limit_small(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
@@ -389,13 +389,13 @@ svseaveiter_dup_lsn_gt(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
@@ -464,13 +464,13 @@ svseaveiter_dup_lsn_lt0(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
@@ -539,13 +539,13 @@ svseaveiter_dup_lsn_lt1(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
@@ -614,13 +614,13 @@ svseaveiter_dup_lsn_lt2(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
@@ -696,13 +696,13 @@ svseaveiter_dup_lsn_gt_chain(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
@@ -772,13 +772,13 @@ svseaveiter_dup_lsn_lt0_chain(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
@@ -850,13 +850,13 @@ svseaveiter_dup_lsn_lt1_chain(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
@@ -930,13 +930,13 @@ svseaveiter_dup_lsn_lt2_chain(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
@@ -1005,13 +1005,13 @@ svseaveiter_dup_lsn_limit0(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
@@ -1069,13 +1069,13 @@ svseaveiter_dup_lsn_limit1(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
@@ -1134,13 +1134,13 @@ svseaveiter_dup_lsn_limit2(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
@@ -1203,13 +1203,13 @@ svseaveiter_dup_lsn_limit3(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
@@ -1269,13 +1269,13 @@ svseaveiter_dup_lsn_limit4(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
@@ -1342,13 +1342,13 @@ svseaveiter_dup_lsn_limit5(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
@@ -1414,13 +1414,13 @@ svseaveiter_delete0(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
@@ -1489,13 +1489,13 @@ svseaveiter_delete1(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
@@ -1564,13 +1564,13 @@ svseaveiter_delete2(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
@@ -1639,13 +1639,13 @@ svseaveiter_delete3(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
@@ -1714,13 +1714,13 @@ svseaveiter_delete4(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
@@ -1789,13 +1789,13 @@ svseaveiter_delete5(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
@@ -1867,13 +1867,13 @@ svseaveiter_delete6(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
@@ -1947,13 +1947,13 @@ svseaveiter_delete7(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
@@ -2033,13 +2033,13 @@ svseaveiter_delete8(stc *cx srunused)
 
 	svmerge m;
 	sv_mergeinit(&m);
-	sv_mergeprepare(&m, &r, 2, 0);
-	svmergesrc *s = sv_mergeadd(&m);
+	sv_mergeprepare(&m, &r, 2);
+	svmergesrc *s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = ita;
-	s = sv_mergeadd(&m);
+	s->src = ita;
+	s = sv_mergeadd(&m, NULL);
 	t(s != NULL);
-	s->i = itb;
+	s->src = itb;
 	sriter merge;
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);

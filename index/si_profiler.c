@@ -72,21 +72,19 @@ int si_profiler(siprofiler *p, sr *r)
 		p->total_node_count++;
 		p->count += n->i0.count;
 		p->count += n->i1.count;
-		p->count += n->index.h->keys;
-		p->total_branch_count += n->lv;
-		if (p->total_branch_max < n->lv)
-			p->total_branch_max = n->lv;
-		if (n->lv < 20)
-			p->histogram_branch[n->lv]++;
+		p->total_branch_count += n->branch_count;
+		if (p->total_branch_max < n->branch_count)
+			p->total_branch_max = n->branch_count;
+		if (n->branch_count < 20)
+			p->histogram_branch[n->branch_count]++;
 		else
 			p->histogram_branch_20plus++;
 		memory_used += sv_indexused(&n->i0);
 		memory_used += sv_indexused(&n->i1);
-		n = n->next;
-		while (n) {
-			p->count += n->index.h->keys;
-			p->total_branch_size += n->file.size;
-			n = n->next;
+		sibranch *b = n->branch;
+		while (b) {
+			p->count += b->index.h->keys;
+			b = b->next;
 		}
 		pn = sr_rbnext(&p->i->i, pn);
 	}
@@ -94,6 +92,8 @@ int si_profiler(siprofiler *p, sr *r)
 		p->total_branch_avg =
 			p->total_branch_count / p->total_node_count;
 	p->memory_used = memory_used;
+	p->read_disk  = p->i->read_disk;
+	p->read_cache = p->i->read_cache;
 	si_profiler_histogram_branch(p);
 	return 0;
 }
