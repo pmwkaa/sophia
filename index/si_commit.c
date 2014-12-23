@@ -73,7 +73,8 @@ void si_write(sitx *t, int check)
 {
 	svv *v = t->v->v;
 	if (check && si_querycommited(t->index, t->r, t->v)) {
-		si_vgc(t->r->a, v);
+		uint32_t gc = si_vgc(t->r->a, v);
+		sr_quota(t->index->quota, SR_QREMOVE, gc);
 		return;
 	}
 	si_set(t->index, t->r, t->vlsn, t->time, v);
