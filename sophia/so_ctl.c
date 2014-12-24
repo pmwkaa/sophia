@@ -754,7 +754,7 @@ void so_ctlinit(soctl *c, void *e)
 	sizone redzone = {
 		.enable        = 1,
 		.mode          = 2, /* checkpoint */
-		.compact_wm    = 0,
+		.compact_wm    = 4,
 		.branch_prio   = 0,
 		.branch_wm     = 0,
 		.branch_ttl    = 0,
@@ -791,6 +791,17 @@ int so_ctlvalidate(soctl *c)
 		c->log_path = sr_strdup(&e->a, path);
 		if (srunlikely(c->log_path == NULL)) {
 			sr_error(&e->error, "%s", "memory allocation failed");
+			sr_error_recoverable(&e->error);
+			return -1;
+		}
+	}
+	int i = 0;
+	for (; i < 11; i++) {
+		sizone *z = &e->ctl.zones.zones[i];
+		if (! z->enable)
+			continue;
+		if (z->compact_wm <= 1) {
+			sr_error(&e->error, "bad %d.compact_wm value", i * 10);
 			sr_error_recoverable(&e->error);
 			return -1;
 		}

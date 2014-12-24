@@ -28,7 +28,7 @@ struct sdmerge {
 int sd_mergeinit(sdmerge*, sr*, uint32_t, sriter*,
                  sdbuild*, uint64_t,
                  uint32_t, uint32_t,
-                 uint64_t, uint32_t, uint64_t);
+                 uint64_t, uint32_t, int, uint64_t);
 int sd_mergefree(sdmerge*);
 int sd_merge(sdmerge*);
 int sd_mergecommit(sdmerge*, sdid*);

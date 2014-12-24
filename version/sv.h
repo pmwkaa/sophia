@@ -21,8 +21,9 @@ typedef struct sv sv;
 
 struct svif {
 	uint8_t   (*flags)(sv*);
-	uint64_t  (*lsn)(sv*);
+	void      (*flagsadd)(sv*, uint32_t);
 	void      (*lsnset)(sv*, uint64_t);
+	uint64_t  (*lsn)(sv*);
 	char     *(*key)(sv*);
 	uint16_t  (*keysize)(sv*);
 	char     *(*value)(sv*);
@@ -37,20 +38,23 @@ struct svif {
 struct sv {
 	svif *i;
 	void *v, *arg;
-	uint8_t flags;
 } srpacked;
 
 static inline void
 svinit(sv *v, svif *i, void *vptr, void *arg) {
-	v->i     = i;
-	v->v     = vptr;
-	v->arg   = arg;
-	v->flags = 0;
+	v->i   = i;
+	v->v   = vptr;
+	v->arg = arg;
 }
 
 static inline uint8_t
 svflags(sv *v) {
-	return v->i->flags(v) | v->flags;
+	return v->i->flags(v);
+}
+
+static inline void
+svflagsadd(sv *v, uint32_t flags) {
+	v->i->flagsadd(v, flags);
 }
 
 static inline uint64_t
@@ -106,11 +110,6 @@ svref(sv *v) {
 static inline void
 svunref(sv *v, sra *a) {
 	v->i->unref(v, a);
-}
-
-static inline void
-svsetdup(sv *v) {
-	v->flags = SVDUP;
 }
 
 static inline int

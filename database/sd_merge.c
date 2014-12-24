@@ -18,7 +18,8 @@ int sd_mergeinit(sdmerge *m, sr *r, uint32_t parent,
                  uint32_t size_key,
                  uint32_t size_stream,
                  uint64_t size_node,
-                 uint32_t size_page, uint64_t vlsn)
+                 uint32_t size_page, int save_delete,
+                 uint64_t vlsn)
 {
 	m->r           = r;
 	m->parent      = parent;
@@ -29,8 +30,9 @@ int sd_mergeinit(sdmerge *m, sr *r, uint32_t parent,
 	m->size_node   = size_node;
 	m->size_page   = size_page;
 	sd_indexinit(&m->index);
-	sr_iterinit(&m->i, &sv_seaveiter, r);
-	sr_iteropen(&m->i, i, (uint64_t)size_page, sizeof(sdv), vlsn);
+	sr_iterinit(&m->i, &sv_siftiter, r);
+	sr_iteropen(&m->i, i, (uint64_t)size_page, sizeof(sdv), vlsn,
+	            save_delete);
 	return 0;
 }
 
@@ -51,7 +53,7 @@ int sd_merge(sdmerge *m)
 	if (srunlikely(rc == -1))
 		return -1;
 
-	uint32_t processed = sv_seaveiter_totalkv(&m->i);
+	uint32_t processed = sv_siftiter_totalkv(&m->i);
 	uint32_t processed_last = 0;
 	assert(processed <= m->size_stream);
 	uint64_t left = (m->size_stream - processed);
@@ -100,9 +102,9 @@ int sd_merge(sdmerge *m)
 			return -1;
 		sd_buildcommit(m->build);
 
-		processed_last = sv_seaveiter_totalkv(&m->i) -
+		processed_last = sv_siftiter_totalkv(&m->i) -
 		                 processed;
-		if (srunlikely(! sv_seaveiter_resume(&m->i)))
+		if (srunlikely(! sv_siftiter_resume(&m->i)))
 			break;
 	}
 	return 1;

@@ -22,7 +22,7 @@ all: build
 .c.o:
 	$(E) "cc   $<"
 	$(Q) $(CC) $(TEST_CFLAGS) -c $< -o $@
-build: clean $(OBJECTS)
+build: $(OBJECTS)
 	$(E) "ld   $(TEST_BINARY)"
 	$(Q) $(CC) $(OBJECTS) $(TEST_LDFLAGS) -o $(TEST_BINARY)
 clean:

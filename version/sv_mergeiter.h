@@ -13,8 +13,8 @@ typedef struct svmergesrc svmergesrc;
 typedef struct svmerge svmerge;
 
 struct svmergesrc {
-	uint8_t dup;
 	sriter *i, src;
+	uint8_t dup;
 } srpacked;
 
 struct svmerge {

@@ -15,6 +15,11 @@ sv_localifflags(sv *v) {
 	return ((svlocal*)v->v)->flags;
 }
 
+static void
+sv_localifflagsadd(sv *v, uint32_t flags) {
+	((svlocal*)v->v)->flags |= flags;
+}
+
 static uint64_t
 sv_localiflsn(sv *v) {
 	return ((svlocal*)v->v)->lsn;
@@ -55,6 +60,7 @@ sv_localifoffset(sv *v) {
 svif sv_localif =
 {
 	.flags       = sv_localifflags,
+	.flagsadd    = sv_localifflagsadd,
 	.lsn         = sv_localiflsn,
 	.lsnset      = sv_localiflsnset,
 	.key         = sv_localifkey,

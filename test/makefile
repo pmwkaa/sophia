@@ -7,7 +7,7 @@ LIBST_O = st.o \
           svindex.test.o \
           svindexiter.test.o \
           svmergeiter.test.o \
-          svseaveiter.test.o \
+          svsiftiter.test.o \
           sl.test.o \
           sliter.test.o \
           sdbuild.test.o \
@@ -25,6 +25,7 @@ LIBST_O = st.o \
           snapshot.test.o \
           snapshot_crash.test.o \
           branch.test.o \
+          compact.test.o \
           checkpoint.test.o \
           tpr.test.o \
           profiler.test.o \

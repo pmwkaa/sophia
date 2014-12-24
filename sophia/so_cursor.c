@@ -32,11 +32,12 @@ so_cursorseek(socursor *c, void *key, int keysize)
 	si_queryopen(&q, &c->db->r, &c->cache,
 	             &c->db->index, c->order, c->t.vlsn,
 	             key, keysize);
-	si_query(&q);
+	int rc = si_query(&q);
 	so_vrelease(&c->v);
-	if (q.result.v) {
+	if (rc == 1) {
+		assert(q.result.v != NULL);
 		sv result;
-		int rc = si_querydup(&q, &result);
+		rc = si_querydup(&q, &result);
 		if (srunlikely(rc == -1)) {
 			si_queryclose(&q);
 			return -1;
@@ -45,23 +46,7 @@ so_cursorseek(socursor *c, void *key, int keysize)
 		so_vimmutable(&c->v);
 	}
 	si_queryclose(&q);
-	return so_vhas(&c->v);
-}
-
-static inline int
-so_cursoropen(socursor *c, uint64_t vlsn, void *key, int keysize)
-{
-	sx_begin(&c->db->e->xm, &c->t, vlsn);
-	int rc;
-	do {
-		rc = so_cursorseek(c, key, keysize);
-	} while (rc == 1 && (svflags(&c->v.v) & SVDELETE) > 0);
-
-	if (srunlikely(rc == -1)) {
-		sx_end(&c->t);
-		return -1;
-	}
-	return so_vhas(&c->v);
+	return rc;
 }
 
 static int
@@ -80,30 +65,20 @@ so_cursordestroy(soobj *o)
 	return 0;
 }
 
-static inline int
-so_cursorfetch(soobj *o)
+static void*
+so_cursorget(soobj *o, va_list args srunused)
 {
 	socursor *c = (socursor*)o;
 	if (srunlikely(c->ready)) {
 		c->ready = 0;
-		return so_vhas(&c->v);
+		return &c->v;
 	}
 	if (srunlikely(c->order == SR_STOP))
 		return 0;
 	if (srunlikely(! so_vhas(&c->v)))
 		return 0;
-	return so_cursorseek(c, svkey(&c->v.v), svkeysize(&c->v.v));
-}
-
-static void*
-so_cursorget(soobj *o, va_list args srunused)
-{
-	socursor *c = (socursor*)o;
-	int rc;
-	do {
-		rc = so_cursorfetch(o);
-	} while (rc == 1 && (svflags(&c->v.v) & SVDELETE) > 0);
-	if (srunlikely(rc == 0))
+	int rc = so_cursorseek(c, svkey(&c->v.v), svkeysize(&c->v.v));
+	if (srunlikely(rc <= 0))
 		return NULL;
 	return &c->v;
 }
@@ -143,6 +118,7 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 		sr_error_recoverable(&e->error);
 		return NULL;
 	}
+
 	/* prepare cursor */
 	socursor *c = sr_malloc(&e->a_cursor, sizeof(socursor));
 	if (srunlikely(c == NULL)) {
@@ -153,7 +129,7 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 	so_objinit(&c->o, SOCURSOR, &socursorif, &e->o);
 	c->key   = keyobj;
 	c->db    = db;
-	c->ready = 1;
+	c->ready = 0;
 	c->order = o->order;
 	so_vinit(&c->v, e, &db->o);
 	si_cacheinit(&c->cache, &e->a_cursorcache);
@@ -163,11 +139,14 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 	uint32_t keysize = svkeysize(&o->v);
 	if (keysize == 0)
 		key = NULL;
-	int rc = so_cursoropen(c, vlsn, key, keysize);
-	if (srunlikely(rc == -1))
+	sx_begin(&c->db->e->xm, &c->t, vlsn);
+	int rc = so_cursorseek(c, key, keysize);
+	if (srunlikely(rc == -1)) {
+		sx_end(&c->t);
 		goto error;
+	}
 
-	/* prepare for iterations */
+	/* ensure correct iteration */
 	srorder next = SR_GTE;
 	switch (c->order) {
 	case SR_LT:
@@ -181,6 +160,9 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 	default: assert(0);
 	}
 	c->order = next;
+	if (rc == 1)
+		c->ready = 1;
+
 	so_objindex_register(&db->cursor, &c->o);
 	return &c->o;
 error:

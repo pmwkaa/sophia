@@ -83,52 +83,121 @@ si_redistribute(si *index, sr *r, sdc *c, sinode *node, srbuf *result,
 	return 0;
 }
 
-int
-si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
-              sinode *node,
-              sriter *stream,
-              uint32_t size_stream,
-              uint32_t size_key)
+static int
+si_splitfree(srbuf *result, sr *r)
+{
+	sriter i;
+	sr_iterinit(&i, &sr_bufiterref, NULL);
+	sr_iteropen(&i, result, sizeof(sinode*));
+	for (; sr_iterhas(&i); sr_iternext(&i)) {
+		sinode *p = sr_iterof(&i);
+		si_nodefree(p, r, 0);
+	}
+	return 0;
+}
+
+static inline int
+si_split(si *index, sr *r, sdc *c, srbuf *result,
+         sinode   *parent,
+         sriter   *i,
+         uint64_t  size_node,
+         uint32_t  size_key,
+         uint32_t  size_stream,
+         uint64_t  vlsn)
+{
+	int count = 0;
+	int rc;
+	sdmerge merge;
+	sd_mergeinit(&merge, r, parent->self.id.id,
+	             i, &c->build,
+	             0, /* offset */
+	             size_key,
+	             size_stream,
+	             size_node,
+	             index->conf->node_page_size, 0, vlsn);
+	while ((rc = sd_merge(&merge)) > 0)
+	{
+		sinode *n = si_nodenew(r);
+		if (srunlikely(n == NULL))
+			goto error;
+		sdid id = {
+			.parent = parent->self.id.id,
+			.flags  = 0,
+			.id     = sr_seq(r->seq, SR_NSNNEXT)
+		};
+		rc = sd_mergecommit(&merge, &id);
+		if (srunlikely(rc == -1))
+			goto error;
+		rc = si_nodecreate(n, r, index->conf, &id, &merge.index, &c->build);
+		if (srunlikely(rc == -1))
+			goto error;
+		rc = sr_bufadd(result, r->a, &n, sizeof(sinode*));
+		if (srunlikely(rc == -1)) {
+			sr_error(r->e, "%s", "memory allocation failed");
+			si_nodefree(n, r, 1);
+			goto error;
+		}
+		sd_buildreset(&c->build);
+		count++;
+	}
+	if (srunlikely(rc == -1))
+		goto error;
+	return 0;
+error:
+	si_splitfree(result, r);
+	sd_mergefree(&merge);
+	return -1;
+}
+
+int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
+                  sinode *node,
+                  sriter *stream,
+                  uint32_t size_stream,
+                  uint32_t size_key)
 {
 	srbuf *result = &c->a;
 	sriter i;
 
-	/* split merge stream into a number of
-	 * a new nodes */
-	sisplit s = {
-		.parent       = node,
-		.i            = stream,
-		.size_key     = size_key,
-		.size_stream  = size_stream,
-		.size_node    = index->conf->node_size,
-		.conf         = index->conf,
-		.vlsn         = vlsn
-	};
-
-	int rc = si_split(&s, r, c, result);
+	/* begin compaction.
+	 *
+	 * split merge stream into a number
+	 * of a new nodes.
+	 */
+	int rc;
+	rc = si_split(index, r, c, result,
+	              node, stream,
+	              index->conf->node_size,
+	              size_key,
+	              size_stream,
+	              vlsn);
 	if (srunlikely(rc == -1))
 		return -1;
-	int count = sr_bufused(result) / sizeof(sinode*);
-	assert(count >= 1);
 
 	SR_INJECTION(r->i, SR_INJECTION_SI_COMPACTION_0,
 	             si_splitfree(result, r);
 	             sr_error(r->e, "%s", "error injection");
 	             return -1);
 
+	/* commit compaction changes */
 	si_lock(index);
 	svindex *j = si_nodeindex(node);
 	si_plannerremove(&index->p, SI_COMPACT|SI_BRANCH, node);
 	sinode *n;
-	if (srlikely(count == 1)) {
+	int count = sr_bufused(result) / sizeof(sinode*);
+	switch (count) {
+	case 0: /* delete */
+		assert(count >= 1);
+		break;
+	case 1: /* self update */
 		n = *(sinode**)result->s;
 		n->i0   = *j;
 		n->used = sv_indexused(j);
 		si_nodelock(n);
 		si_replace(index, node, n);
 		si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH, n);
-	} else {
-		rc = si_redistribute(index, r, c, node, result, s.vlsn);
+		break;
+	default: /* split */
+		rc = si_redistribute(index, r, c, node, result, vlsn);
 		if (srunlikely(rc == -1)) {
 			si_unlock(index);
 			si_splitfree(result, r);
@@ -149,11 +218,12 @@ si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 			si_insert(index, r, n);
 			si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH, n);
 		}
+		break;
 	}
 	sv_indexinit(j);
 	si_unlock(index);
 
-	/* garbage collection */
+	/* compaction completion */
 
 	/* seal nodes */
 	sr_iterinit(&i, &sr_bufiterref, NULL);
@@ -179,7 +249,7 @@ si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 	             sr_error(r->e, "%s", "error injection");
 	             return -1);
 
-	/* remove old node */
+	/* gc old node */
 	rc = si_nodefree(node, r, 1);
 	if (srunlikely(rc == -1))
 		return -1;

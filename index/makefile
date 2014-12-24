@@ -4,7 +4,6 @@ LIBSI_O = si_node.o \
           si_commit.o \
           si_query.o \
           si_iter.o \
-          si_split.o \
 		  si_balance.o \
           si_compaction.o \
           si_profiler.o \

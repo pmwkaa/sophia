@@ -13,7 +13,7 @@
 #include <sophia.h>
 
 static sv*
-svseaveiter_valloc(sra *a, svlocal *l)
+svsiftiter_valloc(sra *a, svlocal *l)
 {
 	sv lv;
 	svinit(&lv, &sv_localif, l, NULL);
@@ -24,7 +24,7 @@ svseaveiter_valloc(sra *a, svlocal *l)
 }
 
 static void
-svseaveiter_seave(stc *cx srunused)
+svsiftiter_sift(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -49,7 +49,7 @@ svseaveiter_seave(stc *cx srunused)
 		l.value       = NULL;
 		l.valuesize   = 0;
 		l.valueoffset = 0;
-		sv *v = svseaveiter_valloc(&a, &l);
+		sv *v = svsiftiter_valloc(&a, &l);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
 	}
@@ -73,22 +73,22 @@ svseaveiter_seave(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 20 * (sizeof(svv) + sizeof(i));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 10ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 10ULL, 0);
 
 	i = 0;
-	while (sr_iterhas(&seave)) {
-		sv *v = (sv*)sr_iterof(&seave);
+	while (sr_iterhas(&sift)) {
+		sv *v = (sv*)sr_iterof(&sift);
 		t( *(int*)svkey(v) == i );
 		t( svlsn(v) == 10 - i );
 		t( svflags(v) == SVSET );
-		sr_iternext(&seave);
+		sr_iternext(&sift);
 		i++;
 	}
 	t( i == 10 );
-	sr_iterclose(&seave);
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -103,7 +103,7 @@ svseaveiter_seave(stc *cx srunused)
 }
 
 static void
-svseaveiter_limit(stc *cx srunused)
+svsiftiter_limit(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -128,7 +128,7 @@ svseaveiter_limit(stc *cx srunused)
 		l.value       = NULL;
 		l.valuesize   = 0;
 		l.valueoffset = 0;
-		sv *v = svseaveiter_valloc(&a, &l);
+		sv *v = svsiftiter_valloc(&a, &l);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
 	}
@@ -152,59 +152,59 @@ svseaveiter_limit(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 5 * (sizeof(svv) + sizeof(i));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 18ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 18ULL, 0);
 
 	i = 0;
-	while (sr_iterhas(&seave)) {
-		sv *v = (sv*)sr_iterof(&seave);
+	while (sr_iterhas(&sift)) {
+		sv *v = (sv*)sr_iterof(&sift);
 		t( *(int*)svkey(v) == i );
 		t( svlsn(v) == 18 - i );
 		t( svflags(v) == SVSET );
-		sr_iternext(&seave);
+		sr_iternext(&sift);
 		i++;
 	}
 	t( i == 5 );
 	int j = 0;
-	sv_seaveiter_resume(&seave);
-	while (sr_iterhas(&seave)) {
-		sv *v = (sv*)sr_iterof(&seave);
+	sv_siftiter_resume(&sift);
+	while (sr_iterhas(&sift)) {
+		sv *v = (sv*)sr_iterof(&sift);
 		t( *(int*)svkey(v) == i );
 		t( svlsn(v) == 18 - i );
 		t( svflags(v) == SVSET );
-		sr_iternext(&seave);
+		sr_iternext(&sift);
 		i++;
 		j++;
 	}
 	t( j == 5 );
 	j = 0;
-	sv_seaveiter_resume(&seave);
-	while (sr_iterhas(&seave)) {
-		sv *v = (sv*)sr_iterof(&seave);
+	sv_siftiter_resume(&sift);
+	while (sr_iterhas(&sift)) {
+		sv *v = (sv*)sr_iterof(&sift);
 		t( *(int*)svkey(v) == i );
 		t( svlsn(v) == 18 - i );
 		t( svflags(v) == SVSET );
-		sr_iternext(&seave);
+		sr_iternext(&sift);
 		i++;
 		j++;
 	}
 	t( j == 5 );
 	j = 0;
-	sv_seaveiter_resume(&seave);
-	while (sr_iterhas(&seave)) {
-		sv *v = (sv*)sr_iterof(&seave);
+	sv_siftiter_resume(&sift);
+	while (sr_iterhas(&sift)) {
+		sv *v = (sv*)sr_iterof(&sift);
 		t( *(int*)svkey(v) == i );
 		t( svlsn(v) == 18 - i );
 		t( svflags(v) == SVSET );
-		sr_iternext(&seave);
+		sr_iternext(&sift);
 		i++;
 		j++;
 	}
 	t( j == 3 );
 	t( i == 18 );
-	sr_iterclose(&seave);
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -219,7 +219,7 @@ svseaveiter_limit(stc *cx srunused)
 }
 
 static void
-svseaveiter_limit_small(stc *cx srunused)
+svsiftiter_limit_small(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -244,7 +244,7 @@ svseaveiter_limit_small(stc *cx srunused)
 		l.value       = NULL;
 		l.valuesize   = 0;
 		l.valueoffset = 0;
-		sv *v = svseaveiter_valloc(&a, &l);
+		sv *v = svsiftiter_valloc(&a, &l);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
 	}
@@ -268,59 +268,59 @@ svseaveiter_limit_small(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 1 * (sizeof(svv) + sizeof(i));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 18ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 18ULL, 0);
 
 	i = 0;
-	while (sr_iterhas(&seave)) {
-		sv *v = (sv*)sr_iterof(&seave);
+	while (sr_iterhas(&sift)) {
+		sv *v = (sv*)sr_iterof(&sift);
 		t( *(int*)svkey(v) == i );
 		t( svlsn(v) == 18 - i );
 		t( svflags(v) == SVSET );
-		sr_iternext(&seave);
+		sr_iternext(&sift);
 		i++;
 	}
 	t( i == 1 );
 	int j = 0;
-	sv_seaveiter_resume(&seave);
-	while (sr_iterhas(&seave)) {
-		sv *v = (sv*)sr_iterof(&seave);
+	sv_siftiter_resume(&sift);
+	while (sr_iterhas(&sift)) {
+		sv *v = (sv*)sr_iterof(&sift);
 		t( *(int*)svkey(v) == i );
 		t( svlsn(v) == 18 - i );
 		t( svflags(v) == SVSET );
-		sr_iternext(&seave);
+		sr_iternext(&sift);
 		i++;
 		j++;
 	}
 	t( j == 1 );
 	j = 0;
-	sv_seaveiter_resume(&seave);
-	while (sr_iterhas(&seave)) {
-		sv *v = (sv*)sr_iterof(&seave);
+	sv_siftiter_resume(&sift);
+	while (sr_iterhas(&sift)) {
+		sv *v = (sv*)sr_iterof(&sift);
 		t( *(int*)svkey(v) == i );
 		t( svlsn(v) == 18 - i );
 		t( svflags(v) == SVSET );
-		sr_iternext(&seave);
+		sr_iternext(&sift);
 		i++;
 		j++;
 	}
 	t( j == 1 );
 	j = 0;
-	sv_seaveiter_resume(&seave);
-	while (sr_iterhas(&seave)) {
-		sv *v = (sv*)sr_iterof(&seave);
+	sv_siftiter_resume(&sift);
+	while (sr_iterhas(&sift)) {
+		sv *v = (sv*)sr_iterof(&sift);
 		t( *(int*)svkey(v) == i );
 		t( svlsn(v) == 18 - i );
 		t( svflags(v) == SVSET );
-		sr_iternext(&seave);
+		sr_iternext(&sift);
 		i++;
 		j++;
 	}
 	t( j == 1 );
 	t( i == 4 );
-	sr_iterclose(&seave);
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -345,7 +345,7 @@ addv(srbuf *list, sra *a, uint64_t lsn, int flags, char *key, int keysize)
 	l.value       = NULL;
 	l.valuesize   = 0;
 	l.valueoffset = 0;
-	sv *v = svseaveiter_valloc(a, &l);
+	sv *v = svsiftiter_valloc(a, &l);
 	sr_bufadd(list, a, &v, sizeof(sv**));
 }
 
@@ -359,7 +359,7 @@ checkv(stc *cx, sriter *i, uint64_t lsn, int flags, int key)
 }
 
 static void
-svseaveiter_dup_lsn_gt(stc *cx srunused)
+svsiftiter_dup_lsn_gt(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -400,26 +400,26 @@ svseaveiter_dup_lsn_gt(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 10ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 10ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&seave)) {
-		sv *v = (sv*)sr_iterof(&seave);
+	while (sr_iterhas(&sift)) {
+		sv *v = (sv*)sr_iterof(&sift);
 		t( *(int*)svkey(v) == key );
 		t( svlsn(v) == 10 - i );
 		if (i == 0)
 			t( svflags(v) == SVSET );
 		else
 			t( svflags(v) == (SVSET | SVDUP) );
-		sr_iternext(&seave);
+		sr_iternext(&sift);
 		i++;
 	}
 	t( i == 1 );
-	sr_iterclose(&seave);
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -434,7 +434,7 @@ svseaveiter_dup_lsn_gt(stc *cx srunused)
 }
 
 static void
-svseaveiter_dup_lsn_lt0(stc *cx srunused)
+svsiftiter_dup_lsn_lt0(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -475,26 +475,26 @@ svseaveiter_dup_lsn_lt0(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 9ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 9ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&seave)) {
-		sv *v = (sv*)sr_iterof(&seave);
+	while (sr_iterhas(&sift)) {
+		sv *v = (sv*)sr_iterof(&sift);
 		t( *(int*)svkey(v) == key );
 		t( svlsn(v) == 10 - i );
 		if (i == 0)
 			t( svflags(v) == SVSET );
 		else
 			t( svflags(v) == (SVSET | SVDUP) );
-		sr_iternext(&seave);
+		sr_iternext(&sift);
 		i++;
 	}
 	t( i == 2 );
-	sr_iterclose(&seave);
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -509,7 +509,7 @@ svseaveiter_dup_lsn_lt0(stc *cx srunused)
 }
 
 static void
-svseaveiter_dup_lsn_lt1(stc *cx srunused)
+svsiftiter_dup_lsn_lt1(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -550,26 +550,26 @@ svseaveiter_dup_lsn_lt1(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 8ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 8ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&seave)) {
-		sv *v = (sv*)sr_iterof(&seave);
+	while (sr_iterhas(&sift)) {
+		sv *v = (sv*)sr_iterof(&sift);
 		t( *(int*)svkey(v) == key );
 		t( svlsn(v) == 10 - i );
 		if (i == 0)
 			t( svflags(v) == SVSET );
 		else
 			t( svflags(v) == (SVSET | SVDUP) );
-		sr_iternext(&seave);
+		sr_iternext(&sift);
 		i++;
 	}
 	t( i == 3 );
-	sr_iterclose(&seave);
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -584,7 +584,7 @@ svseaveiter_dup_lsn_lt1(stc *cx srunused)
 }
 
 static void
-svseaveiter_dup_lsn_lt2(stc *cx srunused)
+svsiftiter_dup_lsn_lt2(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -625,26 +625,26 @@ svseaveiter_dup_lsn_lt2(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 2ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 2ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&seave)) {
-		sv *v = (sv*)sr_iterof(&seave);
+	while (sr_iterhas(&sift)) {
+		sv *v = (sv*)sr_iterof(&sift);
 		t( *(int*)svkey(v) == key );
 		t( svlsn(v) == 10 - i );
 		if (i == 0)
 			t( svflags(v) == SVSET );
 		else
 			t( svflags(v) == (SVSET | SVDUP) );
-		sr_iternext(&seave);
+		sr_iternext(&sift);
 		i++;
 	}
 	t( i == 3 );
-	sr_iterclose(&seave);
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -659,7 +659,7 @@ svseaveiter_dup_lsn_lt2(stc *cx srunused)
 }
 
 static void
-svseaveiter_dup_lsn_gt_chain(stc *cx srunused)
+svsiftiter_dup_lsn_gt_chain(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -707,20 +707,20 @@ svseaveiter_dup_lsn_gt_chain(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 15ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 15ULL, 0);
 
-	checkv(cx, &seave, 10, SVSET, key);
-	sr_iternext(&seave);
-	checkv(cx, &seave, 12, SVSET, key2);
-	sr_iternext(&seave);
-	checkv(cx, &seave, 13, SVSET, key3);
-	sr_iternext(&seave);
-	checkv(cx, &seave, 14, SVSET, key4);
-	sr_iternext(&seave);
-	sr_iterclose(&seave);
+	checkv(cx, &sift, 10, SVSET, key);
+	sr_iternext(&sift);
+	checkv(cx, &sift, 12, SVSET, key2);
+	sr_iternext(&sift);
+	checkv(cx, &sift, 13, SVSET, key3);
+	sr_iternext(&sift);
+	checkv(cx, &sift, 14, SVSET, key4);
+	sr_iternext(&sift);
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -735,7 +735,7 @@ svseaveiter_dup_lsn_gt_chain(stc *cx srunused)
 }
 
 static void
-svseaveiter_dup_lsn_lt0_chain(stc *cx srunused)
+svsiftiter_dup_lsn_lt0_chain(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -783,22 +783,22 @@ svseaveiter_dup_lsn_lt0_chain(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 11ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 11ULL, 0);
 
-	checkv(cx, &seave, 10, SVSET, key);
-	sr_iternext(&seave);
-	checkv(cx, &seave, 12, SVSET, key2);
-	sr_iternext(&seave);
-	checkv(cx, &seave, 11, SVSET|SVDUP, key2);
-	sr_iternext(&seave);
-	checkv(cx, &seave, 13, SVSET, key3);
-	sr_iternext(&seave);
-	checkv(cx, &seave, 14, SVSET, key4);
-	sr_iternext(&seave);
-	sr_iterclose(&seave);
+	checkv(cx, &sift, 10, SVSET, key);
+	sr_iternext(&sift);
+	checkv(cx, &sift, 12, SVSET, key2);
+	sr_iternext(&sift);
+	checkv(cx, &sift, 11, SVSET|SVDUP, key2);
+	sr_iternext(&sift);
+	checkv(cx, &sift, 13, SVSET, key3);
+	sr_iternext(&sift);
+	checkv(cx, &sift, 14, SVSET, key4);
+	sr_iternext(&sift);
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -813,7 +813,7 @@ svseaveiter_dup_lsn_lt0_chain(stc *cx srunused)
 }
 
 static void
-svseaveiter_dup_lsn_lt1_chain(stc *cx srunused)
+svsiftiter_dup_lsn_lt1_chain(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -861,24 +861,24 @@ svseaveiter_dup_lsn_lt1_chain(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 9ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 9ULL, 0);
 
-	checkv(cx, &seave, 10, SVSET, key);
-	sr_iternext(&seave);
-	checkv(cx, &seave,  9, SVSET|SVDUP, key);
-	sr_iternext(&seave);
-	checkv(cx, &seave, 12, SVSET, key2);
-	sr_iternext(&seave);
-	checkv(cx, &seave, 11, SVSET|SVDUP, key2);
-	sr_iternext(&seave);
-	checkv(cx, &seave, 13, SVSET, key3);
-	sr_iternext(&seave);
-	checkv(cx, &seave, 14, SVSET, key4);
-	sr_iternext(&seave);
-	sr_iterclose(&seave);
+	checkv(cx, &sift, 10, SVSET, key);
+	sr_iternext(&sift);
+	checkv(cx, &sift,  9, SVSET|SVDUP, key);
+	sr_iternext(&sift);
+	checkv(cx, &sift, 12, SVSET, key2);
+	sr_iternext(&sift);
+	checkv(cx, &sift, 11, SVSET|SVDUP, key2);
+	sr_iternext(&sift);
+	checkv(cx, &sift, 13, SVSET, key3);
+	sr_iternext(&sift);
+	checkv(cx, &sift, 14, SVSET, key4);
+	sr_iternext(&sift);
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -893,7 +893,7 @@ svseaveiter_dup_lsn_lt1_chain(stc *cx srunused)
 }
 
 static void
-svseaveiter_dup_lsn_lt2_chain(stc *cx srunused)
+svsiftiter_dup_lsn_lt2_chain(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -941,26 +941,26 @@ svseaveiter_dup_lsn_lt2_chain(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 3ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 3ULL, 0);
 
-	checkv(cx, &seave, 10, SVSET, key);
-	sr_iternext(&seave);
-	checkv(cx, &seave,  9, SVSET|SVDUP, key);
-	sr_iternext(&seave);
-	checkv(cx, &seave,  8, SVSET|SVDUP, key);
-	sr_iternext(&seave);
-	checkv(cx, &seave, 12, SVSET, key2);
-	sr_iternext(&seave);
-	checkv(cx, &seave, 11, SVSET|SVDUP, key2);
-	sr_iternext(&seave);
-	checkv(cx, &seave, 13, SVSET, key3);
-	sr_iternext(&seave);
-	checkv(cx, &seave, 14, SVSET, key4);
-	sr_iternext(&seave);
-	sr_iterclose(&seave);
+	checkv(cx, &sift, 10, SVSET, key);
+	sr_iternext(&sift);
+	checkv(cx, &sift,  9, SVSET|SVDUP, key);
+	sr_iternext(&sift);
+	checkv(cx, &sift,  8, SVSET|SVDUP, key);
+	sr_iternext(&sift);
+	checkv(cx, &sift, 12, SVSET, key2);
+	sr_iternext(&sift);
+	checkv(cx, &sift, 11, SVSET|SVDUP, key2);
+	sr_iternext(&sift);
+	checkv(cx, &sift, 13, SVSET, key3);
+	sr_iternext(&sift);
+	checkv(cx, &sift, 14, SVSET, key4);
+	sr_iternext(&sift);
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -975,7 +975,7 @@ svseaveiter_dup_lsn_lt2_chain(stc *cx srunused)
 }
 
 static void
-svseaveiter_dup_lsn_limit0(stc *cx srunused)
+svsiftiter_dup_lsn_limit0(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -1016,15 +1016,15 @@ svseaveiter_dup_lsn_limit0(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 1 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 15ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 15ULL, 0);
 
-	checkv(cx, &seave, 10, SVSET, key);
-	sr_iternext(&seave);
-	t( sr_iterhas(&seave) == 0 );
-	sr_iterclose(&seave);
+	checkv(cx, &sift, 10, SVSET, key);
+	sr_iternext(&sift);
+	t( sr_iterhas(&sift) == 0 );
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1039,7 +1039,7 @@ svseaveiter_dup_lsn_limit0(stc *cx srunused)
 }
 
 static void
-svseaveiter_dup_lsn_limit1(stc *cx srunused)
+svsiftiter_dup_lsn_limit1(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -1080,17 +1080,17 @@ svseaveiter_dup_lsn_limit1(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 1 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 9ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 9ULL);
 
-	checkv(cx, &seave, 10, SVSET, key);
-	sr_iternext(&seave);
-	checkv(cx, &seave,  9, SVSET|SVDUP, key);
-	sr_iternext(&seave);
-	t( sr_iterhas(&seave) == 0 );
-	sr_iterclose(&seave);
+	checkv(cx, &sift, 10, SVSET, key);
+	sr_iternext(&sift);
+	checkv(cx, &sift,  9, SVSET|SVDUP, key);
+	sr_iternext(&sift);
+	t( sr_iterhas(&sift) == 0 );
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1105,7 +1105,7 @@ svseaveiter_dup_lsn_limit1(stc *cx srunused)
 }
 
 static void
-svseaveiter_dup_lsn_limit2(stc *cx srunused)
+svsiftiter_dup_lsn_limit2(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -1145,19 +1145,19 @@ svseaveiter_dup_lsn_limit2(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 1 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 5ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 5ULL, 0);
 
-	checkv(cx, &seave, 10, SVSET, key);
-	sr_iternext(&seave);
-	checkv(cx, &seave,  9, SVSET|SVDUP, key);
-	sr_iternext(&seave);
-	checkv(cx, &seave,  8, SVSET|SVDUP, key);
-	sr_iternext(&seave);
-	t( sr_iterhas(&seave) == 0 );
-	sr_iterclose(&seave);
+	checkv(cx, &sift, 10, SVSET, key);
+	sr_iternext(&sift);
+	checkv(cx, &sift,  9, SVSET|SVDUP, key);
+	sr_iternext(&sift);
+	checkv(cx, &sift,  8, SVSET|SVDUP, key);
+	sr_iternext(&sift);
+	t( sr_iterhas(&sift) == 0 );
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1172,7 +1172,7 @@ svseaveiter_dup_lsn_limit2(stc *cx srunused)
 }
 
 static void
-svseaveiter_dup_lsn_limit3(stc *cx srunused)
+svsiftiter_dup_lsn_limit3(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -1214,16 +1214,16 @@ svseaveiter_dup_lsn_limit3(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 2 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 500ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 500ULL, 0);
 
-	t(sr_iterhas(&seave) == 1);
-	checkv(cx, &seave, 412, SVSET, key);
-	sr_iternext(&seave);
-	t(sr_iterhas(&seave) == 0);
-	sr_iterclose(&seave);
+	t(sr_iterhas(&sift) == 1);
+	checkv(cx, &sift, 412, SVSET, key);
+	sr_iternext(&sift);
+	t(sr_iterhas(&sift) == 0);
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1238,7 +1238,7 @@ svseaveiter_dup_lsn_limit3(stc *cx srunused)
 }
 
 static void
-svseaveiter_dup_lsn_limit4(stc *cx srunused)
+svsiftiter_dup_lsn_limit4(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -1280,23 +1280,23 @@ svseaveiter_dup_lsn_limit4(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 1 * (sizeof(svv) + sizeof(k));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 0ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 0ULL, 0);
 
 	k = 0;
-	while (sr_iterhas(&seave))
+	while (sr_iterhas(&sift))
 	{
 		if (k == 0)
-			checkv(cx, &seave, 412 - k, SVSET, key);
+			checkv(cx, &sift, 412 - k, SVSET, key);
 		else
-			checkv(cx, &seave, 412 - k, SVSET|SVDUP, key);
-		sr_iternext(&seave);
+			checkv(cx, &sift, 412 - k, SVSET|SVDUP, key);
+		sr_iternext(&sift);
 		k++;
 	}
 	t( k == 412 );
-	sr_iterclose(&seave);
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1311,7 +1311,7 @@ svseaveiter_dup_lsn_limit4(stc *cx srunused)
 }
 
 static void
-svseaveiter_dup_lsn_limit5(stc *cx srunused)
+svsiftiter_dup_lsn_limit5(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -1353,23 +1353,23 @@ svseaveiter_dup_lsn_limit5(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 1 * (sizeof(svv) + sizeof(k));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 0ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 0ULL, 0);
 
 	k = 0;
-	while (sr_iterhas(&seave))
+	while (sr_iterhas(&sift))
 	{
 		if (k == 0)
-			checkv(cx, &seave, 412 - k, SVSET, key);
+			checkv(cx, &sift, 412 - k, SVSET, key);
 		else
-			checkv(cx, &seave, 412 - k, SVSET|SVDUP, key);
-		sr_iternext(&seave);
+			checkv(cx, &sift, 412 - k, SVSET|SVDUP, key);
+		sr_iternext(&sift);
 		k++;
 	}
 	t( k == 412 );
-	sr_iterclose(&seave);
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1384,7 +1384,7 @@ svseaveiter_dup_lsn_limit5(stc *cx srunused)
 }
 
 static void
-svseaveiter_delete0(stc *cx srunused)
+svsiftiter_delete0(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -1425,26 +1425,26 @@ svseaveiter_delete0(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 10ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 10ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&seave)) {
-		sv *v = (sv*)sr_iterof(&seave);
+	while (sr_iterhas(&sift)) {
+		sv *v = (sv*)sr_iterof(&sift);
 		t( *(int*)svkey(v) == key );
 		t( svlsn(v) == 10 - i );
 		if (i == 0)
 			t( svflags(v) == SVSET );
 		else
 			t( svflags(v) == (SVDELETE | SVDUP) );
-		sr_iternext(&seave);
+		sr_iternext(&sift);
 		i++;
 	}
 	t( i == 1 );
-	sr_iterclose(&seave);
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1459,7 +1459,7 @@ svseaveiter_delete0(stc *cx srunused)
 }
 
 static void
-svseaveiter_delete1(stc *cx srunused)
+svsiftiter_delete1(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -1500,26 +1500,26 @@ svseaveiter_delete1(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 9ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 9ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&seave)) {
-		sv *v = (sv*)sr_iterof(&seave);
+	while (sr_iterhas(&sift)) {
+		sv *v = (sv*)sr_iterof(&sift);
 		t( *(int*)svkey(v) == key );
 		t( svlsn(v) == 10 - i );
 		if (i == 0)
 			t( svflags(v) == SVSET );
 		else
 			t( svflags(v) == (SVDELETE | SVDUP) );
-		sr_iternext(&seave);
+		sr_iternext(&sift);
 		i++;
 	}
 	t( i == 2 );
-	sr_iterclose(&seave);
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1534,7 +1534,7 @@ svseaveiter_delete1(stc *cx srunused)
 }
 
 static void
-svseaveiter_delete2(stc *cx srunused)
+svsiftiter_delete2(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -1575,26 +1575,26 @@ svseaveiter_delete2(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 8ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 8ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&seave)) {
-		sv *v = (sv*)sr_iterof(&seave);
+	while (sr_iterhas(&sift)) {
+		sv *v = (sv*)sr_iterof(&sift);
 		t( *(int*)svkey(v) == key );
 		t( svlsn(v) == 10 - i );
 		if (i == 0)
 			t( svflags(v) == SVSET );
 		else
 			t( svflags(v) == (SVDELETE | SVDUP) );
-		sr_iternext(&seave);
+		sr_iternext(&sift);
 		i++;
 	}
 	t( i == 3 );
-	sr_iterclose(&seave);
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1609,7 +1609,7 @@ svseaveiter_delete2(stc *cx srunused)
 }
 
 static void
-svseaveiter_delete3(stc *cx srunused)
+svsiftiter_delete3(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -1650,26 +1650,26 @@ svseaveiter_delete3(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 7ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 7ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&seave)) {
-		sv *v = (sv*)sr_iterof(&seave);
+	while (sr_iterhas(&sift)) {
+		sv *v = (sv*)sr_iterof(&sift);
 		t( *(int*)svkey(v) == key );
 		t( svlsn(v) == 10 - i );
 		if (i == 0)
 			t( svflags(v) == SVDELETE );
 		else
 			t( svflags(v) == (SVDELETE | SVDUP) );
-		sr_iternext(&seave);
+		sr_iternext(&sift);
 		i++;
 	}
 	t( i == 3 );
-	sr_iterclose(&seave);
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1684,7 +1684,7 @@ svseaveiter_delete3(stc *cx srunused)
 }
 
 static void
-svseaveiter_delete4(stc *cx srunused)
+svsiftiter_delete4(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -1725,26 +1725,26 @@ svseaveiter_delete4(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 10ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 10ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&seave)) {
-		sv *v = (sv*)sr_iterof(&seave);
+	while (sr_iterhas(&sift)) {
+		sv *v = (sv*)sr_iterof(&sift);
 		t( *(int*)svkey(v) == key );
 		t( svlsn(v) == 10 - i );
 		if (i == 0)
 			t( svflags(v) == SVDELETE );
 		else
 			t( svflags(v) == (SVDELETE | SVDUP) );
-		sr_iternext(&seave);
+		sr_iternext(&sift);
 		i++;
 	}
 	t( i == 1 );
-	sr_iterclose(&seave);
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1759,7 +1759,7 @@ svseaveiter_delete4(stc *cx srunused)
 }
 
 static void
-svseaveiter_delete5(stc *cx srunused)
+svsiftiter_delete5(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -1800,26 +1800,26 @@ svseaveiter_delete5(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 11ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 11ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&seave)) {
-		sv *v = (sv*)sr_iterof(&seave);
+	while (sr_iterhas(&sift)) {
+		sv *v = (sv*)sr_iterof(&sift);
 		t( *(int*)svkey(v) == key );
 		t( svlsn(v) == 10 - i );
 		if (i == 0)
 			t( svflags(v) == SVDELETE );
 		else
 			t( svflags(v) == (SVDELETE | SVDUP) );
-		sr_iternext(&seave);
+		sr_iternext(&sift);
 		i++;
 	}
 	t( i == 0 );
-	sr_iterclose(&seave);
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1834,7 +1834,7 @@ svseaveiter_delete5(stc *cx srunused)
 }
 
 static void
-svseaveiter_delete6(stc *cx srunused)
+svsiftiter_delete6(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -1878,15 +1878,15 @@ svseaveiter_delete6(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 13ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 13ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&seave)) {
-		sv *v = (sv*)sr_iterof(&seave);
+	while (sr_iterhas(&sift)) {
+		sv *v = (sv*)sr_iterof(&sift);
 		if (i == 0) {
 			t( *(int*)svkey(v) == 6 );
 			t( svlsn(v) == 12 );
@@ -1895,11 +1895,11 @@ svseaveiter_delete6(stc *cx srunused)
 			t( svlsn(v) == 11 );
 		}
 		t( svflags(v) == SVSET );
-		sr_iternext(&seave);
+		sr_iternext(&sift);
 		i++;
 	}
 	t( i == 2 );
-	sr_iterclose(&seave);
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -1914,7 +1914,7 @@ svseaveiter_delete6(stc *cx srunused)
 }
 
 static void
-svseaveiter_delete7(stc *cx srunused)
+svsiftiter_delete7(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -1958,15 +1958,15 @@ svseaveiter_delete7(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 10ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 10ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&seave)) {
-		sv *v = (sv*)sr_iterof(&seave);
+	while (sr_iterhas(&sift)) {
+		sv *v = (sv*)sr_iterof(&sift);
 		if (i == 0) {
 			t( *(int*)svkey(v) == 6 );
 			t( svflags(v) == SVSET );
@@ -1981,11 +1981,11 @@ svseaveiter_delete7(stc *cx srunused)
 			t( svflags(v) == SVSET );
 			t( svlsn(v) == 11 );
 		}
-		sr_iternext(&seave);
+		sr_iternext(&sift);
 		i++;
 	}
 	t( i == 3 );
-	sr_iterclose(&seave);
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -2000,7 +2000,7 @@ svseaveiter_delete7(stc *cx srunused)
 }
 
 static void
-svseaveiter_delete8(stc *cx srunused)
+svsiftiter_delete8(stc *cx srunused)
 {
 	sra a;
 	sr_allocopen(&a, &sr_astd);
@@ -2044,15 +2044,15 @@ svseaveiter_delete8(stc *cx srunused)
 	sr_iterinit(&merge, &sv_mergeiter, &r);
 	sr_iteropen(&merge, &m, SR_GTE);
 
-	sriter seave;
-	sr_iterinit(&seave, &sv_seaveiter, &r);
+	sriter sift;
+	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&seave, &merge, limit, sizeof(svv), 9ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 9ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&seave)) {
-		sv *v = (sv*)sr_iterof(&seave);
+	while (sr_iterhas(&sift)) {
+		sv *v = (sv*)sr_iterof(&sift);
 		if (i == 0) {
 			t( *(int*)svkey(v) == 6 );
 			t( svflags(v) == SVSET );
@@ -2072,11 +2072,11 @@ svseaveiter_delete8(stc *cx srunused)
 			t( svflags(v) == SVSET );
 			t( svlsn(v) == 11 );
 		}
-		sr_iternext(&seave);
+		sr_iternext(&sift);
 		i++;
 	}
 	t( i == 4 );
-	sr_iterclose(&seave);
+	sr_iterclose(&sift);
 
 	sr_iterinit(&ita, &sr_bufiterref, NULL);
 	sr_iteropen(&ita, &vlista, sizeof(sv*));
@@ -2090,34 +2090,34 @@ svseaveiter_delete8(stc *cx srunused)
 	sv_mergefree(&m, &a);
 }
 
-stgroup *svseaveiter_group(void)
+stgroup *svsiftiter_group(void)
 {
-	stgroup *group = st_group("svseaveiter");
-	st_groupadd(group, st_test("seave", svseaveiter_seave));
-	st_groupadd(group, st_test("seave_limit", svseaveiter_limit));
-	st_groupadd(group, st_test("seave_limit_small", svseaveiter_limit_small));
-	st_groupadd(group, st_test("seave_dup_lsn_gt", svseaveiter_dup_lsn_gt));
-	st_groupadd(group, st_test("seave_dup_lsn_lt0", svseaveiter_dup_lsn_lt0));
-	st_groupadd(group, st_test("seave_dup_lsn_lt1", svseaveiter_dup_lsn_lt1));
-	st_groupadd(group, st_test("seave_dup_lsn_lt2", svseaveiter_dup_lsn_lt2));
-	st_groupadd(group, st_test("seave_dup_lsn_gt_chain", svseaveiter_dup_lsn_gt_chain));
-	st_groupadd(group, st_test("seave_dup_lsn_lt0_chain", svseaveiter_dup_lsn_lt0_chain));
-	st_groupadd(group, st_test("seave_dup_lsn_lt1_chain", svseaveiter_dup_lsn_lt1_chain));
-	st_groupadd(group, st_test("seave_dup_lsn_lt2_chain", svseaveiter_dup_lsn_lt2_chain));
-	st_groupadd(group, st_test("seave_dup_lsn_limit0", svseaveiter_dup_lsn_limit0));
-	st_groupadd(group, st_test("seave_dup_lsn_limit1", svseaveiter_dup_lsn_limit1));
-	st_groupadd(group, st_test("seave_dup_lsn_limit2", svseaveiter_dup_lsn_limit2));
-	st_groupadd(group, st_test("seave_dup_lsn_limit3", svseaveiter_dup_lsn_limit3));
-	st_groupadd(group, st_test("seave_dup_lsn_limit4", svseaveiter_dup_lsn_limit4));
-	st_groupadd(group, st_test("seave_dup_lsn_limit5", svseaveiter_dup_lsn_limit5));
-	st_groupadd(group, st_test("seave_delete0", svseaveiter_delete0));
-	st_groupadd(group, st_test("seave_delete1", svseaveiter_delete1));
-	st_groupadd(group, st_test("seave_delete2", svseaveiter_delete2));
-	st_groupadd(group, st_test("seave_delete3", svseaveiter_delete3));
-	st_groupadd(group, st_test("seave_delete4", svseaveiter_delete4));
-	st_groupadd(group, st_test("seave_delete5", svseaveiter_delete5));
-	st_groupadd(group, st_test("seave_delete6", svseaveiter_delete6));
-	st_groupadd(group, st_test("seave_delete7", svseaveiter_delete7));
-	st_groupadd(group, st_test("seave_delete8", svseaveiter_delete8));
+	stgroup *group = st_group("svsiftiter");
+	st_groupadd(group, st_test("sift", svsiftiter_sift));
+	st_groupadd(group, st_test("sift_limit", svsiftiter_limit));
+	st_groupadd(group, st_test("sift_limit_small", svsiftiter_limit_small));
+	st_groupadd(group, st_test("sift_dup_lsn_gt", svsiftiter_dup_lsn_gt));
+	st_groupadd(group, st_test("sift_dup_lsn_lt0", svsiftiter_dup_lsn_lt0));
+	st_groupadd(group, st_test("sift_dup_lsn_lt1", svsiftiter_dup_lsn_lt1));
+	st_groupadd(group, st_test("sift_dup_lsn_lt2", svsiftiter_dup_lsn_lt2));
+	st_groupadd(group, st_test("sift_dup_lsn_gt_chain", svsiftiter_dup_lsn_gt_chain));
+	st_groupadd(group, st_test("sift_dup_lsn_lt0_chain", svsiftiter_dup_lsn_lt0_chain));
+	st_groupadd(group, st_test("sift_dup_lsn_lt1_chain", svsiftiter_dup_lsn_lt1_chain));
+	st_groupadd(group, st_test("sift_dup_lsn_lt2_chain", svsiftiter_dup_lsn_lt2_chain));
+	st_groupadd(group, st_test("sift_dup_lsn_limit0", svsiftiter_dup_lsn_limit0));
+	st_groupadd(group, st_test("sift_dup_lsn_limit1", svsiftiter_dup_lsn_limit1));
+	st_groupadd(group, st_test("sift_dup_lsn_limit2", svsiftiter_dup_lsn_limit2));
+	st_groupadd(group, st_test("sift_dup_lsn_limit3", svsiftiter_dup_lsn_limit3));
+	st_groupadd(group, st_test("sift_dup_lsn_limit4", svsiftiter_dup_lsn_limit4));
+	st_groupadd(group, st_test("sift_dup_lsn_limit5", svsiftiter_dup_lsn_limit5));
+	st_groupadd(group, st_test("sift_delete0", svsiftiter_delete0));
+	st_groupadd(group, st_test("sift_delete1", svsiftiter_delete1));
+	st_groupadd(group, st_test("sift_delete2", svsiftiter_delete2));
+	st_groupadd(group, st_test("sift_delete3", svsiftiter_delete3));
+	st_groupadd(group, st_test("sift_delete4", svsiftiter_delete4));
+	st_groupadd(group, st_test("sift_delete5", svsiftiter_delete5));
+	st_groupadd(group, st_test("sift_delete6", svsiftiter_delete6));
+	st_groupadd(group, st_test("sift_delete7", svsiftiter_delete7));
+	st_groupadd(group, st_test("sift_delete8", svsiftiter_delete8));
 	return group;
 }

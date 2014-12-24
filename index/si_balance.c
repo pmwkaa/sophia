@@ -28,7 +28,8 @@ si_branchcreate(si *index, sr *r, sdc *c, sinode *parent, svindex *i, uint64_t v
 	             parent->file.size,
 	             i->keymax, i->used,
 	             UINT64_MAX,
-	             index->conf->node_page_size, vlsn);
+	             index->conf->node_page_size, 1,
+	             vlsn);
 	int rc = sd_merge(&merge);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "%s", "memory allocation failed");
@@ -134,7 +135,7 @@ int si_compact(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	/* prepare for compaction */
 	svmerge merge;
 	sv_mergeinit(&merge);
-	rc = sv_mergeprepare(&merge, r, 1 + node->branch_count);
+	rc = sv_mergeprepare(&merge, r, node->branch_count);
 	if (srunlikely(rc == -1))
 		return -1;
 	uint32_t size_stream = 0;

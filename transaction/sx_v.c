@@ -16,6 +16,11 @@ sx_vifflags(sv *v) {
 	return ((sxv*)v->v)->v->flags;
 }
 
+static void
+sx_vifflagsadd(sv *v, uint32_t flags) {
+	((sxv*)v->v)->v->flags |= flags;
+}
+
 static uint64_t
 sx_viflsn(sv *v) {
 	return ((sxv*)v->v)->v->lsn;
@@ -53,6 +58,7 @@ sx_vifvaluesize(sv *v) {
 svif sx_vif =
 {
 	.flags       = sx_vifflags,
+	.flagsadd    = sx_vifflagsadd,
 	.lsn         = sx_viflsn,
 	.lsnset      = sx_viflsnset,
 	.key         = sx_vifkey,

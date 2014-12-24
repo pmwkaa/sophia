@@ -16,6 +16,11 @@ sd_vifflags(sv *v) {
 	return ((sdv*)v->v)->flags;
 }
 
+static void
+sd_vifflagsadd(sv *v, uint32_t flags) {
+	((sdv*)v->v)->flags |= flags;
+}
+
 static uint64_t
 sd_viflsn(sv *v) {
 	return ((sdv*)v->v)->lsn;
@@ -64,6 +69,7 @@ sd_vifrawsize(sv *v) {
 svif sd_vif =
 {
 	.flags       = sd_vifflags,
+	.flagsadd    = sd_vifflagsadd,
 	.lsn         = sd_viflsn,
 	.lsnset      = NULL,
 	.key         = sd_vifkey,

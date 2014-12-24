@@ -12,7 +12,7 @@
 #include <sophia.h>
 
 static void
-branch_test0(stc *cx srunused)
+branch_loggc(stc *cx srunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -76,6 +76,6 @@ branch_test0(stc *cx srunused)
 stgroup *branch_group(void)
 {
 	stgroup *group = st_group("branch");
-	st_groupadd(group, st_test("test0", branch_test0));
+	st_groupadd(group, st_test("log_gc", branch_loggc));
 	return group;
 }

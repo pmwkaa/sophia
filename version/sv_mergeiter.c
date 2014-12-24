@@ -73,7 +73,7 @@ sv_mergeiter_dupset(svmergeiter *im)
 	svmergesrc *v = im->src;
 	while (v != im->end) {
 		if (v->dup)
-			svsetdup(sr_iterof(v->i));
+			svflagsadd(sr_iterof(v->i), SVDUP);
 		v->dup = 0;
 		v = sv_mergeiter_nextsrc(v);
 	}
@@ -103,32 +103,30 @@ sv_mergeiter_gt(sriter *it)
 	minv = NULL;
 	min  = NULL;
 	src  = im->src;
-	while (src < im->end) {
+	for (; src < im->end; src = sv_mergeiter_nextsrc(src))
+	{
 		sv *v = sr_iterof(src->i);
-		if (v == NULL) {
-			src = sv_mergeiter_nextsrc(src);
+		if (v == NULL)
 			continue;
-		}
 		if (min == NULL) {
 			minv = v;
 			min = src;
-		} else {
-			int rc = svcompare(minv, v, it->r->cmp);
-			switch (rc) {
-			case 0:
-				assert(svlsn(v) < svlsn(minv));
-				src->dup = 1;
-				dupn++;
-				break;
-			case 1:
-				minv = v;
-				min = src;
-				sv_mergeiter_dupreset(im, src);
-				dupn = 0;
-				break;
-			}
+			continue;
 		}
-		src = sv_mergeiter_nextsrc(src);
+		int rc = svcompare(minv, v, it->r->cmp);
+		switch (rc) {
+		case 0:
+			assert(svlsn(v) < svlsn(minv));
+			src->dup = 1;
+			dupn++;
+			break;
+		case 1:
+			minv = v;
+			min = src;
+			sv_mergeiter_dupreset(im, src);
+			dupn = 0;
+			break;
+		}
 	}
 	if (srunlikely(min == NULL))
 		return;
@@ -152,32 +150,30 @@ sv_mergeiter_lt(sriter *it)
 	maxv = NULL;
 	max  = NULL;
 	src  = im->src;
-	while (src < im->end) {
+	for (; src < im->end; src = sv_mergeiter_nextsrc(src))
+	{
 		sv *v = sr_iterof(src->i);
-		if (v == NULL) {
-			src = sv_mergeiter_nextsrc(src);
+		if (v == NULL)
 			continue;
-		}
 		if (max == NULL) {
 			maxv = v;
 			max = src;
-		} else {
-			int rc = svcompare(maxv, v, it->r->cmp);
-			switch (rc) {
-			case  0:
-				assert(svlsn(v) < svlsn(maxv));
-				src->dup = 1;
-				dupn++;
-				break;
-			case -1:
-				maxv = v;
-				max = src;
-				sv_mergeiter_dupreset(im, src);
-				dupn = 0;
-				break;
-			}
+			continue;
 		}
-		src = sv_mergeiter_nextsrc(src);
+		int rc = svcompare(maxv, v, it->r->cmp);
+		switch (rc) {
+		case 0:
+			assert(svlsn(v) < svlsn(maxv));
+			src->dup = 1;
+			dupn++;
+			break;
+		case 1:
+			maxv = v;
+			max = src;
+			sv_mergeiter_dupreset(im, src);
+			dupn = 0;
+			break;
+		}
 	}
 	if (srunlikely(max == NULL))
 		return;

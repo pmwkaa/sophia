@@ -212,7 +212,7 @@ si_qfetch(siquery *q)
 
 	/* prepare sources */
 	svmerge *m = &q->merge;
-	int count = 2 + node->branch_count + 1;
+	int count = node->branch_count + 2;
 	int rc = sv_mergeprepare(m, q->r, count);
 	if (srunlikely(rc == -1)) {
 		sr_error_recoverable(q->r->e);
@@ -242,10 +242,22 @@ si_qfetch(siquery *q)
 	sr_iterinit(&i, &sv_mergeiter, q->r);
 	sr_iteropen(&i, m, q->order);
 	sriter j;
-	sr_iterinit(&j, &sv_seaveiter, q->r);
-	sr_iteropen(&j, &i, UINT64_MAX, 0, q->vlsn);
-	rc = si_qresult(q, &j);
-	return rc;
+	sr_iterinit(&j, &sv_siftiter, q->r);
+	sr_iteropen(&j, &i, UINT64_MAX, 0, q->vlsn, 1);
+
+	/* skip deletes */
+	for (;;) {
+		sv *v = sr_iterof(&j);
+		if (srunlikely(v == NULL))
+			break;
+		if (srunlikely(svflags(v) & SVDELETE)) {
+			sr_iternext(&j);
+			continue;
+		}
+		q->result = *v;
+		return 1;
+	}
+	return 0;
 }
 
 int si_query(siquery *q)
