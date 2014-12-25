@@ -39,6 +39,11 @@ sv_mergefree(svmerge *m, sra *a) {
 	sr_buffree(&m->buf, a);
 }
 
+static inline void
+sv_mergereset(svmerge *m) {
+	m->buf.p = m->buf.s;
+}
+
 static inline svmergesrc*
 sv_mergeadd(svmerge *m, sriter *i)
 {

@@ -38,6 +38,7 @@ int si_init(si*, srquota*);
 int si_open(si*, sr*, siconf*);
 int si_close(si*, sr*);
 int si_insert(si*, sr*, sinode*);
+int si_remove(si*, sinode*);
 int si_replace(si*, sinode*, sinode*);
 int si_plan(si*, siplan*);
 int si_execute(si*, sr*, sdc*, siplan*, uint64_t);

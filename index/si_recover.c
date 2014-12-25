@@ -37,52 +37,22 @@
 #include <libsd.h>
 #include <libsi.h>
 
-static inline int
-si_deploywrite(sinode *n, sr *r, siconf *conf, sdid *id,
-               sdindex *i, sdbuild *build)
+sinode *si_bootstrap(si *i, sr *r, uint32_t parent)
 {
-	si_branchset(&n->self, i);
-	srpath path;
-	sr_pathA(&path, conf->path, id->id, ".db");
-	int rc = sr_filenew(&n->file, path.path);
-	if (srunlikely(rc == -1)) {
-		sr_error(r->e, "db file '%s' create error: %s",
-		         path.path, strerror(errno));
-		return -1;
-	}
-	rc = sd_buildwrite(build, &n->self.index, &n->file);
-	if (srunlikely(rc == -1))
-		return -1;
-	n->branch = &n->self;
-	n->branch_count++;
-	return 0;
-}
-
-static inline int
-si_deploy(si *i, sr *r)
-{
-	int rc;
-	rc = sr_filemkdir(i->conf->path);
-	if (srunlikely(rc == -1)) {
-		sr_error(r->e, "directory '%s' create error: %s",
-		         i->conf->path, strerror(errno));
-		return -1;
-	}
-
 	sinode *n = si_nodenew(r);
 	if (srunlikely(n == NULL))
-		return -1;
+		return NULL;
 	sdid id = {
-		.parent = 0,
+		.parent = parent,
 		.flags  = 0,
 		.id     = sr_seq(r->seq, SR_NSNNEXT)
 	};
 	sdindex index;
 	sd_indexinit(&index);
-	rc = sd_indexbegin(&index, r, 0, 0);
+	int rc = sd_indexbegin(&index, r, 0, 0);
 	if (srunlikely(rc == -1)) {
 		si_nodefree(n, r, 0);
-		return -1;
+		return NULL;
 	}
 	sdbuild build;
 	sd_buildinit(&build, r);
@@ -91,7 +61,7 @@ si_deploy(si *i, sr *r)
 		sd_indexfree(&index, r);
 		sd_buildfree(&build);
 		si_nodefree(n, r, 0);
-		return -1;
+		return NULL;
 	}
 	sd_buildend(&build);
 	sdpageheader *h = sd_buildheader(&build);
@@ -107,12 +77,32 @@ si_deploy(si *i, sr *r)
 	if (srunlikely(rc == -1)) {
 		sd_indexfree(&index, r);
 		si_nodefree(n, r, 0);
-		return -1;
+		return NULL;
 	}
 	sd_buildcommit(&build);
 	sd_indexcommit(&index, &id);
-	rc = si_deploywrite(n, r, i->conf, &id, &index, &build);
+	rc = si_nodecreate(n, r, i->conf, &id, &index, &build);
 	sd_buildfree(&build);
+	if (srunlikely(rc == -1)) {
+		si_nodefree(n, r, 1);
+		return NULL;
+	}
+	return n;
+}
+
+static inline int
+si_deploy(si *i, sr *r)
+{
+	int rc = sr_filemkdir(i->conf->path);
+	if (srunlikely(rc == -1)) {
+		sr_error(r->e, "directory '%s' create error: %s",
+		         i->conf->path, strerror(errno));
+		return -1;
+	}
+	sinode *n = si_bootstrap(i, r, 0);
+	if (srunlikely(n == NULL))
+		return -1;
+	rc = si_nodecomplete(n, r, i->conf);
 	if (srunlikely(rc == -1)) {
 		si_nodefree(n, r, 1);
 		return -1;

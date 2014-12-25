@@ -1083,7 +1083,7 @@ svsiftiter_dup_lsn_limit1(stc *cx srunused)
 	sriter sift;
 	sr_iterinit(&sift, &sv_siftiter, &r);
 	uint64_t limit = 1 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&sift, &merge, limit, sizeof(svv), 9ULL);
+	sr_iteropen(&sift, &merge, limit, sizeof(svv), 9ULL, 0);
 
 	checkv(cx, &sift, 10, SVSET, key);
 	sr_iternext(&sift);

@@ -84,6 +84,32 @@ si_redistribute(si *index, sr *r, sdc *c, sinode *node, srbuf *result,
 }
 
 static int
+si_redistribute_index(si *index, sr *r, sdc *c, sinode *node, uint64_t vlsn)
+{
+	svindex *vindex = si_nodeindex(node);
+	sriter i;
+	sr_iterinit(&i, &sv_indexiterraw, r);
+	sr_iteropen(&i, vindex);
+	for (; sr_iterhas(&i); sr_iternext(&i)) {
+		sv *v = sr_iterof(&i);
+		int rc = sr_bufadd(&c->b, r->a, &v->v, sizeof(svv**));
+		if (srunlikely(rc == -1))
+			return sr_error(r->e, "%s", "memory allocation failed");
+	}
+	if (srunlikely(sr_bufused(&c->b) == 0))
+		return 0;
+	uint64_t now = sr_utime();
+	sr_iterinit(&i, &sr_bufiterref, NULL);
+	sr_iteropen(&i, &c->b, sizeof(svv*));
+	while (sr_iterhas(&i)) {
+		svv *v = sr_iterof(&i);
+		si_set(index, r, vlsn, now, v);
+		sr_iternext(&i);
+	}
+	return 0;
+}
+
+static int
 si_splitfree(srbuf *result, sr *r)
 {
 	sriter i;
@@ -178,15 +204,42 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 	             sr_error(r->e, "%s", "error injection");
 	             return -1);
 
+	/* mask removal of a single node as a
+	 * single node update */
+	int count = sr_bufused(result) / sizeof(sinode*);
+	int count_index;
+
+	si_lock(index);
+	count_index = index->n;
+	si_unlock(index);
+
+	sinode *n;
+	if (srunlikely(count == 0 && count_index == 1))
+	{
+		n = si_bootstrap(index, r, node->self.id.id);
+		if (srunlikely(n == NULL))
+			return -1;
+		rc = sr_bufadd(result, r->a, &n, sizeof(sinode*));
+		if (srunlikely(rc == -1)) {
+			sr_error(r->e, "%s", "memory allocation failed");
+			si_nodefree(n, r, 1);
+			return -1;
+		}
+		count++;
+	}
+
 	/* commit compaction changes */
 	si_lock(index);
 	svindex *j = si_nodeindex(node);
 	si_plannerremove(&index->p, SI_COMPACT|SI_BRANCH, node);
-	sinode *n;
-	int count = sr_bufused(result) / sizeof(sinode*);
 	switch (count) {
 	case 0: /* delete */
-		assert(count >= 1);
+		si_remove(index, node);
+		si_redistribute_index(index, r, c, node, vlsn);
+		uint32_t used = sv_indexused(j);
+		if (used) {
+			sr_quota(index->quota, SR_QREMOVE, used);
+		}
 		break;
 	case 1: /* self update */
 		n = *(sinode**)result->s;

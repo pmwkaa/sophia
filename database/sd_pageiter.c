@@ -213,7 +213,7 @@ sd_pageiter_fwd(sdpageiter *i)
 			break;
 		pos++;
 	}
-	if (srunlikely(pos == i->page->h->count)) {
+	if (srunlikely(pos >= i->page->h->count)) {
 		sd_pageiter_end(i);
 		return;
 	}

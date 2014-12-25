@@ -56,7 +56,7 @@ cache_test0(stc *cx)
 	sp_destroy(o);
 	o = sp_get(c, "db.test.index.read_cache");
 	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "185") == 0 );
+	t( strcmp(sp_get(o, "value", NULL), "184") == 0 );
 	sp_destroy(o);
 
 	t( sp_destroy(env) == 0 );
@@ -117,7 +117,7 @@ cache_test1(stc *cx)
 	sp_destroy(o);
 	o = sp_get(c, "db.test.index.read_cache");
 	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "370") == 0 );
+	t( strcmp(sp_get(o, "value", NULL), "368") == 0 );
 	sp_destroy(o);
 
 	t( sp_destroy(env) == 0 );
@@ -182,7 +182,7 @@ cache_invalidate(stc *cx)
 	sp_destroy(o);
 	o = sp_get(c, "db.test.index.read_cache");
 	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "370") == 0 );
+	t( strcmp(sp_get(o, "value", NULL), "368") == 0 );
 	sp_destroy(o);
 
 	t( sp_destroy(env) == 0 );

@@ -138,13 +138,13 @@ void *so_txdbget(sodb *db, uint64_t vlsn, va_list args)
 	sx_getstmt(&db->e->xm, &db->coindex);
 	if (srlikely(vlsn == 0))
 		vlsn = sr_seq(db->r.seq, SR_LSN);
-	sv result;
 
 	sicache cache;
 	si_cacheinit(&cache, &db->e->a_cursorcache);
 	siquery q;
 	si_queryopen(&q, &db->r, &cache, &db->index,
 	             SR_EQ, vlsn, key, keysize);
+	sv result;
 	int rc = si_query(&q);
 	if (rc == 1) {
 		rc = si_querydup(&q, &result);

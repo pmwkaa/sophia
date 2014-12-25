@@ -63,6 +63,13 @@ int si_insert(si *i, sr *r, sinode *n)
 	return 0;
 }
 
+int si_remove(si *i, sinode *n)
+{
+	sr_rbremove(&i->i, &n->node);
+	i->n--;
+	return 0;
+}
+
 int si_replace(si *i, sinode *o, sinode *n)
 {
 	sr_rbreplace(&i->i, &o->node, &n->node);

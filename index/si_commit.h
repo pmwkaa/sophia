@@ -21,6 +21,7 @@ struct sitx {
 
 void si_begin(sitx*, sr*, si*, uint64_t, uint64_t, sv*);
 void si_commit(sitx*);
+void si_set(si*, sr*, uint64_t, uint64_t, svv*);
 void si_write(sitx*, int);
 
 #endif

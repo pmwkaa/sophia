@@ -44,8 +44,7 @@ void si_commit(sitx *t) {
 	si_unlock(t->index);
 }
 
-static void
-si_set(si *index, sr *r, uint64_t vlsn, uint64_t now, svv *v)
+void si_set(si *index, sr *r, uint64_t vlsn, uint64_t now, svv *v)
 {
 	index->update_time = now;
 	/* match node */
