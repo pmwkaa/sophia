@@ -60,7 +60,7 @@ checkpoint_test0(stc *cx srunused)
 	sp_destroy(o);
 	o = sp_get(c, "scheduler.checkpoint_lsn");
 	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "11") == 0 );
+	t( strcmp(sp_get(o, "value", NULL), "10") == 0 );
 	sp_destroy(o);
 	o = sp_get(c, "scheduler.checkpoint_lsn_last");
 	t( o != NULL );
@@ -80,7 +80,7 @@ checkpoint_test0(stc *cx srunused)
 	sp_destroy(o);
 	o = sp_get(c, "scheduler.checkpoint_lsn_last");
 	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "11") == 0 );
+	t( strcmp(sp_get(o, "value", NULL), "10") == 0 );
 	sp_destroy(o);
 
 	t( sp_destroy(env) == 0 );

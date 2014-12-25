@@ -68,7 +68,7 @@ si_deploy(si *i, sr *r)
 		         i->conf->path, strerror(errno));
 		return -1;
 	}
-	sr_seq(r->seq, SR_LSNNEXT);
+
 	sinode *n = si_nodenew(r);
 	if (srunlikely(n == NULL))
 		return -1;
@@ -372,8 +372,8 @@ si_recoverindex(si *i, sr *r)
 	if (srunlikely(rc == -1))
 		goto error;
 	/* set actual metrics */
-	r->seq->nsn = track.nsn + 1;
-	r->seq->lsn = track.lsn + 1;
+	r->seq->nsn = track.nsn;
+	r->seq->lsn = track.lsn;
 	sr_buffree(&buf, r->a);
 	return 0;
 error:

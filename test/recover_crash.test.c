@@ -50,7 +50,7 @@ recovercrash_branch0(stc *cx srunused)
 	t( sp_set(c, "db.test.branch") == -1 );
 	t( sp_destroy(env) == 0 );
 
-	t( exists(cx->suite->dir, "0000000000.db") == 1 );
+	t( exists(cx->suite->dir, "0000000001.db") == 1 );
 
 	/* recover */
 	env = sp_env();
@@ -91,7 +91,7 @@ recovercrash_branch0(stc *cx srunused)
 
 	t( sp_destroy(env) == 0 );
 
-	t( exists(cx->suite->dir, "0000000000.db") == 1 );
+	t( exists(cx->suite->dir, "0000000001.db") == 1 );
 }
 
 static void
@@ -133,7 +133,7 @@ recovercrash_build0(stc *cx srunused)
 	t( sp_set(c, "db.test.branch") == -1 );
 	t( sp_destroy(env) == 0 );
 
-	t( exists(cx->suite->dir, "0000000000.db") == 1 );
+	t( exists(cx->suite->dir, "0000000001.db") == 1 );
 
 	/* recover */
 	env = sp_env();
@@ -173,7 +173,7 @@ recovercrash_build0(stc *cx srunused)
 
 	t( sp_destroy(env) == 0 );
 
-	t( exists(cx->suite->dir, "0000000000.db") == 1 );
+	t( exists(cx->suite->dir, "0000000001.db") == 1 );
 }
 
 static void
@@ -215,7 +215,7 @@ recovercrash_build1(stc *cx srunused)
 	t( sp_set(c, "db.test.branch") == 0 ); /* seal crc is corrupted */
 	t( sp_destroy(env) == 0 );
 
-	t( exists(cx->suite->dir, "0000000000.db") == 1 );
+	t( exists(cx->suite->dir, "0000000001.db") == 1 );
 
 	/* recover */
 	env = sp_env();
@@ -255,7 +255,7 @@ recovercrash_build1(stc *cx srunused)
 
 	t( sp_destroy(env) == 0 );
 
-	t( exists(cx->suite->dir, "0000000000.db") == 1 );
+	t( exists(cx->suite->dir, "0000000001.db") == 1 );
 }
 
 static void
@@ -298,8 +298,8 @@ recovercrash_compact0(stc *cx srunused)
 	t( sp_set(c, "db.test.compact") == -1 );
 	t( sp_destroy(env) == 0 );
 
-	t( exists(cx->suite->dir, "0000000000.db") == 1 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.incomplete") == 1 );
+	t( exists(cx->suite->dir, "0000000001.db") == 1 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.incomplete") == 1 );
 
 	/* recover */
 	env = sp_env();
@@ -339,8 +339,8 @@ recovercrash_compact0(stc *cx srunused)
 
 	t( sp_destroy(env) == 0 );
 
-	t( exists(cx->suite->dir, "0000000000.db") == 1 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.incomplete") == 0 );
+	t( exists(cx->suite->dir, "0000000001.db") == 1 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.incomplete") == 0 );
 }
 
 static void
@@ -383,9 +383,9 @@ recovercrash_compact1(stc *cx srunused)
 	t( sp_set(c, "db.test.compact") == -1 );
 	t( sp_destroy(env) == 0 );
 
-	t( exists(cx->suite->dir, "0000000000.db") == 1 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.incomplete") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.seal") == 1 );
+	t( exists(cx->suite->dir, "0000000001.db") == 1 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.incomplete") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.seal") == 1 );
 
 	/* recover */
 	env = sp_env();
@@ -425,10 +425,10 @@ recovercrash_compact1(stc *cx srunused)
 
 	t( sp_destroy(env) == 0 );
 
-	t( exists(cx->suite->dir, "0000000000.db") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.incomplete") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.seal") == 0 );
-	t( exists(cx->suite->dir, "0000000002.db") == 1 );
+	t( exists(cx->suite->dir, "0000000001.db") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.incomplete") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.seal") == 0 );
+	t( exists(cx->suite->dir, "0000000003.db") == 1 );
 }
 
 static void
@@ -471,9 +471,9 @@ recovercrash_compact2(stc *cx srunused)
 	t( sp_set(c, "db.test.compact") == -1 );
 	t( sp_destroy(env) == 0 );
 
-	t( exists(cx->suite->dir, "0000000000.db") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.incomplete") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.seal") == 1 );
+	t( exists(cx->suite->dir, "0000000001.db") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.incomplete") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.seal") == 1 );
 
 	/* recover */
 	env = sp_env();
@@ -513,10 +513,10 @@ recovercrash_compact2(stc *cx srunused)
 
 	t( sp_destroy(env) == 0 );
 
-	t( exists(cx->suite->dir, "0000000000.db") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.incomplete") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.seal") == 0 );
-	t( exists(cx->suite->dir, "0000000002.db") == 1 );
+	t( exists(cx->suite->dir, "0000000001.db") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.incomplete") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.seal") == 0 );
+	t( exists(cx->suite->dir, "0000000003.db") == 1 );
 }
 
 static void
@@ -555,11 +555,11 @@ recovercrash_compact3(stc *cx srunused)
 	t( sp_set(c, "db.test.compact") == -1 );
 	t( sp_destroy(env) == 0 );
 
-	t( exists(cx->suite->dir, "0000000000.db") == 1 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.incomplete") == 1 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.seal") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000003.db.incomplete") == 1 );
-	t( exists(cx->suite->dir, "0000000000.0000000003.db.seal") == 0 );
+	t( exists(cx->suite->dir, "0000000001.db") == 1 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.incomplete") == 1 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.seal") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000004.db.incomplete") == 1 );
+	t( exists(cx->suite->dir, "0000000001.0000000004.db.seal") == 0 );
 
 	/* recover */
 	env = sp_env();
@@ -593,11 +593,11 @@ recovercrash_compact3(stc *cx srunused)
 
 	t( sp_destroy(env) == 0 );
 
-	t( exists(cx->suite->dir, "0000000000.db") == 1 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.incomplete") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.seal") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000003.db.incomplete") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000003.db.seal") == 0 );
+	t( exists(cx->suite->dir, "0000000001.db") == 1 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.incomplete") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.seal") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000004.db.incomplete") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000004.db.seal") == 0 );
 }
 
 static void
@@ -636,11 +636,11 @@ recovercrash_compact4(stc *cx srunused)
 	t( sp_set(c, "db.test.compact") == -1 );
 	t( sp_destroy(env) == 0 );
 
-	t( exists(cx->suite->dir, "0000000000.db") == 1 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.incomplete") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.seal") == 1 );
-	t( exists(cx->suite->dir, "0000000000.0000000003.db.incomplete") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000003.db.seal") == 1 );
+	t( exists(cx->suite->dir, "0000000001.db") == 1 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.incomplete") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.seal") == 1 );
+	t( exists(cx->suite->dir, "0000000001.0000000004.db.incomplete") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000004.db.seal") == 1 );
 
 	/* recover */
 	env = sp_env();
@@ -674,13 +674,13 @@ recovercrash_compact4(stc *cx srunused)
 
 	t( sp_destroy(env) == 0 );
 
-	t( exists(cx->suite->dir, "0000000000.db") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.incomplete") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.seal") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000003.db.incomplete") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000003.db.seal") == 0 );
-	t( exists(cx->suite->dir, "0000000002.db") == 1 );
+	t( exists(cx->suite->dir, "0000000001.db") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.incomplete") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.seal") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000004.db.incomplete") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000004.db.seal") == 0 );
 	t( exists(cx->suite->dir, "0000000003.db") == 1 );
+	t( exists(cx->suite->dir, "0000000004.db") == 1 );
 }
 
 static void
@@ -719,11 +719,11 @@ recovercrash_compact5(stc *cx srunused)
 	t( sp_set(c, "db.test.compact") == -1 );
 	t( sp_destroy(env) == 0 );
 
-	t( exists(cx->suite->dir, "0000000000.db") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.incomplete") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.seal") == 1 );
-	t( exists(cx->suite->dir, "0000000000.0000000003.db.incomplete") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000003.db.seal") == 1 );
+	t( exists(cx->suite->dir, "0000000001.db") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.incomplete") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.seal") == 1 );
+	t( exists(cx->suite->dir, "0000000001.0000000004.db.incomplete") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000004.db.seal") == 1 );
 
 	/* recover */
 	env = sp_env();
@@ -757,13 +757,13 @@ recovercrash_compact5(stc *cx srunused)
 
 	t( sp_destroy(env) == 0 );
 
-	t( exists(cx->suite->dir, "0000000000.db") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.incomplete") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.seal") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000003.db.incomplete") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000003.db.seal") == 0 );
-	t( exists(cx->suite->dir, "0000000002.db") == 1 );
+	t( exists(cx->suite->dir, "0000000001.db") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.incomplete") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.seal") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000004.db.incomplete") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000004.db.seal") == 0 );
 	t( exists(cx->suite->dir, "0000000003.db") == 1 );
+	t( exists(cx->suite->dir, "0000000004.db") == 1 );
 }
 
 static void
@@ -802,11 +802,11 @@ recovercrash_compact6(stc *cx srunused)
 	t( sp_set(c, "db.test.compact") == -1 );
 	t( sp_destroy(env) == 0 );
 
-	t( exists(cx->suite->dir, "0000000000.db") == 1 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.incomplete") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.seal") == 1 );
-	t( exists(cx->suite->dir, "0000000000.0000000003.db.incomplete") == 1 );
-	t( exists(cx->suite->dir, "0000000000.0000000003.db.seal") == 0 );
+	t( exists(cx->suite->dir, "0000000001.db") == 1 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.incomplete") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.seal") == 1 );
+	t( exists(cx->suite->dir, "0000000001.0000000004.db.incomplete") == 1 );
+	t( exists(cx->suite->dir, "0000000001.0000000004.db.seal") == 0 );
 
 	/* recover */
 	env = sp_env();
@@ -840,13 +840,13 @@ recovercrash_compact6(stc *cx srunused)
 
 	t( sp_destroy(env) == 0 );
 
-	t( exists(cx->suite->dir, "0000000000.db") == 1 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.incomplete") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.seal") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000003.db.incomplete") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000003.db.seal") == 0 );
-	t( exists(cx->suite->dir, "0000000002.db") == 0 );
+	t( exists(cx->suite->dir, "0000000001.db") == 1 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.incomplete") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.seal") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000004.db.incomplete") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000004.db.seal") == 0 );
 	t( exists(cx->suite->dir, "0000000003.db") == 0 );
+	t( exists(cx->suite->dir, "0000000004.db") == 0 );
 }
 
 static void
@@ -885,12 +885,12 @@ recovercrash_compact7(stc *cx srunused)
 	t( sp_set(c, "db.test.compact") == -1 );
 	t( sp_destroy(env) == 0 );
 
-	t( exists(cx->suite->dir, "0000000000.db") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.incomplete") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.seal") == 0 );
-	t( exists(cx->suite->dir, "0000000002.db") == 1 );
-	t( exists(cx->suite->dir, "0000000000.0000000003.db.incomplete") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000003.db.seal") == 1 );
+	t( exists(cx->suite->dir, "0000000001.db") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.incomplete") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.seal") == 0 );
+	t( exists(cx->suite->dir, "0000000003.db") == 1 );
+	t( exists(cx->suite->dir, "0000000001.0000000004.db.incomplete") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000004.db.seal") == 1 );
 
 	/* recover */
 	env = sp_env();
@@ -924,13 +924,13 @@ recovercrash_compact7(stc *cx srunused)
 
 	t( sp_destroy(env) == 0 );
 
-	t( exists(cx->suite->dir, "0000000000.db") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.incomplete") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000002.db.seal") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000003.db.incomplete") == 0 );
-	t( exists(cx->suite->dir, "0000000000.0000000003.db.seal") == 0 );
-	t( exists(cx->suite->dir, "0000000002.db") == 1 );
+	t( exists(cx->suite->dir, "0000000001.db") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.incomplete") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000003.db.seal") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000004.db.incomplete") == 0 );
+	t( exists(cx->suite->dir, "0000000001.0000000004.db.seal") == 0 );
 	t( exists(cx->suite->dir, "0000000003.db") == 1 );
+	t( exists(cx->suite->dir, "0000000004.db") == 1 );
 }
 
 stgroup *recovercrash_group(void)

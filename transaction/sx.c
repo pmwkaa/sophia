@@ -66,7 +66,7 @@ uint64_t sx_vlsn(sxmanager *m)
 		sx *min = srcast(node, sx, node);
 		vlsn = min->vlsn;
 	} else {
-		vlsn = sr_seq(m->r->seq, SR_LSN) - 1;
+		vlsn = sr_seq(m->r->seq, SR_LSN);
 	}
 	sr_spinunlock(&m->lock);
 	return vlsn;
@@ -92,7 +92,7 @@ sxstate sx_begin(sxmanager *m, sx *t, uint64_t vlsn)
 	sr_seqlock(m->r->seq);
 	t->id = sr_seqdo(m->r->seq, SR_TSNNEXT);
 	if (srlikely(vlsn == 0))
-		t->vlsn = sr_seqdo(m->r->seq, SR_LSN) - 1;
+		t->vlsn = sr_seqdo(m->r->seq, SR_LSN);
 	else
 		t->vlsn = vlsn;
 	sr_sequnlock(m->r->seq);

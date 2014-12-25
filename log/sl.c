@@ -336,7 +336,7 @@ int sl_prepare(slpool *p, svlog *vlog)
 
 int sl_follow(slpool *p, svlog *vlog)
 {
-	uint64_t lsn_max_orig = sr_seq(p->r->seq, SR_LSN) - 1;
+	uint64_t lsn_max_orig = sr_seq(p->r->seq, SR_LSN);
 	uint64_t lsn_max = lsn_max_orig;
 	sriter i;
 	sr_iterinit(&i, &sr_bufiter, NULL);
@@ -349,7 +349,7 @@ int sl_follow(slpool *p, svlog *vlog)
 	}
 	if (srunlikely(lsn_max != lsn_max_orig)) {
 		sr_seqlock(p->r->seq);
-		p->r->seq->lsn = lsn_max + 1;
+		p->r->seq->lsn = lsn_max;
 		sr_sequnlock(p->r->seq);
 	}
 	return 0;

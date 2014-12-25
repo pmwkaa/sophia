@@ -59,23 +59,23 @@ sr_seqdo(srseq *n, srseqop op)
 	switch (op) {
 	case SR_NSN:      v = n->nsn;
 		break;
-	case SR_NSNNEXT:  v = n->nsn++;
+	case SR_NSNNEXT:  v = ++n->nsn;
 		break;
 	case SR_DSN:      v = n->dsn;
 		break;
-	case SR_DSNNEXT:  v = n->dsn++;
+	case SR_DSNNEXT:  v = ++n->dsn;
 		break;
 	case SR_LSN:      v = n->lsn;
 		break;
-	case SR_LSNNEXT:  v = n->lsn++;
+	case SR_LSNNEXT:  v = ++n->lsn;
 		break;
 	case SR_LFSN:     v = n->lfsn;
 		break;
-	case SR_LFSNNEXT: v = n->lfsn++;
+	case SR_LFSNNEXT: v = ++n->lfsn;
 		break;
 	case SR_TSN:      v = n->tsn;
 		break;
-	case SR_TSNNEXT:  v = n->tsn++;
+	case SR_TSNNEXT:  v = ++n->tsn;
 		break;
 	}
 	return v;

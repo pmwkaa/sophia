@@ -137,7 +137,7 @@ void *so_txdbget(sodb *db, uint64_t vlsn, va_list args)
 
 	sx_getstmt(&db->e->xm, &db->coindex);
 	if (srlikely(vlsn == 0))
-		vlsn = sr_seq(db->r.seq, SR_LSN) - 1;
+		vlsn = sr_seq(db->r.seq, SR_LSN);
 	sv result;
 
 	sicache cache;
@@ -334,7 +334,7 @@ so_txprepare_trigger(sx *t, sv *v, void *arg0, void *arg1)
 	sotx *te = arg0;
 	sodb *db = arg1;
 	uint64_t lsn = sr_seq(te->e->r.seq, SR_LSN);
-	if ((lsn - 1) == t->vlsn)
+	if (t->vlsn == lsn)
 		return SXPREPARE;
 	sicache cache;
 	si_cacheinit(&cache, &db->e->a_cursorcache);
@@ -428,7 +428,7 @@ so_txcommit(soobj *o, va_list args)
 	uint64_t vlsn;
 	if (srunlikely(status == SO_RECOVER)) {
 		check_if_exists = 1;
-		vlsn = sr_seq(e->r.seq, SR_LSN) - 1;
+		vlsn = sr_seq(e->r.seq, SR_LSN);
 	} else {
 		check_if_exists = 0;
 		vlsn = sx_vlsn(&e->xm);

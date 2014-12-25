@@ -510,8 +510,6 @@ so_ctlsnapshot_set(src *c, srcstmt *s, va_list args)
 	char *name = va_arg(args, char*);
 	/* check snapshot created during recover */
 	uint64_t lsn = sr_seq(&e->seq, SR_LSN);
-	if (srlikely(lsn > 0))
-		lsn -= 1;
 	soobj *snapshot = so_snapshotnew(e, 1, lsn, name);
 	if (srunlikely(snapshot == NULL))
 		return -1;
