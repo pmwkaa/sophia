@@ -102,6 +102,10 @@ si_deploy(si *i, sr *r)
 	sinode *n = si_bootstrap(i, r, 0);
 	if (srunlikely(n == NULL))
 		return -1;
+	SR_INJECTION(r->i, SR_INJECTION_SI_RECOVER_0,
+	             si_nodefree(n, r, 0);
+	             sr_error(r->e, "%s", "error injection");
+	             return -1);
 	rc = si_nodecomplete(n, r, i->conf);
 	if (srunlikely(rc == -1)) {
 		si_nodefree(n, r, 1);
@@ -353,8 +357,11 @@ si_recoverindex(si *i, sr *r)
 	int rc = si_trackdir(&track, r, i);
 	if (srunlikely(rc == -1))
 		goto error;
-	if (srunlikely(track.count == 0))
+	if (srunlikely(track.count == 0)) {
+		sr_error(r->e, "corrupted database repository: %s",
+		         i->conf->path);
 		goto error;
+	}
 	rc = si_trackvalidate(&track, &buf, r, i);
 	if (srunlikely(rc == -1))
 		goto error;

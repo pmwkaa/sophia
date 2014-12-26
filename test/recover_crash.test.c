@@ -12,6 +12,77 @@
 #include <sophia.h>
 
 static void
+recovercrash_deploy0(stc *cx srunused)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	void *c = sp_ctl(env);
+	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
+	t( sp_set(c, "scheduler.threads", "0") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
+	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
+	t( sp_set(c, "log.sync", "0") == 0 );
+	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
+	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
+	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	void *db = sp_get(c, "db.test");
+	t( db != NULL );
+	t( sp_set(c, "debug.error_injection.si_recover_0", "1") == 0 );
+	t( sp_open(env) == -1 );
+	t( sp_destroy(env) == 0 );
+
+	t( exists(cx->suite->dir, "0000000000.0000000001.db.incomplete") == 1 );
+
+	/* recover */
+	env = sp_env();
+	t( env != NULL );
+	c = sp_ctl(env);
+	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
+	t( sp_set(c, "scheduler.threads", "0") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
+	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
+	t( sp_set(c, "log.sync", "0") == 0 );
+	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
+	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
+	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	db = sp_get(c, "db.test");
+	t( db != NULL );
+	t( sp_open(env) == -1 );
+	t( sp_destroy(env) == 0 );
+
+	t( exists(cx->suite->dir, "0000000001.db") == 0 );
+	t( exists(cx->suite->dir, "0000000000.0000000001.db.incomplete") == 0 );
+
+	env = sp_env();
+	t( env != NULL );
+	c = sp_ctl(env);
+	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
+	t( sp_set(c, "scheduler.threads", "0") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
+	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
+	t( sp_set(c, "log.sync", "0") == 0 );
+	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
+	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
+	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	db = sp_get(c, "db.test");
+	t( db != NULL );
+	t( sp_open(env) == -1 );
+	t( sp_destroy(env) == 0 );
+
+	t( exists(cx->suite->dir, "0000000001.db") == 0 );
+	t( exists(cx->suite->dir, "0000000000.0000000001.db.incomplete") == 0 );
+}
+
+static void
 recovercrash_branch0(stc *cx srunused)
 {
 	void *env = sp_env();
@@ -936,6 +1007,7 @@ recovercrash_compact7(stc *cx srunused)
 stgroup *recovercrash_group(void)
 {
 	stgroup *group = st_group("recover_crash");
+	st_groupadd(group, st_test("deploy_case0",  recovercrash_deploy0));
 	st_groupadd(group, st_test("branch_case0",  recovercrash_branch0));
 	st_groupadd(group, st_test("build_case0",   recovercrash_build0));
 	st_groupadd(group, st_test("build_case1",   recovercrash_build1));

@@ -561,10 +561,11 @@ so_ctldebug(so *e, soctlrt *rt srunused, src **pc)
 	sr_clink(&p, sr_c(pc, so_ctlv, "si_compaction_2", SR_CU32, &e->ei.e[5]));
 	sr_clink(&p, sr_c(pc, so_ctlv, "si_compaction_3", SR_CU32, &e->ei.e[6]));
 	sr_clink(&p, sr_c(pc, so_ctlv, "si_compaction_4", SR_CU32, &e->ei.e[7]));
-	sr_clink(&p, sr_c(pc, so_ctlv, "se_snapshot_0",   SR_CU32, &e->ei.e[8]));
-	sr_clink(&p, sr_c(pc, so_ctlv, "se_snapshot_1",   SR_CU32, &e->ei.e[9]));
-	sr_clink(&p, sr_c(pc, so_ctlv, "se_snapshot_2",   SR_CU32, &e->ei.e[10]));
-	sr_clink(&p, sr_c(pc, so_ctlv, "se_snapshot_3",   SR_CU32, &e->ei.e[11]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "si_recover_0",    SR_CU32, &e->ei.e[8]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "se_snapshot_0",   SR_CU32, &e->ei.e[9]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "se_snapshot_1",   SR_CU32, &e->ei.e[10]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "se_snapshot_2",   SR_CU32, &e->ei.e[11]));
+	sr_clink(&p, sr_c(pc, so_ctlv, "se_snapshot_3",   SR_CU32, &e->ei.e[12]));
 	ei = sr_c(pc, so_ctldb_set, "error_injection", SR_CC, ei);
 	return sr_c(pc, NULL, "debug", SR_CC, ei);
 }
