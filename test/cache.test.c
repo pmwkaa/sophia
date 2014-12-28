@@ -117,7 +117,7 @@ cache_test1(stc *cx)
 	sp_destroy(o);
 	o = sp_get(c, "db.test.index.read_cache");
 	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "368") == 0 );
+	t( strcmp(sp_get(o, "value", NULL), "553") == 0 );
 	sp_destroy(o);
 
 	t( sp_destroy(env) == 0 );
@@ -164,6 +164,12 @@ cache_invalidate(stc *cx)
 	t( sp_set(c, "db.test.branch") == 0 );
 
 	void *o = sp_object(db);
+	t( o != NULL );
+	t( sp_set(o, "key", &i, sizeof(i)) == 0 );
+	t( sp_set(o, "value", &i, sizeof(i)) == 0 );
+	t( sp_set(db, o) == 0 );
+
+	o = sp_object(db);
 	void *cur = sp_cursor(db, o);
 	i = 0;
 	t( cur != NULL );
@@ -174,15 +180,16 @@ cache_invalidate(stc *cx)
 		}
 		i++;
 	}
+	t( i == 371 );
 	t( sp_destroy(cur) == 0 );
 
 	o = sp_get(c, "db.test.index.read_disk");
 	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "2") == 0 );
+	t( strcmp(sp_get(o, "value", NULL), "3") == 0 );
 	sp_destroy(o);
 	o = sp_get(c, "db.test.index.read_cache");
 	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "368") == 0 );
+	t( strcmp(sp_get(o, "value", NULL), "722") == 0 );
 	sp_destroy(o);
 
 	t( sp_destroy(env) == 0 );

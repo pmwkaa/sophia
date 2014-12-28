@@ -210,3 +210,10 @@ sriterif sv_mergeiter =
 	.of      = sv_mergeiter_of,
 	.next    = sv_mergeiter_next
 };
+
+svmergesrc*
+sv_mergecurrent(sriter *i)
+{
+	svmergeiter *im = (svmergeiter*)i->priv;
+	return im->v;
+}

@@ -177,9 +177,13 @@ si_qfetchbranch(siquery *q, sinode *n, sibranch *b, svmerge *m)
 	assert(cb->branch == b);
 	/* cache iteration */
 	if (srlikely(cb->ref)) {
-		sr_iternext(&cb->i);
+		if (cb->iterate) {
+			sr_iternext(&cb->i);
+			cb->iterate = 0;
+		}
 		if (sr_iterhas(&cb->i)) {
-			sv_mergeadd(m, &cb->i);
+			svmergesrc *s = sv_mergeadd(m, &cb->i);
+			s->ptr = cb;
 			q->index->read_cache++;
 			return;
 		}
@@ -197,7 +201,8 @@ si_qfetchbranch(siquery *q, sinode *n, sibranch *b, svmerge *m)
 		cb->ref = NULL;
 		return;
 	}
-	sv_mergeadd(m, &cb->i);
+	svmergesrc *s = sv_mergeadd(m, &cb->i);
+	s->ptr = cb;
 	sr_iterinit(&cb->i, &sd_pageiter, q->r);
 	sr_iteropen(&cb->i, page, q->order, q->key, q->keysize, q->vlsn);
 }
@@ -262,6 +267,11 @@ next_node:
 			continue;
 		}
 		q->result = *v;
+		svmergesrc *src = sv_mergecurrent(&j);
+		sicachebranch *cb = src->ptr;
+		if (cb) {
+			cb->iterate = 1;
+		}
 		return 1;
 	}
 	/* unreach */

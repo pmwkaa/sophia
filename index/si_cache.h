@@ -17,6 +17,7 @@ struct sicachebranch {
 	sdindexpage *ref;
 	sriter i;
 	srbuf buf;
+	int iterate;
 	sicachebranch *next;
 } srpacked;
 
@@ -59,6 +60,7 @@ si_cachereset(sicache *c)
 		sr_bufreset(&cb->buf);
 		cb->branch = NULL;
 		cb->ref = NULL;
+		cb->iterate = 0;
 		cb = cb->next;
 	}
 	c->branch = NULL;
@@ -72,9 +74,10 @@ si_cacheadd(sicache *c, sibranch *b)
 	sicachebranch *nb = sr_malloc(c->ac, sizeof(sicachebranch));
 	if (srunlikely(nb == NULL))
 		return NULL;
-	nb->branch = b;
-	nb->ref    = NULL;
-	nb->next   = NULL;
+	nb->branch  = b;
+	nb->ref     = NULL;
+	nb->iterate = 0;
+	nb->next    = NULL;
 	sr_bufinit(&nb->buf);
 	return nb;
 }
@@ -91,25 +94,27 @@ si_cachevalidate(sicache *c, sinode *n)
 		/* c b a */
 		/* e d c b a */
 		sicachebranch *head = NULL;
+		sicachebranch *last = NULL;
 		sicachebranch *cb = c->path;
 		sibranch *b = n->branch;
-		int count = 0;
-		while (cb) {
+		while (b) {
 			if (cb->branch == b) {
-				assert(head != NULL);
-				head->next = cb;
+				assert(last != NULL);
+				last->next = cb;
 				break;
 			}
 			sicachebranch *nb = si_cacheadd(c, b);
 			if (srunlikely(nb == NULL))
 				return -1;
-			nb->next = head;
-			head = nb;
-			count++;
-			cb = cb->next;
+			if (! head)
+				head = nb;
+			if (last)
+				last->next = nb;
+			last = nb;
+			b = b->next;
 		}
 		c->path   = head;
-		c->count  = c->count + count;
+		c->count  = n->branch_count;
 		c->branch = c->path;
 		return 0;
 	}

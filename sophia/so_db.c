@@ -226,7 +226,7 @@ soobj *so_dbmatch(so *e, char *name)
 	srlist *i;
 	sr_listforeach(&e->db.list, i) {
 		soobj *o = srcast(i, soobj, link);
-		sodb *db;
+		sodb *db = NULL;
 		if (o->id == SODB)
 			db = (sodb*)o;
 		else
@@ -243,7 +243,7 @@ soobj *so_dbmatch_id(so *e, uint32_t id)
 	srlist *i;
 	sr_listforeach(&e->db.list, i) {
 		soobj *o = srcast(i, soobj, link);
-		sodb *db;
+		sodb *db = NULL;
 		if (o->id == SODB)
 			db = (sodb*)o;
 		else

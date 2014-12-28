@@ -562,10 +562,10 @@ static inline src*
 so_ctlsnapshot(so *e, soctlrt *rt srunused, src **pc)
 {
 	sosnapshotdb *db = (sosnapshotdb*)so_dbmatch(e, "snapshot");
+	src *snapshot = NULL;
 	if (srunlikely(db == NULL))
 		goto offline;
 	assert(db != NULL);
-	src *snapshot = NULL;
 	src *prev = NULL;
 	srlist *i;
 	sr_listforeach(&db->list.list, i)

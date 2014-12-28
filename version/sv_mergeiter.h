@@ -15,6 +15,7 @@ typedef struct svmerge svmerge;
 struct svmergesrc {
 	sriter *i, src;
 	uint8_t dup;
+	void *ptr;
 } srpacked;
 
 struct svmerge {
@@ -51,6 +52,7 @@ sv_mergeadd(svmerge *m, sriter *i)
 	svmergesrc *s = (svmergesrc*)m->buf.p;
 	s->dup = 0;
 	s->i = i;
+	s->ptr = NULL;
 	if (i == NULL)
 		s->i = &s->src;
 	sr_bufadvance(&m->buf, sizeof(svmergesrc));
@@ -58,5 +60,8 @@ sv_mergeadd(svmerge *m, sriter *i)
 }
 
 extern sriterif sv_mergeiter;
+
+svmergesrc*
+sv_mergecurrent(sriter*);
 
 #endif
