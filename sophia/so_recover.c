@@ -159,19 +159,33 @@ int so_recover_repository(so *e)
 {
 	e->seconf.path = e->ctl.path;
 	e->seconf.sync = 0;
-	int rc;
-	rc = se_open(&e->se, &e->r, &e->seconf);
-	if (srunlikely(rc == -1))
-		return -1;
+	return se_open(&e->se, &e->r, &e->seconf);
+}
+
+int so_recover_snapshot(so *e)
+{
+	if (srunlikely(e->ctl.disable_snapshot))
+		return 0;
 	/* recreate snapshot objects */
-	sriter i;
-	sr_iterinit(&i, &sd_ssiter, NULL);
-	sr_iteropen(&i, &e->se.snapshot.buf, 0);
-	for (; sr_iterhas(&i); sr_iternext(&i)) {
-		sdssrecord *rp = sr_iterof(&i);
-		soobj *snapshot = so_snapshotnew(e, 0, rp->lsn, rp->name);
-		if (srunlikely(snapshot == NULL))
+	sosnapshotdb *db = (sosnapshotdb*)so_dbmatch(e, "snapshot");
+	assert(db != NULL);
+	assert(db->o.id == SOSNAPSHOTDB);
+	void *o = so_objobject(&db->o);
+	if (srunlikely(o == NULL))
+		return -1;
+	void *c = so_objcursor(&db->o, o);
+	if (srunlikely(c == NULL))
+		return -1;
+	while ((o = so_objget(c))) {
+		char *name = so_objget(o, "key", NULL);
+		uint64_t lsn = *(uint64_t*)so_objget(o, "value", NULL);
+		soobj *s = so_snapshotnew(db, lsn, name);
+		if (srunlikely(s == NULL)) {
+			so_objdestroy(c);
 			return -1;
+		}
+		so_objindex_register(&db->list, s);
 	}
+	so_objdestroy(c);
 	return 0;
 }

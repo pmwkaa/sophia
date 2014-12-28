@@ -17,7 +17,6 @@ struct so {
 	soobjindex db;
 	soobjindex tx;
 	soobjindex ctlcursor;
-	soobjindex snapshot;
 	sostatus status;
 	soctl ctl;
 	srseq seq;
@@ -31,6 +30,7 @@ struct so {
 	sra a_ctlcursor;
 	sra a_logcursor;
 	sra a_snapshot;
+	sra a_snapshotdb;
 	sra a_tx;
 	sra a_sxv;
 	seconf seconf;
@@ -39,8 +39,8 @@ struct so {
 	slpool lp;
 	sxmanager xm;
 	soscheduler sched;
-	srerror error;
 	srinjection ei;
+	srerror error;
 	sr r;
 };
 

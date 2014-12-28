@@ -20,7 +20,6 @@ static int
 so_snapshotfree(sosnapshot *s)
 {
 	sx_end(&s->t);
-	so_objindex_unregister(&s->e->snapshot, &s->o);
 	if (srlikely(s->name)) {
 		sr_free(&s->e->a, s->name);
 		s->name = NULL;
@@ -45,8 +44,12 @@ static int
 so_snapshotdelete(soobj *o, va_list args srunused)
 {
 	sosnapshot *s = (sosnapshot*)o;
-	so *e = s->e;
-	int rc = se_snapshot_remove(&e->se, &e->r, s->name);
+	void *obj = so_objobject(&s->db->o);
+	if (srunlikely(obj == NULL))
+		return -1;
+	so_objset(obj, "key", s->name, strlen(s->name) + 1);
+	so_objset(obj, "value", &s->vlsn, sizeof(s->vlsn));
+	int rc = so_objdelete(&s->db->o, obj);
 	if (srunlikely(rc == -1))
 		return -1;
 	so_snapshotfree(s);
@@ -113,13 +116,9 @@ static soobjif sosnapshotif =
 	.type     = so_snapshottype
 };
 
-soobj *so_snapshotnew(so *e, int create, uint64_t vlsn, char *name)
+soobj *so_snapshotnew(sosnapshotdb *db, uint64_t vlsn, char *name)
 {
-	if (create) {
-		int rc = se_snapshot(&e->se, &e->r, vlsn, name);
-		if (srunlikely(rc == -1))
-			return NULL;
-	}
+	so *e = db->e;
 	sosnapshot *s = sr_malloc(&e->a_snapshot, sizeof(sosnapshot));
 	if (srunlikely(s == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");
@@ -127,6 +126,7 @@ soobj *so_snapshotnew(so *e, int create, uint64_t vlsn, char *name)
 		return NULL;
 	}
 	so_objinit(&s->o, SOSNAPSHOT, &sosnapshotif, &e->o);
+	s->db = db;
 	s->e = e;
 	s->vlsn = vlsn;
 	s->name = sr_strdup(&e->a, name);
@@ -137,6 +137,5 @@ soobj *so_snapshotnew(so *e, int create, uint64_t vlsn, char *name)
 		return NULL;
 	}
 	sx_begin(&e->xm, &s->t, vlsn);
-	so_objindex_register(&e->snapshot, &s->o);
 	return &s->o;
 }

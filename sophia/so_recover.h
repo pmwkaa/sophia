@@ -13,5 +13,6 @@ int so_recoverbegin(sodb*);
 int so_recoverend(sodb*);
 int so_recover(so*);
 int so_recover_repository(so*);
+int so_recover_snapshot(so*);
 
 #endif

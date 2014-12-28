@@ -20,6 +20,7 @@ struct sodbctl {
 	char         *path;
 	uint32_t      created;
 	uint32_t      sync;
+	uint32_t      system;
 	siprofiler    rtp;
 } srpacked;
 

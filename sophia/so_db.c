@@ -226,7 +226,12 @@ soobj *so_dbmatch(so *e, char *name)
 	srlist *i;
 	sr_listforeach(&e->db.list, i) {
 		soobj *o = srcast(i, soobj, link);
-		sodb *db = (sodb*)o;
+		sodb *db;
+		if (o->id == SODB)
+			db = (sodb*)o;
+		else
+		if (o->id == SOSNAPSHOTDB)
+			db = (sodb*)(((sosnapshotdb*)o)->db);
 		if (strcmp(db->ctl.name, name) == 0)
 			return o;
 	}
@@ -238,7 +243,12 @@ soobj *so_dbmatch_id(so *e, uint32_t id)
 	srlist *i;
 	sr_listforeach(&e->db.list, i) {
 		soobj *o = srcast(i, soobj, link);
-		sodb *db = (sodb*)o;
+		sodb *db;
+		if (o->id == SODB)
+			db = (sodb*)o;
+		else
+		if (o->id == SOSNAPSHOTDB)
+			db = (sodb*)(((sosnapshotdb*)o)->db);
 		if (db->ctl.id == id)
 			return o;
 	}

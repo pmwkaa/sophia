@@ -14,8 +14,6 @@ LIBST_O = st.o \
           sdv.test.o \
           sditer.test.o \
           sdpageiter.test.o \
-		  sdss.test.o \
-		  sdssiter.test.o \
           ctl.test.o \
           cache.test.o \
           error.test.o \
@@ -23,7 +21,6 @@ LIBST_O = st.o \
           repository.test.o \
           dml.test.o \
           snapshot.test.o \
-          snapshot_crash.test.o \
           branch.test.o \
           compact.test.o \
           checkpoint.test.o \

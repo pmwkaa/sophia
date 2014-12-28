@@ -20,8 +20,6 @@
 #include <sd_c.h>
 #include <sd_merge.h>
 #include <sd_iter.h>
-#include <sd_ss.h>
-#include <sd_ssiter.h>
 #include <sd_recover.h>
 
 #endif

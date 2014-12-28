@@ -28,6 +28,7 @@ recovercrash_deploy0(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_set(c, "debug.error_injection.si_recover_0", "1") == 0 );
@@ -73,6 +74,7 @@ recovercrash_deploy0(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == -1 );
@@ -99,6 +101,7 @@ recovercrash_branch0(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -138,6 +141,7 @@ recovercrash_branch0(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -182,6 +186,7 @@ recovercrash_build0(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -221,6 +226,7 @@ recovercrash_build0(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -264,6 +270,7 @@ recovercrash_build1(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -303,6 +310,7 @@ recovercrash_build1(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -346,6 +354,7 @@ recovercrash_compact0(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -387,6 +396,7 @@ recovercrash_compact0(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -431,6 +441,7 @@ recovercrash_compact1(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -473,6 +484,7 @@ recovercrash_compact1(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -519,6 +531,7 @@ recovercrash_compact2(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -561,6 +574,7 @@ recovercrash_compact2(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -609,6 +623,7 @@ recovercrash_compact3(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -647,6 +662,7 @@ recovercrash_compact3(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -690,6 +706,7 @@ recovercrash_compact4(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -728,6 +745,7 @@ recovercrash_compact4(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -773,6 +791,7 @@ recovercrash_compact5(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -811,6 +830,7 @@ recovercrash_compact5(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -856,6 +876,7 @@ recovercrash_compact6(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -894,6 +915,7 @@ recovercrash_compact6(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -939,6 +961,7 @@ recovercrash_compact7(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -978,6 +1001,7 @@ recovercrash_compact7(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );

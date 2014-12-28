@@ -10,16 +10,17 @@
 */
 
 typedef enum {
-	SOUNDEF     = 0L,
-	SOENV       = 0x06154834L,
-	SOCTL       = 0x1234FFBBL,
-	SOCTLCURSOR = 0x6AB65429L,
-	SOV         = 0x2FABCDE2L,
-	SODB        = 0x34591111L,
-	SOTX        = 0x13491FABL,
-	SOLOGCURSOR = 0x19315400L,
-	SOCURSOR    = 0x45ABCDFAL,
-	SOSNAPSHOT  = 0x00DBA138L
+	SOUNDEF      = 0L,
+	SOENV        = 0x06154834L,
+	SOCTL        = 0x1234FFBBL,
+	SOCTLCURSOR  = 0x6AB65429L,
+	SOV          = 0x2FABCDE2L,
+	SODB         = 0x34591111L,
+	SOTX         = 0x13491FABL,
+	SOLOGCURSOR  = 0x19315400L,
+	SOCURSOR     = 0x45ABCDFAL,
+	SOSNAPSHOT   = 0x71230BAFL,
+	SOSNAPSHOTDB = 0x00DBA138L
 } soobjid;
 
 static inline soobjid
@@ -50,8 +51,8 @@ struct soobjif {
 struct soobj {
 	soobjid  id;
 	soobjif *i;
-	soobj   *env;
-	srlist   link;
+	soobj *env;
+	srlist link;
 };
 
 static inline void
@@ -64,8 +65,28 @@ so_objinit(soobj *o, soobjid id, soobjif *i, soobj *env)
 }
 
 static inline int
+so_objopen(soobj *o, ...)
+{
+	va_list args;
+	va_start(args, o);
+	int rc = o->i->open(o, args);
+	va_end(args);
+	return rc;
+}
+
+static inline int
 so_objdestroy(soobj *o) {
 	return o->i->destroy(o);
+}
+
+static inline int
+so_objerror(soobj *o, ...)
+{
+	va_list args;
+	va_start(args, o);
+	int rc = o->i->error(o, args);
+	va_end(args);
+	return rc;
 }
 
 static inline void*
@@ -126,6 +147,15 @@ so_objcommit(soobj *o, ...)
 static inline int
 so_objrollback(soobj *o) {
 	return o->i->rollback(o);
+}
+
+static inline void*
+so_objcursor(soobj *o, ...) {
+	va_list args;
+	va_start(args, o);
+	void *h = o->i->cursor(o, args);
+	va_end(args);
+	return h;
 }
 
 #endif
