@@ -14,14 +14,16 @@ typedef struct sitx sitx;
 struct sitx {
 	uint64_t time;
 	uint64_t vlsn;
-	sv *v;
+	srlist nodelist;
+	svlog *l;
+	svlogindex *li;
 	si *index;
 	sr *r;
 };
 
-void si_begin(sitx*, sr*, si*, uint64_t, uint64_t, sv*);
+void si_begin(sitx*, sr*, si*, uint64_t, uint64_t,
+              svlog*, svlogindex*);
 void si_commit(sitx*);
-void si_set(si*, sr*, uint64_t, uint64_t, svv*);
 void si_write(sitx*, int);
 
 #endif

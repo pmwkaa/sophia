@@ -227,8 +227,8 @@ int sx_set(sx *t, sxindex *index, svv *version)
 	v->id = t->id;
 	v->index = index;
 	svlogv lv;
-	lv.dsn = index->dsn;
-	lv.ptr = index->ptr;
+	lv.id   = index->dsn;
+	lv.next = 0;
 	svinit(&lv.v, &sx_vif, v, NULL);
 	/* update concurrent index */
 	srrbnode *n = NULL;
@@ -238,8 +238,8 @@ int sx_set(sx *t, sxindex *index, svv *version)
 		/* exists */
 	} else {
 		/* unique */
-		v->lo = sv_logn(&t->log);
-		if (srunlikely(sv_logadd(&t->log, m->r->a, &lv) == -1))
+		v->lo = sv_logcount(&t->log);
+		if (srunlikely(sv_logadd(&t->log, m->r->a, &lv, index->ptr) == -1))
 			return sr_error(m->r->e, "%s", "memory allocation failed");
 		sr_rbset(&index->i, n, rc, &v->node);
 		return 0;
@@ -260,7 +260,7 @@ int sx_set(sx *t, sxindex *index, svv *version)
 		return 0;
 	}
 	/* update log */
-	rc = sv_logadd(&t->log, m->r->a, &lv);
+	rc = sv_logadd(&t->log, m->r->a, &lv, index->ptr);
 	if (srunlikely(rc == -1)) {
 		sx_vfree(m->r->a, m->asxv, v);
 		return sr_error(m->r->e, "%s", "memory allocation failed");

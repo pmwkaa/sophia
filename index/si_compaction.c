@@ -83,6 +83,31 @@ si_redistribute(si *index, sr *r, sdc *c, sinode *node, srbuf *result,
 	return 0;
 }
 
+static inline void
+si_redistribute_set(si *index, sr *r, uint64_t vlsn, uint64_t now, svv *v)
+{
+	index->update_time = now;
+	/* match node */
+	sriter i;
+	sr_iterinit(&i, &si_iter, r);
+	sr_iteropen(&i, index, SR_ROUTE, sv_vkey(v), v->keysize);
+	sinode *node = sr_iterof(&i);
+	assert(node != NULL);
+	/* update node */
+	svindex *vindex = si_nodeindex(node);
+	svv *vgc = NULL;
+	sv_indexset(vindex, r, vlsn, v, &vgc);
+	node->update_time = index->update_time;
+	node->used += sv_vsize(v);
+	if (srunlikely(vgc)) {
+		uint32_t gc = si_vgc(r->a, vgc);
+		node->used -= gc;
+		sr_quota(index->quota, SR_QREMOVE, gc);
+	}
+	/* schedule node */
+	si_plannerupdate(&index->p, SI_BRANCH, node);
+}
+
 static int
 si_redistribute_index(si *index, sr *r, sdc *c, sinode *node, uint64_t vlsn)
 {
@@ -103,7 +128,7 @@ si_redistribute_index(si *index, sr *r, sdc *c, sinode *node, uint64_t vlsn)
 	sr_iteropen(&i, &c->b, sizeof(svv*));
 	while (sr_iterhas(&i)) {
 		svv *v = sr_iterof(&i);
-		si_set(index, r, vlsn, now, v);
+		si_redistribute_set(index, r, vlsn, now, v);
 		sr_iternext(&i);
 	}
 	return 0;

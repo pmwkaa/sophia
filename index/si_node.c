@@ -33,6 +33,7 @@ sinode *si_nodenew(sr *r)
 	sr_rbinitnode(&n->node);
 	sr_rbinitnode(&n->nodecompact);
 	sr_rbinitnode(&n->nodebranch);
+	sr_listinit(&n->commit);
 	return n;
 }
 

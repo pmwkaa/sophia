@@ -78,12 +78,13 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 
 	/* log write */
 	svlogv lv;
-	lv.dsn = db->ctl.id;
-	lv.ptr = db;
+	lv.id = db->ctl.id;
+	lv.next = 0;
 	svinit(&lv.v, &sv_vif, v, NULL);
 	svlog log;
 	sv_loginit(&log);
-	sv_logadd(&log, db->r.a, &lv);
+	sv_logadd(&log, db->r.a, &lv, db);
+	svlogindex *logindex = (svlogindex*)log.index.s;
 	sltx tl;
 	sl_begin(&db->e->lp, &tl);
 	sl_prepare(&db->e->lp, &log);
@@ -99,7 +100,8 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	uint64_t vlsn = sx_vlsn(&db->e->xm);
 	uint64_t now = sr_utime();
 	sitx tx;
-	si_begin(&tx, &db->r, &db->index, vlsn, now, &lv.v);
+	si_begin(&tx, &db->r, &db->index, vlsn, now,
+	         &log, logindex);
 	si_write(&tx, 0);
 	si_commit(&tx);
 
@@ -399,7 +401,7 @@ so_txcommit(soobj *o, va_list args)
 	}
 	assert(t->t.s == SXPREPARE);
 
-	if (srunlikely(! sv_logn(&t->t.log))) {
+	if (srunlikely(! sv_logcount(&t->t.log))) {
 		sx_commit(&t->t);
 		sx_end(&t->t);
 		so_txend(t);
@@ -436,17 +438,16 @@ so_txcommit(soobj *o, va_list args)
 
 	/* multi-index commit */
 	uint64_t now = sr_utime();
-	sriter i;
-	sr_iterinit(&i, &sr_bufiter, NULL);
-	sr_iteropen(&i, &t->t.log.buf, sizeof(svlogv));
-	for (; sr_iterhas(&i); sr_iternext(&i))
-	{
-		svlogv *lv = sr_iterof(&i);
-		sodb *db = lv->ptr;
+
+	svlogindex *i   = (svlogindex*)t->t.log.index.s;
+	svlogindex *end = (svlogindex*)t->t.log.index.p;
+	while (i < end) {
+		sodb *db = i->ptr;
 		sitx ti;
-		si_begin(&ti, &db->r, &db->index, vlsn, now, &lv->v);
+		si_begin(&ti, &db->r, &db->index, vlsn, now, &t->t.log, i);
 		si_write(&ti, check_if_exists);
 		si_commit(&ti);
+		i++;
 	}
 	sx_end(&t->t);
 

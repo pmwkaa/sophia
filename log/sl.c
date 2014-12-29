@@ -360,7 +360,7 @@ sl_write_prepare(slpool *p, sltx *t, slv *lv, svlogv *logv)
 {
 	sv *v = &logv->v;
 	lv->lsn       = svlsn(v);
-	lv->dsn       = logv->dsn;
+	lv->dsn       = logv->id;
 	lv->flags     = svflags(v);
 	lv->valuesize = svvaluesize(v);
 	lv->keysize   = svkeysize(v);
@@ -405,7 +405,7 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 	lv->lsn       = lsn;
 	lv->dsn       = 0;
 	lv->flags     = SVBEGIN;
-	lv->valuesize = sv_logn(vlog);
+	lv->valuesize = sv_logcount(vlog);
 	lv->keysize   = 0;
 	lv->crc       = sr_crcs(lv, sizeof(slv), 0);
 	sr_iovadd(&p->iov, lv, sizeof(slv));
@@ -441,7 +441,7 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 		}
 		sr_iovreset(&p->iov);
 	}
-	sr_gcmark(&l->gc, sv_logn(vlog));
+	sr_gcmark(&l->gc, sv_logcount(vlog));
 	return 0;
 }
 
@@ -451,7 +451,7 @@ int sl_write(sltx *t, svlog *vlog)
 	 * (lsn set) */
 	if (srunlikely(! t->p->conf->enable))
 		return 0;
-	int count = sv_logn(vlog);
+	int count = sv_logcount(vlog);
 	int rc;
 	if (srlikely(count == 1)) {
 		rc = sl_write_stmt(t, vlog);

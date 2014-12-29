@@ -34,6 +34,7 @@ struct sinode {
 	srrbnode  node;
 	srrbnode  nodecompact;
 	srrbnode  nodebranch;
+	srlist    commit;
 } srpacked;
 
 sinode *si_nodenew(sr*);
