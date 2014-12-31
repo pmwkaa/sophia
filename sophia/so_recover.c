@@ -24,7 +24,9 @@ int so_recoverbegin(sodb *db)
 	siconf *c = &db->indexconf;
 	c->node_size      = e->ctl.node_size;
 	c->node_page_size = e->ctl.page_size;
+	c->path_backup    = e->ctl.backup_path;
 	c->path           = db->ctl.path;
+	c->name           = db->ctl.name;
 	c->sync           = db->ctl.sync;
 	int rc = si_open(&db->index, &db->r, &db->indexconf);
 	if (srunlikely(rc == -1))
@@ -157,7 +159,8 @@ error:
 
 int so_recover_repository(so *e)
 {
-	e->seconf.path = e->ctl.path;
+	e->seconf.path        = e->ctl.path;
+	e->seconf.path_backup = e->ctl.backup_path;
 	e->seconf.sync = 0;
 	return se_open(&e->se, &e->r, &e->seconf);
 }

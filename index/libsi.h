@@ -19,6 +19,7 @@
 #include <si_cache.h>
 #include <si_query.h>
 #include <si_iter.h>
+#include <si_backup.h>
 #include <si_balance.h>
 #include <si_compaction.h>
 #include <si_track.h>

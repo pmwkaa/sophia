@@ -12,7 +12,9 @@
 typedef struct siconf siconf;
 
 struct siconf {
+	char     *name;
 	char     *path;
+	char     *path_backup;
 	int       sync;
 	uint64_t  node_size;
 	uint32_t  node_page_size;

@@ -141,10 +141,10 @@ so_ctlsophia(so *e, soctlrt *rt, src **pc)
 {
 	src *sophia = *pc;
 	src *p = NULL;
-	sr_clink(&p, sr_c(pc, so_ctlv,            "version", SR_CSZ|SR_CRO, rt->version));
-	sr_clink(&p, sr_c(pc, so_ctlv,            "build",   SR_CSZ|SR_CRO, SR_VERSION_COMMIT));
-	sr_clink(&p, sr_c(pc, so_ctlsophia_error, "error",   SR_CSZ|SR_CRO, NULL));
-	sr_clink(&p, sr_c(pc, so_ctlv_offline,    "path",    SR_CSZREF,     &e->ctl.path));
+	sr_clink(&p, sr_c(pc, so_ctlv,            "version",     SR_CSZ|SR_CRO, rt->version));
+	sr_clink(&p, sr_c(pc, so_ctlv,            "build",       SR_CSZ|SR_CRO, SR_VERSION_COMMIT));
+	sr_clink(&p, sr_c(pc, so_ctlsophia_error, "error",       SR_CSZ|SR_CRO, NULL));
+	sr_clink(&p, sr_c(pc, so_ctlv_offline,    "path",        SR_CSZREF,     &e->ctl.path));
 	return sr_c(pc, NULL, "sophia", SR_CC, sophia);
 }
 
@@ -213,6 +213,7 @@ so_ctlcompaction(so *e, soctlrt *rt srunused, src **pc)
 		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "branch_wm",     SR_CU32, &z->branch_wm));
 		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "branch_ttl",    SR_CU32, &z->branch_ttl));
 		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "branch_ttl_wm", SR_CU32, &z->branch_ttl_wm));
+		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "backup_prio",   SR_CU32, &z->backup_prio));
 		sr_clink(&prev, sr_c(pc, NULL, z->name, SR_CC, zone));
 	}
 	return sr_c(pc, so_ctlcompaction_set, "compaction", SR_CC, compaction);
@@ -269,7 +270,7 @@ so_ctlscheduler(so *e, soctlrt *rt, src **pc)
 	sr_clink(&p, sr_c(pc, so_ctlv,         "checkpoint_lsn",      SR_CU64|SR_CRO, &rt->checkpoint_lsn));
 	sr_clink(&p, sr_c(pc, so_ctlv,         "checkpoint_lsn_last", SR_CU64|SR_CRO, &rt->checkpoint_lsn_last));
 	sr_clink(&p, sr_c(pc, so_ctlscheduler_checkpoint, "checkpoint", SR_CVOID, NULL));
-	sr_clink(&p, sr_c(pc, so_ctlscheduler_run,        "run",        SR_CVOID, NULL));
+	sr_clink(&p, sr_c(pc, so_ctlscheduler_run, "run", SR_CVOID, NULL));
 	prev = p;
 	srlist *i;
 	sr_listforeach(&e->sched.workers.list, i) {
@@ -473,6 +474,7 @@ so_ctldb(so *e, soctlrt *rt srunused, src **pc)
 		sr_clink(&p, sr_c(pc, so_ctlv,         "count",            SR_CU64|SR_CRO, &o->ctl.rtp.count));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "seq_dsn",          SR_CU32|SR_CRO, &o->ctl.rtp.seq.dsn));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "seq_nsn",          SR_CU32|SR_CRO, &o->ctl.rtp.seq.nsn));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "seq_bsn",          SR_CU32|SR_CRO, &o->ctl.rtp.seq.bsn));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "seq_lsn",          SR_CU64|SR_CRO, &o->ctl.rtp.seq.lsn));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "seq_lfsn",         SR_CU32|SR_CRO, &o->ctl.rtp.seq.lfsn));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "seq_tsn",          SR_CU32|SR_CRO, &o->ctl.rtp.seq.tsn));
@@ -557,6 +559,29 @@ so_ctlsnapshot(so *e, soctlrt *rt srunused, src **pc)
 	return sr_c(pc, so_ctlsnapshot_set, "snapshot", SR_CC, snapshot);
 }
 
+static inline int
+so_ctlbackup_run(src *c, srcstmt *s, va_list args)
+{
+	if (s->op != SR_CSET)
+		return so_ctlv(c, s, args);
+	so *e = s->ptr;
+	return so_scheduler_backup(e);
+}
+
+
+static inline src*
+so_ctlbackup(so *e, soctlrt *rt, src **pc)
+{
+	src *backup = *pc;
+	src *p = NULL;
+	sr_clink(&p, sr_c(pc, so_ctlv_offline, "path", SR_CSZREF, &e->ctl.backup_path));
+	sr_clink(&p, sr_c(pc, so_ctlbackup_run, "run", SR_CVOID, NULL));
+	sr_clink(&p, sr_c(pc, so_ctlv, "active", SR_CU32|SR_CRO, &rt->backup_active));
+	sr_clink(&p, sr_c(pc, so_ctlv, "last", SR_CU32|SR_CRO, &rt->backup_last));
+	sr_clink(&p, sr_c(pc, so_ctlv, "last_complete", SR_CU32|SR_CRO, &rt->backup_last_complete));
+	return sr_c(pc, NULL, "backup", SR_CC, backup);
+}
+
 static inline src*
 so_ctldebug(so *e, soctlrt *rt srunused, src **pc)
 {
@@ -595,6 +620,7 @@ so_ctlprepare(so *e, soctlrt *rt, src *c, int serialize)
 	src *scheduler  = so_ctlscheduler(e, rt, &pc);
 	src *log        = so_ctllog(e, rt, &pc);
 	src *snapshot   = so_ctlsnapshot(e, rt, &pc);
+	src *backup     = so_ctlbackup(e, rt, &pc);
 	src *db         = so_ctldb(e, rt, &pc);
 	src *debug      = so_ctldebug(e, rt, &pc);
 
@@ -603,7 +629,8 @@ so_ctlprepare(so *e, soctlrt *rt, src *c, int serialize)
 	compaction->next = scheduler;
 	scheduler->next  = log;
 	log->next        = snapshot;
-	snapshot->next   = db;
+	snapshot->next   = backup;
+	backup->next     = db;
 	if (! serialize)
 		db->next = debug;
 	return sophia;
@@ -623,9 +650,12 @@ so_ctlrt(so *e, soctlrt *rt)
 
 	/* scheduler */
 	sr_mutexlock(&e->sched.lock);
-	rt->checkpoint_active   = e->sched.checkpoint;
-	rt->checkpoint_lsn_last = e->sched.checkpoint_lsn_last;
-	rt->checkpoint_lsn      = e->sched.checkpoint_lsn;
+	rt->checkpoint_active    = e->sched.checkpoint;
+	rt->checkpoint_lsn_last  = e->sched.checkpoint_lsn_last;
+	rt->checkpoint_lsn       = e->sched.checkpoint_lsn;
+	rt->backup_active        = e->sched.backup;
+	rt->backup_last          = e->sched.backup_last;
+	rt->backup_last_complete = e->sched.backup_last_complete;
 	sr_mutexunlock(&e->sched.lock);
 
 	int v = sr_quotaused_percent(&e->quota);
@@ -763,7 +793,8 @@ void so_ctlinit(soctl *c, void *e)
 		.branch_prio   = 1,
 		.branch_wm     = 10 * 1024 * 1024,
 		.branch_ttl    = 40,
-		.branch_ttl_wm = 1 * 1024 * 1024
+		.branch_ttl_wm = 1 * 1024 * 1024,
+		.backup_prio   = 1
 	};
 	sizone redzone = {
 		.enable        = 1,
@@ -772,7 +803,8 @@ void so_ctlinit(soctl *c, void *e)
 		.branch_prio   = 0,
 		.branch_wm     = 0,
 		.branch_ttl    = 0,
-		.branch_ttl_wm = 0
+		.branch_ttl_wm = 0,
+		.backup_prio   = 0
 	};
 	si_zonemap_set(&o->ctl.zones,  0, &def);
 	si_zonemap_set(&o->ctl.zones, 80, &redzone);

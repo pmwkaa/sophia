@@ -112,6 +112,7 @@ si_deploy(si *i, sr *r)
 		return -1;
 	}
 	si_insert(i, r, n);
+	si_plannerupdate(&i->p, SI_COMPACT|SI_BRANCH, n);
 	return 1;
 }
 
@@ -342,7 +343,7 @@ si_recovercomplete(sitrack *track, sr *r, si *index, srbuf *buf)
 		}
 		n->recover = SI_RDB;
 		si_insert(index, r, n);
-		si_plannerupdate(&index->p, SI_COMPACT, n);
+		si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH, n);
 	}
 	return 0;
 }
@@ -383,8 +384,8 @@ error:
 
 int si_recover(si *i, sr *r)
 {
-	int exists = sr_fileexists(i->conf->path);
-	if (exists == 0)
+	int exist = sr_fileexists(i->conf->path);
+	if (exist == 0)
 		return si_deploy(i, r);
 	return si_recoverindex(i, r);
 }

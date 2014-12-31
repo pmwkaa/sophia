@@ -20,12 +20,12 @@ sl_alloc(slpool *p, uint32_t id)
 		return NULL;
 	}
 	l->id   = id;
-	l->used = 0;
 	l->p    = NULL;
 	sr_gcinit(&l->gc);
 	sr_mutexinit(&l->filelock);
 	sr_fileinit(&l->file, p->r->a);
 	sr_listinit(&l->link);
+	sr_listinit(&l->linkcopy);
 	return l;
 }
 
@@ -97,6 +97,7 @@ int sl_poolinit(slpool *p, sr *r)
 	sr_listinit(&p->list);
 	p->n    = 0;
 	p->r    = r;
+	p->gc   = 1;
 	p->conf = NULL;
 	struct iovec *iov =
 		sr_malloc(r->a, sizeof(struct iovec) * 1021);
@@ -246,12 +247,24 @@ sl_gc(slpool *p, sl *l)
 	return 1;
 }
 
+int sl_poolgc_enable(slpool *p, int enable)
+{
+	sr_spinlock(&p->lock);
+	p->gc = enable;
+	sr_spinunlock(&p->lock);
+	return 0;
+}
+
 int sl_poolgc(slpool *p)
 {
 	if (srunlikely(! p->conf->enable))
 		return 0;
 	for (;;) {
 		sr_spinlock(&p->lock);
+		if (srunlikely(! p->gc)) {
+			sr_spinunlock(&p->lock);
+			return 0;
+		}
 		sl *current = NULL;
 		srlist *i;
 		sr_listforeach(&p->list, i) {
@@ -281,6 +294,69 @@ int sl_poolfiles(slpool *p)
 	int n = p->n;
 	sr_spinunlock(&p->lock);
 	return n;
+}
+
+int sl_poolcopy(slpool *p, char *dest, srbuf *buf)
+{
+	srlist list;
+	sr_listinit(&list);
+	sr_spinlock(&p->lock);
+	srlist *i;
+	sr_listforeach(&p->list, i) {
+		sl *l = srcast(i, sl, link);
+		if (sr_gcinprogress(&l->gc))
+			break;
+		sr_listappend(&list, &l->linkcopy);
+	}
+	sr_spinunlock(&p->lock);
+
+	sr_bufinit(buf);
+	srlist *n;
+	sr_listforeach_safe(&list, i, n)
+	{
+		sl *l = srcast(i, sl, linkcopy);
+		sr_listinit(&l->linkcopy);
+		srpath path;
+		sr_pathA(&path, dest, l->id, ".log");
+		srfile file;
+		sr_fileinit(&file, p->r->a);
+		int rc = sr_filenew(&file, path.path);
+		if (srunlikely(rc == -1)) {
+			sr_error(p->r->e, "log file '%s' create error: %s",
+			         path.path, strerror(errno));
+			return -1;
+		}
+		rc = sr_bufensure(buf, p->r->a, l->file.size);
+		if (srunlikely(rc == -1)) {
+			sr_error(p->r->e, "%s", "memory allocation failed");
+			sr_fileclose(&file);
+			return -1;
+		}
+		rc = sr_filepread(&l->file, 0, buf->s, l->file.size);
+		if (srunlikely(rc == -1)) {
+			sr_error(p->r->e, "log file '%s' read error: %s",
+					 l->file.file, strerror(errno));
+			sr_fileclose(&file);
+			return -1;
+		}
+		sr_bufadvance(buf, l->file.size);
+		rc = sr_filewrite(&file, buf->s, l->file.size);
+		if (srunlikely(rc == -1)) {
+			sr_error(p->r->e, "log file '%s' write error: %s",
+					 path.path, strerror(errno));
+			sr_fileclose(&file);
+			return -1;
+		}
+		/* sync? */
+		rc = sr_fileclose(&file);
+		if (srunlikely(rc == -1)) {
+			sr_error(p->r->e, "log file '%s' close error: %s",
+			         path.path, strerror(errno));
+			return -1;
+		}
+		sr_bufreset(buf);
+	}
+	return 0;
 }
 
 int sl_begin(slpool *p, sltx *t)

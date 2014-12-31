@@ -21,6 +21,7 @@ sinode *si_nodenew(sr *r)
 		return NULL;
 	}
 	n->recover = 0;
+	n->backup = 0;
 	n->flags = 0;
 	n->update_time = 0;
 	n->used = 0;

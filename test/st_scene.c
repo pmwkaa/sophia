@@ -47,6 +47,7 @@ void
 st_scene_rmrf(stscene *g, stc *cx)
 {
 	rmrf(cx->suite->sophiadir);
+	rmrf(cx->suite->backupdir);
 	rmrf(cx->suite->logdir);
 	rmrf(cx->suite->dir);
 }

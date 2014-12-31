@@ -34,6 +34,7 @@ extern stgroup *tpr_group(void);
 extern stgroup *object_group(void);
 extern stgroup *profiler_group(void);
 extern stgroup *snapshot_group(void);
+extern stgroup *backup_group(void);
 extern stgroup *transaction_group(void);
 extern stgroup *transaction_multidb_group(void);
 extern stgroup *tpc_group(void);
@@ -53,7 +54,7 @@ int
 main(int argc, char *argv[])
 {
 	st s;
-	st_init(&s, "./sophia", "./dir", "./logdir");
+	st_init(&s, "./sophia", "./backup", "./dir", "./logdir");
 
 	st_addscene(&s, st_scene("rmrf", st_scene_rmrf, 1));
 	st_addscene(&s, st_scene("create", st_scene_create, 1));
@@ -106,6 +107,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, logcursor_group());
 	st_planadd(plan, transaction_multidb_group());
 	st_planadd(plan, snapshot_group());
+	st_planadd(plan, backup_group());
 	st_add(&s, plan);
 
 	plan = st_plan("default");

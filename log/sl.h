@@ -16,17 +16,18 @@ typedef struct sltx sltx;
 struct sl {
 	uint32_t id;
 	srgc gc;
-	uint32_t used;
 	srmutex filelock;
 	srfile file;
 	slpool *p;
 	srlist link;
+	srlist linkcopy;
 };
 
 struct slpool {
 	srspinlock lock;
 	slconf *conf;
 	srlist list;
+	int gc;
 	int n;
 	sriov iov;
 	sr *r;
@@ -43,8 +44,10 @@ int sl_poolopen(slpool*, slconf*);
 int sl_poolrotate(slpool*);
 int sl_poolrotate_ready(slpool*, int);
 int sl_poolshutdown(slpool*);
+int sl_poolgc_enable(slpool*, int);
 int sl_poolgc(slpool*);
 int sl_poolfiles(slpool*);
+int sl_poolcopy(slpool*, char*, srbuf*);
 
 int sl_begin(slpool*, sltx*);
 int sl_prepare(slpool*, svlog*);

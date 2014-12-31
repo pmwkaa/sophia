@@ -21,6 +21,7 @@ struct sizone {
 	uint32_t branch_wm;
 	uint32_t branch_ttl;
 	uint32_t branch_ttl_wm;
+	uint32_t backup_prio;
 };
 
 struct sizonemap {

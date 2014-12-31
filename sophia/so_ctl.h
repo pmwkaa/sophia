@@ -22,6 +22,9 @@ struct soctlrt {
 	uint32_t  checkpoint_active;
 	uint64_t  checkpoint_lsn;
 	uint64_t  checkpoint_lsn_last;
+	uint32_t  backup_active;
+	uint32_t  backup_last;
+	uint32_t  backup_last_complete;
 	/* log */
 	uint32_t  log_files;
 };
@@ -30,6 +33,8 @@ struct soctl {
 	soobj o;
 	/* sophia */
 	char      *path;
+	/* backup */
+	char      *backup_path;
 	/* compaction */
 	uint32_t   node_size;
 	uint32_t   page_size;

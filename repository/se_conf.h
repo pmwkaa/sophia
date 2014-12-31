@@ -13,6 +13,7 @@ typedef struct seconf seconf;
 
 struct seconf {
 	char *path;
+	char *path_backup;
 	int sync;
 };
 

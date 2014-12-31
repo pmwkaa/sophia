@@ -91,29 +91,174 @@ int so_scheduler_checkpoint(void *arg)
 	return 0;
 }
 
+int so_scheduler_backup(void *arg)
+{
+	so *e = arg;
+	soscheduler *s = &e->sched;
+	if (srunlikely(e->ctl.backup_path == NULL)) {
+		sr_error(&e->error, "%s", "backup is not enabled");
+		sr_error_recoverable(&e->error);
+		return -1;
+	}
+	/* begin backup procedure
+	 * state 0
+	 *
+	 * disable log garbage-collection
+	*/
+	sl_poolgc_enable(&e->lp, 0);
+	sr_mutexlock(&s->lock);
+	if (srunlikely(s->backup > 0)) {
+		sr_mutexunlock(&s->lock);
+		sl_poolgc_enable(&e->lp, 1);
+		/* in progress */
+		return 0;
+	}
+	uint64_t bsn = sr_seq(&e->seq, SR_BSNNEXT);
+	s->backup = 1;
+	s->backup_bsn = bsn;
+	sr_mutexunlock(&s->lock);
+	return 0;
+}
+
+static inline int
+so_backupstart(soscheduler *s)
+{
+	so *e = s->env;
+	/*
+	 * a. create backup_path/<bsn.incomplete> directory
+	 * b. create database directories
+	 * c. create log directory
+	*/
+	char path[1024];
+	snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete",
+	         e->ctl.backup_path, s->backup_bsn);
+	int rc = sr_filemkdir(path);
+	if (srunlikely(rc == -1)) {
+		sr_error(&e->error, "backup directory '%s' create error: %s",
+		         path, strerror(errno));
+		sr_error_recoverable(&e->error);
+		return -1;
+	}
+	int i = 0;
+	while (i < s->count) {
+		sodb *db = s->i[i];
+		snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete/%s",
+		         e->ctl.backup_path, s->backup_bsn,
+		         db->ctl.name);
+		rc = sr_filemkdir(path);
+		if (srunlikely(rc == -1)) {
+			sr_error(&e->error, "backup directory '%s' create error: %s",
+					 path, strerror(errno));
+			sr_error_recoverable(&e->error);
+			return -1;
+		}
+		i++;
+	}
+	snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete/log",
+	         e->ctl.backup_path, s->backup_bsn);
+	rc = sr_filemkdir(path);
+	if (srunlikely(rc == -1)) {
+		sr_error(&e->error, "backup directory '%s' create error: %s",
+		         path, strerror(errno));
+		sr_error_recoverable(&e->error);
+		return -1;
+	}
+	return 0;
+}
+
+static inline int
+so_backupcomplete(soscheduler *s, soworker *w)
+{
+	/*
+	 * a. rotate log file
+	 * b. copy log files
+	 * c. enable log gc
+	 * d. rename <bsn.incomplete> into <bsn>
+	 * e. set last backup, set COMPLETE
+	 */
+	so *e = s->env;
+
+	/* force log rotation */
+	sr_trace(&w->trace, "%s", "log rotation for backup");
+	int rc = sl_poolrotate(&e->lp);
+	if (srunlikely(rc == -1))
+		return -1;
+
+	/* copy log files */
+	sr_trace(&w->trace, "%s", "log files backup");
+
+	char path[1024];
+	snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete/log",
+	         e->ctl.backup_path, s->backup_bsn);
+	rc = sl_poolcopy(&e->lp, path, &w->dc.c);
+	if (srunlikely(rc == -1)) {
+		sr_error_recoverable(&e->error);
+		return -1;
+	}
+
+	/* enable log gc */
+	sl_poolgc_enable(&e->lp, 1);
+
+	/* complete backup */
+	snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete",
+	         e->ctl.backup_path, s->backup_bsn);
+	char newpath[1024];
+	snprintf(newpath, sizeof(newpath), "%s/%" PRIu32,
+	         e->ctl.backup_path, s->backup_bsn);
+	rc = rename(path, newpath);
+	if (srunlikely(rc == -1)) {
+		sr_error(&e->error, "backup directory '%s' rename error: %s",
+		         path, strerror(errno));
+		sr_error_recoverable(&e->error);
+		return -1;
+	}
+
+	/* complete */
+	s->backup_last = s->backup_bsn;
+	s->backup_last_complete = 1;
+	s->backup = 0;
+	s->backup_bsn = 0;
+	return 0;
+}
+
+static inline int
+so_backuperror(soscheduler *s)
+{
+	so *e = s->env;
+	sl_poolgc_enable(&e->lp, 1);
+	s->backup = 0;
+	s->backup_last_complete = 0;
+	return 0;
+}
+
 int so_scheduler_call(void *arg)
 {
-	so *o = arg;
-	soscheduler *s = &o->sched;
+	so *e = arg;
+	soscheduler *s = &e->sched;
 	soworker stub;
-	so_workerstub_init(&stub, &o->r);
+	so_workerstub_init(&stub, &e->r);
 	int rc = so_scheduler(s, &stub);
-	so_workerstub_free(&stub, &o->r);
+	so_workerstub_free(&stub, &e->r);
 	return rc;
 }
 
 int so_scheduler_init(soscheduler *s, void *env)
 {
 	sr_mutexinit(&s->lock);
-	s->branch              = 0;
-	s->rotate              = 0;
-	s->i                   = NULL;
-	s->count               = 0;
-	s->rr                  = 0;
-	s->env                 = env;
-	s->checkpoint_lsn      = 0;
-	s->checkpoint_lsn_last = 0;
-	s->checkpoint          = 0;
+	s->workers_branch       = 0;
+	s->workers_backup       = 0;
+	s->rotate               = 0;
+	s->i                    = NULL;
+	s->count                = 0;
+	s->rr                   = 0;
+	s->env                  = env;
+	s->checkpoint_lsn       = 0;
+	s->checkpoint_lsn_last  = 0;
+	s->checkpoint           = 0;
+	s->backup_bsn           = 0;
+	s->backup_last          = 0;
+	s->backup_last_complete = 0;
+	s->backup               = 0;
 	so_workersinit(&s->workers);
 	return 0;
 }
@@ -275,7 +420,8 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 	/* log gc and rotation */
 	task->rotate = 0;
 	task->gc = 0;
-	if (s->rotate == 0) {
+	if (s->rotate == 0)
+	{
 		task->rotate = 1;
 		s->rotate = 1;
 	}
@@ -290,7 +436,7 @@ checkpoint:
 		rc = so_schedule_plan(s, &task->plan, &db);
 		switch (rc) {
 		case 1:
-			s->branch++;
+			s->workers_branch++;
 			task->db = db;
 			task->gc = 1;
 			sr_mutexunlock(&s->lock);
@@ -327,7 +473,75 @@ checkpoint:
 		assert(zone->mode == 3);
 	}
 
-	if (s->branch < zone->branch_prio)
+	/* backup */
+	if (s->backup && (s->workers_backup < zone->backup_prio))
+	{
+		/* backup procedure.
+		 *
+		 * state 0 (start)
+		 * -------
+		 *
+		 * a. disable log gc
+		 * b. mark to start backup (state 1)
+		 *
+		 * state 1 (background, delayed start)
+		 * -------
+		 *
+		 * a. create backup_path/<bsn.incomplete> directory
+		 * b. create database directories
+		 * c. create log directory
+		 * d. state 2
+		 *
+		 * state 2 (background, copy)
+		 * -------
+		 *
+		 * a. schedule and execute node backup which bsn < backup_bsn
+		 * b. state 3
+		 *
+		 * state 3 (background, completion)
+		 * -------
+		 *
+		 * a. rotate log file
+		 * b. copy log files
+		 * c. enable log gc, schedule gc
+		 * d. rename <bsn.incomplete> into <bsn>
+		 * e. set last backup, set COMPLETE
+		 *
+		*/
+		if (s->backup == 1) {
+			/* state 1 */
+			rc = so_backupstart(s);
+			if (srunlikely(rc == -1)) {
+				so_backuperror(s);
+				goto backup_error;
+			}
+			s->backup = 2;
+		}
+		/* state 2 */
+		task->plan.plan = SI_BACKUP;
+		task->plan.a = s->backup_bsn;
+		rc = so_schedule_plan(s, &task->plan, &db);
+		switch (rc) {
+		case 1:
+			s->workers_backup++;
+			task->db = db;
+			sr_mutexunlock(&s->lock);
+			return 1;
+		case 2: /* work in progress */
+			break;
+		case 0: /* state 3 */
+			rc = so_backupcomplete(s, w);
+			if (srunlikely(rc == -1)) {
+				so_backuperror(s);
+				goto backup_error;
+			}
+			task->gc = 1;
+			break;
+		}
+backup_error:;
+	}
+
+	if (s->workers_branch < zone->branch_prio)
 	{
 		/* schedule branch task using following
 		 * priority:
@@ -350,7 +564,7 @@ checkpoint:
 		task->plan.c = zone->branch_ttl_wm;
 		rc = so_schedule_plan(s, &task->plan, &db);
 		if (rc == 1) {
-			s->branch++;
+			s->workers_branch++;
 			task->db = db;
 			task->gc = 1;
 			sr_mutexunlock(&s->lock);
@@ -416,9 +630,15 @@ static int
 so_complete(soscheduler *s, sotask *t)
 {
 	sr_mutexlock(&s->lock);
-	if (t->plan.plan == SI_BRANCH ||
-	    t->plan.plan == SI_CHECKPOINT)
-		s->branch--;
+	switch (t->plan.plan) {
+	case SI_BRANCH:
+	case SI_CHECKPOINT:
+		s->workers_branch--;
+		break;
+	case SI_BACKUP:
+		s->workers_backup--;
+		break;
+	}
 	if (t->rotate == 1)
 		s->rotate = 0;
 	sr_mutexunlock(&s->lock);
@@ -437,8 +657,15 @@ int so_scheduler(soscheduler *s, soworker *w)
 	}
 	if (job) {
 		rc = so_execute(&task, w);
-		if (srunlikely(rc == -1))
-			goto error;
+		if (srunlikely(rc == -1)) {
+			if (task.plan.plan == SI_BACKUP) {
+				sr_mutexlock(&s->lock);
+				so_backuperror(s);
+				sr_mutexunlock(&s->lock);
+			} else {
+				goto error;
+			}
+		}
 	}
 	if (task.gc) {
 		rc = so_gc(s, w);

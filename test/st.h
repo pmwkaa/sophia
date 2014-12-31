@@ -62,6 +62,7 @@ struct stplan {
 
 struct st {
 	char *sophiadir;
+	char *backupdir;
 	char *logdir;
 	char *dir;
 	srlist scene;
@@ -72,7 +73,7 @@ struct st {
 	int stat_test;
 };
 
-void     st_init(st*, char*, char*, char*);
+void     st_init(st*, char*, char*, char*, char*);
 void     st_free(st*);
 void     st_run(st*);
 stscene *st_sceneof(st*, char*);

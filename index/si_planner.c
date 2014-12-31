@@ -40,6 +40,8 @@ int si_plannertrace(siplan *p, srtrace *t)
 		break;
 	case SI_CHECKPOINT: plan = "checkpoint";
 		break;
+	case SI_BACKUP: plan = "backup";
+		break;
 	}
 	char *explain = NULL;;
 	switch (p->explain) {
@@ -170,6 +172,36 @@ match:
 }
 
 static inline int
+si_plannerpeek_backup(siplanner *p, siplan *plan)
+{
+	/* try to peek a node which has
+	 * bsn <= required value
+	*/
+	int rc_inprogress = 0;
+	sinode *n;
+	srrbnode *pn;
+	pn = sr_rbmax(&p->branch);
+	for (; pn ; pn = sr_rbprev(&p->branch, pn)) {
+		n = srcast(pn, sinode, nodebranch);
+		if (n->backup < plan->a) {
+			if (n->flags & SI_LOCK) {
+				rc_inprogress = 2;
+				continue;
+			}
+			goto match;
+		}
+	}
+	if (rc_inprogress)
+		plan->explain = SI_ERETRY;
+	return rc_inprogress;
+match:
+	si_nodelock(n);
+	plan->explain = SI_ENONE;
+	plan->node = n;
+	return 1;
+}
+
+static inline int
 si_plannerpeek_checkpoint(siplanner *p, siplan *plan)
 {
 	/* try to peek a node which has min
@@ -261,6 +293,8 @@ int si_planner(siplanner *p, siplan *plan)
 		return si_plannerpeek_compact(p, plan);
 	case SI_CHECKPOINT:
 		return si_plannerpeek_checkpoint(p, plan);
+	case SI_BACKUP:
+		return si_plannerpeek_backup(p, plan);
 	}
 	return -1;
 }

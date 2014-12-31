@@ -24,8 +24,13 @@ struct soscheduler {
 	srmutex lock;
 	uint64_t checkpoint_lsn_last;
 	uint64_t checkpoint_lsn;
-	uint32_t branch;
-	int checkpoint;
+	uint32_t checkpoint;
+	uint32_t backup_bsn;
+	uint32_t backup_last;
+	uint32_t backup_last_complete;
+	uint32_t backup;
+	uint32_t workers_backup;
+	uint32_t workers_branch;
 	int rotate;
 	int rr;
 	void **i;
@@ -43,6 +48,7 @@ int so_scheduler(soscheduler*, soworker*);
 int so_scheduler_branch(void*);
 int so_scheduler_compact(void*);
 int so_scheduler_checkpoint(void*);
+int so_scheduler_backup(void*);
 int so_scheduler_call(void*);
 
 #endif

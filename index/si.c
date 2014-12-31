@@ -96,6 +96,9 @@ int si_execute(si *i, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	case SI_COMPACT:
 		rc = si_compact(i, r, c, plan, vlsn);
 		break;
+	case SI_BACKUP:
+		rc = si_backup(i, r, c, plan);
+		break;
 	}
 	return rc;
 }

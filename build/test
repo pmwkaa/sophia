@@ -12,6 +12,7 @@ TEST_DEBUG     = -g -O0 -Wall
 TEST_CFLAGS    = -std=c99 $(CFLAGS_INCLUDE) $(TEST_DEBUG) -I. -I../sophia -pthread
 TEST_LDFLAGS   = $(LDFLAGS) $(TEST_DEBUG) ../sophia/libsophia.a -pthread -lm $(TEST_COVERAGE)
 TEST_SOPHIADIR = sophia
+TEST_BACKUPDIR = backup
 TEST_LOGDIR    = logdir
 TEST_DIR       = dir
 TEST_GDB       = gdb
@@ -29,7 +30,7 @@ clean:
 	$(Q) $(RM) -f $(TEST_BINARY)
 	$(Q) $(RM) -f $(OBJECTS)
 cleanup: clean
-	$(Q) $(RM) -fr $(TEST_SOPHIADIR) $(TEST_DIR) $(TEST_LOGDIR)
+	$(Q) $(RM) -fr $(TEST_SOPHIADIR) $(TEST_BACKUPDIR) $(TEST_DIR) $(TEST_LOGDIR)
 test_valgrind:
 	$(Q) $(VALGRIND) ./$(TEST_BINARY)
 test:

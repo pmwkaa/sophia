@@ -91,9 +91,12 @@ st_scenefree(stscene *scene)
 	free(scene);
 }
 
-void st_init(st *s, char *sophiadir, char *dir, char *logdir)
+void st_init(st *s, char *sophiadir, char *backupdir,
+             char *dir,
+             char *logdir)
 {
 	s->sophiadir = sophiadir;
+	s->backupdir = backupdir;
 	s->dir = dir;
 	s->logdir = logdir;
 	sr_listinit(&s->scene);
