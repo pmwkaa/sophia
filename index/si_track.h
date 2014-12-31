@@ -36,11 +36,15 @@ si_trackfree(sitrack *t, sr *r) {
 }
 
 static inline void
-si_tracklsn(sitrack *t, sinode *n)
+si_trackmetrics(sitrack *t, sinode *n)
 {
 	sibranch *b = n->branch;
 	while (b) {
 		sdindexheader *h = b->index.h;
+		if (b->id.parent > t->nsn)
+			t->nsn = b->id.parent;
+		if (b->id.id > t->nsn)
+			t->nsn = b->id.id;
 		if (h->lsnmin > t->lsn)
 			t->lsn = h->lsnmin;
 		if (h->lsnmax > t->lsn)

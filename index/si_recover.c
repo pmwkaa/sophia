@@ -220,7 +220,7 @@ si_trackdir(sitrack *track, sr *r, si *i)
 				goto error;
 			}
 			si_trackset(track, node);
-			si_tracklsn(track, node);
+			si_trackmetrics(track, node);
 			continue;
 		}
 		}
@@ -237,7 +237,7 @@ si_trackdir(sitrack *track, sr *r, si *i)
 			si_nodefree(node, r, 0);
 			goto error;
 		}
-		si_tracklsn(track, node);
+		si_trackmetrics(track, node);
 
 		/* track node */
 		head = si_trackget(track, id);
@@ -369,8 +369,10 @@ si_recoverindex(si *i, sr *r)
 	if (srunlikely(rc == -1))
 		goto error;
 	/* set actual metrics */
-	r->seq->nsn = track.nsn;
-	r->seq->lsn = track.lsn;
+	if (track.nsn > r->seq->nsn)
+		r->seq->nsn = track.nsn;
+	if (track.lsn > r->seq->lsn)
+		r->seq->lsn = track.lsn;
 	sr_buffree(&buf, r->a);
 	return 0;
 error:
