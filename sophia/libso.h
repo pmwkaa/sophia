@@ -23,7 +23,6 @@
 #include <so_tx.h>
 #include <so_cursor.h>
 #include <so_logcursor.h>
-#include <so_snapshotdb.h>
 #include <so_snapshot.h>
 #include <sophia.h>
 

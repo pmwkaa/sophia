@@ -8,7 +8,6 @@ SOPHIA_O = so_ctl.o \
            so_tx.o \
            so_logcursor.o \
            so_cursor.o \
-           so_snapshotdb.o \
            so_snapshot.o \
            so_recover.o \
            sophia.o

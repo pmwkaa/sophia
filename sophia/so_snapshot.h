@@ -16,10 +16,10 @@ struct sosnapshot {
 	sx t;
 	uint64_t vlsn;
 	char *name;
-	sosnapshotdb *db;
 	so *e;
 } srpacked;
 
-soobj *so_snapshotnew(sosnapshotdb*, uint64_t, char*);
+soobj *so_snapshotnew(so*, uint64_t, char*);
+int    so_snapshotupdate(sosnapshot*);
 
 #endif

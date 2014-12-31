@@ -23,19 +23,6 @@ so_ctl(soobj *obj, va_list args srunused)
 	return &o->ctl;
 }
 
-static inline int
-so_prepare(so *e)
-{
-	if (srunlikely(e->ctl.disable_snapshot))
-		return 0;
-	sosnapshotdb *db = (sosnapshotdb*)so_snapshotdb_new(e);
-	if (srunlikely(db == NULL))
-		return -1;
-	/* register as a common db */
-	so_objindex_register(&e->db, &db->o);
-	return 0;
-}
-
 static int
 so_open(soobj *o, va_list args)
 {
@@ -61,10 +48,6 @@ so_open(soobj *o, va_list args)
 	rc = so_recover_repository(e);
 	if (srunlikely(rc == -1))
 		return -1;
-	/* prepare system databases */
-	rc = so_prepare(e);
-	if (srunlikely(rc == -1))
-		return -1;
 	/* databases recover */
 	srlist *i, *n;
 	sr_listforeach_safe(&e->db.list, i, n) {
@@ -88,10 +71,6 @@ online:
 		if (srunlikely(rc == -1))
 			return -1;
 	}
-	/* recover snapshot */
-	rc = so_recover_snapshot(e);
-	if (srunlikely(rc == -1))
-		return -1;
 	/* enable quota */
 	sr_quotaenable(&e->quota, 1);
 	so_statusset(&e->status, SO_ONLINE);
@@ -113,6 +92,9 @@ so_destroy(soobj *o)
 	if (srunlikely(rc == -1))
 		rcret = -1;
 	rc = so_objindex_destroy(&e->tx);
+	if (srunlikely(rc == -1))
+		rcret = -1;
+	rc = so_objindex_destroy(&e->snapshot);
 	if (srunlikely(rc == -1))
 		rcret = -1;
 	rc = so_objindex_destroy(&e->ctlcursor);
@@ -187,7 +169,6 @@ soobj *so_new(void)
 	sr_allocopen(&e->a_ctlcursor, &sr_aslab, &e->pager, sizeof(soctlcursor));
 	sr_allocopen(&e->a_logcursor, &sr_aslab, &e->pager, sizeof(sologcursor));
 	sr_allocopen(&e->a_snapshot, &sr_aslab, &e->pager, sizeof(sosnapshot));
-	sr_allocopen(&e->a_snapshotdb, &sr_aslab, &e->pager, sizeof(sosnapshotdb));
 	sr_allocopen(&e->a_tx, &sr_aslab, &e->pager, sizeof(sotx));
 	sr_allocopen(&e->a_sxv, &sr_aslab, &e->pager, sizeof(sxv));
 	so_statusinit(&e->status);
@@ -195,6 +176,7 @@ soobj *so_new(void)
 	so_ctlinit(&e->ctl, e);
 	so_objindex_init(&e->db);
 	so_objindex_init(&e->tx);
+	so_objindex_init(&e->snapshot);
 	so_objindex_init(&e->ctlcursor);
 	sr_mutexinit(&e->apilock);
 	sr_quotainit(&e->quota);

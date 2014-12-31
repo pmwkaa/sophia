@@ -19,8 +19,7 @@ typedef enum {
 	SOTX         = 0x13491FABL,
 	SOLOGCURSOR  = 0x19315400L,
 	SOCURSOR     = 0x45ABCDFAL,
-	SOSNAPSHOT   = 0x71230BAFL,
-	SOSNAPSHOTDB = 0x00DBA138L
+	SOSNAPSHOT   = 0x71230BAFL
 } soobjid;
 
 static inline soobjid

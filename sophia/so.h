@@ -16,6 +16,7 @@ struct so {
 	srmutex apilock;
 	soobjindex db;
 	soobjindex tx;
+	soobjindex snapshot;
 	soobjindex ctlcursor;
 	sostatus status;
 	soctl ctl;
@@ -30,7 +31,6 @@ struct so {
 	sra a_ctlcursor;
 	sra a_logcursor;
 	sra a_snapshot;
-	sra a_snapshotdb;
 	sra a_tx;
 	sra a_sxv;
 	seconf seconf;

@@ -328,13 +328,7 @@ so_ctldb_set(src *c srunused, srcstmt *s, va_list args)
 		sr_error_recoverable(&e->error);
 		return -1;
 	}
-	/* validate argument */
 	char *name = va_arg(args, char*);
-	if (srunlikely(strcmp(name, "snapshot") == 0)) {
-		sr_error(&e->error, "database name '%s' is reserved", name);
-		sr_error_recoverable(&e->error);
-		return -1;
-	}
 	sodb *db = (sodb*)so_dbmatch(e, name);
 	if (srunlikely(db)) {
 		sr_error(&e->error, "database '%s' is exists", name);
@@ -452,7 +446,7 @@ so_ctlv_dboffline(src *c, srcstmt *s, va_list args)
 }
 
 static inline src*
-so_ctldb(so *e, soctlrt *rt srunused, src **pc, int serialize)
+so_ctldb(so *e, soctlrt *rt srunused, src **pc)
 {
 	src *db = NULL;
 	src *prev = NULL;
@@ -460,17 +454,7 @@ so_ctldb(so *e, soctlrt *rt srunused, src **pc, int serialize)
 	srlist *i;
 	sr_listforeach(&e->db.list, i)
 	{
-		soobj *optr = srcast(i, soobj, link);
-		sodb *o = NULL;
-		if (optr->id == SODB)
-			o = (sodb*)optr;
-		else
-		if (optr->id == SOSNAPSHOTDB)
-			o = (sodb*)(((sosnapshotdb*)optr)->db);
-		else
-			assert(0);
-		if (srunlikely(serialize && o->ctl.system))
-			continue;
+		sodb *o = (sodb*)srcast(i, soobj, link);
 		si_profilerbegin(&o->ctl.rtp, &o->index);
 		si_profiler(&o->ctl.rtp, &o->r);
 		si_profilerend(&o->ctl.rtp);
@@ -497,7 +481,6 @@ so_ctldb(so *e, soctlrt *rt srunused, src **pc, int serialize)
 		p = NULL;
 		sr_clink(&p,          sr_c(pc, so_ctlv,             "name",       SR_CSZ|SR_CRO,  o->ctl.name));
 		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv,             "id",         SR_CU32,        &o->ctl.id), o));
-		sr_clink(&p,          sr_c(pc, so_ctlv,             "system",     SR_CU32|SR_CRO, &o->ctl.system));
 		sr_clink(&p,          sr_c(pc, so_ctldb_status,     "status",     SR_CSZ|SR_CRO,  o));
 		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,   "path",       SR_CSZREF,      &o->ctl.path), o));
 		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,   "sync",       SR_CU32,        &o->ctl.sync), o));
@@ -505,7 +488,7 @@ so_ctldb(so *e, soctlrt *rt srunused, src **pc, int serialize)
 		sr_clink(&p,          sr_c(pc, so_ctldb_compact,    "compact",    SR_CVOID,       o));
 		sr_clink(&p,          sr_c(pc, so_ctldb_lockdetect, "lockdetect", SR_CVOID,       NULL));
 		sr_clink(&p,          sr_c(pc, NULL,                "index",      SR_CC,          index));
-		sr_clink(&prev, sr_cptr(sr_c(pc, so_ctldb_get, o->ctl.name, SR_CC, database), optr));
+		sr_clink(&prev, sr_cptr(sr_c(pc, so_ctldb_get, o->ctl.name, SR_CC, database), o));
 		if (db == NULL)
 			db = prev;
 	}
@@ -518,28 +501,27 @@ so_ctlsnapshot_set(src *c, srcstmt *s, va_list args)
 	if (s->op != SR_CSET)
 		return so_ctlv(c, s, args);
 	so *e = s->ptr;
-	if (srunlikely(! so_statusactive(&e->status))) {
-		sr_error(&e->error, "%s", "bad operation");
-		sr_error_recoverable(&e->error);
-		return -1;
-	}
-	soobj *db = so_dbmatch(e, "snapshot");
-	if (srunlikely(db == NULL)) {
-		sr_error(&e->error, "%s", "snapshotting is not initialized yet");
-		sr_error_recoverable(&e->error);
-		return -1;
-	}
 	char *name = va_arg(args, char*);
 	uint64_t lsn = sr_seq(&e->seq, SR_LSN);
-	/* create new snapshot */
-	void *o = so_objobject(db);
-	if (srunlikely(o == NULL))
+	/* create snapshot object */
+	sosnapshot *snapshot =
+		(sosnapshot*)so_snapshotnew(e, lsn, name);
+	if (srunlikely(snapshot == NULL))
 		return -1;
-	so_objset(o, "key", name, strlen(name) + 1);
-	so_objset(o, "value", &lsn, sizeof(lsn));
-	int rc = so_objset(db, o);
+	so_objindex_register(&e->snapshot, &snapshot->o);
+	return 0;
+}
+
+static inline int
+so_ctlsnapshot_setlsn(src *c, srcstmt *s, va_list args)
+{
+	int rc = so_ctlv(c, s, args);
 	if (srunlikely(rc == -1))
 		return -1;
+	if (s->op != SR_CSET)
+		return  0;
+	sosnapshot *snapshot = c->ptr;
+	so_snapshotupdate(snapshot);
 	return 0;
 }
 
@@ -561,22 +543,17 @@ so_ctlsnapshot_get(src *c, srcstmt *s, va_list args srunused)
 static inline src*
 so_ctlsnapshot(so *e, soctlrt *rt srunused, src **pc)
 {
-	sosnapshotdb *db = (sosnapshotdb*)so_dbmatch(e, "snapshot");
 	src *snapshot = NULL;
-	if (srunlikely(db == NULL))
-		goto offline;
-	assert(db != NULL);
 	src *prev = NULL;
 	srlist *i;
-	sr_listforeach(&db->list.list, i)
+	sr_listforeach(&e->snapshot.list, i)
 	{
 		sosnapshot *s = (sosnapshot*)srcast(i, soobj, link);
-		src *p = sr_c(pc, so_ctlv, "lsn", SR_CU64|SR_CRO, &s->vlsn);
+		src *p = sr_cptr(sr_c(pc, so_ctlsnapshot_setlsn, "lsn", SR_CU64, &s->vlsn), s);
 		sr_clink(&prev, sr_cptr(sr_c(pc, so_ctlsnapshot_get, s->name, SR_CC, p), s));
 		if (snapshot == NULL)
 			snapshot = prev;
 	}
-offline:
 	return sr_c(pc, so_ctlsnapshot_set, "snapshot", SR_CC, snapshot);
 }
 
@@ -618,7 +595,7 @@ so_ctlprepare(so *e, soctlrt *rt, src *c, int serialize)
 	src *scheduler  = so_ctlscheduler(e, rt, &pc);
 	src *log        = so_ctllog(e, rt, &pc);
 	src *snapshot   = so_ctlsnapshot(e, rt, &pc);
-	src *db         = so_ctldb(e, rt, &pc, serialize);
+	src *db         = so_ctldb(e, rt, &pc);
 	src *debug      = so_ctldebug(e, rt, &pc);
 
 	sophia->next     = memory;

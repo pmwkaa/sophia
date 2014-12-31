@@ -161,31 +161,3 @@ int so_recover_repository(so *e)
 	e->seconf.sync = 0;
 	return se_open(&e->se, &e->r, &e->seconf);
 }
-
-int so_recover_snapshot(so *e)
-{
-	if (srunlikely(e->ctl.disable_snapshot))
-		return 0;
-	/* recreate snapshot objects */
-	sosnapshotdb *db = (sosnapshotdb*)so_dbmatch(e, "snapshot");
-	assert(db != NULL);
-	assert(db->o.id == SOSNAPSHOTDB);
-	void *o = so_objobject(&db->o);
-	if (srunlikely(o == NULL))
-		return -1;
-	void *c = so_objcursor(&db->o, o);
-	if (srunlikely(c == NULL))
-		return -1;
-	while ((o = so_objget(c))) {
-		char *name = so_objget(o, "key", NULL);
-		uint64_t lsn = *(uint64_t*)so_objget(o, "value", NULL);
-		soobj *s = so_snapshotnew(db, lsn, name);
-		if (srunlikely(s == NULL)) {
-			so_objdestroy(c);
-			return -1;
-		}
-		so_objindex_register(&db->list, s);
-	}
-	so_objdestroy(c);
-	return 0;
-}

@@ -12,23 +12,6 @@
 #include <sophia.h>
 
 static void
-snapshot_offline(stc *cx srunused)
-{
-	void *env = sp_env();
-	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "snapshot", "test_snapshot") == -1 );
-	t( sp_open(env) == 0 );
-	void *snapshot = sp_get(c, "snapshot.test_snapshot");
-	t( snapshot == NULL );
-	t( sp_destroy(env) == 0 );
-}
-
-static void
 snapshot_create_delete(stc *cx srunused)
 {
 	void *env = sp_env();
@@ -207,6 +190,8 @@ snapshot_recover_cursor(stc *cx srunused)
 	void *snapshot = sp_get(c, "snapshot.test_snapshot");
 	t( snapshot != NULL );
 
+	t( sp_set(c, "snapshot", "test_snapshot") == -1 );
+
 	i = 0;
 	while ( i < 100 ) {
 		void *o = sp_object(db);
@@ -216,6 +201,12 @@ snapshot_recover_cursor(stc *cx srunused)
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
+
+	void *o = sp_get(c, "snapshot.test_snapshot.lsn");
+	t( o != NULL );
+	char *lsn = strdup(sp_get(o, "value", NULL));
+	sp_destroy(o);
+
 	t( sp_destroy(env) == 0 );
 
 	env = sp_env();
@@ -228,15 +219,24 @@ snapshot_recover_cursor(stc *cx srunused)
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+
+	/* recover snapshot */
+	t( sp_set(c, "snapshot", "test_snapshot") == 0 );
+	snapshot = sp_get(c, "snapshot.test_snapshot");
+	t( snapshot != NULL );
+	t( sp_set(c, "snapshot.test_snapshot.lsn", lsn) == 0 );
+	o = sp_get(c, "snapshot.test_snapshot.lsn");
+	t( o != NULL );
+	t( strcmp(sp_get(o, "value", NULL), lsn) == 0 );
+	sp_destroy(o);
+	free(lsn);
+
 	t( sp_open(env) == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
 
-	snapshot = sp_get(c, "snapshot.test_snapshot");
-	t( snapshot != NULL );
-
 	i = 0;
-	void *o = sp_object(db);
+	o = sp_object(db);
 	t( o != NULL );
 	t( sp_set(o, "order", ">=") == 0 );
 	void *cur = sp_cursor(db, o);
@@ -303,6 +303,12 @@ snapshot_recover_get(stc *cx srunused)
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
+
+	void *o = sp_get(c, "snapshot.test_snapshot.lsn");
+	t( o != NULL );
+	char *lsn = strdup(sp_get(o, "value", NULL));
+	sp_destroy(o);
+
 	t( sp_destroy(env) == 0 );
 
 	env = sp_env();
@@ -315,12 +321,21 @@ snapshot_recover_get(stc *cx srunused)
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+
+	/* recover snapshot */
+	t( sp_set(c, "snapshot", "test_snapshot") == 0 );
+	snapshot = sp_get(c, "snapshot.test_snapshot");
+	t( snapshot != NULL );
+	t( sp_set(c, "snapshot.test_snapshot.lsn", lsn) == 0 );
+	o = sp_get(c, "snapshot.test_snapshot.lsn");
+	t( o != NULL );
+	t( strcmp(sp_get(o, "value", NULL), lsn) == 0 );
+	sp_destroy(o);
+	free(lsn);
+
 	t( sp_open(env) == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
-
-	snapshot = sp_get(c, "snapshot.test_snapshot");
-	t( snapshot != NULL );
 
 	i = 0;
 	while ( i < 100 ) {
@@ -345,44 +360,13 @@ snapshot_recover_get(stc *cx srunused)
 	t( sp_destroy(env) == 0 );
 }
 
-static void
-snapshot_direct(stc *cx srunused)
-{
-	void *env = sp_env();
-	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_open(env) == 0 );
-
-	void *db = sp_get(c, "db.snapshot");
-	t( db != NULL );
-	char name[] = "test_snapshot";
-	uint64_t lsn = 1234;
-	void *o = sp_object(db);
-	t( sp_set(o, "key", name, sizeof(name)) == 0 );
-	t( sp_set(o, "value", &lsn, sizeof(lsn)) == 0 );
-	t( sp_set(db, o) == 0 );
-
-	o = sp_get(c, "snapshot.test_snapshot.lsn");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "1234") == 0 );
-	sp_destroy(o);
-
-	t( sp_destroy(env) == 0 );
-}
-
 stgroup *snapshot_group(void)
 {
 	stgroup *group = st_group("snapshot");
-	st_groupadd(group, st_test("offline", snapshot_offline));
 	st_groupadd(group, st_test("create_delete", snapshot_create_delete));
 	st_groupadd(group, st_test("cursor", snapshot_cursor));
 	st_groupadd(group, st_test("get", snapshot_get));
 	st_groupadd(group, st_test("recover_cursor", snapshot_recover_cursor));
 	st_groupadd(group, st_test("recover_get", snapshot_recover_get));
-	st_groupadd(group, st_test("direct", snapshot_direct));
 	return group;
 }
