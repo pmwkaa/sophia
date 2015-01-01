@@ -27,11 +27,10 @@ so_dbctl_init(sodbctl *c, char *name, void *db)
 		sr_error_recoverable(&o->e->error);
 		return -1;
 	}
-	c->parent     = db;
-	c->created    = 0;
-	c->sync       = 1;
-	c->cmp.cmp    = sr_cmpstring;
-	c->cmp.cmparg = NULL;
+	c->parent  = db;
+	c->created = 0;
+	c->sync    = 1;
+	sr_cmpset(&c->cmp, "string");
 	return 0;
 }
 

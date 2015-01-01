@@ -29,8 +29,11 @@ struct soscheduler {
 	uint32_t backup_last;
 	uint32_t backup_last_complete;
 	uint32_t backup;
+	uint32_t gc;
+	uint32_t gc_last;
 	uint32_t workers_backup;
 	uint32_t workers_branch;
+	uint32_t workers_gc;
 	int rotate;
 	int rr;
 	void **i;
@@ -48,6 +51,7 @@ int so_scheduler(soscheduler*, soworker*);
 int so_scheduler_branch(void*);
 int so_scheduler_compact(void*);
 int so_scheduler_checkpoint(void*);
+int so_scheduler_gc(void*);
 int so_scheduler_backup(void*);
 int so_scheduler_call(void*);
 

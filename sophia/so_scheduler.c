@@ -91,6 +91,16 @@ int so_scheduler_checkpoint(void *arg)
 	return 0;
 }
 
+int so_scheduler_gc(void *arg)
+{
+	so *o = arg;
+	soscheduler *s = &o->sched;
+	sr_mutexlock(&s->lock);
+	s->gc = 1;
+	sr_mutexunlock(&s->lock);
+	return 0;
+}
+
 int so_scheduler_backup(void *arg)
 {
 	so *e = arg;
@@ -247,6 +257,7 @@ int so_scheduler_init(soscheduler *s, void *env)
 	sr_mutexinit(&s->lock);
 	s->workers_branch       = 0;
 	s->workers_backup       = 0;
+	s->workers_gc           = 0;
 	s->rotate               = 0;
 	s->i                    = NULL;
 	s->count                = 0;
@@ -259,6 +270,8 @@ int so_scheduler_init(soscheduler *s, void *env)
 	s->backup_last          = 0;
 	s->backup_last_complete = 0;
 	s->backup               = 0;
+	s->gc                   = 0;
+	s->gc_last              = 0;
 	so_workersinit(&s->workers);
 	return 0;
 }
@@ -410,6 +423,7 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 	sr_trace(&w->trace, "%s", "schedule");
 	si_planinit(&task->plan);
 
+	uint64_t now = sr_utime();
 	so *e = s->env;
 	sodb *db;
 	sizone *zone = so_zoneof(e);
@@ -541,6 +555,35 @@ checkpoint:
 backup_error:;
 	}
 
+	/* garbage-collection */
+	if (s->gc) {
+		if (s->workers_gc < zone->gc_prio) {
+			task->plan.plan = SI_GC;
+			task->plan.a = sx_vlsn(&e->xm);
+			task->plan.b = zone->gc_wm;
+			rc = so_schedule_plan(s, &task->plan, &db);
+			switch (rc) {
+			case 1:
+				s->workers_gc++;
+				task->db = db;
+				sr_mutexunlock(&s->lock);
+				return 1;
+			case 2: /* work in progress */
+				break;
+			case 0: /* state 3 */
+				s->gc = 0;
+				s->gc_last = 0; /* set now */
+				break;
+			}
+		}
+	} else {
+		if (zone->gc_prio) {
+			if ( (now - s->gc_last) >= (zone->gc_period * 1000000) ) {
+				s->gc = 1;
+			}
+		}
+	}
+
 	if (s->workers_branch < zone->branch_prio)
 	{
 		/* schedule branch task using following
@@ -571,6 +614,8 @@ backup_error:;
 			return 1;
 		}
 	}
+
+	/* todo: branch aging */
 
 	/* schedule compaction task.
 	 *

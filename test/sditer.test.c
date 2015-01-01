@@ -69,6 +69,8 @@ sditer_gt0(stc *cx srunused)
 	                 sd_buildmin(&b)->keysize,
 	                 sd_buildmax(&b)->key,
 	                 sd_buildmax(&b)->keysize,
+	                 h->countdup,
+	                 h->lsnmindup,
 	                 h->lsnmin,
 	                 h->lsnmax);
 	t( rc == 0 );
@@ -153,6 +155,8 @@ sditer_gt1(stc *cx srunused)
 	                 sd_buildmin(&b)->keysize,
 	                 sd_buildmax(&b)->key,
 	                 sd_buildmax(&b)->keysize,
+	                 h->countdup,
+	                 h->lsnmindup,
 	                 h->lsnmin,
 	                 h->lsnmax);
 	t(rc == 0);
@@ -176,6 +180,8 @@ sditer_gt1(stc *cx srunused)
 	                 sd_buildmin(&b)->keysize,
 	                 sd_buildmax(&b)->key,
 	                 sd_buildmax(&b)->keysize,
+	                 h->countdup,
+	                 h->lsnmindup,
 	                 h->lsnmin,
 	                 h->lsnmax);
 	t(rc == 0);
@@ -199,6 +205,8 @@ sditer_gt1(stc *cx srunused)
 	                 sd_buildmin(&b)->keysize,
 	                 sd_buildmax(&b)->key,
 	                 sd_buildmax(&b)->keysize,
+	                 h->countdup,
+	                 h->lsnmindup,
 	                 h->lsnmin,
 	                 h->lsnmax);
 	t(rc == 0);

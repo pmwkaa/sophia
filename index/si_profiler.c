@@ -84,6 +84,7 @@ int si_profiler(siprofiler *p, sr *r)
 		sibranch *b = n->branch;
 		while (b) {
 			p->count += b->index.h->keys;
+			p->count_dup += b->index.h->dupkeys;
 			b = b->next;
 		}
 		pn = sr_rbnext(&p->i->i, pn);

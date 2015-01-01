@@ -20,7 +20,8 @@ struct siplanner {
 /* plan */
 #define SI_BRANCH        1
 #define SI_COMPACT       2
-#define SI_CHECKPOINT    4
+#define SI_CHECKPOINT    3
+#define SI_GC            4
 #define SI_BACKUP        5
 
 /* explain */
@@ -44,6 +45,10 @@ struct siplan {
 	 * checkpoint:
 	 *   a: lsn
 	 *   b:
+	 *   c:
+	 * gc:
+	 *   a: lsn
+	 *   b: percent
 	 *   c:
 	 * backup:
 	 *   a: bsn

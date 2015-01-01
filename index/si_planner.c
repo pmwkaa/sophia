@@ -40,6 +40,8 @@ int si_plannertrace(siplan *p, srtrace *t)
 		break;
 	case SI_CHECKPOINT: plan = "checkpoint";
 		break;
+	case SI_GC: plan = "gc";
+		break;
 	case SI_BACKUP: plan = "backup";
 		break;
 	}
@@ -284,6 +286,38 @@ match:
 	return 1;
 }
 
+static inline int
+si_plannerpeek_gc(siplanner *p, siplan *plan)
+{
+	/* try to peek a node with a biggest number
+	 * of branches which is ready for gc */
+	int rc_inprogress = 0;
+	srrbnode *pn;
+	sinode *n;
+	pn = sr_rbmax(&p->compact);
+	for (; pn ; pn = sr_rbprev(&p->compact, pn)) {
+		n = srcast(pn, sinode, nodecompact);
+		if (n->flags & SI_LOCK) {
+			rc_inprogress = 2;
+			continue;
+		}
+		sdindexheader *h = n->self.index.h;
+		if (srlikely(h->dupkeys == 0) || (h->dupmin >= plan->a))
+			continue;
+		uint32_t used = (h->dupkeys * 100) / h->keys;
+		if (used >= plan->b)
+			goto match;
+	}
+	if (rc_inprogress)
+		plan->explain = SI_ERETRY;
+	return rc_inprogress;
+match:
+	si_nodelock(n);
+	plan->explain = SI_ENONE;
+	plan->node = n;
+	return 1;
+}
+
 int si_planner(siplanner *p, siplan *plan)
 {
 	switch (plan->plan) {
@@ -293,6 +327,8 @@ int si_planner(siplanner *p, siplan *plan)
 		return si_plannerpeek_compact(p, plan);
 	case SI_CHECKPOINT:
 		return si_plannerpeek_checkpoint(p, plan);
+	case SI_GC:
+		return si_plannerpeek_gc(p, plan);
 	case SI_BACKUP:
 		return si_plannerpeek_backup(p, plan);
 	}

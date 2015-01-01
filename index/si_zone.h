@@ -22,6 +22,9 @@ struct sizone {
 	uint32_t branch_ttl;
 	uint32_t branch_ttl_wm;
 	uint32_t backup_prio;
+	uint32_t gc_prio;
+	uint32_t gc_period;
+	uint32_t gc_wm;
 };
 
 struct sizonemap {

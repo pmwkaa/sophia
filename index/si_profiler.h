@@ -20,6 +20,7 @@ struct siprofiler {
 	uint32_t  total_branch_max;
 	uint64_t  memory_used;
 	uint64_t  count;
+	uint64_t  count_dup;
 	uint64_t  read_disk;
 	uint64_t  read_cache;
 	int       histogram_branch[20];

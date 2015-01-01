@@ -17,7 +17,7 @@ struct svsiftiter {
 	uint64_t limit; 
 	uint64_t size;
 	uint32_t sizev;
-	uint32_t totalkv;
+	uint32_t total; /* kv */
 	uint64_t vlsn;
 	int save_delete;
 	int next;
@@ -85,7 +85,7 @@ sv_siftiter_next(sriter *i)
 				break;
 		}
 		int kv = svkeysize(v) + svvaluesize(v);
-		im->totalkv += kv;
+		im->total += kv;
 		if (srunlikely(dup)) {
 			if (svlsn(v) < im->vlsn)
 				continue;
@@ -125,8 +125,8 @@ int sv_siftiter_resume(sriter *i)
 	return 1;
 }
 
-uint32_t sv_siftiter_totalkv(sriter *i)
+uint32_t sv_siftiter_total(sriter *i)
 {
 	svsiftiter *im = (svsiftiter*)i->priv;
-	return im->totalkv;
+	return im->total;
 }

@@ -45,7 +45,7 @@ si_trackmetrics(sitrack *t, sinode *n)
 			t->nsn = b->id.parent;
 		if (b->id.id > t->nsn)
 			t->nsn = b->id.id;
-		if (h->lsnmin > t->lsn)
+		if (h->lsnmin != UINT64_MAX && h->lsnmin > t->lsn)
 			t->lsn = h->lsnmin;
 		if (h->lsnmax > t->lsn)
 			t->lsn = h->lsnmax;

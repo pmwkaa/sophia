@@ -13,29 +13,39 @@
 #include <libsi.h>
 
 static inline sibranch*
-si_branchcreate(si *index, sr *r, sdc *c, sinode *parent, svindex *i, uint64_t vlsn)
+si_branchcreate(si *index, sr *r, sdc *c, sinode *parent, svindex *vindex, uint64_t vlsn)
 {
-	sd_creset(c);
+	svmerge vmerge;
+	sv_mergeinit(&vmerge);
+	int rc = sv_mergeprepare(&vmerge, r, 1);
+	if (srunlikely(rc == -1))
+		return NULL;
+	svmergesrc *s = sv_mergeadd(&vmerge, NULL);
+	sr_iterinit(&s->src, &sv_indexiterraw, r);
+	sr_iteropen(&s->src, vindex);
+	sriter i;
+	sr_iterinit(&i, &sv_mergeiter, r);
+	sr_iteropen(&i, &vmerge, SR_GTE);
 
-	sriter source;
-	sr_iterinit(&source, &sv_indexiterraw, r);
-	sr_iteropen(&source, i);
-
+	/* merge iter is not used */
 	sdmerge merge;
 	sd_mergeinit(&merge, r, parent->self.id.id,
-	             &source,
+	             &i,
 	             &c->build,
 	             parent->file.size,
-	             i->keymax, i->used,
+	             vindex->keymax,
+	             vindex->used,
 	             UINT64_MAX,
 	             index->conf->node_page_size, 1,
 	             vlsn);
-	int rc = sd_merge(&merge);
+	rc = sd_merge(&merge);
 	if (srunlikely(rc == -1)) {
+		sv_mergefree(&vmerge, r->a);
 		sr_error(r->e, "%s", "memory allocation failed");
 		goto error;
 	}
 	assert(rc == 1);
+	sv_mergefree(&vmerge, r->a);
 
 	sibranch *branch = si_branchnew(r);
 	if (srunlikely(branch == NULL))
@@ -89,6 +99,7 @@ int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	i = si_noderotate(n);
 	si_unlock(index);
 
+	sd_creset(c);
 	sibranch *branch = si_branchcreate(index, r, c, n, i, vlsn);
 	if (srunlikely(branch == NULL))
 		return -1;

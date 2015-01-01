@@ -24,7 +24,7 @@ backup_test0(stc *cx srunused)
 	t( sp_set(c, "backup.path", cx->suite->backupdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
 	t( sp_open(env) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
@@ -85,7 +85,7 @@ backup_test0(stc *cx srunused)
 	t( sp_set(c, "backup.path", cx->suite->backupdir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
 	t( sp_open(env) == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
@@ -125,7 +125,7 @@ backup_test1(stc *cx srunused)
 	t( sp_set(c, "backup.path", cx->suite->backupdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
 	t( sp_open(env) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
@@ -189,7 +189,7 @@ backup_test1(stc *cx srunused)
 	t( sp_set(c, "sophia.path", path) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
 	t( sp_open(env) == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );

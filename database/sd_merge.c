@@ -53,7 +53,7 @@ int sd_merge(sdmerge *m)
 	if (srunlikely(rc == -1))
 		return -1;
 
-	uint32_t processed = sv_siftiter_totalkv(&m->i);
+	uint32_t processed = sv_siftiter_total(&m->i); /* kv */
 	uint32_t processed_last = 0;
 	assert(processed <= m->size_stream);
 	uint64_t left = (m->size_stream - processed);
@@ -96,13 +96,15 @@ int sd_merge(sdmerge *m)
 		                 sd_buildmin(m->build)->keysize,
 		                 sd_buildmax(m->build)->key,
 		                 sd_buildmax(m->build)->keysize,
+		                 h->countdup,
+		                 h->lsnmindup,
 		                 h->lsnmin,
 		                 h->lsnmax);
 		if (srunlikely(rc == -1))
 			return -1;
 		sd_buildcommit(m->build);
 
-		processed_last = sv_siftiter_totalkv(&m->i) -
+		processed_last = sv_siftiter_total(&m->i) -
 		                 processed;
 		if (srunlikely(! sv_siftiter_resume(&m->i)))
 			break;

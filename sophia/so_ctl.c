@@ -214,6 +214,9 @@ so_ctlcompaction(so *e, soctlrt *rt srunused, src **pc)
 		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "branch_ttl",    SR_CU32, &z->branch_ttl));
 		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "branch_ttl_wm", SR_CU32, &z->branch_ttl_wm));
 		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "backup_prio",   SR_CU32, &z->backup_prio));
+		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "gc_wm",         SR_CU32, &z->gc_wm));
+		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "gc_prio",       SR_CU32, &z->gc_prio));
+		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "gc_period",     SR_CU32, &z->gc_period));
 		sr_clink(&prev, sr_c(pc, NULL, z->name, SR_CC, zone));
 	}
 	return sr_c(pc, so_ctlcompaction_set, "compaction", SR_CC, compaction);
@@ -250,6 +253,15 @@ so_ctlscheduler_checkpoint(src *c, srcstmt *s, va_list args)
 }
 
 static inline int
+so_ctlscheduler_gc(src *c, srcstmt *s, va_list args)
+{
+	if (s->op != SR_CSET)
+		return so_ctlv(c, s, args);
+	so *e = s->ptr;
+	return so_scheduler_gc(e);
+}
+
+static inline int
 so_ctlscheduler_run(src *c, srcstmt *s, va_list args)
 {
 	if (s->op != SR_CSET)
@@ -264,13 +276,15 @@ so_ctlscheduler(so *e, soctlrt *rt, src **pc)
 	src *scheduler = *pc;
 	src *prev;
 	src *p = NULL;
-	sr_clink(&p, sr_c(pc, so_ctlv_offline, "threads",             SR_CU32,        &e->ctl.threads));
-	sr_clink(&p, sr_c(pc, so_ctlv,         "zone",                SR_CSZ|SR_CRO,  rt->zone));
-	sr_clink(&p, sr_c(pc, so_ctlv,         "checkpoint_active",   SR_CU32|SR_CRO, &rt->checkpoint_active));
-	sr_clink(&p, sr_c(pc, so_ctlv,         "checkpoint_lsn",      SR_CU64|SR_CRO, &rt->checkpoint_lsn));
-	sr_clink(&p, sr_c(pc, so_ctlv,         "checkpoint_lsn_last", SR_CU64|SR_CRO, &rt->checkpoint_lsn_last));
-	sr_clink(&p, sr_c(pc, so_ctlscheduler_checkpoint, "checkpoint", SR_CVOID, NULL));
-	sr_clink(&p, sr_c(pc, so_ctlscheduler_run, "run", SR_CVOID, NULL));
+	sr_clink(&p, sr_c(pc, so_ctlv_offline,            "threads",             SR_CU32,        &e->ctl.threads));
+	sr_clink(&p, sr_c(pc, so_ctlv,                    "zone",                SR_CSZ|SR_CRO,  rt->zone));
+	sr_clink(&p, sr_c(pc, so_ctlv,                    "checkpoint_active",   SR_CU32|SR_CRO, &rt->checkpoint_active));
+	sr_clink(&p, sr_c(pc, so_ctlv,                    "checkpoint_lsn",      SR_CU64|SR_CRO, &rt->checkpoint_lsn));
+	sr_clink(&p, sr_c(pc, so_ctlv,                    "checkpoint_lsn_last", SR_CU64|SR_CRO, &rt->checkpoint_lsn_last));
+	sr_clink(&p, sr_c(pc, so_ctlscheduler_checkpoint, "checkpoint",          SR_CVOID, NULL));
+	sr_clink(&p, sr_c(pc, so_ctlv,                    "gc_active",           SR_CU32|SR_CRO, &rt->gc_active));
+	sr_clink(&p, sr_c(pc, so_ctlscheduler_gc,         "gc",                  SR_CVOID, NULL));
+	sr_clink(&p, sr_c(pc, so_ctlscheduler_run,        "run",                 SR_CVOID, NULL));
 	prev = p;
 	srlist *i;
 	sr_listforeach(&e->sched.workers.list, i) {
@@ -370,8 +384,8 @@ so_ctldb_cmp(src *c, srcstmt *s, va_list args)
 		sr_error_recoverable(s->r->e);
 		return -1;
 	}
-	db->ctl.cmp.cmp = va_arg(args, srcmpf);
-	return 0;
+	char *v = va_arg(args, char*);
+	return sr_cmpset(&db->ctl.cmp, v);
 }
 
 static inline int
@@ -386,8 +400,8 @@ so_ctldb_cmparg(src *c, srcstmt *s, va_list args)
 		sr_error_recoverable(s->r->e);
 		return -1;
 	}
-	db->ctl.cmp.cmparg = va_arg(args, void*);
-	return 0;
+	char *v = va_arg(args, char*);
+	return sr_cmpsetarg(&db->ctl.cmp, v);
 }
 
 static inline int
@@ -472,6 +486,7 @@ so_ctldb(so *e, soctlrt *rt srunused, src **pc)
 		sr_clink(&p, sr_c(pc, so_ctlv,         "read_disk",        SR_CU64|SR_CRO, &o->ctl.rtp.read_disk));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "read_cache",       SR_CU64|SR_CRO, &o->ctl.rtp.read_cache));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "count",            SR_CU64|SR_CRO, &o->ctl.rtp.count));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "count_dup",        SR_CU64|SR_CRO, &o->ctl.rtp.count_dup));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "seq_dsn",          SR_CU32|SR_CRO, &o->ctl.rtp.seq.dsn));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "seq_nsn",          SR_CU32|SR_CRO, &o->ctl.rtp.seq.nsn));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "seq_bsn",          SR_CU32|SR_CRO, &o->ctl.rtp.seq.bsn));
@@ -656,6 +671,7 @@ so_ctlrt(so *e, soctlrt *rt)
 	rt->backup_active        = e->sched.backup;
 	rt->backup_last          = e->sched.backup_last;
 	rt->backup_last_complete = e->sched.backup_last_complete;
+	rt->gc_active            = e->sched.gc;
 	sr_mutexunlock(&e->sched.lock);
 
 	int v = sr_quotaused_percent(&e->quota);
@@ -794,7 +810,10 @@ void so_ctlinit(soctl *c, void *e)
 		.branch_wm     = 10 * 1024 * 1024,
 		.branch_ttl    = 40,
 		.branch_ttl_wm = 1 * 1024 * 1024,
-		.backup_prio   = 1
+		.backup_prio   = 1,
+		.gc_prio       = 1,
+		.gc_period     = 60,
+		.gc_wm         = 30
 	};
 	sizone redzone = {
 		.enable        = 1,
@@ -804,7 +823,10 @@ void so_ctlinit(soctl *c, void *e)
 		.branch_wm     = 0,
 		.branch_ttl    = 0,
 		.branch_ttl_wm = 0,
-		.backup_prio   = 0
+		.backup_prio   = 0,
+		.gc_prio       = 0,
+		.gc_period     = 0,
+		.gc_wm         = 0
 	};
 	si_zonemap_set(&o->ctl.zones,  0, &def);
 	si_zonemap_set(&o->ctl.zones, 80, &redzone);

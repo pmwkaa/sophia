@@ -26,5 +26,7 @@ sr_compare(srcomparator *c, char *a, size_t asize, char *b, size_t bsize)
 
 int sr_cmpu32(char*, size_t, char*, size_t, void*);
 int sr_cmpstring(char*, size_t, char*, size_t, void*);
+int sr_cmpset(srcomparator*, char*);
+int sr_cmpsetarg(srcomparator*, char*);
 
 #endif

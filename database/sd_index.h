@@ -23,6 +23,8 @@ struct sdindexheader {
 	uint64_t totalkv;
 	uint64_t lsnmin;
 	uint64_t lsnmax;
+	uint32_t dupkeys;
+	uint64_t dupmin;
 	sdid     id;
 } srpacked;
 
@@ -142,7 +144,7 @@ int sd_indexbegin(sdindex*, sr*, uint32_t, uint64_t);
 int sd_indexcommit(sdindex*, sdid*);
 int sd_indexadd(sdindex*, sr*, uint64_t, uint32_t, uint32_t, uint32_t,
                 char*, int, char*, int,
-                uint64_t, uint64_t);
+                uint32_t, uint64_t, uint64_t, uint64_t);
 int sd_indexcopy(sdindex*, sr*, sdindexheader*);
 
 #endif

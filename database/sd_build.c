@@ -28,8 +28,8 @@ int sd_buildbegin(sdbuild *b, uint32_t keymax)
 	sdpageheader *h = sd_buildheader(b);
 	memset(h, 0, sizeof(*h));
 	h->sizeblock = sizeof(sdv) + keymax;
-	h->lsnmin = (uint64_t)-1;
-	h->lsnmax = 0;
+	h->lsnmin    = UINT64_MAX;
+	h->lsnmindup = UINT64_MAX;
 	sr_bufadvance(&b->list, sizeof(sdbuildref));
 	sr_bufadvance(&b->k, sizeof(sdpageheader));
 	return 0;
@@ -83,6 +83,11 @@ int sd_buildadd(sdbuild *b, sv *v)
 		h->lsnmax = sv->lsn;
 	if (sv->lsn < h->lsnmin)
 		h->lsnmin = sv->lsn;
+	if (sv->flags & SVDUP) {
+		h->countdup++;
+		if (sv->lsn < h->lsnmindup)
+			h->lsnmindup = sv->lsn;
+	}
 	sr_bufadvance(&b->k, sizeblock);
 	sr_bufadvance(&b->v, sv->valuesize);
 	return 0;

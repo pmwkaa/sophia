@@ -21,6 +21,7 @@ LIBST_O = st.o \
           repository.test.o \
           dml.test.o \
           snapshot.test.o \
+          gc.test.o \
           backup.test.o \
           branch.test.o \
           compact.test.o \

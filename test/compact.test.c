@@ -24,7 +24,7 @@ compact_delete_node0(stc *cx srunused)
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
@@ -69,7 +69,7 @@ compact_delete_node1(stc *cx srunused)
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	t( sp_set(c, "compaction.node_size", "524288" /* 512K */) == 0 );
 	void *db = sp_get(c, "db.test");
@@ -147,7 +147,7 @@ compact_delete0(stc *cx srunused)
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
@@ -204,7 +204,7 @@ compact_delete1(stc *cx srunused)
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
@@ -262,7 +262,7 @@ compact_delete_cursor(stc *cx srunused)
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.index.cmp", sr_cmpu32) == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );

@@ -73,7 +73,9 @@ sinode *si_bootstrap(si *i, sr *r, uint32_t parent)
 	                 NULL,
 	                 0,
 	                 NULL,
-	                 0, 0, 0);
+                     0,
+                     0, UINT64_MAX,
+                     UINT64_MAX, 0);
 	if (srunlikely(rc == -1)) {
 		sd_indexfree(&index, r);
 		si_nodefree(n, r, 0);

@@ -11,7 +11,7 @@
 
 extern sriterif sv_siftiter;
 
-int sv_siftiter_resume(sriter*);
-uint32_t sv_siftiter_totalkv(sriter*);
+int      sv_siftiter_resume(sriter*);
+uint32_t sv_siftiter_total(sriter*);
 
 #endif

@@ -84,7 +84,7 @@ sd_indexiter_open(sriter *i, va_list args)
 	ii->v       = NULL;
 	if (ii->index->h->count == 1) {
 		ii->pos = 0;
-		if (ii->index->h->lsnmin == 0 && 
+		if (ii->index->h->lsnmin == UINT64_MAX &&
 		    ii->index->h->lsnmax == 0) {
 			/* skip bootstrap node  */
 			return 0;
