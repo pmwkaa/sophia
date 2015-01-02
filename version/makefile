@@ -1,6 +1,7 @@
 LIBSV_O = sv_local.o \
           sv_mergeiter.o \
-          sv_siftiter.o \
+          sv_readiter.o \
+          sv_writeiter.o \
           sv_v.o \
           sv_index.o \
           sv_indexiter.o

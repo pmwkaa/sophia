@@ -1,5 +1,5 @@
-#ifndef SX_ITER_H_
-#define SX_ITER_H_
+#ifndef SV_READITER_H_
+#define SV_READITER_H_
 
 /*
  * sophia database
@@ -9,6 +9,6 @@
  * BSD License
 */
 
-extern sriterif sx_iter;
+extern sriterif sv_readiter;
 
 #endif

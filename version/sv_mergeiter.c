@@ -7,6 +7,15 @@
  * BSD License
 */
 
+/*
+ * Merge serveral sorted streams into one.
+ * Track duplicates.
+ *
+ * Merger does not recognize duplicates from
+ * a single stream, assumed that they are tracked
+ * by the incoming data sources.
+*/
+
 #include <libsr.h>
 #include <libsv.h>
 
@@ -68,18 +77,6 @@ sv_mergeiter_nextsrc(svmergesrc *src) {
 }
 
 static inline void
-sv_mergeiter_dupset(svmergeiter *im)
-{
-	svmergesrc *v = im->src;
-	while (v != im->end) {
-		if (v->dup)
-			svflagsadd(sr_iterof(v->i), SVDUP);
-		v->dup = 0;
-		v = sv_mergeiter_nextsrc(v);
-	}
-}
-
-static inline void
 sv_mergeiter_dupreset(svmergeiter *im, svmergesrc *pos)
 {
 	svmergesrc *v = im->src;
@@ -94,10 +91,10 @@ sv_mergeiter_gt(sriter *it)
 {
 	svmergeiter *im = (svmergeiter*)it->priv;
 	if (im->v) {
+		im->v->dup = 0;
 		sr_iternext(im->v->i);
 	}
 	im->v = NULL;
-	int dupn = 0;
 	svmergesrc *min, *src;
 	sv *minv;
 	minv = NULL;
@@ -118,22 +115,17 @@ sv_mergeiter_gt(sriter *it)
 		case 0:
 			assert(svlsn(v) < svlsn(minv));
 			src->dup = 1;
-			dupn++;
 			break;
 		case 1:
+			sv_mergeiter_dupreset(im, src);
 			minv = v;
 			min = src;
-			sv_mergeiter_dupreset(im, src);
-			dupn = 0;
 			break;
 		}
 	}
 	if (srunlikely(min == NULL))
 		return;
 	im->v = min;
-	if (dupn) {
-		sv_mergeiter_dupset(im);
-	}
 }
 
 static void
@@ -141,10 +133,10 @@ sv_mergeiter_lt(sriter *it)
 {
 	svmergeiter *im = (svmergeiter*)it->priv;
 	if (im->v) {
+		im->v->dup = 0;
 		sr_iternext(im->v->i);
 	}
 	im->v = NULL;
-	int dupn = 0;
 	svmergesrc *max, *src;
 	sv *maxv;
 	maxv = NULL;
@@ -165,22 +157,17 @@ sv_mergeiter_lt(sriter *it)
 		case 0:
 			assert(svlsn(v) < svlsn(maxv));
 			src->dup = 1;
-			dupn++;
 			break;
 		case 1:
+			sv_mergeiter_dupreset(im, src);
 			maxv = v;
 			max = src;
-			sv_mergeiter_dupreset(im, src);
-			dupn = 0;
 			break;
 		}
 	}
 	if (srunlikely(max == NULL))
 		return;
 	im->v = max;
-	if (dupn) {
-		sv_mergeiter_dupset(im);
-	}
 }
 
 static void
@@ -211,9 +198,17 @@ sriterif sv_mergeiter =
 	.next    = sv_mergeiter_next
 };
 
-svmergesrc*
-sv_mergecurrent(sriter *i)
+svmergesrc *sv_mergecurrent(sriter *i)
 {
 	svmergeiter *im = (svmergeiter*)i->priv;
 	return im->v;
+}
+
+uint32_t sv_mergeisdup(sriter *i)
+{
+	svmergeiter *im = (svmergeiter*)i->priv;
+	assert(im->v != NULL);
+	if (im->v->dup)
+		return SVDUP;
+	return 0;
 }

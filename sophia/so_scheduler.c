@@ -683,6 +683,9 @@ so_complete(soscheduler *s, sotask *t)
 	case SI_BACKUP:
 		s->workers_backup--;
 		break;
+	case SI_GC:
+		s->workers_gc--;
+		break;
 	}
 	if (t->rotate == 1)
 		s->rotate = 0;

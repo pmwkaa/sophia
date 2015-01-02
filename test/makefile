@@ -7,7 +7,7 @@ LIBST_O = st.o \
           svindex.test.o \
           svindexiter.test.o \
           svmergeiter.test.o \
-          svsiftiter.test.o \
+		  svwriteiter.test.o \
           sl.test.o \
           sliter.test.o \
           sdbuild.test.o \
@@ -38,7 +38,7 @@ LIBST_O = st.o \
           recover_loop.test.o \
           mt.test.o \
           mt_backend.test.o
-LIBST_OBJECTS = $(addprefix test-ref/, $(LIBST_O))
+LIBST_OBJECTS = $(addprefix test/, $(LIBST_O))
 OBJECTS = $(LIBST_O)
 include ../build/config
 include ../build/test

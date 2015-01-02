@@ -11,7 +11,6 @@
 
 #include <sx_v.h>
 #include <sx.h>
-#include <sx_iter.h>
 #include <sx_deadlock.h>
 
 #endif

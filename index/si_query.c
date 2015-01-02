@@ -218,6 +218,7 @@ next_node:
 	node = sr_iterof(&i);
 	if (srunlikely(node == NULL))
 		return 0;
+
 	/* prepare sources */
 	svmerge *m = &q->merge;
 	int count = node->branch_count + 2;
@@ -246,36 +247,27 @@ next_node:
 		si_qfetchbranch(q, node, b, m);
 		b = b->next;
 	}
-	/* peek min/max */
+
+	/* merge and filter data stream */
 	sriter j;
 	sr_iterinit(&j, &sv_mergeiter, q->r);
 	sr_iteropen(&j, m, q->order);
 	sriter k;
-	sr_iterinit(&k, &sv_siftiter, q->r);
-	sr_iteropen(&k, &j, UINT64_MAX, 0, q->vlsn, 1);
-
-	/* skip deletes */
-	for (;;) {
-		sv *v = sr_iterof(&k);
-		if (srunlikely(v == NULL)) {
-			sv_mergereset(&q->merge);
-			sr_iternext(&i);
-			goto next_node;
-		}
-		if (srunlikely(svflags(v) & SVDELETE)) {
-			sr_iternext(&k);
-			continue;
-		}
-		q->result = *v;
-		svmergesrc *src = sv_mergecurrent(&j);
-		sicachebranch *cb = src->ptr;
-		if (cb) {
-			cb->iterate = 1;
-		}
-		return 1;
+	sr_iterinit(&k, &sv_readiter, q->r);
+	sr_iteropen(&k, &j, q->vlsn);
+	sv *v = sr_iterof(&k);
+	if (srunlikely(v == NULL)) {
+		sv_mergereset(&q->merge);
+		sr_iternext(&i);
+		goto next_node;
 	}
-	/* unreach */
-	return 0;
+	q->result = *v;
+	svmergesrc *src = sv_mergecurrent(&j);
+	sicachebranch *cb = src->ptr;
+	if (cb) {
+		cb->iterate = 1;
+	}
+	return 1;
 }
 
 int si_query(siquery *q)

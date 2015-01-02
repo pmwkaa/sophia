@@ -14,6 +14,7 @@ typedef struct sdmerge sdmerge;
 struct sdmerge {
 	uint32_t parent;
 	sdindex index;
+	sriter *merge;
 	sriter i;
 	uint32_t size_stream;
 	uint32_t size_key;

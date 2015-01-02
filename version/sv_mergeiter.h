@@ -63,5 +63,6 @@ extern sriterif sv_mergeiter;
 
 svmergesrc*
 sv_mergecurrent(sriter*);
+uint32_t sv_mergeisdup(sriter *i);
 
 #endif

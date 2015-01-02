@@ -44,7 +44,7 @@ int sd_buildcommit(sdbuild *b)
 	return 0;
 }
 
-int sd_buildadd(sdbuild *b, sv *v)
+int sd_buildadd(sdbuild *b, sv *v, uint32_t flags)
 {
 	uint32_t sizeblock = sd_buildheader(b)->sizeblock;
 	int rc = sr_bufensure(&b->k, b->r->a, sizeblock);
@@ -56,7 +56,6 @@ int sd_buildadd(sdbuild *b, sv *v)
 		memcpy(sv, svraw(v), svrawsize(v));
 	} else {
 		sv->lsn       = svlsn(v);
-		sv->flags     = svflags(v);
 		sv->valuesize = svvaluesize(v);
 		sv->keysize   = svkeysize(v);
 		memcpy(sv->key, svkey(v), sv->keysize);
@@ -64,7 +63,7 @@ int sd_buildadd(sdbuild *b, sv *v)
 	int padding = sizeblock - sizeof(sdv) - sv->keysize;
 	if (padding > 0)
 		memset(sv->key + sv->keysize, 0, padding);
-	sv->flags = svflags(v); /* ensure v->flags */
+	sv->flags = svflags(v) | flags;
 	rc = sr_bufensure(&b->v, b->r->a, sv->valuesize);
 	if (srunlikely(rc == -1))
 		return sr_error(b->r->e, "%s", "memory allocation failed");

@@ -88,7 +88,7 @@ sd_buildsize(sdbuild *b) {
 int sd_buildbegin(sdbuild*, uint32_t);
 int sd_buildcommit(sdbuild*);
 int sd_buildend(sdbuild*);
-int sd_buildadd(sdbuild*, sv*);
+int sd_buildadd(sdbuild*, sv*, uint32_t);
 int sd_buildwrite(sdbuild*, sdindex*, srfile*);
 
 #endif

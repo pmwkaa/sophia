@@ -17,7 +17,7 @@ extern stgroup *sraslab_group(void);
 extern stgroup *svindex_group(void);
 extern stgroup *svindexiter_group(void);
 extern stgroup *svmergeiter_group(void);
-extern stgroup *svsiftiter_group(void);
+extern stgroup *svwriteiter_group(void);
 extern stgroup *sl_group(void);
 extern stgroup *sliter_group(void);
 extern stgroup *sdbuild_group(void);
@@ -80,7 +80,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, svindex_group());
 	st_planadd(plan, svindexiter_group());
 	st_planadd(plan, svmergeiter_group());
-	st_planadd(plan, svsiftiter_group());
+	st_planadd(plan, svwriteiter_group());
 	st_planadd(plan, sl_group());
 	st_planadd(plan, sliter_group());
 	st_planadd(plan, sdbuild_group());
@@ -107,7 +107,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, checkpoint_group());
 	st_planadd(plan, logcursor_group());
 	st_planadd(plan, transaction_multidb_group());
-	/*st_planadd(plan, gc_group());*/
+	st_planadd(plan, gc_group());
 	st_planadd(plan, snapshot_group());
 	st_planadd(plan, backup_group());
 	st_add(&s, plan);

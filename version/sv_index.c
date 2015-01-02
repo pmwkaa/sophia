@@ -37,6 +37,7 @@ sv_vset(svv *head, svv *v)
 	/* default */
 	if (srlikely(head->lsn < v->lsn)) {
 		v->next = head;
+		head->flags |= SVDUP;
 		return v;
 	}
 	/* redistribution (starting from highest lsn) */
@@ -51,6 +52,7 @@ sv_vset(svv *head, svv *v)
 	}
 	prev->next = v;
 	v->next = c;
+	v->flags |= SVDUP;
 	return head;
 }
 

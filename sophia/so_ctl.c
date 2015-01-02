@@ -843,6 +843,10 @@ void so_ctlfree(soctl *c)
 		sr_free(&e->a, c->log_path);
 		c->log_path = NULL;
 	}
+	if (c->backup_path) {
+		sr_free(&e->a, c->backup_path);
+		c->backup_path = NULL;
+	}
 }
 
 int so_ctlvalidate(soctl *c)

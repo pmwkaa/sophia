@@ -30,7 +30,8 @@ int sd_mergeinit(sdmerge *m, sr *r, uint32_t parent,
 	m->size_node   = size_node;
 	m->size_page   = size_page;
 	sd_indexinit(&m->index);
-	sr_iterinit(&m->i, &sv_siftiter, r);
+	m->merge       = i;
+	sr_iterinit(&m->i, &sv_writeiter, r);
 	sr_iteropen(&m->i, i, (uint64_t)size_page, sizeof(sdv), vlsn,
 	            save_delete);
 	return 0;
@@ -53,7 +54,7 @@ int sd_merge(sdmerge *m)
 	if (srunlikely(rc == -1))
 		return -1;
 
-	uint32_t processed = sv_siftiter_total(&m->i); /* kv */
+	uint32_t processed = sv_writeiter_total(&m->i); /* kv */
 	uint32_t processed_last = 0;
 	assert(processed <= m->size_stream);
 	uint64_t left = (m->size_stream - processed);
@@ -73,7 +74,7 @@ int sd_merge(sdmerge *m)
 			return -1;
 		while (sr_iterhas(&m->i)) {
 			sv *v = sr_iterof(&m->i);
-			rc = sd_buildadd(m->build, v);
+			rc = sd_buildadd(m->build, v, sv_mergeisdup(m->merge));
 			if (srunlikely(rc == -1))
 				return -1;
 			sr_iternext(&m->i);
@@ -104,9 +105,9 @@ int sd_merge(sdmerge *m)
 			return -1;
 		sd_buildcommit(m->build);
 
-		processed_last = sv_siftiter_total(&m->i) -
+		processed_last = sv_writeiter_total(&m->i) -
 		                 processed;
-		if (srunlikely(! sv_siftiter_resume(&m->i)))
+		if (srunlikely(! sv_writeiter_resume(&m->i)))
 			break;
 	}
 	return 1;
