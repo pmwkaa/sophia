@@ -3,7 +3,10 @@ LIBST_O = st.o \
           run.o \
           srctl.test.o \
           srpager.test.o \
+          sra.test.o \
           sraslab.test.o \
+          srcmp.test.o \
+          srorder.test.o \
           svindex.test.o \
           svindexiter.test.o \
           svmergeiter.test.o \

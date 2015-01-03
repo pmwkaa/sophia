@@ -71,18 +71,13 @@ sv_mergeiter_of(sriter *i)
 	return sr_iterof(im->v->i);
 }
 
-static inline svmergesrc*
-sv_mergeiter_nextsrc(svmergesrc *src) {
-	return (svmergesrc*)((char*)src + sizeof(svmergesrc));
-}
-
 static inline void
 sv_mergeiter_dupreset(svmergeiter *im, svmergesrc *pos)
 {
 	svmergesrc *v = im->src;
 	while (v != pos) {
 		v->dup = 0;
-		v = sv_mergeiter_nextsrc(v);
+		v = sv_mergenextof(v);
 	}
 }
 
@@ -100,7 +95,7 @@ sv_mergeiter_gt(sriter *it)
 	minv = NULL;
 	min  = NULL;
 	src  = im->src;
-	for (; src < im->end; src = sv_mergeiter_nextsrc(src))
+	for (; src < im->end; src = sv_mergenextof(src))
 	{
 		sv *v = sr_iterof(src->i);
 		if (v == NULL)
@@ -142,7 +137,7 @@ sv_mergeiter_lt(sriter *it)
 	maxv = NULL;
 	max  = NULL;
 	src  = im->src;
-	for (; src < im->end; src = sv_mergeiter_nextsrc(src))
+	for (; src < im->end; src = sv_mergenextof(src))
 	{
 		sv *v = sr_iterof(src->i);
 		if (v == NULL)
@@ -154,11 +149,11 @@ sv_mergeiter_lt(sriter *it)
 		}
 		int rc = svcompare(maxv, v, it->r->cmp);
 		switch (rc) {
-		case 0:
+		case  0:
 			assert(svlsn(v) < svlsn(maxv));
 			src->dup = 1;
 			break;
-		case 1:
+		case -1:
 			sv_mergeiter_dupreset(im, src);
 			maxv = v;
 			max = src;
@@ -197,12 +192,6 @@ sriterif sv_mergeiter =
 	.of      = sv_mergeiter_of,
 	.next    = sv_mergeiter_next
 };
-
-svmergesrc *sv_mergecurrent(sriter *i)
-{
-	svmergeiter *im = (svmergeiter*)i->priv;
-	return im->v;
-}
 
 uint32_t sv_mergeisdup(sriter *i)
 {

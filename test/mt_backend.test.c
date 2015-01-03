@@ -64,6 +64,22 @@ stgroup *mt_backend_multipass_group(void)
 static void
 mt_set_checkpoint_get(stc *cx)
 {
+	cx->env = sp_env();
+	t( cx->env != NULL );
+	void *c = sp_ctl(cx->env);
+	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
+	t( sp_set(c, "scheduler.threads", "1") == 0 );
+	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
+	t( sp_set(c, "log.sync", "0") == 0 );
+	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
+	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
+	cx->db = sp_get(c, "db.test");
+	t( cx->db != NULL );
+	t( sp_open(cx->env) == 0 );
+
 	char value[100];
 	memset(value, 0, sizeof(value));
 	uint32_t n = 300000;
@@ -79,7 +95,6 @@ mt_set_checkpoint_get(stc *cx)
 		t( sp_set(cx->db, o) == 0 );
 		print_current(cx, i);
 	}
-	void *c = sp_ctl(cx->env);
 	t( sp_set(c, "log.rotate") == 0 );
 	t( sp_set(c, "scheduler.checkpoint") == 0 );
 	printf(" (checkpoint..");
@@ -117,11 +132,72 @@ mt_set_checkpoint_get(stc *cx)
 		sp_destroy(o);
 		print_current(cx, i);
 	}
+
+	t( sp_destroy(cx->env) == 0 );
+}
+
+static void
+mt_set_delete_get(stc *cx)
+{
+	cx->env = sp_env();
+	t( cx->env != NULL );
+	void *c = sp_ctl(cx->env);
+	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
+	t( sp_set(c, "scheduler.threads", "5") == 0 );
+	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
+	t( sp_set(c, "log.sync", "0") == 0 );
+	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
+	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
+	cx->db = sp_get(c, "db.test");
+	t( cx->db != NULL );
+	t( sp_open(cx->env) == 0 );
+
+	char value[100];
+	memset(value, 0, sizeof(value));
+	uint32_t n = 700000;
+	uint32_t i, k;
+	srand(82351);
+	for (i = 0; i < n; i++) {
+		k = rand();
+		*(uint32_t*)value = k;
+		void *o = sp_object(cx->db);
+		t( o != NULL );
+		t( sp_set(o, "key", &k, sizeof(k)) == 0 );
+		t( sp_set(o, "value", value, sizeof(value)) == 0 );
+		t( sp_set(cx->db, o) == 0 );
+		print_current(cx, i);
+	}
+	srand(82351);
+	for (i = 0; i < n; i++) {
+		k = rand();
+		*(uint32_t*)value = k;
+		void *o = sp_object(cx->db);
+		t( o != NULL );
+		t( sp_set(o, "key", &k, sizeof(k)) == 0 );
+		t( sp_set(o, "value", value, sizeof(value)) == 0 );
+		t( sp_delete(cx->db, o) == 0 );
+		print_current(cx, i);
+	}
+	srand(82351);
+	for (i = 0; i < n; i++) {
+		k = rand();
+		void *o = sp_object(cx->db);
+		t( o != NULL );
+		t( sp_set(o, "key", &k, sizeof(k)) == 0 );
+		o = sp_get(cx->db, o);
+		t( o == NULL );
+		print_current(cx, i);
+	}
+	t( sp_destroy(cx->env) == 0 );
 }
 
 stgroup *mt_backend_group(void)
 {
 	stgroup *group = st_group("mt_backend");
+	st_groupadd(group, st_test("set_delete_get", mt_set_delete_get));
 	st_groupadd(group, st_test("set_checkpoint_get", mt_set_checkpoint_get));
 	return group;
 }

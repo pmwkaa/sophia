@@ -240,7 +240,6 @@ static inline void
 st_runplan(st *s, stplan *plan)
 {
 	printf("\n<%s>\n", plan->name);
-
 	srlist *i;
 	sr_listforeach(&plan->group, i) {
 		stgroup *group = srcast(i, stgroup, link);

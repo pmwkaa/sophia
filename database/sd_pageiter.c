@@ -381,6 +381,7 @@ sd_pageiter_next(sriter *i)
 	case SR_LT:
 	case SR_LTE: sd_pageiter_bkw(pi);
 		break;
+	case SR_RANDOM:
 	case SR_GT:
 	case SR_GTE: sd_pageiter_fwd(pi);
 		break;

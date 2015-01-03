@@ -59,10 +59,13 @@ sv_mergeadd(svmerge *m, sriter *i)
 	return s;
 }
 
-extern sriterif sv_mergeiter;
+static inline svmergesrc*
+sv_mergenextof(svmergesrc *src) {
+	return (svmergesrc*)((char*)src + sizeof(svmergesrc));
+}
 
-svmergesrc*
-sv_mergecurrent(sriter*);
-uint32_t sv_mergeisdup(sriter *i);
+uint32_t sv_mergeisdup(sriter*);
+
+extern sriterif sv_mergeiter;
 
 #endif

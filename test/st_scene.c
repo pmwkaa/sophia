@@ -77,6 +77,13 @@ st_scene_create(stscene *g, stc *cx)
 	t( cx->db != NULL );
 }
 
+void
+st_scene_branch_wm(stscene *g, stc *cx)
+{
+	void *c = sp_ctl(cx->env);
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
+}
+
 void st_scene_multithread(stscene *g, stc *cx)
 {
 	printf(".multithread");
@@ -107,37 +114,27 @@ static inline void
 st_phase_commit(stc *cx)
 {
 	switch (cx->phase_scene) {
-	case 0:
+	case 0: break;
+	case 1:
 		t( sp_set(sp_ctl(cx->env), "db.test.branch") == 0 );
 		break;
-	case 1:
+	case 2:
 		t( sp_set(sp_ctl(cx->env), "db.test.branch") == 0 );
 		t( sp_set(sp_ctl(cx->env), "db.test.compact") == 0 );
 		break;
-	case 2:
-		t( sp_set(sp_ctl(cx->env), "log.rotate") == 0 );
-		break;
 	case 3:
-		if (cx->phase == 0) {
-			t( sp_set(sp_ctl(cx->env), "db.test.branch") == 0 );
-			cx->phase = 1;
-		} else
-		if (cx->phase == 1) {
-			t( sp_set(sp_ctl(cx->env), "db.test.compact") == 0 );
-			cx->phase = 0;
-		}
+		t( sp_set(sp_ctl(cx->env), "log.rotate") == 0 );
+		t( sp_set(sp_ctl(cx->env), "log.gc") == 0 );
 		break;
 	case 4:
 		if (cx->phase == 0) {
 			t( sp_set(sp_ctl(cx->env), "db.test.branch") == 0 );
+			t( sp_set(sp_ctl(cx->env), "log.rotate") == 0 );
+			t( sp_set(sp_ctl(cx->env), "log.gc") == 0 );
 			cx->phase = 1;
 		} else
 		if (cx->phase == 1) {
 			t( sp_set(sp_ctl(cx->env), "db.test.compact") == 0 );
-			cx->phase = 2;
-		} else
-		if (cx->phase == 2) {
-			t( sp_set(sp_ctl(cx->env), "log.rotate") == 0 );
 			cx->phase = 0;
 		}
 		break;
@@ -151,26 +148,25 @@ st_scene_phase(stscene *g, stc *cx)
 	cx->commit = st_phase_commit;
 	cx->phase_scene = g->state;
 	cx->phase = 0;
-	/* todo: branch_wm */
 	switch (g->state) {
 	case 0:
-		printf(".branch");
+		printf(".in-memory");
 		fflush(NULL);
 		break;
 	case 1:
-		printf(".compact");
+		printf(".branch");
 		fflush(NULL);
 		break;
 	case 2:
-		printf(".logrotate");
+		printf(".compact");
 		fflush(NULL);
 		break;
 	case 3:
-		printf(".branch+compact");
+		printf(".logrotate_gc");
 		fflush(NULL);
 		break;
 	case 4:
-		printf(".branch+logrotate");
+		printf(".branch_compact");
 		fflush(NULL);
 		break;
 	}
@@ -179,6 +175,8 @@ st_scene_phase(stscene *g, stc *cx)
 void
 st_scene_test(stscene *g, stc *cx)
 {
+	printf(".TEST");
+	fflush(NULL);
 	cx->test->function(cx);
 	cx->suite->stat_test++;
 }
@@ -206,6 +204,8 @@ st_scene_truncate(stscene *g, stc *cx)
 void
 st_scene_destroy(stscene *g, stc *cx)
 {
+	printf(".destroy");
+	fflush(NULL);
 	t( cx->env != NULL );
 	t( sp_destroy(cx->env) == 0 );
 	cx->env = NULL;

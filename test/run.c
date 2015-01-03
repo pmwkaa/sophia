@@ -14,6 +14,9 @@
 extern stgroup *srctl_group(void);
 extern stgroup *srpager_group(void);
 extern stgroup *sraslab_group(void);
+extern stgroup *sra_group(void);
+extern stgroup *srcmp_group(void);
+extern stgroup *srorder_group(void);
 extern stgroup *svindex_group(void);
 extern stgroup *svindexiter_group(void);
 extern stgroup *svmergeiter_group(void);
@@ -59,6 +62,7 @@ main(int argc, char *argv[])
 
 	st_addscene(&s, st_scene("rmrf", st_scene_rmrf, 1));
 	st_addscene(&s, st_scene("create", st_scene_create, 1));
+	st_addscene(&s, st_scene("branch_wm", st_scene_branch_wm, 1));
 	st_addscene(&s, st_scene("multithread", st_scene_multithread, 1));
 	st_addscene(&s, st_scene("multithread_1", st_scene_multithread_1, 1));
 	st_addscene(&s, st_scene("open", st_scene_open, 1));
@@ -76,7 +80,10 @@ main(int argc, char *argv[])
 	st_planscene(plan, st_sceneof(&s, "pass"));
 	st_planadd(plan, srctl_group());
 	st_planadd(plan, srpager_group());
+	st_planadd(plan, sra_group());
 	st_planadd(plan, sraslab_group());
+	st_planadd(plan, srcmp_group());
+	st_planadd(plan, srorder_group());
 	st_planadd(plan, svindex_group());
 	st_planadd(plan, svindexiter_group());
 	st_planadd(plan, svmergeiter_group());
@@ -115,6 +122,7 @@ main(int argc, char *argv[])
 	plan = st_plan("default");
 	st_planscene(plan, st_sceneof(&s, "rmrf"));
 	st_planscene(plan, st_sceneof(&s, "create"));
+	st_planscene(plan, st_sceneof(&s, "branch_wm"));
 	st_planscene(plan, st_sceneof(&s, "phase"));
 	st_planscene(plan, st_sceneof(&s, "open"));
 	st_planscene(plan, st_sceneof(&s, "test"));
@@ -129,6 +137,7 @@ main(int argc, char *argv[])
 	plan = st_plan("truncate-repeat");
 	st_planscene(plan, st_sceneof(&s, "rmrf"));
 	st_planscene(plan, st_sceneof(&s, "create"));
+	st_planscene(plan, st_sceneof(&s, "branch_wm"));
 	st_planscene(plan, st_sceneof(&s, "phase"));
 	st_planscene(plan, st_sceneof(&s, "open"));
 	st_planscene(plan, st_sceneof(&s, "test"));
@@ -147,12 +156,14 @@ main(int argc, char *argv[])
 	plan = st_plan("truncate-recover-repeat");
 	st_planscene(plan, st_sceneof(&s, "rmrf"));
 	st_planscene(plan, st_sceneof(&s, "create"));
+	st_planscene(plan, st_sceneof(&s, "branch_wm"));
 	st_planscene(plan, st_sceneof(&s, "phase"));
 	st_planscene(plan, st_sceneof(&s, "open"));
 	st_planscene(plan, st_sceneof(&s, "test"));
 	st_planscene(plan, st_sceneof(&s, "truncate"));
 	st_planscene(plan, st_sceneof(&s, "destroy"));
 	st_planscene(plan, st_sceneof(&s, "create"));
+	st_planscene(plan, st_sceneof(&s, "branch_wm"));
 	st_planscene(plan, st_sceneof(&s, "open"));
 	st_planscene(plan, st_sceneof(&s, "test"));
 	st_planscene(plan, st_sceneof(&s, "destroy"));
@@ -177,21 +188,11 @@ main(int argc, char *argv[])
 	st_planadd(plan, recoverloop_group());
 	st_add(&s, plan);
 
-	plan = st_plan("multithreaded_frontend");
+	plan = st_plan("multithreaded");
 	st_planscene(plan, st_sceneof(&s, "rmrf"));
 	st_planscene(plan, st_sceneof(&s, "test"));
 	st_planscene(plan, st_sceneof(&s, "pass"));
 	st_planadd(plan, mt_group());
-	st_add(&s, plan);
-
-	plan = st_plan("multithreaded_backend");
-	st_planscene(plan, st_sceneof(&s, "rmrf"));
-	st_planscene(plan, st_sceneof(&s, "create"));
-	st_planscene(plan, st_sceneof(&s, "multithread_1"));
-	st_planscene(plan, st_sceneof(&s, "open"));
-	st_planscene(plan, st_sceneof(&s, "test"));
-	st_planscene(plan, st_sceneof(&s, "destroy"));
-	st_planscene(plan, st_sceneof(&s, "pass"));
 	st_planadd(plan, mt_backend_group());
 	st_add(&s, plan);
 

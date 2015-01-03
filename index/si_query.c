@@ -177,10 +177,6 @@ si_qfetchbranch(siquery *q, sinode *n, sibranch *b, svmerge *m)
 	assert(cb->branch == b);
 	/* cache iteration */
 	if (srlikely(cb->ref)) {
-		if (cb->iterate) {
-			sr_iternext(&cb->i);
-			cb->iterate = 0;
-		}
 		if (sr_iterhas(&cb->i)) {
 			svmergesrc *s = sv_mergeadd(m, &cb->i);
 			s->ptr = cb;
@@ -262,11 +258,9 @@ next_node:
 		goto next_node;
 	}
 	q->result = *v;
-	svmergesrc *src = sv_mergecurrent(&j);
-	sicachebranch *cb = src->ptr;
-	if (cb) {
-		cb->iterate = 1;
-	}
+
+	/* skip a possible duplicates from data sources */
+	sr_iternext(&k);
 	return 1;
 }
 

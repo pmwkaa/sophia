@@ -26,16 +26,6 @@ int sr_fileexists(char *path)
 	return rc == 0;
 }
 
-int sr_filesize(char *path, uint64_t *size)
-{
-	struct stat st;
-	int rc = lstat(path, &st);
-	if (srunlikely(rc == -1))
-		return -1;
-	*size = st.st_size;
-	return 0;
-}
-
 int sr_filemkdir(char *path)
 {
 	return mkdir(path, 0750);
@@ -195,6 +185,7 @@ int sr_fileseek(srfile *f, uint64_t off)
 	return lseek(f->fd, off, SEEK_SET);
 }
 
+#if 0
 int sr_filelock(srfile *f)
 {
 	struct flock l;
@@ -218,6 +209,7 @@ int sr_fileunlock(srfile *f)
 	l.l_type = F_UNLCK;
 	return fcntl(f->fd, F_SETLK, &l);
 }
+#endif
 
 int sr_filerlb(srfile *f, uint64_t svp)
 {

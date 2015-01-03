@@ -49,8 +49,8 @@ svindexiter_lte_empty(stc *cx srunused)
 	t( sr_iterhas(&it) == 0 );
 	sv *v = sr_iterof(&it);
 	t( v == NULL );
-
 	sv_indexfree(&i, &r);
+	sr_allocclose(&a);
 }
 
 static void

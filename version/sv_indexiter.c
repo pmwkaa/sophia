@@ -183,6 +183,7 @@ sv_indexiter_next(sriter *i)
 		ii->vcur = NULL;
 		sv_indexiter_bkw(ii);
 		break;
+	case SR_RANDOM:
 	case SR_GT:
 	case SR_GTE:
 		ii->v = sr_rbnext(&ii->index->i, ii->v);

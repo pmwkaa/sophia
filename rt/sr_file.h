@@ -35,7 +35,6 @@ sr_filesvp(srfile *f) {
 int sr_fileunlink(char*);
 int sr_filemove(char*, char*);
 int sr_fileexists(char*);
-int sr_filesize(char*, uint64_t*);
 int sr_filemkdir(char*);
 int sr_fileopen(srfile*, char*);
 int sr_filenew(srfile*, char*);

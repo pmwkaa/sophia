@@ -143,11 +143,6 @@ so_objcommit(soobj *o, ...)
 	return rc;
 }
 
-static inline int
-so_objrollback(soobj *o) {
-	return o->i->rollback(o);
-}
-
 static inline void*
 so_objcursor(soobj *o, ...) {
 	va_list args;

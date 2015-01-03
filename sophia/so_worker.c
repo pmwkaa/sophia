@@ -26,7 +26,6 @@ int so_workersinit(soworkers *w)
 static inline int
 so_workershutdown(soworker *w, sr *r)
 {
-	sr_threadwakeup(&w->t);
 	int rc = sr_threadjoin(&w->t);
 	if (srunlikely(rc == -1))
 		sr_error(r->e, "failed to join a thread: %s",
