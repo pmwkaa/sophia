@@ -26,6 +26,7 @@ struct sicache {
 	sicachebranch *path;
 	sicachebranch *branch;
 	uint32_t count;
+	uint32_t nodeid;
 	sinode *node;
 };
 
@@ -36,6 +37,7 @@ si_cacheinit(sicache *c, sra *ac)
 	c->branch = NULL;
 	c->count  = 0;
 	c->node   = NULL;
+	c->nodeid = 0;
 	c->ac     = ac;
 }
 
@@ -65,6 +67,7 @@ si_cachereset(sicache *c)
 	}
 	c->branch = NULL;
 	c->node   = NULL;
+	c->nodeid = 0;
 	c->count  = 0;
 }
 
@@ -85,7 +88,8 @@ si_cacheadd(sicache *c, sibranch *b)
 static inline int
 si_cachevalidate(sicache *c, sinode *n)
 {
-	if (srlikely(c->node == n)) {
+	if (srlikely(c->node == n && c->nodeid == n->self.id.id))
+	{
 		if (srlikely(n->branch_count == c->count)) {
 			c->branch = c->path;
 			return 0;
@@ -142,6 +146,7 @@ si_cachevalidate(sicache *c, sinode *n)
 	}
 	c->count  = n->branch_count;
 	c->node   = n;
+	c->nodeid = n->self.id.id;
 	c->branch = c->path;
 	return 0;
 }

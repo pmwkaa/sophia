@@ -150,7 +150,7 @@ st_scene_phase(stscene *g, stc *cx)
 	cx->phase = 0;
 	switch (g->state) {
 	case 0:
-		printf(".in-memory");
+		printf(".in_memory");
 		fflush(NULL);
 		break;
 	case 1:
