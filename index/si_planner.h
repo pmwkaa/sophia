@@ -19,16 +19,17 @@ struct siplanner {
 
 /* plan */
 #define SI_BRANCH        1
-#define SI_COMPACT       2
-#define SI_CHECKPOINT    3
-#define SI_GC            4
-#define SI_BACKUP        5
+#define SI_AGE           2
+#define SI_COMPACT       3
+#define SI_CHECKPOINT    4
+#define SI_GC            5
+#define SI_BACKUP        6
 
 /* explain */
 #define SI_ENONE         0
 #define SI_ERETRY        1
 #define SI_EINDEX_SIZE   2
-#define SI_EINDEX_TTL    4
+#define SI_EINDEX_AGE    4
 #define SI_EBRANCH_COUNT 3
 
 struct siplan {
@@ -38,6 +39,10 @@ struct siplan {
 	 *   a: index_size
 	 *   b: ttl
 	 *   c: ttl_wm
+	 * age:
+	 *   a: ttl
+	 *   b: ttl_wm
+	 *   c:
 	 * compact:
 	 *   a: branches
 	 *   b:

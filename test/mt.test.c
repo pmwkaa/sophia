@@ -229,7 +229,8 @@ mt_quota(stc *cx)
 	t( sp_set(c, "compaction.80.mode", "3") == 0 );
 	t( sp_set(c, "compaction.80.branch_wm", "500000") == 0 );
 	t( sp_set(c, "compaction.80.branch_prio", "3") == 0 );
-	t( sp_set(c, "compaction.80.branch_ttl", "100") == 0 );
+	t( sp_set(c, "compaction.80.branch_age", "100") == 0 );
+	t( sp_set(c, "compaction.80.branch_age_period", "1") == 0 );
 	t( sp_set(c, "scheduler.threads", "5") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
@@ -293,7 +294,7 @@ mt_quota_checkpoint(stc *cx)
 }
 
 static void
-mt_quota_ttl(stc *cx)
+mt_quota_age(stc *cx)
 {
 	cx->env = sp_env();
 	t( cx->env != NULL );
@@ -304,9 +305,10 @@ mt_quota_ttl(stc *cx)
 	/* 100Mb branch_wm to avoid branching */
 	t( sp_set(c, "compaction.80.mode", "3") == 0 );
 	t( sp_set(c, "compaction.80.branch_wm", "104857600") == 0 );
-	t( sp_set(c, "compaction.80.branch_ttl", "1") == 0 );
+	t( sp_set(c, "compaction.80.branch_age_period", "1") == 0 );
+	t( sp_set(c, "compaction.80.branch_age", "1") == 0 );
 	t( sp_set(c, "compaction.80.branch_prio", "3") == 0 );
-	t( sp_set(c, "compaction.80.branch_ttl_wm", "500000") == 0 );
+	t( sp_set(c, "compaction.80.branch_age_wm", "500000") == 0 );
 	t( sp_set(c, "scheduler.threads", "5") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
@@ -341,6 +343,6 @@ stgroup *mt_group(void)
 	st_groupadd(group, st_test("multi_stmt_conflict", mt_multi_stmt_conflict));
 	st_groupadd(group, st_test("quota", mt_quota));
 	st_groupadd(group, st_test("quota_checkpoint", mt_quota_checkpoint));
-	st_groupadd(group, st_test("quota_ttl", mt_quota_ttl));
+	st_groupadd(group, st_test("quota_age", mt_quota_age));
 	return group;
 }

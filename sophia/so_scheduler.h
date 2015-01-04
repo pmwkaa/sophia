@@ -25,6 +25,8 @@ struct soscheduler {
 	uint64_t checkpoint_lsn_last;
 	uint64_t checkpoint_lsn;
 	uint32_t checkpoint;
+	uint32_t age;
+	uint32_t age_last;
 	uint32_t backup_bsn;
 	uint32_t backup_last;
 	uint32_t backup_last_complete;

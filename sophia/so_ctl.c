@@ -199,16 +199,17 @@ so_ctlcompaction(so *e, soctlrt *rt srunused, src **pc)
 			continue;
 		src *zone = *pc;
 		p = NULL;
-		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "mode",          SR_CU32, &z->mode));
-		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "compact_wm",    SR_CU32, &z->compact_wm));
-		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "branch_prio",   SR_CU32, &z->branch_prio));
-		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "branch_wm",     SR_CU32, &z->branch_wm));
-		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "branch_ttl",    SR_CU32, &z->branch_ttl));
-		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "branch_ttl_wm", SR_CU32, &z->branch_ttl_wm));
-		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "backup_prio",   SR_CU32, &z->backup_prio));
-		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "gc_wm",         SR_CU32, &z->gc_wm));
-		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "gc_prio",       SR_CU32, &z->gc_prio));
-		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "gc_period",     SR_CU32, &z->gc_period));
+		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "mode",              SR_CU32, &z->mode));
+		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "compact_wm",        SR_CU32, &z->compact_wm));
+		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "branch_prio",       SR_CU32, &z->branch_prio));
+		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "branch_wm",         SR_CU32, &z->branch_wm));
+		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "branch_age",        SR_CU32, &z->branch_age));
+		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "branch_age_period", SR_CU32, &z->branch_age_period));
+		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "branch_age_wm",     SR_CU32, &z->branch_age_wm));
+		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "backup_prio",       SR_CU32, &z->backup_prio));
+		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "gc_wm",             SR_CU32, &z->gc_wm));
+		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "gc_prio",           SR_CU32, &z->gc_prio));
+		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "gc_period",         SR_CU32, &z->gc_period));
 		sr_clink(&prev, sr_c(pc, NULL, z->name, SR_CC, zone));
 	}
 	return sr_c(pc, so_ctlcompaction_set, "compaction", SR_CC, compaction);
@@ -790,8 +791,9 @@ void so_ctlinit(soctl *c, void *e)
 		.compact_wm    = 2,
 		.branch_prio   = 1,
 		.branch_wm     = 10 * 1024 * 1024,
-		.branch_ttl    = 40,
-		.branch_ttl_wm = 1 * 1024 * 1024,
+		.branch_age    = 40,
+		.branch_age_period = 40,
+		.branch_age_wm = 1 * 1024 * 1024,
 		.backup_prio   = 1,
 		.gc_prio       = 1,
 		.gc_period     = 60,
@@ -803,8 +805,9 @@ void so_ctlinit(soctl *c, void *e)
 		.compact_wm    = 4,
 		.branch_prio   = 0,
 		.branch_wm     = 0,
-		.branch_ttl    = 0,
-		.branch_ttl_wm = 0,
+		.branch_age    = 0,
+		.branch_age_period = 0,
+		.branch_age_wm = 0,
 		.backup_prio   = 0,
 		.gc_prio       = 0,
 		.gc_period     = 0,

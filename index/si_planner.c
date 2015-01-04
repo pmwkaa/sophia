@@ -36,6 +36,8 @@ int si_plannertrace(siplan *p, srtrace *t)
 	switch (p->plan) {
 	case SI_BRANCH: plan = "branch";
 		break;
+	case SI_AGE: plan = "age";
+		break;
 	case SI_COMPACT: plan = "compact";
 		break;
 	case SI_CHECKPOINT: plan = "checkpoint";
@@ -56,7 +58,7 @@ int si_plannertrace(siplan *p, srtrace *t)
 	case SI_EINDEX_SIZE:
 		explain = "index size";
 		break;
-	case SI_EINDEX_TTL:
+	case SI_EINDEX_AGE:
 		explain = "index age";
 		break;
 	case SI_EBRANCH_COUNT:
@@ -155,25 +157,6 @@ int si_plannerupdate(siplanner *p, int mask, sinode *n)
 }
 
 static inline int
-si_plannerpeek_ttl(siplanner *p, siplan *plan, srrbnode *pn, uint64_t now)
-{
-	sinode *n = NULL;
-	for (; pn ; pn = sr_rbprev(&p->branch, pn)) {
-		n = srcast(pn, sinode, nodebranch);
-		if (n->flags & SI_LOCK)
-			continue;
-		if (n->used >= plan->c && ((now - n->update_time) >= plan->b))
-			goto match;
-	}
-	return 0;
-match:
-	si_nodelock(n);
-	plan->explain = SI_EINDEX_TTL;
-	plan->node = n;
-	return 1;
-}
-
-static inline int
 si_plannerpeek_backup(siplanner *p, siplan *plan)
 {
 	/* try to peek a node which has
@@ -236,12 +219,7 @@ match:
 static inline int
 si_plannerpeek_branch(siplanner *p, siplan *plan)
 {
-	/* try to peek a node in the following order:
-	 *
-	 * a. has in-memory vindex size >= required value
-	 * b. has last update time diff >= required value
-	*/
-	uint64_t now = sr_utime();
+	/* try to peek a node with a biggest in-memory index */
 	sinode *n;
 	srrbnode *pn;
 	pn = sr_rbmax(&p->branch);
@@ -251,13 +229,38 @@ si_plannerpeek_branch(siplanner *p, siplan *plan)
 			continue;
 		if (n->used >= plan->a)
 			goto match;
-		/* continue to match a ttl-ready node */
-		return si_plannerpeek_ttl(p, plan, pn, now);
+		return 0;
 	}
 	return 0;
 match:
 	si_nodelock(n);
 	plan->explain = SI_EINDEX_SIZE;
+	plan->node = n;
+	return 1;
+}
+
+static inline int
+si_plannerpeek_age(siplanner *p, siplan *plan)
+{
+	/* try to peek a node with update >= a and in-memory
+	 * index size >= b */
+
+	/* full scan */
+	uint64_t now = sr_utime();
+	sinode *n = NULL;
+	srrbnode *pn;
+	pn = sr_rbmax(&p->branch);
+	for (; pn ; pn = sr_rbprev(&p->branch, pn)) {
+		n = srcast(pn, sinode, nodebranch);
+		if (n->flags & SI_LOCK)
+			continue;
+		if (n->used >= plan->b && ((now - n->update_time) >= plan->a))
+			goto match;
+	}
+	return 0;
+match:
+	si_nodelock(n);
+	plan->explain = SI_EINDEX_AGE;
 	plan->node = n;
 	return 1;
 }
@@ -297,16 +300,17 @@ si_plannerpeek_gc(siplanner *p, siplan *plan)
 	pn = sr_rbmax(&p->compact);
 	for (; pn ; pn = sr_rbprev(&p->compact, pn)) {
 		n = srcast(pn, sinode, nodecompact);
-		if (n->flags & SI_LOCK) {
-			rc_inprogress = 2;
-			continue;
-		}
 		sdindexheader *h = n->self.index.h;
 		if (srlikely(h->dupkeys == 0) || (h->dupmin >= plan->a))
 			continue;
 		uint32_t used = (h->dupkeys * 100) / h->keys;
-		if (used >= plan->b)
+		if (used >= plan->b) {
+			if (n->flags & SI_LOCK) {
+				rc_inprogress = 2;
+				continue;
+			}
 			goto match;
+		}
 	}
 	if (rc_inprogress)
 		plan->explain = SI_ERETRY;
@@ -323,10 +327,12 @@ int si_planner(siplanner *p, siplan *plan)
 	switch (plan->plan) {
 	case SI_BRANCH:
 		return si_plannerpeek_branch(p, plan);
-	case SI_COMPACT:
-		return si_plannerpeek_compact(p, plan);
+	case SI_AGE:
+		return si_plannerpeek_age(p, plan);
 	case SI_CHECKPOINT:
 		return si_plannerpeek_checkpoint(p, plan);
+	case SI_COMPACT:
+		return si_plannerpeek_compact(p, plan);
 	case SI_GC:
 		return si_plannerpeek_gc(p, plan);
 	case SI_BACKUP:

@@ -91,6 +91,7 @@ int si_execute(si *i, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	switch (plan->plan) {
 	case SI_CHECKPOINT:
 	case SI_BRANCH:
+	case SI_AGE:
 		rc = si_branch(i, r, c, plan, vlsn);
 		break;
 	case SI_GC:

@@ -36,8 +36,8 @@ int so_scheduler_branch(void *arg)
 			.explain   = SI_ENONE,
 			.plan      = SI_BRANCH,
 			.a         = z->branch_wm,
-			.b         = z->branch_ttl * 1000000, /* ms */
-			.c         = z->branch_ttl_wm,
+			.b         = 0,
+			.c         = 0,
 			.node      = NULL
 		};
 		rc = si_plan(&db->index, &plan);
@@ -261,6 +261,8 @@ int so_scheduler_init(soscheduler *s, void *env)
 	s->checkpoint_lsn       = 0;
 	s->checkpoint_lsn_last  = 0;
 	s->checkpoint           = 0;
+	s->age                  = 0;
+	s->age_last             = 0;
 	s->backup_bsn           = 0;
 	s->backup_last          = 0;
 	s->backup_last_complete = 0;
@@ -567,18 +569,46 @@ backup_error:;
 				break;
 			case 0: /* state 3 */
 				s->gc = 0;
-				s->gc_last = 0; /* set now */
+				s->gc_last = now;
 				break;
 			}
 		}
 	} else {
-		if (zone->gc_prio) {
+		if (zone->gc_prio && zone->gc_period) {
 			if ( (now - s->gc_last) >= (zone->gc_period * 1000000) ) {
 				s->gc = 1;
 			}
 		}
 	}
 
+	/* index aging */
+	if (s->age) {
+		if (s->workers_branch < zone->branch_prio) {
+			task->plan.plan = SI_AGE;
+			task->plan.a = zone->branch_age * 1000000; /* ms */
+			task->plan.b = zone->branch_age_wm;
+			rc = so_schedule_plan(s, &task->plan, &db);
+			switch (rc) {
+			case 1:
+				s->workers_branch++;
+				task->db = db;
+				sr_mutexunlock(&s->lock);
+				return 1;
+			case 0:
+				s->age = 0;
+				s->age_last = now;
+				break;
+			}
+		}
+	} else {
+		if (zone->branch_prio && zone->branch_age_period) {
+			if ( (now - s->age_last) >= (zone->branch_age_period * 1000000) ) {
+				s->age = 1;
+			}
+		}
+	}
+
+	/* branching */
 	if (s->workers_branch < zone->branch_prio)
 	{
 		/* schedule branch task using following
@@ -598,8 +628,6 @@ backup_error:;
 		 */
 		task->plan.plan = SI_BRANCH;
 		task->plan.a = zone->branch_wm;
-		task->plan.b = zone->branch_ttl * 1000000; /* ms */
-		task->plan.c = zone->branch_ttl_wm;
 		rc = so_schedule_plan(s, &task->plan, &db);
 		if (rc == 1) {
 			s->workers_branch++;
@@ -610,12 +638,7 @@ backup_error:;
 		}
 	}
 
-	/* todo: branch aging */
-
-	/* schedule compaction task.
-	 *
-	 * peek node with the largest branches count
-	 */
+	/* compaction */
 	task->plan.plan = SI_COMPACT;
 	task->plan.a = zone->compact_wm;
 	rc = so_schedule_plan(s, &task->plan, &db);
@@ -669,6 +692,7 @@ so_complete(soscheduler *s, sotask *t)
 	sr_mutexlock(&s->lock);
 	switch (t->plan.plan) {
 	case SI_BRANCH:
+	case SI_AGE:
 	case SI_CHECKPOINT:
 		s->workers_branch--;
 		break;
