@@ -7,6 +7,8 @@ LIBST_O = st.o \
           sraslab.test.o \
           srcmp.test.o \
           srorder.test.o \
+          svlocal.test.o \
+          svv.test.o \
           svindex.test.o \
           svindexiter.test.o \
           svmergeiter.test.o \

@@ -115,7 +115,6 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 	sov *o = (sov*)keyobj;
 	if (srunlikely(o->o.id != SOV)) {
 		sr_error(&e->error, "%s", "bad arguments");
-		sr_error_recoverable(&e->error);
 		return NULL;
 	}
 
@@ -123,7 +122,6 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 	socursor *c = sr_malloc(&e->a_cursor, sizeof(socursor));
 	if (srunlikely(c == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");
-		sr_error_recoverable(&e->error);
 		goto error;
 	}
 	so_objinit(&c->o, SOCURSOR, &socursorif, &e->o);

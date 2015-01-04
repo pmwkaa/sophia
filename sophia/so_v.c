@@ -33,14 +33,12 @@ so_vset(soobj *obj, va_list args)
 	sov *v = (sov*)obj;
 	if (srunlikely(v->flags & SO_VRO)) {
 		sr_error(&v->e->error, "%s", "object is read-only");
-		sr_error_recoverable(&v->e->error);
 		return -1;
 	}
 	char *name = va_arg(args, char*);
 	if (strcmp(name, "key") == 0) {
 		if (v->v.i != &sv_localif) {
 			sr_error(&v->e->error, "%s", "bad object operation");
-			sr_error_recoverable(&v->e->error);
 			return -1;
 		}
 		v->lv.key = va_arg(args, char*);
@@ -50,7 +48,6 @@ so_vset(soobj *obj, va_list args)
 	if (strcmp(name, "value") == 0) {
 		if (v->v.i != &sv_localif) {
 			sr_error(&v->e->error, "%s", "bad object operation");
-			sr_error_recoverable(&v->e->error);
 			return -1;
 		}
 		v->lv.value = va_arg(args, char*);
@@ -70,7 +67,6 @@ so_vset(soobj *obj, va_list args)
 		srorder cmp = sr_orderof(order);
 		if (srunlikely(cmp == SR_STOP)) {
 			sr_error(&v->e->error, "%s", "bad order name");
-			sr_error_recoverable(&v->e->error);
 			return -1;
 		}
 		v->order = cmp;
@@ -176,7 +172,6 @@ soobj *so_vnew(so *e, soobj *parent)
 	sov *v = sr_malloc(&e->a_v, sizeof(sov));
 	if (srunlikely(v == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");
-		sr_error_recoverable(&e->error);
 		return NULL;
 	}
 	return so_vinit(v, e, parent);

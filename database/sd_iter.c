@@ -93,7 +93,7 @@ sd_iternextpage(sriter *it)
 		uint32_t crc = sr_crcs(h, sizeof(sdpageheader), 0);
 		if (srunlikely(crc != h->crc)) {
 			i->page = NULL;
-			sr_error(it->r->e, "%s", "bad page header crc");
+			sr_malfunction(it->r->e, "%s", "bad page header crc");
 			return -1;
 		}
 	}

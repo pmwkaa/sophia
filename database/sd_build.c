@@ -138,7 +138,7 @@ int sd_buildwrite(sdbuild *b, sdindex *index, srfile *file)
 	sr_iovadd(&iov, index->i.s, sr_bufused(&index->i));
 
 	SR_INJECTION(b->r->i, SR_INJECTION_SD_BUILD_0,
-	             sr_error(b->r->e, "%s", "error injection");
+	             sr_malfunction(b->r->e, "%s", "error injection");
 	             assert( sr_filewritev(file, &iov) == 0 );
 	             return -1);
 
@@ -155,8 +155,8 @@ int sd_buildwrite(sdbuild *b, sdindex *index, srfile *file)
 		int rc;
 		rc = sr_filewritev(file, &iov);
 		if (srunlikely(rc == -1)) {
-			return sr_error(b->r->e, "file '%s' write error: %s",
-			                file->file, strerror(errno));
+			return sr_malfunction(b->r->e, "file '%s' write error: %s",
+			                      file->file, strerror(errno));
 		}
 		sr_iovreset(&iov);
 	}

@@ -48,7 +48,6 @@ svwriteiter_iter(stc *cx srunused)
 		l.keysize     = sizeof(i);
 		l.value       = NULL;
 		l.valuesize   = 0;
-		l.valueoffset = 0;
 		sv *v = svwriteiter_valloc(&a, &l);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
@@ -127,7 +126,6 @@ svwriteiter_limit(stc *cx srunused)
 		l.keysize     = sizeof(i);
 		l.value       = NULL;
 		l.valuesize   = 0;
-		l.valueoffset = 0;
 		sv *v = svwriteiter_valloc(&a, &l);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
@@ -243,7 +241,6 @@ svwriteiter_limit_small(stc *cx srunused)
 		l.keysize     = sizeof(i);
 		l.value       = NULL;
 		l.valuesize   = 0;
-		l.valueoffset = 0;
 		sv *v = svwriteiter_valloc(&a, &l);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
@@ -344,7 +341,6 @@ addv(srbuf *list, sra *a, uint64_t lsn, int flags, char *key, int keysize)
 	l.keysize     = keysize;
 	l.value       = NULL;
 	l.valuesize   = 0;
-	l.valueoffset = 0;
 	sv *v = svwriteiter_valloc(a, &l);
 	sr_bufadd(list, a, &v, sizeof(sv**));
 }

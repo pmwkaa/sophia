@@ -12,14 +12,14 @@
 typedef struct srerror srerror;
 
 enum {
-	SR_ERROR_NONE = 0,
+	SR_ERROR_NONE  = 0,
 	SR_ERROR = 1,
-	SR_ERROR_RECOVERABLE = 2
+	SR_ERROR_MALFUNCTION = 2
 };
 
 struct srerror {
 	srspinlock lock;
-	int status;
+	int type;
 	const char *file;
 	const char *function;
 	int line;
@@ -28,7 +28,7 @@ struct srerror {
 
 static inline void
 sr_errorinit(srerror *e) {
-	e->status = SR_ERROR_NONE;
+	e->type = SR_ERROR_NONE;
 	e->error[0] = 0;
 	e->line = 0;
 	e->function = NULL;
@@ -41,33 +41,31 @@ sr_errorfree(srerror *e) {
 	sr_spinlockfree(&e->lock);
 }
 
-static inline int
+static inline void
 sr_errorreset(srerror *e) {
 	sr_spinlock(&e->lock);
-	if (! (e->status & SR_ERROR_RECOVERABLE)) {
-		sr_spinunlock(&e->lock);
-		return 1;
-	}
-	e->status = SR_ERROR_NONE;
+	e->type = SR_ERROR_NONE;
 	e->error[0] = 0;
+	e->line = 0;
+	e->function = NULL;
+	e->file = NULL;
 	sr_spinunlock(&e->lock);
-	return 0;
+}
+
+static inline void
+sr_errorrecover(srerror *e) {
+	sr_spinlock(&e->lock);
+	assert(e->type == SR_ERROR_MALFUNCTION);
+	e->type = SR_ERROR;
+	sr_spinunlock(&e->lock);
 }
 
 static inline int
-sr_erroris(srerror *e) {
+sr_errorof(srerror *e) {
 	sr_spinlock(&e->lock);
-	int status = e->status;
+	int type = e->type;
 	sr_spinunlock(&e->lock);
-	return status & SR_ERROR;
-}
-
-static inline int
-sr_erroris_recoverable(srerror *e) {
-	sr_spinlock(&e->lock);
-	int status = e->status;
-	sr_spinunlock(&e->lock);
-	return status & SR_ERROR_RECOVERABLE;
+	return type;
 }
 
 static inline int
@@ -79,20 +77,20 @@ sr_errorcopy(srerror *e, char *buf, int bufsize) {
 }
 
 static inline void
-sr_verrorset(srerror *e,
+sr_verrorset(srerror *e, int type,
              const char *file,
-             const char *function, int line, int status,
+             const char *function, int line,
              char *fmt, va_list args)
 {
 	sr_spinlock(&e->lock);
-	if (srunlikely(e->status & SR_ERROR)) {
+	if (srunlikely(e->type == SR_ERROR_MALFUNCTION)) {
 		sr_spinunlock(&e->lock);
 		return;
 	}
 	e->file     = file;
 	e->function = function;
 	e->line     = line;
-	e->status   = status;
+	e->type     = type;
 	int len;
 	len = snprintf(e->error, sizeof(e->error), "%s:%d ", file, line);
 	vsnprintf(e->error + len, sizeof(e->error) - len, fmt, args);
@@ -100,28 +98,23 @@ sr_verrorset(srerror *e,
 }
 
 static inline int
-sr_errorset(srerror *e,
+sr_errorset(srerror *e, int type,
             const char *file,
             const char *function, int line,
             char *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	sr_verrorset(e, file, function, line, SR_ERROR, fmt, args);
+	sr_verrorset(e, type, file, function, line, fmt, args);
 	va_end(args);
 	return -1;
 }
 
-static inline int
-sr_error_recoverable(srerror *e) {
-	sr_spinlock(&e->lock);
-	assert(e->status & SR_ERROR);
-	e->status |= SR_ERROR_RECOVERABLE;
-	sr_spinunlock(&e->lock);
-	return -1;
-}
+#define sr_malfunction(e, fmt, ...) \
+	sr_errorset(e, SR_ERROR_MALFUNCTION, __FILE__, __FUNCTION__, \
+	            __LINE__, fmt, __VA_ARGS__)
 
 #define sr_error(e, fmt, ...) \
-	sr_errorset(e, __FILE__, __FUNCTION__, __LINE__, fmt, __VA_ARGS__)
+	sr_errorset(e, SR_ERROR, __FILE__, __FUNCTION__, __LINE__, fmt, __VA_ARGS__)
 
 #endif

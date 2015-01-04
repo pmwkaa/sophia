@@ -73,7 +73,6 @@ si_qread(srbuf *buf, sr *r, si *i, sinode *n,
 	int rc = sr_bufensure(buf, r->a, size);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "%s", "memory allocation failed");
-		sr_error_recoverable(r->e);
 		return NULL;
 	}
 	uint64_t offset =
@@ -83,7 +82,6 @@ si_qread(srbuf *buf, sr *r, si *i, sinode *n,
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "db file '%s' read error: %s",
 		         n->file.file, strerror(errno));
-		sr_error_recoverable(r->e);
 		return NULL;
 	}
 	sr_bufadvance(buf, size);
@@ -141,7 +139,6 @@ si_qmatch(siquery *q)
 	rc = si_cachevalidate(q->cache, node);
 	if (srunlikely(rc == -1)) {
 		sr_error(q->r->e, "%s", "memory allocation failed");
-		sr_error_recoverable(q->r->e);
 		return -1;
 	}
 	/* search on disk */
@@ -163,7 +160,6 @@ int si_querydup(siquery *q, sv *result)
 	svv *v = sv_valloc(q->r->a, &q->result);
 	if (srunlikely(v == NULL)) {
 		sr_error(q->r->e, "%s", "memory allocation failed");
-		sr_error_recoverable(q->r->e);
 		return -1;
 	}
 	svinit(result, &sv_vif, v, NULL);
@@ -220,7 +216,7 @@ next_node:
 	int count = node->branch_count + 2;
 	int rc = sv_mergeprepare(m, q->r, count);
 	if (srunlikely(rc == -1)) {
-		sr_error_recoverable(q->r->e);
+		sr_errorreset(q->r->e);
 		return -1;
 	}
 	svmergesrc *s;
@@ -235,7 +231,6 @@ next_node:
 	rc = si_cachevalidate(q->cache, node);
 	if (srunlikely(rc == -1)) {
 		sr_error(q->r->e, "%s", "memory allocation failed");
-		sr_error_recoverable(q->r->e);
 		return -1;
 	}
 	sibranch *b = node->branch;

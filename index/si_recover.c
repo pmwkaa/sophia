@@ -97,8 +97,8 @@ si_deploy(si *i, sr *r)
 {
 	int rc = sr_filemkdir(i->conf->path);
 	if (srunlikely(rc == -1)) {
-		sr_error(r->e, "directory '%s' create error: %s",
-		         i->conf->path, strerror(errno));
+		sr_malfunction(r->e, "directory '%s' create error: %s",
+		               i->conf->path, strerror(errno));
 		return -1;
 	}
 	sinode *n = si_bootstrap(i, r, 0);
@@ -106,7 +106,7 @@ si_deploy(si *i, sr *r)
 		return -1;
 	SR_INJECTION(r->i, SR_INJECTION_SI_RECOVER_0,
 	             si_nodefree(n, r, 0);
-	             sr_error(r->e, "%s", "error injection");
+	             sr_malfunction(r->e, "%s", "error injection");
 	             return -1);
 	rc = si_nodecomplete(n, r, i->conf);
 	if (srunlikely(rc == -1)) {
@@ -166,8 +166,8 @@ si_trackdir(sitrack *track, sr *r, si *i)
 {
 	DIR *dir = opendir(i->conf->path);
 	if (srunlikely(dir == NULL)) {
-		sr_error(r->e, "directory '%s' open error: %s",
-		         i->conf->path, strerror(errno));
+		sr_malfunction(r->e, "directory '%s' open error: %s",
+		               i->conf->path, strerror(errno));
 		return -1;
 	}
 	struct dirent *de;
@@ -204,8 +204,8 @@ si_trackdir(sitrack *track, sr *r, si *i)
 				sr_pathAB(&path, i->conf->path, id_parent, id, ".db.incomplete");
 				rc = sr_fileunlink(path.path);
 				if (srunlikely(rc == -1)) {
-					sr_error(r->e, "db file '%s' unlink error: %s",
-					         path.path, strerror(errno));
+					sr_malfunction(r->e, "db file '%s' unlink error: %s",
+					               path.path, strerror(errno));
 					goto error;
 				}
 				continue;
@@ -250,8 +250,8 @@ si_trackdir(sitrack *track, sr *r, si *i)
 			/* replace a node previously created by a
 			 * incomplete compaction. */
 			if (! (head->recover & SI_RDB_UNDEF)) {
-				sr_error(r->e, "corrupted database repository: %s",
-				         i->conf->path);
+				sr_malfunction(r->e, "corrupted database repository: %s",
+				               i->conf->path);
 				goto error;
 			}
 			si_trackreplace(track, head, node);
@@ -311,8 +311,8 @@ si_trackvalidate(sitrack *track, srbuf *buf, sr *r, si *i)
 		}
 		default:
 			/* corrupted states */
-			return sr_error(r->e, "corrupted database repository: %s",
-			                i->conf->path);
+			return sr_malfunction(r->e, "corrupted database repository: %s",
+			                      i->conf->path);
 		}
 		p = sr_rbprev(&track->i, p);
 	}
@@ -329,7 +329,7 @@ si_recovercomplete(sitrack *track, sr *r, si *index, srbuf *buf)
 		sinode *n = srcast(p, sinode, node);
 		int rc = sr_bufadd(buf, r->a, &n, sizeof(sinode**));
 		if (srunlikely(rc == -1))
-			return sr_error(r->e, "%s", "memory allocation failed");
+			return sr_malfunction(r->e, "%s", "memory allocation failed");
 		p = sr_rbnext(&track->i, p);
 	}
 	sriter i;
@@ -361,8 +361,8 @@ si_recoverindex(si *i, sr *r)
 	if (srunlikely(rc == -1))
 		goto error;
 	if (srunlikely(track.count == 0)) {
-		sr_error(r->e, "corrupted database repository: %s",
-		         i->conf->path);
+		sr_malfunction(r->e, "corrupted database repository: %s",
+		               i->conf->path);
 		goto error;
 	}
 	rc = si_trackvalidate(&track, &buf, r, i);

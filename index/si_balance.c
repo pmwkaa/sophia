@@ -41,7 +41,7 @@ si_branchcreate(si *index, sr *r, sdc *c, sinode *parent, svindex *vindex, uint6
 	rc = sd_merge(&merge);
 	if (srunlikely(rc == -1)) {
 		sv_mergefree(&vmerge, r->a);
-		sr_error(r->e, "%s", "memory allocation failed");
+		sr_malfunction(r->e, "%s", "memory allocation failed");
 		goto error;
 	}
 	assert(rc == 1);
@@ -67,7 +67,7 @@ si_branchcreate(si *index, sr *r, sdc *c, sinode *parent, svindex *vindex, uint6
 	}
 
 	SR_INJECTION(r->i, SR_INJECTION_SI_BRANCH_0,
-	             sr_error(r->e, "%s", "error injection");
+	             sr_malfunction(r->e, "%s", "error injection");
 	             si_branchfree(branch, r);
 	             return NULL);
 
@@ -132,13 +132,13 @@ int si_compact(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	sd_creset(c);
 	int rc = sr_bufensure(&c->c, r->a, node->file.size);
 	if (srunlikely(rc == -1)) {
-		sr_error(r->e, "%s", "memory allocation failed");
+		sr_malfunction(r->e, "%s", "memory allocation failed");
 		return -1;
 	}
 	rc = sr_filepread(&node->file, 0, c->c.s, node->file.size);
 	if (srunlikely(rc == -1)) {
-		sr_error(r->e, "db file '%s' read error: %s",
-		         node->file.file, strerror(errno));
+		sr_malfunction(r->e, "db file '%s' read error: %s",
+		               node->file.file, strerror(errno));
 		return -1;
 	}
 	sr_bufadvance(&c->c, node->file.size);

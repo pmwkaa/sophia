@@ -59,7 +59,6 @@ so_snapshotget(soobj *o, va_list args)
 	va_end(va);
 	if (srunlikely(v->o.id != SOV)) {
 		sr_error(&s->e->error, "%s", "bad arguments");
-		sr_error_recoverable(&s->e->error);
 		return NULL;
 	}
 	sodb *db = (sodb*)v->parent;
@@ -82,7 +81,6 @@ so_snapshotcursor(soobj *o, va_list args)
 	return so_cursornew(db, s->vlsn, args);
 error:
 	sr_error(&s->e->error, "%s", "bad arguments");
-	sr_error_recoverable(&s->e->error);
 	return NULL;
 }
 
@@ -116,14 +114,12 @@ soobj *so_snapshotnew(so *e, uint64_t vlsn, char *name)
 		sosnapshot *s = (sosnapshot*)srcast(i, soobj, link);
 		if (srunlikely(strcmp(s->name, name) == 0)) {
 			sr_error(&e->error, "snapshot '%s' already exists", name);
-			sr_error_recoverable(&e->error);
 			return NULL;
 		}
 	}
 	sosnapshot *s = sr_malloc(&e->a_snapshot, sizeof(sosnapshot));
 	if (srunlikely(s == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");
-		sr_error_recoverable(&e->error);
 		return NULL;
 	}
 	so_objinit(&s->o, SOSNAPSHOT, &sosnapshotif, &e->o);
@@ -133,7 +129,6 @@ soobj *so_snapshotnew(so *e, uint64_t vlsn, char *name)
 	if (srunlikely(s->name == NULL)) {
 		sr_free(&e->a_snapshot, s);
 		sr_error(&e->error, "%s", "memory allocation failed");
-		sr_error_recoverable(&e->error);
 		return NULL;
 	}
 	sx_begin(&e->xm, &s->t, vlsn);

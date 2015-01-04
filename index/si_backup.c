@@ -27,14 +27,12 @@ int si_backup(si *index, sr *r, sdc *c, siplan *plan)
 	int rc = sr_bufensure(&c->c, r->a, node->file.size);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "%s", "memory allocation failed");
-		sr_error_recoverable(r->e);
 		return -1;
 	}
 	rc = sr_filepread(&node->file, 0, c->c.s, node->file.size);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "db file '%s' read error: %s",
 		         node->file.file, strerror(errno));
-		sr_error_recoverable(r->e);
 		return -1;
 	}
 	sr_bufadvance(&c->c, node->file.size);
@@ -48,7 +46,6 @@ int si_backup(si *index, sr *r, sdc *c, siplan *plan)
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "backup db file '%s' create error: %s",
 		         path.path, strerror(errno));
-		sr_error_recoverable(r->e);
 		return -1;
 	}
 	rc = sr_filewrite(&file, c->c.s, node->file.size);

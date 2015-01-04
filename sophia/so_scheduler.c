@@ -107,7 +107,6 @@ int so_scheduler_backup(void *arg)
 	soscheduler *s = &e->sched;
 	if (srunlikely(e->ctl.backup_path == NULL)) {
 		sr_error(&e->error, "%s", "backup is not enabled");
-		sr_error_recoverable(&e->error);
 		return -1;
 	}
 	/* begin backup procedure
@@ -146,7 +145,6 @@ so_backupstart(soscheduler *s)
 	if (srunlikely(rc == -1)) {
 		sr_error(&e->error, "backup directory '%s' create error: %s",
 		         path, strerror(errno));
-		sr_error_recoverable(&e->error);
 		return -1;
 	}
 	int i = 0;
@@ -158,8 +156,7 @@ so_backupstart(soscheduler *s)
 		rc = sr_filemkdir(path);
 		if (srunlikely(rc == -1)) {
 			sr_error(&e->error, "backup directory '%s' create error: %s",
-					 path, strerror(errno));
-			sr_error_recoverable(&e->error);
+			         path, strerror(errno));
 			return -1;
 		}
 		i++;
@@ -170,7 +167,6 @@ so_backupstart(soscheduler *s)
 	if (srunlikely(rc == -1)) {
 		sr_error(&e->error, "backup directory '%s' create error: %s",
 		         path, strerror(errno));
-		sr_error_recoverable(&e->error);
 		return -1;
 	}
 	return 0;
@@ -202,7 +198,7 @@ so_backupcomplete(soscheduler *s, soworker *w)
 	         e->ctl.backup_path, s->backup_bsn);
 	rc = sl_poolcopy(&e->lp, path, &w->dc.c);
 	if (srunlikely(rc == -1)) {
-		sr_error_recoverable(&e->error);
+		sr_errorrecover(&e->error);
 		return -1;
 	}
 
@@ -219,7 +215,6 @@ so_backupcomplete(soscheduler *s, soworker *w)
 	if (srunlikely(rc == -1)) {
 		sr_error(&e->error, "backup directory '%s' rename error: %s",
 		         path, strerror(errno));
-		sr_error_recoverable(&e->error);
 		return -1;
 	}
 
@@ -665,10 +660,7 @@ so_execute(sotask *t, soworker *w)
 	si_plannertrace(&t->plan, &w->trace);
 	sodb *db = t->db;
 	uint64_t vlsn = sx_vlsn(&db->e->xm);
-	int rc = si_execute(&db->index, &db->r, &w->dc, &t->plan, vlsn);
-	if (srunlikely(rc == -1))
-		so_dbmalfunction(db);
-	return rc;
+	return si_execute(&db->index, &db->r, &w->dc, &t->plan, vlsn);
 }
 
 static int
@@ -706,13 +698,14 @@ int so_scheduler(soscheduler *s, soworker *w)
 	if (job) {
 		rc = so_execute(&task, w);
 		if (srunlikely(rc == -1)) {
-			if (task.plan.plan == SI_BACKUP) {
-				sr_mutexlock(&s->lock);
-				so_backuperror(s);
-				sr_mutexunlock(&s->lock);
-			} else {
+			if (task.plan.plan != SI_BACKUP) {
+				if (task.db)
+					so_dbmalfunction(task.db);
 				goto error;
 			}
+			sr_mutexlock(&s->lock);
+			so_backuperror(s);
+			sr_mutexunlock(&s->lock);
 		}
 	}
 	if (task.gc) {

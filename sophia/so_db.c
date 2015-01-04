@@ -24,7 +24,6 @@ so_dbctl_init(sodbctl *c, char *name, void *db)
 	c->name = sr_strdup(&o->e->a, name);
 	if (srunlikely(c->name == NULL)) {
 		sr_error(&o->e->error, "%s", "memory allocation failed");
-		sr_error_recoverable(&o->e->error);
 		return -1;
 	}
 	c->parent  = db;
@@ -63,7 +62,6 @@ so_dbctl_validate(sodbctl *c)
 	c->path = sr_strdup(&e->a, path);
 	if (srunlikely(c->path == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");
-		sr_error_recoverable(&e->error);
 		return -1;
 	}
 	return 0;
@@ -125,11 +123,8 @@ static int
 so_dberror(soobj *obj, va_list args srunused)
 {
 	sodb *o = (sodb*)obj;
-	int status = sr_erroris(&o->e->error);
-	int recoverable = sr_erroris_recoverable(&o->e->error);
-	if (srunlikely(status && recoverable))
-		return 2;
-	if (srunlikely(status))
+	int status = so_status(&o->status);
+	if (status == SO_MALFUNCTION)
 		return 1;
 	return 0;
 }
@@ -197,7 +192,6 @@ soobj *so_dbnew(so *e, char *name)
 	sodb *o = sr_malloc(&e->a_db, sizeof(sodb));
 	if (srunlikely(o == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");
-		sr_error_recoverable(&e->error);
 		return NULL;
 	}
 	memset(o, 0, sizeof(*o));

@@ -125,6 +125,19 @@ so_begin(soobj *o) {
 	return so_txnew((so*)o);
 }
 
+static int
+so_error(soobj *o, va_list args srunused)
+{
+	so *e = (so*)o;
+	int status = sr_errorof(&e->error);
+	if (status == SR_ERROR_MALFUNCTION)
+		return 1;
+	status = so_status(&e->status);
+	if (status == SO_MALFUNCTION)
+		return 1;
+	return 0;
+}
+
 static void*
 so_type(soobj *o srunused, va_list args srunused) {
 	return "env";
@@ -135,7 +148,7 @@ static soobjif soif =
 	.ctl      = so_ctl,
 	.open     = so_open,
 	.destroy  = so_destroy,
-	.error    = NULL,
+	.error    = so_error,
 	.set      = NULL,
 	.get      = NULL,
 	.del      = NULL,

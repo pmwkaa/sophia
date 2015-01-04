@@ -48,7 +48,6 @@ svmergeiter_merge_a(stc *cx srunused)
 		l.keysize     = sizeof(i);
 		l.value       = NULL;
 		l.valuesize   = 0;
-		l.valueoffset = 0;
 		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
@@ -122,7 +121,6 @@ svmergeiter_merge_b(stc *cx srunused)
 		l.keysize     = sizeof(i);
 		l.value       = NULL;
 		l.valuesize   = 0;
-		l.valueoffset = 0;
 		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlistb, &a, &v, sizeof(sv**)) == 0);
 		i++;
@@ -196,7 +194,6 @@ svmergeiter_merge_ab(stc *cx srunused)
 		l.keysize     = sizeof(i);
 		l.value       = NULL;
 		l.valuesize   = 0;
-		l.valueoffset = 0;
 		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
@@ -210,7 +207,6 @@ svmergeiter_merge_ab(stc *cx srunused)
 		l.keysize     = sizeof(i);
 		l.value       = NULL;
 		l.valuesize   = 0;
-		l.valueoffset = 0;
 		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlistb, &a, &v, sizeof(sv**)) == 0);
 		i++;
@@ -296,7 +292,6 @@ svmergeiter_merge_abc(stc *cx srunused)
 		l.keysize     = sizeof(i);
 		l.value       = NULL;
 		l.valuesize   = 0;
-		l.valueoffset = 0;
 		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
@@ -310,7 +305,6 @@ svmergeiter_merge_abc(stc *cx srunused)
 		l.keysize     = sizeof(i);
 		l.value       = NULL;
 		l.valuesize   = 0;
-		l.valueoffset = 0;
 		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlistb, &a, &v, sizeof(sv**)) == 0);
 		i++;
@@ -324,7 +318,6 @@ svmergeiter_merge_abc(stc *cx srunused)
 		l.keysize     = sizeof(i);
 		l.value       = NULL;
 		l.valuesize   = 0;
-		l.valueoffset = 0;
 		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlistc, &a, &v, sizeof(sv**)) == 0);
 		i++;
@@ -422,7 +415,6 @@ svmergeiter_merge_ba(stc *cx srunused)
 		l.keysize     = sizeof(i);
 		l.value       = NULL;
 		l.valuesize   = 0;
-		l.valueoffset = 0;
 		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
@@ -436,7 +428,6 @@ svmergeiter_merge_ba(stc *cx srunused)
 		l.keysize     = sizeof(i);
 		l.value       = NULL;
 		l.valuesize   = 0;
-		l.valueoffset = 0;
 		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlistb, &a, &v, sizeof(sv**)) == 0);
 		i++;
@@ -521,7 +512,6 @@ svmergeiter_merge_dup_ab(stc *cx srunused)
 		l.keysize     = sizeof(i);
 		l.value       = NULL;
 		l.valuesize   = 0;
-		l.valueoffset = 0;
 		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
@@ -537,7 +527,6 @@ svmergeiter_merge_dup_ab(stc *cx srunused)
 		l.keysize     = sizeof(i);
 		l.value       = NULL;
 		l.valuesize   = 0;
-		l.valueoffset = 0;
 		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlistb, &a, &v, sizeof(sv**)) == 0);
 		i++;
@@ -630,7 +619,6 @@ svmergeiter_merge_dup_a_chain(stc *cx srunused)
 		l.keysize     = sizeof(key);
 		l.value       = NULL;
 		l.valuesize   = 0;
-		l.valueoffset = 0;
 		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
@@ -720,7 +708,6 @@ svmergeiter_merge_dup_ab_chain(stc *cx srunused)
 		l.keysize     = sizeof(key);
 		l.value       = NULL;
 		l.valuesize   = 0;
-		l.valueoffset = 0;
 		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
@@ -736,7 +723,6 @@ svmergeiter_merge_dup_ab_chain(stc *cx srunused)
 		l.keysize     = sizeof(key);
 		l.value       = NULL;
 		l.valuesize   = 0;
-		l.valueoffset = 0;
 		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlistb, &a, &v, sizeof(sv**)) == 0);
 		i++;
@@ -828,7 +814,6 @@ svmergeiter_merge_dup_abc_chain(stc *cx srunused)
 		l.keysize     = sizeof(key);
 		l.value       = NULL;
 		l.valuesize   = 0;
-		l.valueoffset = 0;
 		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
@@ -844,7 +829,6 @@ svmergeiter_merge_dup_abc_chain(stc *cx srunused)
 		l.keysize     = sizeof(key);
 		l.value       = NULL;
 		l.valuesize   = 0;
-		l.valueoffset = 0;
 		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlistb, &a, &v, sizeof(sv**)) == 0);
 		i++;
@@ -860,7 +844,6 @@ svmergeiter_merge_dup_abc_chain(stc *cx srunused)
 		l.keysize     = sizeof(key);
 		l.value       = NULL;
 		l.valuesize   = 0;
-		l.valueoffset = 0;
 		sv *v = svmergeiter_valloc(&a, &l);
 		t(sr_bufadd(&vlistc, &a, &v, sizeof(sv**)) == 0);
 		i++;

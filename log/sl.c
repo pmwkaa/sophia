@@ -16,7 +16,7 @@ sl_alloc(slpool *p, uint32_t id)
 {
 	sl *l = sr_malloc(p->r->a, sizeof(*l));
 	if (srunlikely(l == NULL)) {
-		sr_error(p->r->e, "%s", "memory allocation failed");
+		sr_malfunction(p->r->e, "%s", "memory allocation failed");
 		return NULL;
 	}
 	l->id   = id;
@@ -34,8 +34,8 @@ sl_close(slpool *p, sl *l)
 {
 	int rc = sr_fileclose(&l->file);
 	if (srunlikely(rc == -1)) {
-		sr_error(p->r->e, "log file '%s' close error: %s",
-		         l->file.file, strerror(errno));
+		sr_malfunction(p->r->e, "log file '%s' close error: %s",
+		               l->file.file, strerror(errno));
 	}
 	sr_mutexfree(&l->filelock);
 	sr_gcfree(&l->gc);
@@ -53,8 +53,8 @@ sl_open(slpool *p, uint32_t id)
 	sr_pathA(&path, p->conf->path, id, ".log");
 	int rc = sr_fileopen(&l->file, path.path);
 	if (srunlikely(rc == -1)) {
-		sr_error(p->r->e, "log file '%s' open error: %s",
-		         l->file.file, strerror(errno));
+		sr_malfunction(p->r->e, "log file '%s' open error: %s",
+		               l->file.file, strerror(errno));
 		goto error;
 	}
 	return l;
@@ -73,16 +73,16 @@ sl_new(slpool *p, uint32_t id)
 	sr_pathA(&path, p->conf->path, id, ".log");
 	int rc = sr_filenew(&l->file, path.path);
 	if (srunlikely(rc == -1)) {
-		sr_error(p->r->e, "log file '%s' create error: %s",
-		         path.path, strerror(errno));
+		sr_malfunction(p->r->e, "log file '%s' create error: %s",
+		               path.path, strerror(errno));
 		goto error;
 	}
 	srversion v;
 	sr_version(&v);
 	rc = sr_filewrite(&l->file, &v, sizeof(v));
 	if (srunlikely(rc == -1)) {
-		sr_error(p->r->e, "log file '%s' header write error: %s",
-		         l->file.file, strerror(errno));
+		sr_malfunction(p->r->e, "log file '%s' header write error: %s",
+		               l->file.file, strerror(errno));
 		goto error;
 	}
 	return l;
@@ -102,7 +102,7 @@ int sl_poolinit(slpool *p, sr *r)
 	struct iovec *iov =
 		sr_malloc(r->a, sizeof(struct iovec) * 1021);
 	if (srunlikely(iov == NULL))
-		return sr_error(r->e, "%s", "memory allocation failed");
+		return sr_malfunction(r->e, "%s", "memory allocation failed");
 	sr_iovinit(&p->iov, iov, 1021);
 	return 0;
 }
@@ -113,8 +113,8 @@ sl_poolcreate(slpool *p)
 	int rc;
 	rc = sr_filemkdir(p->conf->path);
 	if (srunlikely(rc == -1))
-		return sr_error(p->r->e, "log directory '%s' create error: %s",
-		                p->conf->path, strerror(errno));
+		return sr_malfunction(p->r->e, "log directory '%s' create error: %s",
+		                      p->conf->path, strerror(errno));
 	return 1;
 }
 
@@ -130,8 +130,8 @@ sl_poolrecover(slpool *p)
 	};
 	int rc = sr_dirread(&list, p->r->a, types, p->conf->path);
 	if (srunlikely(rc == -1))
-		return sr_error(p->r->e, "log directory '%s' open error",
-		                p->conf->path);
+		return sr_malfunction(p->r->e, "log directory '%s' open error",
+		                      p->conf->path);
 	sriter i;
 	sr_iterinit(&i, &sr_bufiter, p->r);
 	sr_iteropen(&i, &list, sizeof(srdirid));
@@ -192,8 +192,8 @@ int sl_poolrotate(slpool *p)
 		if (p->conf->sync_on_rotate) {
 			int rc = sr_filesync(&log->file);
 			if (srunlikely(rc == -1)) {
-				sr_error(p->r->e, "log file '%s' sync error: %s",
-						 log->file.file, strerror(errno));
+				sr_malfunction(p->r->e, "log file '%s' sync error: %s",
+				               log->file.file, strerror(errno));
 				return -1;
 			}
 		}
@@ -238,8 +238,8 @@ sl_gc(slpool *p, sl *l)
 	int rc;
 	rc = sr_fileunlink(l->file.file);
 	if (srunlikely(rc == -1)) {
-		return sr_error(p->r->e, "log file '%s' unlink error: %s",
-		                l->file.file, strerror(errno));
+		return sr_malfunction(p->r->e, "log file '%s' unlink error: %s",
+		                      l->file.file, strerror(errno));
 	}
 	rc = sl_close(p, l);
 	if (srunlikely(rc == -1))
@@ -322,36 +322,36 @@ int sl_poolcopy(slpool *p, char *dest, srbuf *buf)
 		sr_fileinit(&file, p->r->a);
 		int rc = sr_filenew(&file, path.path);
 		if (srunlikely(rc == -1)) {
-			sr_error(p->r->e, "log file '%s' create error: %s",
-			         path.path, strerror(errno));
+			sr_malfunction(p->r->e, "log file '%s' create error: %s",
+			               path.path, strerror(errno));
 			return -1;
 		}
 		rc = sr_bufensure(buf, p->r->a, l->file.size);
 		if (srunlikely(rc == -1)) {
-			sr_error(p->r->e, "%s", "memory allocation failed");
+			sr_malfunction(p->r->e, "%s", "memory allocation failed");
 			sr_fileclose(&file);
 			return -1;
 		}
 		rc = sr_filepread(&l->file, 0, buf->s, l->file.size);
 		if (srunlikely(rc == -1)) {
-			sr_error(p->r->e, "log file '%s' read error: %s",
-					 l->file.file, strerror(errno));
+			sr_malfunction(p->r->e, "log file '%s' read error: %s",
+			               l->file.file, strerror(errno));
 			sr_fileclose(&file);
 			return -1;
 		}
 		sr_bufadvance(buf, l->file.size);
 		rc = sr_filewrite(&file, buf->s, l->file.size);
 		if (srunlikely(rc == -1)) {
-			sr_error(p->r->e, "log file '%s' write error: %s",
-					 path.path, strerror(errno));
+			sr_malfunction(p->r->e, "log file '%s' write error: %s",
+			               path.path, strerror(errno));
 			sr_fileclose(&file);
 			return -1;
 		}
 		/* sync? */
 		rc = sr_fileclose(&file);
 		if (srunlikely(rc == -1)) {
-			sr_error(p->r->e, "log file '%s' close error: %s",
-			         path.path, strerror(errno));
+			sr_malfunction(p->r->e, "log file '%s' close error: %s",
+			               path.path, strerror(errno));
 			return -1;
 		}
 		sr_bufreset(buf);
@@ -389,8 +389,8 @@ int sl_rollback(sltx *t)
 	if (t->p->conf->enable) {
 		rc = sr_filerlb(&t->l->file, t->svp);
 		if (srunlikely(rc == -1))
-			sr_error(t->p->r->e, "log file '%s' truncate error: %s",
-			         t->l->file.file, strerror(errno));
+			sr_malfunction(t->p->r->e, "log file '%s' truncate error: %s",
+			               t->l->file.file, strerror(errno));
 		sr_mutexunlock(&t->l->filelock);
 	}
 	sr_spinunlock(&t->p->lock);
@@ -458,8 +458,8 @@ sl_write_stmt(sltx *t, svlog *vlog)
 	sl_write_prepare(t->p, t, &lv, logv);
 	int rc = sr_filewritev(&t->l->file, &p->iov);
 	if (srunlikely(rc == -1)) {
-		sr_error(p->r->e, "log file '%s' write error: %s",
-		         t->l->file.file, strerror(errno));
+		sr_malfunction(p->r->e, "log file '%s' write error: %s",
+		               t->l->file.file, strerror(errno));
 		return -1;
 	}
 	sr_gcmark(&t->l->gc, 1);
@@ -495,8 +495,8 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 		if (srunlikely(! sr_iovensure(&p->iov, 3))) {
 			rc = sr_filewritev(&l->file, &p->iov);
 			if (srunlikely(rc == -1)) {
-				sr_error(p->r->e, "log file '%s' write error: %s",
-				         l->file.file, strerror(errno));
+				sr_malfunction(p->r->e, "log file '%s' write error: %s",
+				               l->file.file, strerror(errno));
 				return -1;
 			}
 			sr_iovreset(&p->iov);
@@ -511,8 +511,8 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 	if (srlikely(sr_iovhas(&p->iov))) {
 		rc = sr_filewritev(&l->file, &p->iov);
 		if (srunlikely(rc == -1)) {
-			sr_error(p->r->e, "log file '%s' write error: %s",
-			         l->file.file, strerror(errno));
+			sr_malfunction(p->r->e, "log file '%s' write error: %s",
+			               l->file.file, strerror(errno));
 			return -1;
 		}
 		sr_iovreset(&p->iov);
@@ -542,8 +542,8 @@ int sl_write(sltx *t, svlog *vlog)
 	if (t->p->conf->enable && t->p->conf->sync_on_write) {
 		rc = sr_filesync(&t->l->file);
 		if (srunlikely(rc == -1)) {
-			sr_error(t->p->r->e, "log file '%s' sync error: %s",
-			         t->l->file.file, strerror(errno));
+			sr_malfunction(t->p->r->e, "log file '%s' sync error: %s",
+			               t->l->file.file, strerror(errno));
 			return -1;
 		}
 	}

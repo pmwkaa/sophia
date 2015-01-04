@@ -26,7 +26,7 @@ si_redistribute(si *index, sr *r, sdc *c, sinode *node, srbuf *result,
 		sv *v = sr_iterof(&i);
 		int rc = sr_bufadd(&c->b, r->a, &v->v, sizeof(svv**));
 		if (srunlikely(rc == -1))
-			return sr_error(r->e, "%s", "memory allocation failed");
+			return sr_malfunction(r->e, "%s", "memory allocation failed");
 	}
 	if (srunlikely(sr_bufused(&c->b) == 0))
 		return 0;
@@ -119,7 +119,7 @@ si_redistribute_index(si *index, sr *r, sdc *c, sinode *node, uint64_t vlsn)
 		sv *v = sr_iterof(&i);
 		int rc = sr_bufadd(&c->b, r->a, &v->v, sizeof(svv**));
 		if (srunlikely(rc == -1))
-			return sr_error(r->e, "%s", "memory allocation failed");
+			return sr_malfunction(r->e, "%s", "memory allocation failed");
 	}
 	if (srunlikely(sr_bufused(&c->b) == 0))
 		return 0;
@@ -184,7 +184,7 @@ si_split(si *index, sr *r, sdc *c, srbuf *result,
 			goto error;
 		rc = sr_bufadd(result, r->a, &n, sizeof(sinode*));
 		if (srunlikely(rc == -1)) {
-			sr_error(r->e, "%s", "memory allocation failed");
+			sr_malfunction(r->e, "%s", "memory allocation failed");
 			si_nodefree(n, r, 1);
 			goto error;
 		}
@@ -226,7 +226,7 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 
 	SR_INJECTION(r->i, SR_INJECTION_SI_COMPACTION_0,
 	             si_splitfree(result, r);
-	             sr_error(r->e, "%s", "error injection");
+	             sr_malfunction(r->e, "%s", "error injection");
 	             return -1);
 
 	/* mask removal of a single node as a
@@ -246,7 +246,7 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 			return -1;
 		rc = sr_bufadd(result, r->a, &n, sizeof(sinode*));
 		if (srunlikely(rc == -1)) {
-			sr_error(r->e, "%s", "memory allocation failed");
+			sr_malfunction(r->e, "%s", "memory allocation failed");
 			si_nodefree(n, r, 1);
 			return -1;
 		}
@@ -318,13 +318,13 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 			return -1;
 		SR_INJECTION(r->i, SR_INJECTION_SI_COMPACTION_3,
 		             si_nodefree(node, r, 0);
-		             sr_error(r->e, "%s", "error injection");
+		             sr_malfunction(r->e, "%s", "error injection");
 		             return -1);
 	}
 
 	SR_INJECTION(r->i, SR_INJECTION_SI_COMPACTION_1,
 	             si_nodefree(node, r, 0);
-	             sr_error(r->e, "%s", "error injection");
+	             sr_malfunction(r->e, "%s", "error injection");
 	             return -1);
 
 	/* gc old node */
@@ -333,7 +333,7 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 		return -1;
 
 	SR_INJECTION(r->i, SR_INJECTION_SI_COMPACTION_2,
-	             sr_error(r->e, "%s", "error injection");
+	             sr_malfunction(r->e, "%s", "error injection");
 	             return -1);
 
 	/* complete new nodes */
@@ -345,7 +345,7 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 		if (srunlikely(rc == -1))
 			return -1;
 		SR_INJECTION(r->i, SR_INJECTION_SI_COMPACTION_4,
-		             sr_error(r->e, "%s", "error injection");
+		             sr_malfunction(r->e, "%s", "error injection");
 		             return -1);
 	}
 

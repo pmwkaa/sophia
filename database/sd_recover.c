@@ -45,8 +45,8 @@ sd_recovernext_of(sriter *i, sdindexheader *next)
 	/* validate crc */
 	uint32_t crc = sr_crcs(next, sizeof(sdindexheader), 0);
 	if (next->crc != crc) {
-		sr_error(i->r->e, "corrupted db file '%s': bad index crc",
-		         ri->file->file);
+		sr_malfunction(i->r->e, "corrupted db file '%s': bad index crc",
+		               ri->file->file);
 		ri->corrupt = 1;
 		ri->v = NULL;
 		return -1;
@@ -55,8 +55,8 @@ sd_recovernext_of(sriter *i, sdindexheader *next)
 	            next->count * next->block + next->total +
 	            sizeof(sdseal);
 	if (srunlikely((start > eof || (end > eof)))) {
-		sr_error(i->r->e, "corrupted db file '%s': bad record size",
-		         ri->file->file);
+		sr_malfunction(i->r->e, "corrupted db file '%s': bad record size",
+		               ri->file->file);
 		ri->corrupt = 1;
 		ri->v = NULL;
 		return -1;
@@ -65,8 +65,8 @@ sd_recovernext_of(sriter *i, sdindexheader *next)
 	sdseal *s = (sdseal*)(end - sizeof(sdseal));
 	int rc = sd_sealvalidate(s, next);
 	if (srunlikely(rc == -1)) {
-		sr_error(i->r->e, "corrupted db file '%s': bad seal",
-		         ri->file->file);
+		sr_malfunction(i->r->e, "corrupted db file '%s': bad seal",
+		               ri->file->file);
 		ri->corrupt = 1;
 		ri->v = NULL;
 		return -1;
@@ -93,15 +93,15 @@ sd_recoveropen(sriter *i, va_list args)
 	sdrecover *ri = (sdrecover*)i->priv;
 	ri->file = va_arg(args, srfile*);
 	if (srunlikely(ri->file->size < (sizeof(sdindexheader) + sizeof(sdseal)))) {
-		sr_error(i->r->e, "corrupted db file '%s': bad size",
-		         ri->file->file);
+		sr_malfunction(i->r->e, "corrupted db file '%s': bad size",
+		               ri->file->file);
 		ri->corrupt = 1;
 		return -1;
 	}
 	int rc = sr_map(&ri->map, ri->file->fd, ri->file->size, 1);
 	if (srunlikely(rc == -1)) {
-		sr_error(i->r->e, "failed to mmap db file '%s': %s",
-		         ri->file->file, strerror(errno));
+		sr_malfunction(i->r->e, "failed to mmap db file '%s': %s",
+		               ri->file->file, strerror(errno));
 		return -1;
 	}
 	ri->v = NULL;
@@ -171,6 +171,6 @@ int sd_recovercomplete(sriter *i)
 	int rc = sr_fileresize(ri->file, file_size);
 	if (srunlikely(rc == -1))
 		return -1;
-	sr_error_recoverable(i->r->e);
+	sr_errorreset(i->r->e);
 	return 0;
 }

@@ -29,7 +29,7 @@ si_branchnew(sr *r)
 {
 	sibranch *b = (sibranch*)sr_malloc(r->a, sizeof(sibranch));
 	if (srunlikely(b == NULL)) {
-		sr_error(r->e, "%s", "memory allocation failed");
+		sr_malfunction(r->e, "%s", "memory allocation failed");
 		return NULL;
 	}
 	si_branchinit(b);

@@ -17,6 +17,8 @@ extern stgroup *sraslab_group(void);
 extern stgroup *sra_group(void);
 extern stgroup *srcmp_group(void);
 extern stgroup *srorder_group(void);
+extern stgroup *svlocal_group(void);
+extern stgroup *svv_group(void);
 extern stgroup *svindex_group(void);
 extern stgroup *svindexiter_group(void);
 extern stgroup *svmergeiter_group(void);
@@ -84,6 +86,8 @@ main(int argc, char *argv[])
 	st_planadd(plan, sraslab_group());
 	st_planadd(plan, srcmp_group());
 	st_planadd(plan, srorder_group());
+	st_planadd(plan, svlocal_group());
+	st_planadd(plan, svv_group());
 	st_planadd(plan, svindex_group());
 	st_planadd(plan, svindexiter_group());
 	st_planadd(plan, svmergeiter_group());

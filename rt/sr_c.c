@@ -81,9 +81,7 @@ int sr_cexecv(src *start, srcstmt *stmt, va_list args)
 	}
 
 error:
-	sr_error(stmt->r->e, "bad ctl path: %s",
-	         stmt->path);
-	sr_error_recoverable(stmt->r->e);
+	sr_error(stmt->r->e, "bad ctl path: %s", stmt->path);
 	return -1;
 }
 
@@ -131,7 +129,6 @@ int sr_cserialize(src *c, srcstmt *stmt)
 	int rc = sr_bufensure(buf, stmt->r->a, size);
 	if (srunlikely(rc == -1)) {
 		sr_error(stmt->r->e, "%s", "memory allocation failed");
-		sr_error_recoverable(stmt->r->e);
 		return -1;
 	}
 	memcpy(buf->p, &v, sizeof(v));
@@ -157,9 +154,7 @@ int sr_cset(src *c, srcstmt *stmt, char *value)
 {
 	int type = c->flags & ~SR_CRO;
 	if (c->flags & SR_CRO) {
-		sr_error(stmt->r->e, "%s is read-only",
-		         stmt->path);
-		sr_error_recoverable(stmt->r->e);
+		sr_error(stmt->r->e, "%s is read-only", stmt->path);
 		return -1;
 	}
 	switch (type) {
@@ -175,7 +170,6 @@ int sr_cset(src *c, srcstmt *stmt, char *value)
 			nsz = sr_strdup(stmt->r->a, value);
 			if (srunlikely(nsz == NULL)) {
 				sr_error(stmt->r->e, "%s", "memory allocation failed");
-				sr_error_recoverable(stmt->r->e);
 				return -1;
 			}
 		}

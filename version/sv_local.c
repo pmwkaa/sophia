@@ -53,8 +53,8 @@ sv_localifvaluesize(sv *v) {
 }
 
 static uint64_t
-sv_localifoffset(sv *v) {
-	return ((svlocal*)v->v)->valueoffset;
+sv_localifoffset(sv *v srunused) {
+	return 0;
 }
 
 svif sv_localif =

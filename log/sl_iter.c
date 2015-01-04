@@ -53,8 +53,8 @@ sl_iternext_of(sriter *i, slv *next, int validate)
 	/* eof */
 	if (srunlikely(start == eof)) {
 		if (li->count != li->pos) {
-			sr_error(i->r->e, "corrupted log file '%s': transaction is incomplete",
-			         li->log->file);
+			sr_malfunction(i->r->e, "corrupted log file '%s': transaction is incomplete",
+			               li->log->file);
 			sl_iterseterror(li);
 			return -1;
 		}
@@ -65,8 +65,8 @@ sl_iternext_of(sriter *i, slv *next, int validate)
 
 	char *end = start + next->keysize + next->valuesize;
 	if (srunlikely((start > eof || (end > eof)))) {
-		sr_error(i->r->e, "corrupted log file '%s': bad record size",
-		         li->log->file);
+		sr_malfunction(i->r->e, "corrupted log file '%s': bad record size",
+		               li->log->file);
 		sl_iterseterror(li);
 		return -1;
 	}
@@ -80,8 +80,8 @@ sl_iternext_of(sriter *i, slv *next, int validate)
 		}
 		crc = sr_crcs(start, sizeof(slv), crc);
 		if (srunlikely(crc != next->crc)) {
-			sr_error(i->r->e, "corrupted log file '%s': bad record crc",
-			         li->log->file);
+			sr_malfunction(i->r->e, "corrupted log file '%s': bad record crc",
+			               li->log->file);
 			sl_iterseterror(li);
 			return -1;
 		}
@@ -130,11 +130,11 @@ sl_iterprepare(sriter *i)
 	sliter *li = (sliter*)i->priv;
 	srversion *ver = (srversion*)li->map.p;
 	if (! sr_versioncheck(ver))
-		return sr_error(i->r->e, "bad log file '%s' version",
-		                li->log->file);
+		return sr_malfunction(i->r->e, "bad log file '%s' version",
+		                      li->log->file);
 	if (srunlikely(li->log->size < (sizeof(srversion))))
-		return sr_error(i->r->e, "corrupted log file '%s': bad size",
-		                li->log->file);
+		return sr_malfunction(i->r->e, "corrupted log file '%s': bad size",
+		                      li->log->file);
 	slv *next = (slv*)((char*)li->map.p + sizeof(srversion));
 	int rc = sl_iternext_of(i, next, 1);
 	if (srunlikely(rc == -1))
@@ -155,16 +155,16 @@ sl_iteropen(sriter *i, va_list args)
 	li->pos      = 0;
 	li->count    = 0;
 	if (srunlikely(li->log->size < sizeof(srversion))) {
-		sr_error(i->r->e, "corrupted log file '%s': bad size",
-		         li->log->file);
+		sr_malfunction(i->r->e, "corrupted log file '%s': bad size",
+		               li->log->file);
 		return -1;
 	}
 	if (srunlikely(li->log->size == sizeof(srversion)))
 		return 0;
 	int rc = sr_map(&li->map, li->log->fd, li->log->size, 1);
 	if (srunlikely(rc == -1)) {
-		sr_error(i->r->e, "failed to mmap log file '%s': %s",
-		         li->log->file, strerror(errno));
+		sr_malfunction(i->r->e, "failed to mmap log file '%s': %s",
+		               li->log->file, strerror(errno));
 		return -1;
 	}
 	rc = sl_iterprepare(i);

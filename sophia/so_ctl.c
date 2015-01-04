@@ -65,14 +65,12 @@ void *so_ctlreturn(src *c, void *o)
 	svv *v = sv_valloc(&e->a, &vp);
 	if (srunlikely(v == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");
-		sr_error_recoverable(&e->error);
 		return NULL;
 	}
 	sov *result = (sov*)so_vnew(e, NULL);
 	if (srunlikely(result == NULL)) {
 		sv_vfree(&e->a, v);
 		sr_error(&e->error, "%s", "memory allocation failed");
-		sr_error_recoverable(&e->error);
 		return NULL;
 	}
 	svinit(&vp, &sv_vif, v, NULL);
@@ -106,9 +104,7 @@ so_ctlv_offline(src *c, srcstmt *s, va_list args)
 {
 	so *e = s->ptr;
 	if (srunlikely(s->op == SR_CSET && so_statusactive(&e->status))) {
-		sr_error(s->r->e, "write to %s is offline-only",
-		         s->path);
-		sr_error_recoverable(s->r->e);
+		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
 	return so_ctlv(c, s, args);
@@ -167,13 +163,10 @@ so_ctlcompaction_set(src *c srunused, srcstmt *s, va_list args)
 	so *e = s->ptr;
 	if (s->op != SR_CSET) {
 		sr_error(&e->error, "%s", "bad operation");
-		sr_error_recoverable(&e->error);
 		return -1;
 	}
 	if (srunlikely(so_statusactive(&e->status))) {
-		sr_error(s->r->e, "write to %s is offline-only",
-		         s->path);
-		sr_error_recoverable(s->r->e);
+		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
 	/* validate argument */
@@ -181,7 +174,6 @@ so_ctlcompaction_set(src *c srunused, srcstmt *s, va_list args)
 	uint32_t percent = atoi(arg);
 	if (percent > 100) {
 		sr_error(&e->error, "%s", "bad argument");
-		sr_error_recoverable(&e->error);
 		return -1;
 	}
 	sizone z;
@@ -340,14 +332,12 @@ so_ctldb_set(src *c srunused, srcstmt *s, va_list args)
 	so *e = s->ptr;
 	if (s->op != SR_CSET) {
 		sr_error(&e->error, "%s", "bad operation");
-		sr_error_recoverable(&e->error);
 		return -1;
 	}
 	char *name = va_arg(args, char*);
 	sodb *db = (sodb*)so_dbmatch(e, name);
 	if (srunlikely(db)) {
 		sr_error(&e->error, "database '%s' is exists", name);
-		sr_error_recoverable(&e->error);
 		return -1;
 	}
 	db = (sodb*)so_dbnew(e, name);
@@ -364,7 +354,6 @@ so_ctldb_get(src *c, srcstmt *s, va_list args srunused)
 	so *e = s->ptr;
 	if (s->op != SR_CGET) {
 		sr_error(&e->error, "%s", "bad operation");
-		sr_error_recoverable(&e->error);
 		return -1;
 	}
 	assert(c->ptr != NULL);
@@ -379,9 +368,7 @@ so_ctldb_cmp(src *c, srcstmt *s, va_list args)
 		return so_ctlv(c, s, args);
 	sodb *db = c->value;
 	if (srunlikely(so_statusactive(&db->status))) {
-		sr_error(s->r->e, "write to %s is offline-only",
-		         s->path);
-		sr_error_recoverable(s->r->e);
+		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
 	char *v = va_arg(args, char*);
@@ -395,9 +382,7 @@ so_ctldb_cmparg(src *c, srcstmt *s, va_list args)
 		return so_ctlv(c, s, args);
 	sodb *db = c->value;
 	if (srunlikely(so_statusactive(&db->status))) {
-		sr_error(s->r->e, "write to %s is offline-only",
-		         s->path);
-		sr_error_recoverable(s->r->e);
+		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
 	char *v = va_arg(args, char*);
@@ -452,9 +437,7 @@ so_ctlv_dboffline(src *c, srcstmt *s, va_list args)
 {
 	sodb *db = c->ptr;
 	if (srunlikely(s->op == SR_CSET && so_statusactive(&db->status))) {
-		sr_error(s->r->e, "write to %s is offline-only",
-		         s->path);
-		sr_error_recoverable(s->r->e);
+		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
 	return so_ctlv(c, s, args);
@@ -549,7 +532,6 @@ so_ctlsnapshot_get(src *c, srcstmt *s, va_list args srunused)
 	so *e = s->ptr;
 	if (s->op != SR_CGET) {
 		sr_error(&e->error, "%s", "bad operation");
-		sr_error_recoverable(&e->error);
 		return -1;
 	}
 	assert(c->ptr != NULL);
@@ -854,7 +836,6 @@ int so_ctlvalidate(soctl *c)
 	so *e = c->e;
 	if (c->path == NULL) {
 		sr_error(&e->error, "%s", "repository path is not set");
-		sr_error_recoverable(&e->error);
 		return -1;
 	}
 	char path[1024];
@@ -863,7 +844,6 @@ int so_ctlvalidate(soctl *c)
 		c->log_path = sr_strdup(&e->a, path);
 		if (srunlikely(c->log_path == NULL)) {
 			sr_error(&e->error, "%s", "memory allocation failed");
-			sr_error_recoverable(&e->error);
 			return -1;
 		}
 	}
@@ -874,7 +854,6 @@ int so_ctlvalidate(soctl *c)
 			continue;
 		if (z->compact_wm <= 1) {
 			sr_error(&e->error, "bad %d.compact_wm value", i * 10);
-			sr_error_recoverable(&e->error);
 			return -1;
 		}
 	}

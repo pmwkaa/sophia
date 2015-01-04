@@ -28,8 +28,8 @@ so_workershutdown(soworker *w, sr *r)
 {
 	int rc = sr_threadjoin(&w->t);
 	if (srunlikely(rc == -1))
-		sr_error(r->e, "failed to join a thread: %s",
-		         strerror(errno));
+		sr_malfunction(r->e, "failed to join a thread: %s",
+		               strerror(errno));
 	sd_cfree(&w->dc, r);
 	sr_tracefree(&w->trace);
 	sr_free(r->a, w);
@@ -55,7 +55,7 @@ so_workernew(sr *r, int id, srthreadf f, void *arg)
 {
 	soworker *p = sr_malloc(r->a, sizeof(soworker));
 	if (srunlikely(p == NULL)) {
-		sr_error(r->e, "%s", "memory allocation failed");
+		sr_malfunction(r->e, "%s", "memory allocation failed");
 		return NULL;
 	}
 	snprintf(p->name, sizeof(p->name), "%d", id);
@@ -66,8 +66,8 @@ so_workernew(sr *r, int id, srthreadf f, void *arg)
 	sr_trace(&p->trace, "%s", "init");
 	int rc = sr_threadnew(&p->t, f, p);
 	if (srunlikely(rc == -1)) {
-		sr_error(r->e, "failed to create thread: %s",
-		         strerror(errno));
+		sr_malfunction(r->e, "failed to create thread: %s",
+		               strerror(errno));
 		sr_free(r->a, p);
 		return NULL;
 	}

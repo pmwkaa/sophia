@@ -105,7 +105,6 @@ soobj *so_logcursor_new(sotx *t)
 	sologcursor *c = sr_malloc(&e->a_logcursor, sizeof(sologcursor));
 	if (srunlikely(c == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");
-		sr_error_recoverable(&e->error);
 		return NULL;
 	}
 	so_objinit(&c->o, SOLOGCURSOR, &sologcursorif, &e->o);

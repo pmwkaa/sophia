@@ -75,8 +75,8 @@ so_recoverlog(so *e, sl *log)
 			if (db == NULL || db->ctl.id != dsn)
 				db = (sodb*)so_dbmatch_id(e, dsn);
 			if (srunlikely(db == NULL)) {
-				sr_error(&e->error, "%s",
-				         "database id %" PRIu32 "is not declared", dsn);
+				sr_malfunction(&e->error, "%s",
+				               "database id %" PRIu32 "is not declared", dsn);
 				goto rlb;
 			}
 			void *o = so_objobject(&db->o);

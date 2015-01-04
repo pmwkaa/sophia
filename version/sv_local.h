@@ -16,7 +16,6 @@ struct svlocal {
 	uint8_t  flags;
 	uint16_t keysize;
 	uint32_t valuesize;
-	uint64_t valueoffset;
 	void *key;
 	void *value;
 };

@@ -27,7 +27,6 @@ sp_error_unsupported_method(soobj *o, const char *method, ...)
 	sr_error(&e->error, "unsupported %s(%s) operation",
 	         (char*)method,
 	         (char*)o->i->type(o, args));
-	sr_error_recoverable(&e->error);
 	va_end(args);
 }
 
