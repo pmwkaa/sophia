@@ -43,15 +43,19 @@ sdpageiter_lte_empty(stc *cx srunused)
 
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 8;
 	int k = 15;
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
@@ -74,6 +78,7 @@ sdpageiter_lte_empty(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -91,7 +96,7 @@ sdpageiter_lte_eq0(stc *cx srunused)
 
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -101,8 +106,12 @@ sdpageiter_lte_eq0(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
@@ -125,6 +134,7 @@ sdpageiter_lte_eq0(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -142,7 +152,7 @@ sdpageiter_lte_eq1(stc *cx srunused)
 
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -152,8 +162,12 @@ sdpageiter_lte_eq1(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
@@ -176,6 +190,7 @@ sdpageiter_lte_eq1(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -193,7 +208,7 @@ sdpageiter_lte_eq2(stc *cx srunused)
 
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -203,8 +218,12 @@ sdpageiter_lte_eq2(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
@@ -227,6 +246,7 @@ sdpageiter_lte_eq2(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -244,7 +264,7 @@ sdpageiter_lte_minmax0(stc *cx srunused)
 
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -254,8 +274,12 @@ sdpageiter_lte_minmax0(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	int min = 6;
 	sriter it;
@@ -273,6 +297,7 @@ sdpageiter_lte_minmax0(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -290,7 +315,7 @@ sdpageiter_lte_minmax1(stc *cx srunused)
 
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int z = 2;
 	int i = 7;
@@ -302,8 +327,12 @@ sdpageiter_lte_minmax1(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	int min = 6;
 	sriter it;
@@ -352,6 +381,7 @@ sdpageiter_lte_minmax1(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -369,7 +399,7 @@ sdpageiter_lte_minmax2(stc *cx srunused)
 
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int z = 2;
 	int i = 7;
@@ -381,8 +411,12 @@ sdpageiter_lte_minmax2(stc *cx srunused)
 	addv(&b, 4, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	int max = 16;
 	sriter it;
@@ -418,6 +452,7 @@ sdpageiter_lte_minmax2(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -435,7 +470,7 @@ sdpageiter_lte_mid0(stc *cx srunused)
 
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -445,8 +480,12 @@ sdpageiter_lte_mid0(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	int p = 8;
 	sriter it;
@@ -472,6 +511,7 @@ sdpageiter_lte_mid0(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -488,7 +528,7 @@ sdpageiter_lte_mid1(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -498,8 +538,12 @@ sdpageiter_lte_mid1(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	int p = 8;
 	sriter it;
@@ -537,6 +581,7 @@ sdpageiter_lte_mid1(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -553,7 +598,7 @@ sdpageiter_lte_iterate0(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -563,8 +608,12 @@ sdpageiter_lte_iterate0(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
@@ -590,6 +639,7 @@ sdpageiter_lte_iterate0(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -606,7 +656,7 @@ sdpageiter_lte_iterate1(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -616,8 +666,12 @@ sdpageiter_lte_iterate1(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
@@ -643,6 +697,7 @@ sdpageiter_lte_iterate1(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -659,7 +714,7 @@ sdpageiter_lt_eq(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -669,8 +724,12 @@ sdpageiter_lt_eq(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
@@ -693,6 +752,7 @@ sdpageiter_lt_eq(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -709,7 +769,7 @@ sdpageiter_lt_minmax(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -719,8 +779,12 @@ sdpageiter_lt_minmax(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	int min = 7;
 	sriter it;
@@ -738,6 +802,7 @@ sdpageiter_lt_minmax(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -754,7 +819,7 @@ sdpageiter_lt_mid(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -764,8 +829,12 @@ sdpageiter_lt_mid(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	int p = 8;
 	sriter it;
@@ -791,6 +860,7 @@ sdpageiter_lt_mid(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -807,7 +877,7 @@ sdpageiter_lt_iterate0(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -817,8 +887,12 @@ sdpageiter_lt_iterate0(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
@@ -844,6 +918,7 @@ sdpageiter_lt_iterate0(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -860,7 +935,7 @@ sdpageiter_lt_iterate1(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -869,8 +944,13 @@ sdpageiter_lt_iterate1(stc *cx srunused)
 	addv(&b, 2, SVSET, &j);
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
+
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
@@ -891,6 +971,7 @@ sdpageiter_lt_iterate1(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -907,7 +988,7 @@ sdpageiter_lte_dup_eq(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int j = 4;
 	int i = 7;
@@ -916,8 +997,13 @@ sdpageiter_lte_dup_eq(stc *cx srunused)
 	addv(&b, 2, SVSET|SVDUP, &i);
 	addv(&b, 1, SVSET|SVDUP, &i);
 	sd_buildend(&b);
+
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
@@ -948,6 +1034,7 @@ sdpageiter_lte_dup_eq(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -964,7 +1051,7 @@ sdpageiter_lte_dup_mid(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -976,8 +1063,12 @@ sdpageiter_lte_dup_mid(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	int p = 8;
 	sriter it;
@@ -1038,6 +1129,7 @@ sdpageiter_lte_dup_mid(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -1054,7 +1146,7 @@ sdpageiter_lte_dup_mid_gt(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -1067,8 +1159,13 @@ sdpageiter_lte_dup_mid_gt(stc *cx srunused)
 	addv(&b, 40, SVSET|SVDUP, &k);
 	addv(&b, 30, SVSET|SVDUP, &k);
 	sd_buildend(&b);
+
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	int p = 16;
 	sriter it;
@@ -1121,6 +1218,7 @@ sdpageiter_lte_dup_mid_gt(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -1137,7 +1235,7 @@ sdpageiter_lte_dup_mid_lt(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -1150,8 +1248,13 @@ sdpageiter_lte_dup_mid_lt(stc *cx srunused)
 	addv(&b, 70, SVSET|SVDUP, &j);
 	addv(&b, 60, SVSET|SVDUP, &j);
 	sd_buildend(&b);
+
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	int p = 6;
 	sriter it;
@@ -1192,6 +1295,7 @@ sdpageiter_lte_dup_mid_lt(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -1208,7 +1312,7 @@ sdpageiter_lte_dup_iterate0(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -1221,8 +1325,13 @@ sdpageiter_lte_dup_iterate0(stc *cx srunused)
 	addv(&b, 40, SVSET|SVDUP, &k);
 	addv(&b, 30, SVSET|SVDUP, &k);
 	sd_buildend(&b);
+
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	int p = 100;
 	sriter it;
@@ -1253,6 +1362,7 @@ sdpageiter_lte_dup_iterate0(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -1269,7 +1379,7 @@ sdpageiter_lte_dup_iterate1(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -1282,8 +1392,13 @@ sdpageiter_lte_dup_iterate1(stc *cx srunused)
 	addv(&b, 40, SVSET|SVDUP, &k);
 	addv(&b, 30, SVSET|SVDUP, &k);
 	sd_buildend(&b);
+
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	int p = 100;
 	sriter it;
@@ -1342,6 +1457,7 @@ sdpageiter_lte_dup_iterate1(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -1358,7 +1474,7 @@ sdpageiter_gte_eq0(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -1368,8 +1484,12 @@ sdpageiter_gte_eq0(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
@@ -1392,6 +1512,7 @@ sdpageiter_gte_eq0(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -1408,7 +1529,7 @@ sdpageiter_gte_eq1(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -1418,8 +1539,12 @@ sdpageiter_gte_eq1(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
@@ -1442,6 +1567,7 @@ sdpageiter_gte_eq1(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -1458,7 +1584,7 @@ sdpageiter_gte_eq2(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -1468,8 +1594,12 @@ sdpageiter_gte_eq2(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
@@ -1492,6 +1622,7 @@ sdpageiter_gte_eq2(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -1508,7 +1639,7 @@ sdpageiter_gte_minmax0(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -1518,8 +1649,12 @@ sdpageiter_gte_minmax0(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	int min = 6;
 	sriter it;
@@ -1538,6 +1673,7 @@ sdpageiter_gte_minmax0(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -1554,7 +1690,7 @@ sdpageiter_gte_minmax1(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int z = 2;
 	int i = 7;
@@ -1566,8 +1702,12 @@ sdpageiter_gte_minmax1(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	int min = 6;
 	sriter it;
@@ -1617,6 +1757,7 @@ sdpageiter_gte_minmax1(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -1633,7 +1774,7 @@ sdpageiter_gte_minmax2(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int z = 2;
 	int i = 7;
@@ -1645,8 +1786,12 @@ sdpageiter_gte_minmax2(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	int max = 2;
 	sriter it;
@@ -1682,6 +1827,7 @@ sdpageiter_gte_minmax2(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -1698,7 +1844,7 @@ sdpageiter_gte_mid0(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -1708,8 +1854,12 @@ sdpageiter_gte_mid0(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	int p = 8;
 	sriter it;
@@ -1742,6 +1892,7 @@ sdpageiter_gte_mid0(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -1758,7 +1909,7 @@ sdpageiter_gte_mid1(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -1768,8 +1919,12 @@ sdpageiter_gte_mid1(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	int p = 8;
 	sriter it;
@@ -1807,6 +1962,7 @@ sdpageiter_gte_mid1(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -1823,7 +1979,7 @@ sdpageiter_gte_iterate0(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -1833,8 +1989,12 @@ sdpageiter_gte_iterate0(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
@@ -1860,6 +2020,7 @@ sdpageiter_gte_iterate0(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -1876,7 +2037,7 @@ sdpageiter_gte_iterate1(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -1886,8 +2047,12 @@ sdpageiter_gte_iterate1(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
@@ -1913,6 +2078,7 @@ sdpageiter_gte_iterate1(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -1929,7 +2095,7 @@ sdpageiter_gt_eq(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -1939,8 +2105,12 @@ sdpageiter_gt_eq(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
@@ -1964,6 +2134,7 @@ sdpageiter_gt_eq(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -1980,7 +2151,7 @@ sdpageiter_gt_minmax(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -1990,8 +2161,12 @@ sdpageiter_gt_minmax(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	int min = 7;
 	sriter it;
@@ -2010,6 +2185,7 @@ sdpageiter_gt_minmax(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -2026,7 +2202,7 @@ sdpageiter_gt_mid(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -2036,8 +2212,12 @@ sdpageiter_gt_mid(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	int p = 8;
 	sriter it;
@@ -2063,6 +2243,7 @@ sdpageiter_gt_mid(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -2079,7 +2260,7 @@ sdpageiter_gt_iterate0(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -2089,8 +2270,12 @@ sdpageiter_gt_iterate0(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
@@ -2116,6 +2301,7 @@ sdpageiter_gt_iterate0(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -2132,7 +2318,7 @@ sdpageiter_gt_iterate1(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -2141,8 +2327,13 @@ sdpageiter_gt_iterate1(stc *cx srunused)
 	addv(&b, 2, SVSET, &j);
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
+
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
@@ -2163,6 +2354,7 @@ sdpageiter_gt_iterate1(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -2179,7 +2371,7 @@ sdpageiter_gte_dup_eq(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int j = 4;
 	int i = 7;
@@ -2188,8 +2380,13 @@ sdpageiter_gte_dup_eq(stc *cx srunused)
 	addv(&b, 2, SVSET|SVDUP, &i);
 	addv(&b, 1, SVSET|SVDUP, &i);
 	sd_buildend(&b);
+
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
@@ -2228,6 +2425,7 @@ sdpageiter_gte_dup_eq(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -2244,7 +2442,7 @@ sdpageiter_gte_dup_mid(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -2256,8 +2454,12 @@ sdpageiter_gte_dup_mid(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	int p = 8;
 	sriter it;
@@ -2319,6 +2521,7 @@ sdpageiter_gte_dup_mid(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -2335,7 +2538,7 @@ sdpageiter_gte_dup_mid_gt(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -2348,8 +2551,13 @@ sdpageiter_gte_dup_mid_gt(stc *cx srunused)
 	addv(&b, 40, SVSET|SVDUP, &k);
 	addv(&b, 30, SVSET|SVDUP, &k);
 	sd_buildend(&b);
+
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	int p = 6;
 	sriter it;
@@ -2396,6 +2604,7 @@ sdpageiter_gte_dup_mid_gt(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -2412,7 +2621,7 @@ sdpageiter_gte_dup_mid_lt(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int k = 7;
 	int i = 8;
@@ -2425,8 +2634,13 @@ sdpageiter_gte_dup_mid_lt(stc *cx srunused)
 	addv(&b, 70, SVSET|SVDUP, &j);
 	addv(&b, 60, SVSET|SVDUP, &j);
 	sd_buildend(&b);
+
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	int p = 6;
 	sriter it;
@@ -2467,6 +2681,7 @@ sdpageiter_gte_dup_mid_lt(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -2483,7 +2698,7 @@ sdpageiter_gte_dup_iterate0(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -2496,8 +2711,13 @@ sdpageiter_gte_dup_iterate0(stc *cx srunused)
 	addv(&b, 40, SVSET|SVDUP, &k);
 	addv(&b, 30, SVSET|SVDUP, &k);
 	sd_buildend(&b);
+
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	int p = 1;
 	sriter it;
@@ -2528,6 +2748,7 @@ sdpageiter_gte_dup_iterate0(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -2544,7 +2765,7 @@ sdpageiter_gte_dup_iterate1(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -2557,8 +2778,13 @@ sdpageiter_gte_dup_iterate1(stc *cx srunused)
 	addv(&b, 40, SVSET|SVDUP, &k);
 	addv(&b, 30, SVSET|SVDUP, &k);
 	sd_buildend(&b);
+
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	int p = 1;
 	sriter it;
@@ -2617,6 +2843,7 @@ sdpageiter_gte_dup_iterate1(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -2633,13 +2860,18 @@ sdpageiter_update0(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 	int i = 0;
 	for (; i < 10; i++)
 		addv(&b, i, SVSET, &i);
 	sd_buildend(&b);
+
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiter, &r);
@@ -2658,6 +2890,7 @@ sdpageiter_update0(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -2674,13 +2907,19 @@ sdpageiter_random0(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 	int i = 0;
 	for (; i < 100; i++)
 		addv(&b, i, SVSET, &i);
 	sd_buildend(&b);
+
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
+
 	srand(2341);
 	for (; i < 1000; i++) {
 		uint32_t rnd = rand() % 100;
@@ -2696,6 +2935,7 @@ sdpageiter_random0(stc *cx srunused)
 		sr_iterclose(&it);
 	}
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -2712,7 +2952,7 @@ sdpageiter_iterate_raw(stc *cx srunused)
 	sr_init(&r, &error, &a, NULL, &cmp, &ij);
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -2724,8 +2964,12 @@ sdpageiter_iterate_raw(stc *cx srunused)
 	addv(&b, 1, SVSET, &k);
 	sd_buildend(&b);
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
-	sd_pageinit(&page, (sdpageheader*)b.k.s);
+	sd_pageinit(&page, h);
 
 	sriter it;
 	sr_iterinit(&it, &sd_pageiterraw, &r);
@@ -2766,6 +3010,7 @@ sdpageiter_iterate_raw(stc *cx srunused)
 	sr_iterclose(&it);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 stgroup *sdpageiter_group(void)

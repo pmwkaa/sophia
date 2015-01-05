@@ -42,6 +42,7 @@ svv_test(stc *cx srunused)
 	t( svkeysize(&v) == l.keysize );
 	t( *(uint32_t*)svvalue(&v) == value );
 	t( svvaluesize(&v) == l.valuesize );
+	sv_vfree(&a, vv);
 }
 
 stgroup *svv_group(void)

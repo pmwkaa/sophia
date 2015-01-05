@@ -72,10 +72,22 @@ sd_buildmin(sdbuild *b) {
 	return (sdv*)((char*)sd_buildheader(b) + sizeof(sdpageheader));
 }
 
+static inline char*
+sd_buildminkey(sdbuild *b) {
+	sdbuildref *r = sd_buildref(b);
+	return b->v.s + r->v + sd_buildmin(b)->keyoffset;
+}
+
 static inline sdv*
 sd_buildmax(sdbuild *b) {
 	sdpageheader *h = sd_buildheader(b);
-	return (sdv*)((char*)h + sizeof(sdpageheader) + h->sizeblock * (h->count - 1));
+	return (sdv*)((char*)h + sizeof(sdpageheader) + sizeof(sdv) * (h->count - 1));
+}
+
+static inline char*
+sd_buildmaxkey(sdbuild *b) {
+	sdbuildref *r = sd_buildref(b);
+	return b->v.s + r->v + sd_buildmax(b)->keyoffset;
 }
 
 static inline uint32_t
@@ -83,10 +95,11 @@ sd_buildsize(sdbuild *b) {
 	return sr_bufused(&b->k) + sr_bufused(&b->v);
 }
 
-int sd_buildbegin(sdbuild*, uint32_t);
+int sd_buildbegin(sdbuild*);
 int sd_buildcommit(sdbuild*);
 int sd_buildend(sdbuild*);
 int sd_buildadd(sdbuild*, sv*, uint32_t);
 int sd_buildwrite(sdbuild*, sdindex*, srfile*);
+int sd_buildwritepage(sdbuild*, srbuf*);
 
 #endif

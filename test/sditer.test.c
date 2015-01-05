@@ -47,7 +47,7 @@ sditer_gt0(stc *cx srunused)
 
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int key = 7;
 	addv(&b, 3, SVSET, &key);
@@ -57,16 +57,21 @@ sditer_gt0(stc *cx srunused)
 	addv(&b, 5, SVSET, &key);
 	sd_buildend(&b);
 
-	sdpageheader *h = sd_buildheader(&b);
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
+	sdpage page;
+	sd_pageinit(&page, h);
+
 	int rc;
 	rc = sd_indexadd(&index, &r,
 	                 sd_buildoffset(&b),
 	                 h->size + sizeof(sdpageheader),
-	                 h->sizekv,
 	                 h->count,
-	                 sd_buildmin(&b)->key,
+	                 sd_pagekey(&page, sd_buildmin(&b)),
 	                 sd_buildmin(&b)->keysize,
-	                 sd_buildmax(&b)->key,
+	                 sd_pagekey(&page, sd_buildmax(&b)),
 	                 sd_buildmax(&b)->keysize,
 	                 h->countdup,
 	                 h->lsnmindup,
@@ -113,6 +118,7 @@ sditer_gt0(stc *cx srunused)
 
 	sd_indexfree(&index, &r);
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 static void
@@ -134,7 +140,7 @@ sditer_gt1(stc *cx srunused)
 
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 
 	int key = 7;
 	addv(&b, 3, SVSET, &key);
@@ -143,16 +149,22 @@ sditer_gt1(stc *cx srunused)
 	key = 9;
 	addv(&b, 5, SVSET, &key);
 	sd_buildend(&b);
+
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
+	sdpage page;
+	sd_pageinit(&page, h);
+
 	int rc;
-	sdpageheader *h = sd_buildheader(&b);
 	rc = sd_indexadd(&index, &r,
 	                 sd_buildoffset(&b),
 	                 h->size + sizeof(sdpageheader),
-	                 h->sizekv,
 	                 h->count,
-	                 sd_buildmin(&b)->key,
+	                 sd_pagekey(&page, sd_buildmin(&b)),
 	                 sd_buildmin(&b)->keysize,
-	                 sd_buildmax(&b)->key,
+	                 sd_pagekey(&page, sd_buildmax(&b)),
 	                 sd_buildmax(&b)->keysize,
 	                 h->countdup,
 	                 h->lsnmindup,
@@ -161,7 +173,7 @@ sditer_gt1(stc *cx srunused)
 	t(rc == 0);
 	sd_buildcommit(&b);
 
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 	key = 10;
 	addv(&b, 6, SVSET, &key);
 	key = 11;
@@ -169,15 +181,19 @@ sditer_gt1(stc *cx srunused)
 	key = 13;
 	addv(&b, 8, SVSET, &key);
 	sd_buildend(&b);
-	h = sd_buildheader(&b);
+
+	sr_bufreset(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	h = (sdpageheader*)buf.s;
+	sd_pageinit(&page, h);
+
 	rc = sd_indexadd(&index, &r,
 	                 sd_buildoffset(&b),
 	                 h->size + sizeof(sdpageheader),
-	                 h->sizekv,
 	                 h->count,
-	                 sd_buildmin(&b)->key,
+	                 sd_pagekey(&page, sd_buildmin(&b)),
 	                 sd_buildmin(&b)->keysize,
-	                 sd_buildmax(&b)->key,
+	                 sd_pagekey(&page, sd_buildmax(&b)),
 	                 sd_buildmax(&b)->keysize,
 	                 h->countdup,
 	                 h->lsnmindup,
@@ -186,7 +202,7 @@ sditer_gt1(stc *cx srunused)
 	t(rc == 0);
 	sd_buildcommit(&b);
 
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 	key = 15;
 	addv(&b, 9, SVSET, &key);
 	key = 18;
@@ -194,15 +210,19 @@ sditer_gt1(stc *cx srunused)
 	key = 20;
 	addv(&b, 11, SVSET, &key);
 	sd_buildend(&b);
-	h = sd_buildheader(&b);
+
+	sr_bufreset(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	h = (sdpageheader*)buf.s;
+	sd_pageinit(&page, h);
+
 	rc = sd_indexadd(&index, &r,
 	                 sd_buildoffset(&b),
 	                 h->size + sizeof(sdpageheader),
-	                 h->sizekv,
 	                 h->count,
-	                 sd_buildmin(&b)->key,
+	                 sd_pagekey(&page, sd_buildmin(&b)),
 	                 sd_buildmin(&b)->keysize,
-	                 sd_buildmax(&b)->key,
+	                 sd_pagekey(&page, sd_buildmax(&b)),
 	                 sd_buildmax(&b)->keysize,
 	                 h->countdup,
 	                 h->lsnmindup,
@@ -272,6 +292,7 @@ sditer_gt1(stc *cx srunused)
 
 	sd_indexfree(&index, &r);
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 stgroup *sditer_group(void)

@@ -27,8 +27,13 @@ sd_viflsn(sv *v) {
 }
 
 static char*
-sd_vifkey(sv *v) {
-	return ((sdv*)v->v)->key;
+sd_vifkey(sv *v)
+{
+	sdv *dv = v->v;
+	sdpage p = {
+		.h = (sdpageheader*)v->arg
+	};
+	return sd_pagekey(&p, dv);
 }
 
 static uint16_t

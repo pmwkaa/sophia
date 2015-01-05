@@ -56,7 +56,7 @@ sinode *si_bootstrap(si *i, sr *r, uint32_t parent)
 	}
 	sdbuild build;
 	sd_buildinit(&build, r);
-	rc = sd_buildbegin(&build, 0);
+	rc = sd_buildbegin(&build);
 	if (srunlikely(rc == -1)) {
 		sd_indexfree(&index, r);
 		sd_buildfree(&build);
@@ -68,7 +68,6 @@ sinode *si_bootstrap(si *i, sr *r, uint32_t parent)
 	rc = sd_indexadd(&index, r,
 	                 sd_buildoffset(&build),
 	                 h->size + sizeof(sdpageheader),
-	                 h->sizekv,
 	                 h->count,
 	                 NULL,
 	                 0,

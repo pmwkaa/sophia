@@ -16,8 +16,8 @@ struct sdmerge {
 	sdindex index;
 	sriter *merge;
 	sriter i;
-	uint32_t size_stream;
 	uint32_t size_key;
+	uint32_t size_stream;
 	uint32_t size_page;
 	uint64_t size_node;
 	uint32_t processed;

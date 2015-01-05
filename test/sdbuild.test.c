@@ -43,7 +43,7 @@ sdbuild_empty(stc *cx srunused)
 
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 	sd_buildend(&b);
 	sdpageheader *h = sd_buildheader(&b);
 	t( h->count == 0 );
@@ -66,7 +66,7 @@ sdbuild_page0(stc *cx srunused)
 
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 	int i = 7;
 	int j = 8;
 	int k = 15;
@@ -96,7 +96,7 @@ sdbuild_page1(stc *cx srunused)
 
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 	int i = 7;
 	int j = 8;
 	int k = 15;
@@ -109,15 +109,20 @@ sdbuild_page1(stc *cx srunused)
 	t( h->lsnmin == 1 );
 	t( h->lsnmax == 3 );
 
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
+
 	sdv *min = sd_pagemin(&page);
-	t( *(int*)min->key == i );
+	t( *(int*)sd_pagekey(&page, min) == i );
 	sdv *max = sd_pagemax(&page);
-	t( *(int*)max->key == k );
+	t( *(int*)sd_pagekey(&page, max) == k );
 	sd_buildcommit(&b);
 
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 	j = 19; 
 	k = 20;
 	addv(&b, 4, SVSET, &j);
@@ -127,14 +132,18 @@ sdbuild_page1(stc *cx srunused)
 	t( h->count == 2 );
 	t( h->lsnmin == 4 );
 	t( h->lsnmax == 5 );
+	sr_bufreset(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	h = (sdpageheader*)buf.s;
 	sd_pageinit(&page, h);
 	min = sd_pagemin(&page);
-	t( *(int*)min->key == j );
+	t( *(int*)sd_pagekey(&page, min) == j );
 	max = sd_pagemax(&page);
-	t( *(int*)max->key == k );
+	t( *(int*)sd_pagekey(&page, max) == k );
 	sd_buildcommit(&b);
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 stgroup *sdbuild_group(void)

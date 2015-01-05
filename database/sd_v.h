@@ -17,27 +17,12 @@ struct sdv {
 	uint32_t timestamp;
 	uint8_t  flags;
 	uint16_t keysize;
+	uint32_t keyoffset;
 	uint32_t valuesize;
 	uint32_t valueoffset;
 	uint64_t reserve;
-	char     key[];
 } srpacked;
 
 extern svif sd_vif;
-
-static inline int
-sd_isdb(sv *v) {
-	return v->i == &sd_vif;
-}
-
-static inline char*
-sd_vkey(sdv *v) {
-	return (char*)(v) + sizeof(sdv);
-}
-
-static inline void*
-sd_vvalue(sdv *v) {
-	return (char*)(v) + sizeof(sdv) + v->keysize;
-}
 
 #endif

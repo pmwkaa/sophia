@@ -23,7 +23,6 @@ int sd_indexbegin(sdindex *i, sr *r, uint32_t keysize, uint64_t offset)
 	h->count     = 0;
 	h->keys      = 0;
 	h->total     = 0;
-	h->totalkv   = 0;
 	h->extension = 0;
 	h->lsnmin    = UINT64_MAX;
 	h->lsnmax    = 0;
@@ -48,7 +47,6 @@ int sd_indexcommit(sdindex *i, sdid *id)
 
 int sd_indexadd(sdindex *i, sr *r, uint64_t offset,
                 uint32_t size,
-                uint32_t sizekv,
                 uint32_t count,
                 char *min, int sizemin,
                 char *max, int sizemax,
@@ -77,7 +75,6 @@ int sd_indexadd(sdindex *i, sr *r, uint64_t offset,
 	i->h->count++;
 	i->h->keys  += count;
 	i->h->total += size;
-	i->h->totalkv += sizekv;
 	if (lsnmin < i->h->lsnmin)
 		i->h->lsnmin = lsnmin;
 	if (lsnmax > i->h->lsnmax)

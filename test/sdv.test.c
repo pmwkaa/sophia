@@ -43,14 +43,17 @@ sdv_test(stc *cx srunused)
 
 	sdbuild b;
 	sd_buildinit(&b, &r);
-	t( sd_buildbegin(&b, sizeof(int)) == 0);
+	t( sd_buildbegin(&b) == 0);
 	int i = 7;
 	int j = 8;
 	addv(&b, 3, SVSET, &i);
 	addv(&b, 4, SVSET, &j);
 	sd_buildend(&b);
 
-	sdpageheader *h = sd_buildheader(&b);
+	srbuf buf;
+	sr_bufinit(&buf);
+	t( sd_buildwritepage(&b, &buf) == 0 );
+	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
 
@@ -63,7 +66,7 @@ sdv_test(stc *cx srunused)
 	t( v->i == &sd_vif );
 
 	t( *(int*)svkey(v) == i );
-	t( svvalueoffset(v) == 0 );
+	t( svvalueoffset(v) == 4 );
 	sr_iternext(&it);
 	t( sr_iterhas(&it) != 0 );
 
@@ -77,9 +80,10 @@ sdv_test(stc *cx srunused)
 	svflagsadd(v, SVDUP);
 	t( svflags(v) == (SVSET|SVDUP) );
 
-	t( svvalueoffset(v) == sizeof(int) );
+	t( svvalueoffset(v) == 12 );
 
 	sd_buildfree(&b);
+	sr_buffree(&buf, &a);
 }
 
 stgroup *sdv_group(void)

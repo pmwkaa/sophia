@@ -69,7 +69,7 @@ int sd_merge(sdmerge *m)
 
 	while (sr_iterhas(&m->i) && (processed_last <= limit))
 	{
-		rc = sd_buildbegin(m->build, m->size_key);
+		rc = sd_buildbegin(m->build);
 		if (srunlikely(rc == -1))
 			return -1;
 		while (sr_iterhas(&m->i)) {
@@ -82,20 +82,19 @@ int sd_merge(sdmerge *m)
 		rc = sd_buildend(m->build);
 		if (srunlikely(rc == -1))
 			return -1;
-		sdpageheader *h = sd_buildheader(m->build);
 
 		/* page offset is relative to index:
 		 *
 		 * m->offset + (index_size) + page->offset
 		*/
+		sdpageheader *h = sd_buildheader(m->build);
 		rc = sd_indexadd(&m->index, m->r,
 		                 sd_buildoffset(m->build),
 		                 h->size + sizeof(sdpageheader),
-		                 h->sizekv,
 		                 h->count,
-		                 sd_buildmin(m->build)->key,
+		                 sd_buildminkey(m->build),
 		                 sd_buildmin(m->build)->keysize,
-		                 sd_buildmax(m->build)->key,
+		                 sd_buildmaxkey(m->build),
 		                 sd_buildmax(m->build)->keysize,
 		                 h->countdup,
 		                 h->lsnmindup,

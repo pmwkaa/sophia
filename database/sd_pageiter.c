@@ -52,7 +52,8 @@ sd_pageiter_search(sriter *i, int search_min)
 	{
 		mid = min + (max - min) / 2;
 		sdv *v = sd_pagev(pi->page, mid);
-		int rc = sr_compare(cmp, v->key, v->keysize, pi->key, pi->keysize);
+		char *key = sd_pagekey(pi->page, v);
+		int rc = sr_compare(cmp, key, v->keysize, pi->key, pi->keysize);
 		switch (rc) {
 		case -1: min = mid + 1;
 			continue;
@@ -254,8 +255,10 @@ sd_pageiter_lt(sriter *i, int e)
 	sd_pageiter_lland(pi, pos);
 	if (pi->v == NULL)
 		return 0;
-	int rc = sr_compare(i->r->cmp, pi->v->key, pi->v->keysize,
-	                    pi->key, pi->keysize);
+	char *key = sd_pagekey(pi->page, pi->v);
+	int rc = sr_compare(i->r->cmp, key, pi->v->keysize,
+	                    pi->key,
+	                    pi->keysize);
 	int match = rc == 0;
 	switch (rc) {
 		case  0:
@@ -287,8 +290,10 @@ sd_pageiter_gt(sriter *i, int e)
 	sd_pageiter_gland(pi, pos);
 	if (pi->v == NULL)
 		return 0;
-	int rc = sr_compare(i->r->cmp, pi->v->key, pi->v->keysize,
-	                    pi->key, pi->keysize);
+	char *key = sd_pagekey(pi->page, pi->v);
+	int rc = sr_compare(i->r->cmp, key, pi->v->keysize,
+	                    pi->key,
+	                    pi->keysize);
 	int match = rc == 0;
 	switch (rc) {
 		case  0:
