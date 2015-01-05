@@ -18,6 +18,7 @@ struct slv {
 	uint32_t valuesize;
 	uint8_t  flags;
 	uint16_t keysize;
+	uint64_t reserve;
 } srpacked;
 
 extern svif sl_vif;

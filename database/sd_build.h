@@ -74,10 +74,8 @@ sd_buildmin(sdbuild *b) {
 
 static inline sdv*
 sd_buildmax(sdbuild *b) {
-
 	sdpageheader *h = sd_buildheader(b);
-	return (sdv*)((char*)h + sizeof(sdpageheader) +
-	              h->sizeblock * (h->count - 1));
+	return (sdv*)((char*)h + sizeof(sdpageheader) + h->sizeblock * (h->count - 1));
 }
 
 static inline uint32_t

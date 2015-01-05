@@ -27,9 +27,11 @@ int sd_buildbegin(sdbuild *b, uint32_t keymax)
 		return sr_error(b->r->e, "%s", "memory allocation failed");
 	sdpageheader *h = sd_buildheader(b);
 	memset(h, 0, sizeof(*h));
-	h->sizeblock = sizeof(sdv) + keymax;
-	h->lsnmin    = UINT64_MAX;
-	h->lsnmindup = UINT64_MAX;
+	h->sizeblock  = sizeof(sdv) + keymax;
+	h->lsnmin     = UINT64_MAX;
+	h->lsnmindup  = UINT64_MAX;
+	h->tsmin      = 0;
+	memset(h->reserve, 0, sizeof(h->reserve));
 	sr_bufadvance(&b->list, sizeof(sdbuildref));
 	sr_bufadvance(&b->k, sizeof(sdpageheader));
 	return 0;
@@ -56,6 +58,8 @@ int sd_buildadd(sdbuild *b, sv *v, uint32_t flags)
 		memcpy(sv, svraw(v), svrawsize(v));
 	} else {
 		sv->lsn       = svlsn(v);
+		sv->timestamp = 0;
+		sv->reserve   = 0;
 		sv->valuesize = svvaluesize(v);
 		sv->keysize   = svkeysize(v);
 		memcpy(sv->key, svkey(v), sv->keysize);

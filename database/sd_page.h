@@ -19,9 +19,11 @@ struct sdpageheader {
 	uint32_t size;
 	uint32_t sizekv;
 	uint16_t sizeblock;
+	uint32_t tsmin;
 	uint64_t lsnmin;
 	uint64_t lsnmindup;
 	uint64_t lsnmax;
+	char     reserve[16];
 } srpacked;
 
 struct sdpage {
@@ -36,15 +38,14 @@ sd_pageinit(sdpage *p, sdpageheader *h) {
 static inline sdv*
 sd_pagev(sdpage *p, uint32_t pos) {
 	assert(pos < p->h->count);
-	return (sdv*)((char*)p->h + sizeof(sdpageheader) +
-	              p->h->sizeblock * pos);
+	return (sdv*)((char*)p->h + sizeof(sdpageheader) + p->h->sizeblock * pos);
 }
 
 static inline void*
 sd_pagevalue(sdpage *p, sdv *v) {
 	assert((p->h->sizeblock * p->h->count) + v->valueoffset <= p->h->size);
-	return (char*)((char*)p->h + sizeof(sdpageheader) +
-	               p->h->sizeblock * p->h->count) + v->valueoffset;
+	return ((char*)p->h + sizeof(sdpageheader) +
+	         p->h->sizeblock * p->h->count) + v->valueoffset;
 }
 
 static inline sdv*

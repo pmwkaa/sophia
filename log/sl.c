@@ -440,6 +440,7 @@ sl_write_prepare(slpool *p, sltx *t, slv *lv, svlogv *logv)
 	lv->flags     = svflags(v);
 	lv->valuesize = svvaluesize(v);
 	lv->keysize   = svkeysize(v);
+	lv->reserve   = 0;
 	lv->crc       = sr_crcp(svkey(v), lv->keysize, 0);
 	lv->crc       = sr_crcp(svvalue(v), lv->valuesize, lv->crc);
 	lv->crc       = sr_crcs(lv, sizeof(slv), lv->crc);
@@ -483,6 +484,7 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 	lv->flags     = SVBEGIN;
 	lv->valuesize = sv_logcount(vlog);
 	lv->keysize   = 0;
+	lv->reserve   = 0;
 	lv->crc       = sr_crcs(lv, sizeof(slv), 0);
 	sr_iovadd(&p->iov, lv, sizeof(slv));
 	lvp++;

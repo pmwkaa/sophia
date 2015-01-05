@@ -17,19 +17,23 @@ int sd_indexbegin(sdindex *i, sr *r, uint32_t keysize, uint64_t offset)
 	if (srunlikely(rc == -1))
 		return sr_error(r->e, "%s", "memory allocation failed");
 	sdindexheader *h = sd_indexheader(i);
-	i->h        = h;
-	h->crc      = 0;
-	h->block    = sizeof(sdindexpage) + (keysize * 2);
-	h->count    = 0;
-	h->keys     = 0;
-	h->total    = 0;
-	h->totalkv  = 0;
-	h->lsnmin   = UINT64_MAX;
-	h->lsnmax   = 0;
-	h->offset   = offset;
-	h->dupkeys = 0;
-	h->dupmin   = UINT64_MAX;
+	sr_version(&h->version);
+	h->crc       = 0;
+	h->block     = sizeof(sdindexpage) + (keysize * 2);
+	h->count     = 0;
+	h->keys      = 0;
+	h->total     = 0;
+	h->totalkv   = 0;
+	h->extension = 0;
+	h->lsnmin    = UINT64_MAX;
+	h->lsnmax    = 0;
+	h->tsmin     = 0;
+	h->offset    = offset;
+	h->dupkeys   = 0;
+	h->dupmin    = UINT64_MAX;
+	memset(h->reserve, 0, sizeof(h->reserve));
 	sd_idinit(&h->id, 0, 0, 0);
+	i->h = h;
 	sr_bufadvance(&i->i, sizeof(sdindexheader));
 	return 0;
 }
@@ -66,6 +70,7 @@ int sd_indexadd(sdindex *i, sr *r, uint64_t offset,
 	p->lsnmax   = lsnmax;
 	memcpy(sd_indexpage_min(p), min, sizemin);
 	memcpy(sd_indexpage_max(p), max, sizemax);
+	memset(p->reserve, 0, sizeof(p->reserve));
 	int padding = i->h->block - (sizeof(sdindexpage) + sizemin + sizemax);
 	if (padding > 0)
 		memset(sd_indexpage_max(p) + sizemax, 0, padding);

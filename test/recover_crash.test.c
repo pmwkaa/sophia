@@ -28,7 +28,6 @@ recovercrash_deploy0(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
-	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_set(c, "debug.error_injection.si_recover_0", "1") == 0 );
@@ -74,7 +73,6 @@ recovercrash_deploy0(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
-	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == -1 );
@@ -101,7 +99,6 @@ recovercrash_branch0(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
-	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -141,7 +138,6 @@ recovercrash_branch0(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
-	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -186,7 +182,6 @@ recovercrash_build0(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
-	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -226,7 +221,6 @@ recovercrash_build0(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
-	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -270,7 +264,6 @@ recovercrash_build1(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
-	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -310,7 +303,6 @@ recovercrash_build1(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
-	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -354,7 +346,6 @@ recovercrash_compact0(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
-	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -396,7 +387,6 @@ recovercrash_compact0(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
-	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -441,7 +431,6 @@ recovercrash_compact1(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
-	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -484,7 +473,6 @@ recovercrash_compact1(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
-	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -531,7 +519,6 @@ recovercrash_compact2(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
-	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -574,7 +561,6 @@ recovercrash_compact2(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
-	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -614,8 +600,8 @@ recovercrash_compact3(stc *cx srunused)
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
-	t( sp_set(c, "compaction.node_size", "8") == 0 );
-	t( sp_set(c, "compaction.page_size", "31") == 0 );
+	t( sp_set(c, "compaction.node_size", "40") == 0 );
+	t( sp_set(c, "compaction.page_size", "40") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -623,13 +609,12 @@ recovercrash_compact3(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
-	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
 	int i = 0;
-	while (i < 10) {
+	while (i < 20) {
 		void *o = sp_object(db);
 		t( o != 0 );
 		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
@@ -662,7 +647,6 @@ recovercrash_compact3(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
-	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -697,8 +681,8 @@ recovercrash_compact4(stc *cx srunused)
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
-	t( sp_set(c, "compaction.node_size", "8") == 0 );
-	t( sp_set(c, "compaction.page_size", "31") == 0 );
+	t( sp_set(c, "compaction.node_size", "40") == 0 );
+	t( sp_set(c, "compaction.page_size", "40") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -706,13 +690,12 @@ recovercrash_compact4(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
-	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
 	int i = 0;
-	while (i < 10) {
+	while (i < 20) {
 		void *o = sp_object(db);
 		t( o != 0 );
 		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
@@ -745,7 +728,6 @@ recovercrash_compact4(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
-	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -782,8 +764,8 @@ recovercrash_compact5(stc *cx srunused)
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
-	t( sp_set(c, "compaction.node_size", "8") == 0 );
-	t( sp_set(c, "compaction.page_size", "31") == 0 );
+	t( sp_set(c, "compaction.node_size", "40") == 0 );
+	t( sp_set(c, "compaction.page_size", "40") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -791,13 +773,12 @@ recovercrash_compact5(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
-	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
 	int i = 0;
-	while (i < 10) {
+	while (i < 20) {
 		void *o = sp_object(db);
 		t( o != 0 );
 		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
@@ -830,7 +811,6 @@ recovercrash_compact5(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
-	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -867,8 +847,8 @@ recovercrash_compact6(stc *cx srunused)
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
-	t( sp_set(c, "compaction.node_size", "8") == 0 );
-	t( sp_set(c, "compaction.page_size", "31") == 0 );
+	t( sp_set(c, "compaction.node_size", "40") == 0 );
+	t( sp_set(c, "compaction.page_size", "40") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -876,13 +856,12 @@ recovercrash_compact6(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
-	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
 	int i = 0;
-	while (i < 10) {
+	while (i < 20) {
 		void *o = sp_object(db);
 		t( o != 0 );
 		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
@@ -915,7 +894,6 @@ recovercrash_compact6(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
-	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -952,8 +930,8 @@ recovercrash_compact7(stc *cx srunused)
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
-	t( sp_set(c, "compaction.node_size", "8") == 0 );
-	t( sp_set(c, "compaction.page_size", "31") == 0 );
+	t( sp_set(c, "compaction.node_size", "40") == 0 );
+	t( sp_set(c, "compaction.page_size", "40") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
@@ -961,13 +939,12 @@ recovercrash_compact7(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
-	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
 	int i = 0;
-	while (i < 10) {
+	while (i < 20) {
 		void *o = sp_object(db);
 		t( o != 0 );
 		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
@@ -1001,7 +978,6 @@ recovercrash_compact7(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
-	t( sp_set(c, "debug.disable_snapshot", "1") == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );

@@ -51,9 +51,14 @@ sd_recovernext_of(sriter *i, sdindexheader *next)
 		ri->v = NULL;
 		return -1;
 	}
+	/* check version */
+	if (! sr_versioncheck(&next->version))
+		return sr_malfunction(i->r->e, "bad db file '%s' version",
+		                      ri->file->file);
 	char *end = start + sizeof(sdindexheader) +
-	            next->count * next->block + next->total +
-	            sizeof(sdseal);
+	            next->count * next->block +
+	            next->total +
+	            next->extension + sizeof(sdseal);
 	if (srunlikely((start > eof || (end > eof)))) {
 		sr_malfunction(i->r->e, "corrupted db file '%s': bad record size",
 		               ri->file->file);
@@ -76,17 +81,6 @@ sd_recovernext_of(sriter *i, sdindexheader *next)
 	return 1;
 }
 
-static inline int
-sd_recovervalidate(sriter *i)
-{
-	sdrecover *ri = (sdrecover*)i->priv;
-	sdindexheader *next = (sdindexheader*)((char*)ri->map.p);
-	int rc = sd_recovernext_of(i, next);
-	if (srunlikely(rc == -1))
-		return -1;
-	return 0;
-}
-
 static int
 sd_recoveropen(sriter *i, va_list args)
 {
@@ -105,10 +99,11 @@ sd_recoveropen(sriter *i, va_list args)
 		return -1;
 	}
 	ri->v = NULL;
-	rc = sd_recovervalidate(i);
+	sdindexheader *next = (sdindexheader*)((char*)ri->map.p);
+	rc = sd_recovernext_of(i, next);
 	if (srunlikely(rc == -1))
 		sr_mapunmap(&ri->map);
-	return 0;
+	return rc;
 }
 
 static void
@@ -141,7 +136,8 @@ sd_recovernext(sriter *i)
 	sdindexheader *next =
 		(sdindexheader*)((char*)ri->v +
 		    (sizeof(sdindexheader) + ri->v->count * ri->v->block) +
-		     ri->v->total + sizeof(sdseal));
+		     ri->v->total +
+		     ri->v->extension + sizeof(sdseal));
 	sd_recovernext_of(i, next);
 }
 
@@ -166,7 +162,8 @@ int sd_recovercomplete(sriter *i)
 	char *eof =
 		(char*)ri->actual + sizeof(sdindexheader) +
 		       ri->actual->count * ri->actual->block +
-		       ri->actual->total + sizeof(sdseal);
+		       ri->actual->total +
+		       ri->actual->extension + sizeof(sdseal);
 	uint64_t file_size = eof - ri->map.p;
 	int rc = sr_fileresize(ri->file, file_size);
 	if (srunlikely(rc == -1))

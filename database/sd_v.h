@@ -14,10 +14,12 @@ typedef struct sdv sdv;
 struct sdv {
 	uint32_t crc;
 	uint64_t lsn;
+	uint32_t timestamp;
 	uint8_t  flags;
+	uint16_t keysize;
 	uint32_t valuesize;
 	uint32_t valueoffset;
-	uint16_t keysize;
+	uint64_t reserve;
 	char     key[];
 } srpacked;
 

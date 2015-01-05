@@ -583,12 +583,9 @@ so_ctlbackup(so *e, soctlrt *rt, src **pc)
 static inline src*
 so_ctldebug(so *e, soctlrt *rt srunused, src **pc)
 {
-	src *debug = *pc;
 	src *prev = NULL;
 	src *p = NULL;
-	sr_clink(&p, sr_c(pc, so_ctlv_offline, "disable_snapshot", SR_CU32, &e->ctl.disable_snapshot));
 	prev = p;
-	p = NULL;
 	src *ei = *pc;
 	sr_clink(&p, sr_c(pc, so_ctlv, "sd_build_0",      SR_CU32, &e->ei.e[0]));
 	sr_clink(&p, sr_c(pc, so_ctlv, "sd_build_1",      SR_CU32, &e->ei.e[1]));
@@ -604,6 +601,7 @@ so_ctldebug(so *e, soctlrt *rt srunused, src **pc)
 	sr_clink(&p, sr_c(pc, so_ctlv, "se_snapshot_2",   SR_CU32, &e->ei.e[11]));
 	sr_clink(&p, sr_c(pc, so_ctlv, "se_snapshot_3",   SR_CU32, &e->ei.e[12]));
 	sr_clink(&prev, sr_c(pc, so_ctldb_set, "error_injection", SR_CC, ei));
+	src *debug = prev;
 	return sr_c(pc, NULL, "debug", SR_CC, debug);
 }
 
@@ -777,7 +775,6 @@ void so_ctlinit(soctl *c, void *e)
 	c->log_rotate_sync   = 1;
 	c->two_phase_recover = 0;
 	c->commit_lsn        = 0;
-	c->disable_snapshot  = 0;
 	sizone def = {
 		.enable        = 1,
 		.mode          = 3, /* branch + compact */

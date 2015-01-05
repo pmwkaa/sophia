@@ -14,18 +14,22 @@ typedef struct sdindexpage sdindexpage;
 typedef struct sdindex sdindex;
 
 struct sdindexheader {
-	uint32_t crc;
-	uint64_t offset;
-	uint16_t block;
-	uint32_t count;
-	uint32_t keys;
-	uint64_t total;
-	uint64_t totalkv;
-	uint64_t lsnmin;
-	uint64_t lsnmax;
-	uint32_t dupkeys;
-	uint64_t dupmin;
-	sdid     id;
+	uint32_t  crc;
+	srversion version;
+	sdid      id;
+	uint64_t  offset;
+	uint16_t  block;
+	uint32_t  count;
+	uint32_t  keys;
+	uint64_t  total;
+	uint64_t  totalkv;
+	uint64_t  lsnmin;
+	uint64_t  lsnmax;
+	uint32_t  tsmin;
+	uint32_t  dupkeys;
+	uint64_t  dupmin;
+	uint32_t  extension;
+	char      reserve[32];
 } srpacked;
 
 struct sdindexpage {
@@ -35,6 +39,7 @@ struct sdindexpage {
 	uint16_t sizemax;
 	uint64_t lsnmin;
 	uint64_t lsnmax;
+	char     reserve[16];
 } srpacked;
 
 struct sdindex {
