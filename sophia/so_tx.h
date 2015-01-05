@@ -15,7 +15,6 @@ struct sotx {
 	soobj o;
 	sx t;
 	soobjindex logcursor;
-	so *e;
 } srpacked;
 
 int    so_txdbset(sodb*, uint8_t, va_list);

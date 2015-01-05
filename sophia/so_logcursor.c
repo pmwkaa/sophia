@@ -20,7 +20,7 @@ static int
 so_logcursor_destroy(soobj *o)
 {
 	sologcursor *c = (sologcursor*)o;
-	so *e = c->t->e;
+	so *e = so_of(o);
 	so_objindex_unregister(&c->t->logcursor, &c->o);
 	sr_free(&e->a_logcursor, c);
 	return 0;
@@ -88,7 +88,8 @@ static soobjif sologcursorif =
 static inline void
 so_logcursor_open(sologcursor *c)
 {
-	so_vinit(&c->v, c->t->e, NULL);
+	so *e = so_of(&c->o);
+	so_vinit(&c->v, e, NULL);
 	c->v.flags = SO_VIMMUTABLE;
 	c->pos = (svlogv*)c->t->t.log.buf.s;
 	if (c->pos >= (svlogv*)c->t->t.log.buf.p)
@@ -101,7 +102,7 @@ so_logcursor_open(sologcursor *c)
 
 soobj *so_logcursor_new(sotx *t)
 {
-	so *e = t->e;
+	so *e = so_of(&t->o);
 	sologcursor *c = sr_malloc(&e->a_logcursor, sizeof(sologcursor));
 	if (srunlikely(c == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");

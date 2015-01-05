@@ -26,12 +26,13 @@ so_zoneof(so *e)
 int so_scheduler_branch(void *arg)
 {
 	sodb *db = arg;
-	sizone *z = so_zoneof(db->e);
+	so *e = so_of(&db->o);
+	sizone *z = so_zoneof(e);
 	soworker stub;
 	so_workerstub_init(&stub, &db->r);
 	int rc;
 	while (1) {
-		uint64_t vlsn = sx_vlsn(&db->e->xm);
+		uint64_t vlsn = sx_vlsn(&e->xm);
 		siplan plan = {
 			.explain   = SI_ENONE,
 			.plan      = SI_BRANCH,
@@ -54,12 +55,13 @@ int so_scheduler_branch(void *arg)
 int so_scheduler_compact(void *arg)
 {
 	sodb *db = arg;
-	sizone *z = so_zoneof(db->e);
+	so *e = so_of(&db->o);
+	sizone *z = so_zoneof(e);
 	soworker stub;
 	so_workerstub_init(&stub, &db->r);
 	int rc;
 	while (1) {
-		uint64_t vlsn = sx_vlsn(&db->e->xm);
+		uint64_t vlsn = sx_vlsn(&e->xm);
 		siplan plan = {
 			.explain   = SI_ENONE,
 			.plan      = SI_COMPACT,
@@ -682,7 +684,8 @@ so_execute(sotask *t, soworker *w)
 {
 	si_plannertrace(&t->plan, &w->trace);
 	sodb *db = t->db;
-	uint64_t vlsn = sx_vlsn(&db->e->xm);
+	so *e = (so*)db->o.env;
+	uint64_t vlsn = sx_vlsn(&e->xm);
 	return si_execute(&db->index, &db->r, &w->dc, &t->plan, vlsn);
 }
 

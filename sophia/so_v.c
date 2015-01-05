@@ -23,7 +23,7 @@ so_vdestroy(soobj *obj)
 	if (v->flags & SO_VIMMUTABLE)
 		return 0;
 	so_vrelease(v);
-	sr_free(&v->e->a_v, v);
+	sr_free(&so_of(obj)->a_v, v);
 	return 0;
 }
 
@@ -31,14 +31,15 @@ static int
 so_vset(soobj *obj, va_list args)
 {
 	sov *v = (sov*)obj;
+	so *e = so_of(obj);
 	if (srunlikely(v->flags & SO_VRO)) {
-		sr_error(&v->e->error, "%s", "object is read-only");
+		sr_error(&e->error, "%s", "object is read-only");
 		return -1;
 	}
 	char *name = va_arg(args, char*);
 	if (strcmp(name, "key") == 0) {
 		if (v->v.i != &sv_localif) {
-			sr_error(&v->e->error, "%s", "bad object operation");
+			sr_error(&e->error, "%s", "bad object operation");
 			return -1;
 		}
 		v->lv.key = va_arg(args, char*);
@@ -47,7 +48,7 @@ so_vset(soobj *obj, va_list args)
 	} else
 	if (strcmp(name, "value") == 0) {
 		if (v->v.i != &sv_localif) {
-			sr_error(&v->e->error, "%s", "bad object operation");
+			sr_error(&e->error, "%s", "bad object operation");
 			return -1;
 		}
 		v->lv.value = va_arg(args, char*);
@@ -66,7 +67,7 @@ so_vset(soobj *obj, va_list args)
 		char *order = va_arg(args, void*);
 		srorder cmp = sr_orderof(order);
 		if (srunlikely(cmp == SR_STOP)) {
-			sr_error(&v->e->error, "%s", "bad order name");
+			sr_error(&e->error, "%s", "bad order name");
 			return -1;
 		}
 		v->order = cmp;
@@ -79,6 +80,7 @@ static void*
 so_vget(soobj *obj, va_list args)
 {
 	sov *v = (sov*)obj;
+	so *e = so_of(obj);
 	char *name = va_arg(args, char*);
 	if (strcmp(name, "key") == 0) {
 		void *key = svkey(&v->v);
@@ -125,7 +127,7 @@ so_vget(soobj *obj, va_list args)
 			.function = NULL,
 			.next     = NULL
 		};
-		void *o = so_ctlreturn(&order, v->e);
+		void *o = so_ctlreturn(&order, e);
 		if (srunlikely(o == NULL))
 			return NULL;
 		return o;
@@ -162,7 +164,6 @@ soobj *so_vinit(sov *v, so *e, soobj *parent)
 	so_objinit(&v->o, SOV, &sovif, &e->o);
 	svinit(&v->v, &sv_localif, &v->lv, NULL);
 	v->order = SR_GTE;
-	v->e = e;
 	v->parent = parent;
 	return &v->o;
 }
@@ -179,8 +180,9 @@ soobj *so_vnew(so *e, soobj *parent)
 
 soobj *so_vrelease(sov *v)
 {
+	so *e = so_of(&v->o);
 	if (v->flags & SO_VALLOCATED)
-		sv_vfree(&v->e->a, (svv*)v->v.v);
+		sv_vfree(&e->a, (svv*)v->v.v);
 	v->flags = 0;
 	v->v.v = NULL;
 	return &v->o;

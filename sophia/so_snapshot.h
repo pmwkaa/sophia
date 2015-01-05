@@ -16,7 +16,6 @@ struct sosnapshot {
 	sx t;
 	uint64_t vlsn;
 	char *name;
-	so *e;
 } srpacked;
 
 soobj *so_snapshotnew(so*, uint64_t, char*);

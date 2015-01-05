@@ -23,7 +23,6 @@ struct sov {
 	srorder order;
 	void *log;
 	soobj *parent;
-	so *e;
 } srpacked;
 
 static inline int

@@ -59,6 +59,11 @@ so_apiunlock(soobj *o) {
 	sr_mutexunlock(&((so*)o)->apilock);
 }
 
+static inline so*
+so_of(soobj *o) {
+	return (so*)o->env;
+}
+
 soobj *so_new(void);
 
 #endif

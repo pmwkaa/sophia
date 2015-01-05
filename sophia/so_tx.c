@@ -20,18 +20,19 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 {
 	/* validate call */
 	sov *o = va_arg(args, sov*);
+	so *e = so_of(&db->o);
 	if (srunlikely(o->o.id != SOV)) {
-		sr_error(&db->e->error, "%s", "bad arguments");
+		sr_error(&e->error, "%s", "bad arguments");
 		return -1;
 	}
 	sv *ov = &o->v;
 	if (srunlikely(ov->v == NULL)) {
-		sr_error(&db->e->error, "%s", "bad arguments");
+		sr_error(&e->error, "%s", "bad arguments");
 		goto error;
 	}
 	soobj *parent = o->parent;
 	if (srunlikely(parent != &db->o)) {
-		sr_error(&db->e->error, "%s", "bad object parent");
+		sr_error(&e->error, "%s", "bad object parent");
 		goto error;
 	}
 	int status = so_status(&db->status);
@@ -52,10 +53,10 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	svinit(&vp, &sv_localif, &l, NULL);
 
 	/* ensure quota */
-	sr_quota(&db->e->quota, SR_QADD, sv_vsizeof(&vp));
+	sr_quota(&e->quota, SR_QADD, sv_vsizeof(&vp));
 
 	/* concurrency */
-	sxstate s = sx_setstmt(&db->e->xm, &db->coindex, &vp);
+	sxstate s = sx_setstmt(&e->xm, &db->coindex, &vp);
 	int rc = 1; /* rlb */
 	switch (s) {
 	case SXWAIT: rc = 2;
@@ -67,7 +68,7 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	}
 	svv *v = sv_valloc(db->r.a, &vp);
 	if (srunlikely(v == NULL)) {
-		sr_error(&db->e->error, "%s", "memory allocation failed");
+		sr_error(&e->error, "%s", "memory allocation failed");
 		goto error;
 	}
 
@@ -81,8 +82,8 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	sv_logadd(&log, db->r.a, &lv, db);
 	svlogindex *logindex = (svlogindex*)log.index.s;
 	sltx tl;
-	sl_begin(&db->e->lp, &tl);
-	sl_prepare(&db->e->lp, &log);
+	sl_begin(&e->lp, &tl);
+	sl_prepare(&e->lp, &log);
 	rc = sl_write(&tl, &log);
 	if (srunlikely(rc == -1)) {
 		sl_rollback(&tl);
@@ -92,7 +93,7 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	sl_commit(&tl);
 
 	/* commit */
-	uint64_t vlsn = sx_vlsn(&db->e->xm);
+	uint64_t vlsn = sx_vlsn(&e->xm);
 	uint64_t now = sr_utime();
 	sitx tx;
 	si_begin(&tx, &db->r, &db->index, vlsn, now,
@@ -109,32 +110,33 @@ error:
 
 void *so_txdbget(sodb *db, uint64_t vlsn, va_list args)
 {
+	so *e = so_of(&db->o);
 	/* validate call */
 	sov *o = va_arg(args, sov*);
 	if (srunlikely(o->o.id != SOV)) {
-		sr_error(&db->e->error, "%s", "bad arguments");
+		sr_error(&e->error, "%s", "bad arguments");
 		return NULL;
 	}
 	uint32_t keysize = svkeysize(&o->v);
 	void *key = svkey(&o->v);
 	if (srunlikely(key == NULL)) {
-		sr_error(&db->e->error, "%s", "bad arguments");
+		sr_error(&e->error, "%s", "bad arguments");
 		goto error;
 	}
 	soobj *parent = o->parent;
 	if (srunlikely(parent != &db->o)) {
-		sr_error(&db->e->error, "%s", "bad object parent");
+		sr_error(&e->error, "%s", "bad object parent");
 		goto error;
 	}
 	if (srunlikely(! so_dbactive(db)))
 		goto error;
 
-	sx_getstmt(&db->e->xm, &db->coindex);
+	sx_getstmt(&e->xm, &db->coindex);
 	if (srlikely(vlsn == 0))
 		vlsn = sr_seq(db->r.seq, SR_LSN);
 
 	sicache cache;
-	si_cacheinit(&cache, &db->e->a_cursorcache);
+	si_cacheinit(&cache, &e->a_cursorcache);
 	siquery q;
 	si_queryopen(&q, &db->r, &cache, &db->index,
 	             SR_EQ, vlsn, key, keysize);
@@ -149,9 +151,9 @@ void *so_txdbget(sodb *db, uint64_t vlsn, va_list args)
 	so_objdestroy(&o->o);
 	if (srunlikely(rc <= 0))
 		return NULL;
-	soobj *ret = so_vdup(db->e, &db->o, &result);
+	soobj *ret = so_vdup(e, &db->o, &result);
 	if (srunlikely(ret == NULL))
-		sv_vfree(&db->e->a, (svv*)result.v);
+		sv_vfree(&e->a, (svv*)result.v);
 	return ret;
 error:
 	so_objdestroy(&o->o);
@@ -162,7 +164,7 @@ static int
 so_txdo(soobj *obj, uint8_t flags, va_list args)
 {
 	sotx *t = (sotx*)obj;
-	so *e = t->e;
+	so *e = so_of(obj);
 
 	/* validate call */
 	sov *o = va_arg(args, sov*);
@@ -200,11 +202,11 @@ so_txdo(soobj *obj, uint8_t flags, va_list args)
 	svinit(&vp, &sv_localif, &l, NULL);
 
 	/* ensure quota */
-	sr_quota(&db->e->quota, SR_QADD, sv_vsizeof(&vp));
+	sr_quota(&e->quota, SR_QADD, sv_vsizeof(&vp));
 
 	svv *v = sv_valloc(db->r.a, &vp);
 	if (srunlikely(v == NULL)) {
-		sr_error(&db->e->error, "%s", "memory allocation failed");
+		sr_error(&e->error, "%s", "memory allocation failed");
 		goto error;
 	}
 	v->log = o->log;
@@ -232,7 +234,7 @@ static void*
 so_txget(soobj *obj, va_list args)
 {
 	sotx *t = (sotx*)obj;
-	so *e = t->e;
+	so *e = so_of(obj);
 
 	/* validate call */
 	sov *o = va_arg(args, sov*);
@@ -265,13 +267,13 @@ so_txget(soobj *obj, va_list args)
 	case  1:
 		ret = so_vdup(e, &db->o, &result);
 		if (srunlikely(ret == NULL))
-			sv_vfree(&db->e->a, (svv*)result.v);
+			sv_vfree(&e->a, (svv*)result.v);
 		so_objdestroy(&o->o);
 		return ret;
 	}
 
 	sicache cache;
-	si_cacheinit(&cache, &db->e->a_cursorcache);
+	si_cacheinit(&cache, &e->a_cursorcache);
 	siquery q;
 	si_queryopen(&q, &db->r, &cache, &db->index,
 	             SR_EQ, t->t.vlsn,
@@ -298,9 +300,10 @@ error:
 static inline void
 so_txend(sotx *t)
 {
+	so *e = so_of(&t->o);
 	so_objindex_destroy(&t->logcursor);
-	so_objindex_unregister(&t->e->tx, &t->o);
-	sr_free(&t->e->a_tx, t);
+	so_objindex_unregister(&e->tx, &t->o);
+	sr_free(&e->a_tx, t);
 }
 
 static int
@@ -316,13 +319,14 @@ so_txrollback(soobj *o)
 static sxstate
 so_txprepare_trigger(sx *t, sv *v, void *arg0, void *arg1)
 {
-	sotx *te = arg0;
+	sotx *te srunused = arg0;
 	sodb *db = arg1;
-	uint64_t lsn = sr_seq(te->e->r.seq, SR_LSN);
+	so *e = so_of(&db->o);
+	uint64_t lsn = sr_seq(e->r.seq, SR_LSN);
 	if (t->vlsn == lsn)
 		return SXPREPARE;
 	sicache cache;
-	si_cacheinit(&cache, &db->e->a_cursorcache);
+	si_cacheinit(&cache, &e->a_cursorcache);
 	siquery q;
 	si_queryopen(&q, &db->r, &cache, &db->index,
 	             SR_UPDATE, t->vlsn,
@@ -340,7 +344,7 @@ static int
 so_txprepare(soobj *o, va_list args srunused)
 {
 	sotx *t = (sotx*)o;
-	so *e = t->e;
+	so *e = so_of(o);
 	int status = so_status(&e->status);
 	if (srunlikely(! so_statusactive_is(status)))
 		return -1;
@@ -369,7 +373,7 @@ static int
 so_txcommit(soobj *o, va_list args)
 {
 	sotx *t = (sotx*)o;
-	so *e = t->e;
+	so *e = so_of(o);
 	int status = so_status(&e->status);
 	if (srunlikely(! so_statusactive_is(status)))
 		return -1;
@@ -480,7 +484,6 @@ soobj *so_txnew(so *e)
 	}
 	so_objinit(&t->o, SOTX, &sotxif, &e->o);
 	so_objindex_init(&t->logcursor);
-	t->e = e;
 	sx_begin(&e->xm, &t->t, 0);
 	so_objindex_register(&e->tx, &t->o);
 	return &t->o;

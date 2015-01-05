@@ -21,9 +21,10 @@ so_dbctl_init(sodbctl *c, char *name, void *db)
 {
 	memset(c, 0, sizeof(*c));
 	sodb *o = db;
-	c->name = sr_strdup(&o->e->a, name);
+	so *e = so_of(&o->o);
+	c->name = sr_strdup(&e->a, name);
 	if (srunlikely(c->name == NULL)) {
-		sr_error(&o->e->error, "%s", "memory allocation failed");
+		sr_error(&e->error, "%s", "memory allocation failed");
 		return -1;
 	}
 	c->parent  = db;
@@ -37,14 +38,15 @@ static int
 so_dbctl_free(sodbctl *c)
 {
 	sodb *o = c->parent;
+	so *e = so_of(&o->o);
 	if (so_dbactive(o))
 		return -1;
 	if (c->name) {
-		sr_free(&o->e->a, c->name);
+		sr_free(&e->a, c->name);
 		c->name = NULL;
 	}
 	if (c->path) {
-		sr_free(&o->e->a, c->path);
+		sr_free(&e->a, c->path);
 		c->path = NULL;
 	}
 	return 0;
@@ -54,7 +56,7 @@ static int
 so_dbctl_validate(sodbctl *c)
 {
 	sodb *o = c->parent;
-	so *e = o->e;
+	so *e = so_of(&o->o);
 	if (c->path)
 		return 0;
 	char path[1024];
@@ -71,6 +73,7 @@ static int
 so_dbopen(soobj *obj, va_list args srunused)
 {
 	sodb *o = (sodb*)obj;
+	so *e = so_of(&o->o);
 	int status = so_status(&o->status);
 	if (status == SO_RECOVER)
 		goto online;
@@ -84,11 +87,11 @@ so_dbopen(soobj *obj, va_list args srunused)
 	rc = so_recoverbegin(o);
 	if (srunlikely(rc == -1))
 		return -1;
-	if (so_status(&o->e->status) == SO_RECOVER)
+	if (so_status(&e->status) == SO_RECOVER)
 		return 0;
 online:
 	so_recoverend(o);
-	rc = so_scheduler_add(&o->e->sched, o);
+	rc = so_scheduler_add(&e->sched, o);
 	if (srunlikely(rc == -1))
 		return -1;
 	return 0;
@@ -98,24 +101,25 @@ static int
 so_dbdestroy(soobj *obj)
 {
 	sodb *o = (sodb*)obj;
+	so *e = so_of(&o->o);
 	so_statusset(&o->status, SO_SHUTDOWN);
 	int rcret = 0;
 	int rc;
-	rc = so_scheduler_del(&o->e->sched, o);
+	rc = so_scheduler_del(&e->sched, o);
 	if (srunlikely(rc == -1))
 		rcret = -1;
 	rc = so_objindex_destroy(&o->cursor);
 	if (srunlikely(rc == -1))
 		rcret = -1;
-	sx_indexfree(&o->coindex, &o->e->xm);
+	sx_indexfree(&o->coindex, &e->xm);
 	rc = si_close(&o->index, &o->r);
 	if (srunlikely(rc == -1))
 		rcret = -1;
 	so_dbctl_free(&o->ctl);
 	sd_cfree(&o->dc, &o->r);
 	so_statusfree(&o->status);
-	so_objindex_unregister(&o->e->db, &o->o);
-	sr_free(&o->e->a_db, o);
+	so_objindex_unregister(&e->db, &o->o);
+	sr_free(&e->a_db, o);
 	return rcret;
 }
 
@@ -161,7 +165,8 @@ static void*
 so_dbobj(soobj *obj, va_list args srunused)
 {
 	sodb *o = (sodb*)obj;
-	return so_vnew(o->e, obj);
+	so *e = so_of(&o->o);
+	return so_vnew(e, obj);
 }
 
 static void*
@@ -199,7 +204,6 @@ soobj *so_dbnew(so *e, char *name)
 	so_objindex_init(&o->cursor);
 	so_statusinit(&o->status);
 	so_statusset(&o->status, SO_OFFLINE);
-	o->e     = e;
 	o->r     = e->r;
 	o->r.cmp = &o->ctl.cmp;
 	int rc = so_dbctl_init(&o->ctl, name, o);
@@ -207,7 +211,7 @@ soobj *so_dbnew(so *e, char *name)
 		sr_free(&e->a_db, o);
 		return NULL;
 	}
-	si_init(&o->index, &o->e->quota);
+	si_init(&o->index, &e->quota);
 	o->ctl.id = sr_seq(&e->seq, SR_DSNNEXT);
 	sx_indexinit(&o->coindex, o);
 	sd_cinit(&o->dc, &o->r);

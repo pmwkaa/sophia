@@ -20,7 +20,7 @@ static int
 so_ctlcursor_destroy(soobj *o)
 {
 	soctlcursor *c = (soctlcursor*)o;
-	so *e = c->e;
+	so *e = so_of(o);
 	sr_buffree(&c->dump, &e->a);
 	if (c->v)
 		so_objdestroy(c->v);
@@ -44,7 +44,8 @@ so_ctlcursor_set(soctlcursor *c)
 		.function = NULL,
 		.next     = NULL
 	};
-	void *v = so_ctlreturn(&match, c->e);
+	so *e = so_of(&c->o);
+	void *v = so_ctlreturn(&match, e);
 	if (srunlikely(v == NULL))
 		return -1;
 	if (c->v)
@@ -126,7 +127,7 @@ static soobjif soctlcursorif =
 static inline int
 so_ctlcursor_open(soctlcursor *c)
 {
-	so *e = c->e;
+	so *e = so_of(&c->o);
 	int rc = so_ctlserialize(&e->ctl, &c->dump);
 	if (srunlikely(rc == -1))
 		return -1;
@@ -146,7 +147,6 @@ soobj *so_ctlcursor_new(void *o)
 		return NULL;
 	}
 	so_objinit(&c->o, SOCTLCURSOR, &soctlcursorif, &e->o);
-	c->e = o;
 	c->pos = NULL;
 	c->v = NULL;
 	c->ready = 0;

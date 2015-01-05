@@ -669,12 +669,10 @@ so_ctlrt(so *e, soctlrt *rt)
 static int
 so_ctlset(soobj *obj, va_list args)
 {
-	soctl *c = (soctl*)obj;
-	so *e = c->e;
+	so *e = so_of(obj);
 	soctlrt rt;
 	so_ctlrt(e, &rt);
 	src ctl[1024];
-
 	src *root;
 	root = so_ctlprepare(e, &rt, ctl, 0);
 	char *path = va_arg(args, char*);
@@ -692,12 +690,10 @@ so_ctlset(soobj *obj, va_list args)
 static void*
 so_ctlget(soobj *obj, va_list args)
 {
-	soctl *c = (soctl*)obj;
-	so *e = c->e;
+	so *e = so_of(obj);
 	soctlrt rt;
 	so_ctlrt(e, &rt);
 	src ctl[1024];
-
 	src *root;
 	root = so_ctlprepare(e, &rt, ctl, 0);
 	char *path   = va_arg(args, char*);
@@ -718,11 +714,10 @@ so_ctlget(soobj *obj, va_list args)
 
 int so_ctlserialize(soctl *c, srbuf *buf)
 {
-	so *e = c->e;
+	so *e = so_of(&c->o);
 	soctlrt rt;
 	so_ctlrt(e, &rt);
 	src ctl[1024];
-
 	src *root;
 	root = so_ctlprepare(e, &rt, ctl, 1);
 	srcstmt stmt = {
@@ -739,8 +734,8 @@ int so_ctlserialize(soctl *c, srbuf *buf)
 static void*
 so_ctlcursor(soobj *o, va_list args srunused)
 {
-	soctl *c = (soctl*)o;
-	return so_ctlcursor_new(c->e);
+	so *e = so_of(o);
+	return so_ctlcursor_new(e);
 }
 
 static void*
@@ -770,7 +765,6 @@ void so_ctlinit(soctl *c, void *e)
 {
 	so *o = e;
 	so_objinit(&c->o, SOCTL, &soctlif, e);
-
 	c->path              = NULL;
 	c->memory_limit      = 0;
 	c->node_size         = 64 * 1024 * 1024;
@@ -784,7 +778,6 @@ void so_ctlinit(soctl *c, void *e)
 	c->two_phase_recover = 0;
 	c->commit_lsn        = 0;
 	c->disable_snapshot  = 0;
-	c->e                 = e;
 	sizone def = {
 		.enable        = 1,
 		.mode          = 3, /* branch + compact */
@@ -819,7 +812,7 @@ void so_ctlinit(soctl *c, void *e)
 
 void so_ctlfree(soctl *c)
 {
-	so *e = c->e;
+	so *e = so_of(&c->o);
 	if (c->path) {
 		sr_free(&e->a, c->path);
 		c->path = NULL;
@@ -836,7 +829,7 @@ void so_ctlfree(soctl *c)
 
 int so_ctlvalidate(soctl *c)
 {
-	so *e = c->e;
+	so *e = so_of(&c->o);
 	if (c->path == NULL) {
 		sr_error(&e->error, "%s", "repository path is not set");
 		return -1;

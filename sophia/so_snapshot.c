@@ -19,12 +19,13 @@
 static int
 so_snapshotfree(sosnapshot *s)
 {
+	so *e = so_of(&s->o);
 	sx_end(&s->t);
 	if (srlikely(s->name)) {
-		sr_free(&s->e->a, s->name);
+		sr_free(&e->a, s->name);
 		s->name = NULL;
 	}
-	sr_free(&s->e->a_snapshot, s);
+	sr_free(&e->a_snapshot, s);
 	return 0;
 }
 
@@ -32,7 +33,7 @@ static int
 so_snapshotdestroy(soobj *o)
 {
 	sosnapshot *s = (sosnapshot*)o;
-	so *e = s->e;
+	so *e = so_of(o);
 	int status = so_status(&e->status);
 	if (status != SO_SHUTDOWN)
 		return 0;
@@ -44,7 +45,8 @@ static int
 so_snapshotdelete(soobj *o, va_list args srunused)
 {
 	sosnapshot *s = (sosnapshot*)o;
-	so_objindex_unregister(&s->e->snapshot, &s->o);
+	so *e = so_of(o);
+	so_objindex_unregister(&e->snapshot, &s->o);
 	so_snapshotfree(s);
 	return 0;
 }
@@ -53,12 +55,13 @@ static void*
 so_snapshotget(soobj *o, va_list args)
 {
 	sosnapshot *s = (sosnapshot*)o;
+	so *e = so_of(o);
 	va_list va;
 	va_copy(va, args);
 	sov *v = va_arg(va, sov*);
 	va_end(va);
 	if (srunlikely(v->o.id != SOV)) {
-		sr_error(&s->e->error, "%s", "bad arguments");
+		sr_error(&e->error, "%s", "bad arguments");
 		return NULL;
 	}
 	sodb *db = (sodb*)v->parent;
@@ -69,6 +72,7 @@ static void*
 so_snapshotcursor(soobj *o, va_list args)
 {
 	sosnapshot *s = (sosnapshot*)o;
+	so *e = so_of(o);
 	va_list va;
 	va_copy(va, args);
 	sov *v = va_arg(va, sov*);
@@ -80,7 +84,7 @@ so_snapshotcursor(soobj *o, va_list args)
 	sodb *db = (sodb*)v->parent;
 	return so_cursornew(db, s->vlsn, args);
 error:
-	sr_error(&s->e->error, "%s", "bad arguments");
+	sr_error(&e->error, "%s", "bad arguments");
 	return NULL;
 }
 
@@ -123,7 +127,6 @@ soobj *so_snapshotnew(so *e, uint64_t vlsn, char *name)
 		return NULL;
 	}
 	so_objinit(&s->o, SOSNAPSHOT, &sosnapshotif, &e->o);
-	s->e = e;
 	s->vlsn = vlsn;
 	s->name = sr_strdup(&e->a, name);
 	if (srunlikely(s->name == NULL)) {
@@ -137,7 +140,8 @@ soobj *so_snapshotnew(so *e, uint64_t vlsn, char *name)
 
 int so_snapshotupdate(sosnapshot *s)
 {
+	so *e = so_of(&s->o);
 	sx_end(&s->t);
-	sx_begin(&s->e->xm, &s->t, s->vlsn);
+	sx_begin(&e->xm, &s->t, s->vlsn);
 	return 0;
 }

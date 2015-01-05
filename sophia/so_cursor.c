@@ -53,6 +53,7 @@ static int
 so_cursordestroy(soobj *o)
 {
 	socursor *c = (socursor*)o;
+	so *e = so_of(o);
 	sx_end(&c->t);
 	si_cachefree(&c->cache, &c->db->r);
 	if (c->key) {
@@ -61,7 +62,7 @@ so_cursordestroy(soobj *o)
 	}
 	so_vrelease(&c->v);
 	so_objindex_unregister(&c->db->cursor, &c->o);
-	sr_free(&c->db->e->a_cursor, c);
+	sr_free(&e->a_cursor, c);
 	return 0;
 }
 
@@ -108,7 +109,7 @@ static soobjif socursorif =
 
 soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 {
-	so *e = db->e;
+	so *e = so_of(&db->o);
 	soobj *keyobj = va_arg(args, soobj*);
 
 	/* validate call */
@@ -137,7 +138,7 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 	uint32_t keysize = svkeysize(&o->v);
 	if (keysize == 0)
 		key = NULL;
-	sx_begin(&c->db->e->xm, &c->t, vlsn);
+	sx_begin(&e->xm, &c->t, vlsn);
 	int rc = so_cursorseek(c, key, keysize);
 	if (srunlikely(rc == -1)) {
 		sx_end(&c->t);

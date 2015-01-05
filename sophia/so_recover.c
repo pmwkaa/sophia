@@ -19,7 +19,7 @@
 int so_recoverbegin(sodb *db)
 {
 	so_statusset(&db->status, SO_RECOVER);
-	so *e = db->e;
+	so *e = so_of(&db->o);
 	/* open and recover repository */
 	siconf *c = &db->indexconf;
 	c->node_size      = e->ctl.node_size;

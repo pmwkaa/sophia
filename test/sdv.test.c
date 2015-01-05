@@ -72,6 +72,11 @@ sdv_test(stc *cx srunused)
 	t( v->i == &sd_vif );
 	
 	t( *(int*)svkey(v) == j );
+	t( svlsn(v) == 4 );
+	t( svflags(v) == SVSET );
+	svflagsadd(v, SVDUP);
+	t( svflags(v) == (SVSET|SVDUP) );
+
 	t( svvalueoffset(v) == sizeof(int) );
 
 	sd_buildfree(&b);

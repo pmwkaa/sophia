@@ -54,7 +54,6 @@ struct soctl {
 	uint32_t   commit_lsn;
 	/* debug */
 	uint32_t   disable_snapshot;
-	void *e;
 };
 
 void  so_ctlinit(soctl*, void*);

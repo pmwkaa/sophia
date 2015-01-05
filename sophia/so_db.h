@@ -33,7 +33,6 @@ struct sodb {
 	siconf indexconf;
 	si index;
 	sr r;
-	so *e;
 } srpacked;
 
 static inline int
