@@ -37,6 +37,7 @@
 #include <sr_quota.h>
 #include <sr_crc.h>
 #include <sr_rb.h>
+#include <sr_rq.h>
 #include <sr_path.h>
 #include <sr_iov.h>
 #include <sr_file.h>

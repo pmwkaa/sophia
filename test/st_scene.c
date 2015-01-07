@@ -175,7 +175,7 @@ st_scene_phase(stscene *g, stc *cx)
 void
 st_scene_test(stscene *g, stc *cx)
 {
-	printf(".TEST");
+	printf(".test");
 	fflush(NULL);
 	cx->test->function(cx);
 	cx->suite->stat_test++;

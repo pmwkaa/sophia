@@ -44,14 +44,14 @@ sr_cmppointer_of(char *name)
 	name += 8;
 	errno = 0;
 	char *end;
-	uintptr_t pointer = strtoull(name, &end, 16);
+	unsigned long long int pointer = strtoull(name, &end, 16);
 	if (pointer == 0 && end == name) {
 		return NULL;
 	} else
 	if (pointer == ULLONG_MAX && errno) {
 		return NULL;
 	}
-	return (void*)pointer;
+	return (void*)(uintptr_t)pointer;
 }
 
 int sr_cmpset(srcomparator *c, char *name)
