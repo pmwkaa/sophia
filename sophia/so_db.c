@@ -211,7 +211,12 @@ soobj *so_dbnew(so *e, char *name)
 		sr_free(&e->a_db, o);
 		return NULL;
 	}
-	si_init(&o->index, &e->quota);
+	rc = si_init(&o->index, &o->r, &e->quota);
+	if (srunlikely(rc == -1)) {
+		sr_free(&e->a_db, o);
+		so_dbctl_free(&o->ctl);
+		return NULL;
+	}
 	o->ctl.id = sr_seq(&e->seq, SR_DSNNEXT);
 	sx_indexinit(&o->coindex, o);
 	sd_cinit(&o->dc, &o->r);

@@ -34,7 +34,7 @@ struct srrq {
 };
 
 static inline void
-sr_rqnode_init(srrqnode *n) {
+sr_rqinitnode(srrqnode *n) {
 	sr_listinit(&n->link);
 	n->q = UINT32_MAX;
 	n->v = 0;
@@ -43,13 +43,13 @@ sr_rqnode_init(srrqnode *n) {
 static inline int
 sr_rqinit(srrq *q, sra *a, uint32_t range, uint32_t count)
 {
-	q->range_count = count;
+	q->range_count = count + 1 /* zero */;
 	q->range = range;
-	q->q = sr_malloc(a, sizeof(srrqq) * count);
+	q->q = sr_malloc(a, sizeof(srrqq) * q->range_count);
 	if (srunlikely(q->q == NULL))
 		return -1;
 	uint32_t i = 0;
-	while (i < count) {
+	while (i < q->range_count) {
 		srrqq *p = &q->q[i];
 		sr_listinit(&p->list);
 		p->count = 0;
@@ -68,9 +68,14 @@ sr_rqfree(srrq *q, sra *a) {
 static inline void
 sr_rqadd(srrq *q, srrqnode *n, uint32_t v)
 {
-	uint32_t pos = v / q->range;
-	if (srunlikely(pos >= q->range_count))
-		pos = q->range_count -1;
+	uint32_t pos;
+	if (srunlikely(v == 0)) {
+		pos = 0;
+	} else {
+		pos = (v / q->range) + 1;
+		if (srunlikely(pos >= q->range_count))
+			pos = q->range_count - 1;
+	}
 	srrqq *p = &q->q[pos];
 	sr_listinit(&n->link);
 	n->v = v;

@@ -32,8 +32,8 @@ sinode *si_nodenew(sr *r)
 	sv_indexinit(&n->i0);
 	sv_indexinit(&n->i1);
 	sr_rbinitnode(&n->node);
-	sr_rbinitnode(&n->nodecompact);
-	sr_rbinitnode(&n->nodebranch);
+	sr_rqinitnode(&n->nodecompact);
+	sr_rqinitnode(&n->nodebranch);
 	sr_listinit(&n->commit);
 	return n;
 }

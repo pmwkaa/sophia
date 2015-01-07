@@ -23,10 +23,23 @@ int si_planinit(siplan *p)
 	return 0;
 }
 
-int si_plannerinit(siplanner *p)
+int si_plannerinit(siplanner *p, sra *a)
 {
-	sr_rbinit(&p->branch);
-	sr_rbinit(&p->compact);
+	int rc = sr_rqinit(&p->compact, a, 1, 20);
+	if (srunlikely(rc == -1))
+		return -1;
+	rc = sr_rqinit(&p->branch, a, 512 * 1024, 100); /* ~ 50 Mb */
+	if (srunlikely(rc == -1)) {
+		sr_rqfree(&p->compact, a);
+		return -1;
+	}
+	return 0;
+}
+
+int si_plannerfree(siplanner *p, sra *a)
+{
+	sr_rqfree(&p->compact, a);
+	sr_rqfree(&p->branch, a);
 	return 0;
 }
 
@@ -71,88 +84,21 @@ int si_plannertrace(siplan *p, srtrace *t)
 	return 0;
 }
 
-srhot static inline int
-si_plannercompact_cmp(sinode *a, sinode *b)
-{
-	if (a->branch_count != b->branch_count)
-		return (a->branch_count > b->branch_count) ? 1 : -1;
-	if (a->self.id.id == b->self.id.id)
-		return 0;
-	return (a->self.id.id > b->self.id.id) ? 1 : -1;
-}
-
-sr_rbget(si_plannercompact_match,
-         si_plannercompact_cmp(srcast(n, sinode, nodecompact), (sinode*)key))
-
-static inline int
-si_plannercompact(siplanner *p, sinode *n)
-{
-	sr_rbremove(&p->compact, &n->nodecompact);
-	srrbnode *pn = NULL;
-	int rc = si_plannercompact_match(&p->compact, NULL, n, 0, &pn);
-	assert(! (rc == 0 && pn));
-	sr_rbset(&p->compact, pn, rc, &n->nodecompact);
-#if 0
-	pn = sr_rbmax(&p->compact);
-	if (pn == NULL)
-		return 0;
-	n = srcast(pn, sinode, nodecompact);
-	uint32_t lvlast = n->lv;
-	pn = sr_rbprev(&p->compact, pn);
-	while (pn) {
-		n = srcast(pn, sinode, nodecompact);
-		assert(n->lv <= lvlast);
-		lvlast = n->lv;
-		pn = sr_rbprev(&p->compact, pn);
-	}
-#endif
-	return 0;
-}
-
-srhot static inline int
-si_plannerbranch_cmp(sinode *a, sinode *b)
-{
-	if (a->used != b->used)
-		return (a->used > b->used) ? 1 : -1;
-	if (a->self.id.id == b->self.id.id)
-		return 0;
-	return (a->self.id.id > b->self.id.id) ? 1 : -1;
-}
-
-sr_rbget(si_plannerbranch_match,
-         si_plannerbranch_cmp(srcast(n, sinode, nodebranch), (sinode*)key))
-
-static inline int
-si_plannerbranch(siplanner *p, sinode *n)
-{
-	sr_rbremove(&p->branch, &n->nodebranch);
-	srrbnode *pn = NULL;
-	int rc = si_plannerbranch_match(&p->branch, NULL, n, 0, &pn);
-	assert(! (rc == 0 && pn));
-	sr_rbset(&p->branch, pn, rc, &n->nodebranch);
-#if 0
-	pn = sr_rbmax(&p->branch);
-	if (pn == NULL)
-		return 0;
-	n = srcast(pn, sinode, nodebranch);
-	uint32_t iusedlast = n->iused;
-	pn = sr_rbprev(&p->branch, pn);
-	while (pn) {
-		n = srcast(pn, sinode, nodebranch);
-		assert(n->iused <= iusedlast);
-		iusedlast = n->iused;
-		pn = sr_rbprev(&p->branch, pn);
-	}
-#endif
-	return 0;
-}
-
 int si_plannerupdate(siplanner *p, int mask, sinode *n)
 {
 	if (mask & SI_BRANCH)
-		si_plannerbranch(p, n);
+		sr_rqupdate(&p->branch, &n->nodebranch, n->used);
 	if (mask & SI_COMPACT)
-		si_plannercompact(p, n);
+		sr_rqupdate(&p->compact, &n->nodecompact, n->branch_count);
+	return 0;
+}
+
+int si_plannerremove(siplanner *p, int mask, sinode *n)
+{
+	if (mask & SI_BRANCH)
+		sr_rqdelete(&p->branch, &n->nodebranch);
+	if (mask & SI_COMPACT)
+		sr_rqdelete(&p->compact, &n->nodecompact);
 	return 0;
 }
 
@@ -164,9 +110,8 @@ si_plannerpeek_backup(siplanner *p, siplan *plan)
 	*/
 	int rc_inprogress = 0;
 	sinode *n;
-	srrbnode *pn;
-	pn = sr_rbmax(&p->branch);
-	for (; pn ; pn = sr_rbprev(&p->branch, pn)) {
+	srrqnode *pn = NULL;
+	while ((pn = sr_rqprev(&p->branch, pn))) {
 		n = srcast(pn, sinode, nodebranch);
 		if (n->backup < plan->a) {
 			if (n->flags & SI_LOCK) {
@@ -194,9 +139,8 @@ si_plannerpeek_checkpoint(siplanner *p, siplan *plan)
 	*/
 	int rc_inprogress = 0;
 	sinode *n;
-	srrbnode *pn;
-	pn = sr_rbmax(&p->branch);
-	for (; pn ; pn = sr_rbprev(&p->branch, pn)) {
+	srrqnode *pn = NULL;
+	while ((pn = sr_rqprev(&p->branch, pn))) {
 		n = srcast(pn, sinode, nodebranch);
 		if (n->i0.lsnmin <= plan->a) {
 			if (n->flags & SI_LOCK) {
@@ -221,9 +165,8 @@ si_plannerpeek_branch(siplanner *p, siplan *plan)
 {
 	/* try to peek a node with a biggest in-memory index */
 	sinode *n;
-	srrbnode *pn;
-	pn = sr_rbmax(&p->branch);
-	for (; pn ; pn = sr_rbprev(&p->branch, pn)) {
+	srrqnode *pn = NULL;
+	while ((pn = sr_rqprev(&p->branch, pn))) {
 		n = srcast(pn, sinode, nodebranch);
 		if (n->flags & SI_LOCK)
 			continue;
@@ -248,9 +191,8 @@ si_plannerpeek_age(siplanner *p, siplan *plan)
 	/* full scan */
 	uint64_t now = sr_utime();
 	sinode *n = NULL;
-	srrbnode *pn;
-	pn = sr_rbmax(&p->branch);
-	for (; pn ; pn = sr_rbprev(&p->branch, pn)) {
+	srrqnode *pn = NULL;
+	while ((pn = sr_rqprev(&p->branch, pn))) {
 		n = srcast(pn, sinode, nodebranch);
 		if (n->flags & SI_LOCK)
 			continue;
@@ -270,10 +212,9 @@ si_plannerpeek_compact(siplanner *p, siplan *plan)
 {
 	/* try to peek a node with a biggest number
 	 * of branches */
-	srrbnode *pn;
 	sinode *n;
-	pn = sr_rbmax(&p->compact);
-	for (; pn ; pn = sr_rbprev(&p->compact, pn)) {
+	srrqnode *pn = NULL;
+	while ((pn = sr_rqprev(&p->compact, pn))) {
 		n = srcast(pn, sinode, nodecompact);
 		if (n->flags & SI_LOCK)
 			continue;
@@ -295,10 +236,9 @@ si_plannerpeek_gc(siplanner *p, siplan *plan)
 	/* try to peek a node with a biggest number
 	 * of branches which is ready for gc */
 	int rc_inprogress = 0;
-	srrbnode *pn;
 	sinode *n;
-	pn = sr_rbmax(&p->compact);
-	for (; pn ; pn = sr_rbprev(&p->compact, pn)) {
+	srrqnode *pn = NULL;
+	while ((pn = sr_rqprev(&p->compact, pn))) {
 		n = srcast(pn, sinode, nodecompact);
 		sdindexheader *h = n->self.index.h;
 		if (srlikely(h->dupkeys == 0) || (h->dupmin >= plan->a))
@@ -339,13 +279,4 @@ int si_planner(siplanner *p, siplan *plan)
 		return si_plannerpeek_backup(p, plan);
 	}
 	return -1;
-}
-
-int si_plannerremove(siplanner *p, int mask, sinode *n)
-{
-	if (mask & SI_BRANCH)
-		sr_rbremove(&p->branch, &n->nodebranch);
-	if (mask & SI_COMPACT)
-		sr_rbremove(&p->compact, &n->nodecompact);
-	return 0;
 }

@@ -33,8 +33,8 @@ struct sinode {
 	svindex   i0, i1;
 	srfile    file;
 	srrbnode  node;
-	srrbnode  nodecompact;
-	srrbnode  nodebranch;
+	srrqnode  nodecompact;
+	srrqnode  nodebranch;
 	srlist    commit;
 } srpacked;
 

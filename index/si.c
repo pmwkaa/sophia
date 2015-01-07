@@ -12,9 +12,11 @@
 #include <libsd.h>
 #include <libsi.h>
 
-int si_init(si *i, srquota *q)
+int si_init(si *i, sr *r, srquota *q)
 {
-	si_plannerinit(&i->p);
+	int rc = si_plannerinit(&i->p, r->a);
+	if (srunlikely(rc == -1))
+		return -1;
 	sr_rbinit(&i->i);
 	sr_mutexinit(&i->lock);
 	sr_condinit(&i->cond);

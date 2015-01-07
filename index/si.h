@@ -34,7 +34,7 @@ si_unlock(si *i) {
 	sr_mutexunlock(&i->lock);
 }
 
-int si_init(si*, srquota*);
+int si_init(si*, sr*, srquota*);
 int si_open(si*, sr*, siconf*);
 int si_close(si*, sr*);
 int si_insert(si*, sr*, sinode*);
