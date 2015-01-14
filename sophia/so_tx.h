@@ -14,7 +14,6 @@ typedef struct sotx sotx;
 struct sotx {
 	soobj o;
 	sx t;
-	soobjindex logcursor;
 } srpacked;
 
 int    so_txdbset(sodb*, uint8_t, va_list);

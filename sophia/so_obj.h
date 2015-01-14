@@ -134,6 +134,16 @@ so_objbegin(soobj *o) {
 }
 
 static inline int
+so_objprepare(soobj *o, ...)
+{
+	va_list args;
+	va_start(args, o);
+	int rc = o->i->prepare(o, args);
+	va_end(args);
+	return rc;
+}
+
+static inline int
 so_objcommit(soobj *o, ...)
 {
 	va_list args;

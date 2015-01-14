@@ -84,7 +84,6 @@ so_recoverlog(so *e, sl *log)
 				goto rlb;
 			so_objset(o, "key", svkey(v), svkeysize(v));
 			so_objset(o, "value", svvalue(v), svvaluesize(v));
-			so_objset(o, "lsn", lsn);
 			so_objset(o, "log", log);
 			if (svflags(v) == SVSET)
 				rc = so_objset(tx, o);
@@ -98,10 +97,12 @@ so_recoverlog(so *e, sl *log)
 		}
 		if (srunlikely(sl_itererror(&i)))
 			goto rlb;
+		rc = so_objprepare(tx, lsn);
+		if (srunlikely(rc != 0))
+			goto error;
 		rc = so_objcommit(tx);
 		if (srunlikely(rc != 0))
 			goto error;
-
 		rc = sl_itercontinue(&i);
 		if (srunlikely(rc == -1))
 			goto error;

@@ -29,7 +29,6 @@ struct so {
 	sra a_cursor;
 	sra a_cursorcache;
 	sra a_ctlcursor;
-	sra a_logcursor;
 	sra a_snapshot;
 	sra a_tx;
 	sra a_sxv;

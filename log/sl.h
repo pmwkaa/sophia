@@ -50,8 +50,7 @@ int sl_poolfiles(slpool*);
 int sl_poolcopy(slpool*, char*, srbuf*);
 
 int sl_begin(slpool*, sltx*);
-int sl_prepare(slpool*, svlog*);
-int sl_follow(slpool*, svlog*);
+int sl_prepare(slpool*, svlog*, uint64_t);
 int sl_commit(sltx*);
 int sl_rollback(sltx*);
 int sl_write(sltx*, svlog*);

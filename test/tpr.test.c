@@ -120,8 +120,8 @@ tpr_test1(stc *cx srunused)
 	t( o != NULL );
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(o, "value", &value, sizeof(value)) == 0 );
-	t( sp_set(o, "lsn", 1ULL) == 0 );
 	t( sp_set(tx, o) == 0 );
+	t( sp_prepare(tx, 1ULL) == 0 );
 	t( sp_commit(tx) == 0 ); /* skip */
 
 	tx = sp_begin(env);
@@ -132,8 +132,8 @@ tpr_test1(stc *cx srunused)
 	t( o != NULL );
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(o, "value", &value, sizeof(value)) == 0 );
-	t( sp_set(o, "lsn", 2ULL) == 0 );
 	t( sp_set(tx, o) == 0 );
+	t( sp_prepare(tx, 2ULL) == 0 );
 	t( sp_commit(tx) == 0 ); /* commit */
 
 	t( sp_open(env) == 0 );

@@ -49,7 +49,6 @@ extern stgroup *deadlock_group(void);
 extern stgroup *branch_group(void);
 extern stgroup *compact_group(void);
 extern stgroup *checkpoint_group(void);
-extern stgroup *logcursor_group(void);
 extern stgroup *cursor_group(void);
 extern stgroup *recoverloop_group(void);
 extern stgroup *recovercrash_group(void);
@@ -118,7 +117,6 @@ main(int argc, char *argv[])
 	st_planadd(plan, branch_group());
 	st_planadd(plan, compact_group());
 	st_planadd(plan, checkpoint_group());
-	st_planadd(plan, logcursor_group());
 	st_planadd(plan, transaction_multidb_group());
 	st_planadd(plan, gc_group());
 	st_planadd(plan, snapshot_group());

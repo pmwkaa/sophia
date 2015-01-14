@@ -83,7 +83,7 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	svlogindex *logindex = (svlogindex*)log.index.s;
 	sltx tl;
 	sl_begin(&e->lp, &tl);
-	sl_prepare(&e->lp, &log);
+	sl_prepare(&e->lp, &log, 0);
 	rc = sl_write(&tl, &log);
 	if (srunlikely(rc == -1)) {
 		sl_rollback(&tl);
@@ -300,7 +300,6 @@ static inline void
 so_txend(sotx *t)
 {
 	so *e = so_of(&t->o);
-	so_objindex_destroy(&t->logcursor);
 	so_objindex_unregister(&e->tx, &t->o);
 	sr_free(&e->a_tx, t);
 }
@@ -361,10 +360,11 @@ so_txprepare(soobj *o, va_list args srunused)
 		return 1;
 	}
 	assert(s == SXPREPARE);
-	if (e->ctl.commit_lsn || status == SO_RECOVER)
-		return 0;
 	/* assign lsn */
-	sl_prepare(&e->lp, &t->t.log);
+	uint64_t lsn = 0;
+	if (status == SO_RECOVER || e->ctl.commit_lsn)
+		lsn = va_arg(args, uint64_t);
+	sl_prepare(&e->lp, &t->t.log, lsn);
 	return 0;
 }
 
@@ -394,9 +394,6 @@ so_txcommit(soobj *o, va_list args)
 		return 0;
 	}
 	sx_commit(&t->t);
-
-	/* synchronize lsn */
-	sl_follow(&e->lp, &t->t.log);
 
 	/* log commit */
 	if (status == SO_ONLINE) {
@@ -442,23 +439,13 @@ so_txcommit(soobj *o, va_list args)
 }
 
 static void*
-so_txctl(soobj *obj, va_list args)
-{
-	sotx *t = (sotx*)obj;
-	char *name = va_arg(args, char*);
-	if (strcmp(name, "log_cursor") == 0)
-		return so_logcursor_new(t);
-	return NULL;
-}
-
-static void*
 so_txtype(soobj *o srunused, va_list args srunused) {
 	return "transaction";
 }
 
 static soobjif sotxif =
 {
-	.ctl      = so_txctl,
+	.ctl      = NULL,
 	.open     = NULL,
 	.destroy  = so_txrollback,
 	.error    = NULL,
@@ -482,7 +469,6 @@ soobj *so_txnew(so *e)
 		return NULL;
 	}
 	so_objinit(&t->o, SOTX, &sotxif, &e->o);
-	so_objindex_init(&t->logcursor);
 	sx_begin(&e->xm, &t->t, 0);
 	so_objindex_register(&e->tx, &t->o);
 	return &t->o;

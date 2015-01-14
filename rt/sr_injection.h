@@ -20,13 +20,9 @@ typedef struct srinjection srinjection;
 #define SR_INJECTION_SI_COMPACTION_3 6
 #define SR_INJECTION_SI_COMPACTION_4 7
 #define SR_INJECTION_SI_RECOVER_0    8
-#define SR_INJECTION_SE_SNAPSHOT_0   9
-#define SR_INJECTION_SE_SNAPSHOT_1   10
-#define SR_INJECTION_SE_SNAPSHOT_2   11
-#define SR_INJECTION_SE_SNAPSHOT_3   12
 
 struct srinjection {
-	int e[13];
+	int e[9];
 };
 
 #ifdef SR_INJECTION_ENABLE

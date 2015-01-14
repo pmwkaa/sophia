@@ -397,36 +397,28 @@ int sl_rollback(sltx *t)
 	return rc;
 }
 
-int sl_prepare(slpool *p, svlog *vlog)
+static inline int
+sl_follow(slpool *p, uint64_t lsn)
 {
-	uint64_t lsn = sr_seq(p->r->seq, SR_LSNNEXT);
+	sr_seqlock(p->r->seq);
+	if (lsn > p->r->seq->lsn)
+		p->r->seq->lsn = lsn;
+	sr_sequnlock(p->r->seq);
+	return 0;
+}
+
+int sl_prepare(slpool *p, svlog *vlog, uint64_t lsn)
+{
+	if (srlikely(lsn == 0))
+		lsn = sr_seq(p->r->seq, SR_LSNNEXT);
+	else
+		sl_follow(p, lsn);
 	sriter i;
 	sr_iterinit(&i, &sr_bufiter, NULL);
 	sr_iteropen(&i, &vlog->buf, sizeof(svlogv));
 	for (; sr_iterhas(&i); sr_iternext(&i)) {
 		svlogv *v = sr_iterof(&i);
 		svlsnset(&v->v, lsn);
-	}
-	return 0;
-}
-
-int sl_follow(slpool *p, svlog *vlog)
-{
-	uint64_t lsn_max_orig = sr_seq(p->r->seq, SR_LSN);
-	uint64_t lsn_max = lsn_max_orig;
-	sriter i;
-	sr_iterinit(&i, &sr_bufiter, NULL);
-	sr_iteropen(&i, &vlog->buf, sizeof(svlogv));
-	for (; sr_iterhas(&i); sr_iternext(&i)) {
-		svlogv *v = sr_iterof(&i);
-		uint64_t lsn = svlsn(&v->v);
-		if (srunlikely(lsn > lsn_max))
-			lsn_max = lsn;
-	}
-	if (srunlikely(lsn_max != lsn_max_orig)) {
-		sr_seqlock(p->r->seq);
-		p->r->seq->lsn = lsn_max;
-		sr_sequnlock(p->r->seq);
 	}
 	return 0;
 }

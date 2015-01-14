@@ -180,7 +180,6 @@ soobj *so_new(void)
 	sr_allocopen(&e->a_cursor, &sr_aslab, &e->pager, sizeof(socursor));
 	sr_allocopen(&e->a_cursorcache, &sr_aslab, &e->pager, sizeof(sicachebranch));
 	sr_allocopen(&e->a_ctlcursor, &sr_aslab, &e->pager, sizeof(soctlcursor));
-	sr_allocopen(&e->a_logcursor, &sr_aslab, &e->pager, sizeof(sologcursor));
 	sr_allocopen(&e->a_snapshot, &sr_aslab, &e->pager, sizeof(sosnapshot));
 	sr_allocopen(&e->a_tx, &sr_aslab, &e->pager, sizeof(sotx));
 	sr_allocopen(&e->a_sxv, &sr_aslab, &e->pager, sizeof(sxv));

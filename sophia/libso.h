@@ -22,7 +22,6 @@
 #include <so_recover.h>
 #include <so_tx.h>
 #include <so_cursor.h>
-#include <so_logcursor.h>
 #include <so_snapshot.h>
 #include <sophia.h>
 
