@@ -28,6 +28,8 @@ struct soctlrt {
 	uint32_t  gc_active;
 	/* log */
 	uint32_t  log_files;
+	/* metric */
+	srseq     seq;
 };
 
 struct soctl {

@@ -326,6 +326,20 @@ so_ctllog(so *e, soctlrt *rt, src **pc)
 	return sr_c(pc, NULL, "log", SR_CC, log);
 }
 
+static inline src*
+so_ctlmetric(so *e srunused, soctlrt *rt, src **pc)
+{
+	src *metric = *pc;
+	src *p = NULL;
+	sr_clink(&p, sr_c(pc, so_ctlv, "seq_dsn",  SR_CU32|SR_CRO, &rt->seq.dsn));
+	sr_clink(&p, sr_c(pc, so_ctlv, "seq_nsn",  SR_CU32|SR_CRO, &rt->seq.nsn));
+	sr_clink(&p, sr_c(pc, so_ctlv, "seq_bsn",  SR_CU32|SR_CRO, &rt->seq.bsn));
+	sr_clink(&p, sr_c(pc, so_ctlv, "seq_lsn",  SR_CU64|SR_CRO, &rt->seq.lsn));
+	sr_clink(&p, sr_c(pc, so_ctlv, "seq_lfsn", SR_CU32|SR_CRO, &rt->seq.lfsn));
+	sr_clink(&p, sr_c(pc, so_ctlv, "seq_tsn",  SR_CU32|SR_CRO, &rt->seq.tsn));
+	return sr_c(pc, NULL, "metric", SR_CC, metric);
+}
+
 static inline int
 so_ctldb_set(src *c srunused, srcstmt *s, va_list args)
 {
@@ -455,29 +469,23 @@ so_ctldb(so *e, soctlrt *rt srunused, src **pc)
 	{
 		sodb *o = (sodb*)srcast(i, soobj, link);
 		si_profilerbegin(&o->ctl.rtp, &o->index);
-		si_profiler(&o->ctl.rtp, &o->r);
+		si_profiler(&o->ctl.rtp);
 		si_profilerend(&o->ctl.rtp);
 		src *index = *pc;
 		p = NULL;
 		sr_clink(&p, sr_c(pc, so_ctldb_cmp,    "cmp",              SR_CVOID,       o));
 		sr_clink(&p, sr_c(pc, so_ctldb_cmparg, "cmp_arg",          SR_CVOID,       o));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "memory_used",      SR_CU64|SR_CRO, &o->ctl.rtp.memory_used));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "node_count",       SR_CU32|SR_CRO, &o->ctl.rtp.total_node_count));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "node_size",        SR_CU64|SR_CRO, &o->ctl.rtp.total_node_size));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "count",            SR_CU64|SR_CRO, &o->ctl.rtp.count));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "count_dup",        SR_CU64|SR_CRO, &o->ctl.rtp.count_dup));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "read_disk",        SR_CU64|SR_CRO, &o->ctl.rtp.read_disk));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "read_cache",       SR_CU64|SR_CRO, &o->ctl.rtp.read_cache));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "branch_count",     SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_count));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "branch_avg",       SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_avg));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "branch_max",       SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_max));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "memory_used",      SR_CU64|SR_CRO, &o->ctl.rtp.memory_used));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "read_disk",        SR_CU64|SR_CRO, &o->ctl.rtp.read_disk));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "read_cache",       SR_CU64|SR_CRO, &o->ctl.rtp.read_cache));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "count",            SR_CU64|SR_CRO, &o->ctl.rtp.count));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "count_dup",        SR_CU64|SR_CRO, &o->ctl.rtp.count_dup));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "seq_dsn",          SR_CU32|SR_CRO, &o->ctl.rtp.seq.dsn));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "seq_nsn",          SR_CU32|SR_CRO, &o->ctl.rtp.seq.nsn));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "seq_bsn",          SR_CU32|SR_CRO, &o->ctl.rtp.seq.bsn));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "seq_lsn",          SR_CU64|SR_CRO, &o->ctl.rtp.seq.lsn));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "seq_lfsn",         SR_CU32|SR_CRO, &o->ctl.rtp.seq.lfsn));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "seq_tsn",          SR_CU32|SR_CRO, &o->ctl.rtp.seq.tsn));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "histogram_branch", SR_CSZ|SR_CRO,  o->ctl.rtp.histogram_branch_ptr));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "branch_histogram", SR_CSZ|SR_CRO,  o->ctl.rtp.histogram_branch_ptr));
 		src *database = *pc;
 		p = NULL;
 		sr_clink(&p,          sr_c(pc, so_ctlv,             "name",       SR_CSZ|SR_CRO,  o->ctl.name));
@@ -614,6 +622,7 @@ so_ctlprepare(so *e, soctlrt *rt, src *c, int serialize)
 	src *memory     = so_ctlmemory(e, rt, &pc);
 	src *compaction = so_ctlcompaction(e, rt, &pc);
 	src *scheduler  = so_ctlscheduler(e, rt, &pc);
+	src *metric     = so_ctlmetric(e, rt, &pc);
 	src *log        = so_ctllog(e, rt, &pc);
 	src *snapshot   = so_ctlsnapshot(e, rt, &pc);
 	src *backup     = so_ctlbackup(e, rt, &pc);
@@ -623,7 +632,8 @@ so_ctlprepare(so *e, soctlrt *rt, src *c, int serialize)
 	sophia->next     = memory;
 	memory->next     = compaction;
 	compaction->next = scheduler;
-	scheduler->next  = log;
+	scheduler->next  = metric;
+	metric->next     = log;
 	log->next        = snapshot;
 	snapshot->next   = backup;
 	backup->next     = db;
@@ -661,6 +671,11 @@ so_ctlrt(so *e, soctlrt *rt)
 
 	/* log */
 	rt->log_files = sl_poolfiles(&e->lp);
+
+	/* metric */
+	sr_seqlock(&e->seq);
+	rt->seq = e->seq;
+	sr_sequnlock(&e->seq);
 	return 0;
 }
 

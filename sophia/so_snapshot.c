@@ -34,18 +34,6 @@ so_snapshotdestroy(soobj *o)
 {
 	sosnapshot *s = (sosnapshot*)o;
 	so *e = so_of(o);
-	int status = so_status(&e->status);
-	if (status != SO_SHUTDOWN)
-		return 0;
-	so_snapshotfree(s);
-	return 0;
-}
-
-static int
-so_snapshotdelete(soobj *o, va_list args srunused)
-{
-	sosnapshot *s = (sosnapshot*)o;
-	so *e = so_of(o);
 	so_objindex_unregister(&e->snapshot, &s->o);
 	so_snapshotfree(s);
 	return 0;
@@ -101,7 +89,7 @@ static soobjif sosnapshotif =
 	.error    = NULL,
 	.set      = NULL,
 	.get      = so_snapshotget,
-	.del      = so_snapshotdelete,
+	.del      = NULL,
 	.begin    = NULL,
 	.prepare  = NULL,
 	.commit   = NULL,

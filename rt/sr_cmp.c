@@ -23,6 +23,19 @@ sr_cmpu32(char *a, size_t asz, char *b, size_t bsz,
 }
 
 srhot int
+sr_cmpu64(char *a, size_t asz, char *b, size_t bsz,
+          void *arg srunused)
+{
+	(void)asz;
+	(void)bsz;
+	register uint64_t av = *(uint64_t*)a;
+	register uint64_t bv = *(uint64_t*)b;
+	if (av == bv)
+		return 0;
+	return (av > bv) ? 1 : -1;
+}
+
+srhot int
 sr_cmpstring(char *a, size_t asz, char *b, size_t bsz,
              void *arg srunused)
 {
@@ -58,6 +71,10 @@ int sr_cmpset(srcomparator *c, char *name)
 {
 	if (strcmp(name, "u32") == 0) {
 		c->cmp = sr_cmpu32;
+		return 0;
+	}
+	if (strcmp(name, "u64") == 0) {
+		c->cmp = sr_cmpu64;
 		return 0;
 	}
 	if (strcmp(name, "string") == 0) {

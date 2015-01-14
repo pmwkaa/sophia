@@ -27,11 +27,10 @@ struct siprofiler {
 	int       histogram_branch_20plus;
 	char      histogram_branch_sz[512];
 	char     *histogram_branch_ptr;
-	srseq     seq;
 } srpacked;
 
 int si_profilerbegin(siprofiler*, si*);
 int si_profilerend(siprofiler*);
-int si_profiler(siprofiler*, sr*);
+int si_profiler(siprofiler*);
 
 #endif

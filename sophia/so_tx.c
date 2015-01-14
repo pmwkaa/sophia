@@ -59,7 +59,7 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	sxstate s = sx_setstmt(&e->xm, &db->coindex, &vp);
 	int rc = 1; /* rlb */
 	switch (s) {
-	case SXWAIT: rc = 2;
+	case SXLOCK: rc = 2;
 	case SXROLLBACK:
 		so_objdestroy(&o->o);
 		return rc;
@@ -96,8 +96,7 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	uint64_t vlsn = sx_vlsn(&e->xm);
 	uint64_t now = sr_utime();
 	sitx tx;
-	si_begin(&tx, &db->r, &db->index, vlsn, now,
-	         &log, logindex);
+	si_begin(&tx, &db->r, &db->index, vlsn, now, &log, logindex);
 	si_write(&tx, 0);
 	si_commit(&tx);
 
@@ -355,7 +354,7 @@ so_txprepare(soobj *o, va_list args srunused)
 	if (srunlikely(status == SO_RECOVER))
 		prepare_trigger = NULL;
 	sxstate s = sx_prepare(&t->t, prepare_trigger, t);
-	if (s == SXWAIT)
+	if (s == SXLOCK)
 		return 2;
 	if (s == SXROLLBACK) {
 		so_txrollback(&t->o);

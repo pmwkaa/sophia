@@ -140,7 +140,7 @@ sxstate sx_prepare(sx *t, sxpreparef prepare, void *arg)
 			return SXROLLBACK;
 		/* concurrent update in progress */
 		if (v->prev != NULL)
-			return SXWAIT;
+			return SXLOCK;
 		/* check that new key has not been committed by
 		 * a concurrent transaction */
 		if (prepare) {
@@ -299,7 +299,7 @@ sxstate sx_setstmt(sxmanager *m, sxindex *index, sv *v)
 	srrbnode *n = NULL;
 	int rc = sx_match(&index->i, index->cmp, svkey(v), svkeysize(v), &n);
 	if (rc == 0 && n)
-		return SXWAIT;
+		return SXLOCK;
 	return SXCOMMIT;
 }
 

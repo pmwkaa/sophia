@@ -56,12 +56,8 @@ si_profiler_histogram_branch(siprofiler *p)
 	}
 }
 
-int si_profiler(siprofiler *p, sr *r)
+int si_profiler(siprofiler *p)
 {
-	sr_seqlock(r->seq);
-	p->seq = *r->seq;
-	sr_sequnlock(r->seq);
-
 	uint64_t memory_used = 0;
 	srrbnode *pn;
 	sinode *n;

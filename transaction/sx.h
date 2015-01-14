@@ -19,7 +19,7 @@ typedef enum {
 	SXCOMMIT,
 	SXPREPARE,
 	SXROLLBACK,
-	SXWAIT
+	SXLOCK
 } sxstate;
 
 typedef sxstate (*sxpreparef)(sx*, sv*, void*, void*);
