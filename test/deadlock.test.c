@@ -26,7 +26,7 @@ deadlock_test0(stc *cx)
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -65,7 +65,7 @@ deadlock_test1(stc *cx)
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -116,7 +116,7 @@ deadlock_test2(stc *cx)
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -185,7 +185,7 @@ deadlock_test3(stc *cx)
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );

@@ -428,11 +428,13 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 	sizone *zone = so_zoneof(e);
 	assert(zone != NULL);
 
-	sr_mutexlock(&s->lock);
-
-	/* log gc and rotation */
+	task->checkpoint_complete = 0;
+	task->backup_complete = 0;
 	task->rotate = 0;
 	task->gc = 0;
+
+	sr_mutexlock(&s->lock);
+	/* log gc and rotation */
 	if (s->rotate == 0)
 	{
 		task->rotate = 1;
@@ -461,6 +463,7 @@ checkpoint:
 			s->checkpoint = 0;
 			s->checkpoint_lsn_last = s->checkpoint_lsn;
 			s->checkpoint_lsn = 0;
+			task->checkpoint_complete = 1;
 			break;
 		}
 	}
@@ -549,6 +552,7 @@ checkpoint:
 				goto backup_error;
 			}
 			task->gc = 1;
+			task->backup_complete = 1;
 			break;
 		}
 backup_error:;
@@ -721,6 +725,13 @@ int so_scheduler(soscheduler *s, soworker *w)
 		rc = so_rotate(s, w);
 		if (srunlikely(rc == -1))
 			goto error;
+	}
+	so *e = s->env;
+	if (task.checkpoint_complete) {
+		sr_triggerrun(&e->ctl.checkpoint_on_complete, &e->o);
+	}
+	if (task.backup_complete) {
+		sr_triggerrun(&e->ctl.backup_on_complete, &e->o);
 	}
 	if (job) {
 		rc = so_execute(&task, w);

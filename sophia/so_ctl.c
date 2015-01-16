@@ -246,6 +246,29 @@ so_ctlscheduler_checkpoint(src *c, srcstmt *s, va_list args)
 }
 
 static inline int
+so_ctlscheduler_checkpoint_on_complete(src *c, srcstmt *s, va_list args)
+{
+	so *e = s->ptr;
+	if (s->op != SR_CSET)
+		return so_ctlv(c, s, args);
+	if (srunlikely(so_statusactive(&e->status))) {
+		sr_error(s->r->e, "write to %s is offline-only", s->path);
+		return -1;
+	}
+	char *v   = va_arg(args, char*);
+	char *arg = va_arg(args, char*);
+	int rc = sr_triggerset(&e->ctl.checkpoint_on_complete, v);
+	if (srunlikely(rc == -1))
+		return -1;
+	if (arg) {
+		rc = sr_triggersetarg(&e->ctl.checkpoint_on_complete, arg);
+		if (srunlikely(rc == -1))
+			return -1;
+	}
+	return 0;
+}
+
+static inline int
 so_ctlscheduler_gc(src *c, srcstmt *s, va_list args)
 {
 	if (s->op != SR_CSET)
@@ -269,15 +292,16 @@ so_ctlscheduler(so *e, soctlrt *rt, src **pc)
 	src *scheduler = *pc;
 	src *prev;
 	src *p = NULL;
-	sr_clink(&p, sr_c(pc, so_ctlv_offline,            "threads",             SR_CU32,        &e->ctl.threads));
-	sr_clink(&p, sr_c(pc, so_ctlv,                    "zone",                SR_CSZ|SR_CRO,  rt->zone));
-	sr_clink(&p, sr_c(pc, so_ctlv,                    "checkpoint_active",   SR_CU32|SR_CRO, &rt->checkpoint_active));
-	sr_clink(&p, sr_c(pc, so_ctlv,                    "checkpoint_lsn",      SR_CU64|SR_CRO, &rt->checkpoint_lsn));
-	sr_clink(&p, sr_c(pc, so_ctlv,                    "checkpoint_lsn_last", SR_CU64|SR_CRO, &rt->checkpoint_lsn_last));
-	sr_clink(&p, sr_c(pc, so_ctlscheduler_checkpoint, "checkpoint",          SR_CVOID, NULL));
-	sr_clink(&p, sr_c(pc, so_ctlv,                    "gc_active",           SR_CU32|SR_CRO, &rt->gc_active));
-	sr_clink(&p, sr_c(pc, so_ctlscheduler_gc,         "gc",                  SR_CVOID, NULL));
-	sr_clink(&p, sr_c(pc, so_ctlscheduler_run,        "run",                 SR_CVOID, NULL));
+	sr_clink(&p, sr_c(pc, so_ctlv_offline,     "threads",                SR_CU32,        &e->ctl.threads));
+	sr_clink(&p, sr_c(pc, so_ctlv,             "zone",                   SR_CSZ|SR_CRO,  rt->zone));
+	sr_clink(&p, sr_c(pc, so_ctlv,             "checkpoint_active",      SR_CU32|SR_CRO, &rt->checkpoint_active));
+	sr_clink(&p, sr_c(pc, so_ctlv,             "checkpoint_lsn",         SR_CU64|SR_CRO, &rt->checkpoint_lsn));
+	sr_clink(&p, sr_c(pc, so_ctlv,             "checkpoint_lsn_last",    SR_CU64|SR_CRO, &rt->checkpoint_lsn_last));
+	sr_clink(&p, sr_c(pc, so_ctlscheduler_checkpoint_on_complete, "checkpoint_on_complete", SR_CVOID, NULL));
+	sr_clink(&p, sr_c(pc, so_ctlscheduler_checkpoint, "checkpoint",      SR_CVOID, NULL));
+	sr_clink(&p, sr_c(pc, so_ctlv,             "gc_active",              SR_CU32|SR_CRO, &rt->gc_active));
+	sr_clink(&p, sr_c(pc, so_ctlscheduler_gc,  "gc",                     SR_CVOID, NULL));
+	sr_clink(&p, sr_c(pc, so_ctlscheduler_run, "run",                    SR_CVOID, NULL));
 	prev = p;
 	srlist *i;
 	sr_listforeach(&e->sched.workers.list, i) {
@@ -386,22 +410,17 @@ so_ctldb_cmp(src *c, srcstmt *s, va_list args)
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
-	char *v = va_arg(args, char*);
-	return sr_cmpset(&db->ctl.cmp, v);
-}
-
-static inline int
-so_ctldb_cmparg(src *c, srcstmt *s, va_list args)
-{
-	if (s->op != SR_CSET)
-		return so_ctlv(c, s, args);
-	sodb *db = c->value;
-	if (srunlikely(so_statusactive(&db->status))) {
-		sr_error(s->r->e, "write to %s is offline-only", s->path);
+	char *v   = va_arg(args, char*);
+	char *arg = va_arg(args, char*);
+	int rc = sr_cmpset(&db->ctl.cmp, v);
+	if (srunlikely(rc == -1))
 		return -1;
+	if (arg) {
+		rc = sr_cmpsetarg(&db->ctl.cmp, arg);
+		if (srunlikely(rc == -1))
+			return -1;
 	}
-	char *v = va_arg(args, char*);
-	return sr_cmpsetarg(&db->ctl.cmp, v);
+	return 0;
 }
 
 static inline int
@@ -474,7 +493,6 @@ so_ctldb(so *e, soctlrt *rt srunused, src **pc)
 		src *index = *pc;
 		p = NULL;
 		sr_clink(&p, sr_c(pc, so_ctldb_cmp,    "cmp",              SR_CVOID,       o));
-		sr_clink(&p, sr_c(pc, so_ctldb_cmparg, "cmp_arg",          SR_CVOID,       o));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "memory_used",      SR_CU64|SR_CRO, &o->ctl.rtp.memory_used));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "node_count",       SR_CU32|SR_CRO, &o->ctl.rtp.total_node_count));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "node_size",        SR_CU64|SR_CRO, &o->ctl.rtp.total_node_size));
@@ -566,6 +584,29 @@ so_ctlsnapshot(so *e, soctlrt *rt srunused, src **pc)
 }
 
 static inline int
+so_ctlbackup_on_complete(src *c, srcstmt *s, va_list args)
+{
+	so *e = s->ptr;
+	if (s->op != SR_CSET)
+		return so_ctlv(c, s, args);
+	if (srunlikely(so_statusactive(&e->status))) {
+		sr_error(s->r->e, "write to %s is offline-only", s->path);
+		return -1;
+	}
+	char *v   = va_arg(args, char*);
+	char *arg = va_arg(args, char*);
+	int rc = sr_triggerset(&e->ctl.backup_on_complete, v);
+	if (srunlikely(rc == -1))
+		return -1;
+	if (arg) {
+		rc = sr_triggersetarg(&e->ctl.backup_on_complete, arg);
+		if (srunlikely(rc == -1))
+			return -1;
+	}
+	return 0;
+}
+
+static inline int
 so_ctlbackup_run(src *c, srcstmt *s, va_list args)
 {
 	if (s->op != SR_CSET)
@@ -582,6 +623,7 @@ so_ctlbackup(so *e, soctlrt *rt, src **pc)
 	src *p = NULL;
 	sr_clink(&p, sr_c(pc, so_ctlv_offline, "path", SR_CSZREF, &e->ctl.backup_path));
 	sr_clink(&p, sr_c(pc, so_ctlbackup_run, "run", SR_CVOID, NULL));
+	sr_clink(&p, sr_c(pc, so_ctlbackup_on_complete, "on_complete", SR_CVOID, NULL));
 	sr_clink(&p, sr_c(pc, so_ctlv, "active", SR_CU32|SR_CRO, &rt->backup_active));
 	sr_clink(&p, sr_c(pc, so_ctlv, "last", SR_CU32|SR_CRO, &rt->backup_last));
 	sr_clink(&p, sr_c(pc, so_ctlv, "last_complete", SR_CU32|SR_CRO, &rt->backup_last_complete));
@@ -816,6 +858,10 @@ void so_ctlinit(soctl *c, void *e)
 	};
 	si_zonemap_set(&o->ctl.zones,  0, &def);
 	si_zonemap_set(&o->ctl.zones, 80, &redzone);
+
+	c->backup_path = NULL;
+	sr_triggerinit(&c->backup_on_complete);
+	sr_triggerinit(&c->checkpoint_on_complete);
 }
 
 void so_ctlfree(soctl *c)

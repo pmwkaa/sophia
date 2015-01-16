@@ -16,6 +16,8 @@ struct sotask {
 	siplan plan;
 	int rotate;
 	int gc;
+	int checkpoint_complete;
+	int backup_complete;
 	void *db;
 };
 

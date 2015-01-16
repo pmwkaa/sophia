@@ -23,7 +23,7 @@ snapshot_create_delete(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 	t( sp_open(env) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
@@ -50,7 +50,7 @@ snapshot_cursor(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 	t( sp_open(env) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
@@ -119,7 +119,7 @@ snapshot_get(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 	t( sp_open(env) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
@@ -172,7 +172,7 @@ snapshot_recover_cursor(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 	t( sp_open(env) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
@@ -218,7 +218,7 @@ snapshot_recover_cursor(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 
 	/* recover snapshot */
 	t( sp_set(c, "snapshot", "test_snapshot") == 0 );
@@ -276,7 +276,7 @@ snapshot_recover_get(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 	t( sp_open(env) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
@@ -320,7 +320,7 @@ snapshot_recover_get(stc *cx srunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32") == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 
 	/* recover snapshot */
 	t( sp_set(c, "snapshot", "test_snapshot") == 0 );

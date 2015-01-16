@@ -38,12 +38,14 @@ struct soctl {
 	char      *path;
 	/* backup */
 	char      *backup_path;
+	srtrigger  backup_on_complete;
 	/* compaction */
 	uint32_t   node_size;
 	uint32_t   page_size;
 	sizonemap  zones;
 	/* scheduler */
 	uint32_t   threads;
+	srtrigger  checkpoint_on_complete;
 	/* memory */
 	uint64_t   memory_limit;
 	/* log */

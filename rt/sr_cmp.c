@@ -49,24 +49,6 @@ sr_cmpstring(char *a, size_t asz, char *b, size_t bsz,
 	return rc > 0 ? 1 : -1;
 }
 
-static inline void*
-sr_cmppointer_of(char *name)
-{
-	if (strncmp(name, "pointer:", 8) != 0)
-		return NULL;
-	name += 8;
-	errno = 0;
-	char *end;
-	unsigned long long int pointer = strtoull(name, &end, 16);
-	if (pointer == 0 && end == name) {
-		return NULL;
-	} else
-	if (pointer == ULLONG_MAX && errno) {
-		return NULL;
-	}
-	return (void*)(uintptr_t)pointer;
-}
-
 int sr_cmpset(srcomparator *c, char *name)
 {
 	if (strcmp(name, "u32") == 0) {
@@ -81,7 +63,7 @@ int sr_cmpset(srcomparator *c, char *name)
 		c->cmp = sr_cmpstring;
 		return 0;
 	}
-	void *ptr = sr_cmppointer_of(name);
+	void *ptr = sr_triggerpointer_of(name);
 	if (srunlikely(ptr == NULL))
 		return -1;
 	c->cmp = (srcmpf)(uintptr_t)ptr;
@@ -90,7 +72,7 @@ int sr_cmpset(srcomparator *c, char *name)
 
 int sr_cmpsetarg(srcomparator *c, char *name)
 {
-	void *ptr = sr_cmppointer_of(name);
+	void *ptr = sr_triggerpointer_of(name);
 	if (srunlikely(ptr == NULL))
 		return -1;
 	c->cmparg = ptr;

@@ -154,8 +154,7 @@ ctl_validation(stc *cx)
 	t( db != NULL );
 	t( sp_open(db) == 0 );
 	t( sp_set(c, "db.test.path", "path") == -1 );
-	t( sp_set(c, "db.test.index.cmp", NULL) == -1 );
-	t( sp_set(c, "db.test.index.cmp_arg", NULL) == -1 );
+	t( sp_set(c, "db.test.index.cmp", NULL, NULL) == -1 );
 
 	t( sp_destroy(env) == 0 );
 }
