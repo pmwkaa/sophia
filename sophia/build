@@ -22,6 +22,7 @@ process() {
 
 if [ $# -ne 2 ]; then
 	echo "sophia amalgamation build."
+	echo
 	echo "usage: $0 <sophia_root> <output>"
 	return 1
 fi

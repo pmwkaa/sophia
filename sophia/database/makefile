@@ -9,6 +9,6 @@ LIBSD_O = sd_v.o \
 LIBSD_OBJECTS = $(addprefix database/, $(LIBSD_O))
 OBJECTS = $(LIBSD_O)
 ifndef buildworld
-  include ../build/config
-  include ../build/lib
+  include ../mk/sophia
+  include ../mk/component
 endif

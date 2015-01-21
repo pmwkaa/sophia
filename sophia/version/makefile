@@ -8,6 +8,6 @@ LIBSV_O = sv_local.o \
 LIBSV_OBJECTS = $(addprefix version/, $(LIBSV_O))
 OBJECTS = $(LIBSV_O)
 ifndef buildworld
-  include ../build/config
-  include ../build/lib
+  include ../mk/sophia
+  include ../mk/component
 endif

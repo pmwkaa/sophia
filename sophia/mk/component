@@ -1,15 +1,13 @@
 
-# sophia lib makefile
+# sophia component makefile
 #
 
-all: clean banner $(OBJECTS)
+all: banner $(OBJECTS)
 banner:
 	$(E) "SOPHIA v$(SOPHIA_VMAJOR).$(SOPHIA_VMINOR)"
 	$(E) "cc: $(CC)"
 	$(E) "cflags: $(CFLAGS_DEBUG) $(CFLAGS_OPT) $(CFLAGS_STRICT)"
 	$(E)
-clean:
-	$(Q) $(RM) -f $(OBJECTS)
 .c.o:
 	$(E) "cc   $<"
 	$(Q) $(CC) $(CFLAGS_SOPHIA) -c $< -o $@

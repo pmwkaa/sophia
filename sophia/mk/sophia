@@ -6,20 +6,10 @@ SOPHIA_VMAJOR   = 1
 SOPHIA_VMINOR   = 2
 SOPHIA_BUILD   := $(shell git rev-parse --short HEAD)
 SOPHIA_DIRS     = rt version transaction log database index repository sophia
-SOPHIA_STATIC   = libsophia.a
-SOPHIA_DSOLIB   = libsophia.so.$(SOPHIA_VMAJOR).$(SOPHIA_VMINOR)
-SOPHIA_DSO      = libsophia.so
-SOPHIA_OUTPUT   = sophia
 
 CC             ?= gcc
-AR              = ar
-RM              = rm
-LN              = ln
-STRIP           = strip
 E               = @echo
-ifndef VERBOSE
 Q               = @
-endif
 
 ifndef buildworld
 INCLUDE_A       =
@@ -32,27 +22,16 @@ INCLUDE_B       =
 INCLUDE         = $(INCLUDE_A) $(INCLUDE_B)
 endif
 
-ifdef ENABLE_COVERAGE
-CFLAGS_COVERAGE = --coverage 
-else
-CFLAGS_COVERAGE =
-endif
-
 CFLAGS_INCLUDE  = -pthread $(INCLUDE)
-CFLAGS_DEBUG    = -g -DSR_INJECTION_ENABLE
-CFLAGS_OPT      = -O0
-CFLAGS_STRICT   = -std=c99 -pedantic -Wextra -Wall
-CFLAGS_MISC     = -fPIC -fno-stack-protector -fvisibility=hidden
+CFLAGS_DEBUG    = -DSR_INJECTION_ENABLE
+CFLAGS_OPT      = -O2
+CFLAGS_STRICT   = -std=c99 -pedantic -Wextra -Wall -fsyntax-only
 CFLAGS_BUILD    = -DSOPHIA_BUILD='"${SOPHIA_BUILD}"'
 CFLAGS_SOPHIA   = $(CFLAGS_INCLUDE) \
-                  $(CFLAGS_OPT) \
-                  $(CFLAGS_COVERAGE) \
                   $(CFLAGS_DEBUG) \
+                  $(CFLAGS_OPT) \
                   $(CFLAGS_STRICT) \
-                  $(CFLAGS_MISC) \
                   $(CFLAGS_BUILD) \
-                  $(CFLAGS) \
-
-LDFLAGS_SOPHIA ?= -shared -soname $(SOPHIA_DSO).$(SOPHIA_VMAJOR) $(LDFLAGS)
+                  $(CFLAGS)
 
 # vim: syntax=make

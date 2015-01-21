@@ -16,6 +16,6 @@ LIBSR_O = sr_crc.o \
 LIBSR_OBJECTS = $(addprefix rt/, $(LIBSR_O))
 OBJECTS = $(LIBSR_O)
 ifndef buildworld
-  include ../build/config
-  include ../build/lib
+  include ../mk/sophia
+  include ../mk/component
 endif

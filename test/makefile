@@ -1,4 +1,4 @@
-LIBST_O = st.o \
+OBJECTS = st.o \
           st_scene.o \
           run.o \
           srctl.test.o \
@@ -43,7 +43,6 @@ LIBST_O = st.o \
           recover_loop.test.o \
           mt.test.o \
           mt_backend.test.o
-LIBST_OBJECTS = $(addprefix test/, $(LIBST_O))
-OBJECTS = $(LIBST_O)
-include ../build/config
-include ../build/test
+
+include build
+# vim: syntax=make

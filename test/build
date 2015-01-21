@@ -1,0 +1,47 @@
+
+# sophia test-suite builder
+#
+
+SOPHIA_DIRS    = rt version transaction log database index repository sophia
+CC            ?= cc
+ifdef ENABLE_COVERAGE
+TEST_COVERAGE  = --coverage
+else
+TEST_COVERAGE  =
+endif
+TEST_DEBUG     = -g -O0 -Wall
+TEST_INCLUDE   = -pthread $(addprefix -I../sophia/, $(SOPHIA_DIRS))
+TEST_CFLAGS    = -std=c99 $(TEST_INCLUDE) $(TEST_DEBUG) -I. -I../sophia -pthread
+TEST_LDFLAGS   = $(LDFLAGS) $(TEST_DEBUG) ../sophia.o -pthread -lm $(TEST_COVERAGE)
+TEST_SOPHIADIR = sophia
+TEST_BACKUPDIR = backup
+TEST_LOGDIR    = logdir
+TEST_DIR       = dir
+TEST_BINARY    = run
+
+all: banner validate $(OBJECTS)
+	@echo "ld   $(TEST_BINARY)"
+	@$(CC) $(OBJECTS) $(TEST_LDFLAGS) -o $(TEST_BINARY)
+banner:
+	@echo SOPHIA v1.2 test-suite.
+	@echo
+validate:
+	@if [ ! -f ../sophia.o ]; then \
+		echo "please build sophia first."; \
+		echo ""; \
+		exit 1; \
+	fi
+.c.o:
+	@echo "cc   $<"
+	@$(CC) $(TEST_CFLAGS) -c $< -o $@
+cleanup: clean
+	@rm -fr $(TEST_SOPHIADIR) $(TEST_BACKUPDIR) $(TEST_DIR) $(TEST_LOGDIR)
+clean:
+	@rm -f $(TEST_BINARY)
+	@rm -f $(OBJECTS)
+test:
+	@gdb -q -return-child-result -batch -ex "run" -ex "bt" ./$(TEST_BINARY)
+
+.PHONY: test
+
+# vim: syntax=make

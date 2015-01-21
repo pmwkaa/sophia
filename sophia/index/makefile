@@ -12,6 +12,6 @@ LIBSI_O = si_node.o \
 LIBSI_OBJECTS = $(addprefix index/, $(LIBSI_O))
 OBJECTS = $(LIBSI_O)
 ifndef buildworld
-  include ../build/config
-  include ../build/lib
+  include ../mk/sophia
+  include ../mk/component
 endif
