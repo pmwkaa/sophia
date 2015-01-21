@@ -24,29 +24,29 @@ SOPHIA_CFLAGS  = $(CFLAGS_INCLUDE) \
                  $(CFLAGS)
 SOPHIA_LDFLAGS = $(LDFLAGS_ALL) $(LDFLAGS)
 
-all: banner clean amalgamation compile static dynamic
+all: static dynamic
 banner:
 	@echo SOPHIA v1.2
 	@echo "cc: $(CC)"
 	@echo "cflags: $(CFLAGS_DEBUG) $(CFLAGS_COVERAGE)$(CFLAGS_OPT) $(CFLAGS_STRICT)"
 	@echo
-amalgamation:
+sophia.o: banner clean
 	@echo build
 	@sh sophia/build sophia sophia.c
-compile:
 	@echo cc sophia.c
 	@$(CC) $(SOPHIA_CFLAGS) -c sophia.c -o sophia.o
-static:
+	cp sophia/sophia/sophia.h .
+static: sophia.o
 	@echo "ar libsophia.a"
 	@ar crs libsophia.a sophia.o
-dynamic:
+dynamic: sophia.o
 	@echo "ld libsophia.so"
 	@ld sophia.o $(SOPHIA_LDFLAGS) -o libsophia.so.1.2
 	@ln -sf libsophia.so.1.2 libsophia.so.1
 	@ln -sf libsophia.so.1.2 libsophia.so
 	@strip --strip-unneeded libsophia.so.1.2
 clean:
-	@rm -f sophia.c sophia.o
+	@rm -f sophia.c sophia.h sophia.o
 	@rm -f libsophia.a
 	@rm -f libsophia.so
 	@rm -f libsophia.so.1

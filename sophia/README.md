@@ -6,6 +6,6 @@
 	<a href="http://sphia.org">sophia</a> - is a modern embeddable key-value database
 	designed for a high load.
 	<br>
-	(v1.2 engine implementation)<br>
+	(engine implementation)<br>
 </p>
 <br>
