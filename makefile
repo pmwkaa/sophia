@@ -35,7 +35,7 @@ sophia.o: banner clean
 	@sh sophia/build sophia sophia.c
 	@echo cc sophia.c
 	@$(CC) $(SOPHIA_CFLAGS) -c sophia.c -o sophia.o
-	cp sophia/sophia/sophia.h .
+	@cp sophia/sophia/sophia.h .
 static: sophia.o
 	@echo "ar libsophia.a"
 	@ar crs libsophia.a sophia.o
