@@ -109,10 +109,12 @@ repository_test4(stc *cx srunused)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", "sophia") == 0 );
 	t( sp_set(c, "sophia.path_create", "0") == 0 );
+	t( sp_set(c, "log.enable", "0") == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_open(env) == -1 );
+	t( sp_open(env) == 0 );
 	t( sp_destroy(env) == 0 );
+
+	t( exists("sophia", "") == 0 );
 
 	mkdir("sophia", 0755);
 	env = sp_env();
@@ -124,7 +126,6 @@ repository_test4(stc *cx srunused)
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_open(env) == 0 );
-	t( exists("sophia", "log") == 1 );
 	t( exists("sophia", "test") == 1 );
 	t( sp_destroy(env) == 0 );
 }
