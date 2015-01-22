@@ -160,8 +160,10 @@ error:
 
 int so_recover_repository(so *e)
 {
-	e->seconf.path        = e->ctl.path;
-	e->seconf.path_backup = e->ctl.backup_path;
-	e->seconf.sync = 0;
+	seconf *ec = &e->seconf;
+	ec->path        = e->ctl.path;
+	ec->path_create = e->ctl.path_create;
+	ec->path_backup = e->ctl.backup_path;
+	ec->sync = 0;
 	return se_open(&e->se, &e->r, &e->seconf);
 }

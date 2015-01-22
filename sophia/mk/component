@@ -6,7 +6,7 @@ all: banner $(OBJECTS)
 banner:
 	$(E) "SOPHIA v$(SOPHIA_VMAJOR).$(SOPHIA_VMINOR)"
 	$(E) "cc: $(CC)"
-	$(E) "cflags: $(CFLAGS_DEBUG) $(CFLAGS_OPT) $(CFLAGS_STRICT)"
+	$(E) "cflags: $(CFLAGS_OPT) $(CFLAGS_STRICT)"
 	$(E)
 .c.o:
 	$(E) "cc   $<"

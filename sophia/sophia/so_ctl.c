@@ -141,6 +141,7 @@ so_ctlsophia(so *e, soctlrt *rt, src **pc)
 	sr_clink(&p, sr_c(pc, so_ctlv,            "build",       SR_CSZ|SR_CRO, SR_VERSION_COMMIT));
 	sr_clink(&p, sr_c(pc, so_ctlsophia_error, "error",       SR_CSZ|SR_CRO, NULL));
 	sr_clink(&p, sr_c(pc, so_ctlv_offline,    "path",        SR_CSZREF,     &e->ctl.path));
+	sr_clink(&p, sr_c(pc, so_ctlv_offline,    "path_create", SR_CU32,       &e->ctl.path_create));
 	return sr_c(pc, NULL, "sophia", SR_CC, sophia);
 }
 
@@ -817,6 +818,7 @@ void so_ctlinit(soctl *c, void *e)
 	so *o = e;
 	so_objinit(&c->o, SOCTL, &soctlif, e);
 	c->path              = NULL;
+	c->path_create       = 1;
 	c->memory_limit      = 0;
 	c->node_size         = 64 * 1024 * 1024;
 	c->page_size         = 64 * 1024;

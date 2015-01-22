@@ -13,8 +13,9 @@ typedef struct seconf seconf;
 
 struct seconf {
 	char *path;
+	int   path_create;
 	char *path_backup;
-	int sync;
+	int   sync;
 };
 
 #endif

@@ -16,7 +16,7 @@ process() {
 	files=`ls $root/$dir/*.c`
 	for file in $files; do
 		echo "#line 1 \"$file\"" >> $output
-		cat "$file" | grep -v "include" >> $output
+		cat $file | sed -e "s/#include.*//" >> $output
 	done
 }
 

@@ -36,6 +36,7 @@ struct soctl {
 	soobj o;
 	/* sophia */
 	char      *path;
+	uint32_t   path_create;
 	/* backup */
 	char      *backup_path;
 	srtrigger  backup_on_complete;

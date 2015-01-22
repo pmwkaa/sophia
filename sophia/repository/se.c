@@ -119,8 +119,14 @@ int se_open(se *e, sr *r, seconf *conf)
 	if (srunlikely(rc == -1))
 		return -1;
 	int exists = sr_fileexists(conf->path);
-	if (exists == 0)
+	if (exists == 0) {
+		if (srunlikely(! conf->path_create)) {
+			sr_error(r->e, "directory '%s' does not exist",
+			         conf->path);
+			return -1;
+		}
 		return se_deploy(e, r);
+	}
 	return se_recover(e, r);
 }
 
