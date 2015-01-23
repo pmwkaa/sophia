@@ -111,7 +111,7 @@ repository_test4(stc *cx srunused)
 	t( sp_set(c, "sophia.path_create", "0") == 0 );
 	t( sp_set(c, "log.enable", "0") == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_open(env) == 0 );
+	t( sp_open(env) == -1 );
 	t( sp_destroy(env) == 0 );
 
 	t( exists("sophia", "") == 0 );
