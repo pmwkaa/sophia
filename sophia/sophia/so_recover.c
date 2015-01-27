@@ -47,14 +47,13 @@ int so_recoverend(sodb *db)
 static inline int
 so_recoverlog(so *e, sl *log)
 {
+	soobj *transaction = NULL;
 	sodb *db = NULL;
-	void *tx = NULL;
 	sriter i;
 	sr_iterinit(&i, &sl_iter, &e->r);
 	int rc = sr_iteropen(&i, &log->file, 1);
 	if (srunlikely(rc == -1))
 		return -1;
-
 	for (;;)
 	{
 		sv *v = sr_iterof(&i);
@@ -63,8 +62,8 @@ so_recoverlog(so *e, sl *log)
 
 		/* reply transaction */
 		uint64_t lsn = svlsn(v);
-		tx = so_objbegin(&e->o);
-		if (srunlikely(tx == NULL))
+		transaction = so_objbegin(&e->o);
+		if (srunlikely(transaction == NULL))
 			goto error;
 
 		while (sr_iterhas(&i)) {
@@ -86,10 +85,10 @@ so_recoverlog(so *e, sl *log)
 			so_objset(o, "value", svvalue(v), svvaluesize(v));
 			so_objset(o, "log", log);
 			if (svflags(v) == SVSET)
-				rc = so_objset(tx, o);
+				rc = so_objset(transaction, o);
 			else
 			if (svflags(v) == SVDELETE)
-				rc = so_objdelete(tx, o);
+				rc = so_objdelete(transaction, o);
 			if (srunlikely(rc == -1))
 				goto rlb;
 			sr_gcmark(&log->gc, 1);
@@ -97,10 +96,11 @@ so_recoverlog(so *e, sl *log)
 		}
 		if (srunlikely(sl_itererror(&i)))
 			goto rlb;
-		rc = so_objprepare(tx, lsn);
+
+		rc = so_objprepare(transaction, lsn);
 		if (srunlikely(rc != 0))
 			goto error;
-		rc = so_objcommit(tx);
+		rc = so_objcommit(transaction);
 		if (srunlikely(rc != 0))
 			goto error;
 		rc = sl_itercontinue(&i);
@@ -112,7 +112,7 @@ so_recoverlog(so *e, sl *log)
 	sr_iterclose(&i);
 	return 0;
 rlb:
-	so_objrollback(tx);
+	so_objdestroy(transaction);
 error:
 	sr_iterclose(&i);
 	return -1;

@@ -149,7 +149,6 @@ static soobjif sovif =
 	.begin    = NULL,
 	.prepare  = NULL,
 	.commit   = NULL,
-	.rollback = NULL,
 	.cursor   = NULL,
 	.object   = NULL,
 	.type     = so_vtype

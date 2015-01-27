@@ -32,7 +32,7 @@ tpc_prepare_rollback_empty(stc *cx)
 	t( tx != NULL );
 	rc = sp_prepare(tx);
 	t( rc == 0 );
-	rc = sp_rollback(tx);
+	rc = sp_destroy(tx);
 	t( rc == 0 );
 	st_transaction(cx);
 }
@@ -47,7 +47,7 @@ tpc_prepare_prepare_empty(stc *cx)
 	t( rc == 0 );
 	rc = sp_prepare(tx);
 	t( rc == 0 );
-	rc = sp_rollback(tx);
+	rc = sp_destroy(tx);
 	t( rc == 0 );
 	st_transaction(cx);
 }
@@ -99,7 +99,7 @@ tpc_prepare_rollback(stc *cx)
 	sp_destroy(o);
 	rc = sp_prepare(tx);
 	t( rc == 0 );
-	rc = sp_rollback(tx);
+	rc = sp_destroy(tx);
 	t( rc == 0 );
 	st_transaction(cx);
 }
@@ -127,7 +127,7 @@ tpc_prepare_prepare(stc *cx)
 	t( rc == 0 );
 	rc = sp_prepare(tx);
 	t( rc == 0 );
-	rc = sp_rollback(tx);
+	rc = sp_destroy(tx);
 	t( rc == 0 );
 	st_transaction(cx);
 }

@@ -156,7 +156,6 @@ static soobjif soif =
 	.begin    = so_begin,
 	.prepare  = NULL,
 	.commit   = NULL,
-	.rollback = NULL,
 	.cursor   = NULL,
 	.object   = NULL,
 	.type     = so_type

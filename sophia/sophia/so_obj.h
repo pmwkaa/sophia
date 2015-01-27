@@ -42,7 +42,6 @@ struct soobjif {
 	void *(*begin)(soobj*, va_list);
 	int   (*prepare)(soobj*, va_list);
 	int   (*commit)(soobj*, va_list);
-	int   (*rollback)(soobj*, va_list);
 	void *(*cursor)(soobj*, va_list);
 	void *(*object)(soobj*, va_list);
 	void *(*type)(soobj*, va_list);
@@ -158,15 +157,6 @@ so_objcommit(soobj *o, ...)
 	va_list args;
 	va_start(args, o);
 	int rc = o->i->commit(o, args);
-	va_end(args);
-	return rc;
-}
-
-static inline int
-so_objrollback(soobj *o, ...) {
-	va_list args;
-	va_start(args, o);
-	int rc = o->i->rollback(o, args);
 	va_end(args);
 	return rc;
 }

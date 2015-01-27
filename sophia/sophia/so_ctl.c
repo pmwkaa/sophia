@@ -808,7 +808,6 @@ static soobjif soctlif =
 	.begin    = NULL,
 	.prepare  = NULL,
 	.commit   = NULL,
-	.rollback = NULL,
 	.cursor   = so_ctlcursor,
 	.object   = NULL,
 	.type     = so_ctltype

@@ -356,7 +356,7 @@ so_txprepare(soobj *o, va_list args srunused)
 	if (s == SXLOCK)
 		return 2;
 	if (s == SXROLLBACK) {
-		so_objrollback(&t->o);
+		so_objdestroy(&t->o);
 		return 1;
 	}
 	assert(s == SXPREPARE);
@@ -402,7 +402,7 @@ so_txcommit(soobj *o, va_list args)
 		rc = sl_write(&tl, &t->t.log);
 		if (srunlikely(rc == -1)) {
 			sl_rollback(&tl);
-			so_objrollback(&t->o);
+			so_objdestroy(&t->o);
 			return -1;
 		}
 		sl_commit(&tl);
@@ -451,12 +451,11 @@ static soobjif sotxif =
 	.error    = NULL,
 	.set      = so_txset,
 	.del      = so_txdelete,
-	.drop     = NULL,
+	.drop     = so_txrollback,
 	.get      = so_txget,
 	.begin    = NULL,
 	.prepare  = so_txprepare,
 	.commit   = so_txcommit,
-	.rollback = so_txrollback,
 	.cursor   = NULL,
 	.object   = NULL,
 	.type     = so_txtype

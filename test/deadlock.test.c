@@ -162,7 +162,7 @@ deadlock_test2(stc *cx)
 	t( sp_set(c, "db.test.lockdetect", t0) == 1 );
 	t( sp_set(c, "db.test.lockdetect", t1) == 1 );
 
-	t( sp_rollback(t0) == 0 ) ;
+	t( sp_destroy(t0) == 0 ) ;
 	t( sp_set(c, "db.test.lockdetect", t1) == 0 );
 	rc = sp_commit(t1);
 	t( rc == 0 );
@@ -231,7 +231,7 @@ deadlock_test3(stc *cx)
 	t( sp_set(c, "db.test.lockdetect", t0) == 1 );
 	t( sp_set(c, "db.test.lockdetect", t1) == 1 );
 
-	t( sp_rollback(t1) == 0 ) ;
+	t( sp_destroy(t1) == 0 ) ;
 	t( sp_set(c, "db.test.lockdetect", t0) == 0 );
 	rc = sp_commit(t0);
 	t( rc == 0 );

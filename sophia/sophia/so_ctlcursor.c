@@ -119,7 +119,6 @@ static soobjif soctlcursorif =
 	.begin    = NULL,
 	.prepare  = NULL,
 	.commit   = NULL,
-	.rollback = NULL,
 	.cursor   = NULL,
 	.object   = so_ctlcursor_obj,
 	.type     = so_ctlcursor_type

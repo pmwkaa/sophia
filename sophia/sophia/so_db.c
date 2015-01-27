@@ -187,7 +187,6 @@ static soobjif sodbif =
 	.begin    = NULL,
 	.prepare  = NULL,
 	.commit   = NULL,
-	.rollback = NULL,
 	.cursor   = so_dbcursor,
 	.object   = so_dbobj,
 	.type     = so_dbtype

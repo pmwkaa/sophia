@@ -101,11 +101,6 @@ static inline void *multi_stmt_thread(void *arg)
 		}
 		rc = sp_commit(tx);
 		assert(rc == 0);
-		/*
-		assert(rc != -1);
-		if (rc == 2)
-			sp_rollback(tx);
-			*/
 		i++;
 	}
 	return NULL;
@@ -174,7 +169,7 @@ static inline void *multi_stmt_conflict_thread(void *arg)
 		rc = sp_commit(tx);
 		assert(rc != -1);
 		if (rc == 2)
-			sp_rollback(tx);
+			sp_destroy(tx);
 		i++;
 	}
 	return NULL;

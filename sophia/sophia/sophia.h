@@ -35,7 +35,6 @@ SP_API int   sp_drop(void*, ...);
 SP_API void *sp_begin(void*, ...);
 SP_API int   sp_prepare(void*, ...);
 SP_API int   sp_commit(void*, ...);
-SP_API int   sp_rollback(void*, ...);
 SP_API void *sp_cursor(void*, ...);
 SP_API void *sp_type(void*, ...);
 

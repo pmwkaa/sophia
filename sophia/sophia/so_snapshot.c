@@ -94,7 +94,6 @@ static soobjif sosnapshotif =
 	.begin    = NULL,
 	.prepare  = NULL,
 	.commit   = NULL,
-	.rollback = NULL,
 	.cursor   = so_snapshotcursor,
 	.object   = NULL,
 	.type     = so_snapshottype

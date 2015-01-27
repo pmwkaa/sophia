@@ -102,7 +102,6 @@ static soobjif socursorif =
 	.begin    = NULL,
 	.prepare  = NULL,
 	.commit   = NULL,
-	.rollback = NULL,
 	.cursor   = NULL,
 	.object   = so_cursorobj,
 	.type     = so_cursortype

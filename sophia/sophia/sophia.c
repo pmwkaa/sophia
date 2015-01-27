@@ -250,24 +250,6 @@ sp_commit(void *o, ...)
 	return rc;
 }
 
-SP_API int
-sp_rollback(void *o, ...)
-{
-	soobj *obj = o;
-	if (srunlikely(obj->i->rollback == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
-		return -1;
-	}
-	va_list args;
-	va_start(args, o);
-	soobj *env = obj->env;
-	so_apilock(env);
-	int rc = obj->i->rollback(o, args);
-	so_apiunlock(env);
-	va_end(args);
-	return rc;
-}
-
 SP_API void*
 sp_cursor(void *o, ...)
 {

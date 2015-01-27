@@ -18,7 +18,7 @@ transaction_rollback(stc *cx)
 	void *tx = sp_begin(cx->env);
 	t( tx != NULL );
 	st_transaction(cx);
-	rc = sp_rollback(tx);
+	rc = sp_destroy(tx);
 	t( rc == 0 );
 	st_transaction(cx);
 }
@@ -99,7 +99,7 @@ transaction_set_commit_get0(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "value", NULL) == key );
 	sp_destroy(o);
-	rc = sp_rollback(tx);
+	rc = sp_destroy(tx);
 	t( rc == 0 );
 	st_transaction(cx);
 }
@@ -134,7 +134,7 @@ transaction_set_commit_get1(stc *cx)
 		sp_destroy(o);
 		key++;
 	}
-	rc = sp_rollback(tx);
+	rc = sp_destroy(tx);
 	t( rc == 0 );
 	st_transaction(cx);
 }
@@ -152,7 +152,7 @@ transaction_set_rollback(stc *cx)
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
-	rc = sp_rollback(tx);
+	rc = sp_destroy(tx);
 	t( rc == 0 );
 	st_transaction(cx);
 }
@@ -170,7 +170,7 @@ transaction_set_rollback_get0(stc *cx)
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
-	rc = sp_rollback(tx);
+	rc = sp_destroy(tx);
 	t( rc == 0 );
 	st_transaction(cx);
 	tx = sp_begin(cx->env);
@@ -178,7 +178,7 @@ transaction_set_rollback_get0(stc *cx)
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(tx, o);
 	t( o == NULL );
-	rc = sp_rollback(tx);
+	rc = sp_destroy(tx);
 	t( rc == 0 );
 	st_transaction(cx);
 }
@@ -199,7 +199,7 @@ transaction_set_rollback_get1(stc *cx)
 		t( sp_set(tx, o) == 0 );
 		key++;
 	}
-	rc = sp_rollback(tx);
+	rc = sp_destroy(tx);
 	t( rc == 0 );
 	st_transaction(cx);
 	tx = sp_begin(cx->env);
@@ -211,7 +211,7 @@ transaction_set_rollback_get1(stc *cx)
 		t( o == NULL );
 		key++;
 	}
-	rc = sp_rollback(tx);
+	rc = sp_destroy(tx);
 	t( rc == 0 );
 	st_transaction(cx);
 }
@@ -302,7 +302,7 @@ transaction_set_set_commit_get(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "value", NULL) == value );
 	sp_destroy(o);
-	rc = sp_rollback(tx);
+	rc = sp_destroy(tx);
 	t( rc == 0 );
 	st_transaction(cx);
 }
@@ -327,7 +327,7 @@ transaction_set_set_rollback_get(stc *cx)
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(tx, o) == 0 );
-	rc = sp_rollback(tx);
+	rc = sp_destroy(tx);
 	t( rc == 0 );
 	st_transaction(cx);
 	tx = sp_begin(cx->env);
@@ -335,7 +335,7 @@ transaction_set_set_rollback_get(stc *cx)
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(tx, o);
 	t( o == NULL );
-	rc = sp_rollback(tx);
+	rc = sp_destroy(tx);
 	t( rc == 0 );
 	st_transaction(cx);
 }
@@ -615,7 +615,7 @@ transaction_p_set_commit_get0(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "value", NULL) == value_b );
 	sp_destroy(o);
-	t( sp_rollback(tx) == 0 );
+	t( sp_destroy(tx) == 0 );
 	st_transaction(cx);
 }
 
@@ -664,7 +664,7 @@ transaction_p_set_commit_get1(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "value", NULL) == value_b );
 	sp_destroy(o);
-	t( sp_rollback(tx) == 0 );
+	t( sp_destroy(tx) == 0 );
 	st_transaction(cx);
 }
 
@@ -713,7 +713,7 @@ transaction_p_set_commit_get2(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "value", NULL) == value_b );
 	sp_destroy(o);
-	t( sp_rollback(tx) == 0 );
+	t( sp_destroy(tx) == 0 );
 	st_transaction(cx);
 }
 
@@ -734,7 +734,7 @@ transaction_p_set_rollback_get0(stc *cx)
 	t( sp_set(o, "key", &key_a, sizeof(key_a)) == 0 );
 	t( sp_set(o, "value", &value_a, sizeof(value_a)) == 0 );
 	t( sp_set(a, o) == 0 );
-	rc = sp_rollback(a);
+	rc = sp_destroy(a);
 	t( rc == 0 );
 	st_transaction(cx);
 
@@ -745,7 +745,7 @@ transaction_p_set_rollback_get0(stc *cx)
 	t( sp_set(o, "key", &key_b, sizeof(key_b)) == 0 );
 	t( sp_set(o, "value", &value_b, sizeof(value_b)) == 0 );
 	t( sp_set(b, o) == 0 );
-	rc = sp_rollback(b);
+	rc = sp_destroy(b);
 	t( rc == 0 );
 	st_transaction(cx);
 
@@ -758,7 +758,7 @@ transaction_p_set_rollback_get0(stc *cx)
 	t( sp_set(o, "key", &key_b, sizeof(key_b)) == 0 );
 	o = sp_get(tx, o);
 	t( o == NULL );
-	t( sp_rollback(tx) == 0 );
+	t( sp_destroy(tx) == 0 );
 	st_transaction(cx);
 }
 
@@ -778,7 +778,7 @@ transaction_p_set_rollback_get1(stc *cx)
 	t( sp_set(o, "key", &key_a, sizeof(key_a)) == 0 );
 	t( sp_set(o, "value", &value_a, sizeof(value_a)) == 0 );
 	t( sp_set(a, o) == 0 );
-	rc = sp_rollback(a);
+	rc = sp_destroy(a);
 	t( rc == 0 );
 	st_transaction(cx);
 
@@ -789,7 +789,7 @@ transaction_p_set_rollback_get1(stc *cx)
 	t( sp_set(o, "key", &key_b, sizeof(key_b)) == 0 );
 	t( sp_set(o, "value", &value_b, sizeof(value_b)) == 0 );
 	t( sp_set(b, o) == 0 );
-	rc = sp_rollback(b);
+	rc = sp_destroy(b);
 	t( rc == 0 );
 	st_transaction(cx);
 
@@ -802,7 +802,7 @@ transaction_p_set_rollback_get1(stc *cx)
 	t( sp_set(o, "key", &key_b, sizeof(key_b)) == 0 );
 	o = sp_get(tx, o);
 	t( o == NULL );
-	t( sp_rollback(tx) == 0 );
+	t( sp_destroy(tx) == 0 );
 	st_transaction(cx);
 }
 
@@ -823,7 +823,7 @@ transaction_p_set_rollback_get2(stc *cx)
 	t( sp_set(o, "key", &key_b, sizeof(key_b)) == 0 );
 	t( sp_set(o, "value", &value_b, sizeof(value_b)) == 0 );
 	t( sp_set(b, o) == 0 );
-	rc = sp_rollback(b);
+	rc = sp_destroy(b);
 	t( rc == 0 );
 	st_transaction(cx);
 
@@ -834,7 +834,7 @@ transaction_p_set_rollback_get2(stc *cx)
 	t( sp_set(o, "key", &key_a, sizeof(key_a)) == 0 );
 	t( sp_set(o, "value", &value_a, sizeof(value_a)) == 0 );
 	t( sp_set(a, o) == 0 );
-	rc = sp_rollback(a);
+	rc = sp_destroy(a);
 	t( rc == 0 );
 	st_transaction(cx);
 
@@ -847,7 +847,7 @@ transaction_p_set_rollback_get2(stc *cx)
 	t( sp_set(o, "key", &key_b, sizeof(key_b)) == 0 );
 	o = sp_get(tx, o);
 	t( o == NULL );
-	t( sp_rollback(tx) == 0 );
+	t( sp_destroy(tx) == 0 );
 	st_transaction(cx);
 }
 
@@ -961,7 +961,7 @@ transaction_c_set_commit_rollback_a0(stc *cx)
 	t( sp_set(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(a, o) == 0 );
 
-	rc = sp_rollback(a);
+	rc = sp_destroy(a);
 	t( rc == 0 );
 	st_transaction(cx);
 
@@ -1000,7 +1000,7 @@ transaction_c_set_commit_rollback_a1(stc *cx)
 	t( sp_set(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(b, o) == 0 );
 
-	rc = sp_rollback(a);
+	rc = sp_destroy(a);
 	t( rc == 0 );
 	st_transaction(cx);
 	rc = sp_commit(b);
@@ -1032,7 +1032,7 @@ transaction_c_set_commit_rollback_b0(stc *cx)
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(b, o) == 0 );
-	rc = sp_rollback(b);
+	rc = sp_destroy(b);
 	t( rc == 0 );
 	st_transaction(cx);
 }
@@ -1064,7 +1064,7 @@ transaction_c_set_commit_rollback_b1(stc *cx)
 	rc = sp_commit(a);
 	t( rc == 0 );
 	st_transaction(cx);
-	rc = sp_rollback(b);
+	rc = sp_destroy(b);
 	t( rc == 0 );
 	st_transaction(cx);
 }
@@ -1085,7 +1085,7 @@ transaction_c_set_commit_rollback_ab0(stc *cx)
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(a, o) == 0 );
-	rc = sp_rollback(a);
+	rc = sp_destroy(a);
 	t( rc == 0 );
 	st_transaction(cx);
 
@@ -1094,7 +1094,7 @@ transaction_c_set_commit_rollback_ab0(stc *cx)
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(b, o) == 0 );
-	rc = sp_rollback(b);
+	rc = sp_destroy(b);
 	t( rc == 0 );
 	st_transaction(cx);
 }
@@ -1122,10 +1122,10 @@ transaction_c_set_commit_rollback_ab1(stc *cx)
 	t( sp_set(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(b, o) == 0 );
 
-	rc = sp_rollback(a);
+	rc = sp_destroy(a);
 	t( rc == 0 );
 	st_transaction(cx);
-	rc = sp_rollback(b);
+	rc = sp_destroy(b);
 	t( rc == 0 );
 	st_transaction(cx);
 }
@@ -1297,7 +1297,7 @@ transaction_c_set_commit_wait_rollback_a0(stc *cx)
 	rc = sp_commit(b);
 	t( rc == 2 ); /* wait */
 	st_transaction(cx);
-	rc = sp_rollback(a);
+	rc = sp_destroy(a);
 	t( rc == 0 );
 	st_transaction(cx);
 	rc = sp_commit(b);
@@ -1332,7 +1332,7 @@ transaction_c_set_commit_wait_rollback_a1(stc *cx)
 	rc = sp_commit(b);
 	t( rc == 2 ); /* wait */
 	st_transaction(cx);
-	rc = sp_rollback(a);
+	rc = sp_destroy(a);
 	t( rc == 0 );
 	st_transaction(cx);
 	rc = sp_commit(b);
@@ -1367,7 +1367,7 @@ transaction_c_set_commit_wait_rollback_b0(stc *cx)
 	rc = sp_commit(b);
 	t( rc == 2 ); /* wait */
 	st_transaction(cx);
-	rc = sp_rollback(b);
+	rc = sp_destroy(b);
 	t( rc == 0 );
 	st_transaction(cx);
 	rc = sp_commit(a);
@@ -1402,7 +1402,7 @@ transaction_c_set_commit_wait_rollback_b1(stc *cx)
 	rc = sp_commit(b);
 	t( rc == 2 ); /* wait */
 	st_transaction(cx);
-	rc = sp_rollback(b);
+	rc = sp_destroy(b);
 	t( rc == 0 );
 	st_transaction(cx);
 	rc = sp_commit(a);
@@ -1549,7 +1549,7 @@ transaction_c_set_commit_wait_rollback_n0(stc *cx)
 	rc = sp_commit(c);
 	t( rc == 2 ); /* wait */
 	st_transaction(cx);
-	rc = sp_rollback(a);
+	rc = sp_destroy(a);
 	t( rc == 0 );
 	st_transaction(cx);
 	rc = sp_commit(c);
@@ -1602,7 +1602,7 @@ transaction_c_set_commit_wait_rollback_n1(stc *cx)
 	rc = sp_commit(c);
 	t( rc == 2 ); /* wait */
 	st_transaction(cx);
-	rc = sp_rollback(b);
+	rc = sp_destroy(b);
 	t( rc == 0 );
 	st_transaction(cx);
 	rc = sp_commit(c);
@@ -1655,7 +1655,7 @@ transaction_c_set_commit_wait_rollback_n2(stc *cx)
 	rc = sp_commit(c);
 	t( rc == 2 ); /* wait */
 	st_transaction(cx);
-	rc = sp_rollback(c);
+	rc = sp_destroy(c);
 	t( rc == 0 );
 	st_transaction(cx);
 	rc = sp_commit(b);
@@ -1708,7 +1708,7 @@ transaction_c_set_commit_wait_rollback_n3(stc *cx)
 	rc = sp_commit(c);
 	t( rc == 2 ); /* wait */
 	st_transaction(cx);
-	rc = sp_rollback(c);
+	rc = sp_destroy(c);
 	t( rc == 0 );
 	st_transaction(cx);
 	rc = sp_commit(a);
@@ -1758,10 +1758,10 @@ transaction_c_set_commit_wait_rollback_n4(stc *cx)
 	rc = sp_commit(c);
 	t( rc == 2 ); /* wait */
 	st_transaction(cx);
-	rc = sp_rollback(c);
+	rc = sp_destroy(c);
 	t( rc == 0 );
 	st_transaction(cx);
-	rc = sp_rollback(a);
+	rc = sp_destroy(a);
 	t( rc == 0 );
 	st_transaction(cx);
 	rc = sp_commit(b);
@@ -1834,7 +1834,7 @@ transaction_c_set_get1(stc *cx)
 	t( sp_set(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(a, o) == 0 );
 
-	rc = sp_rollback(a);
+	rc = sp_destroy(a);
 	t( rc == 0 );
 	st_transaction(cx);
 
@@ -1958,21 +1958,21 @@ transaction_c_set_get2(stc *cx)
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(tx, o);
 	t( o == NULL );
-	rc = sp_rollback(tx);
+	rc = sp_destroy(tx);
 	t( rc == 0 );
 	st_transaction(cx);
 
-	t( sp_rollback(d) == 0 );
+	t( sp_destroy(d) == 0 );
 	st_transaction(cx);
-	t( sp_rollback(c) == 0 );
+	t( sp_destroy(c) == 0 );
 	st_transaction(cx);
-	t( sp_rollback(b) == 0 );
+	t( sp_destroy(b) == 0 );
 	st_transaction(cx);
-	t( sp_rollback(a) == 0 );
+	t( sp_destroy(a) == 0 );
 	st_transaction(cx);
-	t( sp_rollback(e) == 0 );
+	t( sp_destroy(e) == 0 );
 	st_transaction(cx);
-	t( sp_rollback(z) == 0 );
+	t( sp_destroy(z) == 0 );
 	st_transaction(cx);
 }
 
@@ -2071,7 +2071,7 @@ transaction_c_set_get3(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "value", NULL) == 4 );
 	sp_destroy(o);
-	t( sp_rollback(tx) == 0 );
+	t( sp_destroy(tx) == 0 );
 
 	o = sp_object(db);
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
@@ -2084,7 +2084,7 @@ transaction_c_set_get3(stc *cx)
 	t( o == NULL );
 
 	/* 1 */
-	t( sp_rollback(b) == 0 );
+	t( sp_destroy(b) == 0 );
 	st_transaction(cx);
 
 	o = sp_object(db);
@@ -2115,7 +2115,7 @@ transaction_c_set_get3(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "value", NULL) == 4 );
 	sp_destroy(o);
-	t( sp_rollback(tx) == 0 );
+	t( sp_destroy(tx) == 0 );
 	st_transaction(cx);
 
 	o = sp_object(db);
@@ -2129,7 +2129,7 @@ transaction_c_set_get3(stc *cx)
 	t( o == NULL );
 
 	/* 2 */
-	t( sp_rollback(c) == 0 );
+	t( sp_destroy(c) == 0 );
 	st_transaction(cx);
 
 	o = sp_object(db);
@@ -2153,7 +2153,7 @@ transaction_c_set_get3(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "value", NULL) == 4 );
 	sp_destroy(o);
-	t( sp_rollback(tx) == 0 );
+	t( sp_destroy(tx) == 0 );
 
 	o = sp_object(db);
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
@@ -2166,7 +2166,7 @@ transaction_c_set_get3(stc *cx)
 	t( o == NULL );
 
 	/* 3 */
-	t( sp_rollback(d) == 0 );
+	t( sp_destroy(d) == 0 );
 	st_transaction(cx);
 
 	o = sp_object(db);
@@ -2183,7 +2183,7 @@ transaction_c_set_get3(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "value", NULL) == 4 );
 	sp_destroy(o);
-	t( sp_rollback(tx) == 0 );
+	t( sp_destroy(tx) == 0 );
 	st_transaction(cx);
 
 	o = sp_object(db);
@@ -2197,7 +2197,7 @@ transaction_c_set_get3(stc *cx)
 	t( o == NULL );
 
 	/* 4 */
-	t( sp_rollback(e) == 0 );
+	t( sp_destroy(e) == 0 );
 	st_transaction(cx);
 
 	tx = sp_begin(cx->env);
@@ -2207,7 +2207,7 @@ transaction_c_set_get3(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "value", NULL) == 4 );
 	sp_destroy(o);
-	t( sp_rollback(tx) == 0 );
+	t( sp_destroy(tx) == 0 );
 	st_transaction(cx);
 
 	o = sp_object(db);
@@ -2221,9 +2221,9 @@ transaction_c_set_get3(stc *cx)
 	t( o == NULL );
 
 	/* 6 */
-	t( sp_rollback(a) == 0 );
+	t( sp_destroy(a) == 0 );
 	st_transaction(cx);
-	t( sp_rollback(z) == 0 );
+	t( sp_destroy(z) == 0 );
 	st_transaction(cx);
 
 	tx = sp_begin(cx->env);
@@ -2233,7 +2233,7 @@ transaction_c_set_get3(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "value", NULL) == 4 );
 	sp_destroy(o);
-	t( sp_rollback(tx) == 0 );
+	t( sp_destroy(tx) == 0 );
 	st_transaction(cx);
 }
 
@@ -2558,7 +2558,7 @@ transaction_md_set_rollback(stc *cx)
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
-	t( sp_rollback(tx) == 0 );
+	t( sp_destroy(tx) == 0 );
 
 	o = sp_object(t0);
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
