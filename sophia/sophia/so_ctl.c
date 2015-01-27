@@ -804,6 +804,7 @@ static soobjif soctlif =
 	.set      = so_ctlset,
 	.get      = so_ctlget,
 	.del      = NULL,
+	.drop     = NULL,
 	.begin    = NULL,
 	.prepare  = NULL,
 	.commit   = NULL,

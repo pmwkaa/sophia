@@ -12,7 +12,7 @@
 #include <sophia.h>
 
 static void
-dml_precreate(stc *cx srunused)
+ddl_precreate(stc *cx srunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -31,7 +31,7 @@ dml_precreate(stc *cx srunused)
 }
 
 static void
-dml_create_online0(stc *cx srunused)
+ddl_create_online0(stc *cx srunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -51,7 +51,7 @@ dml_create_online0(stc *cx srunused)
 }
 
 static void
-dml_create_online1(stc *cx srunused)
+ddl_create_online1(stc *cx srunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -72,7 +72,7 @@ dml_create_online1(stc *cx srunused)
 }
 
 static void
-dml_create_online2(stc *cx srunused)
+ddl_create_online2(stc *cx srunused)
 {
 	rmrf("./logdir");
 	rmrf("./dir0");
@@ -136,12 +136,12 @@ dml_create_online2(stc *cx srunused)
 	rmrf("./dir1");
 }
 
-stgroup *dml_group(void)
+stgroup *ddl_group(void)
 {
-	stgroup *group = st_group("dml");
-	st_groupadd(group, st_test("precreate", dml_precreate));
-	st_groupadd(group, st_test("create_online0", dml_create_online0));
-	st_groupadd(group, st_test("create_online1", dml_create_online1));
-	st_groupadd(group, st_test("create_online2", dml_create_online2));
+	stgroup *group = st_group("ddl");
+	st_groupadd(group, st_test("precreate", ddl_precreate));
+	st_groupadd(group, st_test("create_online0", ddl_create_online0));
+	st_groupadd(group, st_test("create_online1", ddl_create_online1));
+	st_groupadd(group, st_test("create_online2", ddl_create_online2));
 	return group;
 }

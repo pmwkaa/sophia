@@ -31,6 +31,7 @@ SP_API int   sp_error(void*, ...);
 SP_API int   sp_set(void*, ...);
 SP_API void *sp_get(void*, ...);
 SP_API int   sp_delete(void*, ...);
+SP_API int   sp_drop(void*, ...);
 SP_API void *sp_begin(void*, ...);
 SP_API int   sp_prepare(void*, ...);
 SP_API int   sp_commit(void*, ...);

@@ -35,7 +35,7 @@ extern stgroup *cache_group(void);
 extern stgroup *error_group(void);
 extern stgroup *method_group(void);
 extern stgroup *repository_group(void);
-extern stgroup *dml_group(void);
+extern stgroup *ddl_group(void);
 extern stgroup *tpr_group(void);
 extern stgroup *object_group(void);
 extern stgroup *profiler_group(void);
@@ -110,7 +110,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, method_group());
 	st_planadd(plan, profiler_group());
 	st_planadd(plan, repository_group());
-	st_planadd(plan, dml_group());
+	st_planadd(plan, ddl_group());
 	st_planadd(plan, tpr_group());
 	st_planadd(plan, deadlock_group());
 	st_planadd(plan, cache_group());

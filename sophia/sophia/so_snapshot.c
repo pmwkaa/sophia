@@ -30,7 +30,7 @@ so_snapshotfree(sosnapshot *s)
 }
 
 static int
-so_snapshotdestroy(soobj *o)
+so_snapshotdestroy(soobj *o, va_list args srunused)
 {
 	sosnapshot *s = (sosnapshot*)o;
 	so *e = so_of(o);
@@ -90,6 +90,7 @@ static soobjif sosnapshotif =
 	.set      = NULL,
 	.get      = so_snapshotget,
 	.del      = NULL,
+	.drop     = so_snapshotdestroy,
 	.begin    = NULL,
 	.prepare  = NULL,
 	.commit   = NULL,

@@ -98,7 +98,7 @@ online:
 }
 
 static int
-so_dbdestroy(soobj *obj)
+so_dbdestroy(soobj *obj, va_list args srunused)
 {
 	sodb *o = (sodb*)obj;
 	so *e = so_of(&o->o);
@@ -183,6 +183,7 @@ static soobjif sodbif =
 	.set      = so_dbset,
 	.get      = so_dbget,
 	.del      = so_dbdel,
+	.drop     = NULL,
 	.begin    = NULL,
 	.prepare  = NULL,
 	.commit   = NULL,

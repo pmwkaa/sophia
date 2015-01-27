@@ -17,7 +17,7 @@
 #include <libso.h>
 
 static int
-so_vdestroy(soobj *obj)
+so_vdestroy(soobj *obj, va_list args srunused)
 {
 	sov *v = (sov*)obj;
 	if (v->flags & SO_VIMMUTABLE)
@@ -145,6 +145,7 @@ static soobjif sovif =
 	.set      = so_vset,
 	.get      = so_vget,
 	.del      = NULL,
+	.drop     = NULL,
 	.begin    = NULL,
 	.prepare  = NULL,
 	.commit   = NULL,

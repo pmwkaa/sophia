@@ -50,7 +50,7 @@ so_cursorseek(socursor *c, void *key, int keysize)
 }
 
 static int
-so_cursordestroy(soobj *o)
+so_cursordestroy(soobj *o, va_list args srunused)
 {
 	socursor *c = (socursor*)o;
 	so *e = so_of(o);
@@ -98,6 +98,7 @@ static soobjif socursorif =
 	.set      = NULL,
 	.get      = so_cursorget,
 	.del      = NULL,
+	.drop     = NULL,
 	.begin    = NULL,
 	.prepare  = NULL,
 	.commit   = NULL,

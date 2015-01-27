@@ -31,7 +31,7 @@ snapshot_create_delete(stc *cx srunused)
 	t( sp_set(c, "snapshot", "test_snapshot") == 0 );
 	void *snapshot = sp_get(c, "snapshot.test_snapshot");
 	t( snapshot != NULL );
-	t( sp_destroy(snapshot) == 0 );
+	t( sp_drop(snapshot) == 0 );
 	snapshot = sp_get(c, "snapshot.test_snapshot");
 	t( snapshot == NULL );
 

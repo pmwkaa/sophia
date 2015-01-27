@@ -82,7 +82,7 @@ online:
 }
 
 static int
-so_destroy(soobj *o)
+so_destroy(soobj *o, va_list args srunused)
 {
 	so *e = (so*)o;
 	int rcret = 0;
@@ -121,7 +121,7 @@ so_destroy(soobj *o)
 }
 
 static void*
-so_begin(soobj *o) {
+so_begin(soobj *o, va_list args srunused) {
 	return so_txnew((so*)o);
 }
 
@@ -152,6 +152,7 @@ static soobjif soif =
 	.set      = NULL,
 	.get      = NULL,
 	.del      = NULL,
+	.drop     = NULL,
 	.begin    = so_begin,
 	.prepare  = NULL,
 	.commit   = NULL,

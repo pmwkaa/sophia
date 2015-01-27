@@ -34,14 +34,15 @@ struct soobjif {
 	void *(*ctl)(soobj*, va_list);
 	int   (*open)(soobj*, va_list);
 	int   (*error)(soobj*, va_list);
-	int   (*destroy)(soobj*);
+	int   (*destroy)(soobj*, va_list);
 	int   (*set)(soobj*, va_list);
 	void *(*get)(soobj*, va_list);
 	int   (*del)(soobj*, va_list);
-	void *(*begin)(soobj*);
+	int   (*drop)(soobj*, va_list);
+	void *(*begin)(soobj*, va_list);
 	int   (*prepare)(soobj*, va_list);
 	int   (*commit)(soobj*, va_list);
-	int   (*rollback)(soobj*);
+	int   (*rollback)(soobj*, va_list);
 	void *(*cursor)(soobj*, va_list);
 	void *(*object)(soobj*, va_list);
 	void *(*type)(soobj*, va_list);
@@ -74,8 +75,12 @@ so_objopen(soobj *o, ...)
 }
 
 static inline int
-so_objdestroy(soobj *o) {
-	return o->i->destroy(o);
+so_objdestroy(soobj *o, ...) {
+	va_list args;
+	va_start(args, o);
+	int rc = o->i->destroy(o, args);
+	va_end(args);
+	return rc;
 }
 
 static inline int
@@ -129,8 +134,12 @@ so_objdelete(soobj *o, ...)
 }
 
 static inline void*
-so_objbegin(soobj *o) {
-	return o->i->begin(o);
+so_objbegin(soobj *o, ...) {
+	va_list args;
+	va_start(args, o);
+	void *h = o->i->begin(o, args);
+	va_end(args);
+	return h;
 }
 
 static inline int
@@ -154,8 +163,12 @@ so_objcommit(soobj *o, ...)
 }
 
 static inline int
-so_objrollback(soobj *o) {
-	return o->i->rollback(o);
+so_objrollback(soobj *o, ...) {
+	va_list args;
+	va_start(args, o);
+	int rc = o->i->rollback(o, args);
+	va_end(args);
+	return rc;
 }
 
 static inline void*

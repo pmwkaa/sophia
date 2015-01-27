@@ -17,7 +17,7 @@
 #include <libso.h>
 
 static int
-so_ctlcursor_destroy(soobj *o)
+so_ctlcursor_destroy(soobj *o, va_list args srunused)
 {
 	soctlcursor *c = (soctlcursor*)o;
 	so *e = so_of(o);
@@ -115,6 +115,7 @@ static soobjif soctlcursorif =
 	.set      = NULL,
 	.get      = so_ctlcursor_get,
 	.del      = NULL,
+	.drop     = NULL,
 	.begin    = NULL,
 	.prepare  = NULL,
 	.commit   = NULL,
