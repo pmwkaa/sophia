@@ -356,12 +356,12 @@ so_ctlmetric(so *e srunused, soctlrt *rt, src **pc)
 {
 	src *metric = *pc;
 	src *p = NULL;
-	sr_clink(&p, sr_c(pc, so_ctlv, "seq_dsn",  SR_CU32|SR_CRO, &rt->seq.dsn));
-	sr_clink(&p, sr_c(pc, so_ctlv, "seq_nsn",  SR_CU32|SR_CRO, &rt->seq.nsn));
-	sr_clink(&p, sr_c(pc, so_ctlv, "seq_bsn",  SR_CU32|SR_CRO, &rt->seq.bsn));
-	sr_clink(&p, sr_c(pc, so_ctlv, "seq_lsn",  SR_CU64|SR_CRO, &rt->seq.lsn));
-	sr_clink(&p, sr_c(pc, so_ctlv, "seq_lfsn", SR_CU32|SR_CRO, &rt->seq.lfsn));
-	sr_clink(&p, sr_c(pc, so_ctlv, "seq_tsn",  SR_CU32|SR_CRO, &rt->seq.tsn));
+	sr_clink(&p, sr_c(pc, so_ctlv, "dsn",  SR_CU32|SR_CRO, &rt->seq.dsn));
+	sr_clink(&p, sr_c(pc, so_ctlv, "nsn",  SR_CU32|SR_CRO, &rt->seq.nsn));
+	sr_clink(&p, sr_c(pc, so_ctlv, "bsn",  SR_CU32|SR_CRO, &rt->seq.bsn));
+	sr_clink(&p, sr_c(pc, so_ctlv, "lsn",  SR_CU64|SR_CRO, &rt->seq.lsn));
+	sr_clink(&p, sr_c(pc, so_ctlv, "lfsn", SR_CU32|SR_CRO, &rt->seq.lfsn));
+	sr_clink(&p, sr_c(pc, so_ctlv, "tsn",  SR_CU32|SR_CRO, &rt->seq.tsn));
 	return sr_c(pc, NULL, "metric", SR_CC, metric);
 }
 
@@ -686,9 +686,10 @@ so_ctlrt(so *e, soctlrt *rt)
 {
 	/* sophia */
 	snprintf(rt->version, sizeof(rt->version),
-	         "%d.%d",
-	         SR_VERSION_MAJOR - '0',
-	         SR_VERSION_MINOR - '0');
+	         "%d.%d.%d",
+	         SR_VERSION_A - '0',
+	         SR_VERSION_B - '0',
+	         SR_VERSION_C - '0');
 
 	/* memory */
 	rt->memory_used = sr_quotaused(&e->quota);

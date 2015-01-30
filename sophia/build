@@ -59,6 +59,7 @@ cat <<EOF >> $output
 /* {{{ */
 
 #define SOPHIA_BUILD "$build"
+
 EOF
 
 process $root $output "libsr.h" "rt"

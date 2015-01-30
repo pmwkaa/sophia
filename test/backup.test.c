@@ -91,7 +91,7 @@ backup_test0(stc *cx srunused)
 	t( db != NULL );
 
 	/* ensure correct bsn recover */
-	o = sp_get(c, "metric.seq_bsn");
+	o = sp_get(c, "metric.bsn");
 	t( o != NULL );
 	t( strcmp(sp_get(o, "value", NULL), "1") == 0 );
 	sp_destroy(o);
