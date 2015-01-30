@@ -1,0 +1,11 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@ 
+
+override_dh_auto_install:
+	dh_install db/sophia.h /usr/include
+	dh_install db/libsophia.a /usr/lib
+	dh_install db/libsophia.so.1.1 /usr/lib
+	dh_install db/libsophia.so /usr/lib
+	dh_install db/libsophia.so.1 /usr/lib

@@ -1,0 +1,16 @@
+Source: libsophia
+Maintainer: Ivo Vachkov <ivachkov@xi-group.com>
+Section: misc
+Priority: optional
+Standards-Version: 3.9.5
+Build-Depends: debhelper (>= 9)
+
+Package: libsophia
+Architecture: amd64
+Depends: 
+Description: This package contains libsophia, embeddable, persistent key-value store
+ Sophia is a modern embeddable key-value database designed 
+ for a high load environment. It has unique architecture that 
+ was created as a result of research and rethinking of primary 
+ algorithmic constraints, associated with a getting popular 
+ Log-file based data structures, such as LSM-tree.
