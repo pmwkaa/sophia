@@ -5,7 +5,7 @@
 <p align="center">
 	<a href="http://sphia.org">sophia</a> - is a modern embeddable key-value database, fast and feature-rich.
 	<br>
-	(version 1.2.1)<br>
+	version 1.2.1<br>
 </p>
 <br>
 [![Build Status](https://travis-ci.org/pmwkaa/sophia.png?branch=dev)](https://travis-ci.org/pmwkaa/sophia)
