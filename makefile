@@ -22,6 +22,7 @@ SOPHIA_CFLAGS  = $(CFLAGS_DEBUG) \
                  $(CFLAGS_MISC) \
                  $(CFLAGS)
 SOPHIA_LDFLAGS = $(LDFLAGS_ALL) $(LDFLAGS)
+SOPHIA_SRC = $(wildcard sophia/*/*.c)
 
 all: static dynamic
 banner:
@@ -29,12 +30,12 @@ banner:
 	@echo "cc: $(CC)"
 	@echo "cflags: $(CFLAGS_DEBUG) $(CFLAGS_COVERAGE)$(CFLAGS_OPT) $(CFLAGS_STRICT)"
 	@echo
-sophia.c:
+sophia.c: $(SOPHIA_SRC)
 	@echo build
 	@sh sophia/build sophia $@
 	@echo cc $@
-sophia.h:
-	@cp sophia/sophia/sophia.h .
+sophia.h: sophia/sophia/sophia.h
+	@cp $< .
 sophia.o: banner clean sophia.c sophia.h
 	@$(CC) $(SOPHIA_CFLAGS) -c sophia.c -o sophia.o
 libsophia.a: sophia.o
