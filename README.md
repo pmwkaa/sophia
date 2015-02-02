@@ -6,7 +6,7 @@
 	<a href="http://sphia.org">sophia</a> - is a modern embeddable key-value database, fast and feature-rich.
 	<br>
 	<br>
-	<a href="http://sphia.org/overview.html">overview</a>
+	<a href="http://sphia.org/overview.html">overview</a><br>
 	<a href="http://sphia.org/build.html">build</a>
 </p>
 <br>
