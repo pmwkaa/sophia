@@ -10,7 +10,7 @@ compiler:
   - gcc
 branches:
   only:
-    - dev
+    - master
 script:
   - make ENABLE_COVERAGE=1
   - cd test
