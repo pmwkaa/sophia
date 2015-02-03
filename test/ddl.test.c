@@ -136,6 +136,58 @@ ddl_create_online2(stc *cx srunused)
 	rmrf("./dir1");
 }
 
+static void
+ddl_open_online0(stc *cx srunused)
+{
+	rmrf("./logdir");
+	rmrf("./dir0");
+	rmrf("./dir1");
+
+	void *env = sp_env();
+	t( env != NULL );
+	void *c = sp_ctl(env);
+	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
+	t( sp_set(c, "scheduler.threads", "0") == 0 );
+	t( sp_set(c, "log.path", "logdir") == 0 );
+	t( sp_open(env) == 0 );
+
+	t( sp_set(c, "db", "s0") == 0 );
+	t( sp_set(c, "db.s0.path", "dir0") == 0 );
+	t( sp_set(c, "db.s0.index.cmp", "u32", NULL) == 0 );
+	void *s0 = sp_get(c, "db.s0");
+	t( s0 != NULL );
+	t( sp_open(s0) == 0 );
+
+	int key = 7;
+	void *o = sp_object(s0);
+	sp_set(o, "key", &key, sizeof(key));
+	t( sp_set(s0, o) == 0 );
+	key = 8;
+	o = sp_object(s0);
+	sp_set(o, "key", &key, sizeof(key));
+	t( sp_set(s0, o) == 0 );
+	key = 9;
+	o = sp_object(s0);
+	sp_set(o, "key", &key, sizeof(key));
+	t( sp_set(s0, o) == 0 );
+	t( sp_destroy(s0) == 0 );
+
+	t( sp_set(c, "db", "s0") == 0 );
+	t( sp_set(c, "db.s0.path", "dir0") == 0 );
+	t( sp_set(c, "db.s0.index.cmp", "u32", NULL) == 0 );
+	/* ban open existing databases */
+	s0 = sp_get(c, "db.s0");
+	t( s0 != NULL );
+	t( sp_open(s0) == -1 );
+
+	t( sp_destroy(env) == 0 );
+
+	rmrf("./logdir");
+	rmrf("./dir0");
+	rmrf("./dir1");
+}
+
 stgroup *ddl_group(void)
 {
 	stgroup *group = st_group("ddl");
@@ -143,5 +195,6 @@ stgroup *ddl_group(void)
 	st_groupadd(group, st_test("create_online0", ddl_create_online0));
 	st_groupadd(group, st_test("create_online1", ddl_create_online1));
 	st_groupadd(group, st_test("create_online2", ddl_create_online2));
+	st_groupadd(group, st_test("open_online0", ddl_open_online0));
 	return group;
 }

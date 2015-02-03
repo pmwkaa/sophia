@@ -9,6 +9,5 @@
 	<a href="http://sphia.org/overview.html">overview</a><br>
 	<a href="http://sphia.org/build.html">build</a>
 </p>
-<br>
 [![Build Status](https://travis-ci.org/pmwkaa/sophia.png?branch=dev)](https://travis-ci.org/pmwkaa/sophia)
 [![Coverage Status](https://coveralls.io/repos/pmwkaa/sophia/badge.png?branch=dev)](https://coveralls.io/r/pmwkaa/sophia?branch=dev)

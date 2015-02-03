@@ -24,7 +24,7 @@ endif
 
 CFLAGS_INCLUDE  = -pthread $(INCLUDE)
 CFLAGS_DEBUG    = -DSR_INJECTION_ENABLE
-CFLAGS_OPT      = -O2
+CFLAGS_OPT      = -O0
 CFLAGS_STRICT   = -std=c99 -pedantic -Wextra -Wall -fsyntax-only
 CFLAGS_BUILD    = -DSOPHIA_BUILD='"${SOPHIA_BUILD}"'
 CFLAGS_SOPHIA   = $(CFLAGS_INCLUDE) \

@@ -22,12 +22,18 @@ int so_recoverbegin(sodb *db)
 	so *e = so_of(&db->o);
 	/* open and recover repository */
 	siconf *c = &db->indexconf;
-	c->node_size      = e->ctl.node_size;
-	c->node_page_size = e->ctl.page_size;
-	c->path_backup    = e->ctl.backup_path;
-	c->path           = db->ctl.path;
-	c->name           = db->ctl.name;
-	c->sync           = db->ctl.sync;
+	c->node_size           = e->ctl.node_size;
+	c->node_page_size      = e->ctl.page_size;
+	c->path_backup         = e->ctl.backup_path;
+	c->path                = db->ctl.path;
+	c->path_fail_on_exists = 0;
+	/* do not allow to recover existing databases
+	 * during online (only create), since logpool
+	 * reply is required. */
+	if (so_status(&e->status) == SO_ONLINE)
+		c->path_fail_on_exists = 1;
+	c->name                = db->ctl.name;
+	c->sync                = db->ctl.sync;
 	int rc = si_open(&db->index, &db->r, &db->indexconf);
 	if (srunlikely(rc == -1))
 		goto error;
