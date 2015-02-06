@@ -63,6 +63,8 @@ sxstate   sx_commit(sx*);
 sxstate   sx_rollback(sx*);
 int       sx_set(sx*, sxindex*, svv*);
 int       sx_get(sx*, sxindex*, sv*, sv*);
+uint32_t  sx_min(sxmanager*);
+uint32_t  sx_max(sxmanager*);
 uint64_t  sx_vlsn(sxmanager*);
 sxstate   sx_setstmt(sxmanager*, sxindex*, sv*);
 sxstate   sx_getstmt(sxmanager*, sxindex*);

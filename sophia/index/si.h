@@ -17,6 +17,7 @@ struct si {
 	siplanner p;
 	srrb i;
 	int n;
+	int destroyed;
 	uint64_t update_time;
 	uint64_t read_disk;
 	uint64_t read_cache;

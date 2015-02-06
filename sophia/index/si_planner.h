@@ -24,6 +24,8 @@ struct siplanner {
 #define SI_CHECKPOINT    8
 #define SI_GC            16
 #define SI_BACKUP        32
+#define SI_SHUTDOWN      64
+#define SI_DROP          128
 
 /* explain */
 #define SI_ENONE         0
@@ -59,6 +61,8 @@ struct siplan {
 	 *   a: bsn
 	 *   b:
 	 *   c:
+	 * shutdown:
+	 * drop:
 	 */
 	uint64_t a, b, c;
 	sinode *node;

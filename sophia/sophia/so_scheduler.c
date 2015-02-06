@@ -255,6 +255,7 @@ int so_scheduler_init(soscheduler *s, void *env)
 	s->workers_branch       = 0;
 	s->workers_backup       = 0;
 	s->workers_gc           = 0;
+	s->workers_gc_db        = 0;
 	s->rotate               = 0;
 	s->i                    = NULL;
 	s->count                = 0;
@@ -432,8 +433,10 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 	task->backup_complete = 0;
 	task->rotate = 0;
 	task->gc = 0;
+	task->db = NULL;
 
 	sr_mutexlock(&s->lock);
+
 	/* log gc and rotation */
 	if (s->rotate == 0)
 	{
@@ -452,6 +455,7 @@ checkpoint:
 		switch (rc) {
 		case 1:
 			s->workers_branch++;
+			so_dbref(db, 1);
 			task->db = db;
 			task->gc = 1;
 			sr_mutexunlock(&s->lock);
@@ -487,6 +491,32 @@ checkpoint:
 	}
 	default: /* branch + compact */
 		assert(zone->mode == 3);
+	}
+
+	/* database shutdown-drop */
+	if (s->workers_gc_db < zone->gc_db_prio) {
+		sr_spinlock(&e->dblock);
+		db = NULL;
+		if (srunlikely(e->db_shutdown.n > 0)) {
+			db = (sodb*)so_objindex_first(&e->db_shutdown);
+			if (so_dbgarbage(db)) {
+				so_objindex_unregister(&e->db_shutdown, &db->o);
+			} else {
+				db = NULL;
+			}
+		}
+		sr_spinunlock(&e->dblock);
+		if (srunlikely(db)) {
+			if (db->ctl.dropped)
+				task->plan.plan = SI_DROP;
+			else
+				task->plan.plan = SI_SHUTDOWN;
+			s->workers_gc_db++;
+			so_dbref(db, 1);
+			task->db = db;
+			sr_mutexunlock(&s->lock);
+			return 1;
+		}
 	}
 
 	/* backup */
@@ -540,6 +570,7 @@ checkpoint:
 		switch (rc) {
 		case 1:
 			s->workers_backup++;
+			so_dbref(db, 1);
 			task->db = db;
 			sr_mutexunlock(&s->lock);
 			return 1;
@@ -568,6 +599,7 @@ backup_error:;
 			switch (rc) {
 			case 1:
 				s->workers_gc++;
+				so_dbref(db, 1);
 				task->db = db;
 				sr_mutexunlock(&s->lock);
 				return 1;
@@ -597,6 +629,7 @@ backup_error:;
 			switch (rc) {
 			case 1:
 				s->workers_branch++;
+				so_dbref(db, 1);
 				task->db = db;
 				sr_mutexunlock(&s->lock);
 				return 1;
@@ -637,6 +670,7 @@ backup_error:;
 		rc = so_schedule_plan(s, &task->plan, &db);
 		if (rc == 1) {
 			s->workers_branch++;
+			so_dbref(db, 1);
 			task->db = db;
 			task->gc = 1;
 			sr_mutexunlock(&s->lock);
@@ -649,6 +683,7 @@ backup_error:;
 	task->plan.a = zone->compact_wm;
 	rc = so_schedule_plan(s, &task->plan, &db);
 	if (rc == 1) {
+		so_dbref(db, 1);
 		task->db = db;
 		sr_mutexunlock(&s->lock);
 		return 1;
@@ -697,6 +732,9 @@ static int
 so_complete(soscheduler *s, sotask *t)
 {
 	sr_mutexlock(&s->lock);
+	sodb *db = t->db;
+	if (db)
+		so_dbunref(db, 1);
 	switch (t->plan.plan) {
 	case SI_BRANCH:
 	case SI_AGE:
@@ -708,6 +746,11 @@ so_complete(soscheduler *s, sotask *t)
 		break;
 	case SI_GC:
 		s->workers_gc--;
+		break;
+	case SI_SHUTDOWN:
+	case SI_DROP:
+		s->workers_gc_db--;
+		so_objdestroy(&db->o);
 		break;
 	}
 	if (t->rotate == 1)

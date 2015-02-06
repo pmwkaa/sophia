@@ -57,6 +57,32 @@ int sx_indexfree(sxindex *i, sxmanager *m)
 	return 0;
 }
 
+uint32_t sx_min(sxmanager *m)
+{
+	sr_spinlock(&m->lock);
+	uint32_t id = 0;
+	if (m->count) {
+		srrbnode *node = sr_rbmin(&m->i);
+		sx *min = srcast(node, sx, node);
+		id = min->id;
+	}
+	sr_spinunlock(&m->lock);
+	return id;
+}
+
+uint32_t sx_max(sxmanager *m)
+{
+	sr_spinlock(&m->lock);
+	uint32_t id = 0;
+	if (m->count) {
+		srrbnode *node = sr_rbmax(&m->i);
+		sx *max = srcast(node, sx, node);
+		id = max->id;
+	}
+	sr_spinunlock(&m->lock);
+	return id;
+}
+
 uint64_t sx_vlsn(sxmanager *m)
 {
 	sr_spinlock(&m->lock);

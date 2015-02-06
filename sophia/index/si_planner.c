@@ -59,8 +59,12 @@ int si_plannertrace(siplan *p, srtrace *t)
 		break;
 	case SI_BACKUP: plan = "backup";
 		break;
+	case SI_SHUTDOWN: plan = "database shutdown";
+		break;
+	case SI_DROP: plan = "database drop";
+		break;
 	}
-	char *explain = NULL;;
+	char *explain = NULL;
 	switch (p->explain) {
 	case SI_ENONE:
 		explain = "none";
@@ -78,9 +82,13 @@ int si_plannertrace(siplan *p, srtrace *t)
 		explain = "branch count";
 		break;
 	}
-	sr_trace(t, "%s <#%" PRIu32 " explain: %s>",
-	         plan,
-	         p->node->self.id.id, explain);
+	if (p->node) {
+		sr_trace(t, "%s <#%" PRIu32 " explain: %s>",
+		         plan,
+		         p->node->self.id.id, explain);
+	} else {
+		sr_trace(t, "%s <explain: %s>", plan, explain);
+	}
 	return 0;
 }
 

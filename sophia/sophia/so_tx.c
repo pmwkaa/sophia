@@ -300,6 +300,7 @@ static inline void
 so_txend(sotx *t)
 {
 	so *e = so_of(&t->o);
+	so_dbunbind(e, t->t.id);
 	so_objindex_unregister(&e->tx, &t->o);
 	sr_free(&e->a_tx, t);
 }
@@ -470,6 +471,7 @@ soobj *so_txnew(so *e)
 	}
 	so_objinit(&t->o, SOTX, &sotxif, &e->o);
 	sx_begin(&e->xm, &t->t, 0);
+	so_dbbind(e);
 	so_objindex_register(&e->tx, &t->o);
 	return &t->o;
 }

@@ -172,6 +172,10 @@ ddl_open_online0(stc *cx srunused)
 	sp_set(o, "key", &key, sizeof(key));
 	t( sp_set(s0, o) == 0 );
 	t( sp_destroy(s0) == 0 );
+	t( sp_destroy(s0) == 0 ); /* shutdown */
+#if 0
+	t( sp_set(c, "scheduler.run") == 1 ); /* proceed shutdown */
+#endif
 
 	t( sp_set(c, "db", "s0") == 0 );
 	t( sp_set(c, "db.s0.path", "dir0") == 0 );

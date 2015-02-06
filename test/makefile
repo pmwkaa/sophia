@@ -25,6 +25,7 @@ OBJECTS = st.o \
           error.test.o \
           method.test.o \
           repository.test.o \
+          shutdown.test.o \
           ddl.test.o \
           snapshot.test.o \
           gc.test.o \

@@ -103,6 +103,9 @@ so_destroy(soobj *o, va_list args srunused)
 	rc = so_objindex_destroy(&e->db);
 	if (srunlikely(rc == -1))
 		rcret = -1;
+	rc = so_objindex_destroy(&e->db_shutdown);
+	if (srunlikely(rc == -1))
+		rcret = -1;
 	rc = sl_poolshutdown(&e->lp);
 	if (srunlikely(rc == -1))
 		rcret = -1;
@@ -113,6 +116,7 @@ so_destroy(soobj *o, va_list args srunused)
 	so_ctlfree(&e->ctl);
 	sr_quotafree(&e->quota);
 	sr_mutexfree(&e->apilock);
+	sr_spinlockfree(&e->dblock);
 	sr_seqfree(&e->seq);
 	sr_pagerfree(&e->pager);
 	so_statusfree(&e->status);
@@ -187,10 +191,12 @@ soobj *so_new(void)
 	so_statusset(&e->status, SO_OFFLINE);
 	so_ctlinit(&e->ctl, e);
 	so_objindex_init(&e->db);
+	so_objindex_init(&e->db_shutdown);
 	so_objindex_init(&e->tx);
 	so_objindex_init(&e->snapshot);
 	so_objindex_init(&e->ctlcursor);
 	sr_mutexinit(&e->apilock);
+	sr_spinlockinit(&e->dblock);
 	sr_quotainit(&e->quota);
 	sr_seqinit(&e->seq);
 	sr_errorinit(&e->error);

@@ -34,7 +34,9 @@ so_snapshotdestroy(soobj *o, va_list args srunused)
 {
 	sosnapshot *s = (sosnapshot*)o;
 	so *e = so_of(o);
+	uint32_t id = s->t.id;
 	so_objindex_unregister(&e->snapshot, &s->o);
+	so_dbunbind(e, id);
 	so_snapshotfree(s);
 	return 0;
 }
@@ -123,13 +125,16 @@ soobj *so_snapshotnew(so *e, uint64_t vlsn, char *name)
 		return NULL;
 	}
 	sx_begin(&e->xm, &s->t, vlsn);
+	so_dbbind(e);
 	return &s->o;
 }
 
 int so_snapshotupdate(sosnapshot *s)
 {
 	so *e = so_of(&s->o);
+	uint32_t id = s->t.id;
 	sx_end(&s->t);
 	sx_begin(&e->xm, &s->t, s->vlsn);
+	s->t.id = id;
 	return 0;
 }

@@ -209,6 +209,7 @@ so_ctlcompaction(so *e, soctlrt *rt srunused, src **pc)
 		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "branch_age_wm",     SR_CU32, &z->branch_age_wm));
 		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "backup_prio",       SR_CU32, &z->backup_prio));
 		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "gc_wm",             SR_CU32, &z->gc_wm));
+		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "gc_db_prio",        SR_CU32, &z->gc_db_prio));
 		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "gc_prio",           SR_CU32, &z->gc_prio));
 		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "gc_period",         SR_CU32, &z->gc_period));
 		sr_clink(&prev, sr_c(pc, NULL, z->name, SR_CC, zone));
@@ -397,7 +398,9 @@ so_ctldb_get(src *c, srcstmt *s, va_list args srunused)
 		return -1;
 	}
 	assert(c->ptr != NULL);
-	*s->result = c->ptr;
+	sodb *db = c->ptr;
+	so_dbref(db, 0);
+	*s->result = db;
 	return 0;
 }
 
@@ -841,6 +844,7 @@ void so_ctlinit(soctl *c, void *e)
 		.branch_age_period = 40,
 		.branch_age_wm = 1 * 1024 * 1024,
 		.backup_prio   = 1,
+		.gc_db_prio    = 1,
 		.gc_prio       = 1,
 		.gc_period     = 60,
 		.gc_wm         = 30
@@ -855,6 +859,7 @@ void so_ctlinit(soctl *c, void *e)
 		.branch_age_period = 0,
 		.branch_age_wm = 0,
 		.backup_prio   = 0,
+		.gc_db_prio    = 0,
 		.gc_prio       = 0,
 		.gc_period     = 0,
 		.gc_wm         = 0

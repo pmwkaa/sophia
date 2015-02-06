@@ -23,6 +23,7 @@ struct sizone {
 	uint32_t branch_age_period;
 	uint32_t branch_age_wm;
 	uint32_t backup_prio;
+	uint32_t gc_db_prio;
 	uint32_t gc_prio;
 	uint32_t gc_period;
 	uint32_t gc_wm;

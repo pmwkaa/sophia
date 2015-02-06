@@ -25,6 +25,7 @@ int si_init(si *i, sr *r, srquota *q)
 	i->update_time = 0;
 	i->read_disk   = 0;
 	i->read_cache  = 0;
+	i->destroyed   = 0;
 	return 0;
 }
 
@@ -39,12 +40,16 @@ sr_rbtruncate(si_truncate,
 
 int si_close(si *i, sr *r)
 {
+	if (i->destroyed)
+		return 0;
 	int rcret = 0;
 	if (i->i.root)
 		si_truncate(i->i.root, r);
 	i->i.root = NULL;
+	si_plannerfree(&i->p, r->a);
 	sr_condfree(&i->cond);
 	sr_mutexfree(&i->lock);
+	i->destroyed = 1;
 	return rcret;
 }
 
@@ -88,7 +93,6 @@ int si_plan(si *i, siplan *plan)
 
 int si_execute(si *i, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 {
-	assert(plan->node != NULL);
 	int rc = -1;
 	switch (plan->plan) {
 	case SI_CHECKPOINT:
@@ -102,6 +106,10 @@ int si_execute(si *i, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 		break;
 	case SI_BACKUP:
 		rc = si_backup(i, r, c, plan);
+		break;
+	case SI_SHUTDOWN:
+	case SI_DROP:
+		rc = si_close(i, r);
 		break;
 	}
 	return rc;

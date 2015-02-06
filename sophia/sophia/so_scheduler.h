@@ -38,6 +38,7 @@ struct soscheduler {
 	uint32_t workers_backup;
 	uint32_t workers_branch;
 	uint32_t workers_gc;
+	uint32_t workers_gc_db;
 	int rotate;
 	int rr;
 	void **i;

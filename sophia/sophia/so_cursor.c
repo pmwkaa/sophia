@@ -54,6 +54,7 @@ so_cursordestroy(soobj *o, va_list args srunused)
 {
 	socursor *c = (socursor*)o;
 	so *e = so_of(o);
+	uint32_t id = c->t.id;
 	sx_end(&c->t);
 	si_cachefree(&c->cache, &c->db->r);
 	if (c->key) {
@@ -62,6 +63,7 @@ so_cursordestroy(soobj *o, va_list args srunused)
 	}
 	so_vrelease(&c->v);
 	so_objindex_unregister(&c->db->cursor, &c->o);
+	so_dbunbind(e, id);
 	sr_free(&e->a_cursor, c);
 	return 0;
 }
@@ -162,6 +164,7 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 	if (rc == 1)
 		c->ready = 1;
 
+	so_dbbind(e);
 	so_objindex_register(&db->cursor, &c->o);
 	return &c->o;
 error:

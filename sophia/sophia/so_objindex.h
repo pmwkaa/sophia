@@ -54,4 +54,11 @@ so_objindex_unregister(soobjindex *i, soobj *o)
 	i->n--;
 }
 
+static inline soobj*
+so_objindex_first(soobjindex *i)
+{
+	assert(i->n > 0);
+	return srcast(i->list.next, soobj, link);
+}
+
 #endif

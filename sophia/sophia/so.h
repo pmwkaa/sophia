@@ -14,7 +14,9 @@ typedef struct so so;
 struct so {
 	soobj o;
 	srmutex apilock;
+	srspinlock dblock;
 	soobjindex db;
+	soobjindex db_shutdown;
 	soobjindex tx;
 	soobjindex snapshot;
 	soobjindex ctlcursor;

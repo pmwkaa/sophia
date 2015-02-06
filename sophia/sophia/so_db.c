@@ -29,6 +29,7 @@ so_dbctl_init(sodbctl *c, char *name, void *db)
 	}
 	c->parent  = db;
 	c->created = 0;
+	c->dropped = 0;
 	c->sync    = 1;
 	sr_cmpset(&c->cmp, "string");
 	return 0;
@@ -39,8 +40,6 @@ so_dbctl_free(sodbctl *c)
 {
 	sodb *o = c->parent;
 	so *e = so_of(&o->o);
-	if (so_dbactive(o))
-		return -1;
 	if (c->name) {
 		sr_free(&e->a, c->name);
 		c->name = NULL;
@@ -102,12 +101,44 @@ so_dbdestroy(soobj *obj, va_list args srunused)
 {
 	sodb *o = (sodb*)obj;
 	so *e = so_of(&o->o);
-	so_statusset(&o->status, SO_SHUTDOWN);
+
 	int rcret = 0;
 	int rc;
-	rc = so_scheduler_del(&e->sched, o);
-	if (srunlikely(rc == -1))
-		rcret = -1;
+	int status = so_status(&e->status);
+	if (status == SO_SHUTDOWN)
+		goto shutdown;
+
+	uint32_t ref;
+	status = so_status(&o->status);
+	switch (status) {
+	case SO_MALFUNCTION:
+	case SO_ONLINE:
+		ref = so_dbunref(o, 0);
+		if (ref > 0)
+			return 0;
+		/* set last visible transaction id */
+		o->txn_max = sx_max(&e->xm);
+		rc = so_scheduler_del(&e->sched, o);
+		if (srunlikely(rc == -1))
+			return -1;
+		so_objindex_unregister(&e->db, &o->o);
+		sr_spinlock(&e->dblock);
+		so_objindex_register(&e->db_shutdown, &o->o);
+		sr_spinunlock(&e->dblock);
+		so_statusset(&o->status, SO_SHUTDOWN);
+		return 0;
+	case SO_SHUTDOWN:
+		/* this intended to be called from a
+		 * background gc task */
+		assert(so_dbrefof(o, 0) == 0);
+		ref = so_dbrefof(o, 1);
+		if (ref > 0)
+			return 0;
+		break;
+	default: break; /* recover, offline */
+	}
+
+shutdown:;
 	rc = so_objindex_destroy(&o->cursor);
 	if (srunlikely(rc == -1))
 		rcret = -1;
@@ -118,7 +149,7 @@ so_dbdestroy(soobj *obj, va_list args srunused)
 	so_dbctl_free(&o->ctl);
 	sd_cfree(&o->dc, &o->r);
 	so_statusfree(&o->status);
-	so_objindex_unregister(&e->db, &o->o);
+	sr_spinlockfree(&o->reflock);
 	sr_free(&e->a_db, o);
 	return rcret;
 }
@@ -219,6 +250,11 @@ soobj *so_dbnew(so *e, char *name)
 	}
 	o->ctl.id = sr_seq(&e->seq, SR_DSNNEXT);
 	sx_indexinit(&o->coindex, o);
+	sr_spinlockinit(&o->reflock);
+	o->ref_be = 0;
+	o->ref = 0;
+	o->txn_min = sx_min(&e->xm);
+	o->txn_max = o->txn_min;
 	sd_cinit(&o->dc, &o->r);
 	return &o->o;
 }
@@ -243,6 +279,85 @@ soobj *so_dbmatch_id(so *e, uint32_t id)
 			return &db->o;
 	}
 	return NULL;
+}
+
+void so_dbref(sodb *o, int be)
+{
+	sr_spinlock(&o->reflock);
+	if (be)
+		o->ref_be++;
+	else
+		o->ref++;
+	sr_spinunlock(&o->reflock);
+}
+
+uint32_t so_dbunref(sodb *o, int be)
+{
+	uint32_t prev_ref = 0;
+	sr_spinlock(&o->reflock);
+	if (be) {
+		prev_ref = o->ref_be;
+		if (o->ref_be > 0)
+			o->ref_be--;
+	} else {
+		prev_ref = o->ref;
+		if (o->ref > 0)
+			o->ref--;
+	}
+	sr_spinunlock(&o->reflock);
+	return prev_ref;
+}
+
+uint32_t so_dbrefof(sodb *o, int be)
+{
+	uint32_t ref = 0;
+	sr_spinlock(&o->reflock);
+	if (be)
+		ref = o->ref_be;
+	else
+		ref = o->ref;
+	sr_spinunlock(&o->reflock);
+	return ref;
+}
+
+int so_dbgarbage(sodb *o)
+{
+	sr_spinlock(&o->reflock);
+	int v = o->ref_be == 0 && o->ref == 0;
+	sr_spinunlock(&o->reflock);
+	return v;
+}
+
+void so_dbbind(so *o)
+{
+	srlist *i;
+	sr_listforeach(&o->db.list, i) {
+		sodb *db = (sodb*)srcast(i, soobj, link);
+		int status = so_status(&db->status);
+		if (status == SO_ONLINE)
+			so_dbref(db, 1);
+	}
+}
+
+void so_dbunbind(so *o, uint32_t txn)
+{
+	srlist *i;
+	sr_listforeach(&o->db.list, i) {
+		sodb *db = (sodb*)srcast(i, soobj, link);
+		int status = so_status(&db->status);
+		if (status != SO_ONLINE)
+			continue;
+		if (txn > db->txn_min)
+			so_dbunref(db, 1);
+	}
+
+	sr_spinlock(&o->dblock);
+	sr_listforeach(&o->db_shutdown.list, i) {
+		sodb *db = (sodb*)srcast(i, soobj, link);
+		if (db->txn_min < txn && txn <= db->txn_max)
+			so_dbunref(db, 1);
+	}
+	sr_spinunlock(&o->dblock);
 }
 
 int so_dbmalfunction(sodb *o)
