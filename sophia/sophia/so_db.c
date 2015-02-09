@@ -16,12 +16,54 @@
 #include <libse.h>
 #include <libso.h>
 
+static void*
+so_dbctlget(soobj *obj, va_list args)
+{
+	sodbctl *ctl = (sodbctl*)obj;
+	src c;
+	memset(&c, 0, sizeof(c));
+	char *name = va_arg(args, char*);
+	if (strcmp(name, "name") == 0) {
+		c.name  = "name";
+		c.flags = SR_CSZREF|SR_CRO;
+		c.value = &ctl->name;
+	} else
+	if (strcmp(name, "id") == 0) {
+		c.name  = "id";
+		c.flags = SR_CU32|SR_CRO;
+		c.value = &ctl->id;
+	} else {
+		return NULL;
+	}
+	sodb *db = ctl->parent;
+	return so_ctlreturn(&c, so_of(&db->o));
+}
+
+static soobjif sodbctlif =
+{
+	.ctl      = NULL,
+	.open     = NULL,
+	.destroy  = NULL,
+	.error    = NULL,
+	.set      = NULL,
+	.get      = so_dbctlget,
+	.del      = NULL,
+	.drop     = NULL,
+	.begin    = NULL,
+	.prepare  = NULL,
+	.commit   = NULL,
+	.cursor   = NULL,
+	.object   = NULL,
+	.type     = NULL
+};
+
 static int
 so_dbctl_init(sodbctl *c, char *name, void *db)
 {
 	memset(c, 0, sizeof(*c));
 	sodb *o = db;
 	so *e = so_of(&o->o);
+	so_objinit(&c->o, SODBCTL, &sodbctlif, &e->o);
 	c->name = sr_strdup(&e->a, name);
 	if (srunlikely(c->name == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");
@@ -66,6 +108,13 @@ so_dbctl_validate(sodbctl *c)
 		return -1;
 	}
 	return 0;
+}
+
+static void*
+so_dbctl(soobj *obj, va_list args srunused)
+{
+	sodb *o = (sodb*)obj;
+	return &o->ctl.o;
 }
 
 static int
@@ -223,7 +272,7 @@ so_dbtype(soobj *o srunused, va_list args srunused) {
 
 static soobjif sodbif =
 {
-	.ctl      = NULL,
+	.ctl      = so_dbctl,
 	.open     = so_dbopen,
 	.destroy  = so_dbdestroy,
 	.error    = so_dberror,

@@ -13,6 +13,7 @@ typedef struct sodbctl sodbctl;
 typedef struct sodb sodb;
 
 struct sodbctl {
+	soobj         o;
 	void         *parent;
 	char         *name;
 	uint32_t      id;
