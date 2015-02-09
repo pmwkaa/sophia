@@ -108,8 +108,10 @@ int si_execute(si *i, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 		rc = si_backup(i, r, c, plan);
 		break;
 	case SI_SHUTDOWN:
-	case SI_DROP:
 		rc = si_close(i, r);
+		break;
+	case SI_DROP:
+		rc = si_drop(i, r);
 		break;
 	}
 	return rc;

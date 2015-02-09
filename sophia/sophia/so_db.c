@@ -155,6 +155,22 @@ shutdown:;
 }
 
 static int
+so_dbdrop(soobj *obj, va_list args srunused)
+{
+	sodb *o = (sodb*)obj;
+	int status = so_status(&o->status);
+	if (status != SO_ONLINE)
+		return -1;
+	if (srunlikely(o->ctl.dropped))
+		return 0;
+	int rc = si_dropmark(&o->index, &o->r);
+	if (srunlikely(rc == -1))
+		return -1;
+	o->ctl.dropped = 1;
+	return 0;
+}
+
+static int
 so_dberror(soobj *obj, va_list args srunused)
 {
 	sodb *o = (sodb*)obj;
@@ -214,7 +230,7 @@ static soobjif sodbif =
 	.set      = so_dbset,
 	.get      = so_dbget,
 	.del      = so_dbdel,
-	.drop     = NULL,
+	.drop     = so_dbdrop,
 	.begin    = NULL,
 	.prepare  = NULL,
 	.commit   = NULL,

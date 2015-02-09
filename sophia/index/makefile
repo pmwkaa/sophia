@@ -6,6 +6,7 @@ LIBSI_O = si_node.o \
           si_iter.o \
           si_balance.o \
           si_compaction.o \
+          si_drop.o \
           si_backup.o \
           si_profiler.o \
           si_recover.o
