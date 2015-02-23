@@ -28,6 +28,7 @@
 #include <sr_cmp.h>
 #include <sr_buf.h>
 #include <sr_injection.h>
+#include <sr_crc.h>
 #include <sr.h>
 #include <sr_c.h>
 #include <sr_iter.h>
@@ -36,7 +37,6 @@
 #include <sr_cond.h>
 #include <sr_thread.h>
 #include <sr_quota.h>
-#include <sr_crc.h>
 #include <sr_rb.h>
 #include <sr_rq.h>
 #include <sr_path.h>

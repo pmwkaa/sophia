@@ -39,7 +39,8 @@ sditer_gt0(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, &ij);
+	srcrcf crc = sr_crc32c_function();
+	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc);
 
 	sdindex index;
 	sd_indexinit(&index);
@@ -82,7 +83,7 @@ sditer_gt0(stc *cx srunused)
 	memset(&id, 0, sizeof(id));
 	sd_buildcommit(&b);
 
-	t( sd_indexcommit(&index, &id) == 0 );
+	t( sd_indexcommit(&index, &r, &id) == 0 );
 
 	srfile f;
 	sr_fileinit(&f, &a);
@@ -132,7 +133,8 @@ sditer_gt1(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, &ij);
+	srcrcf crc = sr_crc32c_function();
+	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc);
 
 	sdindex index;
 	sd_indexinit(&index);
@@ -233,7 +235,7 @@ sditer_gt1(stc *cx srunused)
 
 	sdid id;
 	memset(&id, 0, sizeof(id));
-	t( sd_indexcommit(&index, &id) == 0 );
+	t( sd_indexcommit(&index, &r, &id) == 0 );
 
 	srfile f;
 	sr_fileinit(&f, &a);

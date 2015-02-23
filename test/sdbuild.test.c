@@ -39,7 +39,8 @@ sdbuild_empty(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, &ij);
+	srcrcf crc = sr_crc32c_function();
+	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc);
 
 	sdbuild b;
 	sd_buildinit(&b, &r);
@@ -62,7 +63,8 @@ sdbuild_page0(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, &ij);
+	srcrcf crc = sr_crc32c_function();
+	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc);
 
 	sdbuild b;
 	sd_buildinit(&b, &r);
@@ -92,7 +94,8 @@ sdbuild_page1(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, &ij);
+	srcrcf crc = sr_crc32c_function();
+	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc);
 
 	sdbuild b;
 	sd_buildinit(&b, &r);

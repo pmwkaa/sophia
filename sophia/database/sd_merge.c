@@ -114,6 +114,6 @@ int sd_merge(sdmerge *m)
 
 int sd_mergecommit(sdmerge *m, sdid *id)
 {
-	sd_indexcommit(&m->index, id);
+	sd_indexcommit(&m->index, m->r, id);
 	return 0;
 }

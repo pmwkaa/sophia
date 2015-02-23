@@ -81,7 +81,7 @@ sinode *si_bootstrap(si *i, sr *r, uint32_t parent)
 		return NULL;
 	}
 	sd_buildcommit(&build);
-	sd_indexcommit(&index, &id);
+	sd_indexcommit(&index, r, &id);
 	rc = si_nodecreate(n, r, i->conf, &id, &index, &build);
 	sd_buildfree(&build);
 	if (srunlikely(rc == -1)) {

@@ -305,7 +305,8 @@ static const uint32_t crc_tableil8_o88[256] =
 	0xE54C35A1, 0xAC704886, 0x7734CFEF, 0x3E08B2C8, 0xC451B7CC, 0x8D6DCAEB, 0x56294D82, 0x1F1530A5
 };
 
-uint32_t sr_crc32c(uint32_t crc, const void *buf, int len)
+static uint32_t
+sr_crc32c_sw(uint32_t crc, const void *buf, int len)
 {
 	const char *p_buf = (const char*)buf;
 
@@ -341,4 +342,73 @@ uint32_t sr_crc32c(uint32_t crc, const void *buf, int len)
     for (li = 0; li < end_bytes; li++)
         crc = crc_tableil8_o32[(crc ^ *p_buf++) & 0x000000FF] ^ (crc >> 8);
     return crc;
+}
+
+#if defined (__x86_64__) || defined (__i386__)
+/*
+ * Using hardware provided CRC32 instruction to accelerate the CRC32 disposal.
+ *
+ * CRC32 is a new instruction in Intel SSE4.2, the reference can be found at:
+ * http://www.intel.com/products/processor/manuals/
+ * Intel(R) 64 and IA-32 Architectures Software Developer's Manual
+ * Volume 2A: Instruction Set Reference, A-M
+*/
+#if defined (__x86_64__)
+	#define REX_PRE "0x48, "
+#elif defined (__i386__)
+	#define REX_PRE
+#endif
+
+static uint32_t
+sr_crc32c_hw_byte(uint32_t crc, unsigned char const *data, unsigned int length)
+{
+	while (length--) {
+		__asm__ __volatile__(
+			".byte 0xf2, 0xf, 0x38, 0xf0, 0xf1"
+			:"=S"(crc)
+			:"0"(crc), "c"(*data)
+		);
+		data++;
+	}
+	return crc;
+}
+
+static uint32_t
+sr_crc32c_hw(uint32_t crc, const void *buf, int len)
+{
+	unsigned int iquotient = len / sizeof(unsigned long);
+	unsigned int iremainder = len % sizeof(unsigned long);
+	unsigned long *ptmp = (unsigned long *)buf;
+	while (iquotient--) {
+		__asm__ __volatile__(
+			".byte 0xf2, " REX_PRE "0xf, 0x38, 0xf1, 0xf1;"
+			:"=S"(crc)
+			:"0"(crc), "c"(*ptmp)
+		);
+		ptmp++;
+	}
+	if (iremainder) {
+		crc = sr_crc32c_hw_byte(crc, (unsigned char const*)ptmp, iremainder);
+	}
+	return crc;
+}
+#undef REX_PRE
+
+static int
+sr_crc32c_hw_enabled(void)
+{
+	unsigned int ax, bx, cx, dx;
+	if (__get_cpuid(1, &ax, &bx, &cx, &dx) == 0)
+		return 0;
+	return (cx & (1 << 20)) != 0;
+}
+#endif
+
+srcrcf sr_crc32c_function(void)
+{
+#if defined (__x86_64__) || defined (__i386__)
+	if (sr_crc32c_hw_enabled())
+		return sr_crc32c_hw;
+#endif
+	return sr_crc32c_sw;
 }

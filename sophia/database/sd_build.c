@@ -63,8 +63,8 @@ int sd_buildadd(sdbuild *b, sv *v, uint32_t flags)
 	sr_bufadvance(&b->v, sv->valuesize);
 	sr_bufadvance(&b->k, sizeof(sdv));
 	uint32_t crc;
-	crc = sr_crcp(data, sv->keysize + sv->valuesize, 0);
-	crc = sr_crcs(sv, sizeof(sdv), crc);
+	crc = sr_crcp(b->r->crc, data, sv->keysize + sv->valuesize, 0);
+	crc = sr_crcs(b->r->crc, sv, sizeof(sdv), crc);
 	sv->crc = crc;
 	/* update page header */
 	h->count++;
@@ -84,7 +84,7 @@ int sd_buildadd(sdbuild *b, sv *v, uint32_t flags)
 int sd_buildend(sdbuild *b)
 {
 	sdpageheader *h = sd_buildheader(b);
-	h->crc = sr_crcs(h, sizeof(sdpageheader), 0);
+	h->crc = sr_crcs(b->r->crc, h, sizeof(sdpageheader), 0);
 	sdbuildref *ref = sd_buildref(b);
 	ref->ksize = sr_bufused(&b->k) - ref->k;
 	ref->vsize = sr_bufused(&b->v) - ref->v;
@@ -143,7 +143,7 @@ sd_buildiov(sdbuildiov *i, sriov *iov)
 int sd_buildwrite(sdbuild *b, sdindex *index, srfile *file)
 {
 	sdseal seal;
-	sd_seal(&seal, index->h);
+	sd_seal(&seal, b->r, index->h);
 	struct iovec iovv[1024];
 	sriov iov;
 	sr_iovinit(&iov, iovv, 1024);

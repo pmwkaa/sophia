@@ -43,7 +43,7 @@ sd_recovernext_of(sriter *i, sdindexheader *next)
 		return 0;
 	}
 	/* validate crc */
-	uint32_t crc = sr_crcs(next, sizeof(sdindexheader), 0);
+	uint32_t crc = sr_crcs(i->r->crc, next, sizeof(sdindexheader), 0);
 	if (next->crc != crc) {
 		sr_malfunction(i->r->e, "corrupted db file '%s': bad index crc",
 		               ri->file->file);
@@ -68,7 +68,7 @@ sd_recovernext_of(sriter *i, sdindexheader *next)
 	}
 	/* check seal */
 	sdseal *s = (sdseal*)(end - sizeof(sdseal));
-	int rc = sd_sealvalidate(s, next);
+	int rc = sd_sealvalidate(s, i->r, next);
 	if (srunlikely(rc == -1)) {
 		sr_malfunction(i->r->e, "corrupted db file '%s': bad seal",
 		               ri->file->file);

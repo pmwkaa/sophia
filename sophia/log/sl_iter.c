@@ -74,11 +74,11 @@ sl_iternext_of(sriter *i, slv *next, int validate)
 	{
 		uint32_t crc = 0;
 		if (! (next->flags & SVBEGIN)) {
-			crc = sr_crcp(start + sizeof(slv), next->keysize, 0);
-			crc = sr_crcp(start + sizeof(slv) + next->keysize,
+			crc = sr_crcp(i->r->crc, start + sizeof(slv), next->keysize, 0);
+			crc = sr_crcp(i->r->crc, start + sizeof(slv) + next->keysize,
 			              next->valuesize, crc);
 		}
-		crc = sr_crcs(start, sizeof(slv), crc);
+		crc = sr_crcs(i->r->crc, start, sizeof(slv), crc);
 		if (srunlikely(crc != next->crc)) {
 			sr_malfunction(i->r->e, "corrupted log file '%s': bad record crc",
 			               li->log->file);

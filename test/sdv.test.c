@@ -39,7 +39,8 @@ sdv_test(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, &ij);
+	srcrcf crc = sr_crc32c_function();
+	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc);
 
 	sdbuild b;
 	sd_buildinit(&b, &r);

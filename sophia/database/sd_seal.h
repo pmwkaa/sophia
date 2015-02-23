@@ -18,17 +18,17 @@ struct sdseal {
 } srpacked;
 
 static inline void
-sd_seal(sdseal *s, sdindexheader *h)
+sd_seal(sdseal *s, sr *r, sdindexheader *h)
 {
 	s->index_crc = h->crc;
 	s->index_offset = h->offset;
-	s->crc = sr_crcs(s, sizeof(sdseal), 0);
+	s->crc = sr_crcs(r->crc, s, sizeof(sdseal), 0);
 }
 
 static inline int
-sd_sealvalidate(sdseal *s, sdindexheader *h)
+sd_sealvalidate(sdseal *s, sr *r, sdindexheader *h)
 {
-	uint32_t crc = sr_crcs(s, sizeof(sdseal), 0);
+	uint32_t crc = sr_crcs(r->crc, s, sizeof(sdseal), 0);
 	if (srunlikely(s->crc != crc))
 		return -1;
 	if (srunlikely(h->crc != s->index_crc))

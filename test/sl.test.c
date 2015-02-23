@@ -58,7 +58,8 @@ sl_begin_commit(stc *cx)
 	sr r;
 	srerror error;
 	sr_errorinit(&error);
-	sr_init(&r, &error, &a, &seq, &cmp, NULL);
+	srcrcf crc = sr_crc32c_function();
+	sr_init(&r, &error, &a, &seq, &cmp, NULL, crc);
 	slconf conf = {
 		.path     = cx->suite->logdir,
 		.enable   = 1,
@@ -94,7 +95,8 @@ sl_begin_rollback(stc *cx)
 	sr r;
 	srerror error;
 	sr_errorinit(&error);
-	sr_init(&r, &error, &a, &seq, &cmp, NULL);
+	srcrcf crc = sr_crc32c_function();
+	sr_init(&r, &error, &a, &seq, &cmp, NULL, crc);
 	slconf conf = {
 		.path     = cx->suite->logdir,
 		.enable   = 1,

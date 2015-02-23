@@ -37,11 +37,11 @@ int sd_indexbegin(sdindex *i, sr *r, uint32_t keysize, uint64_t offset)
 	return 0;
 }
 
-int sd_indexcommit(sdindex *i, sdid *id)
+int sd_indexcommit(sdindex *i, sr *r, sdid *id)
 {
 	i->h      = sd_indexheader(i);
 	i->h->id  = *id;
-	i->h->crc = sr_crcs(i->h, sizeof(sdindexheader), 0);
+	i->h->crc = sr_crcs(r->crc, i->h, sizeof(sdindexheader), 0);
 	return 0;
 }
 
