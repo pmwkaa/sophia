@@ -399,7 +399,7 @@ void so_dbbind(so *o)
 	sr_listforeach(&o->db.list, i) {
 		sodb *db = (sodb*)srcast(i, soobj, link);
 		int status = so_status(&db->status);
-		if (status == SO_ONLINE)
+		if (so_statusactive_is(status))
 			so_dbref(db, 1);
 	}
 }
