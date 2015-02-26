@@ -156,6 +156,6 @@ soobj *so_ctlcursor_new(void *o)
 		so_objdestroy(&c->o);
 		return NULL;
 	}
-	so_objindex_unregister(&e->ctlcursor, &c->o);
+	so_objindex_register(&e->ctlcursor, &c->o);
 	return &c->o;
 }
