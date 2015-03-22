@@ -67,6 +67,16 @@ srcmp_unknown(stc *cx srunused)
 	t( sr_cmpset(&cmp, "unknown") == -1 );
 }
 
+static void
+srcmp_prefix(stc *cx srunused)
+{
+	srcomparator cmp;
+	t( sr_cmpset(&cmp, "string") == 0 );
+	t( sr_cmpset_prefix(&cmp, "string_prefix") == 0 );
+	t( sr_compareprefix(&cmp, "test", 4, "te", 2) == 0 );
+	t( sr_compareprefix(&cmp, "testt", 5, "test", 4) == 0 );
+}
+
 stgroup *srcmp_group(void)
 {
 	stgroup *group = st_group("srcmp");
@@ -74,5 +84,6 @@ stgroup *srcmp_group(void)
 	st_groupadd(group, st_test("string", srcmp_string));
 	st_groupadd(group, st_test("pointer", srcmp_pointer));
 	st_groupadd(group, st_test("unknown", srcmp_unknown));
+	st_groupadd(group, st_test("prefix", srcmp_prefix));
 	return group;
 }

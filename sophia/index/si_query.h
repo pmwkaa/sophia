@@ -13,8 +13,10 @@ typedef struct siquery siquery;
 
 struct siquery {
 	srorder order;
+	void *prefix;
 	void *key;
 	uint32_t keysize;
+	uint32_t prefixsize;
 	uint64_t vlsn;
 	svmerge merge;
 	sv result;
@@ -24,6 +26,7 @@ struct siquery {
 };
 
 int si_queryopen(siquery*, sr*, sicache*, si*, srorder, uint64_t,
+                 void*, uint32_t,
                  void*, uint32_t);
 int si_queryclose(siquery*);
 int si_querydup(siquery*, sv*);

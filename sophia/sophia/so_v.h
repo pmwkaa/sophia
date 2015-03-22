@@ -21,6 +21,8 @@ struct sov {
 	svlocal lv;
 	sv v;
 	srorder order;
+	uint16_t prefixsize;
+	void *prefix;
 	void *log;
 	soobj *parent;
 } srpacked;

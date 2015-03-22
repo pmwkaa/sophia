@@ -14,6 +14,7 @@
 
 int si_queryopen(siquery *q, sr *r, sicache *c, si *i, srorder o,
                  uint64_t vlsn,
+                 void *prefix, uint32_t prefixsize,
                  void *key, uint32_t keysize)
 {
 	q->order   = o;
@@ -23,6 +24,8 @@ int si_queryopen(siquery *q, sr *r, sicache *c, si *i, srorder o,
 	q->index   = i;
 	q->r       = r;
 	q->cache   = c;
+	q->prefix  = prefix;
+	q->prefixsize = prefixsize;
 	memset(&q->result, 0, sizeof(q->result));
 	sv_mergeinit(&q->merge);
 	si_lock(q->index);
@@ -44,8 +47,14 @@ si_qresult(siquery *q, sriter *i)
 		return 0;
 	if (srunlikely(svflags(v) & SVDELETE))
 		return 2;
+	int rc = 1;
+	if (q->prefix) {
+		rc = sr_compareprefix(q->r->cmp, q->prefix, q->prefixsize,
+		                      svkey(v),
+		                      svkeysize(v));
+	}
 	q->result = *v;
-	return 1;
+	return rc;
 }
 
 static inline int
@@ -252,11 +261,19 @@ next_node:
 		sr_iternext(&i);
 		goto next_node;
 	}
+
+	/* do prefix search */
+	rc = 1;
+	if (q->prefix) {
+		rc = sr_compareprefix(q->r->cmp, q->prefix, q->prefixsize,
+		                      svkey(v),
+		                      svkeysize(v));
+	}
 	q->result = *v;
 
 	/* skip a possible duplicates from data sources */
 	sr_iternext(&k);
-	return 1;
+	return rc;
 }
 
 int si_query(siquery *q)

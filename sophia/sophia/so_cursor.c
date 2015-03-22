@@ -28,9 +28,11 @@ so_cursorobj(soobj *obj, va_list args srunused)
 static inline int
 so_cursorseek(socursor *c, void *key, int keysize)
 {
+	sov *pref = (sov*)c->key;
 	siquery q;
 	si_queryopen(&q, &c->db->r, &c->cache,
 	             &c->db->index, c->order, c->t.vlsn,
+	             pref->prefix, pref->prefixsize,
 	             key, keysize);
 	int rc = si_query(&q);
 	so_vrelease(&c->v);
@@ -138,8 +140,10 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 	/* open cursor */
 	void *key = svkey(&o->v);
 	uint32_t keysize = svkeysize(&o->v);
-	if (keysize == 0)
-		key = NULL;
+	if (keysize == 0) {
+		key = o->prefix;
+		keysize = o->prefixsize;
+	}
 	sx_begin(&e->xm, &c->t, vlsn);
 	int rc = so_cursorseek(c, key, keysize);
 	if (srunlikely(rc == -1)) {

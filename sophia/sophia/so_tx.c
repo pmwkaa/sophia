@@ -135,7 +135,8 @@ void *so_txdbget(sodb *db, uint64_t vlsn, va_list args)
 	si_cacheinit(&cache, &e->a_cursorcache);
 	siquery q;
 	si_queryopen(&q, &db->r, &cache, &db->index,
-	             SR_EQ, vlsn, key, keysize);
+	             SR_EQ, vlsn,
+	             NULL, 0, key, keysize);
 	sv result;
 	int rc = si_query(&q);
 	if (rc == 1) {
@@ -299,6 +300,7 @@ so_txget(soobj *obj, va_list args)
 	siquery q;
 	si_queryopen(&q, &db->r, &cache, &db->index,
 	             SR_EQ, t->t.vlsn,
+	             NULL, 0,
 	             key, svkeysize(&o->v));
 	rc = si_query(&q);
 	if (rc == 1) {
@@ -352,6 +354,7 @@ so_txprepare_trigger(sx *t, sv *v, void *arg0, void *arg1)
 	siquery q;
 	si_queryopen(&q, &db->r, &cache, &db->index,
 	             SR_UPDATE, t->vlsn,
+	             NULL, 0,
 	             svkey(v), svkeysize(v));
 	int rc;
 	rc = si_query(&q);

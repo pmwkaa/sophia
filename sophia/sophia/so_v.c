@@ -55,6 +55,15 @@ so_vset(soobj *obj, va_list args)
 		v->lv.valuesize = va_arg(args, int);
 		return 0;
 	} else
+	if (strcmp(name, "prefix") == 0) {
+		if (v->v.i != &sv_localif) {
+			sr_error(&e->error, "%s", "bad object operation");
+			return -1;
+		}
+		v->prefix = va_arg(args, char*);
+		v->prefixsize = va_arg(args, int);
+		return 0;
+	} else
 	if (strcmp(name, "log") == 0) {
 		v->log = va_arg(args, void*);
 		return 0;
@@ -95,6 +104,14 @@ so_vget(soobj *obj, va_list args)
 		if (valuesize)
 			*valuesize = svvaluesize(&v->v);
 		return value;
+	} else
+	if (strcmp(name, "prefix") == 0) {
+		if (srunlikely(v->prefix == NULL))
+			return NULL;
+		int *prefixsize = va_arg(args, int*);
+		if (prefixsize)
+			*prefixsize = v->prefixsize;
+		return v->prefix;
 	} else
 	if (strcmp(name, "lsn") == 0) {
 		uint64_t *lsnp = NULL;

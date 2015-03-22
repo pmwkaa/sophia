@@ -428,6 +428,29 @@ so_ctldb_cmp(src *c, srcstmt *s, va_list args)
 }
 
 static inline int
+so_ctldb_cmpprefix(src *c, srcstmt *s, va_list args)
+{
+	if (s->op != SR_CSET)
+		return so_ctlv(c, s, args);
+	sodb *db = c->value;
+	if (srunlikely(so_statusactive(&db->status))) {
+		sr_error(s->r->e, "write to %s is offline-only", s->path);
+		return -1;
+	}
+	char *v   = va_arg(args, char*);
+	char *arg = va_arg(args, char*);
+	int rc = sr_cmpset_prefix(&db->ctl.cmp, v);
+	if (srunlikely(rc == -1))
+		return -1;
+	if (arg) {
+		rc = sr_cmpset_prefixarg(&db->ctl.cmp, arg);
+		if (srunlikely(rc == -1))
+			return -1;
+	}
+	return 0;
+}
+
+static inline int
 so_ctldb_status(src *c, srcstmt *s, va_list args)
 {
 	sodb *db = c->value;
@@ -497,6 +520,7 @@ so_ctldb(so *e, soctlrt *rt srunused, src **pc)
 		src *index = *pc;
 		p = NULL;
 		sr_clink(&p, sr_c(pc, so_ctldb_cmp,    "cmp",              SR_CVOID,       o));
+		sr_clink(&p, sr_c(pc, so_ctldb_cmp,    "cmp_prefix",       SR_CVOID,       o));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "memory_used",      SR_CU64|SR_CRO, &o->ctl.rtp.memory_used));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "node_count",       SR_CU32|SR_CRO, &o->ctl.rtp.total_node_count));
 		sr_clink(&p, sr_c(pc, so_ctlv,         "node_size",        SR_CU64|SR_CRO, &o->ctl.rtp.total_node_size));
