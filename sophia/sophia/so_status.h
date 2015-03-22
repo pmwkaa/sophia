@@ -91,8 +91,8 @@ so_statusactive_is(int status) {
 	case SO_ONLINE:
 	case SO_RECOVER:
 		return 1;
-	case SO_OFFLINE:
 	case SO_SHUTDOWN:
+	case SO_OFFLINE:
 	case SO_MALFUNCTION:
 		return 0;
 	}
@@ -103,6 +103,11 @@ so_statusactive_is(int status) {
 static inline int
 so_statusactive(sostatus *s) {
 	return so_statusactive_is(so_status(s));
+}
+
+static inline int
+so_online(sostatus *s) {
+	return so_status(s) == SO_ONLINE;
 }
 
 #endif

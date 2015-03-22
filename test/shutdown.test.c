@@ -180,6 +180,128 @@ shutdown_transaction3(stc *cx srunused)
 }
 
 static void
+shutdown_transaction4(stc *cx srunused)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	void *c = sp_ctl(env);
+	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
+	t( sp_set(c, "scheduler.threads", "0") == 0 );
+	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
+	t( sp_open(env) == 0 );
+
+	void *a = sp_begin(env);
+	t( a != NULL );
+
+	t( sp_set(c, "db", "test") == 0 );
+	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	void *db = sp_get(c, "db.test");
+	t( db != NULL );
+	t( sp_open(db) == 0 );
+
+	sp_destroy(db); /* unref */
+	sp_destroy(db); /* schedule shutdown, unlink */
+
+	void *o = sp_object(db);
+	t( o != NULL );
+	uint32_t key = 7;
+	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_set(a, o) == -1 );
+
+	t( sp_set(c, "scheduler.run") == 1 );
+	t( sp_destroy(a) == 0 );
+	t( sp_set(c, "scheduler.run") == 0 );
+
+	t( sp_destroy(env) == 0 );
+}
+
+static void
+shutdown_transaction5(stc *cx srunused)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	void *c = sp_ctl(env);
+	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
+	t( sp_set(c, "scheduler.threads", "0") == 0 );
+	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
+	t( sp_open(env) == 0 );
+
+	t( sp_set(c, "db", "test") == 0 );
+	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	void *db = sp_get(c, "db.test");
+	t( db != NULL );
+	t( sp_open(db) == 0 );
+
+	void *a = sp_begin(env);
+	t( a != NULL );
+
+	sp_destroy(db); /* unref */
+	sp_destroy(db); /* schedule shutdown, unlink */
+
+	void *o = sp_object(db);
+	t( o != NULL );
+	uint32_t key = 7;
+	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_set(a, o) == 0 ); /* ok */
+
+	t( sp_set(c, "scheduler.run") == 0 );
+	t( sp_destroy(a) == 0 );
+	t( sp_set(c, "scheduler.run") == 1 );
+
+	t( sp_destroy(env) == 0 );
+}
+
+static void
+shutdown_transaction6(stc *cx srunused)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	void *c = sp_ctl(env);
+	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
+	t( sp_set(c, "scheduler.threads", "0") == 0 );
+	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
+	t( sp_open(env) == 0 );
+
+	t( sp_set(c, "db", "test") == 0 );
+	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	void *db = sp_get(c, "db.test");
+	t( db != NULL );
+	t( sp_open(db) == 0 );
+
+	void *a = sp_begin(env);
+	t( a != NULL );
+
+	sp_destroy(db); /* unref */
+	sp_destroy(db); /* schedule shutdown, unlink */
+
+	void *o = sp_object(db);
+	t( o != NULL );
+	uint32_t key = 7;
+	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_set(a, o) == 0 ); /* ok */
+
+	key = 8;
+	o = sp_object(db);
+	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_set(db, o) == -1 );
+
+	t( sp_set(c, "scheduler.run") == 0 );
+	t( sp_destroy(a) == 0 );
+	t( sp_set(c, "scheduler.run") == 1 );
+
+	t( sp_destroy(env) == 0 );
+}
+
+static void
 shutdown_cursor0(stc *cx srunused)
 {
 	void *env = sp_env();
@@ -346,6 +468,9 @@ stgroup *shutdown_group(void)
 	st_groupadd(group, st_test("transaction1", shutdown_transaction1));
 	st_groupadd(group, st_test("transaction2", shutdown_transaction2));
 	st_groupadd(group, st_test("transaction3", shutdown_transaction3));
+	st_groupadd(group, st_test("transaction4", shutdown_transaction4));
+	st_groupadd(group, st_test("transaction5", shutdown_transaction5));
+	st_groupadd(group, st_test("transaction6", shutdown_transaction6));
 	st_groupadd(group, st_test("cursor0", shutdown_cursor0));
 	st_groupadd(group, st_test("cursor1", shutdown_cursor1));
 	st_groupadd(group, st_test("snapshot0", shutdown_snapshot0));

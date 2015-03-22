@@ -393,6 +393,11 @@ int so_dbgarbage(sodb *o)
 	return v;
 }
 
+int so_dbvisible(sodb *db, uint32_t txn)
+{
+	return db->txn_min < txn && txn <= db->txn_max;
+}
+
 void so_dbbind(so *o)
 {
 	srlist *i;
@@ -419,7 +424,7 @@ void so_dbunbind(so *o, uint32_t txn)
 	sr_spinlock(&o->dblock);
 	sr_listforeach(&o->db_shutdown.list, i) {
 		sodb *db = (sodb*)srcast(i, soobj, link);
-		if (db->txn_min < txn && txn <= db->txn_max)
+		if (so_dbvisible(db, txn))
 			so_dbunref(db, 1);
 	}
 	sr_spinunlock(&o->dblock);

@@ -35,10 +35,7 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 		sr_error(&e->error, "%s", "bad object parent");
 		goto error;
 	}
-	int status = so_status(&db->status);
-	if (srunlikely(! so_statusactive_is(status)))
-		goto error;
-	if (srunlikely(status == SO_RECOVER))
+	if (srunlikely(! so_online(&db->status)))
 		goto error;
 
 	/* prepare object */
@@ -127,7 +124,7 @@ void *so_txdbget(sodb *db, uint64_t vlsn, va_list args)
 		sr_error(&e->error, "%s", "bad object parent");
 		goto error;
 	}
-	if (srunlikely(! so_dbactive(db)))
+	if (srunlikely(! so_online(&db->status)))
 		goto error;
 
 	sx_getstmt(&e->xm, &db->coindex);
@@ -181,13 +178,26 @@ so_txdo(soobj *obj, uint8_t flags, va_list args)
 		sr_error(&e->error, "%s", "bad object parent");
 		goto error;
 	}
-	sodb *db = (sodb*)parent;
 	if (t->t.s == SXPREPARE) {
 		sr_error(&e->error, "%s", "transaction is in 'prepare' state (read-only)");
 		goto error;
 	}
-	if (srunlikely(! so_dbactive(db)))
-		goto error;
+
+	/* validate database status */
+	sodb *db = (sodb*)parent;
+	int status = so_status(&db->status);
+	switch (status) {
+	case SO_ONLINE:
+	case SO_RECOVER:
+		break;
+	case SO_SHUTDOWN:
+		if (srunlikely(! so_dbvisible(db, t->t.id))) {
+			sr_error(&e->error, "%s", "database is invisible for the transaction");
+			goto error;
+		}
+		break;
+	default: goto error;
+	}
 
 	/* prepare object */
 	svlocal l;
@@ -251,9 +261,22 @@ so_txget(soobj *obj, va_list args)
 		sr_error(&e->error, "%s", "bad object parent");
 		goto error;
 	}
+
+	/* validate database status */
 	sodb *db = (sodb*)parent;
-	if (srunlikely(! so_dbactive(db)))
-		goto error;
+	int status = so_status(&db->status);
+	switch (status) {
+	case SO_ONLINE:
+	case SO_RECOVER:
+		break;
+	case SO_SHUTDOWN:
+		if (srunlikely(! so_dbvisible(db, t->t.id))) {
+			sr_error(&e->error, "%s", "database is invisible for the transaction");
+			goto error;
+		}
+		break;
+	default: goto error;
+	}
 
 	soobj *ret;
 	sv result;
