@@ -36,8 +36,8 @@ si_branchcreate(si *index, sr *r, sdc *c, sinode *parent, svindex *vindex, uint6
 	             vindex->keymax,
 	             vindex->used,
 	             UINT64_MAX,
-	             index->conf->node_page_size, 1,
-	             vlsn);
+	             index->conf->node_page_size,
+	             index->conf->node_page_checksum, 1, vlsn);
 	rc = sd_merge(&merge);
 	if (srunlikely(rc == -1)) {
 		sv_mergefree(&vmerge, r->a);

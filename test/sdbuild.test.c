@@ -45,7 +45,7 @@ sdbuild_empty(stc *cx srunused)
 	sdbuild b;
 	sd_buildinit(&b, &r);
 	t( sd_buildbegin(&b) == 0);
-	sd_buildend(&b);
+	sd_buildend(&b, 1);
 	sdpageheader *h = sd_buildheader(&b);
 	t( h->count == 0 );
 
@@ -75,7 +75,7 @@ sdbuild_page0(stc *cx srunused)
 	addv(&b, 3, SVSET, &i);
 	addv(&b, 2, SVSET, &j);
 	addv(&b, 1, SVSET, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, 1);
 	sdpageheader *h = sd_buildheader(&b);
 	t( h->count == 3 );
 	t( h->lsnmin == 1 );
@@ -106,7 +106,7 @@ sdbuild_page1(stc *cx srunused)
 	addv(&b, 3, SVSET, &i);
 	addv(&b, 2, SVSET, &j);
 	addv(&b, 1, SVSET, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, 1);
 	sdpageheader *h = sd_buildheader(&b);
 	t( h->count == 3 );
 	t( h->lsnmin == 1 );
@@ -130,7 +130,7 @@ sdbuild_page1(stc *cx srunused)
 	k = 20;
 	addv(&b, 4, SVSET, &j);
 	addv(&b, 5, SVSET, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, 1);
 	h = sd_buildheader(&b);
 	t( h->count == 2 );
 	t( h->lsnmin == 4 );

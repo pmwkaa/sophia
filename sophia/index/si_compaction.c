@@ -165,7 +165,9 @@ si_split(si *index, sr *r, sdc *c, srbuf *result,
 	             size_key,
 	             size_stream,
 	             size_node,
-	             index->conf->node_page_size, 0, vlsn);
+	             index->conf->node_page_size,
+	             index->conf->node_page_checksum,
+	             0, vlsn);
 	while ((rc = sd_merge(&merge)) > 0)
 	{
 		sinode *n = si_nodenew(r);

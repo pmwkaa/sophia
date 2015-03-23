@@ -14,6 +14,7 @@ typedef struct sdpage sdpage;
 
 struct sdpageheader {
 	uint32_t crc;
+	uint32_t crcdata;
 	uint32_t count;
 	uint32_t countdup;
 	uint32_t size;

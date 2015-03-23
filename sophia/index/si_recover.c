@@ -63,7 +63,7 @@ sinode *si_bootstrap(si *i, sr *r, uint32_t parent)
 		si_nodefree(n, r, 0);
 		return NULL;
 	}
-	sd_buildend(&build);
+	sd_buildend(&build, i->conf->node_page_checksum);
 	sdpageheader *h = sd_buildheader(&build);
 	rc = sd_indexadd(&index, r,
 	                 sd_buildoffset(&build),

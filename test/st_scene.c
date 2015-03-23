@@ -65,6 +65,7 @@ st_scene_create(stscene *g, stc *cx)
 	t( c != NULL );
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
+	t( sp_set(c, "compaction.page_checksum", "1") == 0 );
 	t( sp_set(c, "log.enable", "1") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "log.sync", "0") == 0 );

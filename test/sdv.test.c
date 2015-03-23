@@ -49,7 +49,7 @@ sdv_test(stc *cx srunused)
 	int j = 8;
 	addv(&b, 3, SVSET, &i);
 	addv(&b, 4, SVSET, &j);
-	sd_buildend(&b);
+	sd_buildend(&b, 1);
 
 	srbuf buf;
 	sr_bufinit(&buf);

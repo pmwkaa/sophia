@@ -192,6 +192,7 @@ so_ctlcompaction(so *e, soctlrt *rt srunused, src **pc)
 	src *p = NULL;
 	sr_clink(&p, sr_c(pc, so_ctlv_offline, "node_size", SR_CU32, &e->ctl.node_size));
 	sr_clink(&p, sr_c(pc, so_ctlv_offline, "page_size", SR_CU32, &e->ctl.page_size));
+	sr_clink(&p, sr_c(pc, so_ctlv_offline, "page_checksum", SR_CU32, &e->ctl.page_checksum));
 	prev = p;
 	int i = 0;
 	for (; i < 11; i++) {
@@ -850,6 +851,7 @@ void so_ctlinit(soctl *c, void *e)
 	c->memory_limit      = 0;
 	c->node_size         = 64 * 1024 * 1024;
 	c->page_size         = 64 * 1024;
+	c->page_checksum     = 1;
 	c->threads           = 5;
 	c->log_enable        = 1;
 	c->log_path          = NULL;

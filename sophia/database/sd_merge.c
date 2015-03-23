@@ -18,19 +18,21 @@ int sd_mergeinit(sdmerge *m, sr *r, uint32_t parent,
                  uint32_t size_key,
                  uint32_t size_stream,
                  uint64_t size_node,
-                 uint32_t size_page, int save_delete,
+                 uint32_t size_page,
+                 uint32_t checksum_page, int save_delete,
                  uint64_t vlsn)
 {
-	m->r           = r;
-	m->parent      = parent;
-	m->build       = build;
-	m->offset      = offset;
-	m->size_key    = size_key;
-	m->size_stream = size_stream;
-	m->size_node   = size_node;
-	m->size_page   = size_page;
+	m->r             = r;
+	m->parent        = parent;
+	m->build         = build;
+	m->offset        = offset;
+	m->size_key      = size_key;
+	m->size_stream   = size_stream;
+	m->size_node     = size_node;
+	m->size_page     = size_page;
+	m->checksum_page = checksum_page;
 	sd_indexinit(&m->index);
-	m->merge       = i;
+	m->merge         = i;
 	sr_iterinit(&m->i, &sv_writeiter, r);
 	sr_iteropen(&m->i, i, (uint64_t)size_page, sizeof(sdv), vlsn,
 	            save_delete);
@@ -79,7 +81,7 @@ int sd_merge(sdmerge *m)
 				return -1;
 			sr_iternext(&m->i);
 		}
-		rc = sd_buildend(m->build);
+		rc = sd_buildend(m->build, m->checksum_page);
 		if (srunlikely(rc == -1))
 			return -1;
 

@@ -43,6 +43,7 @@ struct soctl {
 	/* compaction */
 	uint32_t   node_size;
 	uint32_t   page_size;
+	uint32_t   page_checksum;
 	sizonemap  zones;
 	/* scheduler */
 	uint32_t   threads;

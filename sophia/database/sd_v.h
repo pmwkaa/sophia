@@ -12,7 +12,6 @@
 typedef struct sdv sdv;
 
 struct sdv {
-	uint32_t crc;
 	uint64_t lsn;
 	uint32_t timestamp;
 	uint8_t  flags;
@@ -20,7 +19,6 @@ struct sdv {
 	uint32_t keyoffset;
 	uint32_t valuesize;
 	uint32_t valueoffset;
-	uint64_t reserve;
 } srpacked;
 
 extern svif sd_vif;

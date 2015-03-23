@@ -47,7 +47,6 @@ int sd_buildadd(sdbuild *b, sv *v, uint32_t flags)
 	sv->lsn         = svlsn(v);
 	sv->flags       = svflags(v) | flags;
 	sv->timestamp   = 0;
-	sv->reserve     = 0;
 	sv->keysize     = svkeysize(v);
 	sv->valuesize   = svvaluesize(v);
 	sv->keyoffset   = sr_bufused(&b->v) - sd_buildref(b)->v;
@@ -56,16 +55,11 @@ int sd_buildadd(sdbuild *b, sv *v, uint32_t flags)
 	rc = sr_bufensure(&b->v, b->r->a, sv->keysize + sv->valuesize);
 	if (srunlikely(rc == -1))
 		return sr_error(b->r->e, "%s", "memory allocation failed");
-	char *data = b->v.p;
 	memcpy(b->v.p, svkey(v), sv->keysize);
 	sr_bufadvance(&b->v, sv->keysize);
 	memcpy(b->v.p, svvalue(v), sv->valuesize);
 	sr_bufadvance(&b->v, sv->valuesize);
 	sr_bufadvance(&b->k, sizeof(sdv));
-	uint32_t crc;
-	crc = sr_crcp(b->r->crc, data, sv->keysize + sv->valuesize, 0);
-	crc = sr_crcs(b->r->crc, sv, sizeof(sdv), crc);
-	sv->crc = crc;
 	/* update page header */
 	h->count++;
 	h->size += sv->keysize + sv->valuesize + sizeof(sdv);
@@ -81,13 +75,19 @@ int sd_buildadd(sdbuild *b, sv *v, uint32_t flags)
 	return 0;
 }
 
-int sd_buildend(sdbuild *b)
+int sd_buildend(sdbuild *b, int checksum)
 {
-	sdpageheader *h = sd_buildheader(b);
-	h->crc = sr_crcs(b->r->crc, h, sizeof(sdpageheader), 0);
 	sdbuildref *ref = sd_buildref(b);
 	ref->ksize = sr_bufused(&b->k) - ref->k;
 	ref->vsize = sr_bufused(&b->v) - ref->v;
+	sdpageheader *h = sd_buildheader(b);
+	uint32_t crc = 0;
+	if (srlikely(checksum)) {
+		crc = sr_crcp(b->r->crc, b->k.s + ref->k, ref->ksize, 0);
+		crc = sr_crcp(b->r->crc, b->v.s + ref->v, ref->vsize, crc);
+	}
+	h->crcdata = crc;
+	h->crc = sr_crcs(b->r->crc, h, sizeof(sdpageheader), 0);
 	return 0;
 }
 

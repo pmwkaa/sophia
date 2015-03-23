@@ -56,7 +56,7 @@ sditer_gt0(stc *cx srunused)
 	addv(&b, 4, SVSET, &key);
 	key = 9;
 	addv(&b, 5, SVSET, &key);
-	sd_buildend(&b);
+	sd_buildend(&b, 1);
 
 	srbuf buf;
 	sr_bufinit(&buf);
@@ -150,7 +150,7 @@ sditer_gt1(stc *cx srunused)
 	addv(&b, 4, SVSET, &key);
 	key = 9;
 	addv(&b, 5, SVSET, &key);
-	sd_buildend(&b);
+	sd_buildend(&b, 1);
 
 	srbuf buf;
 	sr_bufinit(&buf);
@@ -182,7 +182,7 @@ sditer_gt1(stc *cx srunused)
 	addv(&b, 7, SVSET, &key);
 	key = 13;
 	addv(&b, 8, SVSET, &key);
-	sd_buildend(&b);
+	sd_buildend(&b, 1);
 
 	sr_bufreset(&buf);
 	t( sd_buildwritepage(&b, &buf) == 0 );
@@ -211,7 +211,7 @@ sditer_gt1(stc *cx srunused)
 	addv(&b, 10, SVSET, &key);
 	key = 20;
 	addv(&b, 11, SVSET, &key);
-	sd_buildend(&b);
+	sd_buildend(&b, 1);
 
 	sr_bufreset(&buf);
 	t( sd_buildwritepage(&b, &buf) == 0 );
