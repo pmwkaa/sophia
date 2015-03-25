@@ -32,7 +32,7 @@ static void
 sditer_gt0(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
@@ -126,7 +126,7 @@ static void
 sditer_gt1(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };

@@ -31,7 +31,7 @@ static void
 svindexiter_lte_empty(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -49,14 +49,14 @@ svindexiter_lte_empty(stc *cx srunused)
 	sv *v = sr_iterof(&it);
 	t( v == NULL );
 	sv_indexfree(&i, &r);
-	sr_allocclose(&a);
+	sr_aclose(&a);
 }
 
 static void
 svindexiter_lte_eq0(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -103,7 +103,7 @@ static void
 svindexiter_lte_eq1(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -144,7 +144,7 @@ static void
 svindexiter_lte_minmax(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -197,7 +197,7 @@ static void
 svindexiter_lte_mid0(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -254,7 +254,7 @@ static void
 svindexiter_lte_mid1(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -302,7 +302,7 @@ static void
 svindexiter_lte_iterate0(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -353,7 +353,7 @@ static void
 svindexiter_lte_iterate1(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -400,7 +400,7 @@ static void
 svindexiter_lte_iterate2(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -441,7 +441,7 @@ static void
 svindexiter_lt_eq(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -488,7 +488,7 @@ static void
 svindexiter_lt_iterate(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -533,7 +533,7 @@ static void
 svindexiter_lte_dup_eq(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -579,7 +579,7 @@ static void
 svindexiter_lte_dup_mid(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -638,7 +638,7 @@ static void
 svindexiter_lte_dup_iterate(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -695,7 +695,7 @@ static void
 svindexiter_gte_empty(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -720,7 +720,7 @@ static void
 svindexiter_gte_eq0(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -767,7 +767,7 @@ static void
 svindexiter_gte_eq1(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -808,7 +808,7 @@ static void
 svindexiter_gte_minmax(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -861,7 +861,7 @@ static void
 svindexiter_gte_mid0(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -918,7 +918,7 @@ static void
 svindexiter_gte_mid1(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -966,7 +966,7 @@ static void
 svindexiter_gte_iterate0(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -1017,7 +1017,7 @@ static void
 svindexiter_gte_iterate1(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -1064,7 +1064,7 @@ static void
 svindexiter_gt_eq(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -1111,7 +1111,7 @@ static void
 svindexiter_gt_iterate(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -1156,7 +1156,7 @@ static void
 svindexiter_gte_dup_eq(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -1202,7 +1202,7 @@ static void
 svindexiter_gte_dup_mid(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -1261,7 +1261,7 @@ static void
 svindexiter_gte_dup_iterate(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -1317,7 +1317,7 @@ static void
 svindexiter_random(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -1354,7 +1354,7 @@ static void
 svindexiter_iterate_raw0(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -1416,7 +1416,7 @@ static void
 svindexiter_iterate_raw1(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);

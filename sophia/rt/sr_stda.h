@@ -1,5 +1,5 @@
-#ifndef SR_ASLAB_H_
-#define SR_ASLAB_H_
+#ifndef SR_STDA_H_
+#define SR_STDA_H_
 
 /*
  * sophia database
@@ -9,6 +9,6 @@
  * BSD License
 */
 
-extern sraif sr_aslab;
+extern sraif sr_stda;
 
 #endif

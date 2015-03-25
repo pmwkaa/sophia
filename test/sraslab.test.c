@@ -21,7 +21,7 @@ sraslab_reuse(stc *cx)
 	sr_pagerinit(&p, 3, 1024);
 
 	sra slab;
-	t( sr_allocopen(&slab, &sr_aslab, &p, 32) == 0 );
+	t( sr_aopen(&slab, &sr_slaba, &p, 32) == 0 );
 
 	void *alloc0[1000];
 	void *alloc1[1000];
@@ -50,7 +50,7 @@ sraslab_reuse(stc *cx)
 	}
 	t( p.pools == pools );
 
-	sr_allocclose(&slab);
+	sr_aclose(&slab);
 	sr_pagerfree(&p);
 }
 

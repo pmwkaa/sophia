@@ -26,7 +26,7 @@ struct sra {
 };
 
 static inline int
-sr_allocopen(sra *a, sraif *i, ...) {
+sr_aopen(sra *a, sraif *i, ...) {
 	a->i = i;
 	va_list args;
 	va_start(args, i);
@@ -36,7 +36,7 @@ sr_allocopen(sra *a, sraif *i, ...) {
 }
 
 static inline int
-sr_allocclose(sra *a) {
+sr_aclose(sra *a) {
 	return a->i->close(a);
 }
 

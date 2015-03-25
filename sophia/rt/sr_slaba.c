@@ -39,7 +39,7 @@ sr_sagrow(srsa *s)
 }
 
 static inline int
-sr_aslabclose(sra *a)
+sr_slabaclose(sra *a)
 {
 	srsa *s = (srsa*)a->priv;
 	srpage *p_next, *p;
@@ -53,7 +53,7 @@ sr_aslabclose(sra *a)
 }
 
 static inline int
-sr_aslabopen(sra *a, va_list args) {
+sr_slabaopen(sra *a, va_list args) {
 	assert(sizeof(srsa) <= sizeof(a->priv));
 	srsa *s = (srsa*)a->priv;
 	memset(s, 0, sizeof(*s));
@@ -68,14 +68,14 @@ sr_aslabopen(sra *a, va_list args) {
 	s->pu          = NULL;
 	int rc = sr_sagrow(s);
 	if (srunlikely(rc == -1)) {
-		sr_aslabclose(a);
+		sr_slabaclose(a);
 		return -1;
 	}
 	return 0;
 }
 
 srhot static inline void*
-sr_aslabmalloc(sra *a, int size srunused)
+sr_slabamalloc(sra *a, int size srunused)
 {
 	srsa *s = (srsa*)a->priv;
 	if (srlikely(s->chunk)) {
@@ -100,7 +100,7 @@ sr_aslabmalloc(sra *a, int size srunused)
 }
 
 srhot static inline void
-sr_aslabfree(sra *a, void *ptr)
+sr_slabafree(sra *a, void *ptr)
 {
 	srsa *s = (srsa*)a->priv;
 	register srsachunk *c =
@@ -110,11 +110,11 @@ sr_aslabfree(sra *a, void *ptr)
 	s->chunk_count--;
 }
 
-sraif sr_aslab =
+sraif sr_slaba =
 {
-	.open    = sr_aslabopen,
-	.close   = sr_aslabclose,
-	.malloc  = sr_aslabmalloc,
+	.open    = sr_slabaopen,
+	.close   = sr_slabaclose,
+	.malloc  = sr_slabamalloc,
 	.realloc = NULL,
-	.free    = sr_aslabfree 
+	.free    = sr_slabafree 
 };

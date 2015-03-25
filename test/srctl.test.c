@@ -14,7 +14,7 @@ static void
 srctl_set_cc(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	sr r;
 	srerror error;
 	sr_errorinit(&error);
@@ -49,7 +49,7 @@ static void
 srctl_set_cc_trigger(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	sr r;
 	srerror error;
 	sr_errorinit(&error);
@@ -82,7 +82,7 @@ static void
 srctl_set_u32(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	sr r;
 	srerror error;
 	sr_errorinit(&error);
@@ -107,7 +107,7 @@ static void
 srctl_set_cc_u32(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	sr r;
 	srerror error;
 	sr_errorinit(&error);
@@ -135,7 +135,7 @@ static void
 srctl_set_cc_cc_u32(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	sr r;
 	srerror error;
 	sr_errorinit(&error);
@@ -166,7 +166,7 @@ static void
 srctl_set_cc_cc_u32_bad(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	sr r;
 	srerror error;
 	sr_errorinit(&error);
@@ -205,7 +205,7 @@ static void
 srctl_serialize0(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	sr r;
 	srerror error;
 	sr_errorinit(&error);

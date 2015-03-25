@@ -32,7 +32,7 @@ static void
 sdpageiter_lte_empty(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -86,7 +86,7 @@ static void
 sdpageiter_lte_eq0(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -143,7 +143,7 @@ static void
 sdpageiter_lte_eq1(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -200,7 +200,7 @@ static void
 sdpageiter_lte_eq2(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
@@ -257,7 +257,7 @@ static void
 sdpageiter_lte_minmax0(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
@@ -309,7 +309,7 @@ static void
 sdpageiter_lte_minmax1(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
@@ -394,7 +394,7 @@ static void
 sdpageiter_lte_minmax2(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -466,7 +466,7 @@ static void
 sdpageiter_lte_mid0(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -526,7 +526,7 @@ static void
 sdpageiter_lte_mid1(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -597,7 +597,7 @@ static void
 sdpageiter_lte_iterate0(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -656,7 +656,7 @@ static void
 sdpageiter_lte_iterate1(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -715,7 +715,7 @@ static void
 sdpageiter_lt_eq(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -771,7 +771,7 @@ static void
 sdpageiter_lt_minmax(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -822,7 +822,7 @@ static void
 sdpageiter_lt_mid(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -881,7 +881,7 @@ static void
 sdpageiter_lt_iterate0(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -940,7 +940,7 @@ static void
 sdpageiter_lt_iterate1(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -994,7 +994,7 @@ static void
 sdpageiter_lte_dup_eq(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -1058,7 +1058,7 @@ static void
 sdpageiter_lte_dup_mid(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -1154,7 +1154,7 @@ static void
 sdpageiter_lte_dup_mid_gt(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -1244,7 +1244,7 @@ static void
 sdpageiter_lte_dup_mid_lt(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -1322,7 +1322,7 @@ static void
 sdpageiter_lte_dup_iterate0(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -1390,7 +1390,7 @@ static void
 sdpageiter_lte_dup_iterate1(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -1486,7 +1486,7 @@ static void
 sdpageiter_gte_eq0(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -1542,7 +1542,7 @@ static void
 sdpageiter_gte_eq1(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -1598,7 +1598,7 @@ static void
 sdpageiter_gte_eq2(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -1654,7 +1654,7 @@ static void
 sdpageiter_gte_minmax0(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -1706,7 +1706,7 @@ static void
 sdpageiter_gte_minmax1(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -1791,7 +1791,7 @@ static void
 sdpageiter_gte_minmax2(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -1862,7 +1862,7 @@ static void
 sdpageiter_gte_mid0(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -1928,7 +1928,7 @@ static void
 sdpageiter_gte_mid1(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -1999,7 +1999,7 @@ static void
 sdpageiter_gte_iterate0(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -2058,7 +2058,7 @@ static void
 sdpageiter_gte_iterate1(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -2117,7 +2117,7 @@ static void
 sdpageiter_gt_eq(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -2174,7 +2174,7 @@ static void
 sdpageiter_gt_minmax(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -2226,7 +2226,7 @@ static void
 sdpageiter_gt_mid(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -2285,7 +2285,7 @@ static void
 sdpageiter_gt_iterate0(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -2344,7 +2344,7 @@ static void
 sdpageiter_gt_iterate1(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -2398,7 +2398,7 @@ static void
 sdpageiter_gte_dup_eq(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -2470,7 +2470,7 @@ static void
 sdpageiter_gte_dup_mid(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -2567,7 +2567,7 @@ static void
 sdpageiter_gte_dup_mid_gt(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -2651,7 +2651,7 @@ static void
 sdpageiter_gte_dup_mid_lt(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -2729,7 +2729,7 @@ static void
 sdpageiter_gte_dup_iterate0(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -2797,7 +2797,7 @@ static void
 sdpageiter_gte_dup_iterate1(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -2893,7 +2893,7 @@ static void
 sdpageiter_update0(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -2941,7 +2941,7 @@ static void
 sdpageiter_random0(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srcomparator cmp = { sr_cmpu32, NULL };
@@ -2987,7 +2987,7 @@ static void
 sdpageiter_iterate_raw(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));

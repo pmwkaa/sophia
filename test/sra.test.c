@@ -14,24 +14,24 @@ static void
 sra_malloc(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	void *buf = sr_malloc(&a, 123);
 	t( buf != NULL );
 	sr_free(&a, buf);
-	sr_allocclose(&a);
+	sr_aclose(&a);
 }
 
 static void
 sra_realloc(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	void *buf = sr_malloc(&a, 123);
 	t( buf != NULL );
 	buf = sr_realloc(&a, buf, 321);
 	t( buf != NULL );
 	sr_free(&a, buf);
-	sr_allocclose(&a);
+	sr_aclose(&a);
 }
 
 stgroup *sra_group(void)

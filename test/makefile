@@ -8,6 +8,7 @@ OBJECTS = st.o \
           srcmp.test.o \
           srorder.test.o \
           srrq.test.o \
+          srzstdfilter.test.o \
           svlocal.test.o \
           svv.test.o \
           svindex.test.o \

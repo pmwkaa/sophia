@@ -12,6 +12,7 @@
 #define _GNU_SOURCE 1
 
 #include <stdlib.h>
+#include <stddef.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -32,8 +33,13 @@
 #include <fcntl.h>
 #include <dirent.h>
 #include <errno.h>
+/* crc */
 #if defined (__x86_64__) || defined (__i386__)
 #include <cpuid.h>
+#endif
+/* zstd */
+#ifdef __AVX2__
+#include <immintrin.h>
 #endif
 
 #endif

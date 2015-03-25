@@ -51,7 +51,7 @@ static void
 sliter_tx(stc *cx)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srseq seq;
 	sr_seqinit(&seq);
@@ -88,7 +88,7 @@ static void
 sliter_tx_read_empty(stc *cx)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srseq seq;
 	sr_seqinit(&seq);
@@ -135,7 +135,7 @@ static void
 sliter_tx_read0(stc *cx)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srseq seq;
 	sr_seqinit(&seq);
@@ -187,7 +187,7 @@ static void
 sliter_tx_read1(stc *cx)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srseq seq;
 	sr_seqinit(&seq);
@@ -250,7 +250,7 @@ static void
 sliter_tx_read2(stc *cx)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srseq seq;
 	sr_seqinit(&seq);
@@ -317,7 +317,7 @@ static void
 sliter_tx_read3(stc *cx)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srseq seq;
 	sr_seqinit(&seq);

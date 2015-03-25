@@ -58,7 +58,7 @@ mt_single_stmt(stc *cx)
 	t( sp_open(cx->env) == 0 );
 
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -127,7 +127,7 @@ mt_multi_stmt(stc *cx)
 	t( sp_open(cx->env) == 0 );
 
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
@@ -198,7 +198,7 @@ mt_multi_stmt_conflict(stc *cx)
 	t( sp_open(cx->env) == 0 );
 
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);

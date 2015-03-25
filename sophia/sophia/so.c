@@ -178,15 +178,15 @@ soobj *so_new(void)
 		free(e);
 		return NULL;
 	}
-	sr_allocopen(&e->a, &sr_astd);
-	sr_allocopen(&e->a_db, &sr_aslab, &e->pager, sizeof(sodb));
-	sr_allocopen(&e->a_v, &sr_aslab, &e->pager, sizeof(sov));
-	sr_allocopen(&e->a_cursor, &sr_aslab, &e->pager, sizeof(socursor));
-	sr_allocopen(&e->a_cursorcache, &sr_aslab, &e->pager, sizeof(sicachebranch));
-	sr_allocopen(&e->a_ctlcursor, &sr_aslab, &e->pager, sizeof(soctlcursor));
-	sr_allocopen(&e->a_snapshot, &sr_aslab, &e->pager, sizeof(sosnapshot));
-	sr_allocopen(&e->a_tx, &sr_aslab, &e->pager, sizeof(sotx));
-	sr_allocopen(&e->a_sxv, &sr_aslab, &e->pager, sizeof(sxv));
+	sr_aopen(&e->a, &sr_stda);
+	sr_aopen(&e->a_db, &sr_slaba, &e->pager, sizeof(sodb));
+	sr_aopen(&e->a_v, &sr_slaba, &e->pager, sizeof(sov));
+	sr_aopen(&e->a_cursor, &sr_slaba, &e->pager, sizeof(socursor));
+	sr_aopen(&e->a_cursorcache, &sr_slaba, &e->pager, sizeof(sicachebranch));
+	sr_aopen(&e->a_ctlcursor, &sr_slaba, &e->pager, sizeof(soctlcursor));
+	sr_aopen(&e->a_snapshot, &sr_slaba, &e->pager, sizeof(sosnapshot));
+	sr_aopen(&e->a_tx, &sr_slaba, &e->pager, sizeof(sotx));
+	sr_aopen(&e->a_sxv, &sr_slaba, &e->pager, sizeof(sxv));
 	so_statusinit(&e->status);
 	so_statusset(&e->status, SO_OFFLINE);
 	so_ctlinit(&e->ctl, e);

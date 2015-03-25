@@ -17,8 +17,8 @@
 #include <sr_list.h>
 #include <sr_pager.h>
 #include <sr_a.h>
-#include <sr_astd.h>
-#include <sr_aslab.h>
+#include <sr_stda.h>
+#include <sr_slaba.h>
 #include <sr_error.h>
 #include <sr_trace.h>
 #include <sr_gc.h>
@@ -31,6 +31,7 @@
 #include <sr_crc.h>
 #include <sr.h>
 #include <sr_c.h>
+#include <sr_filter.h>
 #include <sr_iter.h>
 #include <sr_bufiter.h>
 #include <sr_mutex.h>
@@ -44,5 +45,6 @@
 #include <sr_file.h>
 #include <sr_dir.h>
 #include <sr_map.h>
+#include <sr_zstdfilter.h>
 
 #endif

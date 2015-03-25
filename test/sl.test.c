@@ -51,7 +51,7 @@ static void
 sl_begin_commit(stc *cx)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srseq seq;
 	sr_seqinit(&seq);
@@ -88,7 +88,7 @@ static void
 sl_begin_rollback(stc *cx)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 	srcomparator cmp = { sr_cmpu32, NULL };
 	srseq seq;
 	sr_seqinit(&seq);

@@ -15,7 +15,7 @@ static void
 svv_test(stc *cx srunused)
 {
 	sra a;
-	sr_allocopen(&a, &sr_astd);
+	sr_aopen(&a, &sr_stda);
 
 	uint32_t key = 123;
 	uint32_t value = 321;

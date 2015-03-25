@@ -62,6 +62,11 @@ sr_bufused(srbuf *b) {
 }
 
 static inline int
+sr_bufunused(srbuf *b) {
+	return b->e - b->p;
+}
+
+static inline int
 sr_bufensure(srbuf *b, sra *a, int size)
 {
 	if (srlikely(b->e - b->p >= size))
