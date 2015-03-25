@@ -7,6 +7,7 @@
 	<br>
 	<a href="http://sphia.org/documentation.html">documentation</a>
 	<br>
+	<br>
 </p>
 [![Build Status](https://travis-ci.org/pmwkaa/sophia.svg?branch=dev)](https://travis-ci.org/pmwkaa/sophia)
 [![Coverage Status](https://coveralls.io/repos/pmwkaa/sophia/badge.svg?branch=dev)](https://coveralls.io/r/pmwkaa/sophia?branch=dev)
