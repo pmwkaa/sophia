@@ -6,7 +6,7 @@
 	<a href="http://sphia.org">sophia</a> - a modern embeddable key-value database, fast and feature-rich.
 	<br>
 	<br>
-	<a href="http://sphia.org/overview.html">overview</a> | <a href="http://sphia.org/build.html">build</a>
+	<a href="http://sphia.org/overview.html">overview</a>&nbsp;&nbsp;&nbsp;<a href="http://sphia.org/build.html">build</a>
 </p>
 [![Build Status](https://travis-ci.org/pmwkaa/sophia.svg?branch=dev)](https://travis-ci.org/pmwkaa/sophia)
 [![Coverage Status](https://coveralls.io/repos/pmwkaa/sophia/badge.svg?branch=dev)](https://coveralls.io/r/pmwkaa/sophia?branch=dev)
