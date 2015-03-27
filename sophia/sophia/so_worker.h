@@ -31,9 +31,9 @@ int so_workersshutdown(soworkers*, sr*);
 int so_workersnew(soworkers*, sr*, int, srthreadf, void*);
 
 static inline void
-so_workerstub_init(soworker *w, sr *r)
+so_workerstub_init(soworker *w)
 {
-	sd_cinit(&w->dc, r);
+	sd_cinit(&w->dc);
 	sr_listinit(&w->link);
 	sr_traceinit(&w->trace);
 	sr_trace(&w->trace, "%s", "init");

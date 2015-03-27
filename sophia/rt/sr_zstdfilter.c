@@ -3926,7 +3926,6 @@ sr_zstdfilter_reset(srfilter *f)
 static int
 sr_zstdfilter_start(srfilter *f, srbuf *dest)
 {
-	sr_bufreset(dest);
 	srzstdfilter *z = (srzstdfilter*)f->priv;
 	int rc;
 	size_t block;
@@ -3971,7 +3970,7 @@ sr_zstdfilter_next(srfilter *f, srbuf *dest, char *buf, int size)
 		 *
 		 * assume that destination buffer is prepared.
 		 */
-		sr_bufreset(dest);
+
 		/* read and skip header */
 		block = ZSTD_nextSrcSizeToDecompress(z->ctx);
 		sz = ZSTD_decompressContinue(z->ctx, NULL, 0, buf, block);
@@ -4018,6 +4017,7 @@ sr_zstdfilter_complete(srfilter *f, srbuf *dest)
 
 srfilterif sr_zstdfilter =
 {
+	.name     = "zstd",
 	.init     = sr_zstdfilter_init,
 	.free     = sr_zstdfilter_free,
 	.reset    = sr_zstdfilter_reset,

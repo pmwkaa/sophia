@@ -17,7 +17,7 @@ recover_loop(stc *cx)
 	int seedprev = -1;
 	int seed = 3424118;
 	int seedorigin = seed;
-	int run = 100;
+	int run = 10;
 	int count = 1040;
 
 	while (run >= 0) {

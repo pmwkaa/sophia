@@ -15,30 +15,35 @@ typedef struct sdbuild sdbuild;
 struct sdbuildref {
 	uint32_t k, ksize;
 	uint32_t v, vsize;
+	uint32_t c, csize;
 } srpacked;
 
 struct sdbuild {
-	srbuf list, k, v;
+	srbuf list, k, v, c;
+	int compress;
+	int crc;
 	uint32_t n;
-	sr *r;
 };
 
 static inline void
-sd_buildinit(sdbuild *b, sr *r)
+sd_buildinit(sdbuild *b)
 {
 	sr_bufinit(&b->list);
 	sr_bufinit(&b->k);
 	sr_bufinit(&b->v);
+	sr_bufinit(&b->c);
 	b->n = 0;
-	b->r = r;
+	b->compress = 0;
+	b->crc = 0;
 }
 
 static inline void
-sd_buildfree(sdbuild *b)
+sd_buildfree(sdbuild *b, sr *r)
 {
-	sr_buffree(&b->list, b->r->a);
-	sr_buffree(&b->k, b->r->a);
-	sr_buffree(&b->v, b->r->a);
+	sr_buffree(&b->list, r->a);
+	sr_buffree(&b->k, r->a);
+	sr_buffree(&b->v, r->a);
+	sr_buffree(&b->c, r->a);
 }
 
 static inline void
@@ -47,6 +52,7 @@ sd_buildreset(sdbuild *b)
 	sr_bufreset(&b->list);
 	sr_bufreset(&b->k);
 	sr_bufreset(&b->v);
+	sr_bufreset(&b->c);
 	b->n = 0;
 }
 
@@ -64,6 +70,8 @@ static inline uint64_t
 sd_buildoffset(sdbuild *b)
 {
 	sdbuildref *r = sd_buildref(b);
+	if (b->compress)
+		return r->c;
 	return r->k + sr_bufused(&b->v) - (sr_bufused(&b->v) - r->v);
 }
 
@@ -90,16 +98,11 @@ sd_buildmaxkey(sdbuild *b) {
 	return b->v.s + r->v + sd_buildmax(b)->keyoffset;
 }
 
-static inline uint32_t
-sd_buildsize(sdbuild *b) {
-	return sr_bufused(&b->k) + sr_bufused(&b->v);
-}
-
-int sd_buildbegin(sdbuild*);
+int sd_buildbegin(sdbuild*, sr*, int, int);
+int sd_buildend(sdbuild*, sr*);
 int sd_buildcommit(sdbuild*);
-int sd_buildend(sdbuild*, int);
-int sd_buildadd(sdbuild*, sv*, uint32_t);
-int sd_buildwrite(sdbuild*, sdindex*, srfile*);
-int sd_buildwritepage(sdbuild*, srbuf*);
+int sd_buildadd(sdbuild*, sr*, sv*, uint32_t);
+int sd_buildwrite(sdbuild*, sr*, sdindex*, srfile*);
+int sd_buildwritepage(sdbuild*, sr*, srbuf*);
 
 #endif

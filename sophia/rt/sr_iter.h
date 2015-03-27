@@ -24,7 +24,7 @@ struct sriterif {
 struct sriter {
 	sriterif *i;
 	sr *r;
-	char priv[90];
+	char priv[100];
 };
 
 static inline void

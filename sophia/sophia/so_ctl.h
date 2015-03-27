@@ -35,29 +35,29 @@ struct soctlrt {
 struct soctl {
 	soobj o;
 	/* sophia */
-	char      *path;
-	uint32_t   path_create;
+	char       *path;
+	uint32_t    path_create;
 	/* backup */
-	char      *backup_path;
-	srtrigger  backup_on_complete;
+	char       *backup_path;
+	srtrigger   backup_on_complete;
 	/* compaction */
-	uint32_t   node_size;
-	uint32_t   page_size;
-	uint32_t   page_checksum;
-	sizonemap  zones;
+	uint32_t    node_size;
+	uint32_t    page_size;
+	uint32_t    page_checksum;
+	sizonemap   zones;
 	/* scheduler */
-	uint32_t   threads;
-	srtrigger  checkpoint_on_complete;
+	uint32_t    threads;
+	srtrigger   checkpoint_on_complete;
 	/* memory */
-	uint64_t   memory_limit;
+	uint64_t    memory_limit;
 	/* log */
-	uint32_t   log_enable;
-	char      *log_path;
-	uint32_t   log_sync;
-	uint32_t   log_rotate_wm;
-	uint32_t   log_rotate_sync;
-	uint32_t   two_phase_recover;
-	uint32_t   commit_lsn;
+	uint32_t    log_enable;
+	char       *log_path;
+	uint32_t    log_sync;
+	uint32_t    log_rotate_wm;
+	uint32_t    log_rotate_sync;
+	uint32_t    two_phase_recover;
+	uint32_t    commit_lsn;
 };
 
 void  so_ctlinit(soctl*, void*);

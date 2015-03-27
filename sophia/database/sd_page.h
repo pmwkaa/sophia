@@ -17,6 +17,7 @@ struct sdpageheader {
 	uint32_t crcdata;
 	uint32_t count;
 	uint32_t countdup;
+	uint32_t sizeorigin;
 	uint32_t size;
 	uint32_t tsmin;
 	uint64_t lsnmin;
@@ -42,14 +43,14 @@ sd_pagev(sdpage *p, uint32_t pos) {
 
 static inline void*
 sd_pagekey(sdpage *p, sdv *v) {
-	assert((sizeof(sdv) * p->h->count) + v->keyoffset <= p->h->size);
+	assert((sizeof(sdv) * p->h->count) + v->keyoffset <= p->h->sizeorigin);
 	return ((char*)p->h + sizeof(sdpageheader) +
 	         sizeof(sdv) * p->h->count) + v->keyoffset;
 }
 
 static inline void*
 sd_pagevalue(sdpage *p, sdv *v) {
-	assert((sizeof(sdv) * p->h->count) + v->valueoffset <= p->h->size);
+	assert((sizeof(sdv) * p->h->count) + v->valueoffset <= p->h->sizeorigin);
 	return ((char*)p->h + sizeof(sdpageheader) +
 	         sizeof(sdv) * p->h->count) + v->valueoffset;
 }

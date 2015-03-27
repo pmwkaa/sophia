@@ -75,25 +75,64 @@ si_qmatchindex(siquery *q, sinode *node)
 }
 
 static inline sdpage*
-si_qread(srbuf *buf, sr *r, si *i, sinode *n,
-         sibranch *b, sdindexpage *ref)
+si_qread(srbuf *buf, sr *r, si *i, sinode *n, sibranch *b,
+         sdindexpage *ref)
 {
-	int size = sizeof(sdpage) + ref->size;
-	int rc = sr_bufensure(buf, r->a, size);
+	uint64_t offset =
+		b->index.h->offset + sd_indexsize(b->index.h) +
+	    ref->offset;
+	int rc = sr_bufensure(buf, r->a, sizeof(sdpage) + ref->sizeorigin);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "%s", "memory allocation failed");
 		return NULL;
 	}
-	uint64_t offset =
-		b->index.h->offset + sd_indexsize(b->index.h) +
-	    ref->offset;
-	rc = sr_filepread(&n->file, offset, buf->s + sizeof(sdpage), ref->size);
-	if (srunlikely(rc == -1)) {
-		sr_error(r->e, "db file '%s' read error: %s",
-		         n->file.file, strerror(errno));
-		return NULL;
+	sr_bufadvance(buf, sizeof(sdpage));
+
+	if (i->conf->compression)
+	{
+		/* read compressed page */
+		sr_bufreset(&i->readbuf);
+		rc = sr_bufensure(&i->readbuf, r->a, ref->size);
+		if (srunlikely(rc == -1)) {
+			sr_error(r->e, "%s", "memory allocation failed");
+			return NULL;
+		}
+		rc = sr_filepread(&n->file, offset, i->readbuf.s, ref->size);
+		if (srunlikely(rc == -1)) {
+			sr_error(r->e, "db file '%s' read error: %s",
+			         n->file.file, strerror(errno));
+			return NULL;
+		}
+		sr_bufadvance(&i->readbuf, ref->size);
+
+		/* copy header */
+		memcpy(buf->p, i->readbuf.s, sizeof(sdpageheader));
+		sr_bufadvance(buf, sizeof(sdpageheader));
+
+		/* decompression */
+		srfilter f;
+		rc = sr_filterinit(&f, (srfilterif*)r->compression, r, SR_FOUTPUT);
+		if (srunlikely(rc == -1)) {
+			sr_error(r->e, "db file '%s' decompression error", n->file.file);
+			return NULL;
+		}
+		int size = ref->size - sizeof(sdpageheader);
+		rc = sr_filternext(&f, buf, i->readbuf.s + sizeof(sdpageheader), size);
+		if (srunlikely(rc == -1)) {
+			sr_error(r->e, "db file '%s' decompression error", n->file.file);
+			return NULL;
+		}
+		sr_filterfree(&f);
+	} else {
+		rc = sr_filepread(&n->file, offset, buf->s + sizeof(sdpage), ref->sizeorigin);
+		if (srunlikely(rc == -1)) {
+			sr_error(r->e, "db file '%s' read error: %s",
+			         n->file.file, strerror(errno));
+			return NULL;
+		}
+		sr_bufadvance(buf, ref->sizeorigin);
 	}
-	sr_bufadvance(buf, size);
+
 	i->read_disk++;
 	sdpageheader *h = (sdpageheader*)(buf->s + sizeof(sdpage));
 	sdpage *page = (sdpage*)(buf->s);

@@ -21,6 +21,7 @@ struct si {
 	uint64_t update_time;
 	uint64_t read_disk;
 	uint64_t read_cache;
+	srbuf readbuf;
 	srquota *quota;
 	siconf *conf;
 };

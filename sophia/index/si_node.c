@@ -130,7 +130,7 @@ int si_nodecreate(sinode *n, sr *r, siconf *conf, sdid *id,
 		               path.path, strerror(errno));
 		return -1;
 	}
-	rc = sd_buildwrite(build, &n->self.index, &n->file);
+	rc = sd_buildwrite(build, r, &n->self.index, &n->file);
 	if (srunlikely(rc == -1))
 		return -1;
 	n->branch = &n->self;

@@ -17,6 +17,7 @@ int si_init(si *i, sr *r, srquota *q)
 	int rc = si_plannerinit(&i->p, r->a);
 	if (srunlikely(rc == -1))
 		return -1;
+	sr_bufinit(&i->readbuf);
 	sr_rbinit(&i->i);
 	sr_mutexinit(&i->lock);
 	sr_condinit(&i->cond);
@@ -46,6 +47,7 @@ int si_close(si *i, sr *r)
 	if (i->i.root)
 		si_truncate(i->i.root, r);
 	i->i.root = NULL;
+	sr_buffree(&i->readbuf, r->a);
 	si_plannerfree(&i->p, r->a);
 	sr_condfree(&i->cond);
 	sr_mutexfree(&i->lock);

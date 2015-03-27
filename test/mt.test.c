@@ -64,7 +64,7 @@ mt_single_stmt(stc *cx)
 	sr_errorinit(&error);
 	sr r;
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, NULL, crc);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL, crc, NULL);
 	soworkers w;
 	so_workersinit(&w);
 	t( so_workersnew(&w, &r, 5, single_stmt_thread, cx->db) == 0 );
@@ -133,7 +133,7 @@ mt_multi_stmt(stc *cx)
 	sr_errorinit(&error);
 	sr r;
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, NULL, crc);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL, crc, NULL);
 	soworkers w;
 	so_workersinit(&w);
 	void *ptr[2] = { cx->env, cx->db };
@@ -204,7 +204,7 @@ mt_multi_stmt_conflict(stc *cx)
 	sr_errorinit(&error);
 	sr r;
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, NULL, crc);
+	sr_init(&r, &error, &a, NULL, &cmp, NULL, crc, NULL);
 	soworkers w;
 	so_workersinit(&w);
 	void *ptr[2] = { cx->env, cx->db };

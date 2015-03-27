@@ -167,6 +167,7 @@ si_split(si *index, sr *r, sdc *c, srbuf *result,
 	             size_node,
 	             index->conf->node_page_size,
 	             index->conf->node_page_checksum,
+	             index->conf->compression,
 	             0, vlsn);
 	while ((rc = sd_merge(&merge)) > 0)
 	{

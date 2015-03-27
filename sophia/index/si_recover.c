@@ -55,19 +55,22 @@ sinode *si_bootstrap(si *i, sr *r, uint32_t parent)
 		return NULL;
 	}
 	sdbuild build;
-	sd_buildinit(&build, r);
-	rc = sd_buildbegin(&build);
+	sd_buildinit(&build);
+	rc = sd_buildbegin(&build, r,
+	                   i->conf->node_page_checksum,
+	                   i->conf->compression);
 	if (srunlikely(rc == -1)) {
 		sd_indexfree(&index, r);
-		sd_buildfree(&build);
+		sd_buildfree(&build, r);
 		si_nodefree(n, r, 0);
 		return NULL;
 	}
-	sd_buildend(&build, i->conf->node_page_checksum);
+	sd_buildend(&build, r);
 	sdpageheader *h = sd_buildheader(&build);
 	rc = sd_indexadd(&index, r,
 	                 sd_buildoffset(&build),
 	                 h->size + sizeof(sdpageheader),
+	                 h->sizeorigin + sizeof(sdpageheader),
 	                 h->count,
 	                 NULL,
 	                 0,
@@ -83,7 +86,7 @@ sinode *si_bootstrap(si *i, sr *r, uint32_t parent)
 	sd_buildcommit(&build);
 	sd_indexcommit(&index, r, &id);
 	rc = si_nodecreate(n, r, i->conf, &id, &index, &build);
-	sd_buildfree(&build);
+	sd_buildfree(&build, r);
 	if (srunlikely(rc == -1)) {
 		si_nodefree(n, r, 1);
 		return NULL;

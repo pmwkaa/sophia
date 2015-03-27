@@ -19,7 +19,9 @@ int sd_mergeinit(sdmerge *m, sr *r, uint32_t parent,
                  uint32_t size_stream,
                  uint64_t size_node,
                  uint32_t size_page,
-                 uint32_t checksum_page, int save_delete,
+                 uint32_t checksum,
+                 uint32_t compression,
+				 int save_delete,
                  uint64_t vlsn)
 {
 	m->r             = r;
@@ -30,7 +32,8 @@ int sd_mergeinit(sdmerge *m, sr *r, uint32_t parent,
 	m->size_stream   = size_stream;
 	m->size_node     = size_node;
 	m->size_page     = size_page;
-	m->checksum_page = checksum_page;
+	m->compression   = compression;
+	m->checksum      = checksum;
 	sd_indexinit(&m->index);
 	m->merge         = i;
 	sr_iterinit(&m->i, &sv_writeiter, r);
@@ -58,7 +61,6 @@ int sd_merge(sdmerge *m)
 
 	uint32_t processed = sv_writeiter_total(&m->i); /* kv */
 	uint32_t processed_last = 0;
-	assert(processed <= m->size_stream);
 	uint64_t left = (m->size_stream - processed);
 	uint64_t limit;
 	if (left >= (m->size_node * 2))
@@ -71,17 +73,17 @@ int sd_merge(sdmerge *m)
 
 	while (sr_iterhas(&m->i) && (processed_last <= limit))
 	{
-		rc = sd_buildbegin(m->build);
+		rc = sd_buildbegin(m->build, m->r, m->checksum, m->compression);
 		if (srunlikely(rc == -1))
 			return -1;
 		while (sr_iterhas(&m->i)) {
 			sv *v = sr_iterof(&m->i);
-			rc = sd_buildadd(m->build, v, sv_mergeisdup(m->merge));
+			rc = sd_buildadd(m->build, m->r, v, sv_mergeisdup(m->merge));
 			if (srunlikely(rc == -1))
 				return -1;
 			sr_iternext(&m->i);
 		}
-		rc = sd_buildend(m->build, m->checksum_page);
+		rc = sd_buildend(m->build, m->r);
 		if (srunlikely(rc == -1))
 			return -1;
 
@@ -93,6 +95,7 @@ int sd_merge(sdmerge *m)
 		rc = sd_indexadd(&m->index, m->r,
 		                 sd_buildoffset(m->build),
 		                 h->size + sizeof(sdpageheader),
+		                 h->sizeorigin + sizeof(sdpageheader),
 		                 h->count,
 		                 sd_buildminkey(m->build),
 		                 sd_buildmin(m->build)->keysize,

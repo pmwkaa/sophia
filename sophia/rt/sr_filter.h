@@ -18,6 +18,7 @@ typedef enum {
 } srfilterop;
 
 struct srfilterif {
+	char *name;
 	int (*init)(srfilter*, va_list);
 	int (*free)(srfilter*);
 	int (*reset)(srfilter*);

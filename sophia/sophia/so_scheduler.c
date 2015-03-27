@@ -29,7 +29,7 @@ int so_scheduler_branch(void *arg)
 	so *e = so_of(&db->o);
 	sizone *z = so_zoneof(e);
 	soworker stub;
-	so_workerstub_init(&stub, &db->r);
+	so_workerstub_init(&stub);
 	int rc;
 	while (1) {
 		uint64_t vlsn = sx_vlsn(&e->xm);
@@ -58,7 +58,7 @@ int so_scheduler_compact(void *arg)
 	so *e = so_of(&db->o);
 	sizone *z = so_zoneof(e);
 	soworker stub;
-	so_workerstub_init(&stub, &db->r);
+	so_workerstub_init(&stub);
 	int rc;
 	while (1) {
 		uint64_t vlsn = sx_vlsn(&e->xm);
@@ -243,7 +243,7 @@ int so_scheduler_call(void *arg)
 	so *e = arg;
 	soscheduler *s = &e->sched;
 	soworker stub;
-	so_workerstub_init(&stub, &e->r);
+	so_workerstub_init(&stub);
 	int rc = so_scheduler(s, &stub);
 	so_workerstub_free(&stub, &e->r);
 	return rc;

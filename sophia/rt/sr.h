@@ -17,6 +17,7 @@ struct sr {
 	srseq *seq;
 	sra *a;
 	srinjection *i;
+	void *compression;
 	srcrcf crc;
 };
 
@@ -27,13 +28,15 @@ sr_init(sr *r,
         srseq *seq,
         srcomparator *cmp,
         srinjection *i,
-        srcrcf crc)
+        srcrcf crc,
+        void *compression)
 {
 	r->e   = e;
 	r->a   = a;
 	r->seq = seq;
 	r->cmp = cmp;
 	r->i   = i;
+	r->compression = compression;
 	r->crc = crc;
 }
 

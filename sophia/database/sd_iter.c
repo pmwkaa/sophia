@@ -15,9 +15,12 @@ typedef struct sditer sditer;
 
 struct sditer {
 	int validate;
+	int compression;
+	srbuf *compression_buf;
 	sdindex *index;
 	char *start, *end;
 	char *page;
+	char *pagesrc;
 	sdpage pagev;
 	uint32_t pos;
 	sdv *dv;
@@ -38,9 +41,11 @@ static int
 sd_iteropen(sriter *i, va_list args)
 {
 	sditer *ii = (sditer*)i->priv;
-	ii->index    = va_arg(args, sdindex*);
-	ii->start    = va_arg(args, char*);
-	ii->validate = va_arg(args, int);
+	ii->index       = va_arg(args, sdindex*);
+	ii->start       = va_arg(args, char*);
+	ii->validate    = va_arg(args, int);
+	ii->compression = va_arg(args, int);
+	ii->compression_buf = va_arg(args, srbuf*);
 	return sd_iternextpage(i);
 }
 
@@ -81,13 +86,54 @@ sd_iternextpage(sriter *it)
 		page = i->start + h->offset + sd_indexsize(i->index->h);
 		i->end = page + h->total;
 	} else {
-		page = i->page + sizeof(sdpageheader) + i->pagev.h->size;
+		page = i->pagesrc + sizeof(sdpageheader) + i->pagev.h->size;
 	}
 	if (srunlikely(page >= i->end)) {
 		i->page = NULL;
 		return 0;
 	}
-	i->page = page;
+	i->pagesrc = page;
+	i->page = i->pagesrc;
+
+	/* decompression */
+	if (i->compression) {
+		sr_bufreset(i->compression_buf);
+
+		/* prepare decompression buffer */
+		sdpageheader *h = (sdpageheader*)i->page;
+		int rc = sr_bufensure(i->compression_buf, it->r->a, h->sizeorigin + sizeof(sdpageheader));
+		if (srunlikely(rc == -1)) {
+			i->page = NULL;
+			sr_malfunction(it->r->e, "%s", "memory allocation failed");
+			return -1;
+		}
+
+		/* copy page header */
+		memcpy(i->compression_buf->s, i->page, sizeof(sdpageheader));
+		sr_bufadvance(i->compression_buf, sizeof(sdpageheader));
+
+		/* decompression */
+		srfilter f;
+		rc = sr_filterinit(&f, (srfilterif*)it->r->compression, it->r, SR_FOUTPUT);
+		if (srunlikely(rc == -1)) {
+			i->page = NULL;
+			sr_malfunction(it->r->e, "%s", "page decompression error");
+			return -1;
+		}
+		rc = sr_filternext(&f, i->compression_buf, i->page + sizeof(sdpageheader), h->size);
+		if (srunlikely(rc == -1)) {
+			sr_filterfree(&f);
+			i->page = NULL;
+			sr_malfunction(it->r->e, "%s", "page decompression error");
+			return -1;
+		}
+		sr_filterfree(&f);
+
+		/* switch to decompressed page */
+		i->page = i->compression_buf->s;
+	}
+
+	/* checksum */
 	if (i->validate) {
 		sdpageheader *h = (sdpageheader*)i->page;
 		uint32_t crc = sr_crcs(it->r->crc, h, sizeof(sdpageheader), 0);

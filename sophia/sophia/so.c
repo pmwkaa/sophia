@@ -201,7 +201,7 @@ soobj *so_new(void)
 	sr_seqinit(&e->seq);
 	sr_errorinit(&e->error);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&e->r, &e->error, &e->a, &e->seq, NULL, &e->ei, crc);
+	sr_init(&e->r, &e->error, &e->a, &e->seq, NULL, &e->ei, crc, NULL);
 	se_init(&e->se);
 	sl_poolinit(&e->lp, &e->r);
 	sx_init(&e->xm, &e->r, &e->a_sxv);

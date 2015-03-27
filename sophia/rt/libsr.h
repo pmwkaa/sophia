@@ -30,8 +30,8 @@
 #include <sr_injection.h>
 #include <sr_crc.h>
 #include <sr.h>
-#include <sr_c.h>
 #include <sr_filter.h>
+#include <sr_c.h>
 #include <sr_iter.h>
 #include <sr_bufiter.h>
 #include <sr_mutex.h>

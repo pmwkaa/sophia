@@ -73,6 +73,14 @@ so_dbctl_init(sodbctl *c, char *name, void *db)
 	c->created = 0;
 	c->dropped = 0;
 	c->sync    = 1;
+	c->compression_if = NULL;
+	c->compression = sr_strdup(&e->a, "none");
+	if (srunlikely(c->compression == NULL)) {
+		sr_free(&e->a, c->name);
+		c->name = NULL;
+		sr_error(&e->error, "%s", "memory allocation failed");
+		return -1;
+	}
 	sr_cmpset(&c->cmp, "string");
 	return 0;
 }
@@ -90,6 +98,10 @@ so_dbctl_free(sodbctl *c)
 		sr_free(&e->a, c->path);
 		c->path = NULL;
 	}
+	if (c->compression) {
+		sr_free(&e->a, c->compression);
+		c->compression = NULL;
+	}
 	return 0;
 }
 
@@ -98,13 +110,24 @@ so_dbctl_validate(sodbctl *c)
 {
 	sodb *o = c->parent;
 	so *e = so_of(&o->o);
-	if (c->path)
-		return 0;
-	char path[1024];
-	snprintf(path, sizeof(path), "%s/%s", e->ctl.path, c->name);
-	c->path = sr_strdup(&e->a, path);
-	if (srunlikely(c->path == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
+	/* path */
+	if (c->path == NULL) {
+		char path[1024];
+		snprintf(path, sizeof(path), "%s/%s", e->ctl.path, c->name);
+		c->path = sr_strdup(&e->a, path);
+		if (srunlikely(c->path == NULL)) {
+			sr_error(&e->error, "%s", "memory allocation failed");
+			return -1;
+		}
+	}
+	/* compression */
+	if (strcmp(c->compression, "none") == 0) {
+		c->compression_if = NULL;
+	} else
+	if (strcmp(c->compression, "zstd") == 0) {
+		c->compression_if = &sr_zstdfilter;
+	} else {
+		sr_error(&e->error, "bad compression type '%s'", c->compression);
 		return -1;
 	}
 	return 0;
@@ -127,11 +150,12 @@ so_dbopen(soobj *obj, va_list args srunused)
 		goto online;
 	if (status != SO_OFFLINE)
 		return -1;
-	o->r.cmp = &o->ctl.cmp;
-	sx_indexset(&o->coindex, o->ctl.id, o->r.cmp);
 	int rc = so_dbctl_validate(&o->ctl);
 	if (srunlikely(rc == -1))
 		return -1;
+	o->r.cmp = &o->ctl.cmp;
+	o->r.compression = o->ctl.compression_if;
+	sx_indexset(&o->coindex, o->ctl.id, o->r.cmp);
 	rc = so_recoverbegin(o);
 	if (srunlikely(rc == -1))
 		return -1;
@@ -320,7 +344,7 @@ soobj *so_dbnew(so *e, char *name)
 	o->ref = 0;
 	o->txn_min = sx_min(&e->xm);
 	o->txn_max = o->txn_min;
-	sd_cinit(&o->dc, &o->r);
+	sd_cinit(&o->dc);
 	return &o->o;
 }
 

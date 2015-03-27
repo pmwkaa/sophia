@@ -37,7 +37,8 @@ si_branchcreate(si *index, sr *r, sdc *c, sinode *parent, svindex *vindex, uint6
 	             vindex->used,
 	             UINT64_MAX,
 	             index->conf->node_page_size,
-	             index->conf->node_page_checksum, 1, vlsn);
+	             index->conf->node_page_checksum,
+	             index->conf->compression, 1, vlsn);
 	rc = sd_merge(&merge);
 	if (srunlikely(rc == -1)) {
 		sv_mergefree(&vmerge, r->a);
@@ -60,7 +61,7 @@ si_branchcreate(si *index, sr *r, sdc *c, sinode *parent, svindex *vindex, uint6
 		goto error;
 
 	si_branchset(branch, &merge.index);
-	rc = sd_buildwrite(&c->build, &branch->index, &parent->file);
+	rc = sd_buildwrite(&c->build, r, &branch->index, &parent->file);
 	if (srunlikely(rc == -1)) {
 		si_branchfree(branch, r);
 		return NULL;
@@ -123,27 +124,41 @@ int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	return 1;
 }
 
-int si_compact(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
+static inline int
+si_noderead(sr *r, srbuf *dest, sinode *node)
 {
-	sinode *node = plan->node;
-	assert(node->flags & SI_LOCK);
-
-	/* read file */
-	sd_creset(c);
-	int rc = sr_bufensure(&c->c, r->a, node->file.size);
+	int rc = sr_bufensure(dest, r->a, node->file.size);
 	if (srunlikely(rc == -1)) {
 		sr_malfunction(r->e, "%s", "memory allocation failed");
 		return -1;
 	}
-	rc = sr_filepread(&node->file, 0, c->c.s, node->file.size);
+	rc = sr_filepread(&node->file, 0, dest->s, node->file.size);
 	if (srunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' read error: %s",
 		               node->file.file, strerror(errno));
 		return -1;
 	}
-	sr_bufadvance(&c->c, node->file.size);
+	sr_bufadvance(dest, node->file.size);
+	return 0;
+}
+
+int si_compact(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
+{
+	sinode *node = plan->node;
+	assert(node->flags & SI_LOCK);
+
+	/* read node file */
+	sd_creset(c);
+	int rc = si_noderead(r, &c->c, node);
+	if (srunlikely(rc == -1))
+		return -1;
 
 	/* prepare for compaction */
+	rc = sd_censure(c, r, node->branch_count);
+	if (srunlikely(rc == -1)) {
+		sr_malfunction(r->e, "%s", "memory allocation failed");
+		return -1;
+	}
 	svmerge merge;
 	sv_mergeinit(&merge);
 	rc = sv_mergeprepare(&merge, r, node->branch_count);
@@ -152,6 +167,7 @@ int si_compact(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	uint32_t size_stream = 0;
 	uint32_t size_key = 0;
 	uint32_t gc = 0;
+	sdcbuf *cbuf = c->head;
 	sibranch *b = node->branch;
 	while (b) {
 		svmergesrc *s = sv_mergeadd(&merge, NULL);
@@ -160,7 +176,8 @@ int si_compact(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 			size_key = key;
 		size_stream += sd_indextotal_kv(&b->index);
 		sr_iterinit(&s->src, &sd_iter, r);
-		sr_iteropen(&s->src, &b->index, c->c.s, 0);
+		sr_iteropen(&s->src, &b->index, c->c.s, 0, index->conf->compression, &cbuf->buf);
+		cbuf = cbuf->next;
 		b = b->next;
 	}
 	sriter i;
