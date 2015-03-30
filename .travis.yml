@@ -4,7 +4,7 @@ before_install:
   # backtrace support
   - sudo apt-get -y install gdb
 after_success:
-  - coveralls --exclude test -r . -b .
+  - coveralls -r . -b . --exclude test --exclude sophia/rt/sr_zstdfilter.c --exclude sophia/rt/sr_lz4filter.c
 compiler:
   - clang
   - gcc
