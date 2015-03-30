@@ -150,7 +150,7 @@ sdbuild_page1(stc *cx srunused)
 }
 
 static void
-sdbuild_compression(stc *cx srunused)
+sdbuild_compression_zstd(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
@@ -193,13 +193,57 @@ sdbuild_compression(stc *cx srunused)
 	sd_buildfree(&b, &r);
 }
 
+static void
+sdbuild_compression_lz4(stc *cx srunused)
+{
+	sra a;
+	sr_aopen(&a, &sr_stda);
+	srinjection ij;
+	memset(&ij, 0, sizeof(ij));
+	srcomparator cmp = { sr_cmpu32, NULL };
+	srerror error;
+	sr_errorinit(&error);
+	sr r;
+	srcrcf crc = sr_crc32c_function();
+	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, &sr_lz4filter);
+
+	sdbuild b;
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &r, 1, 1) == 0);
+	int i = 7;
+	int j = 8;
+	int k = 15;
+	addv(&b, &r, 3, SVSET, &i);
+	addv(&b, &r, 2, SVSET, &j);
+	addv(&b, &r, 1, SVSET, &k);
+	sd_buildend(&b, &r);
+	sdpageheader *h = sd_buildheader(&b);
+	t( h->count == 3 );
+	t( h->lsnmin == 1 );
+	t( h->lsnmax == 3 );
+	sd_buildcommit(&b);
+
+	t( sd_buildbegin(&b, &r, 1, 1) == 0);
+	addv(&b, &r, 3, SVSET, &i);
+	addv(&b, &r, 2, SVSET, &j);
+	addv(&b, &r, 1, SVSET, &k);
+	sd_buildend(&b, &r);
+	h = sd_buildheader(&b);
+	t( h->count == 3 );
+	t( h->lsnmin == 1 );
+	t( h->lsnmax == 3 );
+	sd_buildcommit(&b);
+
+	sd_buildfree(&b, &r);
+}
+
 stgroup *sdbuild_group(void)
 {
 	stgroup *group = st_group("sdbuild");
 	st_groupadd(group, st_test("empty", sdbuild_empty));
 	st_groupadd(group, st_test("page0", sdbuild_page0));
 	st_groupadd(group, st_test("page1", sdbuild_page1));
-
-	st_groupadd(group, st_test("compression", sdbuild_compression));
+	st_groupadd(group, st_test("compression_zstd", sdbuild_compression_zstd));
+	st_groupadd(group, st_test("compression_lz4", sdbuild_compression_lz4));
 	return group;
 }

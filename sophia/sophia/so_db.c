@@ -126,6 +126,9 @@ so_dbctl_validate(sodbctl *c)
 	} else
 	if (strcmp(c->compression, "zstd") == 0) {
 		c->compression_if = &sr_zstdfilter;
+	} else
+	if (strcmp(c->compression, "lz4") == 0) {
+		c->compression_if = &sr_lz4filter;
 	} else {
 		sr_error(&e->error, "bad compression type '%s'", c->compression);
 		return -1;

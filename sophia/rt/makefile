@@ -13,6 +13,7 @@ LIBSR_O = sr_time.o \
           sr_dir.o \
           sr_map.o \
           sr_crc.o \
+          sr_lz4filter.o \
           sr_zstdfilter.o
 LIBSR_OBJECTS = $(addprefix rt/, $(LIBSR_O))
 OBJECTS = $(LIBSR_O)

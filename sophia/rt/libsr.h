@@ -45,6 +45,7 @@
 #include <sr_file.h>
 #include <sr_dir.h>
 #include <sr_map.h>
+#include <sr_lz4filter.h>
 #include <sr_zstdfilter.h>
 
 #endif

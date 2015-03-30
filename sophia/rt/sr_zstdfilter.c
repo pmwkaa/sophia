@@ -9,6 +9,8 @@
 
 #include <libsr.h>
 
+/* zstd git commit: 765207c54934d478488c236749b01c7d6fc63d70 */
+
 /*
     zstd - standard compression library
     Copyright (C) 2014-2015, Yann Collet.
@@ -72,8 +74,6 @@
     - Source repository : https://github.com/Cyan4973/FiniteStateEntropy
     - Public forum : https://groups.google.com/forum/#!forum/lz4c
 */
-
-/* zstd git commit: 765207c54934d478488c236749b01c7d6fc63d70 */
 
 /* >>>>> zstd.h */
 
@@ -606,6 +606,9 @@ unsigned char FSE_decodeSymbolFast(FSE_DState_t* DStatePtr, FSE_DStream_t* bitD)
 /****************************************************************
 *  Basic Types
 *****************************************************************/
+#ifndef ZTYPES
+#define ZTYPES 1
+
 #if defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L   /* C99 */
 typedef  uint8_t BYTE;
 typedef uint16_t U16;
@@ -622,6 +625,8 @@ typedef unsigned int        U32;
 typedef   signed int        S32;
 typedef unsigned long long  U64;
 typedef   signed long long  S64;
+#endif
+
 #endif
 
 #endif   /* MEM_ACCESS_MODULE */
@@ -2198,9 +2203,15 @@ static const U32 ZSTD_magicNumber = 0xFD2FB51C;   /* Initial (limited) frame for
 #define BIT5  32
 #define BIT4  16
 
+#ifndef KB
 #define KB *(1 <<10)
+#endif
+#ifndef MB
 #define MB *(1 <<20)
+#endif
+#ifndef GB
 #define GB *(1U<<30)
+#endif
 
 #define BLOCKSIZE (128 KB)                 /* define, for static allocation */
 static const U32 g_maxDistance = 4 * BLOCKSIZE;
@@ -3883,13 +3894,13 @@ sr_zstdfilter_init(srfilter *f, va_list args srunused)
 	switch (f->op) {
 	case SR_FINPUT:
 		z->ctx = ZSTD_createCCtx();
+		if (srunlikely(z->ctx == NULL))
+			return -1;
 		break;	
 	case SR_FOUTPUT:
-		z->ctx = ZSTD_createDCtx();
+		z->ctx = NULL;
 		break;	
 	}
-	if (srunlikely(z->ctx == NULL))
-		return -1;
 	return 0;
 }
 
@@ -3902,7 +3913,6 @@ sr_zstdfilter_free(srfilter *f)
 		ZSTD_freeCCtx(z->ctx);
 		break;	
 	case SR_FOUTPUT:
-		ZSTD_freeDCtx(z->ctx);
 		break;	
 	}
 	return 0;
@@ -3917,8 +3927,7 @@ sr_zstdfilter_reset(srfilter *f)
 		ZSTD_resetCCtx(z->ctx);
 		break;	
 	case SR_FOUTPUT:
-		assert(0);
-		return -1;
+		break;
 	}
 	return 0;
 }
@@ -3964,29 +3973,15 @@ sr_zstdfilter_next(srfilter *f, srbuf *dest, char *buf, int size)
 			return -1;
 		sr_bufadvance(dest, sz);
 		break;	
-
 	case SR_FOUTPUT:
 		/* do a single-pass decompression.
 		 *
-		 * assume that destination buffer is prepared.
+		 * Assume that destination buffer is allocated to
+		 * original size.
 		 */
-
-		/* read and skip header */
-		block = ZSTD_nextSrcSizeToDecompress(z->ctx);
-		sz = ZSTD_decompressContinue(z->ctx, NULL, 0, buf, block);
+		sz = ZSTD_decompress(dest->p, sr_bufunused(dest), buf, size);
 		if (srunlikely(ZSTD_isError(sz)))
 			return -1;
-		buf += block;
-		/* decompression */
-		block = ZSTD_nextSrcSizeToDecompress(z->ctx);
-		while (block) {
-			sz = ZSTD_decompressContinue(z->ctx, dest->p, sr_bufunused(dest), buf, block);
-			if (srunlikely(ZSTD_isError(sz)))
-				return -1;
-			sr_bufadvance(dest, sz);
-			buf += block;
-			block = ZSTD_nextSrcSizeToDecompress(z->ctx);
-		}
 		break;
 	}
 	return 0;
