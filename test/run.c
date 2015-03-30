@@ -19,6 +19,7 @@ extern stgroup *srcmp_group(void);
 extern stgroup *srorder_group(void);
 extern stgroup *srrq_group(void);
 extern stgroup *srzstdfilter_group(void);
+extern stgroup *srlz4filter_group(void);
 extern stgroup *svlocal_group(void);
 extern stgroup *svv_group(void);
 extern stgroup *svindex_group(void);
@@ -92,6 +93,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, srorder_group());
 	st_planadd(plan, srrq_group());
 	st_planadd(plan, srzstdfilter_group());
+	st_planadd(plan, srlz4filter_group());
 	st_planadd(plan, svlocal_group());
 	st_planadd(plan, svv_group());
 	st_planadd(plan, svindex_group());

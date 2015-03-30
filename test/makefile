@@ -9,6 +9,7 @@ OBJECTS = st.o \
           srorder.test.o \
           srrq.test.o \
           srzstdfilter.test.o \
+          srlz4filter.test.o \
           svlocal.test.o \
           svv.test.o \
           svindex.test.o \
