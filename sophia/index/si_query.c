@@ -80,7 +80,8 @@ si_qread(srbuf *buf, sr *r, si *i, sinode *n, sibranch *b,
 {
 	uint64_t offset =
 		b->index.h->offset + sd_indexsize(b->index.h) +
-	    ref->offset;
+		ref->offset;
+	sr_bufreset(buf);
 	int rc = sr_bufensure(buf, r->a, sizeof(sdpage) + ref->sizeorigin);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "%s", "memory allocation failed");
