@@ -21,7 +21,7 @@ int sd_mergeinit(sdmerge *m, sr *r, uint32_t parent,
                  uint32_t size_page,
                  uint32_t checksum,
                  uint32_t compression,
-				 int save_delete,
+                 int save_delete,
                  uint64_t vlsn)
 {
 	m->r             = r;
@@ -36,6 +36,7 @@ int sd_mergeinit(sdmerge *m, sr *r, uint32_t parent,
 	m->checksum      = checksum;
 	sd_indexinit(&m->index);
 	m->merge         = i;
+	m->processed     = 0;
 	sr_iterinit(&m->i, &sv_writeiter, r);
 	sr_iteropen(&m->i, i, (uint64_t)size_page, sizeof(sdv), vlsn,
 	            save_delete);
@@ -59,19 +60,20 @@ int sd_merge(sdmerge *m)
 	if (srunlikely(rc == -1))
 		return -1;
 
-	uint32_t processed = sv_writeiter_total(&m->i); /* kv */
-	uint32_t processed_last = 0;
+	uint64_t processed = m->processed;
+	uint64_t current = 0;
 	uint64_t left = (m->size_stream - processed);
 	uint64_t limit;
-	if (left >= (m->size_node * 2))
+	if (left >= (m->size_node * 2)) {
 		limit = m->size_node;
-	else
-	if (left > (m->size_node))
-		limit = m->size_node / 2;
-	else
-		limit = left;
+	} else
+	if (left > (m->size_node)) {
+		limit = m->size_node * 2;
+	} else {
+		limit = UINT64_MAX;
+	}
 
-	while (sr_iterhas(&m->i) && (processed_last <= limit))
+	while (sr_iterhas(&m->i) && (current <= limit))
 	{
 		rc = sd_buildbegin(m->build, m->r, m->checksum, m->compression);
 		if (srunlikely(rc == -1))
@@ -109,11 +111,12 @@ int sd_merge(sdmerge *m)
 			return -1;
 		sd_buildcommit(m->build);
 
-		processed_last = sv_writeiter_total(&m->i) -
-		                 processed;
+		current = m->index.h->total;
 		if (srunlikely(! sv_writeiter_resume(&m->i)))
 			break;
 	}
+
+	m->processed += m->index.h->total;
 	return 1;
 }
 

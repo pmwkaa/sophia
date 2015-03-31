@@ -11,7 +11,6 @@
 
 extern sriterif sv_writeiter;
 
-int      sv_writeiter_resume(sriter*);
-uint32_t sv_writeiter_total(sriter*);
+int sv_writeiter_resume(sriter*);
 
 #endif

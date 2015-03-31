@@ -22,7 +22,7 @@ struct sdmerge {
 	uint64_t size_node;
 	uint32_t checksum;
 	uint32_t compression;
-	uint32_t processed;
+	uint64_t processed;
 	uint64_t offset;
 	sr *r;
 	sdbuild *build;

@@ -17,7 +17,6 @@ struct svwriteiter {
 	uint64_t limit; 
 	uint64_t size;
 	uint32_t sizev;
-	uint32_t total; /* kv */
 	uint64_t vlsn;
 	int save_delete;
 	int next;
@@ -87,7 +86,6 @@ sv_writeiter_next(sriter *i)
 		}
 		uint64_t lsn = svlsn(v);
 		int kv = svkeysize(v) + svvaluesize(v);
-		im->total += kv;
 		if (srunlikely(dup)) {
 			/* keep atleast one visible version for <= vlsn */
 			if (im->prevlsn <= im->vlsn)
@@ -130,10 +128,4 @@ int sv_writeiter_resume(sriter *i)
 	im->size = im->sizev + svkeysize(im->v) +
 	           svvaluesize(im->v);
 	return 1;
-}
-
-uint32_t sv_writeiter_total(sriter *i)
-{
-	svwriteiter *im = (svwriteiter*)i->priv;
-	return im->total;
 }

@@ -115,16 +115,6 @@ sd_indextotal(sdindex *i)
 }
 
 static inline uint32_t
-sd_indextotal_kv(sdindex *i)
-{
-	if (srunlikely(i->h == NULL))
-		return 0;
-	return sd_indexheader(i)->total -
-	       sd_indexheader(i)->count * sizeof(sdpageheader) -
-	       sd_indexheader(i)->keys * sizeof(sdv);
-}
-
-static inline uint32_t
 sd_indexsize(sdindexheader *h)
 {
 	return sizeof(sdindexheader) + h->count * h->block;

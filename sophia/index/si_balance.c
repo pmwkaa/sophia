@@ -34,7 +34,7 @@ si_branchcreate(si *index, sr *r, sdc *c, sinode *parent, svindex *vindex, uint6
 	             &c->build,
 	             parent->file.size,
 	             vindex->keymax,
-	             vindex->used,
+	             UINT32_MAX,
 	             UINT64_MAX,
 	             index->conf->node_page_size,
 	             index->conf->node_page_checksum,
@@ -174,7 +174,7 @@ int si_compact(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 		uint16_t key = sd_indexkeysize(&b->index);
 		if (key > size_key)
 			size_key = key;
-		size_stream += sd_indextotal_kv(&b->index);
+		size_stream += sd_indextotal(&b->index);
 		sr_iterinit(&s->src, &sd_iter, r);
 		sr_iteropen(&s->src, &b->index, c->c.s, 0, index->conf->compression, &cbuf->buf);
 		cbuf = cbuf->next;
