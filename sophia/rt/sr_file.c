@@ -105,6 +105,8 @@ int sr_filesync(srfile *f)
 {
 #if defined(__APPLE__)
 	return fcntl(f->fd, F_FULLFSYNC);
+#elif defined(__FreeBSD__)
+	return fsync(f->fd);
 #else
 	return fdatasync(f->fd);
 #endif
