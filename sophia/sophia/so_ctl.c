@@ -61,7 +61,7 @@ void *so_ctlreturn(src *c, void *o)
 	l.valuesize = size;
 	l.value     = value;
 	sv vp;
-	svinit(&vp, &sv_localif, &l, NULL);
+	sv_init(&vp, &sv_localif, &l, NULL);
 	svv *v = sv_valloc(&e->a, &vp);
 	if (srunlikely(v == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");
@@ -73,7 +73,7 @@ void *so_ctlreturn(src *c, void *o)
 		sr_error(&e->error, "%s", "memory allocation failed");
 		return NULL;
 	}
-	svinit(&vp, &sv_vif, v, NULL);
+	sv_init(&vp, &sv_vif, v, NULL);
 	return so_vput(result, &vp);
 }
 

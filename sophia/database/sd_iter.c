@@ -27,14 +27,6 @@ struct sditer {
 	sv v;
 } srpacked;
 
-static void
-sd_iterinit(sriter *i)
-{
-	assert(sizeof(sditer) <= sizeof(i->priv));
-	sditer *ii = (sditer*)i->priv;
-	memset(ii, 0, sizeof(*ii));
-}
-
 static int sd_iternextpage(sriter*);
 
 static int
@@ -43,6 +35,11 @@ sd_iteropen(sriter *i, va_list args)
 	sditer *ii = (sditer*)i->priv;
 	ii->index       = va_arg(args, sdindex*);
 	ii->start       = va_arg(args, char*);
+	ii->end         = NULL;
+	ii->page        = NULL;
+	ii->pagesrc     = NULL;
+	ii->pos         = 0;
+	ii->dv          = NULL;
 	ii->validate    = va_arg(args, int);
 	ii->compression = va_arg(args, int);
 	ii->compression_buf = va_arg(args, srbuf*);
@@ -151,7 +148,7 @@ sd_iternextpage(sriter *it)
 		return 0;
 	}
 	i->dv = sd_pagev(&i->pagev, 0);
-	svinit(&i->v, &sd_vif, i->dv, i->pagev.h);
+	sv_init(&i->v, &sd_vif, i->dv, i->pagev.h);
 	return 1;
 }
 
@@ -164,7 +161,7 @@ sd_iternext(sriter *i)
 	ii->pos++;
 	if (srlikely(ii->pos < ii->pagev.h->count)) {
 		ii->dv = sd_pagev(&ii->pagev, ii->pos);
-		svinit(&ii->v, &sd_vif, ii->dv, ii->pagev.h);
+		sv_init(&ii->v, &sd_vif, ii->dv, ii->pagev.h);
 	} else {
 		ii->dv = NULL;
 		sd_iternextpage(i);
@@ -173,7 +170,6 @@ sd_iternext(sriter *i)
 
 sriterif sd_iter =
 {
-	.init    = sd_iterinit,
 	.open    = sd_iteropen,
 	.close   = sd_iterclose,
 	.has     = sd_iterhas,

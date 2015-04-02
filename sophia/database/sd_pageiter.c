@@ -24,15 +24,6 @@ struct sdpageiter {
 	uint64_t vlsn;
 } srpacked;
 
-static void
-sd_pageiter_init(sriter *i)
-{
-	assert(sizeof(sdpageiter) <= sizeof(i->priv));
-
-	sdpageiter *pi = (sdpageiter*)i->priv;
-	memset(pi, 0, sizeof(*pi));
-}
-
 static inline void
 sd_pageiter_end(sdpageiter *i)
 {
@@ -333,6 +324,8 @@ sd_pageiter_open(sriter *i, va_list args)
 	pi->key     = va_arg(args, void*);
 	pi->keysize = va_arg(args, int);
 	pi->vlsn    = va_arg(args, uint64_t);
+	pi->v       = NULL;
+	pi->pos     = 0;
 	if (srunlikely(pi->page->h->lsnmin > pi->vlsn &&
 	               pi->order != SR_UPDATE))
 		return 0;
@@ -374,7 +367,7 @@ sd_pageiter_of(sriter *i)
 	sdpageiter *pi = (sdpageiter*)i->priv;
 	if (srunlikely(pi->v == NULL))
 		return NULL;
-	svinit(&pi->current, &sd_vif, pi->v, pi->page->h);
+	sv_init(&pi->current, &sd_vif, pi->v, pi->page->h);
 	return &pi->current;
 }
 
@@ -396,7 +389,6 @@ sd_pageiter_next(sriter *i)
 
 sriterif sd_pageiter =
 {
-	.init    = sd_pageiter_init,
 	.open    = sd_pageiter_open,
 	.close   = sd_pageiter_close,
 	.has     = sd_pageiter_has,
@@ -412,15 +404,6 @@ struct sdpageiterraw {
 	sdv *v;
 	sv current;
 } srpacked;
-
-static void
-sd_pageiterraw_init(sriter *i)
-{
-	assert(sizeof(sdpageiterraw) <= sizeof(i->priv));
-
-	sdpageiterraw *pi = (sdpageiterraw*)i->priv;
-	memset(pi, 0, sizeof(*pi));
-}
 
 static int
 sd_pageiterraw_open(sriter *i, va_list args)
@@ -455,7 +438,7 @@ sd_pageiterraw_of(sriter *i)
 	sdpageiterraw *pi = (sdpageiterraw*)i->priv;
 	if (srunlikely(pi->v == NULL))
 		return NULL;
-	svinit(&pi->current, &sd_vif, pi->v, pi->page->h);
+	sv_init(&pi->current, &sd_vif, pi->v, pi->page->h);
 	return &pi->current;
 }
 
@@ -472,7 +455,6 @@ sd_pageiterraw_next(sriter *i)
 
 sriterif sd_pageiterraw =
 {
-	.init  = sd_pageiterraw_init,
 	.open  = sd_pageiterraw_open,
 	.close = sd_pageiterraw_close,
 	.has   = sd_pageiterraw_has,

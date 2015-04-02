@@ -23,7 +23,7 @@ allocv(sra *a, uint64_t lsn, uint8_t flags, int *key)
 	l.value       = NULL;
 	l.valuesize   = 0;
 	sv lv;
-	svinit(&lv, &sv_localif, &l, NULL);
+	sv_init(&lv, &sv_localif, &l, NULL);
 	return sv_valloc(a, &lv);
 }
 
@@ -1343,7 +1343,7 @@ svindexiter_random(stc *cx srunused)
 		sr_iteropen(&it, &i, SR_RANDOM, &rnd, sizeof(rnd), UINT64_MAX);
 		t( sr_iterhas(&it) != 0 );
 		sv *v = sr_iterof(&it);
-		int k = *(int*)svkey(v);
+		int k = *(int*)sv_key(v);
 		t( k >= 0 && k < 100 );
 	}
 	sv_indexfree(&i, &r);
@@ -1441,7 +1441,7 @@ svindexiter_iterate_raw1(stc *cx srunused)
 	j = 0;
 	while (sr_iterhas(&it)) {
 		sv *v = sr_iterof(&it);
-		t( svlsn(v) == j );
+		t( sv_lsn(v) == j );
 		sr_iternext(&it);
 		j++;
 	}

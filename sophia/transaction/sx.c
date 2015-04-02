@@ -204,7 +204,7 @@ sxstate sx_commit(sx *t)
 		/* unlink version */
 		sx_vunlink(v);
 		/* translate log version from sxv to svv */
-		svinit(&lv->v, &sv_vif, v->v, NULL);
+		sv_init(&lv->v, &sv_vif, v->v, NULL);
 		sr_free(m->asxv, v);
 	}
 	t->s = SXCOMMIT;
@@ -255,7 +255,7 @@ int sx_set(sx *t, sxindex *index, svv *version)
 	svlogv lv;
 	lv.id   = index->dsn;
 	lv.next = 0;
-	svinit(&lv.v, &sx_vif, v, NULL);
+	sv_init(&lv.v, &sx_vif, v, NULL);
 	/* update concurrent index */
 	srrbnode *n = NULL;
 	int rc = sx_match(&index->i, index->cmp,
@@ -300,8 +300,8 @@ int sx_get(sx *t, sxindex *index, sv *key, sv *result)
 {
 	sxmanager *m = t->manager;
 	srrbnode *n = NULL;
-	int rc = sx_match(&index->i, index->cmp, svkey(key),
-	                  svkeysize(key), &n);
+	int rc = sx_match(&index->i, index->cmp, sv_key(key),
+	                  sv_keysize(key), &n);
 	if (! (rc == 0 && n))
 		return 0;
 	sxv *head = srcast(n, sxv, node);
@@ -311,11 +311,11 @@ int sx_get(sx *t, sxindex *index, sv *key, sv *result)
 	if (srunlikely((v->v->flags & SVDELETE) > 0))
 		return 2;
 	sv vv;
-	svinit(&vv, &sv_vif, v->v, NULL);
+	sv_init(&vv, &sv_vif, v->v, NULL);
 	svv *ret = sv_valloc(m->r->a, &vv);
 	if (srunlikely(ret == NULL))
 		return sr_error(m->r->e, "%s", "memory allocation failed");
-	svinit(result, &sv_vif, ret, NULL);
+	sv_init(result, &sv_vif, ret, NULL);
 	return 1;
 }
 
@@ -323,7 +323,7 @@ sxstate sx_setstmt(sxmanager *m, sxindex *index, sv *v)
 {
 	sr_seq(m->r->seq, SR_TSNNEXT);
 	srrbnode *n = NULL;
-	int rc = sx_match(&index->i, index->cmp, svkey(v), svkeysize(v), &n);
+	int rc = sx_match(&index->i, index->cmp, sv_key(v), sv_keysize(v), &n);
 	if (rc == 0 && n)
 		return SXLOCK;
 	return SXCOMMIT;

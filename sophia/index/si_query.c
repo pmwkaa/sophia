@@ -45,13 +45,13 @@ si_qresult(siquery *q, sriter *i)
 	sv *v = sr_iterof(i);
 	if (srunlikely(v == NULL))
 		return 0;
-	if (srunlikely(svflags(v) & SVDELETE))
+	if (srunlikely(sv_flags(v) & SVDELETE))
 		return 2;
 	int rc = 1;
 	if (q->prefix) {
 		rc = sr_compareprefix(q->r->cmp, q->prefix, q->prefixsize,
-		                      svkey(v),
-		                      svkeysize(v));
+		                      sv_key(v),
+		                      sv_keysize(v));
 	}
 	q->result = *v;
 	return rc;
@@ -211,7 +211,7 @@ int si_querydup(siquery *q, sv *result)
 		sr_error(q->r->e, "%s", "memory allocation failed");
 		return -1;
 	}
-	svinit(result, &sv_vif, v, NULL);
+	sv_init(result, &sv_vif, v, NULL);
 	return 1;
 }
 
@@ -306,8 +306,8 @@ next_node:
 	rc = 1;
 	if (q->prefix) {
 		rc = sr_compareprefix(q->r->cmp, q->prefix, q->prefixsize,
-		                      svkey(v),
-		                      svkeysize(v));
+		                      sv_key(v),
+		                      sv_keysize(v));
 	}
 	q->result = *v;
 
@@ -339,18 +339,18 @@ si_querycommited_branch(sr *r, sibranch *b, sv *v)
 {
 	sriter i;
 	sr_iterinit(&i, &sd_indexiter, r);
-	sr_iteropen(&i, &b->index, SR_LTE, svkey(v), svkeysize(v));
+	sr_iteropen(&i, &b->index, SR_LTE, sv_key(v), sv_keysize(v));
 	sdindexpage *page = sr_iterof(&i);
 	if (page == NULL)
 		return 0;
-	return page->lsnmax >= svlsn(v);
+	return page->lsnmax >= sv_lsn(v);
 }
 
 int si_querycommited(si *index, sr *r, sv *v)
 {
 	sriter i;
 	sr_iterinit(&i, &si_iter, r);
-	sr_iteropen(&i, index, SR_ROUTE, svkey(v), svkeysize(v));
+	sr_iteropen(&i, index, SR_ROUTE, sv_key(v), sv_keysize(v));
 	sinode *node;
 	node = sr_iterof(&i);
 	assert(node != NULL);

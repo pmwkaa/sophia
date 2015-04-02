@@ -24,18 +24,17 @@ svlocal_test(stc *cx srunused)
 	l.value       = &value;
 	l.valuesize   = sizeof(value);
 	sv v;
-	svinit(&v, &sv_localif, &l, NULL);
-	t( svflags(&v) == l.flags );
-	svflagsadd(&v, SVDUP);
-	t( svflags(&v) == (l.flags|SVDUP) );
-	t( svlsn(&v) == l.lsn );
-	svlsnset(&v, 8);
-	t( svlsn(&v) == 8 );
-	t( svkey(&v) == l.key );
-	t( svkeysize(&v) == l.keysize );
-	t( svvalue(&v) == l.value );
-	t( svvaluesize(&v) == l.valuesize );
-	t( svvalueoffset(&v) == 0 );
+	sv_init(&v, &sv_localif, &l, NULL);
+	t( sv_flags(&v) == l.flags );
+	sv_flagsadd(&v, SVDUP);
+	t( sv_flags(&v) == (l.flags|SVDUP) );
+	t( sv_lsn(&v) == l.lsn );
+	sv_lsnset(&v, 8);
+	t( sv_lsn(&v) == 8 );
+	t( sv_key(&v) == l.key );
+	t( sv_keysize(&v) == l.keysize );
+	t( sv_value(&v) == l.value );
+	t( sv_valuesize(&v) == l.valuesize );
 }
 
 stgroup *svlocal_group(void)

@@ -28,14 +28,6 @@ struct svmergeiter {
 	svmergesrc *v;
 } srpacked;
 
-static void
-sv_mergeiter_init(sriter *i)
-{
-	assert(sizeof(svmergeiter) <= sizeof(i->priv));
-	svmergeiter *im = (svmergeiter*)i->priv;
-	memset(im, 0, sizeof(*im));
-}
-
 static void sv_mergeiter_next(sriter*);
 
 static int
@@ -105,10 +97,10 @@ sv_mergeiter_gt(sriter *it)
 			min = src;
 			continue;
 		}
-		int rc = svcompare(minv, v, it->r->cmp);
+		int rc = sv_compare(minv, v, it->r->cmp);
 		switch (rc) {
 		case 0:
-			assert(svlsn(v) < svlsn(minv));
+			assert(sv_lsn(v) < sv_lsn(minv));
 			src->dup = 1;
 			break;
 		case 1:
@@ -147,10 +139,10 @@ sv_mergeiter_lt(sriter *it)
 			max = src;
 			continue;
 		}
-		int rc = svcompare(maxv, v, it->r->cmp);
+		int rc = sv_compare(maxv, v, it->r->cmp);
 		switch (rc) {
 		case  0:
-			assert(svlsn(v) < svlsn(maxv));
+			assert(sv_lsn(v) < sv_lsn(maxv));
 			src->dup = 1;
 			break;
 		case -1:
@@ -185,7 +177,6 @@ sv_mergeiter_next(sriter *it)
 
 sriterif sv_mergeiter =
 {
-	.init    = sv_mergeiter_init,
 	.open    = sv_mergeiter_open,
 	.close   = sv_mergeiter_close,
 	.has     = sv_mergeiter_has,

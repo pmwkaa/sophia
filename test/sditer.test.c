@@ -24,7 +24,7 @@ addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 	l.value       = NULL;
 	l.valuesize   = 0;
 	sv lv;
-	svinit(&lv, &sv_localif, &l, NULL);
+	sv_init(&lv, &sv_localif, &l, NULL);
 	sd_buildadd(b, r, &lv, flags & SVDUP);
 }
 
@@ -98,13 +98,13 @@ sditer_gt0(stc *cx srunused)
 	t( sr_iterhas(&it) == 1 );
 
 	sv *v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 7);
+	t( *(int*)sv_key(v) == 7);
 	sr_iternext(&it);
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 8);
+	t( *(int*)sv_key(v) == 8);
 	sr_iternext(&it);
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 9);
+	t( *(int*)sv_key(v) == 9);
 	sr_iternext(&it);
 	t( sr_iterhas(&it) == 0 );
 	sr_iterclose(&it);
@@ -239,35 +239,35 @@ sditer_gt1(stc *cx srunused)
 	/* page 0 */
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 7);
+	t( *(int*)sv_key(v) == 7);
 	sr_iternext(&it);
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 8);
+	t( *(int*)sv_key(v) == 8);
 	sr_iternext(&it);
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 9);
+	t( *(int*)sv_key(v) == 9);
 	sr_iternext(&it);
 
 	/* page 1 */
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 10);
+	t( *(int*)sv_key(v) == 10);
 	sr_iternext(&it);
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 11);
+	t( *(int*)sv_key(v) == 11);
 	sr_iternext(&it);
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 13);
+	t( *(int*)sv_key(v) == 13);
 	sr_iternext(&it);
 
 	/* page 2 */
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 15);
+	t( *(int*)sv_key(v) == 15);
 	sr_iternext(&it);
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 18);
+	t( *(int*)sv_key(v) == 18);
 	sr_iternext(&it);
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 20);
+	t( *(int*)sv_key(v) == 20);
 	sr_iternext(&it);
 	t( sr_iterhas(&it) == 0 );
 	sr_iterclose(&it);
@@ -354,13 +354,13 @@ sditer_gt0_compression_zstd(stc *cx srunused)
 	t( sr_iterhas(&it) == 1 );
 
 	sv *v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 7);
+	t( *(int*)sv_key(v) == 7);
 	sr_iternext(&it);
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 8);
+	t( *(int*)sv_key(v) == 8);
 	sr_iternext(&it);
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 9);
+	t( *(int*)sv_key(v) == 9);
 	sr_iternext(&it);
 	t( sr_iterhas(&it) == 0 );
 	sr_iterclose(&it);
@@ -450,13 +450,13 @@ sditer_gt0_compression_lz4(stc *cx srunused)
 	t( sr_iterhas(&it) == 1 );
 
 	sv *v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 7);
+	t( *(int*)sv_key(v) == 7);
 	sr_iternext(&it);
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 8);
+	t( *(int*)sv_key(v) == 8);
 	sr_iternext(&it);
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 9);
+	t( *(int*)sv_key(v) == 9);
 	sr_iternext(&it);
 	t( sr_iterhas(&it) == 0 );
 	sr_iterclose(&it);
@@ -596,35 +596,35 @@ sditer_gt1_compression_zstd(stc *cx srunused)
 	/* page 0 */
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 7);
+	t( *(int*)sv_key(v) == 7);
 	sr_iternext(&it);
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 8);
+	t( *(int*)sv_key(v) == 8);
 	sr_iternext(&it);
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 9);
+	t( *(int*)sv_key(v) == 9);
 	sr_iternext(&it);
 
 	/* page 1 */
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 10);
+	t( *(int*)sv_key(v) == 10);
 	sr_iternext(&it);
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 11);
+	t( *(int*)sv_key(v) == 11);
 	sr_iternext(&it);
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 13);
+	t( *(int*)sv_key(v) == 13);
 	sr_iternext(&it);
 
 	/* page 2 */
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 15);
+	t( *(int*)sv_key(v) == 15);
 	sr_iternext(&it);
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 18);
+	t( *(int*)sv_key(v) == 18);
 	sr_iternext(&it);
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 20);
+	t( *(int*)sv_key(v) == 20);
 	sr_iternext(&it);
 	t( sr_iterhas(&it) == 0 );
 	sr_iterclose(&it);
@@ -763,35 +763,35 @@ sditer_gt1_compression_lz4(stc *cx srunused)
 	/* page 0 */
 	t( sr_iterhas(&it) != 0 );
 	sv *v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 7);
+	t( *(int*)sv_key(v) == 7);
 	sr_iternext(&it);
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 8);
+	t( *(int*)sv_key(v) == 8);
 	sr_iternext(&it);
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 9);
+	t( *(int*)sv_key(v) == 9);
 	sr_iternext(&it);
 
 	/* page 1 */
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 10);
+	t( *(int*)sv_key(v) == 10);
 	sr_iternext(&it);
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 11);
+	t( *(int*)sv_key(v) == 11);
 	sr_iternext(&it);
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 13);
+	t( *(int*)sv_key(v) == 13);
 	sr_iternext(&it);
 
 	/* page 2 */
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 15);
+	t( *(int*)sv_key(v) == 15);
 	sr_iternext(&it);
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 18);
+	t( *(int*)sv_key(v) == 18);
 	sr_iternext(&it);
 	v = sr_iterof(&it);
-	t( *(int*)svkey(v) == 20);
+	t( *(int*)sv_key(v) == 20);
 	sr_iternext(&it);
 	t( sr_iterhas(&it) == 0 );
 	sr_iterclose(&it);

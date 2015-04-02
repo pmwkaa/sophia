@@ -52,11 +52,6 @@ sv_localifvaluesize(sv *v) {
 	return ((svlocal*)v->v)->valuesize;
 }
 
-static uint64_t
-sv_localifoffset(sv *v srunused) {
-	return 0;
-}
-
 svif sv_localif =
 {
 	.flags       = sv_localifflags,
@@ -66,10 +61,5 @@ svif sv_localif =
 	.key         = sv_localifkey,
 	.keysize     = sv_localifkeysize,
 	.value       = sv_localifvalue,
-	.valuesize   = sv_localifvaluesize,
-	.valueoffset = sv_localifoffset,
-	.raw         = NULL,
-	.rawsize     = NULL,
-	.ref         = NULL,
-	.unref       = NULL
+	.valuesize   = sv_localifvaluesize
 };

@@ -28,11 +28,6 @@ struct svif {
 	uint16_t  (*keysize)(sv*);
 	char     *(*value)(sv*);
 	uint32_t  (*valuesize)(sv*);
-	uint64_t  (*valueoffset)(sv*);
-	char     *(*raw)(sv*);
-	uint32_t  (*rawsize)(sv*);
-	void      (*ref)(sv*);
-	void      (*unref)(sv*, sra*);
 };
 
 struct sv {
@@ -41,81 +36,56 @@ struct sv {
 } srpacked;
 
 static inline void
-svinit(sv *v, svif *i, void *vptr, void *arg) {
+sv_init(sv *v, svif *i, void *vptr, void *arg) {
 	v->i   = i;
 	v->v   = vptr;
 	v->arg = arg;
 }
 
 static inline uint8_t
-svflags(sv *v) {
+sv_flags(sv *v) {
 	return v->i->flags(v);
 }
 
 static inline void
-svflagsadd(sv *v, uint32_t flags) {
+sv_flagsadd(sv *v, uint32_t flags) {
 	v->i->flagsadd(v, flags);
 }
 
 static inline uint64_t
-svlsn(sv *v) {
+sv_lsn(sv *v) {
 	return v->i->lsn(v);
 }
 
 static inline void
-svlsnset(sv *v, uint64_t lsn) {
+sv_lsnset(sv *v, uint64_t lsn) {
 	v->i->lsnset(v, lsn);
 }
 
 static inline char*
-svkey(sv *v) {
+sv_key(sv *v) {
 	return v->i->key(v);
 }
 
 static inline uint16_t
-svkeysize(sv *v) {
+sv_keysize(sv *v) {
 	return v->i->keysize(v);
 }
 
 static inline char*
-svvalue(sv *v) {
+sv_value(sv *v) {
 	return v->i->value(v);
 }
 
 static inline uint32_t
-svvaluesize(sv *v) {
+sv_valuesize(sv *v) {
 	return v->i->valuesize(v);
 }
 
-static inline uint64_t
-svvalueoffset(sv *v) {
-	return v->i->valueoffset(v);
-}
-
-static inline char*
-svraw(sv *v) {
-	return v->i->raw(v);
-}
-
-static inline uint32_t
-svrawsize(sv *v) {
-	return v->i->rawsize(v);
-}
-
-static inline void
-svref(sv *v) {
-	v->i->ref(v);
-}
-
-static inline void
-svunref(sv *v, sra *a) {
-	v->i->unref(v, a);
-}
-
 static inline int
-svcompare(sv *a, sv *b, srcomparator *c) {
-	return sr_compare(c, svkey(a), svkeysize(a),
-	                     svkey(b), svkeysize(b));
+sv_compare(sv *a, sv *b, srcomparator *c) {
+	return sr_compare(c, sv_key(a), sv_keysize(a),
+	                     sv_key(b), sv_keysize(b));
 }
 
 #endif

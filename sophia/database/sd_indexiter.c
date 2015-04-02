@@ -22,14 +22,6 @@ struct sdindexiter {
 	int keysize;
 } srpacked;
 
-static void
-sd_indexiter_init(sriter *i)
-{
-	assert(sizeof(sdindexiter) <= sizeof(i->priv));
-	sdindexiter *ii = (sdindexiter*)i->priv;
-	memset(ii, 0, sizeof(*ii));
-}
-
 static inline int
 sd_indexiter_seek(sriter *i, void *key, int size, int *minp, int *midp, int *maxp)
 {
@@ -82,6 +74,7 @@ sd_indexiter_open(sriter *i, va_list args)
 	ii->key     = va_arg(args, void*);
 	ii->keysize = va_arg(args, int);
 	ii->v       = NULL;
+	ii->pos     = 0;
 	if (ii->index->h->count == 1) {
 		ii->pos = 0;
 		if (ii->index->h->lsnmin == UINT64_MAX &&
@@ -184,7 +177,6 @@ sd_indexiter_next(sriter *i)
 
 sriterif sd_indexiter =
 {
-	.init  = sd_indexiter_init,
 	.open  = sd_indexiter_open,
 	.close = sd_indexiter_close,
 	.has   = sd_indexiter_has,

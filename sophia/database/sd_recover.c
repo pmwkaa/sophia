@@ -21,14 +21,6 @@ struct sdrecover {
 	srmap map;
 } srpacked;
 
-static void
-sd_recoverinit(sriter *i)
-{
-	assert(sizeof(sdrecover) <= sizeof(i->priv));
-	sdrecover *ri = (sdrecover*)i->priv;
-	memset(ri, 0, sizeof(*ri));
-}
-
 static int
 sd_recovernext_of(sriter *i, sdindexheader *next)
 {
@@ -85,6 +77,7 @@ static int
 sd_recoveropen(sriter *i, va_list args)
 {
 	sdrecover *ri = (sdrecover*)i->priv;
+	memset(ri, 0, sizeof(*ri));
 	ri->file = va_arg(args, srfile*);
 	if (srunlikely(ri->file->size < (sizeof(sdindexheader) + sizeof(sdseal)))) {
 		sr_malfunction(i->r->e, "corrupted db file '%s': bad size",
@@ -98,7 +91,6 @@ sd_recoveropen(sriter *i, va_list args)
 		               ri->file->file, strerror(errno));
 		return -1;
 	}
-	ri->v = NULL;
 	sdindexheader *next = (sdindexheader*)((char*)ri->map.p);
 	rc = sd_recovernext_of(i, next);
 	if (srunlikely(rc == -1))
@@ -143,7 +135,6 @@ sd_recovernext(sriter *i)
 
 sriterif sd_recover =
 {
-	.init    = sd_recoverinit,
 	.open    = sd_recoveropen,
 	.close   = sd_recoverclose,
 	.has     = sd_recoverhas,

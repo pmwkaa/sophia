@@ -16,10 +16,10 @@ static sv*
 svwriteiter_valloc(sra *a, svlocal *l)
 {
 	sv lv;
-	svinit(&lv, &sv_localif, l, NULL);
+	sv_init(&lv, &sv_localif, l, NULL);
 	svv *kv = sv_valloc(a, &lv);
 	sv *v = sr_malloc(a, sizeof(sv));
-	svinit(v, &sv_vif, kv, NULL);
+	sv_init(v, &sv_vif, kv, NULL);
 	return v;
 }
 
@@ -80,9 +80,9 @@ svwriteiter_iter(stc *cx srunused)
 	i = 0;
 	while (sr_iterhas(&iter)) {
 		sv *v = (sv*)sr_iterof(&iter);
-		t( *(int*)svkey(v) == i );
-		t( svlsn(v) == 10 - i );
-		t( svflags(v) == SVSET );
+		t( *(int*)sv_key(v) == i );
+		t( sv_lsn(v) == 10 - i );
+		t( sv_flags(v) == SVSET );
 		sr_iternext(&iter);
 		i++;
 	}
@@ -158,9 +158,9 @@ svwriteiter_limit(stc *cx srunused)
 	i = 0;
 	while (sr_iterhas(&iter)) {
 		sv *v = (sv*)sr_iterof(&iter);
-		t( *(int*)svkey(v) == i );
-		t( svlsn(v) == 18 - i );
-		t( svflags(v) == SVSET );
+		t( *(int*)sv_key(v) == i );
+		t( sv_lsn(v) == 18 - i );
+		t( sv_flags(v) == SVSET );
 		sr_iternext(&iter);
 		i++;
 	}
@@ -169,9 +169,9 @@ svwriteiter_limit(stc *cx srunused)
 	sv_writeiter_resume(&iter);
 	while (sr_iterhas(&iter)) {
 		sv *v = (sv*)sr_iterof(&iter);
-		t( *(int*)svkey(v) == i );
-		t( svlsn(v) == 18 - i );
-		t( svflags(v) == SVSET );
+		t( *(int*)sv_key(v) == i );
+		t( sv_lsn(v) == 18 - i );
+		t( sv_flags(v) == SVSET );
 		sr_iternext(&iter);
 		i++;
 		j++;
@@ -181,9 +181,9 @@ svwriteiter_limit(stc *cx srunused)
 	sv_writeiter_resume(&iter);
 	while (sr_iterhas(&iter)) {
 		sv *v = (sv*)sr_iterof(&iter);
-		t( *(int*)svkey(v) == i );
-		t( svlsn(v) == 18 - i );
-		t( svflags(v) == SVSET );
+		t( *(int*)sv_key(v) == i );
+		t( sv_lsn(v) == 18 - i );
+		t( sv_flags(v) == SVSET );
 		sr_iternext(&iter);
 		i++;
 		j++;
@@ -193,9 +193,9 @@ svwriteiter_limit(stc *cx srunused)
 	sv_writeiter_resume(&iter);
 	while (sr_iterhas(&iter)) {
 		sv *v = (sv*)sr_iterof(&iter);
-		t( *(int*)svkey(v) == i );
-		t( svlsn(v) == 18 - i );
-		t( svflags(v) == SVSET );
+		t( *(int*)sv_key(v) == i );
+		t( sv_lsn(v) == 18 - i );
+		t( sv_flags(v) == SVSET );
 		sr_iternext(&iter);
 		i++;
 		j++;
@@ -273,9 +273,9 @@ svwriteiter_limit_small(stc *cx srunused)
 	i = 0;
 	while (sr_iterhas(&iter)) {
 		sv *v = (sv*)sr_iterof(&iter);
-		t( *(int*)svkey(v) == i );
-		t( svlsn(v) == 18 - i );
-		t( svflags(v) == SVSET );
+		t( *(int*)sv_key(v) == i );
+		t( sv_lsn(v) == 18 - i );
+		t( sv_flags(v) == SVSET );
 		sr_iternext(&iter);
 		i++;
 	}
@@ -284,9 +284,9 @@ svwriteiter_limit_small(stc *cx srunused)
 	sv_writeiter_resume(&iter);
 	while (sr_iterhas(&iter)) {
 		sv *v = (sv*)sr_iterof(&iter);
-		t( *(int*)svkey(v) == i );
-		t( svlsn(v) == 18 - i );
-		t( svflags(v) == SVSET );
+		t( *(int*)sv_key(v) == i );
+		t( sv_lsn(v) == 18 - i );
+		t( sv_flags(v) == SVSET );
 		sr_iternext(&iter);
 		i++;
 		j++;
@@ -296,9 +296,9 @@ svwriteiter_limit_small(stc *cx srunused)
 	sv_writeiter_resume(&iter);
 	while (sr_iterhas(&iter)) {
 		sv *v = (sv*)sr_iterof(&iter);
-		t( *(int*)svkey(v) == i );
-		t( svlsn(v) == 18 - i );
-		t( svflags(v) == SVSET );
+		t( *(int*)sv_key(v) == i );
+		t( sv_lsn(v) == 18 - i );
+		t( sv_flags(v) == SVSET );
 		sr_iternext(&iter);
 		i++;
 		j++;
@@ -308,9 +308,9 @@ svwriteiter_limit_small(stc *cx srunused)
 	sv_writeiter_resume(&iter);
 	while (sr_iterhas(&iter)) {
 		sv *v = (sv*)sr_iterof(&iter);
-		t( *(int*)svkey(v) == i );
-		t( svlsn(v) == 18 - i );
-		t( svflags(v) == SVSET );
+		t( *(int*)sv_key(v) == i );
+		t( sv_lsn(v) == 18 - i );
+		t( sv_flags(v) == SVSET );
 		sr_iternext(&iter);
 		i++;
 		j++;
@@ -349,9 +349,9 @@ static void
 checkv(stc *cx, sriter *i, uint64_t lsn, int flags, int key)
 {
 	sv *v = (sv*)sr_iterof(i);
-	t( *(int*)svkey(v) == key );
-	t( svlsn(v) == lsn );
-	t( svflags(v) == flags );
+	t( *(int*)sv_key(v) == key );
+	t( sv_lsn(v) == lsn );
+	t( sv_flags(v) == flags );
 }
 
 static void
@@ -404,12 +404,12 @@ svwriteiter_dup_lsn_gt(stc *cx srunused)
 	i = 0;
 	while (sr_iterhas(&iter)) {
 		sv *v = (sv*)sr_iterof(&iter);
-		t( *(int*)svkey(v) == key );
-		t( svlsn(v) == 10 - i );
+		t( *(int*)sv_key(v) == key );
+		t( sv_lsn(v) == 10 - i );
 		if (i == 0)
-			t( svflags(v) == SVSET );
+			t( sv_flags(v) == SVSET );
 		else
-			t( svflags(v) == (SVSET | SVDUP) );
+			t( sv_flags(v) == (SVSET | SVDUP) );
 		sr_iternext(&iter);
 		i++;
 	}
@@ -479,12 +479,12 @@ svwriteiter_dup_lsn_lt0(stc *cx srunused)
 	i = 0;
 	while (sr_iterhas(&iter)) {
 		sv *v = (sv*)sr_iterof(&iter);
-		t( *(int*)svkey(v) == key );
-		t( svlsn(v) == 10 - i );
+		t( *(int*)sv_key(v) == key );
+		t( sv_lsn(v) == 10 - i );
 		if (i == 0)
-			t( svflags(v) == SVSET );
+			t( sv_flags(v) == SVSET );
 		else
-			t( svflags(v) == (SVSET | SVDUP) );
+			t( sv_flags(v) == (SVSET | SVDUP) );
 		sr_iternext(&iter);
 		i++;
 	}
@@ -554,12 +554,12 @@ svwriteiter_dup_lsn_lt1(stc *cx srunused)
 	i = 0;
 	while (sr_iterhas(&iter)) {
 		sv *v = (sv*)sr_iterof(&iter);
-		t( *(int*)svkey(v) == key );
-		t( svlsn(v) == 10 - i );
+		t( *(int*)sv_key(v) == key );
+		t( sv_lsn(v) == 10 - i );
 		if (i == 0)
-			t( svflags(v) == SVSET );
+			t( sv_flags(v) == SVSET );
 		else
-			t( svflags(v) == (SVSET | SVDUP) );
+			t( sv_flags(v) == (SVSET | SVDUP) );
 		sr_iternext(&iter);
 		i++;
 	}
@@ -629,12 +629,12 @@ svwriteiter_dup_lsn_lt2(stc *cx srunused)
 	i = 0;
 	while (sr_iterhas(&iter)) {
 		sv *v = (sv*)sr_iterof(&iter);
-		t( *(int*)svkey(v) == key );
-		t( svlsn(v) == 10 - i );
+		t( *(int*)sv_key(v) == key );
+		t( sv_lsn(v) == 10 - i );
 		if (i == 0)
-			t( svflags(v) == SVSET );
+			t( sv_flags(v) == SVSET );
 		else
-			t( svflags(v) == (SVSET | SVDUP) );
+			t( sv_flags(v) == (SVSET | SVDUP) );
 		sr_iternext(&iter);
 		i++;
 	}
@@ -1429,12 +1429,12 @@ svwriteiter_delete0(stc *cx srunused)
 	i = 0;
 	while (sr_iterhas(&iter)) {
 		sv *v = (sv*)sr_iterof(&iter);
-		t( *(int*)svkey(v) == key );
-		t( svlsn(v) == 10 - i );
+		t( *(int*)sv_key(v) == key );
+		t( sv_lsn(v) == 10 - i );
 		if (i == 0)
-			t( svflags(v) == SVSET );
+			t( sv_flags(v) == SVSET );
 		else
-			t( svflags(v) == (SVDELETE | SVDUP) );
+			t( sv_flags(v) == (SVDELETE | SVDUP) );
 		sr_iternext(&iter);
 		i++;
 	}
@@ -1504,12 +1504,12 @@ svwriteiter_delete1(stc *cx srunused)
 	i = 0;
 	while (sr_iterhas(&iter)) {
 		sv *v = (sv*)sr_iterof(&iter);
-		t( *(int*)svkey(v) == key );
-		t( svlsn(v) == 10 - i );
+		t( *(int*)sv_key(v) == key );
+		t( sv_lsn(v) == 10 - i );
 		if (i == 0)
-			t( svflags(v) == SVSET );
+			t( sv_flags(v) == SVSET );
 		else
-			t( svflags(v) == (SVDELETE | SVDUP) );
+			t( sv_flags(v) == (SVDELETE | SVDUP) );
 		sr_iternext(&iter);
 		i++;
 	}
@@ -1579,12 +1579,12 @@ svwriteiter_delete2(stc *cx srunused)
 	i = 0;
 	while (sr_iterhas(&iter)) {
 		sv *v = (sv*)sr_iterof(&iter);
-		t( *(int*)svkey(v) == key );
-		t( svlsn(v) == 10 - i );
+		t( *(int*)sv_key(v) == key );
+		t( sv_lsn(v) == 10 - i );
 		if (i == 0)
-			t( svflags(v) == SVSET );
+			t( sv_flags(v) == SVSET );
 		else
-			t( svflags(v) == (SVDELETE | SVDUP) );
+			t( sv_flags(v) == (SVDELETE | SVDUP) );
 		sr_iternext(&iter);
 		i++;
 	}
@@ -1654,12 +1654,12 @@ svwriteiter_delete3(stc *cx srunused)
 	i = 0;
 	while (sr_iterhas(&iter)) {
 		sv *v = (sv*)sr_iterof(&iter);
-		t( *(int*)svkey(v) == key );
-		t( svlsn(v) == 10 - i );
+		t( *(int*)sv_key(v) == key );
+		t( sv_lsn(v) == 10 - i );
 		if (i == 0)
-			t( svflags(v) == SVDELETE );
+			t( sv_flags(v) == SVDELETE );
 		else
-			t( svflags(v) == (SVDELETE | SVDUP) );
+			t( sv_flags(v) == (SVDELETE | SVDUP) );
 		sr_iternext(&iter);
 		i++;
 	}
@@ -1729,12 +1729,12 @@ svwriteiter_delete4(stc *cx srunused)
 	i = 0;
 	while (sr_iterhas(&iter)) {
 		sv *v = (sv*)sr_iterof(&iter);
-		t( *(int*)svkey(v) == key );
-		t( svlsn(v) == 10 - i );
+		t( *(int*)sv_key(v) == key );
+		t( sv_lsn(v) == 10 - i );
 		if (i == 0)
-			t( svflags(v) == SVDELETE );
+			t( sv_flags(v) == SVDELETE );
 		else
-			t( svflags(v) == (SVDELETE | SVDUP) );
+			t( sv_flags(v) == (SVDELETE | SVDUP) );
 		sr_iternext(&iter);
 		i++;
 	}
@@ -1804,12 +1804,12 @@ svwriteiter_delete5(stc *cx srunused)
 	i = 0;
 	while (sr_iterhas(&iter)) {
 		sv *v = (sv*)sr_iterof(&iter);
-		t( *(int*)svkey(v) == key );
-		t( svlsn(v) == 10 - i );
+		t( *(int*)sv_key(v) == key );
+		t( sv_lsn(v) == 10 - i );
 		if (i == 0)
-			t( svflags(v) == SVDELETE );
+			t( sv_flags(v) == SVDELETE );
 		else
-			t( svflags(v) == (SVDELETE | SVDUP) );
+			t( sv_flags(v) == (SVDELETE | SVDUP) );
 		sr_iternext(&iter);
 		i++;
 	}
@@ -1883,13 +1883,13 @@ svwriteiter_delete6(stc *cx srunused)
 	while (sr_iterhas(&iter)) {
 		sv *v = (sv*)sr_iterof(&iter);
 		if (i == 0) {
-			t( *(int*)svkey(v) == 6 );
-			t( svlsn(v) == 12 );
+			t( *(int*)sv_key(v) == 6 );
+			t( sv_lsn(v) == 12 );
 		} else {
-			t( *(int*)svkey(v) == 10 );
-			t( svlsn(v) == 11 );
+			t( *(int*)sv_key(v) == 10 );
+			t( sv_lsn(v) == 11 );
 		}
-		t( svflags(v) == SVSET );
+		t( sv_flags(v) == SVSET );
 		sr_iternext(&iter);
 		i++;
 	}
@@ -1963,13 +1963,13 @@ svwriteiter_delete7(stc *cx srunused)
 	while (sr_iterhas(&iter)) {
 		sv *v = (sv*)sr_iterof(&iter);
 		if (i == 0) {
-			t( *(int*)svkey(v) == 6 );
-			t( svflags(v) == SVSET );
-			t( svlsn(v) == 12 );
+			t( *(int*)sv_key(v) == 6 );
+			t( sv_flags(v) == SVSET );
+			t( sv_lsn(v) == 12 );
 		} else {
-			t( *(int*)svkey(v) == 10 );
-			t( svflags(v) == SVSET );
-			t( svlsn(v) == 11 );
+			t( *(int*)sv_key(v) == 10 );
+			t( sv_flags(v) == SVSET );
+			t( sv_lsn(v) == 11 );
 		}
 		sr_iternext(&iter);
 		i++;
@@ -2044,23 +2044,23 @@ svwriteiter_delete8(stc *cx srunused)
 	while (sr_iterhas(&iter)) {
 		sv *v = (sv*)sr_iterof(&iter);
 		if (i == 0) {
-			t( *(int*)svkey(v) == 6 );
-			t( svflags(v) == SVSET );
-			t( svlsn(v) == 12 );
+			t( *(int*)sv_key(v) == 6 );
+			t( sv_flags(v) == SVSET );
+			t( sv_lsn(v) == 12 );
 		} else
 		if (i == 1) {
-			t( *(int*)svkey(v) == 7 );
-			t( svflags(v) == SVDELETE );
-			t( svlsn(v) == 10 );
+			t( *(int*)sv_key(v) == 7 );
+			t( sv_flags(v) == SVDELETE );
+			t( sv_lsn(v) == 10 );
 		} else
 		if (i == 2) {
-			t( *(int*)svkey(v) == 7 );
-			t( svflags(v) == (SVDELETE|SVDUP) );
-			t( svlsn(v) ==  9 );
+			t( *(int*)sv_key(v) == 7 );
+			t( sv_flags(v) == (SVDELETE|SVDUP) );
+			t( sv_lsn(v) ==  9 );
 		} else {
-			t( *(int*)svkey(v) == 10 );
-			t( svflags(v) == SVSET );
-			t( svlsn(v) == 11 );
+			t( *(int*)sv_key(v) == 10 );
+			t( sv_flags(v) == SVSET );
+			t( sv_lsn(v) == 11 );
 		}
 		sr_iternext(&iter);
 		i++;

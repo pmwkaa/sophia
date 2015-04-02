@@ -64,10 +64,5 @@ svif sx_vif =
 	.key         = sx_vifkey,
 	.keysize     = sx_vifkeysize,
 	.value       = sx_vifvalue,
-	.valuesize   = sx_vifvaluesize,
-	.valueoffset = NULL,
-	.raw         = NULL,
-	.rawsize     = NULL,
-	.ref         = NULL,
-	.unref       = NULL
+	.valuesize   = sx_vifvaluesize
 };

@@ -25,14 +25,6 @@ struct siiter {
 	int keysize;
 } srpacked;
 
-static void
-si_iterinit(sriter *i)
-{
-	assert(sizeof(siiter) <= sizeof(i->priv));
-	siiter *ii = (siiter*)i->priv;
-	memset(ii, 0, sizeof(*ii));
-}
-
 static int
 si_iteropen(sriter *i, va_list args)
 {
@@ -177,7 +169,6 @@ si_iternext(sriter *i)
 
 sriterif si_iter =
 {
-	.init  = si_iterinit,
 	.open  = si_iteropen,
 	.close = si_iterclose,
 	.has   = si_iterhas,

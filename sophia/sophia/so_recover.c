@@ -69,14 +69,14 @@ so_recoverlog(so *e, sl *log)
 			break;
 
 		/* reply transaction */
-		uint64_t lsn = svlsn(v);
+		uint64_t lsn = sv_lsn(v);
 		transaction = so_objbegin(&e->o);
 		if (srunlikely(transaction == NULL))
 			goto error;
 
 		while (sr_iterhas(&i)) {
 			v = sr_iterof(&i);
-			assert(svlsn(v) == lsn);
+			assert(sv_lsn(v) == lsn);
 			/* match a database */
 			uint32_t dsn = sl_vdsn(v);
 			if (db == NULL || db->ctl.id != dsn)
@@ -89,13 +89,13 @@ so_recoverlog(so *e, sl *log)
 			void *o = so_objobject(&db->o);
 			if (srunlikely(o == NULL))
 				goto rlb;
-			so_objset(o, "key", svkey(v), svkeysize(v));
-			so_objset(o, "value", svvalue(v), svvaluesize(v));
+			so_objset(o, "key", sv_key(v), sv_keysize(v));
+			so_objset(o, "value", sv_value(v), sv_valuesize(v));
 			so_objset(o, "log", log);
-			if (svflags(v) == SVSET)
+			if (sv_flags(v) == SVSET)
 				rc = so_objset(transaction, o);
 			else
-			if (svflags(v) == SVDELETE)
+			if (sv_flags(v) == SVDELETE)
 				rc = so_objdelete(transaction, o);
 			if (srunlikely(rc == -1))
 				goto rlb;

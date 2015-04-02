@@ -57,10 +57,5 @@ svif sl_vif =
 	.key         = sl_vifkey,
 	.keysize     = sl_vifkeysize,
 	.value       = sl_vifvalue,
-	.valuesize   = sl_vifvaluesize,
-	.valueoffset = NULL,
-	.raw         = NULL,
-	.rawsize     = NULL,
-	.ref         = NULL,
-	.unref       = NULL 
+	.valuesize   = sl_vifvaluesize
 };

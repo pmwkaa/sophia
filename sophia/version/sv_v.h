@@ -36,22 +36,22 @@ sv_vvalue(svv *v) {
 static inline svv*
 sv_valloc(sra *a, sv *v)
 {
-	int keysize = svkeysize(v);
-	int valuesize = svvaluesize(v);
+	int keysize = sv_keysize(v);
+	int valuesize = sv_valuesize(v);
 	int size = sizeof(svv) + keysize + valuesize;
 	svv *vv = sr_malloc(a, size);
 	if (srunlikely(vv == NULL))
 		return NULL;
 	vv->keysize   = keysize; 
 	vv->valuesize = valuesize;
-	vv->flags     = svflags(v);
-	vv->lsn       = svlsn(v);
+	vv->flags     = sv_flags(v);
+	vv->lsn       = sv_lsn(v);
 	vv->next      = NULL;
 	vv->log       = NULL;
 	memset(&vv->node, 0, sizeof(vv->node));
 	char *key = sv_vkey(vv);
-	memcpy(key, svkey(v), keysize);
-	memcpy(key + keysize, svvalue(v), valuesize);
+	memcpy(key, sv_key(v), keysize);
+	memcpy(key + keysize, sv_value(v), valuesize);
 	return vv;
 }
 
@@ -79,7 +79,7 @@ sv_vsize(svv *v) {
 
 static inline uint32_t
 sv_vsizeof(sv *v) {
-	return sizeof(svv) + svkeysize(v) + svvaluesize(v);
+	return sizeof(svv) + sv_keysize(v) + sv_valuesize(v);
 }
 
 #endif

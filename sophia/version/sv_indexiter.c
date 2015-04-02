@@ -23,15 +23,6 @@ struct svindexiter {
 	uint64_t vlsn;
 } srpacked;
 
-static void
-sv_indexiter_init(sriter *i)
-{
-	assert(sizeof(svindexiter) <= sizeof(i->priv));
-
-	svindexiter *ii = (svindexiter*)i->priv;
-	memset(ii, 0, sizeof(*ii));
-}
-
 static inline void
 sv_indexiter_fwd(svindexiter *i)
 {
@@ -65,6 +56,9 @@ sv_indexiter_open(sriter *i, va_list args)
 	ii->key     = va_arg(args, void*);
 	ii->keysize = va_arg(args, int);
 	ii->vlsn    = va_arg(args, uint64_t);
+	ii->v       = NULL;
+	ii->vcur    = NULL;
+	memset(&ii->current, 0, sizeof(ii->current));
 	srrbnode *n = NULL;
 	int eq = 0;
 	int rc;
@@ -166,7 +160,7 @@ sv_indexiter_of(sriter *i)
 	if (srunlikely(ii->v == NULL))
 		return NULL;
 	assert(ii->vcur != NULL);
-	svinit(&ii->current, &sv_vif, ii->vcur, NULL);
+	sv_init(&ii->current, &sv_vif, ii->vcur, NULL);
 	return &ii->current;
 }
 
@@ -196,7 +190,6 @@ sv_indexiter_next(sriter *i)
 
 sriterif sv_indexiter =
 {
-	.init    = sv_indexiter_init,
 	.open    = sv_indexiter_open,
 	.close   = sv_indexiter_close,
 	.has     = sv_indexiter_has,
@@ -212,15 +205,6 @@ struct svindexiterraw {
 	svv *vcur;
 	sv current;
 } srpacked;
-
-static void
-sv_indexiterraw_init(sriter *i)
-{
-	assert(sizeof(svindexiterraw) <= sizeof(i->priv));
-
-	svindexiterraw *ii = (svindexiterraw*)i->priv;
-	memset(ii, 0, sizeof(*ii));
-}
 
 static int
 sv_indexiterraw_open(sriter *i, va_list args)
@@ -253,7 +237,7 @@ sv_indexiterraw_of(sriter *i)
 	if (srunlikely(ii->v == NULL))
 		return NULL;
 	assert(ii->vcur != NULL);
-	svinit(&ii->current, &sv_vif, ii->vcur, NULL);
+	sv_init(&ii->current, &sv_vif, ii->vcur, NULL);
 	return &ii->current;
 }
 
@@ -278,7 +262,6 @@ sv_indexiterraw_next(sriter *i)
 
 sriterif sv_indexiterraw =
 {
-	.init    = sv_indexiterraw_init,
 	.open    = sv_indexiterraw_open,
 	.close   = sv_indexiterraw_close,
 	.has     = sv_indexiterraw_has,

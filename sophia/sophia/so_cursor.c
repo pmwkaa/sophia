@@ -82,7 +82,7 @@ so_cursorget(soobj *o, va_list args srunused)
 		return 0;
 	if (srunlikely(! so_vhas(&c->v)))
 		return 0;
-	int rc = so_cursorseek(c, svkey(&c->v.v), svkeysize(&c->v.v));
+	int rc = so_cursorseek(c, sv_key(&c->v.v), sv_keysize(&c->v.v));
 	if (srunlikely(rc <= 0))
 		return NULL;
 	return &c->v;
@@ -138,8 +138,8 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 	si_cacheinit(&c->cache, &e->a_cursorcache);
 
 	/* open cursor */
-	void *key = svkey(&o->v);
-	uint32_t keysize = svkeysize(&o->v);
+	void *key = sv_key(&o->v);
+	uint32_t keysize = sv_keysize(&o->v);
 	if (keysize == 0) {
 		key = o->prefix;
 		keysize = o->prefixsize;

@@ -418,7 +418,7 @@ int sl_prepare(slpool *p, svlog *vlog, uint64_t lsn)
 	sr_iteropen(&i, &vlog->buf, sizeof(svlogv));
 	for (; sr_iterhas(&i); sr_iternext(&i)) {
 		svlogv *v = sr_iterof(&i);
-		svlsnset(&v->v, lsn);
+		sv_lsnset(&v->v, lsn);
 	}
 	return 0;
 }
@@ -427,18 +427,18 @@ static inline void
 sl_write_prepare(slpool *p, sltx *t, slv *lv, svlogv *logv)
 {
 	sv *v = &logv->v;
-	lv->lsn       = svlsn(v);
+	lv->lsn       = sv_lsn(v);
 	lv->dsn       = logv->id;
-	lv->flags     = svflags(v);
-	lv->valuesize = svvaluesize(v);
-	lv->keysize   = svkeysize(v);
+	lv->flags     = sv_flags(v);
+	lv->valuesize = sv_valuesize(v);
+	lv->keysize   = sv_keysize(v);
 	lv->reserve   = 0;
-	lv->crc       = sr_crcp(p->r->crc, svkey(v), lv->keysize, 0);
-	lv->crc       = sr_crcp(p->r->crc, svvalue(v), lv->valuesize, lv->crc);
+	lv->crc       = sr_crcp(p->r->crc, sv_key(v), lv->keysize, 0);
+	lv->crc       = sr_crcp(p->r->crc, sv_value(v), lv->valuesize, lv->crc);
 	lv->crc       = sr_crcs(p->r->crc, lv, sizeof(slv), lv->crc);
 	sr_iovadd(&p->iov, lv, sizeof(slv));
-	sr_iovadd(&p->iov, svkey(v), lv->keysize);
-	sr_iovadd(&p->iov, svvalue(v), lv->valuesize);
+	sr_iovadd(&p->iov, sv_key(v), lv->keysize);
+	sr_iovadd(&p->iov, sv_value(v), lv->valuesize);
 	((svv*)v->v)->log = t->l;
 }
 
@@ -527,7 +527,7 @@ int sl_write(sltx *t, svlog *vlog)
 		rc = sl_write_stmt(t, vlog);
 	} else {
 		svlogv *lv = (svlogv*)vlog->buf.s;
-		uint64_t lsn = svlsn(&lv->v);
+		uint64_t lsn = sv_lsn(&lv->v);
 		rc = sl_write_multi_stmt(t, vlog, lsn);
 	}
 	if (srunlikely(rc == -1))

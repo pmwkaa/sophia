@@ -25,12 +25,12 @@ alloclogv(svlog *log, sra *a, uint64_t lsn, uint8_t flags, int key)
 	l.value       = NULL;
 	l.valuesize   = 0;
 	sv lv;
-	svinit(&lv, &sv_localif, &l, NULL);
+	sv_init(&lv, &sv_localif, &l, NULL);
 	svv *v = sv_valloc(a, &lv);
 	svlogv logv;
 	logv.id = 0;
 	logv.next = 0;
-	svinit(&logv.v, &sv_vif, v, NULL);
+	sv_init(&logv.v, &sv_vif, v, NULL);
 	sv_logadd(log, a, &logv, NULL);
 }
 
@@ -118,7 +118,7 @@ sliter_tx_read_empty(stc *cx)
 		// begin
 		while (sr_iterhas(&li)) {
 			sv *v = sr_iterof(&li);
-			t( *(int*)svkey(v) == 7 );
+			t( *(int*)sv_key(v) == 7 );
 			sr_iternext(&li);
 		}
 		t( sl_itererror(&li) == 0 );
@@ -170,7 +170,7 @@ sliter_tx_read0(stc *cx)
 		// begin
 		while (sr_iterhas(&li)) {
 			sv *v = sr_iterof(&li);
-			t( *(int*)svkey(v) == 7 );
+			t( *(int*)sv_key(v) == 7 );
 			sr_iternext(&li);
 		}
 		t( sl_itererror(&li) == 0 );
@@ -224,15 +224,15 @@ sliter_tx_read1(stc *cx)
 		// begin
 		t( sr_iterhas(&li) == 1 );
 		sv *v = sr_iterof(&li);
-		t( *(int*)svkey(v) == 7 );
+		t( *(int*)sv_key(v) == 7 );
 		sr_iternext(&li);
 		t( sr_iterhas(&li) == 1 );
 		v = sr_iterof(&li);
-		t( *(int*)svkey(v) == 8 );
+		t( *(int*)sv_key(v) == 8 );
 		sr_iternext(&li);
 		t( sr_iterhas(&li) == 1 );
 		v = sr_iterof(&li);
-		t( *(int*)svkey(v) == 9 );
+		t( *(int*)sv_key(v) == 9 );
 		sr_iternext(&li);
 		t( sr_iterhas(&li) == 0 );
 
@@ -291,15 +291,15 @@ sliter_tx_read2(stc *cx)
 		// begin
 		t( sr_iterhas(&li) == 1 );
 		sv *v = sr_iterof(&li);
-		t( *(int*)svkey(v) == 7 );
+		t( *(int*)sv_key(v) == 7 );
 		sr_iternext(&li);
 		t( sr_iterhas(&li) == 1 );
 		v = sr_iterof(&li);
-		t( *(int*)svkey(v) == 8 );
+		t( *(int*)sv_key(v) == 8 );
 		sr_iternext(&li);
 		t( sr_iterhas(&li) == 1 );
 		v = sr_iterof(&li);
-		t( *(int*)svkey(v) == 9 );
+		t( *(int*)sv_key(v) == 9 );
 		sr_iternext(&li);
 
 		t( sr_iterhas(&li) == 0 );
@@ -383,7 +383,7 @@ sliter_tx_read3(stc *cx)
 		case 0:
 			t( sr_iterhas(&li) == 1 );
 			v = sr_iterof(&li);
-			t( *(int*)svkey(v) == 7 );
+			t( *(int*)sv_key(v) == 7 );
 			sr_iternext(&li);
 			v = sr_iterof(&li);
 			t( v == NULL );
@@ -391,13 +391,13 @@ sliter_tx_read3(stc *cx)
 		case 1:
 			t( sr_iterhas(&li) == 1 );
 			v = sr_iterof(&li);
-			t( *(int*)svkey(v) == 8 );
+			t( *(int*)sv_key(v) == 8 );
 			sr_iternext(&li);
 			v = sr_iterof(&li);
-			t( *(int*)svkey(v) == 9 );
+			t( *(int*)sv_key(v) == 9 );
 			sr_iternext(&li);
 			v = sr_iterof(&li);
-			t( *(int*)svkey(v) == 10 );
+			t( *(int*)sv_key(v) == 10 );
 			sr_iternext(&li);
 			v = sr_iterof(&li);
 			t( v == NULL );
@@ -405,13 +405,13 @@ sliter_tx_read3(stc *cx)
 		case 2:
 			t( sr_iterhas(&li) == 1 );
 			v = sr_iterof(&li);
-			t( *(int*)svkey(v) == 11 );
+			t( *(int*)sv_key(v) == 11 );
 			sr_iternext(&li);
 			v = sr_iterof(&li);
-			t( *(int*)svkey(v) == 12 );
+			t( *(int*)sv_key(v) == 12 );
 			sr_iternext(&li);
 			v = sr_iterof(&li);
-			t( *(int*)svkey(v) == 13 );
+			t( *(int*)sv_key(v) == 13 );
 			sr_iternext(&li);
 			v = sr_iterof(&li);
 			t( v == NULL );
@@ -419,7 +419,7 @@ sliter_tx_read3(stc *cx)
 		case 3:
 			t( sr_iterhas(&li) == 1 );
 			v = sr_iterof(&li);
-			t( *(int*)svkey(v) == 14 );
+			t( *(int*)sv_key(v) == 14 );
 			sr_iternext(&li);
 			v = sr_iterof(&li);
 			t( v == NULL );

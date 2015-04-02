@@ -42,12 +42,12 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	svlocal l;
 	l.flags       = flags;
 	l.lsn         = 0;
-	l.key         = svkey(ov);
-	l.keysize     = svkeysize(ov);
-	l.value       = svvalue(ov);
-	l.valuesize   = svvaluesize(ov);
+	l.key         = sv_key(ov);
+	l.keysize     = sv_keysize(ov);
+	l.value       = sv_value(ov);
+	l.valuesize   = sv_valuesize(ov);
 	sv vp;
-	svinit(&vp, &sv_localif, &l, NULL);
+	sv_init(&vp, &sv_localif, &l, NULL);
 
 	/* ensure quota */
 	sr_quota(&e->quota, SR_QADD, sv_vsizeof(&vp));
@@ -73,7 +73,7 @@ int so_txdbset(sodb *db, uint8_t flags, va_list args)
 	svlogv lv;
 	lv.id = db->ctl.id;
 	lv.next = 0;
-	svinit(&lv.v, &sv_vif, v, NULL);
+	sv_init(&lv.v, &sv_vif, v, NULL);
 	svlog log;
 	sv_loginit(&log);
 	sv_logadd(&log, db->r.a, &lv, db);
@@ -113,8 +113,8 @@ void *so_txdbget(sodb *db, uint64_t vlsn, va_list args)
 		sr_error(&e->error, "%s", "bad arguments");
 		return NULL;
 	}
-	uint32_t keysize = svkeysize(&o->v);
-	void *key = svkey(&o->v);
+	uint32_t keysize = sv_keysize(&o->v);
+	void *key = sv_key(&o->v);
 	if (srunlikely(key == NULL)) {
 		sr_error(&e->error, "%s", "bad arguments");
 		goto error;
@@ -203,13 +203,13 @@ so_txdo(soobj *obj, uint8_t flags, va_list args)
 	/* prepare object */
 	svlocal l;
 	l.flags       = flags;
-	l.lsn         = svlsn(ov);
-	l.key         = svkey(ov);
-	l.keysize     = svkeysize(ov);
-	l.value       = svvalue(ov);
-	l.valuesize   = svvaluesize(ov);
+	l.lsn         = sv_lsn(ov);
+	l.key         = sv_key(ov);
+	l.keysize     = sv_keysize(ov);
+	l.value       = sv_value(ov);
+	l.valuesize   = sv_valuesize(ov);
 	sv vp;
-	svinit(&vp, &sv_localif, &l, NULL);
+	sv_init(&vp, &sv_localif, &l, NULL);
 
 	/* ensure quota */
 	sr_quota(&e->quota, SR_QADD, sv_vsizeof(&vp));
@@ -252,7 +252,7 @@ so_txget(soobj *obj, va_list args)
 		sr_error(&e->error, "%s", "bad arguments");
 		return NULL;
 	}
-	void *key = svkey(&o->v);
+	void *key = sv_key(&o->v);
 	if (srunlikely(key == NULL)) {
 		sr_error(&e->error, "%s", "bad arguments");
 		return NULL;
@@ -301,7 +301,7 @@ so_txget(soobj *obj, va_list args)
 	si_queryopen(&q, &db->r, &cache, &db->index,
 	             SR_EQ, t->t.vlsn,
 	             NULL, 0,
-	             key, svkeysize(&o->v));
+	             key, sv_keysize(&o->v));
 	rc = si_query(&q);
 	if (rc == 1) {
 		rc = si_querydup(&q, &result);
@@ -355,7 +355,7 @@ so_txprepare_trigger(sx *t, sv *v, void *arg0, void *arg1)
 	si_queryopen(&q, &db->r, &cache, &db->index,
 	             SR_UPDATE, t->vlsn,
 	             NULL, 0,
-	             svkey(v), svkeysize(v));
+	             sv_key(v), sv_keysize(v));
 	int rc;
 	rc = si_query(&q);
 	si_queryclose(&q);

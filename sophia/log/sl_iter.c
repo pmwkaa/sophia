@@ -26,14 +26,6 @@ struct sliter {
 } srpacked;
 
 static void
-sl_iterinit(sriter *i)
-{
-	assert(sizeof(sliter) <= sizeof(i->priv));
-	sliter *li = (sliter*)i->priv;
-	memset(li, 0, sizeof(*li));
-}
-
-static void
 sl_iterseterror(sliter *i)
 {
 	i->error = 1;
@@ -96,7 +88,7 @@ sl_iternext_of(sriter *i, slv *next, int validate)
 		return 0;
 	}
 	li->v = next;
-	svinit(&li->current, &sl_vif, li->v, NULL);
+	sv_init(&li->current, &sl_vif, li->v, NULL);
 	return 1;
 }
 
@@ -148,12 +140,9 @@ static int
 sl_iteropen(sriter *i, va_list args)
 {
 	sliter *li = (sliter*)i->priv;
+	memset(li, 0, sizeof(*li));
 	li->log      = va_arg(args, srfile*);
 	li->validate = va_arg(args, int);
-	li->v        = NULL;
-	li->next     = NULL;
-	li->pos      = 0;
-	li->count    = 0;
 	if (srunlikely(li->log->size < sizeof(srversion))) {
 		sr_malfunction(i->r->e, "corrupted log file '%s': bad size",
 		               li->log->file);
@@ -211,7 +200,6 @@ sl_iternext(sriter *i)
 
 sriterif sl_iter =
 {
-	.init    = sl_iterinit,
 	.open    = sl_iteropen,
 	.close   = sl_iterclose,
 	.has     = sl_iterhas,

@@ -20,14 +20,6 @@ struct svreaditer {
 	sv *v;
 } srpacked;
 
-static void
-sv_readiter_init(sriter *i)
-{
-	assert(sizeof(svreaditer) <= sizeof(i->priv));
-	svreaditer *im = (svreaditer*)i->priv;
-	memset(im, 0, sizeof(*im));
-}
-
 static void sv_readiter_next(sriter*);
 
 static int
@@ -37,6 +29,9 @@ sv_readiter_open(sriter *i, va_list args)
 	im->merge = va_arg(args, sriter*);
 	im->vlsn  = va_arg(args, uint64_t);
 	assert(im->merge->i == &sv_mergeiter);
+	im->v = NULL;
+	im->next = 0;
+	im->nextdup = 0;
 	/* iteration can start from duplicate */
 	sv_readiter_next(i);
 	return 0;
@@ -84,9 +79,9 @@ sv_readiter_next(sriter *i)
 		}
 		/* assume that iteration sources are
 		 * version aware */
-		assert(svlsn(v) <= im->vlsn);
+		assert(sv_lsn(v) <= im->vlsn);
 		im->nextdup = 1;
-		int del = (svflags(v) & SVDELETE) > 0;
+		int del = (sv_flags(v) & SVDELETE) > 0;
 		if (srunlikely(del))
 			continue;
 		im->v = v;
@@ -97,7 +92,6 @@ sv_readiter_next(sriter *i)
 
 sriterif sv_readiter =
 {
-	.init    = sv_readiter_init,
 	.open    = sv_readiter_open,
 	.close   = sv_readiter_close,
 	.has     = sv_readiter_has,

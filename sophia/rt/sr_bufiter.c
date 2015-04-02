@@ -17,14 +17,6 @@ struct srbufiter {
 	void *v;
 } srpacked;
 
-static void
-sr_bufiter_init(sriter *i)
-{
-	assert(sizeof(srbufiter) <= sizeof(i->priv));
-	srbufiter *bi = (srbufiter*)i->priv;
-	memset(bi, 0, sizeof(*bi));
-}
-
 static int
 sr_bufiter_open(sriter *i, va_list args)
 {
@@ -81,7 +73,6 @@ sr_bufiter_next(sriter *i)
 
 sriterif sr_bufiter =
 {
-	.init    = sr_bufiter_init,
 	.open    = sr_bufiter_open,
 	.close   = sr_bufiter_close,
 	.has     = sr_bufiter_has,
@@ -91,7 +82,6 @@ sriterif sr_bufiter =
 
 sriterif sr_bufiterref =
 {
-	.init    = sr_bufiter_init,
 	.open    = sr_bufiter_open,
 	.close   = sr_bufiter_close,
 	.has     = sr_bufiter_has,

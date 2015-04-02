@@ -27,21 +27,21 @@ svv_test(stc *cx srunused)
 	l.value       = &value;
 	l.valuesize   = sizeof(value);
 	sv lv;
-	svinit(&lv, &sv_localif, &l, NULL);
+	sv_init(&lv, &sv_localif, &l, NULL);
 	svv *vv = sv_valloc(&a, &lv);
 	t( vv != NULL );
 	sv v;
-	svinit(&v, &sv_vif, vv, NULL);
-	t( svflags(&v) == l.flags );
-	svflagsadd(&v, SVDUP);
-	t( svflags(&v) == (l.flags|SVDUP) );
-	t( svlsn(&v) == l.lsn );
-	svlsnset(&v, 8);
-	t( svlsn(&v) == 8 );
-	t( *(uint32_t*)svkey(&v) == key );
-	t( svkeysize(&v) == l.keysize );
-	t( *(uint32_t*)svvalue(&v) == value );
-	t( svvaluesize(&v) == l.valuesize );
+	sv_init(&v, &sv_vif, vv, NULL);
+	t( sv_flags(&v) == l.flags );
+	sv_flagsadd(&v, SVDUP);
+	t( sv_flags(&v) == (l.flags|SVDUP) );
+	t( sv_lsn(&v) == l.lsn );
+	sv_lsnset(&v, 8);
+	t( sv_lsn(&v) == 8 );
+	t( *(uint32_t*)sv_key(&v) == key );
+	t( sv_keysize(&v) == l.keysize );
+	t( *(uint32_t*)sv_value(&v) == value );
+	t( sv_valuesize(&v) == l.valuesize );
 	sv_vfree(&a, vv);
 }
 

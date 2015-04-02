@@ -16,10 +16,10 @@ static sv*
 svmergeiter_valloc(sra *a, svlocal *l)
 {
 	sv lv;
-	svinit(&lv, &sv_localif, l, NULL);
+	sv_init(&lv, &sv_localif, l, NULL);
 	svv *kv = sv_valloc(a, &lv);
 	sv *v = sr_malloc(a, sizeof(sv));
-	svinit(v, &sv_vif, kv, NULL);
+	sv_init(v, &sv_vif, kv, NULL);
 	return v;
 }
 
@@ -75,9 +75,9 @@ svmergeiter_merge_a(stc *cx srunused)
 	i = 0;
 	while (sr_iterhas(&merge)) {
 		sv *v = (sv*)sr_iterof(&merge);
-		t( *(int*)svkey(v) == i );
-		t( svlsn(v) == i );
-		t( svflags(v) == SVSET );
+		t( *(int*)sv_key(v) == i );
+		t( sv_lsn(v) == i );
+		t( sv_flags(v) == SVSET );
 		sr_iternext(&merge);
 		i++;
 	}
@@ -148,9 +148,9 @@ svmergeiter_merge_b(stc *cx srunused)
 	i = 0;
 	while (sr_iterhas(&merge)) {
 		sv *v = (sv*)sr_iterof(&merge);
-		t( *(int*)svkey(v) == i );
-		t( svlsn(v) == i );
-		t( svflags(v) == SVSET );
+		t( *(int*)sv_key(v) == i );
+		t( sv_lsn(v) == i );
+		t( sv_flags(v) == SVSET );
 		sr_iternext(&merge);
 		i++;
 	}
@@ -235,9 +235,9 @@ svmergeiter_merge_ab(stc *cx srunused)
 	i = 0;
 	while (sr_iterhas(&merge)) {
 		sv *v = (sv*)sr_iterof(&merge);
-		t( *(int*)svkey(v) == i );
-		t( svlsn(v) == i );
-		t( svflags(v) == SVSET );
+		t( *(int*)sv_key(v) == i );
+		t( sv_lsn(v) == i );
+		t( sv_flags(v) == SVSET );
 		sr_iternext(&merge);
 		i++;
 	}
@@ -351,9 +351,9 @@ svmergeiter_merge_abc(stc *cx srunused)
 	i = 0;
 	while (sr_iterhas(&merge)) {
 		sv *v = (sv*)sr_iterof(&merge);
-		t( *(int*)svkey(v) == i );
-		t( svlsn(v) == i );
-		t( svflags(v) == SVSET );
+		t( *(int*)sv_key(v) == i );
+		t( sv_lsn(v) == i );
+		t( sv_flags(v) == SVSET );
 		sr_iternext(&merge);
 		i++;
 	}
@@ -456,9 +456,9 @@ svmergeiter_merge_ba(stc *cx srunused)
 	i = 0;
 	while (sr_iterhas(&merge)) {
 		sv *v = (sv*)sr_iterof(&merge);
-		t( *(int*)svkey(v) == i );
-		t( svlsn(v) == i );
-		t( svflags(v) == SVSET );
+		t( *(int*)sv_key(v) == i );
+		t( sv_lsn(v) == i );
+		t( sv_flags(v) == SVSET );
 		sr_iternext(&merge);
 		i++;
 	}
@@ -558,12 +558,12 @@ svmergeiter_merge_dup_ab(stc *cx srunused)
 	while (sr_iterhas(&merge)) {
 		sv *v = (sv*)sr_iterof(&merge);
 		if ((i % 2) == 0) {
-			t( *(int*)svkey(v) == key );
-			t( svflags(v) == SVSET );
+			t( *(int*)sv_key(v) == key );
+			t( sv_flags(v) == SVSET );
 			key++;
 		} else {
-			t( *(int*)svkey(v) == key - 1);
-			t( (svflags(v) | sv_mergeisdup(&merge)) == (SVSET|SVDUP) );
+			t( *(int*)sv_key(v) == key - 1);
+			t( (sv_flags(v) | sv_mergeisdup(&merge)) == (SVSET|SVDUP) );
 		}
 		sr_iternext(&merge);
 		i++;
@@ -648,11 +648,11 @@ svmergeiter_merge_dup_a_chain(stc *cx srunused)
 	i = 0;
 	while (sr_iterhas(&merge)) {
 		sv *v = (sv*)sr_iterof(&merge);
-		t( *(int*)svkey(v) == key );
+		t( *(int*)sv_key(v) == key );
 		if (i == 0) {
-			t( svflags(v) == SVSET );
+			t( sv_flags(v) == SVSET );
 		} else {
-			t( (svflags(v) | sv_mergeisdup(&merge)) == (SVSET|SVDUP) );
+			t( (sv_flags(v) | sv_mergeisdup(&merge)) == (SVSET|SVDUP) );
 		}
 		sr_iternext(&merge);
 		i++;
@@ -752,11 +752,11 @@ svmergeiter_merge_dup_ab_chain(stc *cx srunused)
 	i = 0;
 	while (sr_iterhas(&merge)) {
 		sv *v = (sv*)sr_iterof(&merge);
-		t( *(int*)svkey(v) == key );
+		t( *(int*)sv_key(v) == key );
 		if (i == 0) {
-			t( svflags(v) == SVSET );
+			t( sv_flags(v) == SVSET );
 		} else {
-			t( (svflags(v) | sv_mergeisdup(&merge)) == (SVSET|SVDUP) );
+			t( (sv_flags(v) | sv_mergeisdup(&merge)) == (SVSET|SVDUP) );
 		}
 		sr_iternext(&merge);
 		i++;
@@ -879,11 +879,11 @@ svmergeiter_merge_dup_abc_chain(stc *cx srunused)
 	i = 0;
 	while (sr_iterhas(&merge)) {
 		sv *v = (sv*)sr_iterof(&merge);
-		t( *(int*)svkey(v) == key );
+		t( *(int*)sv_key(v) == key );
 		if (i == 0) {
-			t( svflags(v) == SVSET );
+			t( sv_flags(v) == SVSET );
 		} else {
-			t( (svflags(v) | sv_mergeisdup(&merge)) == (SVSET|SVDUP) );
+			t( (sv_flags(v) | sv_mergeisdup(&merge)) == (SVSET|SVDUP) );
 		}
 		sr_iternext(&merge);
 		i++;

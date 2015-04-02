@@ -24,7 +24,7 @@ addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 	l.value       = key;
 	l.valuesize   = sizeof(int);
 	sv lv;
-	svinit(&lv, &sv_localif, &l, NULL);
+	sv_init(&lv, &sv_localif, &l, NULL);
 	sd_buildadd(b, r, &lv, flags & SVDUP);
 }
 
@@ -66,8 +66,7 @@ sdv_test(stc *cx srunused)
 	t( v != NULL );
 	t( v->i == &sd_vif );
 
-	t( *(int*)svkey(v) == i );
-	t( svvalueoffset(v) == 4 );
+	t( *(int*)sv_key(v) == i );
 	sr_iternext(&it);
 	t( sr_iterhas(&it) != 0 );
 
@@ -75,13 +74,11 @@ sdv_test(stc *cx srunused)
 	t( v != NULL );
 	t( v->i == &sd_vif );
 	
-	t( *(int*)svkey(v) == j );
-	t( svlsn(v) == 4 );
-	t( svflags(v) == SVSET );
-	svflagsadd(v, SVDUP);
-	t( svflags(v) == (SVSET|SVDUP) );
-
-	t( svvalueoffset(v) == 12 );
+	t( *(int*)sv_key(v) == j );
+	t( sv_lsn(v) == 4 );
+	t( sv_flags(v) == SVSET );
+	sv_flagsadd(v, SVDUP);
+	t( sv_flags(v) == (SVSET|SVDUP) );
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);

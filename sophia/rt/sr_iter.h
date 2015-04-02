@@ -13,7 +13,6 @@ typedef struct sriterif sriterif;
 typedef struct sriter sriter;
 
 struct sriterif {
-	void  (*init)(sriter*);
 	int   (*open)(sriter*, va_list);
 	void  (*close)(sriter*);
 	int   (*has)(sriter*);
@@ -32,7 +31,6 @@ sr_iterinit(sriter *i, sriterif *ii, sr *r)
 {
 	i->r = r;
 	i->i = ii;
-	i->i->init(i);
 }
 
 static inline int

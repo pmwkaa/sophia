@@ -48,20 +48,20 @@ int sd_buildadd(sdbuild *b, sr *r, sv *v, uint32_t flags)
 		return sr_error(r->e, "%s", "memory allocation failed");
 	sdpageheader *h = sd_buildheader(b);
 	sdv *sv = (sdv*)b->k.p;
-	sv->lsn         = svlsn(v);
-	sv->flags       = svflags(v) | flags;
+	sv->lsn         = sv_lsn(v);
+	sv->flags       = sv_flags(v) | flags;
 	sv->timestamp   = 0;
-	sv->keysize     = svkeysize(v);
-	sv->valuesize   = svvaluesize(v);
+	sv->keysize     = sv_keysize(v);
+	sv->valuesize   = sv_valuesize(v);
 	sv->keyoffset   = sr_bufused(&b->v) - sd_buildref(b)->v;
 	sv->valueoffset = sv->keyoffset + sv->keysize;
 	/* copy key-value pair */
 	rc = sr_bufensure(&b->v, r->a, sv->keysize + sv->valuesize);
 	if (srunlikely(rc == -1))
 		return sr_error(r->e, "%s", "memory allocation failed");
-	memcpy(b->v.p, svkey(v), sv->keysize);
+	memcpy(b->v.p, sv_key(v), sv->keysize);
 	sr_bufadvance(&b->v, sv->keysize);
-	memcpy(b->v.p, svvalue(v), sv->valuesize);
+	memcpy(b->v.p, sv_value(v), sv->valuesize);
 	sr_bufadvance(&b->v, sv->valuesize);
 	sr_bufadvance(&b->k, sizeof(sdv));
 	/* update page header */
