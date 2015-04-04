@@ -63,9 +63,9 @@ si_set(sitx *t, svv *v)
 	t->index->update_time = t->time;
 	/* match node */
 	sriter i;
-	sr_iterinit(&i, &si_iter, t->r);
-	sr_iteropen(&i, index, SR_ROUTE, sv_vkey(v), v->keysize);
-	sinode *node = sr_iterof(&i);
+	sr_iterinit(si_iter, &i, t->r);
+	sr_iteropen(si_iter, &i, index, SR_ROUTE, sv_vkey(v), v->keysize);
+	sinode *node = sr_iterof(si_iter, &i);
 	assert(node != NULL);
 	/* update node */
 	svindex *vindex = si_nodeindex(node);

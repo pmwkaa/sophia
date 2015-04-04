@@ -93,21 +93,21 @@ sditer_gt0(stc *cx srunused)
 	i.h = (sdindexheader*)(map.p);
 
 	sriter it;
-	sr_iterinit(&it, &sd_iter, &r);
-	sr_iteropen(&it, &i, map.p, 1, 0, NULL);
-	t( sr_iterhas(&it) == 1 );
+	sr_iterinit(sd_iter, &it, &r);
+	sr_iteropen(sd_iter, &it, &i, map.p, 1, 0, NULL);
+	t( sr_iteratorhas(&it) == 1 );
 
-	sv *v = sr_iterof(&it);
+	sv *v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 7);
-	sr_iternext(&it);
-	v = sr_iterof(&it);
+	sr_iteratornext(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 8);
-	sr_iternext(&it);
-	v = sr_iterof(&it);
+	sr_iteratornext(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 9);
-	sr_iternext(&it);
-	t( sr_iterhas(&it) == 0 );
-	sr_iterclose(&it);
+	sr_iteratornext(&it);
+	t( sr_iteratorhas(&it) == 0 );
+	sr_iteratorclose(&it);
 
 	sr_fileclose(&f);
 	t( sr_mapunmap(&map) == 0 );
@@ -232,45 +232,45 @@ sditer_gt1(stc *cx srunused)
 	sd_indexinit(&i);
 	i.h = (sdindexheader*)(map.p);
 	sriter it;
-	sr_iterinit(&it, &sd_iter, &r);
-	sr_iteropen(&it, &i, map.p, 1, 0, NULL);
-	t( sr_iterhas(&it) == 1 );
+	sr_iterinit(sd_iter, &it, &r);
+	sr_iteropen(sd_iter, &it, &i, map.p, 1, 0, NULL);
+	t( sr_iteratorhas(&it) == 1 );
 
 	/* page 0 */
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 7);
-	sr_iternext(&it);
-	v = sr_iterof(&it);
+	sr_iteratornext(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 8);
-	sr_iternext(&it);
-	v = sr_iterof(&it);
+	sr_iteratornext(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 9);
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
 	/* page 1 */
-	v = sr_iterof(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 10);
-	sr_iternext(&it);
-	v = sr_iterof(&it);
+	sr_iteratornext(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 11);
-	sr_iternext(&it);
-	v = sr_iterof(&it);
+	sr_iteratornext(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 13);
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
 	/* page 2 */
-	v = sr_iterof(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 15);
-	sr_iternext(&it);
-	v = sr_iterof(&it);
+	sr_iteratornext(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 18);
-	sr_iternext(&it);
-	v = sr_iterof(&it);
+	sr_iteratornext(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 20);
-	sr_iternext(&it);
-	t( sr_iterhas(&it) == 0 );
-	sr_iterclose(&it);
+	sr_iteratornext(&it);
+	t( sr_iteratorhas(&it) == 0 );
+	sr_iteratorclose(&it);
 
 	sr_fileclose(&f);
 	t( sr_mapunmap(&map) == 0 );
@@ -349,21 +349,21 @@ sditer_gt0_compression_zstd(stc *cx srunused)
 	sr_bufinit(&compression_buf);
 
 	sriter it;
-	sr_iterinit(&it, &sd_iter, &r);
-	sr_iteropen(&it, &i, map.p, 1, 1, &compression_buf);
-	t( sr_iterhas(&it) == 1 );
+	sr_iterinit(sd_iter, &it, &r);
+	sr_iteropen(sd_iter, &it, &i, map.p, 1, 1, &compression_buf);
+	t( sr_iteratorhas(&it) == 1 );
 
-	sv *v = sr_iterof(&it);
+	sv *v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 7);
-	sr_iternext(&it);
-	v = sr_iterof(&it);
+	sr_iteratornext(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 8);
-	sr_iternext(&it);
-	v = sr_iterof(&it);
+	sr_iteratornext(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 9);
-	sr_iternext(&it);
-	t( sr_iterhas(&it) == 0 );
-	sr_iterclose(&it);
+	sr_iteratornext(&it);
+	t( sr_iteratorhas(&it) == 0 );
+	sr_iteratorclose(&it);
 
 	sr_fileclose(&f);
 	t( sr_mapunmap(&map) == 0 );
@@ -445,21 +445,21 @@ sditer_gt0_compression_lz4(stc *cx srunused)
 	sr_bufinit(&compression_buf);
 
 	sriter it;
-	sr_iterinit(&it, &sd_iter, &r);
-	sr_iteropen(&it, &i, map.p, 1, 1, &compression_buf);
-	t( sr_iterhas(&it) == 1 );
+	sr_iterinit(sd_iter, &it, &r);
+	sr_iteropen(sd_iter, &it, &i, map.p, 1, 1, &compression_buf);
+	t( sr_iteratorhas(&it) == 1 );
 
-	sv *v = sr_iterof(&it);
+	sv *v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 7);
-	sr_iternext(&it);
-	v = sr_iterof(&it);
+	sr_iteratornext(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 8);
-	sr_iternext(&it);
-	v = sr_iterof(&it);
+	sr_iteratornext(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 9);
-	sr_iternext(&it);
-	t( sr_iterhas(&it) == 0 );
-	sr_iterclose(&it);
+	sr_iteratornext(&it);
+	t( sr_iteratorhas(&it) == 0 );
+	sr_iteratorclose(&it);
 
 	sr_fileclose(&f);
 	t( sr_mapunmap(&map) == 0 );
@@ -589,45 +589,45 @@ sditer_gt1_compression_zstd(stc *cx srunused)
 	sd_indexinit(&i);
 	i.h = (sdindexheader*)(map.p);
 	sriter it;
-	sr_iterinit(&it, &sd_iter, &r);
-	sr_iteropen(&it, &i, map.p, 1, 1, &compression_buf);
-	t( sr_iterhas(&it) == 1 );
+	sr_iterinit(sd_iter, &it, &r);
+	sr_iteropen(sd_iter, &it, &i, map.p, 1, 1, &compression_buf);
+	t( sr_iteratorhas(&it) == 1 );
 
 	/* page 0 */
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 7);
-	sr_iternext(&it);
-	v = sr_iterof(&it);
+	sr_iteratornext(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 8);
-	sr_iternext(&it);
-	v = sr_iterof(&it);
+	sr_iteratornext(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 9);
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
 	/* page 1 */
-	v = sr_iterof(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 10);
-	sr_iternext(&it);
-	v = sr_iterof(&it);
+	sr_iteratornext(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 11);
-	sr_iternext(&it);
-	v = sr_iterof(&it);
+	sr_iteratornext(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 13);
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
 	/* page 2 */
-	v = sr_iterof(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 15);
-	sr_iternext(&it);
-	v = sr_iterof(&it);
+	sr_iteratornext(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 18);
-	sr_iternext(&it);
-	v = sr_iterof(&it);
+	sr_iteratornext(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 20);
-	sr_iternext(&it);
-	t( sr_iterhas(&it) == 0 );
-	sr_iterclose(&it);
+	sr_iteratornext(&it);
+	t( sr_iteratorhas(&it) == 0 );
+	sr_iteratorclose(&it);
 
 	sr_fileclose(&f);
 	t( sr_mapunmap(&map) == 0 );
@@ -756,45 +756,45 @@ sditer_gt1_compression_lz4(stc *cx srunused)
 	sd_indexinit(&i);
 	i.h = (sdindexheader*)(map.p);
 	sriter it;
-	sr_iterinit(&it, &sd_iter, &r);
-	sr_iteropen(&it, &i, map.p, 1, 1, &compression_buf);
-	t( sr_iterhas(&it) == 1 );
+	sr_iterinit(sd_iter, &it, &r);
+	sr_iteropen(sd_iter, &it, &i, map.p, 1, 1, &compression_buf);
+	t( sr_iteratorhas(&it) == 1 );
 
 	/* page 0 */
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 7);
-	sr_iternext(&it);
-	v = sr_iterof(&it);
+	sr_iteratornext(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 8);
-	sr_iternext(&it);
-	v = sr_iterof(&it);
+	sr_iteratornext(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 9);
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
 	/* page 1 */
-	v = sr_iterof(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 10);
-	sr_iternext(&it);
-	v = sr_iterof(&it);
+	sr_iteratornext(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 11);
-	sr_iternext(&it);
-	v = sr_iterof(&it);
+	sr_iteratornext(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 13);
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
 	/* page 2 */
-	v = sr_iterof(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 15);
-	sr_iternext(&it);
-	v = sr_iterof(&it);
+	sr_iteratornext(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 18);
-	sr_iternext(&it);
-	v = sr_iterof(&it);
+	sr_iteratornext(&it);
+	v = sr_iteratorof(&it);
 	t( *(int*)sv_key(v) == 20);
-	sr_iternext(&it);
-	t( sr_iterhas(&it) == 0 );
-	sr_iterclose(&it);
+	sr_iteratornext(&it);
+	t( sr_iteratorhas(&it) == 0 );
+	sr_iteratorclose(&it);
 
 	sr_fileclose(&f);
 	t( sr_mapunmap(&map) == 0 );

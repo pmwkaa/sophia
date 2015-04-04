@@ -153,12 +153,12 @@ sxstate sx_end(sx *t)
 sxstate sx_prepare(sx *t, sxpreparef prepare, void *arg)
 {
 	sriter i;
-	sr_iterinit(&i, &sr_bufiter, NULL);
-	sr_iteropen(&i, &t->log.buf, sizeof(svlogv));
+	sr_iterinit(sr_bufiter, &i, NULL);
+	sr_iteropen(sr_bufiter, &i, &t->log.buf, sizeof(svlogv));
 	sxstate s;
-	for (; sr_iterhas(&i); sr_iternext(&i))
+	for (; sr_iterhas(sr_bufiter, &i); sr_iternext(sr_bufiter, &i))
 	{
-		svlogv *lv = sr_iterof(&i);
+		svlogv *lv = sr_iterof(sr_bufiter, &i);
 		sxv *v = lv->v.v;
 		/* cancelled by a concurrent commited
 		 * transaction */
@@ -186,11 +186,11 @@ sxstate sx_commit(sx *t)
 	assert(t->s == SXPREPARE);
 	sxmanager *m = t->manager;
 	sriter i;
-	sr_iterinit(&i, &sr_bufiter, NULL);
-	sr_iteropen(&i, &t->log.buf, sizeof(svlogv));
-	for (; sr_iterhas(&i); sr_iternext(&i))
+	sr_iterinit(sr_bufiter, &i, NULL);
+	sr_iteropen(sr_bufiter, &i, &t->log.buf, sizeof(svlogv));
+	for (; sr_iterhas(sr_bufiter, &i); sr_iternext(sr_bufiter, &i))
 	{
-		svlogv *lv = sr_iterof(&i);
+		svlogv *lv = sr_iterof(sr_bufiter, &i);
 		sxv *v = lv->v.v;
 		/* mark waiters as aborted */
 		sx_vabortwaiters(v);
@@ -215,11 +215,11 @@ sxstate sx_rollback(sx *t)
 {
 	sxmanager *m = t->manager;
 	sriter i;
-	sr_iterinit(&i, &sr_bufiter, NULL);
-	sr_iteropen(&i, &t->log.buf, sizeof(svlogv));
-	for (; sr_iterhas(&i); sr_iternext(&i))
+	sr_iterinit(sr_bufiter, &i, NULL);
+	sr_iteropen(sr_bufiter, &i, &t->log.buf, sizeof(svlogv));
+	for (; sr_iterhas(sr_bufiter, &i); sr_iternext(sr_bufiter, &i))
 	{
-		svlogv *lv = sr_iterof(&i);
+		svlogv *lv = sr_iterof(sr_bufiter, &i);
 		sxv *v = lv->v.v;
 		/* remove from index and replace head with
 		 * a first waiter */

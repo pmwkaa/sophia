@@ -59,18 +59,18 @@ sdv_test(stc *cx srunused)
 	sd_pageinit(&page, h);
 
 	sriter it;
-	sr_iterinit(&it, &sd_pageiter, &r);
-	sr_iteropen(&it, &page, SR_GTE, NULL, 0, UINT64_MAX);
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sd_pageiter, &it, &r);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, NULL, 0, UINT64_MAX);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v != NULL );
 	t( v->i == &sd_vif );
 
 	t( *(int*)sv_key(v) == i );
-	sr_iternext(&it);
-	t( sr_iterhas(&it) != 0 );
+	sr_iteratornext(&it);
+	t( sr_iteratorhas(&it) != 0 );
 
-	v = sr_iterof(&it);
+	v = sr_iteratorof(&it);
 	t( v != NULL );
 	t( v->i == &sd_vif );
 	

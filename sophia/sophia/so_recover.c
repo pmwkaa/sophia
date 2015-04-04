@@ -58,13 +58,13 @@ so_recoverlog(so *e, sl *log)
 	soobj *transaction = NULL;
 	sodb *db = NULL;
 	sriter i;
-	sr_iterinit(&i, &sl_iter, &e->r);
-	int rc = sr_iteropen(&i, &log->file, 1);
+	sr_iterinit(sl_iter, &i, &e->r);
+	int rc = sr_iteropen(sl_iter, &i, &log->file, 1);
 	if (srunlikely(rc == -1))
 		return -1;
 	for (;;)
 	{
-		sv *v = sr_iterof(&i);
+		sv *v = sr_iteratorof(&i);
 		if (srunlikely(v == NULL))
 			break;
 
@@ -74,8 +74,8 @@ so_recoverlog(so *e, sl *log)
 		if (srunlikely(transaction == NULL))
 			goto error;
 
-		while (sr_iterhas(&i)) {
-			v = sr_iterof(&i);
+		while (sr_iteratorhas(&i)) {
+			v = sr_iteratorof(&i);
 			assert(sv_lsn(v) == lsn);
 			/* match a database */
 			uint32_t dsn = sl_vdsn(v);
@@ -100,9 +100,9 @@ so_recoverlog(so *e, sl *log)
 			if (srunlikely(rc == -1))
 				goto rlb;
 			sr_gcmark(&log->gc, 1);
-			sr_iternext(&i);
+			sr_iteratornext(&i);
 		}
-		if (srunlikely(sl_itererror(&i)))
+		if (srunlikely(sl_iter_error(&i)))
 			goto rlb;
 
 		rc = so_objprepare(transaction, lsn);
@@ -111,18 +111,18 @@ so_recoverlog(so *e, sl *log)
 		rc = so_objcommit(transaction);
 		if (srunlikely(rc != 0))
 			goto error;
-		rc = sl_itercontinue(&i);
+		rc = sl_iter_continue(&i);
 		if (srunlikely(rc == -1))
 			goto error;
 		if (rc == 0)
 			break;
 	}
-	sr_iterclose(&i);
+	sr_iteratorclose(&i);
 	return 0;
 rlb:
 	so_objdestroy(transaction);
 error:
-	sr_iterclose(&i);
+	sr_iteratorclose(&i);
 	return -1;
 }
 

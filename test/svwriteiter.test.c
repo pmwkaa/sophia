@@ -53,11 +53,11 @@ svwriteiter_iter(stc *cx srunused)
 		i++;
 	}
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -69,33 +69,33 @@ svwriteiter_iter(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 20 * (sizeof(svv) + sizeof(i));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 10ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 10ULL, 0);
 
 	i = 0;
-	while (sr_iterhas(&iter)) {
-		sv *v = (sv*)sr_iterof(&iter);
+	while (sr_iteratorhas(&iter)) {
+		sv *v = (sv*)sr_iteratorof(&iter);
 		t( *(int*)sv_key(v) == i );
 		t( sv_lsn(v) == 10 - i );
 		t( sv_flags(v) == SVSET );
-		sr_iternext(&iter);
+		sr_iteratornext(&iter);
 		i++;
 	}
 	t( i == 10 );
-	sr_iterclose(&iter);
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -131,11 +131,11 @@ svwriteiter_limit(stc *cx srunused)
 		i++;
 	}
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -147,70 +147,70 @@ svwriteiter_limit(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 5 * (sizeof(svv) + sizeof(i));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 18ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 18ULL, 0);
 
 	i = 0;
-	while (sr_iterhas(&iter)) {
-		sv *v = (sv*)sr_iterof(&iter);
+	while (sr_iteratorhas(&iter)) {
+		sv *v = (sv*)sr_iteratorof(&iter);
 		t( *(int*)sv_key(v) == i );
 		t( sv_lsn(v) == 18 - i );
 		t( sv_flags(v) == SVSET );
-		sr_iternext(&iter);
+		sr_iteratornext(&iter);
 		i++;
 	}
 	t( i == 5 );
 	int j = 0;
 	sv_writeiter_resume(&iter);
-	while (sr_iterhas(&iter)) {
-		sv *v = (sv*)sr_iterof(&iter);
+	while (sr_iteratorhas(&iter)) {
+		sv *v = (sv*)sr_iteratorof(&iter);
 		t( *(int*)sv_key(v) == i );
 		t( sv_lsn(v) == 18 - i );
 		t( sv_flags(v) == SVSET );
-		sr_iternext(&iter);
+		sr_iteratornext(&iter);
 		i++;
 		j++;
 	}
 	t( j == 5 );
 	j = 0;
 	sv_writeiter_resume(&iter);
-	while (sr_iterhas(&iter)) {
-		sv *v = (sv*)sr_iterof(&iter);
+	while (sr_iteratorhas(&iter)) {
+		sv *v = (sv*)sr_iteratorof(&iter);
 		t( *(int*)sv_key(v) == i );
 		t( sv_lsn(v) == 18 - i );
 		t( sv_flags(v) == SVSET );
-		sr_iternext(&iter);
+		sr_iteratornext(&iter);
 		i++;
 		j++;
 	}
 	t( j == 5 );
 	j = 0;
 	sv_writeiter_resume(&iter);
-	while (sr_iterhas(&iter)) {
-		sv *v = (sv*)sr_iterof(&iter);
+	while (sr_iteratorhas(&iter)) {
+		sv *v = (sv*)sr_iteratorof(&iter);
 		t( *(int*)sv_key(v) == i );
 		t( sv_lsn(v) == 18 - i );
 		t( sv_flags(v) == SVSET );
-		sr_iternext(&iter);
+		sr_iteratornext(&iter);
 		i++;
 		j++;
 	}
 	t( j == 3 );
 	t( i == 18 );
-	sr_iterclose(&iter);
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -246,11 +246,11 @@ svwriteiter_limit_small(stc *cx srunused)
 		i++;
 	}
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -262,70 +262,70 @@ svwriteiter_limit_small(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 1 * (sizeof(svv) + sizeof(i));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 18ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 18ULL, 0);
 
 	i = 0;
-	while (sr_iterhas(&iter)) {
-		sv *v = (sv*)sr_iterof(&iter);
+	while (sr_iteratorhas(&iter)) {
+		sv *v = (sv*)sr_iteratorof(&iter);
 		t( *(int*)sv_key(v) == i );
 		t( sv_lsn(v) == 18 - i );
 		t( sv_flags(v) == SVSET );
-		sr_iternext(&iter);
+		sr_iteratornext(&iter);
 		i++;
 	}
 	t( i == 1 );
 	int j = 0;
 	sv_writeiter_resume(&iter);
-	while (sr_iterhas(&iter)) {
-		sv *v = (sv*)sr_iterof(&iter);
+	while (sr_iteratorhas(&iter)) {
+		sv *v = (sv*)sr_iteratorof(&iter);
 		t( *(int*)sv_key(v) == i );
 		t( sv_lsn(v) == 18 - i );
 		t( sv_flags(v) == SVSET );
-		sr_iternext(&iter);
+		sr_iteratornext(&iter);
 		i++;
 		j++;
 	}
 	t( j == 1 );
 	j = 0;
 	sv_writeiter_resume(&iter);
-	while (sr_iterhas(&iter)) {
-		sv *v = (sv*)sr_iterof(&iter);
+	while (sr_iteratorhas(&iter)) {
+		sv *v = (sv*)sr_iteratorof(&iter);
 		t( *(int*)sv_key(v) == i );
 		t( sv_lsn(v) == 18 - i );
 		t( sv_flags(v) == SVSET );
-		sr_iternext(&iter);
+		sr_iteratornext(&iter);
 		i++;
 		j++;
 	}
 	t( j == 1 );
 	j = 0;
 	sv_writeiter_resume(&iter);
-	while (sr_iterhas(&iter)) {
-		sv *v = (sv*)sr_iterof(&iter);
+	while (sr_iteratorhas(&iter)) {
+		sv *v = (sv*)sr_iteratorof(&iter);
 		t( *(int*)sv_key(v) == i );
 		t( sv_lsn(v) == 18 - i );
 		t( sv_flags(v) == SVSET );
-		sr_iternext(&iter);
+		sr_iteratornext(&iter);
 		i++;
 		j++;
 	}
 	t( j == 1 );
 	t( i == 4 );
-	sr_iterclose(&iter);
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -348,7 +348,7 @@ addv(srbuf *list, sra *a, uint64_t lsn, int flags, char *key, int keysize)
 static void
 checkv(stc *cx, sriter *i, uint64_t lsn, int flags, int key)
 {
-	sv *v = (sv*)sr_iterof(i);
+	sv *v = (sv*)sr_iteratorof(i);
 	t( *(int*)sv_key(v) == key );
 	t( sv_lsn(v) == lsn );
 	t( sv_flags(v) == flags );
@@ -376,11 +376,11 @@ svwriteiter_dup_lsn_gt(stc *cx srunused)
 	addv(&vlista, &a,  8, SVSET|SVDUP, (char*)&key, sizeof(key));
 
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -392,37 +392,37 @@ svwriteiter_dup_lsn_gt(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 10ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 10ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&iter)) {
-		sv *v = (sv*)sr_iterof(&iter);
+	while (sr_iteratorhas(&iter)) {
+		sv *v = (sv*)sr_iteratorof(&iter);
 		t( *(int*)sv_key(v) == key );
 		t( sv_lsn(v) == 10 - i );
 		if (i == 0)
 			t( sv_flags(v) == SVSET );
 		else
 			t( sv_flags(v) == (SVSET | SVDUP) );
-		sr_iternext(&iter);
+		sr_iteratornext(&iter);
 		i++;
 	}
 	t( i == 1 );
-	sr_iterclose(&iter);
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -451,11 +451,11 @@ svwriteiter_dup_lsn_lt0(stc *cx srunused)
 	addv(&vlista, &a,  8, SVSET|SVDUP, (char*)&key, sizeof(key));
 
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -467,37 +467,37 @@ svwriteiter_dup_lsn_lt0(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 9ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 9ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&iter)) {
-		sv *v = (sv*)sr_iterof(&iter);
+	while (sr_iteratorhas(&iter)) {
+		sv *v = (sv*)sr_iteratorof(&iter);
 		t( *(int*)sv_key(v) == key );
 		t( sv_lsn(v) == 10 - i );
 		if (i == 0)
 			t( sv_flags(v) == SVSET );
 		else
 			t( sv_flags(v) == (SVSET | SVDUP) );
-		sr_iternext(&iter);
+		sr_iteratornext(&iter);
 		i++;
 	}
 	t( i == 2 );
-	sr_iterclose(&iter);
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -526,11 +526,11 @@ svwriteiter_dup_lsn_lt1(stc *cx srunused)
 	addv(&vlista, &a,  8, SVSET|SVDUP, (char*)&key, sizeof(key));
 
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -542,37 +542,37 @@ svwriteiter_dup_lsn_lt1(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 8ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 8ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&iter)) {
-		sv *v = (sv*)sr_iterof(&iter);
+	while (sr_iteratorhas(&iter)) {
+		sv *v = (sv*)sr_iteratorof(&iter);
 		t( *(int*)sv_key(v) == key );
 		t( sv_lsn(v) == 10 - i );
 		if (i == 0)
 			t( sv_flags(v) == SVSET );
 		else
 			t( sv_flags(v) == (SVSET | SVDUP) );
-		sr_iternext(&iter);
+		sr_iteratornext(&iter);
 		i++;
 	}
 	t( i == 3 );
-	sr_iterclose(&iter);
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -601,11 +601,11 @@ svwriteiter_dup_lsn_lt2(stc *cx srunused)
 	addv(&vlista, &a,  8, SVSET|SVDUP, (char*)&key, sizeof(key));
 
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -617,37 +617,37 @@ svwriteiter_dup_lsn_lt2(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 2ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 2ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&iter)) {
-		sv *v = (sv*)sr_iterof(&iter);
+	while (sr_iteratorhas(&iter)) {
+		sv *v = (sv*)sr_iteratorof(&iter);
 		t( *(int*)sv_key(v) == key );
 		t( sv_lsn(v) == 10 - i );
 		if (i == 0)
 			t( sv_flags(v) == SVSET );
 		else
 			t( sv_flags(v) == (SVSET | SVDUP) );
-		sr_iternext(&iter);
+		sr_iteratornext(&iter);
 		i++;
 	}
 	t( i == 3 );
-	sr_iterclose(&iter);
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -683,11 +683,11 @@ svwriteiter_dup_lsn_gt_chain(stc *cx srunused)
 	addv(&vlista, &a, 14, SVSET, (char*)&key4, sizeof(key4));
 
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -699,31 +699,31 @@ svwriteiter_dup_lsn_gt_chain(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 15ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 15ULL, 0);
 
 	checkv(cx, &iter, 10, SVSET, key);
-	sr_iternext(&iter);
+	sr_iteratornext(&iter);
 	checkv(cx, &iter, 12, SVSET, key2);
-	sr_iternext(&iter);
+	sr_iteratornext(&iter);
 	checkv(cx, &iter, 13, SVSET, key3);
-	sr_iternext(&iter);
+	sr_iteratornext(&iter);
 	checkv(cx, &iter, 14, SVSET, key4);
-	sr_iternext(&iter);
-	sr_iterclose(&iter);
+	sr_iteratornext(&iter);
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -759,11 +759,11 @@ svwriteiter_dup_lsn_lt0_chain(stc *cx srunused)
 	addv(&vlista, &a, 14, SVSET, (char*)&key4, sizeof(key4));
 
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -775,33 +775,33 @@ svwriteiter_dup_lsn_lt0_chain(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 11ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 11ULL, 0);
 
 	checkv(cx, &iter, 10, SVSET, key);
-	sr_iternext(&iter);
+	sr_iteratornext(&iter);
 	checkv(cx, &iter, 12, SVSET, key2);
-	sr_iternext(&iter);
+	sr_iteratornext(&iter);
 	checkv(cx, &iter, 11, SVSET|SVDUP, key2);
-	sr_iternext(&iter);
+	sr_iteratornext(&iter);
 	checkv(cx, &iter, 13, SVSET, key3);
-	sr_iternext(&iter);
+	sr_iteratornext(&iter);
 	checkv(cx, &iter, 14, SVSET, key4);
-	sr_iternext(&iter);
-	sr_iterclose(&iter);
+	sr_iteratornext(&iter);
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -837,11 +837,11 @@ svwriteiter_dup_lsn_lt1_chain(stc *cx srunused)
 	addv(&vlista, &a, 14, SVSET, (char*)&key4, sizeof(key4));
 
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -853,35 +853,35 @@ svwriteiter_dup_lsn_lt1_chain(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 9ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 9ULL, 0);
 
 	checkv(cx, &iter, 10, SVSET, key);
-	sr_iternext(&iter);
+	sr_iteratornext(&iter);
 	checkv(cx, &iter,  9, SVSET|SVDUP, key);
-	sr_iternext(&iter);
+	sr_iteratornext(&iter);
 	checkv(cx, &iter, 12, SVSET, key2);
-	sr_iternext(&iter);
+	sr_iteratornext(&iter);
 	checkv(cx, &iter, 11, SVSET|SVDUP, key2);
-	sr_iternext(&iter);
+	sr_iteratornext(&iter);
 	checkv(cx, &iter, 13, SVSET, key3);
-	sr_iternext(&iter);
+	sr_iteratornext(&iter);
 	checkv(cx, &iter, 14, SVSET, key4);
-	sr_iternext(&iter);
-	sr_iterclose(&iter);
+	sr_iteratornext(&iter);
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -917,11 +917,11 @@ svwriteiter_dup_lsn_lt2_chain(stc *cx srunused)
 	addv(&vlista, &a, 14, SVSET, (char*)&key4, sizeof(key4));
 
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -933,37 +933,37 @@ svwriteiter_dup_lsn_lt2_chain(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 3ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 3ULL, 0);
 
 	checkv(cx, &iter, 10, SVSET, key);
-	sr_iternext(&iter);
+	sr_iteratornext(&iter);
 	checkv(cx, &iter,  9, SVSET|SVDUP, key);
-	sr_iternext(&iter);
+	sr_iteratornext(&iter);
 	checkv(cx, &iter,  8, SVSET|SVDUP, key);
-	sr_iternext(&iter);
+	sr_iteratornext(&iter);
 	checkv(cx, &iter, 12, SVSET, key2);
-	sr_iternext(&iter);
+	sr_iteratornext(&iter);
 	checkv(cx, &iter, 11, SVSET|SVDUP, key2);
-	sr_iternext(&iter);
+	sr_iteratornext(&iter);
 	checkv(cx, &iter, 13, SVSET, key3);
-	sr_iternext(&iter);
+	sr_iteratornext(&iter);
 	checkv(cx, &iter, 14, SVSET, key4);
-	sr_iternext(&iter);
-	sr_iterclose(&iter);
+	sr_iteratornext(&iter);
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -992,11 +992,11 @@ svwriteiter_dup_lsn_limit0(stc *cx srunused)
 	addv(&vlista, &a,  8, SVSET|SVDUP, (char*)&key, sizeof(key));
 
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -1008,26 +1008,26 @@ svwriteiter_dup_lsn_limit0(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 1 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 15ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 15ULL, 0);
 
 	checkv(cx, &iter, 10, SVSET, key);
-	sr_iternext(&iter);
-	t( sr_iterhas(&iter) == 0 );
-	sr_iterclose(&iter);
+	sr_iteratornext(&iter);
+	t( sr_iteratorhas(&iter) == 0 );
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -1056,11 +1056,11 @@ svwriteiter_dup_lsn_limit1(stc *cx srunused)
 	addv(&vlista, &a,  8, SVSET|SVDUP, (char*)&key, sizeof(key));
 
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -1072,28 +1072,28 @@ svwriteiter_dup_lsn_limit1(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 1 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 9ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 9ULL, 0);
 
 	checkv(cx, &iter, 10, SVSET, key);
-	sr_iternext(&iter);
+	sr_iteratornext(&iter);
 	checkv(cx, &iter,  9, SVSET|SVDUP, key);
-	sr_iternext(&iter);
-	t( sr_iterhas(&iter) == 0 );
-	sr_iterclose(&iter);
+	sr_iteratornext(&iter);
+	t( sr_iteratorhas(&iter) == 0 );
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -1121,11 +1121,11 @@ svwriteiter_dup_lsn_limit2(stc *cx srunused)
 	addv(&vlista, &a,  8, SVSET|SVDUP, (char*)&key, sizeof(key));
 
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -1137,30 +1137,30 @@ svwriteiter_dup_lsn_limit2(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 1 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 5ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 5ULL, 0);
 
 	checkv(cx, &iter, 10, SVSET, key);
-	sr_iternext(&iter);
+	sr_iteratornext(&iter);
 	checkv(cx, &iter,  9, SVSET|SVDUP, key);
-	sr_iternext(&iter);
+	sr_iteratornext(&iter);
 	checkv(cx, &iter,  8, SVSET|SVDUP, key);
-	sr_iternext(&iter);
-	t( sr_iterhas(&iter) == 0 );
-	sr_iterclose(&iter);
+	sr_iteratornext(&iter);
+	t( sr_iteratorhas(&iter) == 0 );
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -1190,11 +1190,11 @@ svwriteiter_dup_lsn_limit3(stc *cx srunused)
 		k++;
 	}
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -1206,27 +1206,27 @@ svwriteiter_dup_lsn_limit3(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 2 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 500ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 500ULL, 0);
 
-	t(sr_iterhas(&iter) == 1);
+	t(sr_iteratorhas(&iter) == 1);
 	checkv(cx, &iter, 412, SVSET, key);
-	sr_iternext(&iter);
-	t(sr_iterhas(&iter) == 0);
-	sr_iterclose(&iter);
+	sr_iteratornext(&iter);
+	t(sr_iteratorhas(&iter) == 0);
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -1256,11 +1256,11 @@ svwriteiter_dup_lsn_limit4(stc *cx srunused)
 		k++;
 	}
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -1272,34 +1272,34 @@ svwriteiter_dup_lsn_limit4(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 1 * (sizeof(svv) + sizeof(k));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 0ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 0ULL, 0);
 
 	k = 0;
-	while (sr_iterhas(&iter))
+	while (sr_iteratorhas(&iter))
 	{
 		if (k == 0)
 			checkv(cx, &iter, 412 - k, SVSET, key);
 		else
 			checkv(cx, &iter, 412 - k, SVSET|SVDUP, key);
-		sr_iternext(&iter);
+		sr_iteratornext(&iter);
 		k++;
 	}
 	t( k == 412 );
-	sr_iterclose(&iter);
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -1329,11 +1329,11 @@ svwriteiter_dup_lsn_limit5(stc *cx srunused)
 		k++;
 	}
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -1345,34 +1345,34 @@ svwriteiter_dup_lsn_limit5(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 1 * (sizeof(svv) + sizeof(k));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 0ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 0ULL, 0);
 
 	k = 0;
-	while (sr_iterhas(&iter))
+	while (sr_iteratorhas(&iter))
 	{
 		if (k == 0)
 			checkv(cx, &iter, 412 - k, SVSET, key);
 		else
 			checkv(cx, &iter, 412 - k, SVSET|SVDUP, key);
-		sr_iternext(&iter);
+		sr_iteratornext(&iter);
 		k++;
 	}
 	t( k == 412 );
-	sr_iterclose(&iter);
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -1401,11 +1401,11 @@ svwriteiter_delete0(stc *cx srunused)
 	addv(&vlista, &a,  8, SVDELETE|SVDUP, (char*)&key, sizeof(key));
 
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -1417,37 +1417,37 @@ svwriteiter_delete0(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 10ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 10ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&iter)) {
-		sv *v = (sv*)sr_iterof(&iter);
+	while (sr_iteratorhas(&iter)) {
+		sv *v = (sv*)sr_iteratorof(&iter);
 		t( *(int*)sv_key(v) == key );
 		t( sv_lsn(v) == 10 - i );
 		if (i == 0)
 			t( sv_flags(v) == SVSET );
 		else
 			t( sv_flags(v) == (SVDELETE | SVDUP) );
-		sr_iternext(&iter);
+		sr_iteratornext(&iter);
 		i++;
 	}
 	t( i == 1 );
-	sr_iterclose(&iter);
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -1476,11 +1476,11 @@ svwriteiter_delete1(stc *cx srunused)
 	addv(&vlista, &a,  8, SVDELETE|SVDUP, (char*)&key, sizeof(key));
 
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -1492,37 +1492,37 @@ svwriteiter_delete1(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 9ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 9ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&iter)) {
-		sv *v = (sv*)sr_iterof(&iter);
+	while (sr_iteratorhas(&iter)) {
+		sv *v = (sv*)sr_iteratorof(&iter);
 		t( *(int*)sv_key(v) == key );
 		t( sv_lsn(v) == 10 - i );
 		if (i == 0)
 			t( sv_flags(v) == SVSET );
 		else
 			t( sv_flags(v) == (SVDELETE | SVDUP) );
-		sr_iternext(&iter);
+		sr_iteratornext(&iter);
 		i++;
 	}
 	t( i == 2 );
-	sr_iterclose(&iter);
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -1551,11 +1551,11 @@ svwriteiter_delete2(stc *cx srunused)
 	addv(&vlista, &a,  8, SVDELETE|SVDUP, (char*)&key, sizeof(key));
 
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -1567,37 +1567,37 @@ svwriteiter_delete2(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 8ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 8ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&iter)) {
-		sv *v = (sv*)sr_iterof(&iter);
+	while (sr_iteratorhas(&iter)) {
+		sv *v = (sv*)sr_iteratorof(&iter);
 		t( *(int*)sv_key(v) == key );
 		t( sv_lsn(v) == 10 - i );
 		if (i == 0)
 			t( sv_flags(v) == SVSET );
 		else
 			t( sv_flags(v) == (SVDELETE | SVDUP) );
-		sr_iternext(&iter);
+		sr_iteratornext(&iter);
 		i++;
 	}
 	t( i == 3 );
-	sr_iterclose(&iter);
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -1626,11 +1626,11 @@ svwriteiter_delete3(stc *cx srunused)
 	addv(&vlista, &a,  8, SVDELETE|SVDUP, (char*)&key, sizeof(key));
 
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -1642,37 +1642,37 @@ svwriteiter_delete3(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 7ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 7ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&iter)) {
-		sv *v = (sv*)sr_iterof(&iter);
+	while (sr_iteratorhas(&iter)) {
+		sv *v = (sv*)sr_iteratorof(&iter);
 		t( *(int*)sv_key(v) == key );
 		t( sv_lsn(v) == 10 - i );
 		if (i == 0)
 			t( sv_flags(v) == SVDELETE );
 		else
 			t( sv_flags(v) == (SVDELETE | SVDUP) );
-		sr_iternext(&iter);
+		sr_iteratornext(&iter);
 		i++;
 	}
 	t( i == 3 );
-	sr_iterclose(&iter);
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -1701,11 +1701,11 @@ svwriteiter_delete4(stc *cx srunused)
 	addv(&vlista, &a,  8, SVDELETE|SVDUP, (char*)&key, sizeof(key));
 
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -1717,37 +1717,37 @@ svwriteiter_delete4(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 10ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 10ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&iter)) {
-		sv *v = (sv*)sr_iterof(&iter);
+	while (sr_iteratorhas(&iter)) {
+		sv *v = (sv*)sr_iteratorof(&iter);
 		t( *(int*)sv_key(v) == key );
 		t( sv_lsn(v) == 10 - i );
 		if (i == 0)
 			t( sv_flags(v) == SVDELETE );
 		else
 			t( sv_flags(v) == (SVDELETE | SVDUP) );
-		sr_iternext(&iter);
+		sr_iteratornext(&iter);
 		i++;
 	}
 	t( i == 0 );
-	sr_iterclose(&iter);
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -1776,11 +1776,11 @@ svwriteiter_delete5(stc *cx srunused)
 	addv(&vlista, &a,  8, SVDELETE|SVDUP, (char*)&key, sizeof(key));
 
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -1792,37 +1792,37 @@ svwriteiter_delete5(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 11ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 11ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&iter)) {
-		sv *v = (sv*)sr_iterof(&iter);
+	while (sr_iteratorhas(&iter)) {
+		sv *v = (sv*)sr_iteratorof(&iter);
 		t( *(int*)sv_key(v) == key );
 		t( sv_lsn(v) == 10 - i );
 		if (i == 0)
 			t( sv_flags(v) == SVDELETE );
 		else
 			t( sv_flags(v) == (SVDELETE | SVDUP) );
-		sr_iternext(&iter);
+		sr_iteratornext(&iter);
 		i++;
 	}
 	t( i == 0 );
-	sr_iterclose(&iter);
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -1854,11 +1854,11 @@ svwriteiter_delete6(stc *cx srunused)
 	addv(&vlista, &a, 11, SVSET, (char*)&key, sizeof(key));
 
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -1870,18 +1870,18 @@ svwriteiter_delete6(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 13ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 13ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&iter)) {
-		sv *v = (sv*)sr_iterof(&iter);
+	while (sr_iteratorhas(&iter)) {
+		sv *v = (sv*)sr_iteratorof(&iter);
 		if (i == 0) {
 			t( *(int*)sv_key(v) == 6 );
 			t( sv_lsn(v) == 12 );
@@ -1890,19 +1890,19 @@ svwriteiter_delete6(stc *cx srunused)
 			t( sv_lsn(v) == 11 );
 		}
 		t( sv_flags(v) == SVSET );
-		sr_iternext(&iter);
+		sr_iteratornext(&iter);
 		i++;
 	}
 	t( i == 2 );
-	sr_iterclose(&iter);
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -1934,11 +1934,11 @@ svwriteiter_delete7(stc *cx srunused)
 	addv(&vlista, &a, 11, SVSET, (char*)&key, sizeof(key));
 
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -1950,18 +1950,18 @@ svwriteiter_delete7(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 10ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 10ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&iter)) {
-		sv *v = (sv*)sr_iterof(&iter);
+	while (sr_iteratorhas(&iter)) {
+		sv *v = (sv*)sr_iteratorof(&iter);
 		if (i == 0) {
 			t( *(int*)sv_key(v) == 6 );
 			t( sv_flags(v) == SVSET );
@@ -1971,19 +1971,19 @@ svwriteiter_delete7(stc *cx srunused)
 			t( sv_flags(v) == SVSET );
 			t( sv_lsn(v) == 11 );
 		}
-		sr_iternext(&iter);
+		sr_iteratornext(&iter);
 		i++;
 	}
 	t( i == 2 );
-	sr_iterclose(&iter);
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -2015,11 +2015,11 @@ svwriteiter_delete8(stc *cx srunused)
 	addv(&vlista, &a, 11, SVSET, (char*)&key, sizeof(key));
 
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -2031,18 +2031,18 @@ svwriteiter_delete8(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = 10 * (sizeof(svv) + sizeof(key));
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 9ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 9ULL, 0);
 
 	int i = 0;
 	i = 0;
-	while (sr_iterhas(&iter)) {
-		sv *v = (sv*)sr_iterof(&iter);
+	while (sr_iteratorhas(&iter)) {
+		sv *v = (sv*)sr_iteratorof(&iter);
 		if (i == 0) {
 			t( *(int*)sv_key(v) == 6 );
 			t( sv_flags(v) == SVSET );
@@ -2062,19 +2062,19 @@ svwriteiter_delete8(stc *cx srunused)
 			t( sv_flags(v) == SVSET );
 			t( sv_lsn(v) == 11 );
 		}
-		sr_iternext(&iter);
+		sr_iteratornext(&iter);
 		i++;
 	}
 	t( i == 4 );
-	sr_iterclose(&iter);
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -2107,11 +2107,11 @@ svwriteiter_duprange0(stc *cx srunused)
 	}
 
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -2123,29 +2123,29 @@ svwriteiter_duprange0(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = UINT64_MAX;
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 100ULL, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 100ULL, 0);
 
 	i = 0;
-	while (sr_iterhas(&iter)) {
-		sr_iternext(&iter);
+	while (sr_iteratorhas(&iter)) {
+		sr_iteratornext(&iter);
 		i++;
 	}
 	t( i == 200 );
-	sr_iterclose(&iter);
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
@@ -2178,11 +2178,11 @@ svwriteiter_duprange1(stc *cx srunused)
 	}
 
 	sriter ita;
-	sr_iterinit(&ita, &sr_bufiterref, &r);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &ita, &r);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
 	sriter itb;
-	sr_iterinit(&itb, &sr_bufiterref, &r);
-	sr_iteropen(&itb, &vlistb, sizeof(sv*));
+	sr_iterinit(sr_bufiterref, &itb, &r);
+	sr_iteropen(sr_bufiterref, &itb, &vlistb, sizeof(sv*));
 
 	svmerge m;
 	sv_mergeinit(&m);
@@ -2194,28 +2194,28 @@ svwriteiter_duprange1(stc *cx srunused)
 	t(s != NULL);
 	s->src = itb;
 	sriter merge;
-	sr_iterinit(&merge, &sv_mergeiter, &r);
-	sr_iteropen(&merge, &m, SR_GTE);
+	sr_iterinit(sv_mergeiter, &merge, &r);
+	sr_iteropen(sv_mergeiter, &merge, &m, SR_GTE);
 	sriter iter;
-	sr_iterinit(&iter, &sv_writeiter, &r);
+	sr_iterinit(sv_writeiter, &iter, &r);
 	uint64_t limit = UINT64_MAX;
-	sr_iteropen(&iter, &merge, limit, sizeof(svv), 100ULL + lsn, 0);
+	sr_iteropen(sv_writeiter, &iter, &merge, limit, sizeof(svv), 100ULL + lsn, 0);
 
 	i = 0;
-	while (sr_iterhas(&iter)) {
-		sr_iternext(&iter);
+	while (sr_iteratorhas(&iter)) {
+		sr_iteratornext(&iter);
 		i++;
 	}
 	t( i == 100 );
-	sr_iterclose(&iter);
+	sr_iteratorclose(&iter);
 
-	sr_iterinit(&ita, &sr_bufiterref, NULL);
-	sr_iteropen(&ita, &vlista, sizeof(sv*));
-	while (sr_iterhas(&ita)) {
-		sv *v = (sv*)sr_iterof(&ita);
+	sr_iterinit(sr_bufiterref, &ita, NULL);
+	sr_iteropen(sr_bufiterref, &ita, &vlista, sizeof(sv*));
+	while (sr_iteratorhas(&ita)) {
+		sv *v = (sv*)sr_iteratorof(&ita);
 		sr_free(&a, v->v);
 		sr_free(&a, v);
-		sr_iternext(&ita);
+		sr_iteratornext(&ita);
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);

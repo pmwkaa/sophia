@@ -38,10 +38,10 @@ static void
 freelog(svlog *log, sr *c)
 {
 	sriter i;
-	sr_iterinit(&i, &sr_bufiter, c);
-	sr_iteropen(&i, &log->buf, sizeof(svlogv));
-	for (; sr_iterhas(&i); sr_iternext(&i)) {
-		svlogv *v = sr_iterof(&i);
+	sr_iterinit(sr_bufiter, &i, c);
+	sr_iteropen(sr_bufiter, &i, &log->buf, sizeof(svlogv));
+	for (; sr_iteratorhas(&i); sr_iteratornext(&i)) {
+		svlogv *v = sr_iteratorof(&i);
 		sr_free(c->a, v->v.v);
 	}
 	sv_logfree(log, c->a);

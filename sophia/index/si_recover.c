@@ -335,19 +335,22 @@ si_recovercomplete(sitrack *track, sr *r, si *index, srbuf *buf)
 		p = sr_rbnext(&track->i, p);
 	}
 	sriter i;
-	sr_iterinit(&i, &sr_bufiterref, r);
-	sr_iteropen(&i, buf, sizeof(sinode*));
-	for (; sr_iterhas(&i); sr_iternext(&i)) {
-		sinode *n = sr_iterof(&i);
+	sr_iterinit(sr_bufiterref, &i, r);
+	sr_iteropen(sr_bufiterref, &i, buf, sizeof(sinode*));
+	while (sr_iterhas(sr_bufiterref, &i))
+	{
+		sinode *n = sr_iterof(sr_bufiterref, &i);
 		if (n->recover & SI_RDB_REMOVE) {
 			int rc = si_nodefree(n, r, 1);
 			if (srunlikely(rc == -1))
 				return -1;
+			sr_iternext(sr_bufiterref, &i);
 			continue;
 		}
 		n->recover = SI_RDB;
 		si_insert(index, r, n);
 		si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH, n);
+		sr_iternext(sr_bufiterref, &i);
 	}
 	return 0;
 }

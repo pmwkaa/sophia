@@ -21,11 +21,11 @@ si_branchcreate(si *index, sr *r, sdc *c, sinode *parent, svindex *vindex, uint6
 	if (srunlikely(rc == -1))
 		return NULL;
 	svmergesrc *s = sv_mergeadd(&vmerge, NULL);
-	sr_iterinit(&s->src, &sv_indexiterraw, r);
-	sr_iteropen(&s->src, vindex);
+	sr_iterinit(sv_indexiterraw, &s->src, r);
+	sr_iteropen(sv_indexiterraw, &s->src, vindex);
 	sriter i;
-	sr_iterinit(&i, &sv_mergeiter, r);
-	sr_iteropen(&i, &vmerge, SR_GTE);
+	sr_iterinit(sv_mergeiter, &i, r);
+	sr_iteropen(sv_mergeiter, &i, &vmerge, SR_GTE);
 
 	/* merge iter is not used */
 	sdmerge merge;
@@ -175,14 +175,14 @@ int si_compact(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 		if (key > size_key)
 			size_key = key;
 		size_stream += sd_indextotal(&b->index);
-		sr_iterinit(&s->src, &sd_iter, r);
-		sr_iteropen(&s->src, &b->index, c->c.s, 0, index->conf->compression, &cbuf->buf);
+		sr_iterinit(sd_iter, &s->src, r);
+		sr_iteropen(sd_iter, &s->src, &b->index, c->c.s, 0, index->conf->compression, &cbuf->buf);
 		cbuf = cbuf->next;
 		b = b->next;
 	}
 	sriter i;
-	sr_iterinit(&i, &sv_mergeiter, r);
-	sr_iteropen(&i, &merge, SR_GTE);
+	sr_iterinit(sv_mergeiter, &i, r);
+	sr_iteropen(sv_mergeiter, &i, &merge, SR_GTE);
 	rc = si_compaction(index, r, c, vlsn, node, &i, size_stream, size_key);
 	if (srunlikely(rc == -1)) {
 		sv_mergefree(&merge, r->a);

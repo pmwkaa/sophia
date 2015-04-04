@@ -9,8 +9,9 @@
  * BSD License
 */
 
-extern sriterif sd_recover;
+int sd_recover_open(sriter*, srfile*);
+int sd_recover_complete(sriter*);
 
-int sd_recovercomplete(sriter*);
+extern sriterif sd_recover;
 
 #endif

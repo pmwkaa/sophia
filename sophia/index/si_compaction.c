@@ -20,43 +20,47 @@ si_redistribute(si *index, sr *r, sdc *c, sinode *node, srbuf *result,
 {
 	svindex *vindex = si_nodeindex(node);
 	sriter i;
-	sr_iterinit(&i, &sv_indexiterraw, r);
-	sr_iteropen(&i, vindex);
-	for (; sr_iterhas(&i); sr_iternext(&i)) {
-		sv *v = sr_iterof(&i);
+	sr_iterinit(sv_indexiterraw, &i, r);
+	sr_iteropen(sv_indexiterraw, &i, vindex);
+	while (sr_iterhas(sv_indexiterraw, &i))
+	{
+		sv *v = sr_iterof(sv_indexiterraw, &i);
 		int rc = sr_bufadd(&c->b, r->a, &v->v, sizeof(svv**));
 		if (srunlikely(rc == -1))
 			return sr_malfunction(r->e, "%s", "memory allocation failed");
+		sr_iternext(sv_indexiterraw, &i);
 	}
 	if (srunlikely(sr_bufused(&c->b) == 0))
 		return 0;
 	uint32_t gc = 0;
-	sr_iterinit(&i, &sr_bufiterref, NULL);
-	sr_iteropen(&i, &c->b, sizeof(svv*));
+	sr_iterinit(sr_bufiterref, &i, NULL);
+	sr_iteropen(sr_bufiterref, &i, &c->b, sizeof(svv*));
 	sriter j;
-	sr_iterinit(&j, &sr_bufiterref, NULL);
-	sr_iteropen(&j, result, sizeof(sinode*));
-	sinode *prev = sr_iterof(&j);
-	sr_iternext(&j);
-	while (1) {
-		sinode *p = sr_iterof(&j);
+	sr_iterinit(sr_bufiterref, &j,  NULL);
+	sr_iteropen(sr_bufiterref, &j, result, sizeof(sinode*));
+	sinode *prev = sr_iterof(sr_bufiterref, &j);
+	sr_iternext(sr_bufiterref, &j);
+	while (1)
+	{
+		sinode *p = sr_iterof(sr_bufiterref, &j);
 		if (p == NULL) {
 			assert(prev != NULL);
-			while (sr_iterhas(&i)) {
-				svv *v = sr_iterof(&i);
+			while (sr_iterhas(sr_bufiterref, &i)) {
+				svv *v = sr_iterof(sr_bufiterref, &i);
 				v->next = NULL;
 
 				svv *vgc = NULL;
 				sv_indexset(&prev->i0, r, vlsn, v, &vgc);
-				sr_iternext(&i);
+				sr_iternext(sr_bufiterref, &i);
 				if (vgc) {
 					gc += si_vgc(r->a, vgc);
 				}
 			}
 			break;
 		}
-		while (sr_iterhas(&i)) {
-			svv *v = sr_iterof(&i);
+		while (sr_iterhas(sr_bufiterref, &i))
+		{
+			svv *v = sr_iterof(sr_bufiterref, &i);
 			v->next = NULL;
 
 			svv *vgc = NULL;
@@ -66,20 +70,20 @@ si_redistribute(si *index, sr *r, sdc *c, sinode *node, srbuf *result,
 			if (srunlikely(rc >= 0))
 				break;
 			sv_indexset(&prev->i0, r, vlsn, v, &vgc);
-			sr_iternext(&i);
+			sr_iternext(sr_bufiterref, &i);
 			if (vgc) {
 				gc += si_vgc(r->a, vgc);
 			}
 		}
-		if (srunlikely(! sr_iterhas(&i)))
+		if (srunlikely(! sr_iterhas(sr_bufiterref, &i)))
 			break;
 		prev = p;
-		sr_iternext(&j);
+		sr_iternext(sr_bufiterref, &j);
 	}
 	if (gc) {
 		sr_quota(index->quota, SR_QREMOVE, gc);
 	}
-	assert(sr_iterof(&i) == NULL);
+	assert(sr_iterof(sr_bufiterref, &i) == NULL);
 	return 0;
 }
 
@@ -89,9 +93,9 @@ si_redistribute_set(si *index, sr *r, uint64_t vlsn, uint64_t now, svv *v)
 	index->update_time = now;
 	/* match node */
 	sriter i;
-	sr_iterinit(&i, &si_iter, r);
-	sr_iteropen(&i, index, SR_ROUTE, sv_vkey(v), v->keysize);
-	sinode *node = sr_iterof(&i);
+	sr_iterinit(si_iter, &i, r);
+	sr_iteropen(si_iter, &i, index, SR_ROUTE, sv_vkey(v), v->keysize);
+	sinode *node = sr_iterof(si_iter, &i);
 	assert(node != NULL);
 	/* update node */
 	svindex *vindex = si_nodeindex(node);
@@ -113,23 +117,24 @@ si_redistribute_index(si *index, sr *r, sdc *c, sinode *node, uint64_t vlsn)
 {
 	svindex *vindex = si_nodeindex(node);
 	sriter i;
-	sr_iterinit(&i, &sv_indexiterraw, r);
-	sr_iteropen(&i, vindex);
-	for (; sr_iterhas(&i); sr_iternext(&i)) {
-		sv *v = sr_iterof(&i);
+	sr_iterinit(sv_indexiterraw, &i, r);
+	sr_iteropen(sv_indexiterraw, &i, vindex);
+	while (sr_iterhas(sv_indexiterraw, &i)) {
+		sv *v = sr_iterof(sv_indexiterraw, &i);
 		int rc = sr_bufadd(&c->b, r->a, &v->v, sizeof(svv**));
 		if (srunlikely(rc == -1))
 			return sr_malfunction(r->e, "%s", "memory allocation failed");
+		sr_iternext(sv_indexiterraw, &i);
 	}
 	if (srunlikely(sr_bufused(&c->b) == 0))
 		return 0;
 	uint64_t now = sr_utime();
-	sr_iterinit(&i, &sr_bufiterref, NULL);
-	sr_iteropen(&i, &c->b, sizeof(svv*));
-	while (sr_iterhas(&i)) {
-		svv *v = sr_iterof(&i);
+	sr_iterinit(sr_bufiterref, &i, NULL);
+	sr_iteropen(sr_bufiterref, &i, &c->b, sizeof(svv*));
+	while (sr_iterhas(sr_bufiterref, &i)) {
+		svv *v = sr_iterof(sr_bufiterref, &i);
 		si_redistribute_set(index, r, vlsn, now, v);
-		sr_iternext(&i);
+		sr_iternext(sr_bufiterref, &i);
 	}
 	return 0;
 }
@@ -138,11 +143,13 @@ static int
 si_splitfree(srbuf *result, sr *r)
 {
 	sriter i;
-	sr_iterinit(&i, &sr_bufiterref, NULL);
-	sr_iteropen(&i, result, sizeof(sinode*));
-	for (; sr_iterhas(&i); sr_iternext(&i)) {
-		sinode *p = sr_iterof(&i);
+	sr_iterinit(sr_bufiterref, &i, NULL);
+	sr_iteropen(sr_bufiterref, &i, result, sizeof(sinode*));
+	while (sr_iterhas(sr_bufiterref, &i))
+	{
+		sinode *p = sr_iterof(sr_bufiterref, &i);
 		si_nodefree(p, r, 0);
+		sr_iternext(sr_bufiterref, &i);
 	}
 	return 0;
 }
@@ -284,16 +291,16 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 			si_splitfree(result, r);
 			return -1;
 		}
-		sr_iterinit(&i, &sr_bufiterref, NULL);
-		sr_iteropen(&i, result, sizeof(sinode*));
-		n = sr_iterof(&i);
+		sr_iterinit(sr_bufiterref, &i, NULL);
+		sr_iteropen(sr_bufiterref, &i, result, sizeof(sinode*));
+		n = sr_iterof(sr_bufiterref, &i);
 		n->used = sv_indexused(&n->i0);
 		si_nodelock(n);
 		si_replace(index, node, n);
 		si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH, n);
-		for (sr_iternext(&i); sr_iterhas(&i);
-		     sr_iternext(&i)) {
-			n = sr_iterof(&i);
+		for (sr_iternext(sr_bufiterref, &i); sr_iterhas(sr_bufiterref, &i);
+		     sr_iternext(sr_bufiterref, &i)) {
+			n = sr_iterof(sr_bufiterref, &i);
 			n->used = sv_indexused(&n->i0);
 			si_nodelock(n);
 			si_insert(index, r, n);
@@ -307,10 +314,11 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 	/* compaction completion */
 
 	/* seal nodes */
-	sr_iterinit(&i, &sr_bufiterref, NULL);
-	sr_iteropen(&i, result, sizeof(sinode*));
-	for (; sr_iterhas(&i); sr_iternext(&i)) {
-		n = sr_iterof(&i);
+	sr_iterinit(sr_bufiterref, &i, NULL);
+	sr_iteropen(sr_bufiterref, &i, result, sizeof(sinode*));
+	while (sr_iterhas(sr_bufiterref, &i))
+	{
+		n = sr_iterof(sr_bufiterref, &i);
 		if (index->conf->sync) {
 			rc = si_nodesync(n, r);
 			if (srunlikely(rc == -1))
@@ -323,6 +331,7 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 		             si_nodefree(node, r, 0);
 		             sr_malfunction(r->e, "%s", "error injection");
 		             return -1);
+		sr_iternext(sr_bufiterref, &i);
 	}
 
 	SR_INJECTION(r->i, SR_INJECTION_SI_COMPACTION_1,
@@ -340,25 +349,29 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 	             return -1);
 
 	/* complete new nodes */
-	sr_iterinit(&i, &sr_bufiterref, NULL);
-	sr_iteropen(&i, result, sizeof(sinode*));
-	for (; sr_iterhas(&i); sr_iternext(&i)) {
-		n = sr_iterof(&i);
+	sr_iterinit(sr_bufiterref, &i, NULL);
+	sr_iteropen(sr_bufiterref, &i, result, sizeof(sinode*));
+	while (sr_iterhas(sr_bufiterref, &i))
+	{
+		n = sr_iterof(sr_bufiterref, &i);
 		rc = si_nodecomplete(n, r, index->conf);
 		if (srunlikely(rc == -1))
 			return -1;
 		SR_INJECTION(r->i, SR_INJECTION_SI_COMPACTION_4,
 		             sr_malfunction(r->e, "%s", "error injection");
 		             return -1);
+		sr_iternext(sr_bufiterref, &i);
 	}
 
 	/* unlock */
 	si_lock(index);
-	sr_iterinit(&i, &sr_bufiterref, NULL);
-	sr_iteropen(&i, result, sizeof(sinode*));
-	for (; sr_iterhas(&i); sr_iternext(&i)) {
-		n = sr_iterof(&i);
+	sr_iterinit(sr_bufiterref, &i, NULL);
+	sr_iteropen(sr_bufiterref, &i, result, sizeof(sinode*));
+	while (sr_iterhas(sr_bufiterref, &i))
+	{
+		n = sr_iterof(sr_bufiterref, &i);
 		si_nodeunlock(n);
+		sr_iternext(sr_bufiterref, &i);
 	}
 	si_unlock(index);
 	return 0;

@@ -136,13 +136,12 @@ sl_iterprepare(sriter *i)
 	return 0;
 }
 
-static int
-sl_iteropen(sriter *i, va_list args)
+int sl_iter_open(sriter *i, srfile *file, int validate)
 {
 	sliter *li = (sliter*)i->priv;
 	memset(li, 0, sizeof(*li));
-	li->log      = va_arg(args, srfile*);
-	li->validate = va_arg(args, int);
+	li->log      = file;
+	li->validate = validate;
 	if (srunlikely(li->log->size < sizeof(srversion))) {
 		sr_malfunction(i->r->e, "corrupted log file '%s': bad size",
 		               li->log->file);
@@ -163,21 +162,21 @@ sl_iteropen(sriter *i, va_list args)
 }
 
 static void
-sl_iterclose(sriter *i srunused)
+sl_iter_close(sriter *i srunused)
 {
 	sliter *li = (sliter*)i->priv;
 	sr_mapunmap(&li->map);
 }
 
 static int
-sl_iterhas(sriter *i)
+sl_iter_has(sriter *i)
 {
 	sliter *li = (sliter*)i->priv;
 	return li->v != NULL;
 }
 
 static void*
-sl_iterof(sriter *i)
+sl_iter_of(sriter *i)
 {
 	sliter *li = (sliter*)i->priv;
 	if (srunlikely(li->v == NULL))
@@ -186,7 +185,7 @@ sl_iterof(sriter *i)
 }
 
 static void
-sl_iternext(sriter *i)
+sl_iter_next(sriter *i)
 {
 	sliter *li = (sliter*)i->priv;
 	if (srunlikely(li->v == NULL))
@@ -200,20 +199,19 @@ sl_iternext(sriter *i)
 
 sriterif sl_iter =
 {
-	.open    = sl_iteropen,
-	.close   = sl_iterclose,
-	.has     = sl_iterhas,
-	.of      = sl_iterof,
-	.next    = sl_iternext
+	.close   = sl_iter_close,
+	.has     = sl_iter_has,
+	.of      = sl_iter_of,
+	.next    = sl_iter_next
 };
 
-int sl_itererror(sriter *i)
+int sl_iter_error(sriter *i)
 {
 	sliter *li = (sliter*)i->priv;
 	return li->error;
 }
 
-int sl_itercontinue(sriter *i)
+int sl_iter_continue(sriter *i)
 {
 	return sl_itercontinue_of(i);
 }

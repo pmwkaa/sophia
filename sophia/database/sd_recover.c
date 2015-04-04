@@ -73,12 +73,11 @@ sd_recovernext_of(sriter *i, sdindexheader *next)
 	return 1;
 }
 
-static int
-sd_recoveropen(sriter *i, va_list args)
+int sd_recover_open(sriter *i, srfile *file)
 {
 	sdrecover *ri = (sdrecover*)i->priv;
 	memset(ri, 0, sizeof(*ri));
-	ri->file = va_arg(args, srfile*);
+	ri->file = file;
 	if (srunlikely(ri->file->size < (sizeof(sdindexheader) + sizeof(sdseal)))) {
 		sr_malfunction(i->r->e, "corrupted db file '%s': bad size",
 		               ri->file->file);
@@ -135,14 +134,13 @@ sd_recovernext(sriter *i)
 
 sriterif sd_recover =
 {
-	.open    = sd_recoveropen,
 	.close   = sd_recoverclose,
 	.has     = sd_recoverhas,
 	.of      = sd_recoverof,
 	.next    = sd_recovernext
 };
 
-int sd_recovercomplete(sriter *i)
+int sd_recover_complete(sriter *i)
 {
 	sdrecover *ri = (sdrecover*)i->priv;
 	if (srunlikely(ri->actual == NULL))

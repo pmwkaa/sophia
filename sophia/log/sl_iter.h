@@ -9,9 +9,10 @@
  * BSD License
 */
 
-extern sriterif sl_iter;
+int sl_iter_open(sriter *i, srfile*, int);
+int sl_iter_error(sriter*);
+int sl_iter_continue(sriter*);
 
-int sl_itererror(sriter*);
-int sl_itercontinue(sriter*);
+extern sriterif sl_iter;
 
 #endif

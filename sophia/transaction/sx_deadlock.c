@@ -18,11 +18,11 @@ sx_deadlock_in(sxmanager *m, srlist *mark, sx *t, sx *p)
 		return 0;
 	sr_listappend(mark, &p->deadlock);
 	sriter i;
-	sr_iterinit(&i, &sr_bufiter, m->r);
-	sr_iteropen(&i, &p->log.buf, sizeof(svlogv));
-	for (; sr_iterhas(&i); sr_iternext(&i))
+	sr_iterinit(sr_bufiter, &i, m->r);
+	sr_iteropen(sr_bufiter, &i, &p->log.buf, sizeof(svlogv));
+	for (; sr_iterhas(sr_bufiter, &i); sr_iternext(sr_bufiter, &i))
 	{
-		svlogv *lv = sr_iterof(&i);
+		svlogv *lv = sr_iterof(sr_bufiter, &i);
 		sxv *v = lv->v.v;
 		if (v->prev == NULL)
 			continue;
@@ -56,14 +56,16 @@ int sx_deadlock(sx *t)
 	srlist mark;
 	sr_listinit(&mark);
 	sriter i;
-	sr_iterinit(&i, &sr_bufiter, m->r);
-	sr_iteropen(&i, &t->log.buf, sizeof(svlogv));
-	for (; sr_iterhas(&i); sr_iternext(&i))
+	sr_iterinit(sr_bufiter, &i, m->r);
+	sr_iteropen(sr_bufiter, &i, &t->log.buf, sizeof(svlogv));
+	while (sr_iterhas(sr_bufiter, &i))
 	{
-		svlogv *lv = sr_iterof(&i);
+		svlogv *lv = sr_iterof(sr_bufiter, &i);
 		sxv *v = lv->v.v;
-		if (v->prev == NULL)
+		if (v->prev == NULL) {
+			sr_iternext(sr_bufiter, &i);
 			continue;
+		}
 		sx *p = sx_find(m, v->prev->id);
 		assert(p != NULL);
 		int rc = sx_deadlock_in(m, &mark, t, p);
@@ -71,6 +73,7 @@ int sx_deadlock(sx *t)
 			sx_deadlock_unmark(&mark);
 			return 1;
 		}
+		sr_iternext(sr_bufiter, &i);
 	}
 	sx_deadlock_unmark(&mark);
 	return 0;

@@ -43,10 +43,10 @@ svindexiter_lte_empty(stc *cx srunused)
 
 	int key = 7;
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, &key, sizeof(int), 0ULL);
-	t( sr_iterhas(&it) == 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, &key, sizeof(int), 0ULL);
+	t( sr_iteratorhas(&it) == 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v == NULL );
 	sv_indexfree(&i, &r);
 	sr_aclose(&a);
@@ -78,22 +78,22 @@ svindexiter_lte_eq0(stc *cx srunused)
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, &keya, sizeof(int), 0ULL);
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, &keya, sizeof(int), 0ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v->v == va );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, &keyb, sizeof(int), 0ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, &keyb, sizeof(int), 0ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == vb );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, &keyc, sizeof(int), 0ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, &keyc, sizeof(int), 0ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == vc );
 
 	sv_indexfree(&i, &r);
@@ -125,16 +125,16 @@ svindexiter_lte_eq1(stc *cx srunused)
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, &keya, sizeof(int), 1ULL);
-	t( sr_iterhas(&it) == 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, &keya, sizeof(int), 1ULL);
+	t( sr_iteratorhas(&it) == 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v == NULL );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, &keyb, sizeof(int), 8ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, &keyb, sizeof(int), 8ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == vb );
 
 	sv_indexfree(&i, &r);
@@ -166,28 +166,28 @@ svindexiter_lte_minmax(stc *cx srunused)
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, NULL, 0, 8ULL);
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, NULL, 0, 8ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v->v == va );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, NULL, 0, 3ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, NULL, 0, 3ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == vb );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, NULL, 0, 2ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, NULL, 0, 2ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == vc );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, NULL, 0, 1ULL);
-	t( sr_iterhas(&it) == 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, NULL, 0, 1ULL);
+	t( sr_iteratorhas(&it) == 0 );
+	v = sr_iteratorof(&it);
 	t( v == NULL );
 
 	sv_indexfree(&i, &r);
@@ -220,31 +220,31 @@ svindexiter_lte_mid0(stc *cx srunused)
 
 	int key = 1;
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, &key, sizeof(key), 8ULL);
-	t( sr_iterhas(&it) == 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, &key, sizeof(key), 8ULL);
+	t( sr_iteratorhas(&it) == 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v == NULL );
 
 	key = 3;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, &key, sizeof(key), 8ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, &key, sizeof(key), 8ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == vc );
 
 	key = 6;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, &key, sizeof(key), 8ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, &key, sizeof(key), 8ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == vb );
 
 	key = 8;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, &key, sizeof(key), 8ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, &key, sizeof(key), 8ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == va );
 
 	sv_indexfree(&i, &r);
@@ -277,22 +277,22 @@ svindexiter_lte_mid1(stc *cx srunused)
 
 	int key = 15;
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, &key, sizeof(key), 3ULL);
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, &key, sizeof(key), 3ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v->v == vb );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, &key, sizeof(key), 2ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, &key, sizeof(key), 2ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == vc );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, &key, sizeof(key), 1ULL);
-	t( sr_iterhas(&it) == 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, &key, sizeof(key), 1ULL);
+	t( sr_iteratorhas(&it) == 0 );
+	v = sr_iteratorof(&it);
 	t( v == NULL );
 
 	sv_indexfree(&i, &r);
@@ -325,25 +325,25 @@ svindexiter_lte_iterate0(stc *cx srunused)
 
 	int key = 15;
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, &key, sizeof(key), 8ULL);
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, &key, sizeof(key), 8ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v->v == va );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == vb );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == vc );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	t( sr_iterhas(&it) == 0 );
-	v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) == 0 );
+	v = sr_iteratorof(&it);
 	t( v == NULL );
 
 	sv_indexfree(&i, &r);
@@ -376,21 +376,21 @@ svindexiter_lte_iterate1(stc *cx srunused)
 
 	int key = 15;
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, &key, sizeof(key), 3ULL);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, &key, sizeof(key), 3ULL);
 
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v->v == vb );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == vc );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	t( sr_iterhas(&it) == 0 );
-	v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) == 0 );
+	v = sr_iteratorof(&it);
 	t( v == NULL );
 
 	sv_indexfree(&i, &r);
@@ -422,16 +422,16 @@ svindexiter_lte_iterate2(stc *cx srunused)
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, NULL, 0, 2ULL);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, NULL, 0, 2ULL);
 
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v->v == vc );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	t( sr_iterhas(&it) == 0 );
-	v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) == 0 );
+	v = sr_iteratorof(&it);
 	t( v == NULL );
 
 	sv_indexfree(&i, &r);
@@ -463,22 +463,22 @@ svindexiter_lt_eq(stc *cx srunused)
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LT, &keya, sizeof(int), 0ULL);
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LT, &keya, sizeof(int), 0ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v->v == vb );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LT, &keyb, sizeof(int), 0ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LT, &keyb, sizeof(int), 0ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == vc );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LT, &keyc, sizeof(int), 0ULL);
-	t( sr_iterhas(&it) == 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LT, &keyc, sizeof(int), 0ULL);
+	t( sr_iteratorhas(&it) == 0 );
+	v = sr_iteratorof(&it);
 	t( v == NULL );
 
 	sv_indexfree(&i, &r);
@@ -510,20 +510,20 @@ svindexiter_lt_iterate(stc *cx srunused)
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LT, &keya, sizeof(keya), 8ULL);
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LT, &keya, sizeof(keya), 8ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v->v == vb );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == vc );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	t( sr_iterhas(&it) == 0 );
-	v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) == 0 );
+	v = sr_iteratorof(&it);
 	t( v == NULL );
 
 	sv_indexfree(&i, &r);
@@ -554,22 +554,22 @@ svindexiter_lte_dup_eq(stc *cx srunused)
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, &keya, sizeof(int), 3ULL);
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, &keya, sizeof(int), 3ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v->v == vc );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, &keya, sizeof(int), 2ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, &keya, sizeof(int), 2ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == vb );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, &keya, sizeof(int), 1ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, &keya, sizeof(int), 1ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == va );
 
 	sv_indexfree(&i, &r);
@@ -607,28 +607,28 @@ svindexiter_lte_dup_mid(stc *cx srunused)
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, &keya, sizeof(int), 3ULL);
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, &keya, sizeof(int), 3ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v->v == vc );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, &keya, sizeof(int), 2ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, &keya, sizeof(int), 2ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == vb );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, &keya, sizeof(int), 1ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, &keya, sizeof(int), 1ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == va );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, &keyc, sizeof(int), 5ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, &keyc, sizeof(int), 5ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == p );
 
 	sv_indexfree(&i, &r);
@@ -667,25 +667,25 @@ svindexiter_lte_dup_iterate(stc *cx srunused)
 
 	int key = 20;
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_LTE, &key, sizeof(int), 2ULL);
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_LTE, &key, sizeof(int), 2ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v->v == p );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == vb );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == h );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	t( sr_iterhas(&it) == 0 );
-	v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) == 0 );
+	v = sr_iteratorof(&it);
 	t( v == NULL );
 
 	sv_indexfree(&i, &r);
@@ -707,10 +707,10 @@ svindexiter_gte_empty(stc *cx srunused)
 
 	int key = 7;
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, &key, sizeof(int), 0ULL);
-	t( sr_iterhas(&it) == 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, &key, sizeof(int), 0ULL);
+	t( sr_iteratorhas(&it) == 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v == NULL );
 
 	sv_indexfree(&i, &r);
@@ -742,22 +742,22 @@ svindexiter_gte_eq0(stc *cx srunused)
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, &keya, sizeof(int), 0ULL);
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, &keya, sizeof(int), 0ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v->v == va );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, &keyb, sizeof(int), 0ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, &keyb, sizeof(int), 0ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == vb );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, &keyc, sizeof(int), 0ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, &keyc, sizeof(int), 0ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == vc );
 
 	sv_indexfree(&i, &r);
@@ -789,16 +789,16 @@ svindexiter_gte_eq1(stc *cx srunused)
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, &keya, sizeof(int), 1ULL);
-	t( sr_iterhas(&it) == 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, &keya, sizeof(int), 1ULL);
+	t( sr_iteratorhas(&it) == 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v == NULL );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, &keyb, sizeof(int), 8ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, &keyb, sizeof(int), 8ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == vb );
 
 	sv_indexfree(&i, &r);
@@ -830,28 +830,28 @@ svindexiter_gte_minmax(stc *cx srunused)
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, NULL, 0, 8ULL);
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, NULL, 0, 8ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v->v == vc );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, NULL, 0, 3ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, NULL, 0, 3ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == vb );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, NULL, 0, 2ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, NULL, 0, 2ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == va );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, NULL, 0, 1ULL);
-	t( sr_iterhas(&it) == 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, NULL, 0, 1ULL);
+	t( sr_iteratorhas(&it) == 0 );
+	v = sr_iteratorof(&it);
 	t( v == NULL );
 
 	sv_indexfree(&i, &r);
@@ -884,31 +884,31 @@ svindexiter_gte_mid0(stc *cx srunused)
 
 	int key = 1;
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, &key, sizeof(key), 8ULL);
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, &key, sizeof(key), 8ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v->v == vc );
 
 	key = 3;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, &key, sizeof(key), 8ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, &key, sizeof(key), 8ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == vb );
 
 	key = 6;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, &key, sizeof(key), 8ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, &key, sizeof(key), 8ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == va );
 
 	key = 8;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, &key, sizeof(key), 8ULL);
-	t( sr_iterhas(&it) == 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, &key, sizeof(key), 8ULL);
+	t( sr_iteratorhas(&it) == 0 );
+	v = sr_iteratorof(&it);
 	t( v == NULL );
 
 	sv_indexfree(&i, &r);
@@ -941,22 +941,22 @@ svindexiter_gte_mid1(stc *cx srunused)
 
 	int key = 1;
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, &key, sizeof(key), 3ULL);
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, &key, sizeof(key), 3ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v->v == vb );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, &key, sizeof(key), 2ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, &key, sizeof(key), 2ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == va );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, &key, sizeof(key), 1ULL);
-	t( sr_iterhas(&it) == 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, &key, sizeof(key), 1ULL);
+	t( sr_iteratorhas(&it) == 0 );
+	v = sr_iteratorof(&it);
 	t( v == NULL );
 
 	sv_indexfree(&i, &r);
@@ -989,25 +989,25 @@ svindexiter_gte_iterate0(stc *cx srunused)
 
 	int key = 0;
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, &key, sizeof(key), 8ULL);
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, &key, sizeof(key), 8ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v->v == vc );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == vb );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == va );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	t( sr_iterhas(&it) == 0 );
-	v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) == 0 );
+	v = sr_iteratorof(&it);
 	t( v == NULL );
 
 	sv_indexfree(&i, &r);
@@ -1040,21 +1040,21 @@ svindexiter_gte_iterate1(stc *cx srunused)
 
 	int key = 1;
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, &key, sizeof(key), 3ULL);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, &key, sizeof(key), 3ULL);
 
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v->v == vb );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == va );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	t( sr_iterhas(&it) == 0 );
-	v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) == 0 );
+	v = sr_iteratorof(&it);
 	t( v == NULL );
 
 	sv_indexfree(&i, &r);
@@ -1086,22 +1086,22 @@ svindexiter_gt_eq(stc *cx srunused)
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GT, &keya, sizeof(int), 0ULL);
-	t( sr_iterhas(&it) == 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GT, &keya, sizeof(int), 0ULL);
+	t( sr_iteratorhas(&it) == 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v == NULL );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GT, &keyb, sizeof(int), 0ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GT, &keyb, sizeof(int), 0ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == va );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GT, &keyc, sizeof(int), 0ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GT, &keyc, sizeof(int), 0ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == vb );
 
 	sv_indexfree(&i, &r);
@@ -1133,20 +1133,20 @@ svindexiter_gt_iterate(stc *cx srunused)
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GT, &keyc, sizeof(keya), 8ULL);
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GT, &keyc, sizeof(keya), 8ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v->v == vb );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == va );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	t( sr_iterhas(&it) == 0 );
-	v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) == 0 );
+	v = sr_iteratorof(&it);
 	t( v == NULL );
 
 	sv_indexfree(&i, &r);
@@ -1177,22 +1177,22 @@ svindexiter_gte_dup_eq(stc *cx srunused)
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, &keya, sizeof(int), 3ULL);
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, &keya, sizeof(int), 3ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v->v == vc );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, &keya, sizeof(int), 2ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, &keya, sizeof(int), 2ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == vb );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, &keya, sizeof(int), 1ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, &keya, sizeof(int), 1ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == va );
 
 	sv_indexfree(&i, &r);
@@ -1230,28 +1230,28 @@ svindexiter_gte_dup_mid(stc *cx srunused)
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, &keya, sizeof(int), 3ULL);
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, &keya, sizeof(int), 3ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v->v == vc );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, &keya, sizeof(int), 2ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, &keya, sizeof(int), 2ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == vb );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, &keya, sizeof(int), 1ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, &keya, sizeof(int), 1ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == va );
 
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, &keyc, sizeof(int), 5ULL);
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, &keyc, sizeof(int), 5ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == p );
 
 	sv_indexfree(&i, &r);
@@ -1290,24 +1290,24 @@ svindexiter_gte_dup_iterate(stc *cx srunused)
 
 	int key = 2;
 	sriter it;
-	sr_iterinit(&it, &sv_indexiter, &r);
-	sr_iteropen(&it, &i, SR_GTE, &key, sizeof(int), 2ULL);
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	sr_iterinit(sv_indexiter, &it, &r);
+	sr_iteropen(sv_indexiter, &it, &i, SR_GTE, &key, sizeof(int), 2ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v->v == h );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	v = sr_iterof(&it);
+	v = sr_iteratorof(&it);
 	t( v->v == vb );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	t( sr_iterhas(&it) != 0 );
-	v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
 	t( v->v == p );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	t( sr_iterhas(&it) == 0 );
-	v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) == 0 );
+	v = sr_iteratorof(&it);
 	t( v == NULL );
 
 	sv_indexfree(&i, &r);
@@ -1339,10 +1339,10 @@ svindexiter_random(stc *cx srunused)
 	for (; key < 1000; key++) {
 		uint32_t rnd = rand() % 100;
 		sriter it;
-		sr_iterinit(&it, &sv_indexiter, &r);
-		sr_iteropen(&it, &i, SR_RANDOM, &rnd, sizeof(rnd), UINT64_MAX);
-		t( sr_iterhas(&it) != 0 );
-		sv *v = sr_iterof(&it);
+		sr_iterinit(sv_indexiter, &it, &r);
+		sr_iteropen(sv_indexiter, &it, &i, SR_RANDOM, &rnd, sizeof(rnd), UINT64_MAX);
+		t( sr_iteratorhas(&it) != 0 );
+		sv *v = sr_iteratorof(&it);
 		int k = *(int*)sv_key(v);
 		t( k >= 0 && k < 100 );
 	}
@@ -1382,31 +1382,31 @@ svindexiter_iterate_raw0(stc *cx srunused)
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
-	sr_iterinit(&it, &sv_indexiterraw, &r);
-	sr_iteropen(&it, &i);
+	sr_iterinit(sv_indexiterraw, &it, &r);
+	sr_iteropen(sv_indexiterraw, &it, &i);
 
-	t( sr_iterhas(&it) != 0 );
-	sv *v = sr_iterof(&it);
+	t( sr_iteratorhas(&it) != 0 );
+	sv *v = sr_iteratorof(&it);
 	t( v->v == h );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	v = sr_iterof(&it);
+	v = sr_iteratorof(&it);
 	t( v->v == vc );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	v = sr_iterof(&it);
+	v = sr_iteratorof(&it);
 	t( v->v == vb );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	v = sr_iterof(&it);
+	v = sr_iteratorof(&it);
 	t( v->v == va );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	v = sr_iterof(&it);
+	v = sr_iteratorof(&it);
 	t( v->v == p );
-	sr_iternext(&it);
+	sr_iteratornext(&it);
 
-	v = sr_iterof(&it);
+	v = sr_iteratorof(&it);
 	t( v == NULL );
 
 	sv_indexfree(&i, &r);
@@ -1436,13 +1436,13 @@ svindexiter_iterate_raw1(stc *cx srunused)
 	}
 
 	sriter it;
-	sr_iterinit(&it, &sv_indexiterraw, &r);
-	sr_iteropen(&it, &i);
+	sr_iterinit(sv_indexiterraw, &it, &r);
+	sr_iteropen(sv_indexiterraw, &it, &i);
 	j = 0;
-	while (sr_iterhas(&it)) {
-		sv *v = sr_iterof(&it);
+	while (sr_iteratorhas(&it)) {
+		sv *v = sr_iteratorof(&it);
 		t( sv_lsn(v) == j );
-		sr_iternext(&it);
+		sr_iteratornext(&it);
 		j++;
 	}
 	t( j == 16 );

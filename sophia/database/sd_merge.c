@@ -37,8 +37,8 @@ int sd_mergeinit(sdmerge *m, sr *r, uint32_t parent,
 	sd_indexinit(&m->index);
 	m->merge         = i;
 	m->processed     = 0;
-	sr_iterinit(&m->i, &sv_writeiter, r);
-	sr_iteropen(&m->i, i, (uint64_t)size_page, sizeof(sdv), vlsn,
+	sr_iterinit(sv_writeiter, &m->i, r);
+	sr_iteropen(sv_writeiter, &m->i, i, (uint64_t)size_page, sizeof(sdv), vlsn,
 	            save_delete);
 	return 0;
 }
@@ -51,7 +51,7 @@ int sd_mergefree(sdmerge *m)
 
 int sd_merge(sdmerge *m)
 {
-	if (srunlikely(! sr_iterhas(&m->i)))
+	if (srunlikely(! sr_iterhas(sv_writeiter, &m->i)))
 		return 0;
 	sd_buildreset(m->build);
 
@@ -73,17 +73,17 @@ int sd_merge(sdmerge *m)
 		limit = UINT64_MAX;
 	}
 
-	while (sr_iterhas(&m->i) && (current <= limit))
+	while (sr_iterhas(sv_writeiter, &m->i) && (current <= limit))
 	{
 		rc = sd_buildbegin(m->build, m->r, m->checksum, m->compression);
 		if (srunlikely(rc == -1))
 			return -1;
-		while (sr_iterhas(&m->i)) {
-			sv *v = sr_iterof(&m->i);
+		while (sr_iterhas(sv_writeiter, &m->i)) {
+			sv *v = sr_iterof(sv_writeiter, &m->i);
 			rc = sd_buildadd(m->build, m->r, v, sv_mergeisdup(m->merge));
 			if (srunlikely(rc == -1))
 				return -1;
-			sr_iternext(&m->i);
+			sr_iternext(sv_writeiter, &m->i);
 		}
 		rc = sd_buildend(m->build, m->r);
 		if (srunlikely(rc == -1))

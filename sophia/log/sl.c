@@ -133,10 +133,10 @@ sl_poolrecover(slpool *p)
 		return sr_malfunction(p->r->e, "log directory '%s' open error",
 		                      p->conf->path);
 	sriter i;
-	sr_iterinit(&i, &sr_bufiter, p->r);
-	sr_iteropen(&i, &list, sizeof(srdirid));
-	while(sr_iterhas(&i)) {
-		srdirid *id = sr_iterof(&i);
+	sr_iterinit(sr_bufiter, &i, p->r);
+	sr_iteropen(sr_bufiter, &i, &list, sizeof(srdirid));
+	while(sr_iterhas(sr_bufiter, &i)) {
+		srdirid *id = sr_iterof(sr_bufiter, &i);
 		sl *l = sl_open(p, id->id);
 		if (srunlikely(l == NULL)) {
 			sr_buffree(&list, p->r->a);
@@ -144,7 +144,7 @@ sl_poolrecover(slpool *p)
 		}
 		sr_listappend(&p->list, &l->link);
 		p->n++;
-		sr_iternext(&i);
+		sr_iternext(sr_bufiter, &i);
 	}
 	sr_buffree(&list, p->r->a);
 	if (p->n) {
@@ -414,10 +414,11 @@ int sl_prepare(slpool *p, svlog *vlog, uint64_t lsn)
 	else
 		sl_follow(p, lsn);
 	sriter i;
-	sr_iterinit(&i, &sr_bufiter, NULL);
-	sr_iteropen(&i, &vlog->buf, sizeof(svlogv));
-	for (; sr_iterhas(&i); sr_iternext(&i)) {
-		svlogv *v = sr_iterof(&i);
+	sr_iterinit(sr_bufiter, &i, NULL);
+	sr_iteropen(sr_bufiter, &i, &vlog->buf, sizeof(svlogv));
+	for (; sr_iterhas(sr_bufiter, &i); sr_iternext(sr_bufiter, &i))
+	{
+		svlogv *v = sr_iterof(sr_bufiter, &i);
 		sv_lsnset(&v->v, lsn);
 	}
 	return 0;
@@ -482,9 +483,9 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 	lvp++;
 	/* body */
 	sriter i;
-	sr_iterinit(&i, &sr_bufiter, p->r);
-	sr_iteropen(&i, &vlog->buf, sizeof(svlogv));
-	for (; sr_iterhas(&i); sr_iternext(&i))
+	sr_iterinit(sr_bufiter, &i, p->r);
+	sr_iteropen(sr_bufiter, &i, &vlog->buf, sizeof(svlogv));
+	for (; sr_iterhas(sr_bufiter, &i); sr_iternext(sr_bufiter, &i))
 	{
 		if (srunlikely(! sr_iovensure(&p->iov, 3))) {
 			rc = sr_filewritev(&l->file, &p->iov);
@@ -496,7 +497,7 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 			sr_iovreset(&p->iov);
 			lvp = 0;
 		}
-		svlogv *logv = sr_iterof(&i);
+		svlogv *logv = sr_iterof(sr_bufiter, &i);
 		assert(logv->v.i == &sv_vif);
 		lv = &lvbuf[lvp];
 		sl_write_prepare(p, t, lv, logv);

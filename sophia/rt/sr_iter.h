@@ -13,7 +13,6 @@ typedef struct sriterif sriterif;
 typedef struct sriter sriter;
 
 struct sriterif {
-	int   (*open)(sriter*, va_list);
 	void  (*close)(sriter*);
 	int   (*has)(sriter*);
 	void *(*of)(sriter*);
@@ -21,47 +20,26 @@ struct sriterif {
 };
 
 struct sriter {
-	sriterif *i;
+	sriterif *vif;
 	sr *r;
 	char priv[100];
 };
 
-static inline void
-sr_iterinit(sriter *i, sriterif *ii, sr *r)
-{
-	i->r = r;
-	i->i = ii;
-}
+#define sr_iterinit(iterator_if, i, r_) \
+do { \
+	(i)->r = r_; \
+	(i)->vif = &iterator_if; \
+} while (0)
 
-static inline int
-sr_iteropen(sriter *i, ...)
-{
-	assert(i->i != NULL);
-	va_list args;
-	va_start(args, i);
-	int rc = i->i->open(i, args);
-	va_end(args);
-	return rc;
-}
+#define sr_iteropen(iterator_if, i, ...) iterator_if##_open(i, __VA_ARGS__)
+#define sr_iterclose(iterator_if, i) iterator_if##_close(i)
+#define sr_iterhas(iterator_if, i) iterator_if##_has(i)
+#define sr_iterof(iterator_if, i) iterator_if##_of(i)
+#define sr_iternext(iterator_if, i) iterator_if##_next(i)
 
-static inline void
-sr_iterclose(sriter *i) {
-	i->i->close(i);
-}
-
-static inline int
-sr_iterhas(sriter *i) {
-	return i->i->has(i);
-}
-
-static inline void*
-sr_iterof(sriter *i) {
-	return i->i->of(i);
-}
-
-static inline void
-sr_iternext(sriter *i) {
-	i->i->next(i);
-}
+#define sr_iteratorclose(i) (i)->vif->close(i)
+#define sr_iteratorhas(i) (i)->vif->has(i)
+#define sr_iteratorof(i) (i)->vif->of(i)
+#define sr_iteratornext(i) (i)->vif->next(i)
 
 #endif
