@@ -26,8 +26,6 @@ svlocal_test(stc *cx srunused)
 	sv v;
 	sv_init(&v, &sv_localif, &l, NULL);
 	t( sv_flags(&v) == l.flags );
-	sv_flagsadd(&v, SVDUP);
-	t( sv_flags(&v) == (l.flags|SVDUP) );
 	t( sv_lsn(&v) == l.lsn );
 	sv_lsnset(&v, 8);
 	t( sv_lsn(&v) == 8 );

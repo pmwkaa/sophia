@@ -77,8 +77,6 @@ sdv_test(stc *cx srunused)
 	t( *(int*)sv_key(v) == j );
 	t( sv_lsn(v) == 4 );
 	t( sv_flags(v) == SVSET );
-	sv_flagsadd(v, SVDUP);
-	t( sv_flags(v) == (SVSET|SVDUP) );
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);

@@ -15,11 +15,6 @@ sv_localifflags(sv *v) {
 	return ((svlocal*)v->v)->flags;
 }
 
-static void
-sv_localifflagsadd(sv *v, uint32_t flags) {
-	((svlocal*)v->v)->flags |= flags;
-}
-
 static uint64_t
 sv_localiflsn(sv *v) {
 	return ((svlocal*)v->v)->lsn;
@@ -54,12 +49,11 @@ sv_localifvaluesize(sv *v) {
 
 svif sv_localif =
 {
-	.flags       = sv_localifflags,
-	.flagsadd    = sv_localifflagsadd,
-	.lsn         = sv_localiflsn,
-	.lsnset      = sv_localiflsnset,
-	.key         = sv_localifkey,
-	.keysize     = sv_localifkeysize,
-	.value       = sv_localifvalue,
-	.valuesize   = sv_localifvaluesize
+	.flags     = sv_localifflags,
+	.lsn       = sv_localiflsn,
+	.lsnset    = sv_localiflsnset,
+	.key       = sv_localifkey,
+	.keysize   = sv_localifkeysize,
+	.value     = sv_localifvalue,
+	.valuesize = sv_localifvaluesize
 };

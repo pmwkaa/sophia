@@ -15,11 +15,6 @@ sv_vifflags(sv *v) {
 	return ((svv*)v->v)->flags;
 }
 
-static void
-sv_vifflagsadd(sv *v, uint32_t flags) {
-	((svv*)v->v)->flags |= flags;
-}
-
 static uint64_t
 sv_viflsn(sv *v) {
 	return ((svv*)v->v)->lsn;
@@ -56,12 +51,11 @@ sv_vifvaluesize(sv *v) {
 
 svif sv_vif =
 {
-	.flags       = sv_vifflags,
-	.flagsadd    = sv_vifflagsadd,
-	.lsn         = sv_viflsn,
-	.lsnset      = sv_viflsnset,
-	.key         = sv_vifkey,
-	.keysize     = sv_vifkeysize,
-	.value       = sv_vifvalue,
-	.valuesize   = sv_vifvaluesize
+	.flags     = sv_vifflags,
+	.lsn       = sv_viflsn,
+	.lsnset    = sv_viflsnset,
+	.key       = sv_vifkey,
+	.keysize   = sv_vifkeysize,
+	.value     = sv_vifvalue,
+	.valuesize = sv_vifvaluesize
 };

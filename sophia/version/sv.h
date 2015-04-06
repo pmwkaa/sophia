@@ -21,7 +21,6 @@ typedef struct sv sv;
 
 struct svif {
 	uint8_t   (*flags)(sv*);
-	void      (*flagsadd)(sv*, uint32_t);
 	void      (*lsnset)(sv*, uint64_t);
 	uint64_t  (*lsn)(sv*);
 	char     *(*key)(sv*);
@@ -45,11 +44,6 @@ sv_init(sv *v, svif *i, void *vptr, void *arg) {
 static inline uint8_t
 sv_flags(sv *v) {
 	return v->i->flags(v);
-}
-
-static inline void
-sv_flagsadd(sv *v, uint32_t flags) {
-	v->i->flagsadd(v, flags);
 }
 
 static inline uint64_t
