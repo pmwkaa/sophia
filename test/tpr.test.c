@@ -155,10 +155,62 @@ tpr_test1(stc *cx srunused)
 	t( sp_destroy(env) == 0 );
 }
 
+static void
+tpr_test2(stc *cx srunused)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	void *c = sp_ctl(env);
+	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
+	t( sp_set(c, "scheduler.threads", "0") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
+	t( sp_set(c, "log.enable", "0") == 0 );
+	t( sp_set(c, "log.two_phase_recover", "1") == 0 );
+	t( sp_open(env) == 0 );
+
+	t( sp_set(c, "db", "test") == 0 );
+	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	void *db = sp_get(c, "db.test");
+	t( db != NULL );
+	t( sp_destroy(db) == 0 );
+
+	t( sp_destroy(env) == 0 );
+}
+
+static void
+tpr_test3(stc *cx srunused)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	void *c = sp_ctl(env);
+	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
+	t( sp_set(c, "scheduler.threads", "0") == 0 );
+	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
+	t( sp_set(c, "log.enable", "0") == 0 );
+	t( sp_set(c, "log.two_phase_recover", "1") == 0 );
+	t( sp_open(env) == 0 );
+
+	t( sp_set(c, "db", "test") == 0 );
+	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	void *db = sp_get(c, "db.test");
+	t( db != NULL );
+	t( sp_open(db) == 0 );
+	t( sp_destroy(db) == 0 );
+	t( sp_destroy(env) == 0 );
+}
+
 stgroup *tpr_group(void)
 {
 	stgroup *group = st_group("two_phase_recover");
 	st_groupadd(group, st_test("recover_open", tpr_test0));
 	st_groupadd(group, st_test("recover_reply", tpr_test1));
+	st_groupadd(group, st_test("recover_shutdown0", tpr_test2));
+	st_groupadd(group, st_test("recover_shutdown1", tpr_test3));
 	return group;
 }

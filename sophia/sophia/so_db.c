@@ -69,10 +69,11 @@ so_dbctl_init(sodbctl *c, char *name, void *db)
 		sr_error(&e->error, "%s", "memory allocation failed");
 		return -1;
 	}
-	c->parent  = db;
-	c->created = 0;
-	c->dropped = 0;
-	c->sync    = 1;
+	c->parent    = db;
+	c->created   = 0;
+	c->scheduled = 0;
+	c->dropped   = 0;
+	c->sync      = 1;
 	c->compression_if = NULL;
 	c->compression = sr_strdup(&e->a, "none");
 	if (srunlikely(c->compression == NULL)) {
@@ -169,6 +170,7 @@ online:
 	rc = so_scheduler_add(&e->sched, o);
 	if (srunlikely(rc == -1))
 		return -1;
+	o->ctl.scheduled = 1;
 	return 0;
 }
 
@@ -189,14 +191,17 @@ so_dbdestroy(soobj *obj, va_list args srunused)
 	switch (status) {
 	case SO_MALFUNCTION:
 	case SO_ONLINE:
+	case SO_RECOVER:
 		ref = so_dbunref(o, 0);
 		if (ref > 0)
 			return 0;
 		/* set last visible transaction id */
 		o->txn_max = sx_max(&e->xm);
-		rc = so_scheduler_del(&e->sched, o);
-		if (srunlikely(rc == -1))
-			return -1;
+		if (o->ctl.scheduled) {
+			rc = so_scheduler_del(&e->sched, o);
+			if (srunlikely(rc == -1))
+				return -1;
+		}
 		so_objindex_unregister(&e->db, &o->o);
 		sr_spinlock(&e->dblock);
 		so_objindex_register(&e->db_shutdown, &o->o);
@@ -210,8 +215,11 @@ so_dbdestroy(soobj *obj, va_list args srunused)
 		ref = so_dbrefof(o, 1);
 		if (ref > 0)
 			return 0;
-		break;
-	default: break; /* recover, offline */
+		goto shutdown;
+	case SO_OFFLINE:
+		so_objindex_unregister(&e->db, &o->o);
+		goto shutdown;
+	default: assert(0);
 	}
 
 shutdown:;

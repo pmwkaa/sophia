@@ -20,6 +20,7 @@ struct sodbctl {
 	srcomparator  cmp;
 	char         *path;
 	uint32_t      created;
+	uint32_t      scheduled;
 	uint32_t      dropped;
 	uint32_t      sync;
 	char         *compression;
