@@ -60,19 +60,23 @@ si_qresult(siquery *q, sriter *i)
 static inline int
 si_qmatchindex(siquery *q, sinode *node)
 {
+	svindex *second;
+	svindex *first = si_nodeindex_priority(node, &second);
 	sriter i;
 	sr_iterinit(sv_indexiter, &i, q->r);
-	int rc = sr_iteropen(sv_indexiter, &i, &node->i0, q->order,
-	                     q->key, q->keysize, q->vlsn);
-	if (rc)
-		return si_qresult(q, &i);
-	if (! (node->flags & SI_I1))
-		return 0;
-	sr_iterinit(sv_indexiter, &i, q->r);
-	rc = sr_iteropen(sv_indexiter, &i, &node->i1, q->order,
+	int rc;
+	rc = sr_iteropen(sv_indexiter, &i, first, q->order,
 	                 q->key, q->keysize, q->vlsn);
-	if (rc)
+	if (rc) {
 		return si_qresult(q, &i);
+	}
+	if (srlikely(second == NULL))
+		return 0;
+	rc = sr_iteropen(sv_indexiter, &i, second, q->order,
+	                 q->key, q->keysize, q->vlsn);
+	if (rc) {
+		return si_qresult(q, &i);
+	}
 	return 0;
 }
 
@@ -270,15 +274,21 @@ next_node:
 		sr_errorreset(q->r->e);
 		return -1;
 	}
+
+	/* in-memory indexes */
+	svindex *second;
+	svindex *first = si_nodeindex_priority(node, &second);
 	svmergesrc *s;
 	s = sv_mergeadd(m, NULL);
 	sr_iterinit(sv_indexiter, &s->src,q->r);
-	sr_iteropen(sv_indexiter, &s->src, &node->i1, q->order, q->key, q->keysize, q->vlsn);
-	s = sv_mergeadd(m, NULL);
-	sr_iterinit(sv_indexiter, &s->src, q->r);
-	sr_iteropen(sv_indexiter, &s->src, &node->i0, q->order, q->key, q->keysize, q->vlsn);
+	sr_iteropen(sv_indexiter, &s->src, first, q->order, q->key, q->keysize, q->vlsn);
+	if (srunlikely(second)) {
+		s = sv_mergeadd(m, NULL);
+		sr_iterinit(sv_indexiter, &s->src, q->r);
+		sr_iteropen(sv_indexiter, &s->src, second, q->order, q->key, q->keysize, q->vlsn);
+	}
 
-	/* */
+	/* cache and branches */
 	rc = si_cachevalidate(q->cache, node);
 	if (srunlikely(rc == -1)) {
 		sr_error(q->r->e, "%s", "memory allocation failed");

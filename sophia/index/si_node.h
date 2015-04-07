@@ -13,7 +13,7 @@ typedef struct sinode sinode;
 
 #define SI_NONE       0
 #define SI_LOCK       1
-#define SI_I1         2
+#define SI_ROTATE     2
 
 #define SI_RDB        16
 #define SI_RDB_DBI    32
@@ -49,20 +49,6 @@ int si_nodecmp(sinode*, void*, int, srcomparator*);
 int si_nodeseal(sinode*, sr*, siconf*);
 int si_nodecomplete(sinode*, sr*, siconf*);
 
-static inline svindex*
-si_noderotate(sinode *node) {
-	node->flags |= SI_I1;
-	return &node->i0;
-}
-
-static inline void
-si_nodeunrotate(sinode *node) {
-	assert((node->flags & SI_I1) > 0);
-	node->flags &= ~SI_I1;
-	node->i0 = node->i1;
-	sv_indexinit(&node->i1);
-}
-
 static inline void
 si_nodelock(sinode *node) {
 	assert(! (node->flags & SI_LOCK));
@@ -76,9 +62,34 @@ si_nodeunlock(sinode *node) {
 }
 
 static inline svindex*
+si_noderotate(sinode *node) {
+	node->flags |= SI_ROTATE;
+	return &node->i0;
+}
+
+static inline void
+si_nodeunrotate(sinode *node) {
+	assert((node->flags & SI_ROTATE) > 0);
+	node->flags &= ~SI_ROTATE;
+	node->i0 = node->i1;
+	sv_indexinit(&node->i1);
+}
+
+static inline svindex*
 si_nodeindex(sinode *node) {
-	if (node->flags & SI_I1)
+	if (node->flags & SI_ROTATE)
 		return &node->i1;
+	return &node->i0;
+}
+
+static inline svindex*
+si_nodeindex_priority(sinode *node, svindex **second)
+{
+	if (srunlikely(node->flags & SI_ROTATE)) {
+		*second = &node->i0;
+		return &node->i1;
+	}
+	*second = NULL;
 	return &node->i0;
 }
 
