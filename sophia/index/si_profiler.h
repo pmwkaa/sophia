@@ -15,6 +15,7 @@ struct siprofiler {
 	si *i;
 	uint32_t  total_node_count;
 	uint64_t  total_node_size;
+	uint64_t  total_node_origin_size;
 	uint32_t  total_branch_count;
 	uint32_t  total_branch_avg;
 	uint32_t  total_branch_max;

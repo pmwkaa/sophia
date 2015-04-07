@@ -18,18 +18,19 @@ int sd_indexbegin(sdindex *i, sr *r, uint32_t keysize, uint64_t offset)
 		return sr_error(r->e, "%s", "memory allocation failed");
 	sdindexheader *h = sd_indexheader(i);
 	sr_version(&h->version);
-	h->crc       = 0;
-	h->block     = sizeof(sdindexpage) + (keysize * 2);
-	h->count     = 0;
-	h->keys      = 0;
-	h->total     = 0;
-	h->extension = 0;
-	h->lsnmin    = UINT64_MAX;
-	h->lsnmax    = 0;
-	h->tsmin     = 0;
-	h->offset    = offset;
-	h->dupkeys   = 0;
-	h->dupmin    = UINT64_MAX;
+	h->crc         = 0;
+	h->block       = sizeof(sdindexpage) + (keysize * 2);
+	h->count       = 0;
+	h->keys        = 0;
+	h->total       = 0;
+	h->totalorigin = 0;
+	h->extension   = 0;
+	h->lsnmin      = UINT64_MAX;
+	h->lsnmax      = 0;
+	h->tsmin       = 0;
+	h->offset      = offset;
+	h->dupkeys     = 0;
+	h->dupmin      = UINT64_MAX;
 	memset(h->reserve, 0, sizeof(h->reserve));
 	sd_idinit(&h->id, 0, 0, 0);
 	i->h = h;
@@ -76,6 +77,7 @@ int sd_indexadd(sdindex *i, sr *r, uint64_t offset,
 	i->h->count++;
 	i->h->keys  += count;
 	i->h->total += size;
+	i->h->totalorigin += sizeorigin;
 	if (lsnmin < i->h->lsnmin)
 		i->h->lsnmin = lsnmin;
 	if (lsnmax > i->h->lsnmax)

@@ -64,7 +64,6 @@ int si_profiler(siprofiler *p)
 	pn = sr_rbmin(&p->i->i);
 	while (pn) {
 		n = srcast(pn, sinode, node);
-		p->total_node_size += n->file.size;
 		p->total_node_count++;
 		p->count += n->i0.count;
 		p->count += n->i1.count;
@@ -81,6 +80,9 @@ int si_profiler(siprofiler *p)
 		while (b) {
 			p->count += b->index.h->keys;
 			p->count_dup += b->index.h->dupkeys;
+			int indexsize = sd_indexsize(b->index.h);
+			p->total_node_size += indexsize + b->index.h->total;
+			p->total_node_origin_size += indexsize + b->index.h->totalorigin;
 			b = b->next;
 		}
 		pn = sr_rbnext(&p->i->i, pn);

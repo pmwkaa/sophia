@@ -22,6 +22,7 @@ struct sdindexheader {
 	uint32_t  count;
 	uint32_t  keys;
 	uint64_t  total;
+	uint64_t  totalorigin;
 	uint64_t  lsnmin;
 	uint64_t  lsnmax;
 	uint32_t  tsmin;
