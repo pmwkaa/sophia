@@ -24,6 +24,7 @@ extern "C" {
 
 SP_API void *sp_env(void);
 SP_API void *sp_ctl(void*, ...);
+SP_API void *sp_async(void*, ...);
 SP_API void *sp_object(void*, ...);
 SP_API int   sp_open(void*, ...);
 SP_API int   sp_destroy(void*, ...);

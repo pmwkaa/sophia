@@ -257,6 +257,7 @@ int so_scheduler_init(soscheduler *s, void *env)
 	s->workers_gc           = 0;
 	s->workers_gc_db        = 0;
 	s->rotate               = 0;
+	s->req                  = 0;
 	s->i                    = NULL;
 	s->count                = 0;
 	s->rr                   = 0;
@@ -432,10 +433,19 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 	task->checkpoint_complete = 0;
 	task->backup_complete = 0;
 	task->rotate = 0;
+	task->req = 0;
 	task->gc = 0;
 	task->db = NULL;
 
 	sr_mutexlock(&s->lock);
+
+	/* dispatch asynchronous requests */
+	if (srunlikely(s->req == 0 && so_requestcount(e))) {
+		s->req = 1;
+		task->req = 1;
+		sr_mutexunlock(&s->lock);
+		return 0;
+	}
 
 	/* log gc and rotation */
 	if (s->rotate == 0)
@@ -729,6 +739,19 @@ so_execute(sotask *t, soworker *w)
 }
 
 static int
+so_dispatch(soscheduler *s, soworker *w)
+{
+	sr_trace(&w->trace, "%s", "dispatcher");
+	so *e = s->env;
+	sorequest *req;
+	while ((req = so_requestdispatch(e))) {
+		so_query(req);
+		so_requestready(req);
+	}
+	return 0;
+}
+
+static int
 so_complete(soscheduler *s, sotask *t)
 {
 	sr_mutexlock(&s->lock);
@@ -755,6 +778,8 @@ so_complete(soscheduler *s, sotask *t)
 	}
 	if (t->rotate == 1)
 		s->rotate = 0;
+	if (t->req == 1)
+		s->req = 0;
 	sr_mutexunlock(&s->lock);
 	return 0;
 }
@@ -770,6 +795,12 @@ int so_scheduler(soscheduler *s, soworker *w)
 			goto error;
 	}
 	so *e = s->env;
+	if (task.req) {
+		rc = so_dispatch(s, w);
+		if (srunlikely(rc == -1)) {
+			goto error;
+		}
+	}
 	if (task.checkpoint_complete) {
 		sr_triggerrun(&e->ctl.checkpoint_on_complete, &e->o);
 	}

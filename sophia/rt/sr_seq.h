@@ -21,7 +21,9 @@ typedef enum {
 	SR_LFSN,
 	SR_LFSNNEXT,
 	SR_TSN,
-	SR_TSNNEXT
+	SR_TSNNEXT,
+	SR_RSN,
+	SR_RSNNEXT
 } srseqop;
 
 typedef struct {
@@ -32,6 +34,7 @@ typedef struct {
 	uint64_t lsn;
 	uint32_t lfsn;
 	uint32_t tsn;
+	uint64_t rsn;
 } srseq;
 
 static inline void
@@ -67,6 +70,10 @@ sr_seqdo(srseq *n, srseqop op)
 	case SR_TSN:      v = n->tsn;
 		break;
 	case SR_TSNNEXT:  v = ++n->tsn;
+		break;
+	case SR_RSN:      v = n->rsn;
+		break;
+	case SR_RSNNEXT:  v = ++n->rsn;
 		break;
 	case SR_NSN:      v = n->nsn;
 		break;

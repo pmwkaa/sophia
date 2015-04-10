@@ -17,7 +17,9 @@ typedef enum {
 	SOV          = 0x2FABCDE2L,
 	SODB         = 0x34591111L,
 	SODBCTL      = 0x59342222L,
+	SODBASYNC    = 0x24242489L,
 	SOTX         = 0x13491FABL,
+	SOREQUEST    = 0x48991422L,
 	SOCURSOR     = 0x45ABCDFAL,
 	SOSNAPSHOT   = 0x71230BAFL
 } soobjid;
@@ -32,6 +34,7 @@ typedef struct soobj soobj;
 
 struct soobjif {
 	void *(*ctl)(soobj*, va_list);
+	void *(*async)(soobj*, va_list);
 	int   (*open)(soobj*, va_list);
 	int   (*error)(soobj*, va_list);
 	int   (*destroy)(soobj*, va_list);

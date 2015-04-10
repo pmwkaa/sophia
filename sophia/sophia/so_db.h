@@ -10,6 +10,7 @@
 */
 
 typedef struct sodbctl sodbctl;
+typedef struct sodbasync sodbasync;
 typedef struct sodb sodb;
 
 struct sodbctl {
@@ -18,6 +19,7 @@ struct sodbctl {
 	char         *name;
 	uint32_t      id;
 	srcomparator  cmp;
+	srtrigger     on_complete;
 	char         *path;
 	uint32_t      created;
 	uint32_t      scheduled;
@@ -28,10 +30,16 @@ struct sodbctl {
 	siprofiler    rtp;
 } srpacked;
 
+struct sodbasync {
+	soobj o;
+	sodb *parent;
+};
+
 struct sodb {
 	soobj o;
 	sostatus status;
 	sodbctl ctl;
+	sodbasync async;
 	soobjindex cursor;
 	sxindex coindex;
 	sdc dc;

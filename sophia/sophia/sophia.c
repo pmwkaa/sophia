@@ -54,6 +54,23 @@ sp_ctl(void *o, ...)
 }
 
 SP_API void*
+sp_async(void *o, ...)
+{
+	soobj *obj = o;
+	if (srunlikely(obj->i->async == NULL)) {
+		sp_error_unsupported_method(o, __FUNCTION__);
+		return NULL;
+	}
+	va_list args;
+	va_start(args, o);
+	so_apilock(obj->env);
+	void *h = obj->i->async(o, args);
+	so_apiunlock(obj->env);
+	va_end(args);
+	return h;
+}
+
+SP_API void*
 sp_object(void *o, ...)
 {
 	soobj *obj = o;

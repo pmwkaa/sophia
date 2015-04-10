@@ -155,20 +155,21 @@ so_vtype(soobj *o srunused, va_list args srunused) {
 
 static soobjif sovif =
 {
-	.ctl      = NULL,
-	.open     = NULL,
-	.destroy  = so_vdestroy,
-	.error    = NULL,
-	.set      = so_vset,
-	.get      = so_vget,
-	.del      = NULL,
-	.drop     = NULL,
-	.begin    = NULL,
-	.prepare  = NULL,
-	.commit   = NULL,
-	.cursor   = NULL,
-	.object   = NULL,
-	.type     = so_vtype
+	.ctl     = NULL,
+	.async   = NULL,
+	.open    = NULL,
+	.destroy = so_vdestroy,
+	.error   = NULL,
+	.set     = so_vset,
+	.get     = so_vget,
+	.del     = NULL,
+	.drop    = NULL,
+	.begin   = NULL,
+	.prepare = NULL,
+	.commit  = NULL,
+	.cursor  = NULL,
+	.object  = NULL,
+	.type    = so_vtype
 };
 
 soobj *so_vinit(sov *v, so *e, soobj *parent)

@@ -452,6 +452,29 @@ so_ctldb_cmpprefix(src *c, srcstmt *s, va_list args)
 }
 
 static inline int
+so_ctldb_on_complete(src *c, srcstmt *s, va_list args)
+{
+	if (s->op != SR_CSET)
+		return so_ctlv(c, s, args);
+	sodb *db = c->value;
+	if (srunlikely(so_statusactive(&db->status))) {
+		sr_error(s->r->e, "write to %s is offline-only", s->path);
+		return -1;
+	}
+	char *v   = va_arg(args, char*);
+	char *arg = va_arg(args, char*);
+	int rc = sr_triggerset(&db->ctl.on_complete, v);
+	if (srunlikely(rc == -1))
+		return -1;
+	if (arg) {
+		rc = sr_triggersetarg(&db->ctl.on_complete, arg);
+		if (srunlikely(rc == -1))
+			return -1;
+	}
+	return 0;
+}
+
+static inline int
 so_ctldb_status(src *c, srcstmt *s, va_list args)
 {
 	sodb *db = c->value;
@@ -536,16 +559,17 @@ so_ctldb(so *e, soctlrt *rt srunused, src **pc)
 		sr_clink(&p, sr_c(pc, so_ctlv,         "branch_histogram", SR_CSZ|SR_CRO,  o->ctl.rtp.histogram_branch_ptr));
 		src *database = *pc;
 		p = NULL;
-		sr_clink(&p,          sr_c(pc, so_ctlv,             "name",        SR_CSZ|SR_CRO,  o->ctl.name));
-		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv,             "id",          SR_CU32,        &o->ctl.id), o));
-		sr_clink(&p,          sr_c(pc, so_ctldb_status,     "status",      SR_CSZ|SR_CRO,  o));
-		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,   "path",        SR_CSZREF,      &o->ctl.path), o));
-		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,   "sync",        SR_CU32,        &o->ctl.sync), o));
-		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,   "compression", SR_CSZREF,      &o->ctl.compression), o));
-		sr_clink(&p,          sr_c(pc, so_ctldb_branch,     "branch",      SR_CVOID,       o));
-		sr_clink(&p,          sr_c(pc, so_ctldb_compact,    "compact",     SR_CVOID,       o));
-		sr_clink(&p,          sr_c(pc, so_ctldb_lockdetect, "lockdetect",  SR_CVOID,       NULL));
-		sr_clink(&p,          sr_c(pc, NULL,                "index",       SR_CC,          index));
+		sr_clink(&p,          sr_c(pc, so_ctlv,              "name",        SR_CSZ|SR_CRO,  o->ctl.name));
+		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv,              "id",          SR_CU32,        &o->ctl.id), o));
+		sr_clink(&p,          sr_c(pc, so_ctldb_status,      "status",      SR_CSZ|SR_CRO,  o));
+		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "path",        SR_CSZREF,      &o->ctl.path), o));
+		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "sync",        SR_CU32,        &o->ctl.sync), o));
+		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "compression", SR_CSZREF,      &o->ctl.compression), o));
+		sr_clink(&p,          sr_c(pc, so_ctldb_branch,      "branch",      SR_CVOID,       o));
+		sr_clink(&p,          sr_c(pc, so_ctldb_compact,     "compact",     SR_CVOID,       o));
+		sr_clink(&p,          sr_c(pc, so_ctldb_lockdetect,  "lockdetect",  SR_CVOID,       NULL));
+		sr_clink(&p,          sr_c(pc, so_ctldb_on_complete, "on_complete", SR_CVOID,       o));
+		sr_clink(&p,          sr_c(pc, NULL,                 "index",       SR_CC,          index));
 		sr_clink(&prev, sr_cptr(sr_c(pc, so_ctldb_get, o->ctl.name, SR_CC, database), o));
 		if (db == NULL)
 			db = prev;
@@ -829,6 +853,7 @@ so_ctltype(soobj *o srunused, va_list args srunused) {
 static soobjif soctlif =
 {
 	.ctl      = NULL,
+	.async    = NULL,
 	.open     = NULL,
 	.destroy  = NULL,
 	.error    = NULL,
@@ -854,7 +879,7 @@ void so_ctlinit(soctl *c, void *e)
 	c->node_size         = 64 * 1024 * 1024;
 	c->page_size         = 64 * 1024;
 	c->page_checksum     = 1;
-	c->threads           = 5;
+	c->threads           = 6;
 	c->log_enable        = 1;
 	c->log_path          = NULL;
 	c->log_rotate_wm     = 500000;

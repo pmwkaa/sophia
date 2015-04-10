@@ -55,6 +55,7 @@ extern stgroup *compact_group(void);
 extern stgroup *checkpoint_group(void);
 extern stgroup *cursor_group(void);
 extern stgroup *prefix_group(void);
+extern stgroup *async_group(void);
 extern stgroup *recoverloop_group(void);
 extern stgroup *recovercrash_group(void);
 extern stgroup *mt_group(void);
@@ -131,6 +132,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, snapshot_group());
 	st_planadd(plan, backup_group());
 	st_planadd(plan, prefix_group());
+	st_planadd(plan, async_group());
 	st_add(&s, plan);
 
 	plan = st_plan("default");

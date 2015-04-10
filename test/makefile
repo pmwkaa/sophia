@@ -44,6 +44,7 @@ OBJECTS = st.o \
           deadlock.test.o \
           cursor.test.o \
           prefix.test.o \
+          async.test.o \
           recover_crash.test.o \
           recover_loop.test.o \
           mt.test.o \

@@ -108,20 +108,21 @@ so_ctlcursor_type(soobj *o srunused, va_list args srunused) {
 
 static soobjif soctlcursorif =
 {
-	.ctl      = NULL,
-	.open     = NULL,
-	.destroy  = so_ctlcursor_destroy,
-	.error    = NULL,
-	.set      = NULL,
-	.get      = so_ctlcursor_get,
-	.del      = NULL,
-	.drop     = NULL,
-	.begin    = NULL,
-	.prepare  = NULL,
-	.commit   = NULL,
-	.cursor   = NULL,
-	.object   = so_ctlcursor_obj,
-	.type     = so_ctlcursor_type
+	.ctl     = NULL,
+	.async   = NULL,
+	.open    = NULL,
+	.destroy = so_ctlcursor_destroy,
+	.error   = NULL,
+	.set     = NULL,
+	.get     = so_ctlcursor_get,
+	.del     = NULL,
+	.drop    = NULL,
+	.begin   = NULL,
+	.prepare = NULL,
+	.commit  = NULL,
+	.cursor  = NULL,
+	.object  = so_ctlcursor_obj,
+	.type    = so_ctlcursor_type
 };
 
 static inline int

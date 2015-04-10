@@ -91,6 +91,9 @@ so_destroy(soobj *o, va_list args srunused)
 	rc = so_scheduler_shutdown(&e->sched);
 	if (srunlikely(rc == -1))
 		rcret = -1;
+	rc = so_objindex_destroy(&e->req);
+	if (srunlikely(rc == -1))
+		rcret = -1;
 	rc = so_objindex_destroy(&e->tx);
 	if (srunlikely(rc == -1))
 		rcret = -1;
@@ -116,6 +119,7 @@ so_destroy(soobj *o, va_list args srunused)
 	so_ctlfree(&e->ctl);
 	sr_quotafree(&e->quota);
 	sr_mutexfree(&e->apilock);
+	sr_spinlockfree(&e->reqlock);
 	sr_spinlockfree(&e->dblock);
 	sr_seqfree(&e->seq);
 	sr_pagerfree(&e->pager);
@@ -149,20 +153,21 @@ so_type(soobj *o srunused, va_list args srunused) {
 
 static soobjif soif =
 {
-	.ctl      = so_ctl,
-	.open     = so_open,
-	.destroy  = so_destroy,
-	.error    = so_error,
-	.set      = NULL,
-	.get      = NULL,
-	.del      = NULL,
-	.drop     = NULL,
-	.begin    = so_begin,
-	.prepare  = NULL,
-	.commit   = NULL,
-	.cursor   = NULL,
-	.object   = NULL,
-	.type     = so_type
+	.ctl     = so_ctl,
+	.async   = NULL,
+	.open    = so_open,
+	.destroy = so_destroy,
+	.error   = so_error,
+	.set     = NULL,
+	.get     = NULL,
+	.del     = NULL,
+	.drop    = NULL,
+	.begin   = so_begin,
+	.prepare = NULL,
+	.commit  = NULL,
+	.cursor  = NULL,
+	.object  = NULL,
+	.type    = so_type
 };
 
 soobj *so_new(void)
@@ -187,6 +192,7 @@ soobj *so_new(void)
 	sr_aopen(&e->a_snapshot, &sr_slaba, &e->pager, sizeof(sosnapshot));
 	sr_aopen(&e->a_tx, &sr_slaba, &e->pager, sizeof(sotx));
 	sr_aopen(&e->a_sxv, &sr_slaba, &e->pager, sizeof(sxv));
+	sr_aopen(&e->a_req, &sr_slaba, &e->pager, sizeof(sorequest));
 	so_statusinit(&e->status);
 	so_statusset(&e->status, SO_OFFLINE);
 	so_ctlinit(&e->ctl, e);
@@ -195,7 +201,9 @@ soobj *so_new(void)
 	so_objindex_init(&e->tx);
 	so_objindex_init(&e->snapshot);
 	so_objindex_init(&e->ctlcursor);
+	so_objindex_init(&e->req);
 	sr_mutexinit(&e->apilock);
+	sr_spinlockinit(&e->reqlock);
 	sr_spinlockinit(&e->dblock);
 	sr_quotainit(&e->quota);
 	sr_seqinit(&e->seq);

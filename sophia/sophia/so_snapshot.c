@@ -55,7 +55,7 @@ so_snapshotget(soobj *o, va_list args)
 		return NULL;
 	}
 	sodb *db = (sodb*)v->parent;
-	return so_txdbget(db, s->vlsn, args);
+	return so_txdbget(db, 0, s->vlsn, 0, args);
 }
 
 static void*
@@ -85,20 +85,21 @@ so_snapshottype(soobj *o srunused, va_list args srunused) {
 
 static soobjif sosnapshotif =
 {
-	.ctl      = NULL,
-	.open     = NULL,
-	.destroy  = so_snapshotdestroy,
-	.error    = NULL,
-	.set      = NULL,
-	.get      = so_snapshotget,
-	.del      = NULL,
-	.drop     = so_snapshotdestroy,
-	.begin    = NULL,
-	.prepare  = NULL,
-	.commit   = NULL,
-	.cursor   = so_snapshotcursor,
-	.object   = NULL,
-	.type     = so_snapshottype
+	.ctl     = NULL,
+	.async   = NULL,
+	.open    = NULL,
+	.destroy = so_snapshotdestroy,
+	.error   = NULL,
+	.set     = NULL,
+	.get     = so_snapshotget,
+	.del     = NULL,
+	.drop    = so_snapshotdestroy,
+	.begin   = NULL,
+	.prepare = NULL,
+	.commit  = NULL,
+	.cursor  = so_snapshotcursor,
+	.object  = NULL,
+	.type    = so_snapshottype
 };
 
 soobj *so_snapshotnew(so *e, uint64_t vlsn, char *name)

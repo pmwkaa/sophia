@@ -17,7 +17,7 @@
 #include <libso.h>
 
 static void*
-so_dbctlget(soobj *obj, va_list args)
+so_dbctl_get(soobj *obj, va_list args)
 {
 	sodbctl *ctl = (sodbctl*)obj;
 	src c;
@@ -39,22 +39,28 @@ so_dbctlget(soobj *obj, va_list args)
 	return so_ctlreturn(&c, so_of(&db->o));
 }
 
+static void*
+so_dbctl_type(soobj *o srunused, va_list args srunused) {
+	return "database_ctl";
+}
+
 static soobjif sodbctlif =
 {
-	.ctl      = NULL,
-	.open     = NULL,
-	.destroy  = NULL,
-	.error    = NULL,
-	.set      = NULL,
-	.get      = so_dbctlget,
-	.del      = NULL,
-	.drop     = NULL,
-	.begin    = NULL,
-	.prepare  = NULL,
-	.commit   = NULL,
-	.cursor   = NULL,
-	.object   = NULL,
-	.type     = NULL
+	.ctl     = NULL,
+	.async   = NULL,
+	.open    = NULL,
+	.destroy = NULL,
+	.error   = NULL,
+	.set     = NULL,
+	.get     = so_dbctl_get,
+	.del     = NULL,
+	.drop    = NULL,
+	.begin   = NULL,
+	.prepare = NULL,
+	.commit  = NULL,
+	.cursor  = NULL,
+	.object  = NULL,
+	.type    = so_dbctl_type
 };
 
 static int
@@ -83,6 +89,7 @@ so_dbctl_init(sodbctl *c, char *name, void *db)
 		return -1;
 	}
 	sr_cmpset(&c->cmp, "string");
+	sr_triggerinit(&c->on_complete);
 	return 0;
 }
 
@@ -135,6 +142,74 @@ so_dbctl_validate(sodbctl *c)
 		return -1;
 	}
 	return 0;
+}
+
+static int
+so_dbasync_set(soobj *obj, va_list args)
+{
+	sodbasync *o = (sodbasync*)obj;
+	return so_txdbset(o->parent, 1, SVSET, args);
+}
+
+static int
+so_dbasync_del(soobj *obj, va_list args)
+{
+	sodbasync *o = (sodbasync*)obj;
+	return so_txdbset(o->parent, 1, SVDELETE, args);
+}
+
+static void*
+so_dbasync_get(soobj *obj, va_list args)
+{
+	sodbasync *o = (sodbasync*)obj;
+	return so_txdbget(o->parent, 1, 0, 1, args);
+}
+
+static void*
+so_dbasync_obj(soobj *obj, va_list args srunused)
+{
+	sodbasync *o = (sodbasync*)obj;
+	/* so_dbobj() */
+	so *e = so_of(&o->o);
+	return so_vnew(e, &o->parent->o);
+}
+
+static void*
+so_dbasync_type(soobj *o srunused, va_list args srunused) {
+	return "database_async";
+}
+
+static soobjif sodbasyncif =
+{
+	.ctl     = NULL,
+	.async   = NULL,
+	.destroy = NULL,
+	.error   = NULL,
+	.set     = so_dbasync_set,
+	.get     = so_dbasync_get,
+	.del     = so_dbasync_del,
+	.drop    = NULL,
+	.begin   = NULL,
+	.prepare = NULL,
+	.commit  = NULL,
+	.cursor  = NULL,
+	.object  = so_dbasync_obj,
+	.type    = so_dbasync_type
+};
+
+static inline void
+so_dbasync_init(sodbasync *a, sodb *db)
+{
+	so *e = so_of(&db->o);
+	a->parent = db;
+	so_objinit(&a->o, SODBASYNC, &sodbasyncif, &e->o);
+}
+
+static void*
+so_dbasync(soobj *obj, va_list args srunused)
+{
+	sodb *o = (sodb*)obj;
+	return &o->async.o;
 }
 
 static void*
@@ -268,21 +343,21 @@ static int
 so_dbset(soobj *obj, va_list args)
 {
 	sodb *o = (sodb*)obj;
-	return so_txdbset(o, SVSET, args);
-}
-
-static void*
-so_dbget(soobj *obj, va_list args)
-{
-	sodb *o = (sodb*)obj;
-	return so_txdbget(o, 0, args);
+	return so_txdbset(o, 0, SVSET, args);
 }
 
 static int
 so_dbdel(soobj *obj, va_list args)
 {
 	sodb *o = (sodb*)obj;
-	return so_txdbset(o, SVDELETE, args);
+	return so_txdbset(o, 0, SVDELETE, args);
+}
+
+static void*
+so_dbget(soobj *obj, va_list args)
+{
+	sodb *o = (sodb*)obj;
+	return so_txdbget(o, 0, 0, 1, args);
 }
 
 static void*
@@ -308,6 +383,7 @@ so_dbtype(soobj *o srunused, va_list args srunused) {
 static soobjif sodbif =
 {
 	.ctl      = so_dbctl,
+	.async    = so_dbasync,
 	.open     = so_dbopen,
 	.destroy  = so_dbdestroy,
 	.error    = so_dberror,
@@ -342,6 +418,7 @@ soobj *so_dbnew(so *e, char *name)
 		sr_free(&e->a_db, o);
 		return NULL;
 	}
+	so_dbasync_init(&o->async, o);
 	rc = si_init(&o->index, &o->r, &e->quota);
 	if (srunlikely(rc == -1)) {
 		sr_free(&e->a_db, o);

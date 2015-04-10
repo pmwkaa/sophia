@@ -15,6 +15,7 @@ typedef struct sotask sotask;
 struct sotask {
 	siplan plan;
 	int rotate;
+	int req;
 	int gc;
 	int checkpoint_complete;
 	int backup_complete;
@@ -40,6 +41,7 @@ struct soscheduler {
 	uint32_t workers_gc;
 	uint32_t workers_gc_db;
 	int rotate;
+	int req;
 	int rr;
 	void **i;
 	int count;
