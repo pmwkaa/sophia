@@ -39,6 +39,7 @@ OBJECTS = st.o \
           tpr.test.o \
           profiler.test.o \
           object.test.o \
+          env.test.o \
           transaction.test.o \
           tpc.test.o \
           deadlock.test.o \

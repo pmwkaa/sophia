@@ -42,6 +42,7 @@ extern stgroup *drop_group(void);
 extern stgroup *ddl_group(void);
 extern stgroup *tpr_group(void);
 extern stgroup *object_group(void);
+extern stgroup *env_group(void);
 extern stgroup *profiler_group(void);
 extern stgroup *snapshot_group(void);
 extern stgroup *gc_group(void);
@@ -131,6 +132,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, gc_group());
 	st_planadd(plan, snapshot_group());
 	st_planadd(plan, backup_group());
+	st_planadd(plan, env_group());
 	st_planadd(plan, prefix_group());
 	st_planadd(plan, async_group());
 	st_add(&s, plan);
