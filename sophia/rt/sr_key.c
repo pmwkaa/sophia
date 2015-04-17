@@ -101,7 +101,7 @@ sr_keycompare_prefix(char *prefix, int prefixsize, char *key, int keysize,
 	return part->cmpprefix(prefix, prefixsize, key, keysize, part);
 }
 
-inline int sr_keypart_setname(srkeypart *part, sra *a, char *name)
+int sr_keypart_setname(srkeypart *part, sra *a, char *name)
 {
 	char *p = sr_strdup(a, name);
 	if (srunlikely(p == NULL))
@@ -112,7 +112,7 @@ inline int sr_keypart_setname(srkeypart *part, sra *a, char *name)
 	return 0;
 }
 
-inline int sr_keypart_set(srkeypart *part, sra *a, char *path)
+int sr_keypart_set(srkeypart *part, sra *a, char *path)
 {
 	srcmpf cmpprefix = sr_cmpany;
 	srcmpf cmp;

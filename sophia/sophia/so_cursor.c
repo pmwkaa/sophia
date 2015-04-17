@@ -126,7 +126,7 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 	soobj *parent = o->parent;
 	if (srunlikely(parent != &db->o)) {
 		sr_error(&e->error, "%s", "bad object parent");
-		goto error;
+		return NULL;
 	}
 
 	/* prepare cursor */

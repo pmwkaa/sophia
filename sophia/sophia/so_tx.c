@@ -129,7 +129,7 @@ int so_txdbset(sodb *db, int async, uint8_t flags, va_list args)
 	soobj *parent = o->parent;
 	if (srunlikely(parent != &db->o)) {
 		sr_error(&e->error, "%s", "bad object parent");
-		goto error;
+		return -1;
 	}
 	if (srunlikely(! so_online(&db->status)))
 		goto error;
@@ -193,7 +193,7 @@ void *so_txdbget(sodb *db, int async, uint64_t vlsn, int vlsn_generate, va_list 
 	soobj *parent = o->parent;
 	if (srunlikely(parent != &db->o)) {
 		sr_error(&e->error, "%s", "bad object parent");
-		goto error;
+		return NULL;
 	}
 	if (srunlikely(! so_online(&db->status)))
 		goto error;
@@ -250,7 +250,7 @@ so_txwrite(soobj *obj, uint8_t flags, va_list args)
 	soobj *parent = o->parent;
 	if (parent == NULL || parent->id != SODB) {
 		sr_error(&e->error, "%s", "bad object parent");
-		goto error;
+		return -1;
 	}
 	if (t->t.s == SXPREPARE) {
 		sr_error(&e->error, "%s", "transaction is in 'prepare' state (read-only)");
@@ -321,7 +321,7 @@ so_txget(soobj *obj, va_list args)
 	soobj *parent = o->parent;
 	if (parent == NULL || parent->id != SODB) {
 		sr_error(&e->error, "%s", "bad object parent");
-		goto error;
+		return NULL;
 	}
 
 	/* validate database */
