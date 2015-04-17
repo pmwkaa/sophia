@@ -55,7 +55,7 @@ sl_iternext_of(sriter *i, slv *next, int validate)
 		return 0;
 	}
 
-	char *end = start + next->keysize + next->valuesize;
+	char *end = start + next->size;
 	if (srunlikely((start > eof || (end > eof)))) {
 		sr_malfunction(i->r->e, "corrupted log file '%s': bad record size",
 		               li->log->file);
@@ -66,9 +66,7 @@ sl_iternext_of(sriter *i, slv *next, int validate)
 	{
 		uint32_t crc = 0;
 		if (! (next->flags & SVBEGIN)) {
-			crc = sr_crcp(i->r->crc, start + sizeof(slv), next->keysize, 0);
-			crc = sr_crcp(i->r->crc, start + sizeof(slv) + next->keysize,
-			              next->valuesize, crc);
+			crc = sr_crcp(i->r->crc, start + sizeof(slv), next->size, 0);
 		}
 		crc = sr_crcs(i->r->crc, start, sizeof(slv), crc);
 		if (srunlikely(crc != next->crc)) {
@@ -107,7 +105,7 @@ int sl_itercontinue_of(sriter *i)
 	slv *v = li->next;
 	if (v->flags & SVBEGIN) {
 		validate = 1;
-		li->count = v->valuesize;
+		li->count = v->size;
 		v = (slv*)((char*)li->next + sizeof(slv));
 	} else {
 		li->count = 1;
@@ -191,9 +189,7 @@ sl_iter_next(sriter *i)
 	if (srunlikely(li->v == NULL))
 		return;
 	slv *next =
-		(slv*)((char*)li->v + sizeof(slv) +
-	           li->v->keysize +
-	           li->v->valuesize);
+		(slv*)((char*)li->v + sizeof(slv) + li->v->size);
 	sl_iternext_of(i, next, 1);
 }
 

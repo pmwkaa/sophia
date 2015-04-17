@@ -59,16 +59,26 @@ mt_single_stmt(stc *cx)
 
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srinjection ij;
+	memset(&ij, 0, sizeof(ij));
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, NULL, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	soworkers w;
 	so_workersinit(&w);
 	t( so_workersnew(&w, &r, 5, single_stmt_thread, cx->db) == 0 );
 	t( so_workersshutdown(&w, &r) == 0 );
+	sr_keyfree(&cmp, &a);
 
 	void *o = sp_get(c, "db.test.index.count");
 	t( o != NULL );
@@ -128,17 +138,27 @@ mt_multi_stmt(stc *cx)
 
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srinjection ij;
+	memset(&ij, 0, sizeof(ij));
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, NULL, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	soworkers w;
 	so_workersinit(&w);
 	void *ptr[2] = { cx->env, cx->db };
 	t( so_workersnew(&w, &r, 5, multi_stmt_thread, (void*)ptr) == 0 );
 	t( so_workersshutdown(&w, &r) == 0 );
+	sr_keyfree(&cmp, &a);
 
 	void *o = sp_get(c, "db.test.index.count");
 	t( o != NULL );
@@ -199,17 +219,27 @@ mt_multi_stmt_conflict(stc *cx)
 
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srinjection ij;
+	memset(&ij, 0, sizeof(ij));
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, NULL, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	soworkers w;
 	so_workersinit(&w);
 	void *ptr[2] = { cx->env, cx->db };
 	t( so_workersnew(&w, &r, 5, multi_stmt_conflict_thread, (void*)ptr) == 0 );
 	t( so_workersshutdown(&w, &r) == 0 );
+	sr_keyfree(&cmp, &a);
 
 	t( sp_destroy(cx->env) == 0 );
 }

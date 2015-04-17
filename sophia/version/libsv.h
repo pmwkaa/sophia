@@ -10,7 +10,6 @@
 */
 
 #include <sv.h>
-#include <sv_local.h>
 #include <sv_log.h>
 #include <sv_merge.h>
 #include <sv_mergeiter.h>

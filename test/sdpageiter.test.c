@@ -13,19 +13,30 @@
 #include <libst.h>
 #include <sophia.h>
 
+static void*
+allocv(sr *r, int key)
+{
+	srformatv pv;
+	pv.key = (char*)&key;
+	pv.r.size = sizeof(uint32_t);
+	pv.r.offset = 0;
+	return sv_vbuild(r, &pv, 1, NULL, 0);
+}
+
 static void
 addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 {
-	svlocal l;
-	l.lsn         = lsn;
-	l.flags       = flags;
-	l.key         = key;
-	l.keysize     = sizeof(int);
-	l.value       = NULL;
-	l.valuesize   = 0;
-	sv lv;
-	sv_init(&lv, &sv_localif, &l, NULL);
-	sd_buildadd(b, r, &lv, flags & SVDUP);
+	srformatv pv;
+	pv.key = (char*)key;
+	pv.r.size = sizeof(uint32_t);
+	pv.r.offset = 0;
+	svv *v = sv_vbuild(r, &pv, 1, NULL, 0);
+	v->lsn = lsn;
+	v->flags = flags;
+	sv vv;
+	sv_init(&vv, &sv_vif, v, NULL);
+	sd_buildadd(b, r, &vv, flags & SVDUP);
+	sv_vfree(r->a, v);
 }
 
 static void
@@ -33,22 +44,24 @@ sdpageiter_lte_empty(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
-
-	int i = 7;
-	int j = 8;
-	int k = 15;
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -60,26 +73,15 @@ sdpageiter_lte_empty(stc *cx srunused)
 
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &i, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, NULL, 0, 4ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	sv *v = sr_iteratorof(&it);
-	t( v == NULL );
-
-	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &j, sizeof(int), 4ULL);
-	t( sr_iteratorhas(&it) == 0 );
-	v = sr_iteratorof(&it);
-	t( v == NULL );
-
-	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &k, sizeof(int), 4ULL);
-	t( sr_iteratorhas(&it) == 0 );
-	v = sr_iteratorof(&it);
 	t( v == NULL );
 	sr_iteratorclose(&it);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -87,14 +89,20 @@ sdpageiter_lte_eq0(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -115,28 +123,35 @@ sdpageiter_lte_eq0(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
+	svv *key = allocv(&r, i);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &i, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
+	sv_vfree(&a, key);
 
+	key = allocv(&r, j);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &j, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
+	sv_vfree(&a, key);
 
+	key = allocv(&r, k);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &k, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -144,14 +159,20 @@ sdpageiter_lte_eq1(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -172,28 +193,35 @@ sdpageiter_lte_eq1(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
+	svv *key = allocv(&r, i);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &i, sizeof(int), 3ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 3ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
+	sv_vfree(&a, key);
 
+	key = allocv(&r, j);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &j, sizeof(int), 1ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 1ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	v = sr_iteratorof(&it);
 	t( v == NULL );
+	sv_vfree(&a, key);
 
+	key = allocv(&r, k);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &k, sizeof(int), 1ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 1ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
+	sv_vfree(&a, key);
 	sr_iteratorclose(&it);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -201,14 +229,20 @@ sdpageiter_lte_eq2(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -229,28 +263,35 @@ sdpageiter_lte_eq2(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
+	svv *key = allocv(&r, i);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &i, sizeof(int), 0ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 0ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	sv *v = sr_iteratorof(&it);
 	t( v == NULL );
+	sv_vfree(&a, key);
 
+	key = allocv(&r, j);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &j, sizeof(int), 0ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 0ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	v = sr_iteratorof(&it);
 	t( v == NULL );
+	sv_vfree(&a, key);
 
+	key = allocv(&r, k);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &k, sizeof(int), 0ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 0ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	v = sr_iteratorof(&it);
 	t( v == NULL );
+	sv_vfree(&a, key);
 	sr_iteratorclose(&it);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -258,14 +299,20 @@ sdpageiter_lte_minmax0(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -286,23 +333,26 @@ sdpageiter_lte_minmax0(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	int min = 6;
+	svv *key = allocv(&r, 6);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &min, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	t( sr_iteratorof(&it) == NULL);
+	sv_vfree(&a, key);
 
-	int max = 16;
+	key = allocv(&r, 16);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &max, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -310,14 +360,20 @@ sdpageiter_lte_minmax1(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -340,54 +396,57 @@ sdpageiter_lte_minmax1(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	int min = 6;
+	svv *key = allocv(&r, 6);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &min, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == z);
+	t( *(int*)sv_key(v, &r, 0) == z);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &min, sizeof(int), 0ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 0ULL);
+	t( sr_iteratorhas(&it) == 0 );
+	v = sr_iteratorof(&it);
+	t( v == NULL );
+	sv_vfree(&a, key);
+
+	key = allocv(&r, 16);
+	sr_iterinit(sd_pageiter, &it, &r);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 4ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
+	t( *(int*)sv_key(v, &r, 0) == k);
+
+	sr_iterinit(sd_pageiter, &it, &r);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 0ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	v = sr_iteratorof(&it);
 	t( v == NULL );
 
-	int max = 16;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &max, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 2ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &max, sizeof(int), 0ULL);
-	t( sr_iteratorhas(&it) == 0 );
-	v = sr_iteratorof(&it);
-	t( v == NULL );
-
-	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &max, sizeof(int), 2ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 3ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &max, sizeof(int), 3ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
-
-	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &max, sizeof(int), 4ULL);
-	t( sr_iteratorhas(&it) != 0 );
-	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -395,14 +454,20 @@ sdpageiter_lte_minmax2(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -425,41 +490,43 @@ sdpageiter_lte_minmax2(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	int max = 16;
+	svv *key = allocv(&r, 16);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &max, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &max, sizeof(int), 3ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 3ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &max, sizeof(int), 2ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 2ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &max, sizeof(int), 1ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 1ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == z);
+	t( *(int*)sv_key(v, &r, 0) == z);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &max, sizeof(int), 0ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 0ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	v = sr_iteratorof(&it);
 	t( v == NULL);
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -467,14 +534,20 @@ sdpageiter_lte_mid0(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -495,31 +568,35 @@ sdpageiter_lte_mid0(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	int p = 8;
+	svv *key = allocv(&r, 8);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
+	sv_vfree(&a, key);
 
-	p = 10;
+	key = allocv(&r, 10);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
+	sv_vfree(&a, key);
 
-	p = 555;
+	key = allocv(&r, 555);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
+	sv_vfree(&a, key);
 	sr_iteratorclose(&it);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -527,14 +604,21 @@ sdpageiter_lte_mid1(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -554,43 +638,47 @@ sdpageiter_lte_mid1(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	int p = 8;
+	svv *key = allocv(&r, 8);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 2ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 2ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	v = sr_iteratorof(&it);
 	t( v == NULL );
+	sv_vfree(&a, key);
 
-	p = 10;
+	key = allocv(&r, 10);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 1ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 1ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	v = sr_iteratorof(&it);
 	t( v == NULL );
+	sv_vfree(&a, key);
 
-	p = 555;
+	key = allocv(&r, 555);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -598,14 +686,21 @@ sdpageiter_lte_iterate0(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -630,17 +725,17 @@ sdpageiter_lte_iterate0(stc *cx srunused)
 	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, NULL, 0, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) == 0 );
@@ -650,6 +745,7 @@ sdpageiter_lte_iterate0(stc *cx srunused)
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -657,14 +753,21 @@ sdpageiter_lte_iterate1(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -684,31 +787,34 @@ sdpageiter_lte_iterate1(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
+	svv *key = allocv(&r, k);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &k, sizeof(k), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) == 0 );
 	v = sr_iteratorof(&it);
 	t( v == NULL );
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -716,14 +822,21 @@ sdpageiter_lt_eq(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -743,28 +856,35 @@ sdpageiter_lt_eq(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
+	svv *key = allocv(&r, i);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LT, &i, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LT, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	sv *v = sr_iteratorof(&it);
 	t( v == NULL);
+	sv_vfree(&a, key);
 
+	key = allocv(&r, j);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LT, &j, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LT, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
+	sv_vfree(&a, key);
 
+	key = allocv(&r, k);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LT, &k, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LT, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -772,14 +892,21 @@ sdpageiter_lt_minmax(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -799,23 +926,26 @@ sdpageiter_lt_minmax(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	int min = 7;
+	svv *key = allocv(&r, 7);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LT, &min, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LT, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	t( sr_iteratorof(&it) == NULL);
+	sv_vfree(&a, key);
 
-	int max = 16;
+	key = allocv(&r, 16);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &max, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
+	sv_vfree(&a, key);
 	sr_iteratorclose(&it);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -823,14 +953,21 @@ sdpageiter_lt_mid(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -850,31 +987,35 @@ sdpageiter_lt_mid(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	int p = 8;
+	svv *key = allocv(&r, 8);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LT, &p, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LT, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
+	sv_vfree(&a, key);
 
-	p = 10;
+	key = allocv(&r, 10);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LT, &p, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LT, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
+	sv_vfree(&a, key);
 
-	p = 555;
+	key = allocv(&r, 555);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LT, &p, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LT, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -882,14 +1023,21 @@ sdpageiter_lt_iterate0(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -914,17 +1062,17 @@ sdpageiter_lt_iterate0(stc *cx srunused)
 	sr_iteropen(sd_pageiter, &it, &page, SR_LT, NULL, 0, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) == 0 );
@@ -934,6 +1082,7 @@ sdpageiter_lt_iterate0(stc *cx srunused)
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -941,14 +1090,21 @@ sdpageiter_lt_iterate1(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -968,26 +1124,29 @@ sdpageiter_lt_iterate1(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
+	svv *key = allocv(&r, k);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LT, &k, sizeof(k), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LT, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) == 0 );
 	v = sr_iteratorof(&it);
 	t( v == NULL );
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -995,14 +1154,21 @@ sdpageiter_lte_dup_eq(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -1027,31 +1193,32 @@ sdpageiter_lte_dup_eq(stc *cx srunused)
 	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, NULL, 0, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
 	t( sv_lsn(v) == 3 );
 
 	sr_iterinit(sd_pageiter, &it, &r);
 	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, NULL, 0, 2ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
 	t( sv_lsn(v) == 2 ); sr_iterinit(sd_pageiter, &it, &r);
 	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, NULL, 0, 1ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
 	t( sv_lsn(v) == 1 );
 
 	sr_iterinit(sd_pageiter, &it, &r);
 	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, NULL, 0, 0ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 	t( sv_lsn(v) == 0 );
 	sr_iteratorclose(&it);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -1059,14 +1226,21 @@ sdpageiter_lte_dup_mid(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -1088,10 +1262,10 @@ sdpageiter_lte_dup_mid(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	int p = 8;
+	svv *key = allocv(&r, 8);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	sv *v = sr_iteratorof(&it);
 	t( v == NULL );
@@ -1100,54 +1274,58 @@ sdpageiter_lte_dup_mid(stc *cx srunused)
 	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, NULL, 0, 1ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
+	sv_vfree(&a, key);
 
-	p = 10;
+	key = allocv(&r, 10);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 2ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 2ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j );
+	t( *(int*)sv_key(v, &r, 0) == j );
 	t( sv_lsn(v) == 2 );
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 3ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 3ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j );
+	t( *(int*)sv_key(v, &r, 0) == j );
 	t( sv_lsn(v) == 3 );
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j );
+	t( *(int*)sv_key(v, &r, 0) == j );
 	t( sv_lsn(v) == 4 );
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 10ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 10ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j );
+	t( *(int*)sv_key(v, &r, 0) == j );
 	t( sv_lsn(v) == 4 );
+	sv_vfree(&a, key);
 
-	p = 8;
+	key = allocv(&r, 8);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 8ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 8ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i );
+	t( *(int*)sv_key(v, &r, 0) == i );
 	t( sv_lsn(v) == 5 );
 
 	sr_iterinit(sd_pageiter, &it, &r);
 	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, NULL, 0, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -1155,14 +1333,21 @@ sdpageiter_lte_dup_mid_gt(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -1186,10 +1371,10 @@ sdpageiter_lte_dup_mid_gt(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	int p = 16;
+	svv *key = allocv(&r, 16);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	sv *v = sr_iteratorof(&it);
 	t( v == NULL );
@@ -1201,43 +1386,47 @@ sdpageiter_lte_dup_mid_gt(stc *cx srunused)
 	t( v == NULL );
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 30ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 30ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	t( sv_lsn(v) == 30);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 38ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 38ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	t( sv_lsn(v) == 30);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 40ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 40ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	t( sv_lsn(v) == 40);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 50ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 50ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	t( sv_lsn(v) == 50);
+	sv_vfree(&a, key);
 
+	key = allocv(&r, j);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &j, sizeof(int), 90ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 90ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 	t( sv_lsn(v) == 80);
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -1245,14 +1434,21 @@ sdpageiter_lte_dup_mid_lt(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -1276,46 +1472,50 @@ sdpageiter_lte_dup_mid_lt(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	int p = 6;
+	svv *key = allocv(&r, 6);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 30ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 30ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	t( sv_lsn(v) == 30);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 38ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 38ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	t( sv_lsn(v) == 30);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 40ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 40ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	t( sv_lsn(v) == 40);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 50ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 50ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	t( sv_lsn(v) == 50);
+	sv_vfree(&a, key);
 
+	key = allocv(&r, j);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &j, sizeof(int), 90ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 90ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 	t( sv_lsn(v) == 80);
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -1323,14 +1523,21 @@ sdpageiter_lte_dup_iterate0(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -1354,26 +1561,26 @@ sdpageiter_lte_dup_iterate0(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	int p = 100;
+	svv *key = allocv(&r, 100);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 100ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 100ULL);
 
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	t( sv_lsn(v) == 50);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 	t( sv_lsn(v) == 80);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
 	t( sv_lsn(v) == 90);
 	sr_iteratornext(&it);
 
@@ -1381,9 +1588,11 @@ sdpageiter_lte_dup_iterate0(stc *cx srunused)
 	v = sr_iteratorof(&it);
 	t( v == NULL );
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -1391,14 +1600,21 @@ sdpageiter_lte_dup_iterate1(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -1422,13 +1638,13 @@ sdpageiter_lte_dup_iterate1(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	int p = 100;
+	svv *key = allocv(&r, 100);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 30ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 30ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	t( sv_lsn(v) == 30);
 	sr_iteratornext(&it);
 	t( sr_iteratorhas(&it) == 0 );
@@ -1436,41 +1652,42 @@ sdpageiter_lte_dup_iterate1(stc *cx srunused)
 	t( v == NULL );
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, &p, sizeof(int), 42ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, sv_vpointer(key), key->size, 42ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	t( sv_lsn(v) == 40);
 	sr_iteratornext(&it);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 	t( sv_lsn(v) == 41);
 	sr_iteratornext(&it);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
 	t( sv_lsn(v) == 42);
 	sr_iteratornext(&it);
 	t( sr_iteratorhas(&it) == 0 );
 	v = sr_iteratorof(&it);
 	t( v == NULL );
+	sv_vfree(&a, key);
 
 	sr_iterinit(sd_pageiter, &it, &r);
 	sr_iteropen(sd_pageiter, &it, &page, SR_LTE, NULL, 0, 42ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	t( sv_lsn(v) == 40);
 	sr_iteratornext(&it);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 	t( sv_lsn(v) == 41);
 	sr_iteratornext(&it);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
 	t( sv_lsn(v) == 42);
 	sr_iteratornext(&it);
 	t( sr_iteratorhas(&it) == 0 );
@@ -1480,6 +1697,7 @@ sdpageiter_lte_dup_iterate1(stc *cx srunused)
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -1487,14 +1705,21 @@ sdpageiter_gte_eq0(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -1514,28 +1739,35 @@ sdpageiter_gte_eq0(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
+	svv *key = allocv(&r, i);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &i, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
+	sv_vfree(&a, key);
 
+	key = allocv(&r, j);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &j, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
+	sv_vfree(&a, key);
 
+	key = allocv(&r, k);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &k, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -1543,14 +1775,21 @@ sdpageiter_gte_eq1(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -1570,28 +1809,35 @@ sdpageiter_gte_eq1(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
+	svv *key = allocv(&r, i);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &i, sizeof(int), 3ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 3ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
+	sv_vfree(&a, key);
 
+	key = allocv(&r, j);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &j, sizeof(int), 1ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 1ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
+	sv_vfree(&a, key);
 
+	key = allocv(&r, k);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &k, sizeof(int), 1ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 1ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -1599,14 +1845,21 @@ sdpageiter_gte_eq2(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -1626,28 +1879,35 @@ sdpageiter_gte_eq2(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
+	svv *key = allocv(&r, i);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &i, sizeof(int), 0ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 0ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	sv *v = sr_iteratorof(&it);
 	t( v == NULL );
+	sv_vfree(&a, key);
 
+	key = allocv(&r, j);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &j, sizeof(int), 0ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 0ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	v = sr_iteratorof(&it);
 	t( v == NULL );
+	sv_vfree(&a, key);
 
+	key = allocv(&r, k);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &k, sizeof(int), 0ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 0ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	v = sr_iteratorof(&it);
 	t( v == NULL );
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -1655,14 +1915,21 @@ sdpageiter_gte_minmax0(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -1682,24 +1949,27 @@ sdpageiter_gte_minmax0(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	int min = 6;
+	svv *key = allocv(&r, 6);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &min, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
+	sv_vfree(&a, key);
 
-	int max = 16;
+	key = allocv(&r, 16);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &max, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	v = sr_iteratorof(&it);
 	t( v == NULL );
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -1707,14 +1977,21 @@ sdpageiter_gte_minmax1(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -1736,55 +2013,57 @@ sdpageiter_gte_minmax1(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	int min = 6;
+	svv *key = allocv(&r, 6);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &min, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &min, sizeof(int), 0ULL);
-	t( sr_iteratorhas(&it) == 0 );
-	v = sr_iteratorof(&it);
-	t( v == NULL );
-
-
-	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &min, sizeof(int), 2ULL);
-	t( sr_iteratorhas(&it) != 0 );
-	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
-
-	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &min, sizeof(int), 3ULL);
-	t( sr_iteratorhas(&it) != 0 );
-	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
-
-	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &min, sizeof(int), 4ULL);
-	t( sr_iteratorhas(&it) != 0 );
-	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
-
-	int max = 16;
-	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &max, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 0ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	v = sr_iteratorof(&it);
 	t( v == NULL );
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &max, sizeof(int), 0ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 2ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
+	t( *(int*)sv_key(v, &r, 0) == j);
+
+	sr_iterinit(sd_pageiter, &it, &r);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 3ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
+	t( *(int*)sv_key(v, &r, 0) == i);
+
+	sr_iterinit(sd_pageiter, &it, &r);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 4ULL);
+	t( sr_iteratorhas(&it) != 0 );
+	v = sr_iteratorof(&it);
+	t( *(int*)sv_key(v, &r, 0) == i);
+	sv_vfree(&a, key);
+
+	key = allocv(&r, 16);
+	sr_iterinit(sd_pageiter, &it, &r);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 4ULL);
+	t( sr_iteratorhas(&it) == 0 );
+	v = sr_iteratorof(&it);
+	t( v == NULL );
+
+	sr_iterinit(sd_pageiter, &it, &r);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 0ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	v = sr_iteratorof(&it);
 	t( v == NULL );
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -1792,14 +2071,21 @@ sdpageiter_gte_minmax2(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -1821,41 +2107,43 @@ sdpageiter_gte_minmax2(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	int max = 2;
+	svv *key = allocv(&r, 2);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &max, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == z);
+	t( *(int*)sv_key(v, &r, 0) == z);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &max, sizeof(int), 3ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 3ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &max, sizeof(int), 2ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 2ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &max, sizeof(int), 1ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 1ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &max, sizeof(int), 0ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 0ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	v = sr_iteratorof(&it);
 	t( v == NULL);
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -1863,14 +2151,21 @@ sdpageiter_gte_mid0(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -1890,38 +2185,43 @@ sdpageiter_gte_mid0(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	int p = 8;
+	svv *key = allocv(&r, 8);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
+	sv_vfree(&a, key);
 
-	p = 10;
+	key = allocv(&r, 10);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
+	sv_vfree(&a, key);
 
-	p = 2;
+	key = allocv(&r, 2);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
+	sv_vfree(&a, key);
 
-	p = 555;
+	key = allocv(&r, 555);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	v = sr_iteratorof(&it);
 	t( v == NULL );
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -1929,14 +2229,21 @@ sdpageiter_gte_mid1(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -1956,43 +2263,47 @@ sdpageiter_gte_mid1(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	int p = 8;
+	svv *key = allocv(&r, 8);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 1ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 1ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
+	sv_vfree(&a, key);
 
-	p = 10;
+	key = allocv(&r, 10);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 0ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 0ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	v = sr_iteratorof(&it);
 	t( v == NULL );
+	sv_vfree(&a, key);
 
-	p = 1;
+	key = allocv(&r, 1);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -2000,14 +2311,21 @@ sdpageiter_gte_iterate0(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -2032,17 +2350,17 @@ sdpageiter_gte_iterate0(stc *cx srunused)
 	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, NULL, 0, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) == 0 );
@@ -2052,6 +2370,7 @@ sdpageiter_gte_iterate0(stc *cx srunused)
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -2059,14 +2378,21 @@ sdpageiter_gte_iterate1(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -2086,31 +2412,34 @@ sdpageiter_gte_iterate1(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
+	svv *key = allocv(&r, i);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &i, sizeof(k), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) == 0 );
 	v = sr_iteratorof(&it);
 	t( v == NULL );
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -2118,14 +2447,21 @@ sdpageiter_gt_eq(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -2145,29 +2481,36 @@ sdpageiter_gt_eq(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
+	svv *key = allocv(&r, i);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GT, &i, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GT, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
 	t( v != NULL);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
+	sv_vfree(&a, key);
 
+	key = allocv(&r, j);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GT, &j, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GT, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
+	sv_vfree(&a, key);
 
+	key = allocv(&r, k);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GT, &k, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GT, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	v = sr_iteratorof(&it);
 	t( v == NULL );
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -2175,14 +2518,21 @@ sdpageiter_gt_minmax(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -2202,24 +2552,27 @@ sdpageiter_gt_minmax(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	int min = 7;
+	svv *key = allocv(&r, 7);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GT, &min, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GT, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
+	sv_vfree(&a, key);
 
-	int max = 15;
+	key = allocv(&r, 15);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GT, &max, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GT, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	v = sr_iteratorof(&it);
 	t( v == NULL );
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -2227,14 +2580,21 @@ sdpageiter_gt_mid(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -2254,31 +2614,35 @@ sdpageiter_gt_mid(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	int p = 8;
+	svv *key = allocv(&r, 8);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GT, &p, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GT, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
+	sv_vfree(&a, key);
 
-	p = 10;
+	key = allocv(&r, 10);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GT, &p, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GT, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
+	sv_vfree(&a, key);
 
-	p = 555;
+	key = allocv(&r, 555);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GT, &p, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GT, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	v = sr_iteratorof(&it);
 	t( v == NULL );
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -2286,14 +2650,21 @@ sdpageiter_gt_iterate0(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -2318,17 +2689,17 @@ sdpageiter_gt_iterate0(stc *cx srunused)
 	sr_iteropen(sd_pageiter, &it, &page, SR_GT, NULL, 0, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) == 0 );
@@ -2338,6 +2709,7 @@ sdpageiter_gt_iterate0(stc *cx srunused)
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -2345,14 +2717,21 @@ sdpageiter_gt_iterate1(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -2372,26 +2751,29 @@ sdpageiter_gt_iterate1(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
+	svv *key = allocv(&r, i);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GT, &i, sizeof(i), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GT, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) == 0 );
 	v = sr_iteratorof(&it);
 	t( v == NULL );
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -2399,14 +2781,21 @@ sdpageiter_gte_dup_eq(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -2431,28 +2820,28 @@ sdpageiter_gte_dup_eq(stc *cx srunused)
 	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, NULL, 0, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 	t( sv_lsn(v) == 4 );
 
 	sr_iterinit(sd_pageiter, &it, &r);
 	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, NULL, 0, 3ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
 	t( sv_lsn(v) == 3 );
 
 	sr_iterinit(sd_pageiter, &it, &r);
 	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, NULL, 0, 2ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
 	t( sv_lsn(v) == 2 );
 
 	sr_iterinit(sd_pageiter, &it, &r);
 	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, NULL, 0, 1ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
 	t( sv_lsn(v) == 1 );
 
 	sr_iterinit(sd_pageiter, &it, &r);
@@ -2464,6 +2853,7 @@ sdpageiter_gte_dup_eq(stc *cx srunused)
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -2471,14 +2861,21 @@ sdpageiter_gte_dup_mid(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -2500,67 +2897,71 @@ sdpageiter_gte_dup_mid(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	int p = 8;
+	svv *key = allocv(&r, 8);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 	t( sv_lsn(v) == 4 );
 
 	sr_iterinit(sd_pageiter, &it, &r);
 	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, NULL, 0, 1ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
+	sv_vfree(&a, key);
 
-	p = 10;
+	key = allocv(&r, 10);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 2ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 2ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k );
+	t( *(int*)sv_key(v, &r, 0) == k );
 	t( sv_lsn(v) == 1 );
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 3ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 3ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k );
+	t( *(int*)sv_key(v, &r, 0) == k );
 	t( sv_lsn(v) == 1 );
+	sv_vfree(&a, key);
 
-	p = 8;
+	key = allocv(&r, 8);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 8ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 8ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j );
+	t( *(int*)sv_key(v, &r, 0) == j );
 	t( sv_lsn(v) == 4 );
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 3ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 3ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j );
+	t( *(int*)sv_key(v, &r, 0) == j );
 	t( sv_lsn(v) == 3 );
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 2ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 2ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j );
+	t( *(int*)sv_key(v, &r, 0) == j );
 	t( sv_lsn(v) == 2 );
 
 	sr_iterinit(sd_pageiter, &it, &r);
 	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, NULL, 0, 6ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -2568,14 +2969,21 @@ sdpageiter_gte_dup_mid_gt(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -2599,52 +3007,56 @@ sdpageiter_gte_dup_mid_gt(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	int p = 6;
+	svv *key = allocv(&r, 6);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 4ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 4ULL);
 	t( sr_iteratorhas(&it) == 0 );
 	sv *v = sr_iteratorof(&it);
 	t( v == NULL );
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 30ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 30ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	t( sv_lsn(v) == 30);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 38ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 38ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	t( sv_lsn(v) == 30);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 40ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 40ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	t( sv_lsn(v) == 40);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 50ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 50ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	t( sv_lsn(v) == 50);
+	sv_vfree(&a, key);
 
+	key = allocv(&r, j);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &j, sizeof(int), 90ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 90ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 	t( sv_lsn(v) == 80);
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -2652,14 +3064,21 @@ sdpageiter_gte_dup_mid_lt(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -2683,46 +3102,50 @@ sdpageiter_gte_dup_mid_lt(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	int p = 6;
+	svv *key = allocv(&r, 6);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 30ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 30ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	t( sv_lsn(v) == 30);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 38ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 38ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	t( sv_lsn(v) == 30);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 40ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 40ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	t( sv_lsn(v) == 40);
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 50ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 50ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	t( sv_lsn(v) == 50);
+	sv_vfree(&a, key);
 
+	key = allocv(&r, j);
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &j, sizeof(int), 90ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 90ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 	t( sv_lsn(v) == 80);
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -2730,14 +3153,21 @@ sdpageiter_gte_dup_iterate0(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -2761,26 +3191,26 @@ sdpageiter_gte_dup_iterate0(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	int p = 1;
+	svv *key = allocv(&r, 1);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 100ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 100ULL);
 
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
 	t( sv_lsn(v) == 90);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 	t( sv_lsn(v) == 80);
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	t( sv_lsn(v) == 50);
 	sr_iteratornext(&it);
 
@@ -2788,9 +3218,11 @@ sdpageiter_gte_dup_iterate0(stc *cx srunused)
 	v = sr_iteratorof(&it);
 	t( v == NULL );
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -2798,14 +3230,21 @@ sdpageiter_gte_dup_iterate1(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -2829,13 +3268,13 @@ sdpageiter_gte_dup_iterate1(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	int p = 1;
+	svv *key = allocv(&r, 1);
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 30ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 30ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	t( sv_lsn(v) == 30);
 	sr_iteratornext(&it);
 	t( sr_iteratorhas(&it) == 0 );
@@ -2843,20 +3282,20 @@ sdpageiter_gte_dup_iterate1(stc *cx srunused)
 	t( v == NULL );
 
 	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, &p, sizeof(int), 42ULL);
+	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, sv_vpointer(key), key->size, 42ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
 	t( sv_lsn(v) == 42);
 	sr_iteratornext(&it);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 	t( sv_lsn(v) == 41);
 	sr_iteratornext(&it);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	t( sv_lsn(v) == 40);
 	sr_iteratornext(&it);
 	t( sr_iteratorhas(&it) == 0 );
@@ -2867,26 +3306,28 @@ sdpageiter_gte_dup_iterate1(stc *cx srunused)
 	sr_iteropen(sd_pageiter, &it, &page, SR_GTE, NULL, 0, 60ULL);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i);
+	t( *(int*)sv_key(v, &r, 0) == i);
 	t( sv_lsn(v) == 42);
 	sr_iteratornext(&it);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j);
+	t( *(int*)sv_key(v, &r, 0) == j);
 	t( sv_lsn(v) == 60);
 	sr_iteratornext(&it);
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k);
+	t( *(int*)sv_key(v, &r, 0) == k);
 	t( sv_lsn(v) == 50);
 	sr_iteratornext(&it);
 	t( sr_iteratorhas(&it) == 0 );
 	v = sr_iteratorof(&it);
 	t( v == NULL );
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -2894,14 +3335,21 @@ sdpageiter_update0(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -2919,68 +3367,25 @@ sdpageiter_update0(stc *cx srunused)
 
 	sriter it;
 	sr_iterinit(sd_pageiter, &it, &r);
+	svv *key = allocv(&r, 5);
 	i = 5;
-	t( sr_iteropen(sd_pageiter, &it, &page, SR_UPDATE, &i, sizeof(i), (uint64_t)i) == 0 );
+	t( sr_iteropen(sd_pageiter, &it, &page, SR_UPDATE, sv_vpointer(key), key->size, (uint64_t)i) == 0 );
 	sr_iteratorclose(&it);
 
 	sr_iterinit(sd_pageiter, &it, &r);
 	i = 5;
-	t( sr_iteropen(sd_pageiter, &it, &page, SR_UPDATE, &i, sizeof(i), (uint64_t)(i - 1)) == 1 );
+	t( sr_iteropen(sd_pageiter, &it, &page, SR_UPDATE, sv_vpointer(key), key->size, (uint64_t)(i - 1)) == 1 );
 	sr_iteratorclose(&it);
 
 	sr_iterinit(sd_pageiter, &it, &r);
 	i = 5;
-	t( sr_iteropen(sd_pageiter, &it, &page, SR_UPDATE, &i, sizeof(i), (uint64_t)(i + 1)) == 0 );
+	t( sr_iteropen(sd_pageiter, &it, &page, SR_UPDATE, sv_vpointer(key), key->size, (uint64_t)(i + 1)) == 0 );
 	sr_iteratorclose(&it);
+	sv_vfree(&a, key);
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
-}
-
-static void
-sdpageiter_random0(stc *cx srunused)
-{
-	sra a;
-	sr_aopen(&a, &sr_stda);
-	srinjection ij;
-	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
-	srerror error;
-	sr_errorinit(&error);
-	sr r;
-	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
-	sdbuild b;
-	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &r, 1, 0) == 0);
-	int i = 0;
-	for (; i < 100; i++)
-		addv(&b, &r, i, SVSET, &i);
-	sd_buildend(&b, &r);
-
-	srbuf buf;
-	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
-	sdpageheader *h = (sdpageheader*)buf.s;
-	sdpage page;
-	sd_pageinit(&page, h);
-
-	srand(2341);
-	for (; i < 1000; i++) {
-		uint32_t rnd = rand() % 100;
-		sriter it;
-		sr_iterinit(sd_pageiter, &it, &r);
-		sr_iteropen(sd_pageiter, &it, &page, SR_RANDOM, &rnd, sizeof(rnd), UINT64_MAX);
-		t( sr_iteratorhas(&it) != 0 );
-		sv *v = sr_iteratorof(&it);
-		t( v != NULL );
-		int k = *(int*)sv_key(v);
-		t( k >= 0 && k < 100 );
-		i++;
-		sr_iteratorclose(&it);
-	}
-	sd_buildfree(&b, &r);
-	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -2988,14 +3393,21 @@ sdpageiter_iterate_raw(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -3022,31 +3434,31 @@ sdpageiter_iterate_raw(stc *cx srunused)
 	sr_iteropen(sd_pageiterraw, &it, &page);
 	t( sr_iteratorhas(&it) != 0 );
 	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == i );
+	t( *(int*)sv_key(v, &r, 0) == i );
 	t( sv_lsn(v) == 5 );
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j );
+	t( *(int*)sv_key(v, &r, 0) == j );
 	t( sv_lsn(v) == 4 );
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j );
+	t( *(int*)sv_key(v, &r, 0) == j );
 	t( sv_lsn(v) == 3 );
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == j );
+	t( *(int*)sv_key(v, &r, 0) == j );
 	t( sv_lsn(v) == 2 );
 	sr_iteratornext(&it);
 
 	t( sr_iteratorhas(&it) != 0 );
 	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v) == k );
+	t( *(int*)sv_key(v, &r, 0) == k );
 	t( sv_lsn(v) == 1 );
 	sr_iteratornext(&it);
 
@@ -3057,6 +3469,7 @@ sdpageiter_iterate_raw(stc *cx srunused)
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 stgroup *sdpageiter_group(void)
@@ -3106,7 +3519,6 @@ stgroup *sdpageiter_group(void)
 	st_groupadd(group, st_test("gte_dup_iterate0", sdpageiter_gte_dup_iterate0));
 	st_groupadd(group, st_test("gte_dup_iterate1", sdpageiter_gte_dup_iterate1));
 	st_groupadd(group, st_test("update0", sdpageiter_update0));
-	st_groupadd(group, st_test("random0", sdpageiter_random0));
 	st_groupadd(group, st_test("iterate_raw", sdpageiter_iterate_raw));
 	return group;
 }

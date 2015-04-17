@@ -15,9 +15,8 @@ struct slv {
 	uint32_t crc;
 	uint64_t lsn;
 	uint32_t dsn;
-	uint32_t valuesize;
+	uint32_t size;
 	uint8_t  flags;
-	uint16_t keysize;
 	uint64_t reserve;
 } srpacked;
 

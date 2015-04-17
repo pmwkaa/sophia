@@ -109,25 +109,6 @@ sv_indexiter_open(sriter *i, svindex *index, srorder o, void *key, int keysize, 
 		n = ii->v;
 		sv_indexiter_fwd(ii);
 		break;
-	case SR_RANDOM: {
-		assert(ii->key != NULL);
-		if (srunlikely(ii->index->count == 0)) {
-			ii->v = NULL;
-			ii->vcur = NULL;
-			break;
-		}
-		uint32_t rnd = *(uint32_t*)ii->key;
-		rnd %= ii->index->count;
-		ii->v = sr_rbmin(&ii->index->i);
-		uint32_t pos = 0;
-		while (pos != rnd) {
-			ii->v = sr_rbnext(&ii->index->i, ii->v);
-			pos++;
-		}
-		svv *v = srcast(ii->v, svv, node);
-		ii->vcur = v;
-		break;
-	}
 	case SR_UPDATE:
 		rc = sv_indexmatch(&ii->index->i, i->r->cmp, ii->key, ii->keysize, &ii->v);
 		if (rc == 0 && ii->v) {
@@ -176,7 +157,6 @@ sv_indexiter_next(sriter *i)
 		ii->vcur = NULL;
 		sv_indexiter_bkw(ii);
 		break;
-	case SR_RANDOM:
 	case SR_GT:
 	case SR_GTE:
 		ii->v = sr_rbnext(&ii->index->i, ii->v);

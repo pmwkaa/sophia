@@ -1,6 +1,6 @@
 LIBSR_O = sr_time.o \
+          sr_key.o \
           sr_trigger.o \
-          sr_cmp.o \
           sr_pager.o \
           sr_stda.o \
           sr_slaba.o \

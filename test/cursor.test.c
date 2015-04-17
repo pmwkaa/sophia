@@ -1335,43 +1335,6 @@ cursor_pos_lte_random(stc *cx)
 }
 
 static void
-cursor_random(stc *cx)
-{
-	void *db = cx->db;
-	void *tx = sp_begin(cx->env);
-	int i = 0;
-	while (i < 385) {
-		void *o = sp_object(db);
-		t( o != NULL );
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(tx, o) == 0 );
-		i++;
-	}
-	t( sp_commit(tx) == 0 );
-	st_transaction(cx);
-	srand(234541);
-	i = 0;
-	while (i < 3000) {
-		uint32_t rnd = rand() % 385;
-		void *o = sp_object(db);
-		t( o != NULL );
-		t( sp_set(o, "key", &rnd, sizeof(rnd)) == 0 );
-		t( sp_set(o, "order", "random") == 0 );
-		void *c = sp_cursor(db, o);
-		t( c != NULL );
-		o = sp_get(c);
-		t( o != NULL );
-		int k = *(int*)sp_get(o, "key", NULL);
-		t( k >= 0 && k < 385 );
-		t( k == rnd );
-		t( sp_get(c) == NULL );
-		sp_destroy(c);
-		i++;
-	}
-	st_transaction(cx);
-}
-
-static void
 cursor_consistency0(stc *cx)
 {
 	void *db = cx->db;
@@ -2670,7 +2633,6 @@ stgroup *cursor_group(void)
 	st_groupadd(group, st_test("pos_lt_range", cursor_pos_lt_range));
 	st_groupadd(group, st_test("pos_gte_random", cursor_pos_gte_random));
 	st_groupadd(group, st_test("pos_lte_random", cursor_pos_lte_random));
-	st_groupadd(group, st_test("random", cursor_random));
 	st_groupadd(group, st_test("consistency0", cursor_consistency0));
 	st_groupadd(group, st_test("consistency1", cursor_consistency1));
 	st_groupadd(group, st_test("consistency2", cursor_consistency2));

@@ -122,7 +122,7 @@ sd_indexsize(sdindexheader *h)
 }
 
 static inline int
-sd_indexpage_cmp(sdindexpage *p, void *key, int size, srcomparator *c)
+sd_indexpage_cmp(sdindexpage *p, void *key, int size, srkey *c)
 {
 	int l = sr_compare(c, sd_indexpage_min(p), p->sizemin, key, size);
 	int r = sr_compare(c, sd_indexpage_max(p), p->sizemax, key, size);

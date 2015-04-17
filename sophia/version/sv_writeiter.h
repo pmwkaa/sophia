@@ -40,7 +40,7 @@ sv_writeiter_next(sriter *i)
 				break;
 		}
 		uint64_t lsn = sv_lsn(v);
-		int kv = sv_keysize(v) + sv_valuesize(v);
+		int kv = sv_size(v);
 		if (srunlikely(dup)) {
 			/* keep atleast one visible version for <= vlsn */
 			if (im->prevlsn <= im->vlsn)
@@ -111,8 +111,7 @@ sv_writeiter_resume(sriter *i)
 	if (srunlikely(im->v == NULL))
 		return 0;
 	im->next = 1;
-	im->size = im->sizev + sv_keysize(im->v) +
-	           sv_valuesize(im->v);
+	im->size = im->sizev + sv_size(im->v);
 	return 1;
 }
 

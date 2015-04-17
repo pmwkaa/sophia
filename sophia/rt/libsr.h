@@ -25,10 +25,11 @@
 #include <sr_seq.h>
 #include <sr_order.h>
 #include <sr_trigger.h>
-#include <sr_cmp.h>
 #include <sr_buf.h>
 #include <sr_injection.h>
 #include <sr_crc.h>
+#include <sr_key.h>
+#include <sr_format.h>
 #include <sr.h>
 #include <sr_filter.h>
 #include <sr_c.h>

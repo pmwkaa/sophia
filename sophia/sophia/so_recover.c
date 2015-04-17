@@ -89,14 +89,16 @@ so_recoverlog(so *e, sl *log)
 			void *o = so_objobject(&db->o);
 			if (srunlikely(o == NULL))
 				goto rlb;
-			so_objset(o, "key", sv_key(v), sv_keysize(v));
-			so_objset(o, "value", sv_value(v), sv_valuesize(v));
+			so_objset(o, "raw", sv_pointer(v), sv_size(v));
 			so_objset(o, "log", log);
-			if (sv_flags(v) == SVSET)
+			switch (sv_flags(v)) {
+			case SVSET:
 				rc = so_objset(transaction, o);
-			else
-			if (sv_flags(v) == SVDELETE)
+				break;
+			case SVDELETE:
 				rc = so_objdelete(transaction, o);
+				break;
+			}
 			if (srunlikely(rc == -1))
 				goto rlb;
 			sr_gcmark(&log->gc, 1);

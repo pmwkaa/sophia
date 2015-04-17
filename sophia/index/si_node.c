@@ -196,7 +196,7 @@ int si_nodegc_index(sr *r, svindex *i)
 	return 0;
 }
 
-int si_nodecmp(sinode *n, void *key, int size, srcomparator *c)
+int si_nodecmp(sinode *n, void *key, int size, srkey *c)
 {
 	sdindexpage *min = sd_indexmin(&n->self.index);
 	sdindexpage *max = sd_indexmax(&n->self.index);

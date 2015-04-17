@@ -36,38 +36,22 @@ so_vset(soobj *obj, va_list args)
 		sr_error(&e->error, "%s", "object is read-only");
 		return -1;
 	}
+
 	char *name = va_arg(args, char*);
-	if (strcmp(name, "key") == 0) {
-		if (v->v.i != &sv_localif) {
-			sr_error(&e->error, "%s", "bad object operation");
-			return -1;
-		}
-		v->lv.key = va_arg(args, char*);
-		v->lv.keysize = va_arg(args, int);
-		return 0;
-	} else
 	if (strcmp(name, "value") == 0) {
-		if (v->v.i != &sv_localif) {
-			sr_error(&e->error, "%s", "bad object operation");
-			return -1;
-		}
-		v->lv.value = va_arg(args, char*);
-		v->lv.valuesize = va_arg(args, int);
+		v->value = va_arg(args, char*);
+		v->valuesize = va_arg(args, int);
 		return 0;
-	} else
+	}
 	if (strcmp(name, "prefix") == 0) {
-		if (v->v.i != &sv_localif) {
-			sr_error(&e->error, "%s", "bad object operation");
-			return -1;
-		}
 		v->prefix = va_arg(args, char*);
 		v->prefixsize = va_arg(args, int);
 		return 0;
-	} else
+	}
 	if (strcmp(name, "log") == 0) {
 		v->log = va_arg(args, void*);
 		return 0;
-	} else
+	}
 	if (strcmp(name, "order") == 0) {
 		char *order = va_arg(args, void*);
 		srorder cmp = sr_orderof(order);
@@ -78,7 +62,28 @@ so_vset(soobj *obj, va_list args)
 		v->order = cmp;
 		return 0;
 	}
-	return -1;
+	if (strcmp(name, "raw") == 0) {
+		v->raw = va_arg(args, char*);
+		v->rawsize = va_arg(args, int);
+		return 0;
+	}
+	assert(v->parent != NULL);
+	/* set keypart */
+	sodb *db = (sodb*)v->parent;
+	srkeypart *part = sr_keyfind(&db->ctl.cmp, name);
+	if (srunlikely(part == NULL))
+		return -1;
+	assert(part->pos < (int)(sizeof(v->keyv) / sizeof(srformatv)));
+	srformatv *fv = &v->keyv[part->pos];
+	fv->r.offset = 0;
+	fv->key = va_arg(args, char*);
+	fv->r.size = va_arg(args, int);
+	if (fv->part == NULL)
+		v->keyc++;
+	fv->part = part;
+	/* update key sum */
+	v->keysize = sr_formatsize(db->r.format, v->keyv, v->keyc, 0);
+	return 0;
 }
 
 static void*
@@ -86,25 +91,32 @@ so_vget(soobj *obj, va_list args)
 {
 	sov *v = (sov*)obj;
 	so *e = so_of(obj);
+
 	char *name = va_arg(args, char*);
-	if (strcmp(name, "key") == 0) {
-		void *key = sv_key(&v->v);
-		if (srunlikely(key == NULL))
-			return NULL;
-		int *keysize = va_arg(args, int*);
-		if (keysize)
-			*keysize = sv_keysize(&v->v);
-		return key;
-	} else
 	if (strcmp(name, "value") == 0) {
-		void *value = sv_value(&v->v);
-		if (srunlikely(value == NULL))
-			return NULL;
 		int *valuesize = va_arg(args, int*);
-		if (valuesize)
-			*valuesize = sv_valuesize(&v->v);
-		return value;
-	} else
+		/* ctl value */
+		if (v->parent == NULL) {
+			int size = sv_valuesize(&v->v, &e->r);
+			if (valuesize)
+				*valuesize = size;
+			if (size == 0)
+				return NULL;
+			return sv_value(&v->v, &e->r);
+		}
+		/* database key object */
+		if (v->value) {
+			if (valuesize)
+				*valuesize = v->valuesize;
+			return v->value;
+		}
+		/* database result object */
+		sodb *db = (sodb*)v->parent;
+		if (valuesize) {
+			*valuesize = sv_valuesize(&v->v, &db->r);
+		}
+		return sv_value(&v->v, &db->r);
+	}
 	if (strcmp(name, "prefix") == 0) {
 		if (srunlikely(v->prefix == NULL))
 			return NULL;
@@ -112,25 +124,13 @@ so_vget(soobj *obj, va_list args)
 		if (prefixsize)
 			*prefixsize = v->prefixsize;
 		return v->prefix;
-	} else
+	}
 	if (strcmp(name, "lsn") == 0) {
 		uint64_t *lsnp = NULL;
-		if (v->v.i == &sv_localif)
-			lsnp = &v->lv.lsn;
-		else
-		if (v->v.i == &sv_vif)
+		if (v->v.v)
 			lsnp = &((svv*)(v->v.v))->lsn;
-		else
-		if (v->v.i == &sx_vif)
-			lsnp = &((sxv*)(v->v.v))->v->lsn;
-		else {
-			assert(0);
-		}
-		int *valuesize = va_arg(args, int*);
-		if (valuesize)
-			*valuesize = sizeof(uint64_t);
 		return lsnp;
-	} else
+	}
 	if (strcmp(name, "order") == 0) {
 		src order = {
 			.name     = "order",
@@ -145,7 +145,44 @@ so_vget(soobj *obj, va_list args)
 			return NULL;
 		return o;
 	}
-	return NULL;
+	if (strcmp(name, "raw") == 0) {
+		int *rawsize = va_arg(args, int*);
+		if (v->raw) {
+			if (rawsize)
+				*rawsize = v->rawsize;
+			return v->raw;
+		}
+		return sv_pointer(&v->v);
+	}
+
+	int *partsize = va_arg(args, int*);
+	/* ctl key */
+	if (srunlikely(v->parent == NULL)) {
+		if (strcmp(name, "key") != 0)
+			return NULL;
+		if (partsize)
+			*partsize = sv_keysize(&v->v, &e->r, 0);
+		return sv_key(&v->v, &e->r, 0);
+	}
+	/* match key-part */
+	sodb *db = (sodb*)v->parent;
+	srkeypart *part = sr_keyfind(&db->ctl.cmp, name);
+	if (srunlikely(part == NULL))
+		return NULL;
+	/* database result object */
+	if (v->v.v) {
+		if (partsize)
+			*partsize = sv_keysize(&v->v, &db->r, part->pos);
+		return sv_key(&v->v, &db->r, part->pos);
+	}
+	/* database key object */
+	assert(part->pos < (int)(sizeof(v->keyv) / sizeof(srformatv)));
+	srformatv *fv = &v->keyv[part->pos];
+	if (fv->key == NULL)
+		return NULL;
+	if (partsize)
+		*partsize = fv->r.size;
+	return fv->key;
 }
 
 static void*
@@ -176,7 +213,6 @@ soobj *so_vinit(sov *v, so *e, soobj *parent)
 {
 	memset(v, 0, sizeof(*v));
 	so_objinit(&v->o, SOV, &sovif, &e->o);
-	sv_init(&v->v, &sv_localif, &v->lv, NULL);
 	v->order = SR_GTE;
 	v->parent = parent;
 	return &v->o;

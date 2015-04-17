@@ -42,17 +42,10 @@ sd_pagev(sdpage *p, uint32_t pos) {
 }
 
 static inline void*
-sd_pagekey(sdpage *p, sdv *v) {
-	assert((sizeof(sdv) * p->h->count) + v->keyoffset <= p->h->sizeorigin);
+sd_pageof(sdpage *p, sdv *v) {
+	assert((sizeof(sdv) * p->h->count) + v->offset <= p->h->sizeorigin);
 	return ((char*)p->h + sizeof(sdpageheader) +
-	         sizeof(sdv) * p->h->count) + v->keyoffset;
-}
-
-static inline void*
-sd_pagevalue(sdpage *p, sdv *v) {
-	assert((sizeof(sdv) * p->h->count) + v->valueoffset <= p->h->sizeorigin);
-	return ((char*)p->h + sizeof(sdpageheader) +
-	         sizeof(sdv) * p->h->count) + v->valueoffset;
+	         sizeof(sdv) * p->h->count) + v->offset;
 }
 
 static inline sdv*

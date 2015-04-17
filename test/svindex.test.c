@@ -13,18 +13,16 @@
 #include <sophia.h>
 
 static svv*
-allocv(sra *a, uint64_t lsn, uint8_t flags, uint32_t *key)
+allocv(sr *r, uint64_t lsn, uint8_t flags, uint32_t *key)
 {
-	svlocal l;
-	l.lsn         = lsn;
-	l.flags       = flags;
-	l.key         = key;
-	l.keysize     = sizeof(uint32_t);
-	l.value       = NULL;
-	l.valuesize   = 0;
-	sv lv;
-	sv_init(&lv, &sv_localif, &l, NULL);
-	return sv_valloc(a, &lv);
+	srformatv pv;
+	pv.key = (char*)key;
+	pv.r.size = sizeof(uint32_t);
+	pv.r.offset = 0;
+	svv *v = sv_vbuild(r, &pv, 1, NULL, 0);
+	v->lsn = lsn;
+	v->flags = flags;
+	return v;
 }
 
 static inline svv*
@@ -42,19 +40,23 @@ svindex_replace0(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
 
 	uint32_t key = 7;
 	svv *old = NULL;
-	svv *h = allocv(&a, 0, SVSET, &key);
-	svv *n = allocv(&a, 1, SVSET, &key);
+	svv *h = allocv(&r, 0, SVSET, &key);
+	svv *n = allocv(&r, 1, SVSET, &key);
 	t( sv_indexset(&i, &r, 0, h, &old) == 0 );
 	t( old == NULL );
 	t( sv_indexset(&i, &r, 1, n, &old) == 0 );
@@ -66,6 +68,7 @@ svindex_replace0(stc *cx srunused)
 	t( n->next == NULL );
 
 	sv_indexfree(&i, &r);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -73,19 +76,23 @@ svindex_replace1(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
 
 	uint32_t key = 7;
 	svv *old = NULL;
-	svv *h = allocv(&a, 0, SVSET, &key);
-	svv *n = allocv(&a, 1, SVSET, &key);
+	svv *h = allocv(&r, 0, SVSET, &key);
+	svv *n = allocv(&r, 1, SVSET, &key);
 	t( sv_indexset(&i, &r, 0, h, &old) == 0 );
 	t( sv_indexset(&i, &r, 0, n, &old) == 0 );
 	t( old == NULL );
@@ -100,6 +107,7 @@ svindex_replace1(stc *cx srunused)
 	t( h->next == NULL );
 
 	sv_indexfree(&i, &r);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -107,20 +115,24 @@ svindex_replace2(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
 
 	uint32_t key = 7;
 	svv *old = NULL;
-	svv *h = allocv(&a, 0, SVSET, &key);
-	svv *n = allocv(&a, 1, SVSET, &key);
-	svv *p = allocv(&a, 2, SVSET, &key);
+	svv *h = allocv(&r, 0, SVSET, &key);
+	svv *n = allocv(&r, 1, SVSET, &key);
+	svv *p = allocv(&r, 2, SVSET, &key);
 	t( sv_indexset(&i, &r, 0, h, &old) == 0 );
 	t( old == NULL );
 	t( sv_indexset(&i, &r, 0, n, &old) == 0 );
@@ -144,6 +156,7 @@ svindex_replace2(stc *cx srunused)
 	t( h->next == NULL );
 
 	sv_indexfree(&i, &r);
+	sr_keyfree(&cmp, &a);
 }
 
 stgroup *svindex_group(void)

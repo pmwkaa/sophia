@@ -48,25 +48,21 @@ int sd_buildadd(sdbuild *b, sr *r, sv *v, uint32_t flags)
 		return sr_error(r->e, "%s", "memory allocation failed");
 	sdpageheader *h = sd_buildheader(b);
 	sdv *sv = (sdv*)b->k.p;
-	sv->lsn         = sv_lsn(v);
-	sv->flags       = sv_flags(v) | flags;
-	sv->timestamp   = 0;
-	sv->keysize     = sv_keysize(v);
-	sv->valuesize   = sv_valuesize(v);
-	sv->keyoffset   = sr_bufused(&b->v) - sd_buildref(b)->v;
-	sv->valueoffset = sv->keyoffset + sv->keysize;
-	/* copy key-value pair */
-	rc = sr_bufensure(&b->v, r->a, sv->keysize + sv->valuesize);
+	sv->lsn       = sv_lsn(v);
+	sv->flags     = sv_flags(v) | flags;
+	sv->timestamp = 0;
+	sv->size      = sv_size(v);
+	sv->offset    = sr_bufused(&b->v) - sd_buildref(b)->v;
+	/* copy object */
+	rc = sr_bufensure(&b->v, r->a, sv->size);
 	if (srunlikely(rc == -1))
 		return sr_error(r->e, "%s", "memory allocation failed");
-	memcpy(b->v.p, sv_key(v), sv->keysize);
-	sr_bufadvance(&b->v, sv->keysize);
-	memcpy(b->v.p, sv_value(v), sv->valuesize);
-	sr_bufadvance(&b->v, sv->valuesize);
+	memcpy(b->v.p, sv_pointer(v), sv->size);
+	sr_bufadvance(&b->v, sv->size);
 	sr_bufadvance(&b->k, sizeof(sdv));
 	/* update page header */
 	h->count++;
-	h->size += sv->keysize + sv->valuesize + sizeof(sdv);
+	h->size +=  sv->size + sizeof(sdv);
 	if (sv->lsn > h->lsnmax)
 		h->lsnmax = sv->lsn;
 	if (sv->lsn < h->lsnmin)

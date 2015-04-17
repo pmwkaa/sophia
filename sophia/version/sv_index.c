@@ -94,7 +94,7 @@ int sv_indexset(svindex *i, sr *r, uint64_t vlsn srunused,
 	svv *head = NULL;
 	if (v->lsn < i->lsnmin)
 		i->lsnmin = v->lsn;
-	int rc = sv_indexmatch(&i->i, r->cmp, sv_vkey(v), v->keysize, &n);
+	int rc = sv_indexmatch(&i->i, r->cmp, sv_vpointer(v), v->size, &n);
 	if (rc == 0 && n) {
 		head = srcast(n, svv, node);
 		svv *update = sv_vset(head, v);
@@ -112,8 +112,8 @@ int sv_indexset(svindex *i, sr *r, uint64_t vlsn srunused,
 		sr_rbset(&i->i, n, rc, &v->node);
 	}
 	i->count++;
-	i->used += v->keysize + v->valuesize;
-	if (srunlikely(v->keysize > i->keymax))
-		i->keymax = v->keysize;
+	i->used += v->size;
+	if (srunlikely(v->size > i->keymax))
+		i->keymax = v->size;
 	return 0;
 }

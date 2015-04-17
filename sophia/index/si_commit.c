@@ -64,7 +64,7 @@ si_set(sitx *t, svv *v)
 	/* match node */
 	sriter i;
 	sr_iterinit(si_iter, &i, t->r);
-	sr_iteropen(si_iter, &i, index, SR_ROUTE, sv_vkey(v), v->keysize);
+	sr_iteropen(si_iter, &i, index, SR_ROUTE, sv_vpointer(v), v->size);
 	sinode *node = sr_iterof(si_iter, &i);
 	assert(node != NULL);
 	/* update node */

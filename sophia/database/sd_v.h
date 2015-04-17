@@ -15,10 +15,8 @@ struct sdv {
 	uint64_t lsn;
 	uint32_t timestamp;
 	uint8_t  flags;
-	uint16_t keysize;
-	uint32_t keyoffset;
-	uint32_t valuesize;
-	uint32_t valueoffset;
+	uint32_t offset;
+	uint32_t size;
 } srpacked;
 
 extern svif sd_vif;

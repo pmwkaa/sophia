@@ -53,16 +53,11 @@ void *so_ctlreturn(src *c, void *o)
 	}
 	if (value)
 		size++;
-	svlocal l;
-	l.lsn       = 0;
-	l.flags     = 0;
-	l.keysize   = strlen(c->name) + 1;
-	l.key       = c->name;
-	l.valuesize = size;
-	l.value     = value;
-	sv vp;
-	sv_init(&vp, &sv_localif, &l, NULL);
-	svv *v = sv_valloc(&e->a, &vp);
+	srformatv fv;
+	fv.key      = c->name;
+	fv.r.size   = strlen(c->name) + 1;
+	fv.r.offset = 0;
+	svv *v = sv_vbuild(&e->r, &fv, 1, value, size);
 	if (srunlikely(v == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");
 		return NULL;
@@ -73,6 +68,7 @@ void *so_ctlreturn(src *c, void *o)
 		sr_error(&e->error, "%s", "memory allocation failed");
 		return NULL;
 	}
+	sv vp;
 	sv_init(&vp, &sv_vif, v, NULL);
 	return so_vput(result, &vp);
 }
@@ -411,21 +407,29 @@ so_ctldb_cmp(src *c, srcstmt *s, va_list args)
 	if (s->op != SR_CSET)
 		return so_ctlv(c, s, args);
 	sodb *db = c->value;
+	so *e = so_of(&db->o);
 	if (srunlikely(so_statusactive(&db->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
-	char *v   = va_arg(args, char*);
-	char *arg = va_arg(args, char*);
-	int rc = sr_cmpset(&db->ctl.cmp, v);
-	if (srunlikely(rc == -1))
-		return -1;
-	if (arg) {
-		rc = sr_cmpsetarg(&db->ctl.cmp, arg);
-		if (srunlikely(rc == -1))
-			return -1;
+	char *v = va_arg(args, char*);
+	/* set custom comparator */
+	srcmpf cmp  = (srcmpf)(uintptr_t)sr_triggerpointer_of(v);
+	if (srunlikely(cmp)) {
+		v = va_arg(args, char*);
+		void *arg = NULL;
+		if (v) {
+			arg = sr_triggerpointer_of(v);
+			if (srunlikely(arg == NULL))
+				return -1;
+		}
+		sr_keyfree(&db->ctl.cmp, &e->a);
+		sr_keyinit(&db->ctl.cmp);
+		sr_keysetcmp(&db->ctl.cmp, cmp, arg);
+		return 0;
 	}
-	return 0;
+	/* set key type */
+	return sr_keypart_set(sr_keyof(&db->ctl.cmp, 0), &e->a, v);
 }
 
 static inline int
@@ -438,16 +442,18 @@ so_ctldb_cmpprefix(src *c, srcstmt *s, va_list args)
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
-	char *v   = va_arg(args, char*);
-	char *arg = va_arg(args, char*);
-	int rc = sr_cmpset_prefix(&db->ctl.cmp, v);
-	if (srunlikely(rc == -1))
+	char *v = va_arg(args, char*);
+	srcmpf cmp = (srcmpf)(uintptr_t)sr_triggerpointer_of(v);
+	if (srunlikely(cmp == NULL))
 		return -1;
-	if (arg) {
-		rc = sr_cmpset_prefixarg(&db->ctl.cmp, arg);
-		if (srunlikely(rc == -1))
+	v = va_arg(args, char*);
+	void *arg = NULL;
+	if (v) {
+		arg = sr_triggerpointer_of(v);
+		if (srunlikely(arg == NULL))
 			return -1;
 	}
+	sr_keysetcmp_prefix(&db->ctl.cmp, cmp, arg);
 	return 0;
 }
 
@@ -528,6 +534,60 @@ so_ctlv_dboffline(src *c, srcstmt *s, va_list args)
 	return so_ctlv(c, s, args);
 }
 
+static inline int
+so_ctldb_index(src *c srunused, srcstmt *s, va_list args)
+{
+	/* set(index, key) */
+	sodb *db = c->ptr;
+	so *e = so_of(&db->o);
+	if (s->op != SR_CSET) {
+		sr_error(&e->error, "%s", "bad operation");
+		return -1;
+	}
+	if (srunlikely(so_statusactive(&db->status))) {
+		sr_error(s->r->e, "write to %s is offline-only", s->path);
+		return -1;
+	}
+	char *name = va_arg(args, char*);
+	srkeypart *part = sr_keyfind(&db->ctl.cmp, name);
+	if (srunlikely(part)) {
+		sr_error(&e->error, "keypart '%s' is exists", name);
+		return -1;
+	}
+	/* create new key-part */
+	part = sr_keyadd(&db->ctl.cmp, &e->a);
+	if (srunlikely(part == NULL))
+		return -1;
+	int rc = sr_keypart_setname(part, &e->a, name);
+	if (srunlikely(rc == -1))
+		goto error;
+	rc = sr_keypart_set(part, &e->a, "string");
+	if (srunlikely(rc == -1))
+		goto error;
+	return 0;
+error:
+	sr_keydelete(&db->ctl.cmp, &e->a, part->pos);
+	return -1;
+}
+
+static inline int
+so_ctldb_key(src *c, srcstmt *s, va_list args)
+{
+	sodb *db = c->ptr;
+	so *e = so_of(&db->o);
+	if (s->op != SR_CSET)
+		return so_ctlv(c, s, args);
+	if (srunlikely(so_statusactive(&db->status))) {
+		sr_error(s->r->e, "write to %s is offline-only", s->path);
+		return -1;
+	}
+	char *path = va_arg(args, char*);
+	/* update key-part path */
+	srkeypart *part = sr_keyfind(&db->ctl.cmp, c->name);
+	assert(part != NULL);
+	return sr_keypart_set(part, &e->a, path);
+}
+
 static inline src*
 so_ctldb(so *e, soctlrt *rt srunused, src **pc)
 {
@@ -541,22 +601,31 @@ so_ctldb(so *e, soctlrt *rt srunused, src **pc)
 		si_profilerbegin(&o->ctl.rtp, &o->index);
 		si_profiler(&o->ctl.rtp);
 		si_profilerend(&o->ctl.rtp);
+		/* database index */
 		src *index = *pc;
 		p = NULL;
-		sr_clink(&p, sr_c(pc, so_ctldb_cmp,    "cmp",              SR_CVOID,       o));
-		sr_clink(&p, sr_c(pc, so_ctldb_cmp,    "cmp_prefix",       SR_CVOID,       o));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "memory_used",      SR_CU64|SR_CRO, &o->ctl.rtp.memory_used));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "node_count",       SR_CU32|SR_CRO, &o->ctl.rtp.total_node_count));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "node_size",        SR_CU64|SR_CRO, &o->ctl.rtp.total_node_size));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "node_origin_size", SR_CU64|SR_CRO, &o->ctl.rtp.total_node_origin_size));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "count",            SR_CU64|SR_CRO, &o->ctl.rtp.count));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "count_dup",        SR_CU64|SR_CRO, &o->ctl.rtp.count_dup));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "read_disk",        SR_CU64|SR_CRO, &o->ctl.rtp.read_disk));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "read_cache",       SR_CU64|SR_CRO, &o->ctl.rtp.read_cache));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "branch_count",     SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_count));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "branch_avg",       SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_avg));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "branch_max",       SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_max));
-		sr_clink(&p, sr_c(pc, so_ctlv,         "branch_histogram", SR_CSZ|SR_CRO,  o->ctl.rtp.histogram_branch_ptr));
+		sr_clink(&p, sr_c(pc, so_ctlv,            "memory_used",      SR_CU64|SR_CRO, &o->ctl.rtp.memory_used));
+		sr_clink(&p, sr_c(pc, so_ctlv,            "node_count",       SR_CU32|SR_CRO, &o->ctl.rtp.total_node_count));
+		sr_clink(&p, sr_c(pc, so_ctlv,            "node_size",        SR_CU64|SR_CRO, &o->ctl.rtp.total_node_size));
+		sr_clink(&p, sr_c(pc, so_ctlv,            "node_origin_size", SR_CU64|SR_CRO, &o->ctl.rtp.total_node_origin_size));
+		sr_clink(&p, sr_c(pc, so_ctlv,            "count",            SR_CU64|SR_CRO, &o->ctl.rtp.count));
+		sr_clink(&p, sr_c(pc, so_ctlv,            "count_dup",        SR_CU64|SR_CRO, &o->ctl.rtp.count_dup));
+		sr_clink(&p, sr_c(pc, so_ctlv,            "read_disk",        SR_CU64|SR_CRO, &o->ctl.rtp.read_disk));
+		sr_clink(&p, sr_c(pc, so_ctlv,            "read_cache",       SR_CU64|SR_CRO, &o->ctl.rtp.read_cache));
+		sr_clink(&p, sr_c(pc, so_ctlv,            "branch_count",     SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_count));
+		sr_clink(&p, sr_c(pc, so_ctlv,            "branch_avg",       SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_avg));
+		sr_clink(&p, sr_c(pc, so_ctlv,            "branch_max",       SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_max));
+		sr_clink(&p, sr_c(pc, so_ctlv,            "branch_histogram", SR_CSZ|SR_CRO,  o->ctl.rtp.histogram_branch_ptr));
+		sr_clink(&p, sr_c(pc, so_ctldb_cmp,       "cmp",              SR_CVOID,       o));
+		sr_clink(&p, sr_c(pc, so_ctldb_cmpprefix, "cmp_prefix",       SR_CVOID,       o));
+		/* index keys */
+		int i = 0;
+		while (i < o->ctl.cmp.count) {
+			srkeypart *part = sr_keyof(&o->ctl.cmp, i);
+			sr_clink(&p,  sr_cptr(sr_c(pc, so_ctldb_key, part->name, SR_CSZ, part->path), o));
+			i++;
+		}
+		/* database */
 		src *database = *pc;
 		p = NULL;
 		sr_clink(&p,          sr_c(pc, so_ctlv,              "name",        SR_CSZ|SR_CRO,  o->ctl.name));
@@ -569,10 +638,11 @@ so_ctldb(so *e, soctlrt *rt srunused, src **pc)
 		sr_clink(&p,          sr_c(pc, so_ctldb_compact,     "compact",     SR_CVOID,       o));
 		sr_clink(&p,          sr_c(pc, so_ctldb_lockdetect,  "lockdetect",  SR_CVOID,       NULL));
 		sr_clink(&p,          sr_c(pc, so_ctldb_on_complete, "on_complete", SR_CVOID,       o));
-		sr_clink(&p,          sr_c(pc, NULL,                 "index",       SR_CC,          index));
+		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctldb_index,       "index",       SR_CC,          index), o));
 		sr_clink(&prev, sr_cptr(sr_c(pc, so_ctldb_get, o->ctl.name, SR_CC, database), o));
 		if (db == NULL)
 			db = prev;
+
 	}
 	return sr_c(pc, so_ctldb_set, "db", SR_CC, db);
 }
@@ -873,6 +943,10 @@ void so_ctlinit(soctl *c, void *e)
 {
 	so *o = e;
 	so_objinit(&c->o, SOCTL, &soctlif, e);
+	sr_keyinit(&c->ctlcmp);
+	srkeypart *part = sr_keyadd(&c->ctlcmp, &o->a);
+	sr_keypart_setname(part, &o->a, "key");
+	sr_keypart_set(part, &o->a, "string");
 	c->path              = NULL;
 	c->path_create       = 1;
 	c->memory_limit      = 0;
@@ -919,7 +993,6 @@ void so_ctlinit(soctl *c, void *e)
 	};
 	si_zonemap_set(&o->ctl.zones,  0, &def);
 	si_zonemap_set(&o->ctl.zones, 80, &redzone);
-
 	c->backup_path = NULL;
 	sr_triggerinit(&c->backup_on_complete);
 	sr_triggerinit(&c->checkpoint_on_complete);
@@ -940,6 +1013,7 @@ void so_ctlfree(soctl *c)
 		sr_free(&e->a, c->backup_path);
 		c->backup_path = NULL;
 	}
+	sr_keyfree(&c->ctlcmp, &e->a);
 }
 
 int so_ctlvalidate(soctl *c)

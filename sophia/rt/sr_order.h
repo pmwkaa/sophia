@@ -17,7 +17,6 @@ typedef enum {
 	SR_EQ,
 	SR_UPDATE,
 	SR_ROUTE,
-	SR_RANDOM,
 	SR_STOP
 } srorder;
 
@@ -36,9 +35,6 @@ sr_orderof(char *order)
 	} else
 	if (strcmp(order, "<=") == 0) {
 		cmp = SR_LTE;
-	} else
-	if (strcmp(order, "random") == 0) {
-		cmp = SR_RANDOM;
 	}
 	return cmp;
 }
@@ -47,11 +43,10 @@ static inline char*
 sr_ordername(srorder o)
 {
 	switch (o) {
-	case SR_LT:     return "<";
-	case SR_LTE:    return "<=";
-	case SR_GT:     return ">";
-	case SR_GTE:    return ">=";
-	case SR_RANDOM: return "random";
+	case SR_LT:  return "<";
+	case SR_LTE: return "<=";
+	case SR_GT:  return ">";
+	case SR_GTE: return ">=";
 	default: break;
 	}
 	return NULL;

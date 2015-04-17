@@ -27,4 +27,6 @@
 #define sr_templatecat(a, b) sr_##a##b
 #define sr_template(a, b) sr_templatecat(a, b)
 
+#define sr_cmp(a, b) ((a) == (b) ? 0 : (((a) > (b)) ? 1 : -1))
+
 #endif

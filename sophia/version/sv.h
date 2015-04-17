@@ -23,10 +23,8 @@ struct svif {
 	uint8_t   (*flags)(sv*);
 	void      (*lsnset)(sv*, uint64_t);
 	uint64_t  (*lsn)(sv*);
-	char     *(*key)(sv*);
-	uint16_t  (*keysize)(sv*);
-	char     *(*value)(sv*);
-	uint32_t  (*valuesize)(sv*);
+	char     *(*pointer)(sv*);
+	uint32_t  (*size)(sv*);
 };
 
 struct sv {
@@ -57,29 +55,39 @@ sv_lsnset(sv *v, uint64_t lsn) {
 }
 
 static inline char*
-sv_key(sv *v) {
-	return v->i->key(v);
-}
-
-static inline uint16_t
-sv_keysize(sv *v) {
-	return v->i->keysize(v);
-}
-
-static inline char*
-sv_value(sv *v) {
-	return v->i->value(v);
+sv_pointer(sv *v) {
+	return v->i->pointer(v);
 }
 
 static inline uint32_t
-sv_valuesize(sv *v) {
-	return v->i->valuesize(v);
+sv_size(sv *v) {
+	return v->i->size(v);
+}
+
+static inline char*
+sv_key(sv *v, sr *r srunused, int part) {
+	return sr_formatkey(v->i->pointer(v), part);
 }
 
 static inline int
-sv_compare(sv *a, sv *b, srcomparator *c) {
-	return sr_compare(c, sv_key(a), sv_keysize(a),
-	                     sv_key(b), sv_keysize(b));
+sv_keysize(sv *v, sr *r srunused, int part) {
+	return sr_formatkey_size(v->i->pointer(v), part);
+}
+
+static inline char*
+sv_value(sv *v, sr *r) {
+	return sr_formatvalue(r->format, r->cmp, sv_pointer(v));
+}
+
+static inline int
+sv_valuesize(sv *v, sr *r) {
+	return sr_formatvalue_size(r->format, r->cmp, sv_pointer(v), sv_size(v));
+}
+
+static inline int
+sv_compare(sv *a, sv *b, srkey *key) {
+	return sr_compare(key, sv_pointer(a), sv_size(a),
+	                       sv_pointer(b), sv_size(b));
 }
 
 #endif

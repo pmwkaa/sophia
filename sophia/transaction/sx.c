@@ -38,7 +38,7 @@ int sx_indexinit(sxindex *i, void *ptr)
 	return 0;
 }
 
-int sx_indexset(sxindex *i, uint32_t dsn, srcomparator *cmp)
+int sx_indexset(sxindex *i, uint32_t dsn, srkey *cmp)
 {
 	i->dsn = dsn;
 	i->cmp = cmp;
@@ -98,9 +98,7 @@ uint64_t sx_vlsn(sxmanager *m)
 	return vlsn;
 }
 
-sr_rbget(sx_matchtx,
-         sr_cmpu32((char*)&(srcast(n, sx, node))->id, sizeof(uint32_t),
-                   (char*)key, sizeof(uint32_t), NULL))
+sr_rbget(sx_matchtx, sr_cmp((srcast(n, sx, node))->id, *(uint32_t*)key))
 
 sx *sx_find(sxmanager *m, uint32_t id)
 {
@@ -239,8 +237,8 @@ unlink:
 }
 
 sr_rbget(sx_match,
-         sr_compare(cmp, sv_vkey((srcast(n, sxv, node))->v),
-                    (srcast(n, sxv, node))->v->keysize,
+         sr_compare(cmp, sv_vpointer((srcast(n, sxv, node))->v),
+                    (srcast(n, sxv, node))->v->size,
                     key, keysize))
 
 int sx_set(sx *t, sxindex *index, svv *version)
@@ -258,8 +256,8 @@ int sx_set(sx *t, sxindex *index, svv *version)
 	sv_init(&lv.v, &sx_vif, v, NULL);
 	/* update concurrent index */
 	srrbnode *n = NULL;
-	int rc = sx_match(&index->i, index->cmp,
-	                  sv_vkey(version), version->keysize, &n);
+	int rc = sx_match(&index->i, index->cmp, sv_vpointer(version),
+	                  version->size, &n);
 	if (rc == 0 && n) {
 		/* exists */
 	} else {
@@ -300,8 +298,8 @@ int sx_get(sx *t, sxindex *index, sv *key, sv *result)
 {
 	sxmanager *m = t->manager;
 	srrbnode *n = NULL;
-	int rc = sx_match(&index->i, index->cmp, sv_key(key),
-	                  sv_keysize(key), &n);
+	int rc = sx_match(&index->i, index->cmp, sv_pointer(key),
+	                  sv_size(key), &n);
 	if (! (rc == 0 && n))
 		return 0;
 	sxv *head = srcast(n, sxv, node);
@@ -312,7 +310,7 @@ int sx_get(sx *t, sxindex *index, sv *key, sv *result)
 		return 2;
 	sv vv;
 	sv_init(&vv, &sv_vif, v->v, NULL);
-	svv *ret = sv_valloc(m->r->a, &vv);
+	svv *ret = sv_vdup(m->r->a, &vv);
 	if (srunlikely(ret == NULL))
 		return sr_error(m->r->e, "%s", "memory allocation failed");
 	sv_init(result, &sv_vif, ret, NULL);
@@ -323,7 +321,7 @@ sxstate sx_setstmt(sxmanager *m, sxindex *index, sv *v)
 {
 	sr_seq(m->r->seq, SR_TSNNEXT);
 	srrbnode *n = NULL;
-	int rc = sx_match(&index->i, index->cmp, sv_key(v), sv_keysize(v), &n);
+	int rc = sx_match(&index->i, index->cmp, sv_pointer(v), sv_size(v), &n);
 	if (rc == 0 && n)
 		return SXLOCK;
 	return SXCOMMIT;

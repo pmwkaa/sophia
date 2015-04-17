@@ -15,23 +15,20 @@
 #include <sophia.h>
 
 static void
-alloclogv(svlog *log, sra *a, uint64_t lsn, uint8_t flags, int key)
+alloclogv(svlog *log, sr *r, uint64_t lsn, uint8_t flags, int key)
 {
-	svlocal l;
-	l.lsn         = lsn;
-	l.flags       = flags;
-	l.key         = &key;
-	l.keysize     = sizeof(int);
-	l.value       = NULL;
-	l.valuesize   = 0;
-	sv lv;
-	sv_init(&lv, &sv_localif, &l, NULL);
-	svv *v = sv_valloc(a, &lv);
+	srformatv pv;
+	pv.key = (char*)&key;
+	pv.r.size = sizeof(uint32_t);
+	pv.r.offset = 0;
+	svv *v = sv_vbuild(r, &pv, 1, NULL, 0);
+	v->lsn = lsn;
+	v->flags = flags;
 	svlogv logv;
 	logv.id = 0;
 	logv.next = 0;
 	sv_init(&logv.v, &sv_vif, v, NULL);
-	sv_logadd(log, a, &logv, NULL);
+	sv_logadd(log, r->a, &logv, NULL);
 }
 
 static void
@@ -52,14 +49,19 @@ sliter_tx(stc *cx)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
-	srseq seq;
-	sr_seqinit(&seq);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, &seq, &cmp, NULL, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, NULL, crc, NULL);
+
 	slconf conf = {
 		.path     = cx->suite->logdir,
 		.enable   = 1,
@@ -73,7 +75,7 @@ sliter_tx(stc *cx)
 	svlog log;
 	sv_loginit(&log);
 
-	alloclogv(&log, &a, 0, SVSET, 7);
+	alloclogv(&log, &r, 0, SVSET, 7);
 
 	sltx ltx;
 	t( sl_begin(&lp, &ltx) == 0 );
@@ -82,6 +84,7 @@ sliter_tx(stc *cx)
 
 	freelog(&log, &r);
 	t( sl_poolshutdown(&lp) == 0 );
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -89,14 +92,19 @@ sliter_tx_read_empty(stc *cx)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
-	srseq seq;
-	sr_seqinit(&seq);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, &seq, &cmp, NULL, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, NULL, crc, NULL);
+
 	slconf conf = {
 		.path     = cx->suite->logdir,
 		.enable   = 1,
@@ -118,7 +126,7 @@ sliter_tx_read_empty(stc *cx)
 		// begin
 		while (sr_iteratorhas(&li)) {
 			sv *v = sr_iteratorof(&li);
-			t( *(int*)sv_key(v) == 7 );
+			t( *(int*)sv_key(v, &r, 0) == 7 );
 			sr_iteratornext(&li);
 		}
 		t( sl_iter_error(&li) == 0 );
@@ -129,6 +137,7 @@ sliter_tx_read_empty(stc *cx)
 	sr_iteratorclose(&li);
 
 	t( sl_poolshutdown(&lp) == 0 );
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -136,14 +145,19 @@ sliter_tx_read0(stc *cx)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
-	srseq seq;
-	sr_seqinit(&seq);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, &seq, &cmp, NULL, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, NULL, crc, NULL);
+
 	slconf conf = {
 		.path     = cx->suite->logdir,
 		.enable   = 1,
@@ -155,7 +169,7 @@ sliter_tx_read0(stc *cx)
 	t( sl_poolrotate(&lp) == 0 );
 	svlog log;
 	sv_loginit(&log);
-	alloclogv(&log, &a, 0, SVSET, 7);
+	alloclogv(&log, &r, 0, SVSET, 7);
 	sltx ltx;
 	t( sl_begin(&lp, &ltx) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
@@ -170,7 +184,7 @@ sliter_tx_read0(stc *cx)
 		// begin
 		while (sr_iteratorhas(&li)) {
 			sv *v = sr_iteratorof(&li);
-			t( *(int*)sv_key(v) == 7 );
+			t( *(int*)sv_key(v, &r, 0) == 7 );
 			sr_iteratornext(&li);
 		}
 		t( sl_iter_error(&li) == 0 );
@@ -181,6 +195,7 @@ sliter_tx_read0(stc *cx)
 	sr_iteratorclose(&li);
 
 	t( sl_poolshutdown(&lp) == 0 );
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -188,14 +203,19 @@ sliter_tx_read1(stc *cx)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
-	srseq seq;
-	sr_seqinit(&seq);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, &seq, &cmp, NULL, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, NULL, crc, NULL);
+
 	slconf conf = {
 		.path     = cx->suite->logdir,
 		.enable   = 1,
@@ -207,9 +227,9 @@ sliter_tx_read1(stc *cx)
 	t( sl_poolrotate(&lp) == 0 );
 	svlog log;
 	sv_loginit(&log);
-	alloclogv(&log, &a, 0, SVSET, 7);
-	alloclogv(&log, &a, 0, SVSET, 8);
-	alloclogv(&log, &a, 0, SVSET, 9);
+	alloclogv(&log, &r, 0, SVSET, 7);
+	alloclogv(&log, &r, 0, SVSET, 8);
+	alloclogv(&log, &r, 0, SVSET, 9);
 	sltx ltx;
 	t( sl_begin(&lp, &ltx) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
@@ -224,15 +244,15 @@ sliter_tx_read1(stc *cx)
 		// begin
 		t( sr_iteratorhas(&li) == 1 );
 		sv *v = sr_iteratorof(&li);
-		t( *(int*)sv_key(v) == 7 );
+		t( *(int*)sv_key(v, &r, 0) == 7 );
 		sr_iteratornext(&li);
 		t( sr_iteratorhas(&li) == 1 );
 		v = sr_iteratorof(&li);
-		t( *(int*)sv_key(v) == 8 );
+		t( *(int*)sv_key(v, &r, 0) == 8 );
 		sr_iteratornext(&li);
 		t( sr_iteratorhas(&li) == 1 );
 		v = sr_iteratorof(&li);
-		t( *(int*)sv_key(v) == 9 );
+		t( *(int*)sv_key(v, &r, 0) == 9 );
 		sr_iteratornext(&li);
 		t( sr_iteratorhas(&li) == 0 );
 
@@ -244,6 +264,7 @@ sliter_tx_read1(stc *cx)
 	sr_iteratorclose(&li);
 
 	t( sl_poolshutdown(&lp) == 0 );
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -251,14 +272,19 @@ sliter_tx_read2(stc *cx)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
-	srseq seq;
-	sr_seqinit(&seq);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, &seq, &cmp, NULL, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, NULL, crc, NULL);
+
 	slconf conf = {
 		.path     = cx->suite->logdir,
 		.enable   = 1,
@@ -270,9 +296,9 @@ sliter_tx_read2(stc *cx)
 	t( sl_poolrotate(&lp) == 0 );
 	svlog log;
 	sv_loginit(&log);
-	alloclogv(&log, &a, 0, SVSET, 7);
-	alloclogv(&log, &a, 0, SVSET, 8);
-	alloclogv(&log, &a, 0, SVSET, 9);
+	alloclogv(&log, &r, 0, SVSET, 7);
+	alloclogv(&log, &r, 0, SVSET, 8);
+	alloclogv(&log, &r, 0, SVSET, 9);
 	sltx ltx;
 	t( sl_begin(&lp, &ltx) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
@@ -291,15 +317,15 @@ sliter_tx_read2(stc *cx)
 		// begin
 		t( sr_iteratorhas(&li) == 1 );
 		sv *v = sr_iteratorof(&li);
-		t( *(int*)sv_key(v) == 7 );
+		t( *(int*)sv_key(v, &r, 0) == 7 );
 		sr_iteratornext(&li);
 		t( sr_iteratorhas(&li) == 1 );
 		v = sr_iteratorof(&li);
-		t( *(int*)sv_key(v) == 8 );
+		t( *(int*)sv_key(v, &r, 0) == 8 );
 		sr_iteratornext(&li);
 		t( sr_iteratorhas(&li) == 1 );
 		v = sr_iteratorof(&li);
-		t( *(int*)sv_key(v) == 9 );
+		t( *(int*)sv_key(v, &r, 0) == 9 );
 		sr_iteratornext(&li);
 
 		t( sr_iteratorhas(&li) == 0 );
@@ -311,6 +337,7 @@ sliter_tx_read2(stc *cx)
 	sr_iteratorclose(&li);
 
 	t( sl_poolshutdown(&lp) == 0 );
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -318,14 +345,19 @@ sliter_tx_read3(stc *cx)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
-	srseq seq;
-	sr_seqinit(&seq);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, &seq, &cmp, NULL, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, NULL, crc, NULL);
+
 	slconf conf = {
 		.path     = cx->suite->logdir,
 		.enable   = 1,
@@ -338,7 +370,7 @@ sliter_tx_read3(stc *cx)
 	svlog log;
 
 	sv_loginit(&log);
-	alloclogv(&log, &a, 0, SVSET, 7); /* single stmt */
+	alloclogv(&log, &r, 0, SVSET, 7); /* single stmt */
 	sltx ltx;
 	t( sl_begin(&lp, &ltx) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
@@ -346,25 +378,25 @@ sliter_tx_read3(stc *cx)
 	freelog(&log, &r);
 
 	sv_loginit(&log);
-	alloclogv(&log, &a, 0, SVSET, 8); /* multi stmt */
-	alloclogv(&log, &a, 0, SVSET, 9);
-	alloclogv(&log, &a, 0, SVSET, 10);
+	alloclogv(&log, &r, 0, SVSET, 8); /* multi stmt */
+	alloclogv(&log, &r, 0, SVSET, 9);
+	alloclogv(&log, &r, 0, SVSET, 10);
 	t( sl_begin(&lp, &ltx) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );
 	freelog(&log, &r);
 
 	sv_loginit(&log);
-	alloclogv(&log, &a, 0, SVSET, 11); /* multi stmt */
-	alloclogv(&log, &a, 0, SVSET, 12);
-	alloclogv(&log, &a, 0, SVSET, 13);
+	alloclogv(&log, &r, 0, SVSET, 11); /* multi stmt */
+	alloclogv(&log, &r, 0, SVSET, 12);
+	alloclogv(&log, &r, 0, SVSET, 13);
 	t( sl_begin(&lp, &ltx) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );
 	freelog(&log, &r);
 
 	sv_loginit(&log);
-	alloclogv(&log, &a, 0, SVSET, 14); /* single stmt */
+	alloclogv(&log, &r, 0, SVSET, 14); /* single stmt */
 	t( sl_begin(&lp, &ltx) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );
@@ -383,7 +415,7 @@ sliter_tx_read3(stc *cx)
 		case 0:
 			t( sr_iteratorhas(&li) == 1 );
 			v = sr_iteratorof(&li);
-			t( *(int*)sv_key(v) == 7 );
+			t( *(int*)sv_key(v, &r, 0) == 7 );
 			sr_iteratornext(&li);
 			v = sr_iteratorof(&li);
 			t( v == NULL );
@@ -391,13 +423,13 @@ sliter_tx_read3(stc *cx)
 		case 1:
 			t( sr_iteratorhas(&li) == 1 );
 			v = sr_iteratorof(&li);
-			t( *(int*)sv_key(v) == 8 );
+			t( *(int*)sv_key(v, &r, 0) == 8 );
 			sr_iteratornext(&li);
 			v = sr_iteratorof(&li);
-			t( *(int*)sv_key(v) == 9 );
+			t( *(int*)sv_key(v, &r, 0) == 9 );
 			sr_iteratornext(&li);
 			v = sr_iteratorof(&li);
-			t( *(int*)sv_key(v) == 10 );
+			t( *(int*)sv_key(v, &r, 0) == 10 );
 			sr_iteratornext(&li);
 			v = sr_iteratorof(&li);
 			t( v == NULL );
@@ -405,13 +437,13 @@ sliter_tx_read3(stc *cx)
 		case 2:
 			t( sr_iteratorhas(&li) == 1 );
 			v = sr_iteratorof(&li);
-			t( *(int*)sv_key(v) == 11 );
+			t( *(int*)sv_key(v, &r, 0) == 11 );
 			sr_iteratornext(&li);
 			v = sr_iteratorof(&li);
-			t( *(int*)sv_key(v) == 12 );
+			t( *(int*)sv_key(v, &r, 0) == 12 );
 			sr_iteratornext(&li);
 			v = sr_iteratorof(&li);
-			t( *(int*)sv_key(v) == 13 );
+			t( *(int*)sv_key(v, &r, 0) == 13 );
 			sr_iteratornext(&li);
 			v = sr_iteratorof(&li);
 			t( v == NULL );
@@ -419,7 +451,7 @@ sliter_tx_read3(stc *cx)
 		case 3:
 			t( sr_iteratorhas(&li) == 1 );
 			v = sr_iteratorof(&li);
-			t( *(int*)sv_key(v) == 14 );
+			t( *(int*)sv_key(v, &r, 0) == 14 );
 			sr_iteratornext(&li);
 			v = sr_iteratorof(&li);
 			t( v == NULL );
@@ -434,6 +466,7 @@ sliter_tx_read3(stc *cx)
 	t( state == 3);
 
 	t( sl_poolshutdown(&lp) == 0 );
+	sr_keyfree(&cmp, &a);
 }
 
 stgroup *sliter_group(void)

@@ -114,11 +114,6 @@ sd_indexiter_open(sriter *i, sdindex *index, srorder o, void *key, int keysize)
 				ii->pos++;
 			break;
 		}
-		case SR_RANDOM:{
-			uint32_t rnd = *(uint32_t*)ii->key;
-			ii->pos = rnd % ii->index->h->count;
-			break;
-		}
 		default: assert(0);
 		}
 	}

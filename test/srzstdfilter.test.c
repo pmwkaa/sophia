@@ -16,7 +16,7 @@ srzstdfilter_compress_decompress(stc *cx srunused)
 	sra a;
 	sr_aopen(&a, &sr_stda);
 	sr r;
-	sr_init(&r, NULL, &a, NULL, NULL, NULL, NULL, NULL);
+	sr_init(&r, NULL, &a, NULL, SR_FKV, NULL, NULL, NULL, NULL);
 
 	char text[] =
 	"The Early English Text Society is a text publication society dedicated to the"

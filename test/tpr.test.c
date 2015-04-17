@@ -149,7 +149,7 @@ tpr_test1(stc *cx srunused)
 	o = sp_get(db, o);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "value", NULL) == 9 );
-	t( *(uint64_t*)sp_get(o, "lsn", NULL) == 2ULL );
+	t( *(uint64_t*)sp_get(o, "lsn") == 2ULL );
 	t( sp_destroy(o) == 0 );
 
 	t( sp_destroy(env) == 0 );

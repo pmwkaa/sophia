@@ -16,16 +16,17 @@
 static void
 addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 {
-	svlocal l;
-	l.lsn         = lsn;
-	l.flags       = flags;
-	l.key         = key;
-	l.keysize     = sizeof(int);
-	l.value       = key;
-	l.valuesize   = sizeof(int);
-	sv lv;
-	sv_init(&lv, &sv_localif, &l, NULL);
-	sd_buildadd(b, r, &lv, flags & SVDUP);
+	srformatv pv;
+	pv.key = (char*)key;
+	pv.r.size = sizeof(uint32_t);
+	pv.r.offset = 0;
+	svv *v = sv_vbuild(r, &pv, 1, (char*)key, sizeof(uint32_t));
+	v->lsn = lsn;
+	v->flags = flags;
+	sv vv;
+	sv_init(&vv, &sv_vif, v, NULL);
+	sd_buildadd(b, r, &vv, flags & SVDUP);
+	sv_vfree(r->a, v);
 }
 
 static void
@@ -33,14 +34,20 @@ sdv_test(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
-	srcomparator cmp = { sr_cmpu32, NULL };
 	srerror error;
 	sr_errorinit(&error);
-	sr r;
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, NULL, &cmp, &ij, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -66,7 +73,7 @@ sdv_test(stc *cx srunused)
 	t( v != NULL );
 	t( v->i == &sd_vif );
 
-	t( *(int*)sv_key(v) == i );
+	t( *(int*)sv_key(v, &r, 0) == i );
 	sr_iteratornext(&it);
 	t( sr_iteratorhas(&it) != 0 );
 
@@ -74,12 +81,13 @@ sdv_test(stc *cx srunused)
 	t( v != NULL );
 	t( v->i == &sd_vif );
 	
-	t( *(int*)sv_key(v) == j );
+	t( *(int*)sv_key(v, &r, 0) == j );
 	t( sv_lsn(v) == 4 );
 	t( sv_flags(v) == SVSET );
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 stgroup *sdv_group(void)

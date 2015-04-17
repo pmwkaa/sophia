@@ -65,7 +65,7 @@ si_redistribute(si *index, sr *r, sdc *c, sinode *node, srbuf *result,
 
 			svv *vgc = NULL;
 			sdindexpage *page = sd_indexmin(&p->self.index);
-			int rc = sr_compare(r->cmp, sv_vkey(v), v->keysize,
+			int rc = sr_compare(r->cmp, sv_vpointer(v), v->size,
 			                    sd_indexpage_min(page), page->sizemin);
 			if (srunlikely(rc >= 0))
 				break;
@@ -94,7 +94,7 @@ si_redistribute_set(si *index, sr *r, uint64_t vlsn, uint64_t now, svv *v)
 	/* match node */
 	sriter i;
 	sr_iterinit(si_iter, &i, r);
-	sr_iteropen(si_iter, &i, index, SR_ROUTE, sv_vkey(v), v->keysize);
+	sr_iteropen(si_iter, &i, index, SR_ROUTE, sv_vpointer(v), v->size);
 	sinode *node = sr_iterof(si_iter, &i);
 	assert(node != NULL);
 	/* update node */

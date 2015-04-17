@@ -18,7 +18,8 @@ struct sodbctl {
 	void         *parent;
 	char         *name;
 	uint32_t      id;
-	srcomparator  cmp;
+	srformat      format;
+	srkey         cmp;
 	srtrigger     on_complete;
 	char         *path;
 	uint32_t      created;
@@ -68,6 +69,7 @@ int       so_dbgarbage(sodb*);
 int       so_dbvisible(sodb*, uint32_t);
 void      so_dbbind(so*);
 void      so_dbunbind(so*, uint32_t);
-int       so_dbmalfunction(sodb *o);
+int       so_dbmalfunction(sodb*);
+svv      *so_dbv(sodb*, sov*);
 
 #endif

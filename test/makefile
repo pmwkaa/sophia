@@ -5,12 +5,11 @@ OBJECTS = st.o \
           srpager.test.o \
           sra.test.o \
           sraslab.test.o \
-          srcmp.test.o \
+          srkey.test.o \
           srorder.test.o \
           srrq.test.o \
           srzstdfilter.test.o \
           srlz4filter.test.o \
-          svlocal.test.o \
           svv.test.o \
           svindex.test.o \
           svindexiter.test.o \
@@ -30,6 +29,7 @@ OBJECTS = st.o \
           shutdown.test.o \
           drop.test.o \
           ddl.test.o \
+          multipart.test.o \
           snapshot.test.o \
           gc.test.o \
           backup.test.o \

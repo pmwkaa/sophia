@@ -64,6 +64,27 @@ static soobjif sodbctlif =
 };
 
 static int
+so_dbctl_free(sodbctl *c)
+{
+	sodb *o = c->parent;
+	so *e = so_of(&o->o);
+	if (c->name) {
+		sr_free(&e->a, c->name);
+		c->name = NULL;
+	}
+	if (c->path) {
+		sr_free(&e->a, c->path);
+		c->path = NULL;
+	}
+	sr_keyfree(&c->cmp, &e->a);
+	if (c->compression) {
+		sr_free(&e->a, c->compression);
+		c->compression = NULL;
+	}
+	return 0;
+}
+
+static int
 so_dbctl_init(sodbctl *c, char *name, void *db)
 {
 	memset(c, 0, sizeof(*c));
@@ -88,28 +109,26 @@ so_dbctl_init(sodbctl *c, char *name, void *db)
 		sr_error(&e->error, "%s", "memory allocation failed");
 		return -1;
 	}
-	sr_cmpset(&c->cmp, "string");
 	sr_triggerinit(&c->on_complete);
-	return 0;
-}
-
-static int
-so_dbctl_free(sodbctl *c)
-{
-	sodb *o = c->parent;
-	so *e = so_of(&o->o);
-	if (c->name) {
-		sr_free(&e->a, c->name);
-		c->name = NULL;
+	/* init single key part as string */
+	int rc;
+	sr_keyinit(&c->cmp);
+	srkeypart *part = sr_keyadd(&c->cmp, &e->a);
+	if (srunlikely(part == NULL)) {
+		so_dbctl_free(c);
+		return -1;
 	}
-	if (c->path) {
-		sr_free(&e->a, c->path);
-		c->path = NULL;
+	rc = sr_keypart_setname(part, &e->a, "key");
+	if (srunlikely(rc == -1)) {
+		so_dbctl_free(c);
+		return -1;
 	}
-	if (c->compression) {
-		sr_free(&e->a, c->compression);
-		c->compression = NULL;
+	rc = sr_keypart_set(part, &e->a, "string");
+	if (srunlikely(rc == -1)) {
+		so_dbctl_free(c);
+		return -1;
 	}
+	c->format = SR_FKV;
 	return 0;
 }
 
@@ -141,6 +160,9 @@ so_dbctl_validate(sodbctl *c)
 		sr_error(&e->error, "bad compression type '%s'", c->compression);
 		return -1;
 	}
+	o->r.cmp = &o->ctl.cmp;
+	o->r.format = o->ctl.format;
+	o->r.compression = o->ctl.compression_if;
 	return 0;
 }
 
@@ -232,8 +254,6 @@ so_dbopen(soobj *obj, va_list args srunused)
 	int rc = so_dbctl_validate(&o->ctl);
 	if (srunlikely(rc == -1))
 		return -1;
-	o->r.cmp = &o->ctl.cmp;
-	o->r.compression = o->ctl.compression_if;
 	sx_indexset(&o->coindex, o->ctl.id, o->r.cmp);
 	rc = so_recoverbegin(o);
 	if (srunlikely(rc == -1))
@@ -546,4 +566,35 @@ int so_dbmalfunction(sodb *o)
 {
 	so_statusset(&o->status, SO_MALFUNCTION);
 	return -1;
+}
+
+svv *so_dbv(sodb *db, sov *o)
+{
+	so *e = so_of(&db->o);
+	svv *v;
+	/* reuse object */
+	if (o->v.v) {
+		v = sv_vdup(db->r.a, &o->v);
+		goto ret;
+	}
+	/* create object from raw data */
+	if (o->raw) {
+		v = sv_vbuildraw(db->r.a, o->raw, o->rawsize);
+		goto ret;
+	}
+	/* create object using current format, supplied
+	 * key-chain and value */
+	if (srunlikely(o->keyc != db->ctl.cmp.count)) {
+		sr_error(&e->error, "%s", "bad object key");
+		return NULL;
+	}
+	v = sv_vbuild(&db->r, o->keyv, o->keyc,
+	              o->value,
+	              o->valuesize);
+ret:
+	if (srunlikely(v == NULL)) {
+		sr_error(&e->error, "%s", "memory allocation failed");
+		return NULL;
+	}
+	return v;
 }

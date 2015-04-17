@@ -48,7 +48,7 @@ object_lsn0(stc *cx)
 	t(o != NULL);
 	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
-	t( *(uint64_t*)sp_get(o, "lsn", NULL) == 0ULL );
+	t( sp_get(o, "lsn") == NULL );
 	t( sp_set(db, o) == 0 );
 	o = sp_object(db);
 	t(o != NULL);
@@ -61,8 +61,7 @@ object_lsn0(stc *cx)
 	t( size == sizeof(key) );
 	t( *(int*)sp_get(o, "value", &size) == key );
 	t( size == sizeof(key) );
-	t( *(uint64_t*)sp_get(o, "lsn", &size) > 0 );
-	t( size == sizeof(uint64_t) );
+	t( *(uint64_t*)sp_get(o, "lsn") > 0 );
 	o = sp_get(c);
 	t( o ==  NULL );
 	sp_destroy(c);

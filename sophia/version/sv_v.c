@@ -26,36 +26,20 @@ sv_viflsnset(sv *v, uint64_t lsn) {
 }
 
 static char*
-sv_vifkey(sv *v) {
-	return sv_vkey(((svv*)v->v));
-}
-
-static uint16_t
-sv_vifkeysize(sv *v) {
-	return ((svv*)v->v)->keysize;
-}
-
-static char*
-sv_vifvalue(sv *v)
-{
-	svv *vv = v->v;
-	if (vv->valuesize == 0)
-		return NULL;
-	return sv_vvalue(vv);
+sv_vifpointer(sv *v) {
+	return sv_vpointer(((svv*)v->v));
 }
 
 static uint32_t
-sv_vifvaluesize(sv *v) {
-	return ((svv*)v->v)->valuesize;
+sv_vifsize(sv *v) {
+	return ((svv*)v->v)->size;
 }
 
 svif sv_vif =
 {
-	.flags     = sv_vifflags,
-	.lsn       = sv_viflsn,
-	.lsnset    = sv_viflsnset,
-	.key       = sv_vifkey,
-	.keysize   = sv_vifkeysize,
-	.value     = sv_vifvalue,
-	.valuesize = sv_vifvaluesize
+	.flags   = sv_vifflags,
+	.lsn     = sv_viflsn,
+	.lsnset  = sv_viflsnset,
+	.pointer = sv_vifpointer,
+	.size    = sv_vifsize
 };

@@ -15,23 +15,20 @@
 #include <sophia.h>
 
 static void
-alloclogv(svlog *log, sra *a, uint64_t lsn, uint8_t flags, int key)
+alloclogv(svlog *log, sr *r, uint64_t lsn, uint8_t flags, int key)
 {
-	svlocal l;
-	l.lsn         = lsn;
-	l.flags       = flags;
-	l.key         = &key;
-	l.keysize     = sizeof(int);
-	l.value       = NULL;
-	l.valuesize   = 0;
-	sv lv;
-	sv_init(&lv, &sv_localif, &l, NULL);
-	svv *v = sv_valloc(a, &lv);
+	srformatv pv;
+	pv.key = (char*)&key;
+	pv.r.size = sizeof(uint32_t);
+	pv.r.offset = 0;
+	svv *v = sv_vbuild(r, &pv, 1, NULL, 0);
+	v->lsn = lsn;
+	v->flags = flags;
 	svlogv logv;
 	logv.id = 0;
 	logv.next = 0;
 	sv_init(&logv.v, &sv_vif, v, NULL);
-	sv_logadd(log, a, &logv, NULL);
+	sv_logadd(log, r->a, &logv, NULL);
 }
 
 static void
@@ -52,14 +49,19 @@ sl_begin_commit(stc *cx)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
-	srseq seq;
-	sr_seqinit(&seq);
-	sr r;
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, &seq, &cmp, NULL, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, NULL, crc, NULL);
+
 	slconf conf = {
 		.path     = cx->suite->logdir,
 		.enable   = 1,
@@ -73,7 +75,7 @@ sl_begin_commit(stc *cx)
 	svlog log;
 	sv_loginit(&log);
 
-	alloclogv(&log, &a, 0, SVSET, 7);
+	alloclogv(&log, &r, 0, SVSET, 7);
 
 	sltx ltx;
 	t( sl_begin(&lp, &ltx) == 0 );
@@ -82,6 +84,7 @@ sl_begin_commit(stc *cx)
 
 	freelog(&log, &r);
 	t( sl_poolshutdown(&lp) == 0 );
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -89,14 +92,19 @@ sl_begin_rollback(stc *cx)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
-	srseq seq;
-	sr_seqinit(&seq);
-	sr r;
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
+	srseq seq;
+	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&r, &error, &a, &seq, &cmp, NULL, crc, NULL);
+	sr r;
+	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, NULL, crc, NULL);
+
 	slconf conf = {
 		.path     = cx->suite->logdir,
 		.enable   = 1,
@@ -110,7 +118,7 @@ sl_begin_rollback(stc *cx)
 	svlog log;
 	sv_loginit(&log);
 
-	alloclogv(&log, &a, 0, SVSET, 7);
+	alloclogv(&log, &r, 0, SVSET, 7);
 
 	sltx ltx;
 	t( sl_begin(&lp, &ltx) == 0 );
@@ -119,6 +127,7 @@ sl_begin_rollback(stc *cx)
 
 	freelog(&log, &r);
 	t( sl_poolshutdown(&lp) == 0 );
+	sr_keyfree(&cmp, &a);
 }
 
 stgroup *sl_group(void)

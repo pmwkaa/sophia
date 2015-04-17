@@ -13,14 +13,18 @@
 #include <sophia.h>
 
 static sv*
-svmergeiter_valloc(sra *a, svlocal *l)
+allocv(sr *r, uint64_t lsn, uint8_t flags, void *key)
 {
-	sv lv;
-	sv_init(&lv, &sv_localif, l, NULL);
-	svv *kv = sv_valloc(a, &lv);
-	sv *v = sr_malloc(a, sizeof(sv));
-	sv_init(v, &sv_vif, kv, NULL);
-	return v;
+	srformatv pv;
+	pv.key = (char*)key;
+	pv.r.size = sizeof(uint32_t);
+	pv.r.offset = 0;
+	svv *v = sv_vbuild(r, &pv, 1, NULL, 0);
+	v->lsn = lsn;
+	v->flags = flags;
+	sv *vv = sr_malloc(r->a, sizeof(sv));
+	sv_init(vv, &sv_vif, v, NULL);
+	return vv;
 }
 
 static void
@@ -28,11 +32,15 @@ svmergeiter_merge_a(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -41,14 +49,7 @@ svmergeiter_merge_a(stc *cx srunused)
 	int i = 0;
 	while (i < 10)
 	{
-		svlocal l;
-		l.lsn         = i,
-		l.flags       = SVSET,
-		l.key         = &i;
-		l.keysize     = sizeof(i);
-		l.value       = NULL;
-		l.valuesize   = 0;
-		sv *v = svmergeiter_valloc(&a, &l);
+		sv *v = allocv(&r, i, SVSET, &i);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
 	}
@@ -75,7 +76,7 @@ svmergeiter_merge_a(stc *cx srunused)
 	i = 0;
 	while (sr_iteratorhas(&merge)) {
 		sv *v = (sv*)sr_iteratorof(&merge);
-		t( *(int*)sv_key(v) == i );
+		t( *(int*)sv_key(v, &r, 0) == i );
 		t( sv_lsn(v) == i );
 		t( sv_flags(v) == SVSET );
 		sr_iteratornext(&merge);
@@ -94,6 +95,7 @@ svmergeiter_merge_a(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -101,11 +103,15 @@ svmergeiter_merge_b(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -114,14 +120,7 @@ svmergeiter_merge_b(stc *cx srunused)
 	int i = 0;
 	while (i < 10)
 	{
-		svlocal l;
-		l.lsn         = i,
-		l.flags       = SVSET,
-		l.key         = &i;
-		l.keysize     = sizeof(i);
-		l.value       = NULL;
-		l.valuesize   = 0;
-		sv *v = svmergeiter_valloc(&a, &l);
+		sv *v = allocv(&r, i, SVSET, &i);
 		t(sr_bufadd(&vlistb, &a, &v, sizeof(sv**)) == 0);
 		i++;
 	}
@@ -148,7 +147,7 @@ svmergeiter_merge_b(stc *cx srunused)
 	i = 0;
 	while (sr_iteratorhas(&merge)) {
 		sv *v = (sv*)sr_iteratorof(&merge);
-		t( *(int*)sv_key(v) == i );
+		t( *(int*)sv_key(v, &r, 0) == i );
 		t( sv_lsn(v) == i );
 		t( sv_flags(v) == SVSET );
 		sr_iteratornext(&merge);
@@ -167,6 +166,7 @@ svmergeiter_merge_b(stc *cx srunused)
 	}
 	sr_buffree(&vlistb, &a);
 	sv_mergefree(&m, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -174,11 +174,15 @@ svmergeiter_merge_ab(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -187,27 +191,13 @@ svmergeiter_merge_ab(stc *cx srunused)
 	int i = 0;
 	while (i < 5)
 	{
-		svlocal l;
-		l.lsn         = i,
-		l.flags       = SVSET,
-		l.key         = &i;
-		l.keysize     = sizeof(i);
-		l.value       = NULL;
-		l.valuesize   = 0;
-		sv *v = svmergeiter_valloc(&a, &l);
+		sv *v = allocv(&r, i, SVSET, &i);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
 	}
 	while (i < 10)
 	{
-		svlocal l;
-		l.lsn         = i,
-		l.flags       = SVSET,
-		l.key         = &i;
-		l.keysize     = sizeof(i);
-		l.value       = NULL;
-		l.valuesize   = 0;
-		sv *v = svmergeiter_valloc(&a, &l);
+		sv *v = allocv(&r, i, SVSET, &i);
 		t(sr_bufadd(&vlistb, &a, &v, sizeof(sv**)) == 0);
 		i++;
 	}
@@ -235,7 +225,7 @@ svmergeiter_merge_ab(stc *cx srunused)
 	i = 0;
 	while (sr_iteratorhas(&merge)) {
 		sv *v = (sv*)sr_iteratorof(&merge);
-		t( *(int*)sv_key(v) == i );
+		t( *(int*)sv_key(v, &r, 0) == i );
 		t( sv_lsn(v) == i );
 		t( sv_flags(v) == SVSET );
 		sr_iteratornext(&merge);
@@ -263,6 +253,7 @@ svmergeiter_merge_ab(stc *cx srunused)
 	sr_buffree(&vlista, &a);
 	sr_buffree(&vlistb, &a);
 	sv_mergefree(&m, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -270,11 +261,15 @@ svmergeiter_merge_abc(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -285,40 +280,19 @@ svmergeiter_merge_abc(stc *cx srunused)
 	int i = 0;
 	while (i < 5)
 	{
-		svlocal l;
-		l.lsn         = i,
-		l.flags       = SVSET,
-		l.key         = &i;
-		l.keysize     = sizeof(i);
-		l.value       = NULL;
-		l.valuesize   = 0;
-		sv *v = svmergeiter_valloc(&a, &l);
+		sv *v = allocv(&r, i, SVSET, &i);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
 	}
 	while (i < 10)
 	{
-		svlocal l;
-		l.lsn         = i,
-		l.flags       = SVSET,
-		l.key         = &i;
-		l.keysize     = sizeof(i);
-		l.value       = NULL;
-		l.valuesize   = 0;
-		sv *v = svmergeiter_valloc(&a, &l);
+		sv *v = allocv(&r, i, SVSET, &i);
 		t(sr_bufadd(&vlistb, &a, &v, sizeof(sv**)) == 0);
 		i++;
 	}
 	while (i < 15)
 	{
-		svlocal l;
-		l.lsn         = i,
-		l.flags       = SVSET,
-		l.key         = &i;
-		l.keysize     = sizeof(i);
-		l.value       = NULL;
-		l.valuesize   = 0;
-		sv *v = svmergeiter_valloc(&a, &l);
+		sv *v = allocv(&r, i, SVSET, &i);
 		t(sr_bufadd(&vlistc, &a, &v, sizeof(sv**)) == 0);
 		i++;
 	}
@@ -351,7 +325,7 @@ svmergeiter_merge_abc(stc *cx srunused)
 	i = 0;
 	while (sr_iteratorhas(&merge)) {
 		sv *v = (sv*)sr_iteratorof(&merge);
-		t( *(int*)sv_key(v) == i );
+		t( *(int*)sv_key(v, &r, 0) == i );
 		t( sv_lsn(v) == i );
 		t( sv_flags(v) == SVSET );
 		sr_iteratornext(&merge);
@@ -388,6 +362,7 @@ svmergeiter_merge_abc(stc *cx srunused)
 	sr_buffree(&vlistb, &a);
 	sr_buffree(&vlistc, &a);
 	sv_mergefree(&m, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -395,11 +370,15 @@ svmergeiter_merge_ba(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -408,27 +387,13 @@ svmergeiter_merge_ba(stc *cx srunused)
 	int i = 0;
 	while (i < 5)
 	{
-		svlocal l;
-		l.lsn         = i,
-		l.flags       = SVSET,
-		l.key         = &i;
-		l.keysize     = sizeof(i);
-		l.value       = NULL;
-		l.valuesize   = 0;
-		sv *v = svmergeiter_valloc(&a, &l);
+		sv *v = allocv(&r, i, SVSET, &i);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
 	}
 	while (i < 10)
 	{
-		svlocal l;
-		l.lsn         = i,
-		l.flags       = SVSET,
-		l.key         = &i;
-		l.keysize     = sizeof(i);
-		l.value       = NULL;
-		l.valuesize   = 0;
-		sv *v = svmergeiter_valloc(&a, &l);
+		sv *v = allocv(&r, i, SVSET, &i);
 		t(sr_bufadd(&vlistb, &a, &v, sizeof(sv**)) == 0);
 		i++;
 	}
@@ -456,7 +421,7 @@ svmergeiter_merge_ba(stc *cx srunused)
 	i = 0;
 	while (sr_iteratorhas(&merge)) {
 		sv *v = (sv*)sr_iteratorof(&merge);
-		t( *(int*)sv_key(v) == i );
+		t( *(int*)sv_key(v, &r, 0) == i );
 		t( sv_lsn(v) == i );
 		t( sv_flags(v) == SVSET );
 		sr_iteratornext(&merge);
@@ -484,6 +449,7 @@ svmergeiter_merge_ba(stc *cx srunused)
 	sr_buffree(&vlista, &a);
 	sr_buffree(&vlistb, &a);
 	sv_mergefree(&m, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -491,11 +457,15 @@ svmergeiter_merge_dup_ab(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -505,14 +475,7 @@ svmergeiter_merge_dup_ab(stc *cx srunused)
 	int lsn = 10;
 	while (i < 5)
 	{
-		svlocal l;
-		l.lsn         = lsn,
-		l.flags       = SVSET,
-		l.key         = &i;
-		l.keysize     = sizeof(i);
-		l.value       = NULL;
-		l.valuesize   = 0;
-		sv *v = svmergeiter_valloc(&a, &l);
+		sv *v = allocv(&r, lsn, SVSET, &i);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
 		lsn--;
@@ -520,14 +483,7 @@ svmergeiter_merge_dup_ab(stc *cx srunused)
 	i = 0 ;
 	while (i < 5)
 	{
-		svlocal l;
-		l.lsn         = lsn,
-		l.flags       = SVSET,
-		l.key         = &i;
-		l.keysize     = sizeof(i);
-		l.value       = NULL;
-		l.valuesize   = 0;
-		sv *v = svmergeiter_valloc(&a, &l);
+		sv *v = allocv(&r, lsn, SVSET, &i);
 		t(sr_bufadd(&vlistb, &a, &v, sizeof(sv**)) == 0);
 		i++;
 		lsn--;
@@ -558,11 +514,11 @@ svmergeiter_merge_dup_ab(stc *cx srunused)
 	while (sr_iteratorhas(&merge)) {
 		sv *v = (sv*)sr_iteratorof(&merge);
 		if ((i % 2) == 0) {
-			t( *(int*)sv_key(v) == key );
+			t( *(int*)sv_key(v, &r, 0) == key );
 			t( sv_flags(v) == SVSET );
 			key++;
 		} else {
-			t( *(int*)sv_key(v) == key - 1);
+			t( *(int*)sv_key(v, &r, 0) == key - 1);
 			t( (sv_flags(v) | sv_mergeisdup(&merge)) == (SVSET|SVDUP) );
 		}
 		sr_iteratornext(&merge);
@@ -590,6 +546,7 @@ svmergeiter_merge_dup_ab(stc *cx srunused)
 	sr_buffree(&vlista, &a);
 	sr_buffree(&vlistb, &a);
 	sv_mergefree(&m, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -597,11 +554,15 @@ svmergeiter_merge_dup_a_chain(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -612,14 +573,7 @@ svmergeiter_merge_dup_a_chain(stc *cx srunused)
 	int i = 0;
 	while (i < 5)
 	{
-		svlocal l;
-		l.lsn         = lsn,
-		l.flags       = SVSET | ((i > 0) ? SVDUP: 0),
-		l.key         = &key;
-		l.keysize     = sizeof(key);
-		l.value       = NULL;
-		l.valuesize   = 0;
-		sv *v = svmergeiter_valloc(&a, &l);
+		sv *v = allocv(&r, lsn, SVSET | ((i > 0) ? SVDUP: 0), &key);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
 		lsn--;
@@ -648,7 +602,7 @@ svmergeiter_merge_dup_a_chain(stc *cx srunused)
 	i = 0;
 	while (sr_iteratorhas(&merge)) {
 		sv *v = (sv*)sr_iteratorof(&merge);
-		t( *(int*)sv_key(v) == key );
+		t( *(int*)sv_key(v, &r, 0) == key );
 		if (i == 0) {
 			t( sv_flags(v) == SVSET );
 		} else {
@@ -679,6 +633,7 @@ svmergeiter_merge_dup_a_chain(stc *cx srunused)
 	sr_buffree(&vlista, &a);
 	sr_buffree(&vlistb, &a);
 	sv_mergefree(&m, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -686,11 +641,15 @@ svmergeiter_merge_dup_ab_chain(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -701,14 +660,7 @@ svmergeiter_merge_dup_ab_chain(stc *cx srunused)
 	int i = 0;
 	while (i < 5)
 	{
-		svlocal l;
-		l.lsn         = lsn,
-		l.flags       = SVSET | ((i > 0) ? SVDUP: 0),
-		l.key         = &key;
-		l.keysize     = sizeof(key);
-		l.value       = NULL;
-		l.valuesize   = 0;
-		sv *v = svmergeiter_valloc(&a, &l);
+		sv *v = allocv(&r, lsn, SVSET | ((i > 0) ? SVDUP: 0), &key);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
 		lsn--;
@@ -716,14 +668,7 @@ svmergeiter_merge_dup_ab_chain(stc *cx srunused)
 	i = 0 ;
 	while (i < 5)
 	{
-		svlocal l;
-		l.lsn         = lsn,
-		l.flags       = SVSET | ((i > 0) ? SVDUP: 0),
-		l.key         = &key;
-		l.keysize     = sizeof(key);
-		l.value       = NULL;
-		l.valuesize   = 0;
-		sv *v = svmergeiter_valloc(&a, &l);
+		sv *v = allocv(&r, lsn, SVSET | ((i > 0) ? SVDUP: 0), &key);
 		t(sr_bufadd(&vlistb, &a, &v, sizeof(sv**)) == 0);
 		i++;
 		lsn--;
@@ -752,7 +697,7 @@ svmergeiter_merge_dup_ab_chain(stc *cx srunused)
 	i = 0;
 	while (sr_iteratorhas(&merge)) {
 		sv *v = (sv*)sr_iteratorof(&merge);
-		t( *(int*)sv_key(v) == key );
+		t( *(int*)sv_key(v, &r, 0) == key );
 		if (i == 0) {
 			t( sv_flags(v) == SVSET );
 		} else {
@@ -783,6 +728,7 @@ svmergeiter_merge_dup_ab_chain(stc *cx srunused)
 	sr_buffree(&vlista, &a);
 	sr_buffree(&vlistb, &a);
 	sv_mergefree(&m, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 static void
@@ -790,11 +736,15 @@ svmergeiter_merge_dup_abc_chain(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srcomparator cmp = { sr_cmpu32, NULL };
+	srkey cmp;
+	sr_keyinit(&cmp);
+	srkeypart *part = sr_keyadd(&cmp, &a);
+	t( sr_keypart_setname(part, &a, "key") == 0 );
+	t( sr_keypart_set(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -807,14 +757,7 @@ svmergeiter_merge_dup_abc_chain(stc *cx srunused)
 	int i = 0;
 	while (i < 5)
 	{
-		svlocal l;
-		l.lsn         = lsn,
-		l.flags       = SVSET | ((i > 0) ? SVDUP: 0),
-		l.key         = &key;
-		l.keysize     = sizeof(key);
-		l.value       = NULL;
-		l.valuesize   = 0;
-		sv *v = svmergeiter_valloc(&a, &l);
+		sv *v = allocv(&r, lsn, SVSET | ((i > 0) ? SVDUP: 0), &key);
 		t(sr_bufadd(&vlista, &a, &v, sizeof(sv**)) == 0);
 		i++;
 		lsn--;
@@ -822,14 +765,7 @@ svmergeiter_merge_dup_abc_chain(stc *cx srunused)
 	i = 0 ;
 	while (i < 5)
 	{
-		svlocal l;
-		l.lsn         = lsn,
-		l.flags       = SVSET | ((i > 0) ? SVDUP: 0),
-		l.key         = &key;
-		l.keysize     = sizeof(key);
-		l.value       = NULL;
-		l.valuesize   = 0;
-		sv *v = svmergeiter_valloc(&a, &l);
+		sv *v = allocv(&r, lsn, SVSET | ((i > 0) ? SVDUP: 0), &key);
 		t(sr_bufadd(&vlistb, &a, &v, sizeof(sv**)) == 0);
 		i++;
 		lsn--;
@@ -837,14 +773,7 @@ svmergeiter_merge_dup_abc_chain(stc *cx srunused)
 	i = 0 ;
 	while (i < 5)
 	{
-		svlocal l;
-		l.lsn         = lsn,
-		l.flags       = SVSET | ((i > 0) ? SVDUP: 0),
-		l.key         = &key;
-		l.keysize     = sizeof(key);
-		l.value       = NULL;
-		l.valuesize   = 0;
-		sv *v = svmergeiter_valloc(&a, &l);
+		sv *v = allocv(&r, lsn, SVSET | ((i > 0) ? SVDUP: 0), &key);
 		t(sr_bufadd(&vlistc, &a, &v, sizeof(sv**)) == 0);
 		i++;
 		lsn--;
@@ -879,7 +808,7 @@ svmergeiter_merge_dup_abc_chain(stc *cx srunused)
 	i = 0;
 	while (sr_iteratorhas(&merge)) {
 		sv *v = (sv*)sr_iteratorof(&merge);
-		t( *(int*)sv_key(v) == key );
+		t( *(int*)sv_key(v, &r, 0) == key );
 		if (i == 0) {
 			t( sv_flags(v) == SVSET );
 		} else {
@@ -919,6 +848,7 @@ svmergeiter_merge_dup_abc_chain(stc *cx srunused)
 	sr_buffree(&vlistb, &a);
 	sr_buffree(&vlistc, &a);
 	sv_mergefree(&m, &a);
+	sr_keyfree(&cmp, &a);
 }
 
 stgroup *svmergeiter_group(void)

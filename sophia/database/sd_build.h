@@ -83,7 +83,7 @@ sd_buildmin(sdbuild *b) {
 static inline char*
 sd_buildminkey(sdbuild *b) {
 	sdbuildref *r = sd_buildref(b);
-	return b->v.s + r->v + sd_buildmin(b)->keyoffset;
+	return b->v.s + r->v + sd_buildmin(b)->offset;
 }
 
 static inline sdv*
@@ -95,7 +95,7 @@ sd_buildmax(sdbuild *b) {
 static inline char*
 sd_buildmaxkey(sdbuild *b) {
 	sdbuildref *r = sd_buildref(b);
-	return b->v.s + r->v + sd_buildmax(b)->keyoffset;
+	return b->v.s + r->v + sd_buildmax(b)->offset;
 }
 
 int sd_buildbegin(sdbuild*, sr*, int, int);

@@ -61,8 +61,8 @@ so_queryget(sorequest *r)
 	sodb *db = (sodb*)r->object;
 	so *e = so_of(r->object);
 
-	uint32_t keysize = sv_keysize(&r->arg);
-	void *key = sv_key(&r->arg);
+	uint32_t keysize = sv_size(&r->arg);
+	void *key = sv_pointer(&r->arg);
 	if (r->vlsn_generate)
 		r->vlsn = sr_seq(db->r.seq, SR_LSN);
 
@@ -80,8 +80,6 @@ so_queryget(sorequest *r)
 	}
 	si_queryclose(&q);
 	si_cachefree(&cache, &db->r);
-
-	/* free key */
 	r->rc = rc;
 	if (srunlikely(rc <= 0))
 		return rc;
@@ -128,11 +126,6 @@ int so_txdbset(sodb *db, int async, uint8_t flags, va_list args)
 		sr_error(&e->error, "%s", "bad arguments");
 		return -1;
 	}
-	sv *ov = &o->v;
-	if (srunlikely(ov->v == NULL)) {
-		sr_error(&e->error, "%s", "bad arguments");
-		goto error;
-	}
 	soobj *parent = o->parent;
 	if (srunlikely(parent != &db->o)) {
 		sr_error(&e->error, "%s", "bad object parent");
@@ -142,15 +135,13 @@ int so_txdbset(sodb *db, int async, uint8_t flags, va_list args)
 		goto error;
 
 	/* prepare object */
-	svlocal l;
-	l.flags     = flags;
-	l.lsn       = 0;
-	l.key       = sv_key(ov);
-	l.keysize   = sv_keysize(ov);
-	l.value     = sv_value(ov);
-	l.valuesize = sv_valuesize(ov);
+	svv *v = so_dbv(db, o);
+	if (srunlikely(v == NULL))
+		goto error;
+	v->flags = flags;
 	sv vp;
-	sv_init(&vp, &sv_localif, &l, NULL);
+	sv_init(&vp, &sv_vif, v, NULL);
+	so_objdestroy(&o->o);
 
 	/* concurrency */
 	sxstate s = sx_setstmt(&e->xm, &db->coindex, &vp);
@@ -158,27 +149,21 @@ int so_txdbset(sodb *db, int async, uint8_t flags, va_list args)
 	switch (s) {
 	case SXLOCK: rc = 2;
 	case SXROLLBACK:
-		so_objdestroy(&o->o);
+		sv_vfree(db->r.a, v);
 		return rc;
 	default: break;
 	}
 
 	/* ensure quota */
-	sr_quota(&e->quota, SR_QADD, sv_vsizeof(&vp));
-
-	svv *v = sv_valloc(db->r.a, &vp);
-	if (srunlikely(v == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
-		goto error;
-	}
-	sv_init(&vp, &sv_vif, v, NULL);
-	so_objdestroy(&o->o);
+	sr_quota(&e->quota, SR_QADD, sizeof(svv) + sv_size(&vp));
 
 	/* asynchronous */
 	if (async) {
 		sorequest *task = so_requestnew(e, SO_REQWRITE, &db->o, &vp);
-		if (srunlikely(task == NULL))
+		if (srunlikely(task == NULL)) {
+			sv_vfree(db->r.a, v);
 			return -1;
+		}
 		so_requestadd(e, task);
 		return 0;
 	}
@@ -186,7 +171,10 @@ int so_txdbset(sodb *db, int async, uint8_t flags, va_list args)
 	/* synchronous */
 	sorequest req;
 	so_requestinit(e, &req, SO_REQWRITE, &db->o, &vp);
-	return so_querywrite(&req);
+	rc = so_querywrite(&req);
+	if (srunlikely(rc == -1))
+		sv_vfree(db->r.a, v);
+	return rc;
 error:
 	so_objdestroy(&o->o);
 	return -1;
@@ -202,10 +190,6 @@ void *so_txdbget(sodb *db, int async, uint64_t vlsn, int vlsn_generate, va_list 
 		sr_error(&e->error, "%s", "bad arguments");
 		return NULL;
 	}
-	if (srunlikely(sv_key(&o->v) == NULL)) {
-		sr_error(&e->error, "%s", "bad arguments");
-		goto error;
-	}
 	soobj *parent = o->parent;
 	if (srunlikely(parent != &db->o)) {
 		sr_error(&e->error, "%s", "bad object parent");
@@ -214,19 +198,20 @@ void *so_txdbget(sodb *db, int async, uint64_t vlsn, int vlsn_generate, va_list 
 	if (srunlikely(! so_online(&db->status)))
 		goto error;
 
+	/* prepare key object */
+	svv *v = so_dbv(db, o);
+	if (srunlikely(v == NULL))
+		goto error;
+	sv vp;
+	sv_init(&vp, &sv_vif, v, NULL);
+	so_objdestroy(&o->o);
+
 	/* register transaction statement */
 	sx_getstmt(&e->xm, &db->coindex);
 
 	/* asynchronous */
 	if (async)
 	{
-		svv *v = sv_valloc(db->r.a, &o->v);
-		if (srunlikely(v == NULL)) {
-			sr_error(&e->error, "%s", "memory allocation failed");
-			goto error;
-		}
-		sv vp;
-		sv_init(&vp, &sv_vif, v, NULL);
 		sorequest *task = so_requestnew(e, SO_REQGET, &db->o, &vp);
 		if (srunlikely(task == NULL)) {
 			sv_vfree(db->r.a, v);
@@ -240,10 +225,10 @@ void *so_txdbget(sodb *db, int async, uint64_t vlsn, int vlsn_generate, va_list 
 
 	/* synchronous */
 	sorequest req;
-	so_requestinit(e, &req, SO_REQGET, &db->o, &o->v);
+	so_requestinit(e, &req, SO_REQGET, &db->o, &vp);
 	so_requestvlsn(&req, vlsn, vlsn_generate);
 	so_queryget(&req);
-	so_objdestroy(&o->o);
+	sv_vfree(db->r.a, v);
 	return req.result;
 error:
 	so_objdestroy(&o->o);
@@ -261,11 +246,6 @@ so_txwrite(soobj *obj, uint8_t flags, va_list args)
 	if (srunlikely(o->o.id != SOV)) {
 		sr_error(&e->error, "%s", "bad arguments");
 		return -1;
-	}
-	sv *ov = &o->v;
-	if (srunlikely(ov->v == NULL)) {
-		sr_error(&e->error, "%s", "bad arguments");
-		goto error;
 	}
 	soobj *parent = o->parent;
 	if (parent == NULL || parent->id != SODB) {
@@ -293,27 +273,21 @@ so_txwrite(soobj *obj, uint8_t flags, va_list args)
 	}
 
 	/* prepare object */
-	svlocal l;
-	l.flags     = flags;
-	l.lsn       = sv_lsn(ov);
-	l.key       = sv_key(ov);
-	l.keysize   = sv_keysize(ov);
-	l.value     = sv_value(ov);
-	l.valuesize = sv_valuesize(ov);
+	svv *v = so_dbv(db, o);
+	if (srunlikely(v == NULL))
+		goto error;
+	v->flags = flags;
+	v->log = o->log;
 	sv vp;
-	sv_init(&vp, &sv_localif, &l, NULL);
+	sv_init(&vp, &sv_vif, v, NULL);
+	so_objdestroy(&o->o);
 
 	/* ensure quota */
-	sr_quota(&e->quota, SR_QADD, sv_vsizeof(&vp));
+	sr_quota(&e->quota, SR_QADD, sizeof(svv) + sv_size(&vp));
 
-	svv *v = sv_valloc(db->r.a, &vp);
-	if (srunlikely(v == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
-		goto error;
-	}
-	v->log = o->log;
 	int rc = sx_set(&t->t, &db->coindex, v);
-	so_objdestroy(&o->o);
+	if (srunlikely(rc == -1))
+		sv_vfree(db->r.a, v);
 	return rc;
 error:
 	so_objdestroy(&o->o);
@@ -344,10 +318,6 @@ so_txget(soobj *obj, va_list args)
 		sr_error(&e->error, "%s", "bad arguments");
 		return NULL;
 	}
-	if (srunlikely(sv_key(&o->v) == NULL)) {
-		sr_error(&e->error, "%s", "bad arguments");
-		return NULL;
-	}
 	soobj *parent = o->parent;
 	if (parent == NULL || parent->id != SODB) {
 		sr_error(&e->error, "%s", "bad object parent");
@@ -370,29 +340,37 @@ so_txget(soobj *obj, va_list args)
 	default: goto error;
 	}
 
+	/* prepare key object */
+	svv *v = so_dbv(db, o);
+	if (srunlikely(v == NULL))
+		goto error;
+	sv vp;
+	sv_init(&vp, &sv_vif, v, NULL);
+	so_objdestroy(&o->o);
+
 	/* check concurrent index first */
 	soobj *ret;
 	sv result;
-	int rc = sx_get(&t->t, &db->coindex, &o->v, &result);
+	int rc = sx_get(&t->t, &db->coindex, &vp, &result);
 	switch (rc) {
 	case -1:
 	case  2: /* delete */
-		so_objdestroy(&o->o);
+		sv_vfree(db->r.a, v);
 		return NULL;
 	case  1:
 		ret = so_vdup(e, &db->o, &result);
 		if (srunlikely(ret == NULL))
 			sv_vfree(&e->a, (svv*)result.v);
-		so_objdestroy(&o->o);
+		sv_vfree(db->r.a, v);
 		return ret;
 	}
 
 	/* run query */
 	sorequest req;
-	so_requestinit(e, &req, SO_REQGET, &db->o, &o->v);
+	so_requestinit(e, &req, SO_REQGET, &db->o, &vp);
 	so_requestvlsn(&req, t->t.vlsn, 0);
 	so_queryget(&req);
-	so_objdestroy(&o->o);
+	sv_vfree(db->r.a, v);
 	return req.result;
 error:
 	so_objdestroy(&o->o);
@@ -433,7 +411,7 @@ so_txprepare_trigger(sx *t, sv *v, void *arg0, void *arg1)
 	si_queryopen(&q, &db->r, &cache, &db->index,
 	             SR_UPDATE, t->vlsn,
 	             NULL, 0,
-	             sv_key(v), sv_keysize(v));
+	             sv_pointer(v), sv_size(v));
 	int rc;
 	rc = si_query(&q);
 	si_queryclose(&q);

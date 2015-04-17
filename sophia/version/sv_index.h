@@ -20,8 +20,8 @@ struct svindex {
 } srpacked;
 
 sr_rbget(sv_indexmatch,
-         sr_compare(cmp, sv_vkey(srcast(n, svv, node)),
-                    (srcast(n, svv, node))->keysize,
+         sr_compare(cmp, sv_vpointer(srcast(n, svv, node)),
+                    (srcast(n, svv, node))->size,
                     key, keysize))
 
 int sv_indexinit(svindex*);

@@ -200,6 +200,7 @@ ctl_cursor(stc *cx)
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "db", "test") == 0 );
+	t( sp_set(c, "db.test.index", "key_b") == 0 );
 	t( sp_open(env) == 0 );
 	t( sp_set(c, "snapshot", "test_snapshot0") == 0 );
 	void *o;

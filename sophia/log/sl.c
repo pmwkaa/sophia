@@ -428,18 +428,15 @@ static inline void
 sl_write_prepare(slpool *p, sltx *t, slv *lv, svlogv *logv)
 {
 	sv *v = &logv->v;
-	lv->lsn       = sv_lsn(v);
-	lv->dsn       = logv->id;
-	lv->flags     = sv_flags(v);
-	lv->valuesize = sv_valuesize(v);
-	lv->keysize   = sv_keysize(v);
-	lv->reserve   = 0;
-	lv->crc       = sr_crcp(p->r->crc, sv_key(v), lv->keysize, 0);
-	lv->crc       = sr_crcp(p->r->crc, sv_value(v), lv->valuesize, lv->crc);
-	lv->crc       = sr_crcs(p->r->crc, lv, sizeof(slv), lv->crc);
+	lv->lsn     = sv_lsn(v);
+	lv->dsn     = logv->id;
+	lv->flags   = sv_flags(v);
+	lv->size    = sv_size(v);
+	lv->reserve = 0;
+	lv->crc     = sr_crcp(p->r->crc, sv_pointer(v), lv->size, 0);
+	lv->crc     = sr_crcs(p->r->crc, lv, sizeof(slv), lv->crc);
 	sr_iovadd(&p->iov, lv, sizeof(slv));
-	sr_iovadd(&p->iov, sv_key(v), lv->keysize);
-	sr_iovadd(&p->iov, sv_value(v), lv->valuesize);
+	sr_iovadd(&p->iov, sv_pointer(v), lv->size);
 	((svv*)v->v)->log = t->l;
 }
 
@@ -466,19 +463,18 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 {
 	slpool *p = t->p;
 	sl *l = t->l;
-	slv lvbuf[341]; /* 1 + 340 per syscall */
+	slv lvbuf[510]; /* 1 + 510 per syscall */
 	int lvp;
 	int rc;
 	lvp = 0;
 	/* transaction header */
 	slv *lv = &lvbuf[0];
-	lv->lsn       = lsn;
-	lv->dsn       = 0;
-	lv->flags     = SVBEGIN;
-	lv->valuesize = sv_logcount(vlog);
-	lv->keysize   = 0;
-	lv->reserve   = 0;
-	lv->crc       = sr_crcs(p->r->crc, lv, sizeof(slv), 0);
+	lv->lsn     = lsn;
+	lv->dsn     = 0;
+	lv->flags   = SVBEGIN;
+	lv->size    = sv_logcount(vlog);
+	lv->reserve = 0;
+	lv->crc     = sr_crcs(p->r->crc, lv, sizeof(slv), 0);
 	sr_iovadd(&p->iov, lv, sizeof(slv));
 	lvp++;
 	/* body */
@@ -487,7 +483,7 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 	sr_iteropen(sr_bufiter, &i, &vlog->buf, sizeof(svlogv));
 	for (; sr_iterhas(sr_bufiter, &i); sr_iternext(sr_bufiter, &i))
 	{
-		if (srunlikely(! sr_iovensure(&p->iov, 3))) {
+		if (srunlikely(! sr_iovensure(&p->iov, 2))) {
 			rc = sr_filewritev(&l->file, &p->iov);
 			if (srunlikely(rc == -1)) {
 				sr_malfunction(p->r->e, "log file '%s' write error: %s",

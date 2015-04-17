@@ -33,7 +33,7 @@ static inline int
 sd_pageiter_search(sriter *i, int search_min)
 {
 	sdpageiter *pi = (sdpageiter*)i->priv;
-	srcomparator *cmp = i->r->cmp;
+	srkey *cmp = i->r->cmp;
 	int min = 0;
 	int mid = 0;
 	int max = pi->page->h->count - 1;
@@ -41,8 +41,8 @@ sd_pageiter_search(sriter *i, int search_min)
 	{
 		mid = min + (max - min) / 2;
 		sdv *v = sd_pagev(pi->page, mid);
-		char *key = sd_pagekey(pi->page, v);
-		int rc = sr_compare(cmp, key, v->keysize, pi->key, pi->keysize);
+		char *key = sd_pageof(pi->page, v);
+		int rc = sr_compare(cmp, key, v->size, pi->key, pi->keysize);
 		switch (rc) {
 		case -1: min = mid + 1;
 			continue;
@@ -244,8 +244,8 @@ sd_pageiter_lt(sriter *i, int e)
 	sd_pageiter_lland(pi, pos);
 	if (pi->v == NULL)
 		return 0;
-	char *key = sd_pagekey(pi->page, pi->v);
-	int rc = sr_compare(i->r->cmp, key, pi->v->keysize,
+	char *key = sd_pageof(pi->page, pi->v);
+	int rc = sr_compare(i->r->cmp, key, pi->v->size,
 	                    pi->key,
 	                    pi->keysize);
 	int match = rc == 0;
@@ -279,8 +279,8 @@ sd_pageiter_gt(sriter *i, int e)
 	sd_pageiter_gland(pi, pos);
 	if (pi->v == NULL)
 		return 0;
-	char *key = sd_pagekey(pi->page, pi->v);
-	int rc = sr_compare(i->r->cmp, key, pi->v->keysize,
+	char *key = sd_pageof(pi->page, pi->v);
+	int rc = sr_compare(i->r->cmp, key, pi->v->size,
 	                    pi->key,
 	                    pi->keysize);
 	int match = rc == 0;
@@ -294,23 +294,6 @@ sd_pageiter_gt(sriter *i, int e)
 			break;
 	}
 	return match;
-}
-
-static inline int
-sd_pageiter_random(sriter *i)
-{
-	sdpageiter *pi = (sdpageiter*)i->priv;
-	if (srunlikely(pi->page->h->count == 0)) {
-		sd_pageiter_end(pi);
-		return 0;
-	}
-	assert(pi->key != NULL);
-	uint32_t rnd = *(uint32_t*)pi->key;
-	int64_t pos = rnd % pi->page->h->count;
-	if (srunlikely(pos >= pi->page->h->count))
-		pos = pi->page->h->count - 1;
-	sd_pageiter_gland(pi, pos);
-	return 0;
 }
 
 static inline int
@@ -334,7 +317,6 @@ sd_pageiter_open(sriter *i, sdpage *page, srorder o, void *key, int keysize, uin
 	case SR_GT:     return sd_pageiter_gt(i, 0);
 	case SR_GTE:    return sd_pageiter_gt(i, 1);
 	case SR_EQ:     return sd_pageiter_lt(i, 1);
-	case SR_RANDOM: return sd_pageiter_random(i);
 	case SR_UPDATE: {
 		uint64_t vlsn = pi->vlsn;
 		pi->vlsn = (uint64_t)-1;
@@ -377,7 +359,6 @@ sd_pageiter_next(sriter *i)
 	case SR_LT:
 	case SR_LTE: sd_pageiter_bkw(pi);
 		break;
-	case SR_RANDOM:
 	case SR_GT:
 	case SR_GTE: sd_pageiter_fwd(pi);
 		break;

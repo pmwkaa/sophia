@@ -82,7 +82,7 @@ so_cursorget(soobj *o, va_list args srunused)
 		return 0;
 	if (srunlikely(! so_vhas(&c->v)))
 		return 0;
-	int rc = so_cursorseek(c, sv_key(&c->v.v), sv_keysize(&c->v.v));
+	int rc = so_cursorseek(c, sv_pointer(&c->v.v), sv_size(&c->v.v));
 	if (srunlikely(rc <= 0))
 		return NULL;
 	return &c->v;
@@ -123,6 +123,11 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 		sr_error(&e->error, "%s", "bad arguments");
 		return NULL;
 	}
+	soobj *parent = o->parent;
+	if (srunlikely(parent != &db->o)) {
+		sr_error(&e->error, "%s", "bad object parent");
+		goto error;
+	}
 
 	/* prepare cursor */
 	socursor *c = sr_malloc(&e->a_cursor, sizeof(socursor));
@@ -139,14 +144,41 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 	si_cacheinit(&c->cache, &e->a_cursorcache);
 
 	/* open cursor */
-	void *key = sv_key(&o->v);
-	uint32_t keysize = sv_keysize(&o->v);
-	if (keysize == 0) {
-		key = o->prefix;
-		keysize = o->prefixsize;
+	uint32_t keysize = 0;
+	void *key = NULL;
+	svv *seek = NULL;
+	if (o->keyc > 0) {
+		/* search by key */
+		seek = so_dbv(db, o);
+		if (srunlikely(seek == NULL))
+			goto error;
+		keysize = seek->size;
+		key = sv_vpointer(seek);
+	} else
+	if (o->prefix)
+	{
+		/* search by prefix */
+		if (sr_keyof(&db->ctl.cmp, 0)->type == SR_STRING) {
+			srformatv fv;
+			fv.key      = o->prefix;
+			fv.r.size   = o->prefixsize;
+			fv.r.offset = 0;
+			seek = sv_vbuild(&e->r, &fv, 1, NULL, 0);
+			if (srunlikely(seek == NULL))
+				goto error;
+			keysize = seek->size;
+			key = sv_vpointer(seek);
+		} else {
+			sr_error(&e->error, "%s", "prefix search is only supported for a"
+			         " first string-part");
+			goto error;
+		}
 	}
+
 	sx_begin(&e->xm, &c->t, vlsn);
 	int rc = so_cursorseek(c, key, keysize);
+	if (seek)
+		sv_vfree(db->r.a, seek);
 	if (srunlikely(rc == -1)) {
 		sx_end(&c->t);
 		goto error;
@@ -156,12 +188,10 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 	srorder next = SR_GTE;
 	switch (c->order) {
 	case SR_LT:
-	case SR_LTE:    next = SR_LT;
+	case SR_LTE: next = SR_LT;
 		break;
 	case SR_GT:
-	case SR_GTE:    next = SR_GT;
-		break;
-	case SR_RANDOM: next = SR_STOP;
+	case SR_GTE: next = SR_GT;
 		break;
 	default: assert(0);
 	}
