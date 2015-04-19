@@ -22,7 +22,7 @@ ctl_version(stc *cx srunused)
 
 	void *o = sp_get(c, "sophia.version");
 	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "1.2.2") == 0 );
+	t( strcmp(sp_get(o, "value", NULL), "1.2.3") == 0 );
 	sp_destroy(o);
 
 	t( sp_destroy(env) == 0 );
