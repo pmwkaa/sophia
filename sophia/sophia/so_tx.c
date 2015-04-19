@@ -135,7 +135,7 @@ int so_txdbset(sodb *db, int async, uint8_t flags, va_list args)
 		goto error;
 
 	/* prepare object */
-	svv *v = so_dbv(db, o);
+	svv *v = so_dbv(db, o, 0);
 	if (srunlikely(v == NULL))
 		goto error;
 	v->flags = flags;
@@ -199,7 +199,7 @@ void *so_txdbget(sodb *db, int async, uint64_t vlsn, int vlsn_generate, va_list 
 		goto error;
 
 	/* prepare key object */
-	svv *v = so_dbv(db, o);
+	svv *v = so_dbv(db, o, 1);
 	if (srunlikely(v == NULL))
 		goto error;
 	sv vp;
@@ -273,7 +273,7 @@ so_txwrite(soobj *obj, uint8_t flags, va_list args)
 	}
 
 	/* prepare object */
-	svv *v = so_dbv(db, o);
+	svv *v = so_dbv(db, o, 0);
 	if (srunlikely(v == NULL))
 		goto error;
 	v->flags = flags;
@@ -341,7 +341,7 @@ so_txget(soobj *obj, va_list args)
 	}
 
 	/* prepare key object */
-	svv *v = so_dbv(db, o);
+	svv *v = so_dbv(db, o, 1);
 	if (srunlikely(v == NULL))
 		goto error;
 	sv vp;

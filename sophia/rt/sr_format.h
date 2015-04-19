@@ -70,7 +70,7 @@ sr_formatwrite(srformat format, char *dest, srformatv *keys, int count,
 	case SR_FDOCUMENT:
 		while (i < count) {
 			srformatv *ptr = &keys[i];
-			ref->offset = ptr->r.offset;
+			ref->offset = offset + (uint32_t)(ptr->key - v);
 			ref->size = ptr->r.size;
 			ref++;
 			i++;
@@ -94,13 +94,12 @@ static inline char*
 sr_formatvalue(srformat format, srkey *key, char *data)
 {
 	assert(key->count > 0);
+	srformatref *ref = ((srformatref*)data) + (key->count - 1);
 	switch (format) {
-	case SR_FKV: {
-		srformatref *ref = ((srformatref*)data) + (key->count - 1);
+	case SR_FKV:
 		return data + ref->offset + ref->size;
-	}
 	case SR_FDOCUMENT:
-		return data;
+		return data + (sizeof(srformatref) * key->count);
 	}
 	return NULL;
 }
@@ -114,7 +113,7 @@ sr_formatvalue_size(srformat format, srkey *key, char *data, int size) {
 		return size - (ref->offset + ref->size);
 	}
 	case SR_FDOCUMENT:
-		return size;
+		return size - (sizeof(srformatref) * key->count);
 	}
 	return 0;
 }

@@ -149,7 +149,7 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 	svv *seek = NULL;
 	if (o->keyc > 0) {
 		/* search by key */
-		seek = so_dbv(db, o);
+		seek = so_dbv(db, o, 1);
 		if (srunlikely(seek == NULL))
 			goto error;
 		keysize = seek->size;

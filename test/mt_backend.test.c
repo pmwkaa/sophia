@@ -194,10 +194,160 @@ mt_set_delete_get(stc *cx)
 	t( sp_destroy(cx->env) == 0 );
 }
 
+static void
+mt_set_get_document_multipart(stc *cx)
+{
+	cx->env = sp_env();
+	t( cx->env != NULL );
+	void *c = sp_ctl(cx->env);
+	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
+	t( sp_set(c, "scheduler.threads", "5") == 0 );
+	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
+	t( sp_set(c, "log.sync", "0") == 0 );
+	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
+	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.format", "document") == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
+	t( sp_set(c, "db.test.index.key", "u32") == 0 );
+	t( sp_set(c, "db.test.index", "key_b") == 0 );
+	t( sp_set(c, "db.test.index.key_b", "u32") == 0 );
+	cx->db = sp_get(c, "db.test");
+	t( cx->db != NULL );
+	t( sp_open(cx->env) == 0 );
+
+	struct document {
+		uint32_t value;
+		char used0[89];
+		uint32_t key_a;
+		char used1[15];
+		uint32_t key_b;
+		char used2[10];
+	} srpacked;
+	struct document doc;
+	memset(&doc, 'x', sizeof(doc));
+
+	uint32_t n = 500000;
+	uint32_t i;
+
+	srand(82351);
+	for (i = 0; i < n; i++) {
+		doc.key_a = rand();
+		doc.key_b = rand();
+		doc.value = doc.key_a ^ doc.key_b;
+		void *o = sp_object(cx->db);
+		t( o != NULL );
+		t( sp_set(o, "key", &doc.key_a, sizeof(doc.key_a)) == 0 );
+		t( sp_set(o, "key_b", &doc.key_b, sizeof(doc.key_b)) == 0 );
+		t( sp_set(o, "value", &doc, sizeof(doc)) == 0 );
+		t( sp_set(cx->db, o) == 0 );
+		print_current(cx, i);
+	}
+	srand(82351);
+	for (i = 0; i < n; i++) {
+		doc.key_a = rand();
+		doc.key_b = rand();
+		doc.value = doc.key_a ^ doc.key_b;
+		void *o = sp_object(cx->db);
+		t( o != NULL );
+		t( sp_set(o, "key", &doc.key_a, sizeof(doc.key_a)) == 0 );
+		t( sp_set(o, "key_b", &doc.key_b, sizeof(doc.key_b)) == 0 );
+		o = sp_get(cx->db, o);
+		t( o != NULL );
+
+		int valuesize = 0;
+		struct document *ret =
+			(struct document*)sp_get(o, "value", &valuesize);
+		t( valuesize == sizeof(doc) );
+		t( doc.key_a == ret->key_a );
+		t( doc.key_b == ret->key_b );
+		t( doc.value == (ret->key_a ^ ret->key_b) );
+		sp_destroy(o);
+
+		print_current(cx, i);
+	}
+
+	t( sp_destroy(cx->env) == 0 );
+}
+
+static void
+mt_set_get_document_multipart_cursor(stc *cx)
+{
+	cx->env = sp_env();
+	t( cx->env != NULL );
+	void *c = sp_ctl(cx->env);
+	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
+	t( sp_set(c, "scheduler.threads", "5") == 0 );
+	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
+	t( sp_set(c, "log.sync", "0") == 0 );
+	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
+	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.format", "document") == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
+	t( sp_set(c, "db.test.index.key", "u32") == 0 );
+	t( sp_set(c, "db.test.index", "key_b") == 0 );
+	t( sp_set(c, "db.test.index.key_b", "u32") == 0 );
+	cx->db = sp_get(c, "db.test");
+	t( cx->db != NULL );
+	t( sp_open(cx->env) == 0 );
+
+	struct document {
+		uint32_t value;
+		char used0[89];
+		uint32_t key_a;
+		char used1[15];
+		uint32_t key_b;
+		char used2[10];
+	} srpacked;
+	struct document doc;
+	memset(&doc, 'x', sizeof(doc));
+
+	uint32_t n = 500000;
+	uint32_t i;
+
+	for (i = 0; i < n; i++) {
+		doc.key_a = i;
+		doc.key_b = i;
+		doc.value = doc.key_a ^ doc.key_b;
+		void *o = sp_object(cx->db);
+		t( o != NULL );
+		t( sp_set(o, "key", &doc.key_a, sizeof(doc.key_a)) == 0 );
+		t( sp_set(o, "key_b", &doc.key_b, sizeof(doc.key_b)) == 0 );
+		t( sp_set(o, "value", &doc, sizeof(doc)) == 0 );
+		t( sp_set(cx->db, o) == 0 );
+		print_current(cx, i);
+	}
+
+	i = 0;
+	void *o = sp_object(cx->db);
+	t( o != NULL );
+	void *cursor = sp_cursor(cx->db, o);
+	t( cursor != NULL );
+	while ((o = sp_get(cursor))) {
+		int valuesize = 0;
+		struct document *ret =
+			(struct document*)sp_get(o, "value", &valuesize);
+		t( valuesize == sizeof(doc) );
+		t( ret->key_a == i );
+		t( ret->key_b == i );
+		print_current(cx, i);
+		i++;
+	}
+	sp_destroy(cursor);
+	t( i == n );
+
+	t( sp_destroy(cx->env) == 0 );
+}
+
 stgroup *mt_backend_group(void)
 {
 	stgroup *group = st_group("mt_backend");
 	st_groupadd(group, st_test("set_delete_get", mt_set_delete_get));
 	st_groupadd(group, st_test("set_checkpoint_get", mt_set_checkpoint_get));
+	st_groupadd(group, st_test("set_get_document_multipart", mt_set_get_document_multipart));
+	st_groupadd(group, st_test("set_get_document_multipart_cursor", mt_set_get_document_multipart_cursor));
 	return group;
 }

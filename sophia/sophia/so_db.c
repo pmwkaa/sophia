@@ -76,11 +76,15 @@ so_dbctl_free(sodbctl *c)
 		sr_free(&e->a, c->path);
 		c->path = NULL;
 	}
-	sr_keyfree(&c->cmp, &e->a);
+	if (c->formatsz) {
+		sr_free(&e->a, c->formatsz);
+		c->formatsz = NULL;
+	}
 	if (c->compression) {
 		sr_free(&e->a, c->compression);
 		c->compression = NULL;
 	}
+	sr_keyfree(&c->cmp, &e->a);
 	return 0;
 }
 
@@ -129,6 +133,11 @@ so_dbctl_init(sodbctl *c, char *name, void *db)
 		return -1;
 	}
 	c->format = SR_FKV;
+	c->formatsz = sr_strdup(&e->a, "kv");
+	if (srunlikely(c->formatsz == NULL)) {
+		so_dbctl_free(c);
+		return -1;
+	}
 	return 0;
 }
 
@@ -137,15 +146,15 @@ so_dbctl_validate(sodbctl *c)
 {
 	sodb *o = c->parent;
 	so *e = so_of(&o->o);
-	/* path */
-	if (c->path == NULL) {
-		char path[1024];
-		snprintf(path, sizeof(path), "%s/%s", e->ctl.path, c->name);
-		c->path = sr_strdup(&e->a, path);
-		if (srunlikely(c->path == NULL)) {
-			sr_error(&e->error, "%s", "memory allocation failed");
-			return -1;
-		}
+	/* format */
+	if (strcmp(c->formatsz, "kv") == 0) {
+		c->format = SR_FKV;
+	} else
+	if (strcmp(c->formatsz, "document") == 0) {
+		c->format = SR_FDOCUMENT;
+	} else {
+		sr_error(&e->error, "unknown format type '%s'", c->formatsz);
+		return -1;
 	}
 	/* compression */
 	if (strcmp(c->compression, "none") == 0) {
@@ -157,12 +166,22 @@ so_dbctl_validate(sodbctl *c)
 	if (strcmp(c->compression, "lz4") == 0) {
 		c->compression_if = &sr_lz4filter;
 	} else {
-		sr_error(&e->error, "bad compression type '%s'", c->compression);
+		sr_error(&e->error, "unknown compression type '%s'", c->compression);
 		return -1;
 	}
-	o->r.cmp = &o->ctl.cmp;
-	o->r.format = o->ctl.format;
-	o->r.compression = o->ctl.compression_if;
+	/* path */
+	if (c->path == NULL) {
+		char path[1024];
+		snprintf(path, sizeof(path), "%s/%s", e->ctl.path, c->name);
+		c->path = sr_strdup(&e->a, path);
+		if (srunlikely(c->path == NULL)) {
+			sr_error(&e->error, "%s", "memory allocation failed");
+			return -1;
+		}
+	}
+	o->r.cmp = &c->cmp;
+	o->r.format = c->format;
+	o->r.compression = c->compression_if;
 	return 0;
 }
 
@@ -568,7 +587,7 @@ int so_dbmalfunction(sodb *o)
 	return -1;
 }
 
-svv *so_dbv(sodb *db, sov *o)
+svv *so_dbv(sodb *db, sov *o, int search)
 {
 	so *e = so_of(&db->o);
 	svv *v;
@@ -588,7 +607,16 @@ svv *so_dbv(sodb *db, sov *o)
 		sr_error(&e->error, "%s", "bad object key");
 		return NULL;
 	}
-	v = sv_vbuild(&db->r, o->keyv, o->keyc,
+	/* switch to key-value format to avoid value
+	 * copy during search operations */
+	sr *runtime = &db->r;
+	sr  runtime_search;
+	if (search && db->r.format == SR_FDOCUMENT) {
+		runtime_search = db->r;
+		runtime_search.format = SR_FKV;
+		runtime = &runtime_search;
+	}
+	v = sv_vbuild(runtime, o->keyv, o->keyc,
 	              o->value,
 	              o->valuesize);
 ret:

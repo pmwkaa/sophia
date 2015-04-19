@@ -18,6 +18,7 @@ struct sodbctl {
 	void         *parent;
 	char         *name;
 	uint32_t      id;
+	char         *formatsz;
 	srformat      format;
 	srkey         cmp;
 	srtrigger     on_complete;
@@ -70,6 +71,6 @@ int       so_dbvisible(sodb*, uint32_t);
 void      so_dbbind(so*);
 void      so_dbunbind(so*, uint32_t);
 int       so_dbmalfunction(sodb*);
-svv      *so_dbv(sodb*, sov*);
+svv      *so_dbv(sodb*, sov*, int);
 
 #endif

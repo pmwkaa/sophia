@@ -631,6 +631,7 @@ so_ctldb(so *e, soctlrt *rt srunused, src **pc)
 		sr_clink(&p,          sr_c(pc, so_ctlv,              "name",        SR_CSZ|SR_CRO,  o->ctl.name));
 		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv,              "id",          SR_CU32,        &o->ctl.id), o));
 		sr_clink(&p,          sr_c(pc, so_ctldb_status,      "status",      SR_CSZ|SR_CRO,  o));
+		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "format",      SR_CSZREF,      &o->ctl.formatsz), o));
 		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "path",        SR_CSZREF,      &o->ctl.path), o));
 		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "sync",        SR_CU32,        &o->ctl.sync), o));
 		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "compression", SR_CSZREF,      &o->ctl.compression), o));

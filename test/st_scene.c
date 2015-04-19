@@ -72,6 +72,7 @@ st_scene_create(stscene *g, stc *cx)
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.format", "kv") == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.compression", "none") == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
