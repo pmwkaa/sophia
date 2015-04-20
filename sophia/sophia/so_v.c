@@ -152,6 +152,8 @@ so_vget(soobj *obj, va_list args)
 				*rawsize = v->rawsize;
 			return v->raw;
 		}
+		if (rawsize)
+			*rawsize = sv_size(&v->v);
 		return sv_pointer(&v->v);
 	}
 

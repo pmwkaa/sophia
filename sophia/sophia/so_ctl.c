@@ -423,8 +423,6 @@ so_ctldb_cmp(src *c, srcstmt *s, va_list args)
 			if (srunlikely(arg == NULL))
 				return -1;
 		}
-		sr_keyfree(&db->ctl.cmp, &e->a);
-		sr_keyinit(&db->ctl.cmp);
 		sr_keysetcmp(&db->ctl.cmp, cmp, arg);
 		return 0;
 	}
