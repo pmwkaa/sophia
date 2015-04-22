@@ -411,7 +411,7 @@ int si_recover(si *i, sr *r)
 	if (exist == 0)
 		return si_deploy(i, r);
 	if (i->conf->path_fail_on_exists) {
-		sr_error(r->e, "directory '%s' is exists.", i->conf->path);
+		sr_error(r->e, "directory '%s' exists.", i->conf->path);
 		return -1;
 	}
 	return si_recoverindex(i, r);

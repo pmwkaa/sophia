@@ -107,10 +107,7 @@ so_recoverlog(so *e, sl *log)
 		if (srunlikely(sl_iter_error(&i)))
 			goto rlb;
 
-		rc = so_objprepare(transaction, lsn);
-		if (srunlikely(rc != 0))
-			goto error;
-		rc = so_objcommit(transaction);
+		rc = so_objcommit(transaction, lsn);
 		if (srunlikely(rc != 0))
 			goto error;
 		rc = sl_iter_continue(&i);

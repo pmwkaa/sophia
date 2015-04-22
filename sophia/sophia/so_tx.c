@@ -443,11 +443,6 @@ so_txprepare(soobj *o, va_list args srunused)
 		return 1;
 	}
 	assert(s == SXPREPARE);
-	/* assign lsn */
-	uint64_t lsn = 0;
-	if (status == SO_RECOVER || e->ctl.commit_lsn)
-		lsn = va_arg(args, uint64_t);
-	sl_prepare(&e->lp, &t->t.log, lsn);
 	return 0;
 }
 
@@ -477,6 +472,12 @@ so_txcommit(soobj *o, va_list args)
 		return 0;
 	}
 	sx_commit(&t->t);
+
+	/* assign lsn */
+	uint64_t lsn = 0;
+	if (status == SO_RECOVER || e->ctl.commit_lsn)
+		lsn = va_arg(args, uint64_t);
+	sl_prepare(&e->lp, &t->t.log, lsn);
 
 	/* log commit */
 	if (status == SO_ONLINE) {
