@@ -28,7 +28,8 @@ int si_plannerinit(siplanner *p, sra *a)
 	int rc = sr_rqinit(&p->compact, a, 1, 20);
 	if (srunlikely(rc == -1))
 		return -1;
-	rc = sr_rqinit(&p->branch, a, 512 * 1024, 100); /* ~ 50 Mb */
+	/* 1Mb step up to 1Gb */
+	rc = sr_rqinit(&p->branch, a, 1024 * 1024, 1000);
 	if (srunlikely(rc == -1)) {
 		sr_rqfree(&p->compact, a);
 		return -1;
