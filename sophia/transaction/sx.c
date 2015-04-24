@@ -252,7 +252,7 @@ int sx_set(sx *t, sxindex *index, svv *version)
 	v->index = index;
 	svlogv lv;
 	lv.id   = index->dsn;
-	lv.next = 0;
+	lv.next = UINT32_MAX;
 	sv_init(&lv.v, &sx_vif, v, NULL);
 	/* update concurrent index */
 	srrbnode *n = NULL;
@@ -274,6 +274,7 @@ int sx_set(sx *t, sxindex *index, svv *version)
 	sxv *own = sx_vmatch(head, t->id);
 	if (srunlikely(own)) {
 		/* replace old object with the new one */
+		lv.next = sv_logat(&t->log, own->lo)->next;
 		v->lo = own->lo;
 		sx_vreplace(own, v);
 		if (srlikely(head == own))
