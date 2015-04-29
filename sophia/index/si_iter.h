@@ -53,7 +53,9 @@ si_iter_open(sriter *i, si *index, srorder o, void *key, int keysize)
 				eq = 1;
 				sinode *n = si_nodeof(ii->v);
 				sdindexpage *min = sd_indexmin(&n->self.index);
-				int l = sr_compare(i->r->cmp, sd_indexpage_min(min), min->sizemin,
+				int l = sr_compare(i->r->cmp,
+				                   sd_indexpage_min(&n->self.index, min),
+				                   min->sizemin,
 				                   ii->key, ii->keysize);
 				if (srunlikely(l == 0))
 					ii->v = sr_rbprev(&ii->index->i, ii->v);
@@ -79,7 +81,9 @@ si_iter_open(sriter *i, si *index, srorder o, void *key, int keysize)
 				eq = 1;
 				sinode *n = si_nodeof(ii->v);
 				sdindexpage *max = sd_indexmax(&n->self.index);
-				int r = sr_compare(i->r->cmp, sd_indexpage_max(max), max->sizemax,
+				int r = sr_compare(i->r->cmp,
+				                   sd_indexpage_max(&n->self.index, max),
+				                   max->sizemax,
 				                   ii->key, ii->keysize);
 				if (srunlikely(r == 0))
 					ii->v = sr_rbnext(&ii->index->i, ii->v);

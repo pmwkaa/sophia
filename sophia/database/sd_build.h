@@ -102,7 +102,5 @@ int sd_buildbegin(sdbuild*, sr*, int, int);
 int sd_buildend(sdbuild*, sr*);
 int sd_buildcommit(sdbuild*);
 int sd_buildadd(sdbuild*, sr*, sv*, uint32_t);
-int sd_buildwrite(sdbuild*, sr*, sdindex*, srfile*);
-int sd_buildwritepage(sdbuild*, sr*, srbuf*);
 
 #endif

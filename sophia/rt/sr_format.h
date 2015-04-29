@@ -90,6 +90,36 @@ sr_formatkey_size(char *data, int pos) {
 	return ((srformatref*)data)[pos].size;
 }
 
+static inline int
+sr_formatkey_total(srkey *key, char *data)
+{
+	int total = 0;
+	int i = 0;
+	while (i < key->count) {
+		total += sr_formatkey_size(data, i);
+		i++;
+	}
+	return total + sizeof(srformatref) * key->count;
+}
+
+static inline int
+sr_formatkey_copy(srkey *key, char *dest, char *src)
+{
+	srformatref *ref = (srformatref*)dest;
+	int offset = sizeof(srformatref) * key->count;
+	int i = 0;
+	while (i < key->count) {
+		int size = sr_formatkey_size(src, i);
+		ref->offset = offset;
+		ref->size = size;
+		memcpy(sr_formatkey(dest, i), sr_formatkey(src, i), size);
+		offset += size;
+		ref++;
+		i++;
+	}
+	return offset;
+}
+
 static inline char*
 sr_formatvalue(srformat format, srkey *key, char *data)
 {

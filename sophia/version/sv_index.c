@@ -15,7 +15,6 @@ sr_rbtruncate(sv_indextruncate,
 
 int sv_indexinit(svindex *i)
 {
-	i->keymax = 0;
 	i->lsnmin = UINT64_MAX;
 	i->count  = 0;
 	i->used   = 0;
@@ -113,7 +112,5 @@ int sv_indexset(svindex *i, sr *r, uint64_t vlsn srunused,
 	}
 	i->count++;
 	i->used += v->size;
-	if (srunlikely(v->size > i->keymax))
-		i->keymax = v->size;
 	return 0;
 }

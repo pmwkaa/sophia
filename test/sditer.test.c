@@ -63,23 +63,10 @@ sditer_gt0(stc *cx srunused)
 
 	sdindex index;
 	sd_indexinit(&index);
-	t( sd_indexbegin(&index, &r, sd_buildmin(&b)->size, 0) == 0 );
+	t( sd_indexbegin(&index, &r, 0) == 0 );
 
-	sdpageheader *h = sd_buildheader(&b);
 	int rc;
-	rc = sd_indexadd(&index, &r,
-	                 sd_buildoffset(&b),
-	                 h->size + sizeof(sdpageheader),
-	                 h->sizeorigin + sizeof(sdpageheader),
-	                 h->count,
-	                 sd_buildminkey(&b),
-	                 sd_buildmin(&b)->size,
-	                 sd_buildmaxkey(&b),
-	                 sd_buildmax(&b)->size,
-	                 h->countdup,
-	                 h->lsnmindup,
-	                 h->lsnmin,
-	                 h->lsnmax);
+	rc = sd_indexadd(&index, &r, &b);
 	t( rc == 0 );
 	t( sd_buildcommit(&b) == 0 );
 
@@ -91,7 +78,7 @@ sditer_gt0(stc *cx srunused)
 	srfile f;
 	sr_fileinit(&f, &a);
 	t( sr_filenew(&f, "./0000.db") == 0 );
-	t( sd_buildwrite(&b, &r, &index, &f) == 0 );
+	t( sd_commit(&b, &r, &index, &f) == 0 );
 	srmap map;
 	t( sr_mapfile(&map, &f, 1) == 0 );
 
@@ -159,23 +146,10 @@ sditer_gt1(stc *cx srunused)
 
 	sdindex index;
 	sd_indexinit(&index);
-	t( sd_indexbegin(&index, &r, sd_buildmin(&b)->size, 0) == 0 );
+	t( sd_indexbegin(&index, &r, 0) == 0 );
 
-	sdpageheader *h = sd_buildheader(&b);
 	int rc;
-	rc = sd_indexadd(&index, &r,
-	                 sd_buildoffset(&b),
-	                 h->size + sizeof(sdpageheader),
-	                 h->sizeorigin + sizeof(sdpageheader),
-	                 h->count,
-	                 sd_buildminkey(&b),
-	                 sd_buildmin(&b)->size,
-	                 sd_buildmaxkey(&b),
-	                 sd_buildmax(&b)->size,
-	                 h->countdup,
-	                 h->lsnmindup,
-	                 h->lsnmin,
-	                 h->lsnmax);
+	rc = sd_indexadd(&index, &r, &b);
 	t( rc == 0 );
 	t( sd_buildcommit(&b) == 0 );
 
@@ -188,20 +162,7 @@ sditer_gt1(stc *cx srunused)
 	addv(&b, &r, 8, SVSET, &key);
 	sd_buildend(&b, &r);
 
-	h = sd_buildheader(&b);
-	rc = sd_indexadd(&index, &r,
-	                 sd_buildoffset(&b),
-	                 h->size + sizeof(sdpageheader),
-	                 h->sizeorigin + sizeof(sdpageheader),
-	                 h->count,
-	                 sd_buildminkey(&b),
-	                 sd_buildmin(&b)->size,
-	                 sd_buildmaxkey(&b),
-	                 sd_buildmax(&b)->size,
-	                 h->countdup,
-	                 h->lsnmindup,
-	                 h->lsnmin,
-	                 h->lsnmax);
+	rc = sd_indexadd(&index, &r, &b);
 	t( rc == 0 );
 	t( sd_buildcommit(&b) == 0 );
 
@@ -214,20 +175,7 @@ sditer_gt1(stc *cx srunused)
 	addv(&b, &r, 11, SVSET, &key);
 	sd_buildend(&b, &r);
 
-	h = sd_buildheader(&b);
-	rc = sd_indexadd(&index, &r,
-	                 sd_buildoffset(&b),
-	                 h->size + sizeof(sdpageheader),
-	                 h->sizeorigin + sizeof(sdpageheader),
-	                 h->count,
-	                 sd_buildminkey(&b),
-	                 sd_buildmin(&b)->size,
-	                 sd_buildmaxkey(&b),
-	                 sd_buildmax(&b)->size,
-	                 h->countdup,
-	                 h->lsnmindup,
-	                 h->lsnmin,
-	                 h->lsnmax);
+	rc = sd_indexadd(&index, &r, &b);
 	t( rc == 0 );
 	t( sd_buildcommit(&b) == 0 );
 
@@ -238,7 +186,7 @@ sditer_gt1(stc *cx srunused)
 	srfile f;
 	sr_fileinit(&f, &a);
 	t( sr_filenew(&f, "./0000.db") == 0 );
-	t( sd_buildwrite(&b, &r, &index, &f) == 0 );
+	t( sd_commit(&b, &r, &index, &f) == 0 );
 	srmap map;
 	t( sr_mapfile(&map, &f, 1) == 0 );
 
@@ -329,23 +277,10 @@ sditer_gt0_compression_zstd(stc *cx srunused)
 
 	sdindex index;
 	sd_indexinit(&index);
-	t( sd_indexbegin(&index, &r, sd_buildmin(&b)->size, 0) == 0 );
+	t( sd_indexbegin(&index, &r, 0) == 0 );
 
-	sdpageheader *h = sd_buildheader(&b);
 	int rc;
-	rc = sd_indexadd(&index, &r,
-	                 sd_buildoffset(&b),
-	                 h->size + sizeof(sdpageheader),
-	                 h->sizeorigin + sizeof(sdpageheader),
-	                 h->count,
-	                 sd_buildminkey(&b),
-	                 sd_buildmin(&b)->size,
-	                 sd_buildmaxkey(&b),
-	                 sd_buildmax(&b)->size,
-	                 h->countdup,
-	                 h->lsnmindup,
-	                 h->lsnmin,
-	                 h->lsnmax);
+	rc = sd_indexadd(&index, &r, &b);
 	t( rc == 0 );
 	t( sd_buildcommit(&b) == 0 );
 
@@ -357,7 +292,7 @@ sditer_gt0_compression_zstd(stc *cx srunused)
 	srfile f;
 	sr_fileinit(&f, &a);
 	t( sr_filenew(&f, "./0000.db") == 0 );
-	t( sd_buildwrite(&b, &r, &index, &f) == 0 );
+	t( sd_commit(&b, &r, &index, &f) == 0 );
 	srmap map;
 	t( sr_mapfile(&map, &f, 1) == 0 );
 
@@ -430,23 +365,10 @@ sditer_gt0_compression_lz4(stc *cx srunused)
 
 	sdindex index;
 	sd_indexinit(&index);
-	t( sd_indexbegin(&index, &r, sd_buildmin(&b)->size, 0) == 0 );
+	t( sd_indexbegin(&index, &r, 0) == 0 );
 
-	sdpageheader *h = sd_buildheader(&b);
 	int rc;
-	rc = sd_indexadd(&index, &r,
-	                 sd_buildoffset(&b),
-	                 h->size + sizeof(sdpageheader),
-	                 h->sizeorigin + sizeof(sdpageheader),
-	                 h->count,
-	                 sd_buildminkey(&b),
-	                 sd_buildmin(&b)->size,
-	                 sd_buildmaxkey(&b),
-	                 sd_buildmax(&b)->size,
-	                 h->countdup,
-	                 h->lsnmindup,
-	                 h->lsnmin,
-	                 h->lsnmax);
+	rc = sd_indexadd(&index, &r, &b);
 	t( rc == 0 );
 	t( sd_buildcommit(&b) == 0 );
 
@@ -459,7 +381,7 @@ sditer_gt0_compression_lz4(stc *cx srunused)
 	srfile f;
 	sr_fileinit(&f, &a);
 	t( sr_filenew(&f, "./0000.db") == 0 );
-	t( sd_buildwrite(&b, &r, &index, &f) == 0 );
+	t( sd_commit(&b, &r, &index, &f) == 0 );
 	srmap map;
 	t( sr_mapfile(&map, &f, 1) == 0 );
 
@@ -532,23 +454,10 @@ sditer_gt1_compression_zstd(stc *cx srunused)
 
 	sdindex index;
 	sd_indexinit(&index);
-	t( sd_indexbegin(&index, &r, sd_buildmin(&b)->size, 0) == 0 );
+	t( sd_indexbegin(&index, &r, 0) == 0 );
 
-	sdpageheader *h = sd_buildheader(&b);
 	int rc;
-	rc = sd_indexadd(&index, &r,
-	                 sd_buildoffset(&b),
-	                 h->size + sizeof(sdpageheader),
-	                 h->sizeorigin + sizeof(sdpageheader),
-	                 h->count,
-	                 sd_buildminkey(&b),
-	                 sd_buildmin(&b)->size,
-	                 sd_buildmaxkey(&b),
-	                 sd_buildmax(&b)->size,
-	                 h->countdup,
-	                 h->lsnmindup,
-	                 h->lsnmin,
-	                 h->lsnmax);
+	rc = sd_indexadd(&index, &r, &b);
 	t( rc == 0 );
 	t( sd_buildcommit(&b) == 0 );
 
@@ -561,20 +470,7 @@ sditer_gt1_compression_zstd(stc *cx srunused)
 	addv(&b, &r, 8, SVSET, &key);
 	sd_buildend(&b, &r);
 
-	h = sd_buildheader(&b);
-	rc = sd_indexadd(&index, &r,
-	                 sd_buildoffset(&b),
-	                 h->size + sizeof(sdpageheader),
-	                 h->sizeorigin + sizeof(sdpageheader),
-	                 h->count,
-	                 sd_buildminkey(&b),
-	                 sd_buildmin(&b)->size,
-	                 sd_buildmaxkey(&b),
-	                 sd_buildmax(&b)->size,
-	                 h->countdup,
-	                 h->lsnmindup,
-	                 h->lsnmin,
-	                 h->lsnmax);
+	rc = sd_indexadd(&index, &r, &b);
 	t( rc == 0 );
 	t( sd_buildcommit(&b) == 0 );
 
@@ -587,20 +483,7 @@ sditer_gt1_compression_zstd(stc *cx srunused)
 	addv(&b, &r, 11, SVSET, &key);
 	sd_buildend(&b, &r);
 
-	h = sd_buildheader(&b);
-	rc = sd_indexadd(&index, &r,
-	                 sd_buildoffset(&b),
-	                 h->size + sizeof(sdpageheader),
-	                 h->sizeorigin + sizeof(sdpageheader),
-	                 h->count,
-	                 sd_buildminkey(&b),
-	                 sd_buildmin(&b)->size,
-	                 sd_buildmaxkey(&b),
-	                 sd_buildmax(&b)->size,
-	                 h->countdup,
-	                 h->lsnmindup,
-	                 h->lsnmin,
-	                 h->lsnmax);
+	rc = sd_indexadd(&index, &r, &b);
 	t( rc == 0 );
 	t( sd_buildcommit(&b) == 0 );
 
@@ -611,7 +494,7 @@ sditer_gt1_compression_zstd(stc *cx srunused)
 	srfile f;
 	sr_fileinit(&f, &a);
 	t( sr_filenew(&f, "./0000.db") == 0 );
-	t( sd_buildwrite(&b, &r, &index, &f) == 0 );
+	t( sd_commit(&b, &r, &index, &f) == 0 );
 	srmap map;
 	t( sr_mapfile(&map, &f, 1) == 0 );
 
@@ -706,23 +589,10 @@ sditer_gt1_compression_lz4(stc *cx srunused)
 
 	sdindex index;
 	sd_indexinit(&index);
-	t( sd_indexbegin(&index, &r, sd_buildmin(&b)->size, 0) == 0 );
+	t( sd_indexbegin(&index, &r, 0) == 0 );
 
-	sdpageheader *h = sd_buildheader(&b);
 	int rc;
-	rc = sd_indexadd(&index, &r,
-	                 sd_buildoffset(&b),
-	                 h->size + sizeof(sdpageheader),
-	                 h->sizeorigin + sizeof(sdpageheader),
-	                 h->count,
-	                 sd_buildminkey(&b),
-	                 sd_buildmin(&b)->size,
-	                 sd_buildmaxkey(&b),
-	                 sd_buildmax(&b)->size,
-	                 h->countdup,
-	                 h->lsnmindup,
-	                 h->lsnmin,
-	                 h->lsnmax);
+	rc = sd_indexadd(&index, &r, &b);
 	t( rc == 0 );
 	t( sd_buildcommit(&b) == 0 );
 
@@ -735,20 +605,7 @@ sditer_gt1_compression_lz4(stc *cx srunused)
 	addv(&b, &r, 8, SVSET, &key);
 	sd_buildend(&b, &r);
 
-	h = sd_buildheader(&b);
-	rc = sd_indexadd(&index, &r,
-	                 sd_buildoffset(&b),
-	                 h->size + sizeof(sdpageheader),
-	                 h->sizeorigin + sizeof(sdpageheader),
-	                 h->count,
-	                 sd_buildminkey(&b),
-	                 sd_buildmin(&b)->size,
-	                 sd_buildmaxkey(&b),
-	                 sd_buildmax(&b)->size,
-	                 h->countdup,
-	                 h->lsnmindup,
-	                 h->lsnmin,
-	                 h->lsnmax);
+	rc = sd_indexadd(&index, &r, &b);
 	t( rc == 0 );
 	t( sd_buildcommit(&b) == 0 );
 
@@ -761,20 +618,7 @@ sditer_gt1_compression_lz4(stc *cx srunused)
 	addv(&b, &r, 11, SVSET, &key);
 	sd_buildend(&b, &r);
 
-	h = sd_buildheader(&b);
-	rc = sd_indexadd(&index, &r,
-	                 sd_buildoffset(&b),
-	                 h->size + sizeof(sdpageheader),
-	                 h->sizeorigin + sizeof(sdpageheader),
-	                 h->count,
-	                 sd_buildminkey(&b),
-	                 sd_buildmin(&b)->size,
-	                 sd_buildmaxkey(&b),
-	                 sd_buildmax(&b)->size,
-	                 h->countdup,
-	                 h->lsnmindup,
-	                 h->lsnmin,
-	                 h->lsnmax);
+	rc = sd_indexadd(&index, &r, &b);
 	t( rc == 0 );
 	t( sd_buildcommit(&b) == 0 );
 
@@ -785,7 +629,7 @@ sditer_gt1_compression_lz4(stc *cx srunused)
 	srfile f;
 	sr_fileinit(&f, &a);
 	t( sr_filenew(&f, "./0000.db") == 0 );
-	t( sd_buildwrite(&b, &r, &index, &f) == 0 );
+	t( sd_commit(&b, &r, &index, &f) == 0 );
 	srmap map;
 	t( sr_mapfile(&map, &f, 1) == 0 );
 

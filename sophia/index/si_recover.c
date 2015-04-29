@@ -49,7 +49,7 @@ sinode *si_bootstrap(si *i, sr *r, uint32_t parent)
 	};
 	sdindex index;
 	sd_indexinit(&index);
-	int rc = sd_indexbegin(&index, r, 0, 0);
+	int rc = sd_indexbegin(&index, r, 0);
 	if (srunlikely(rc == -1)) {
 		si_nodefree(n, r, 0);
 		return NULL;
@@ -66,18 +66,7 @@ sinode *si_bootstrap(si *i, sr *r, uint32_t parent)
 		return NULL;
 	}
 	sd_buildend(&build, r);
-	sdpageheader *h = sd_buildheader(&build);
-	rc = sd_indexadd(&index, r,
-	                 sd_buildoffset(&build),
-	                 h->size + sizeof(sdpageheader),
-	                 h->sizeorigin + sizeof(sdpageheader),
-	                 h->count,
-	                 NULL,
-	                 0,
-	                 NULL,
-                     0,
-                     0, UINT64_MAX,
-                     UINT64_MAX, 0);
+	rc = sd_indexadd(&index, r, &build);
 	if (srunlikely(rc == -1)) {
 		sd_indexfree(&index, r);
 		si_nodefree(n, r, 0);

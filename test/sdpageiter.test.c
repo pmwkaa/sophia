@@ -66,7 +66,7 @@ sdpageiter_lte_empty(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -118,7 +118,7 @@ sdpageiter_lte_eq0(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -188,7 +188,7 @@ sdpageiter_lte_eq1(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -258,7 +258,7 @@ sdpageiter_lte_eq2(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -328,7 +328,7 @@ sdpageiter_lte_minmax0(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -391,7 +391,7 @@ sdpageiter_lte_minmax1(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -485,7 +485,7 @@ sdpageiter_lte_minmax2(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -563,7 +563,7 @@ sdpageiter_lte_mid0(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -633,7 +633,7 @@ sdpageiter_lte_mid1(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -715,7 +715,7 @@ sdpageiter_lte_iterate0(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -782,7 +782,7 @@ sdpageiter_lte_iterate1(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -851,7 +851,7 @@ sdpageiter_lt_eq(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -921,7 +921,7 @@ sdpageiter_lt_minmax(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -982,7 +982,7 @@ sdpageiter_lt_mid(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -1052,7 +1052,7 @@ sdpageiter_lt_iterate0(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -1119,7 +1119,7 @@ sdpageiter_lt_iterate1(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -1183,7 +1183,7 @@ sdpageiter_lte_dup_eq(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -1257,7 +1257,7 @@ sdpageiter_lte_dup_mid(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -1366,7 +1366,7 @@ sdpageiter_lte_dup_mid_gt(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -1467,7 +1467,7 @@ sdpageiter_lte_dup_mid_lt(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -1556,7 +1556,7 @@ sdpageiter_lte_dup_iterate0(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -1633,7 +1633,7 @@ sdpageiter_lte_dup_iterate1(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -1734,7 +1734,7 @@ sdpageiter_gte_eq0(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -1804,7 +1804,7 @@ sdpageiter_gte_eq1(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -1874,7 +1874,7 @@ sdpageiter_gte_eq2(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -1944,7 +1944,7 @@ sdpageiter_gte_minmax0(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -2008,7 +2008,7 @@ sdpageiter_gte_minmax1(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -2102,7 +2102,7 @@ sdpageiter_gte_minmax2(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -2180,7 +2180,7 @@ sdpageiter_gte_mid0(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -2258,7 +2258,7 @@ sdpageiter_gte_mid1(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -2340,7 +2340,7 @@ sdpageiter_gte_iterate0(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -2407,7 +2407,7 @@ sdpageiter_gte_iterate1(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -2476,7 +2476,7 @@ sdpageiter_gt_eq(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -2547,7 +2547,7 @@ sdpageiter_gt_minmax(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -2609,7 +2609,7 @@ sdpageiter_gt_mid(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -2679,7 +2679,7 @@ sdpageiter_gt_iterate0(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -2746,7 +2746,7 @@ sdpageiter_gt_iterate1(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -2810,7 +2810,7 @@ sdpageiter_gte_dup_eq(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -2892,7 +2892,7 @@ sdpageiter_gte_dup_mid(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -3002,7 +3002,7 @@ sdpageiter_gte_dup_mid_gt(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -3097,7 +3097,7 @@ sdpageiter_gte_dup_mid_lt(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -3186,7 +3186,7 @@ sdpageiter_gte_dup_iterate0(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -3263,7 +3263,7 @@ sdpageiter_gte_dup_iterate1(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -3360,7 +3360,7 @@ sdpageiter_update0(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -3424,7 +3424,7 @@ sdpageiter_iterate_raw(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);

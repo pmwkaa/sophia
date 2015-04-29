@@ -15,7 +15,6 @@ int sd_mergeinit(sdmerge *m, sr *r, uint32_t parent,
                  sriter *i,
                  sdbuild *build,
                  uint64_t offset,
-                 uint32_t size_key,
                  uint32_t size_stream,
                  uint64_t size_node,
                  uint32_t size_page,
@@ -28,7 +27,6 @@ int sd_mergeinit(sdmerge *m, sr *r, uint32_t parent,
 	m->parent        = parent;
 	m->build         = build;
 	m->offset        = offset;
-	m->size_key      = size_key;
 	m->size_stream   = size_stream;
 	m->size_node     = size_node;
 	m->size_page     = size_page;
@@ -56,7 +54,7 @@ int sd_merge(sdmerge *m)
 	sd_buildreset(m->build);
 
 	sd_indexinit(&m->index);
-	int rc = sd_indexbegin(&m->index, m->r, m->size_key, m->offset);
+	int rc = sd_indexbegin(&m->index, m->r, m->offset);
 	if (srunlikely(rc == -1))
 		return -1;
 
@@ -88,40 +86,21 @@ int sd_merge(sdmerge *m)
 		rc = sd_buildend(m->build, m->r);
 		if (srunlikely(rc == -1))
 			return -1;
-
-		/* page offset is relative to index:
-		 *
-		 * m->offset + (index_size) + page->offset
-		*/
-		sdpageheader *h = sd_buildheader(m->build);
-		rc = sd_indexadd(&m->index, m->r,
-		                 sd_buildoffset(m->build),
-		                 h->size + sizeof(sdpageheader),
-		                 h->sizeorigin + sizeof(sdpageheader),
-		                 h->count,
-		                 sd_buildminkey(m->build),
-		                 sd_buildmin(m->build)->size,
-		                 sd_buildmaxkey(m->build),
-		                 sd_buildmax(m->build)->size,
-		                 h->countdup,
-		                 h->lsnmindup,
-		                 h->lsnmin,
-		                 h->lsnmax);
+		rc = sd_indexadd(&m->index, m->r, m->build);
 		if (srunlikely(rc == -1))
 			return -1;
 		sd_buildcommit(m->build);
 
-		current = m->index.h->total;
+		current = sd_indextotal(&m->index);
 		if (srunlikely(! sv_writeiter_resume(&m->i)))
 			break;
 	}
 
-	m->processed += m->index.h->total;
+	m->processed += sd_indextotal(&m->index);
 	return 1;
 }
 
 int sd_mergecommit(sdmerge *m, sdid *id)
 {
-	sd_indexcommit(&m->index, m->r, id);
-	return 0;
+	return sd_indexcommit(&m->index, m->r, id);
 }

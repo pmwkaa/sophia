@@ -15,7 +15,6 @@ struct svindex {
 	srrb i;
 	uint32_t count;
 	uint32_t used;
-	uint16_t keymax;
 	uint64_t lsnmin;
 } srpacked;
 

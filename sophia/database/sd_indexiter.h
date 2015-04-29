@@ -33,7 +33,7 @@ sd_indexiter_seek(sriter *i, void *key, int size, int *minp, int *midp, int *max
 		mid = min + ((max - min) >> 1);
 		sdindexpage *page = sd_indexpage(ii->index, mid);
 
-		int rc = sd_indexpage_cmp(page, key, size, i->r->cmp);
+		int rc = sd_indexpage_cmp(ii->index, page, key, size, i->r->cmp);
 		switch (rc) {
 		case -1: min = mid + 1;
 			continue;
@@ -100,7 +100,7 @@ sd_indexiter_open(sriter *i, sdindex *index, srorder o, void *key, int keysize)
 		switch (ii->cmp) {
 		case SR_LTE: break;
 		case SR_LT: {
-			int l = sr_compare(i->r->cmp, sd_indexpage_min(p), p->sizemin,
+			int l = sr_compare(i->r->cmp, sd_indexpage_min(ii->index, p), p->sizemin,
 			                   ii->key, ii->keysize);
 			if (srunlikely(l == 0))
 				ii->pos--;
@@ -108,7 +108,7 @@ sd_indexiter_open(sriter *i, sdindex *index, srorder o, void *key, int keysize)
 		}
 		case SR_GTE: break;
 		case SR_GT: {
-			int r = sr_compare(i->r->cmp, sd_indexpage_max(p), p->sizemax,
+			int r = sr_compare(i->r->cmp, sd_indexpage_max(ii->index, p), p->sizemax,
 			                   ii->key, ii->keysize);
 			if (srunlikely(r == 0))
 				ii->pos++;

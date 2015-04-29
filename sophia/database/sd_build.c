@@ -48,11 +48,10 @@ int sd_buildadd(sdbuild *b, sr *r, sv *v, uint32_t flags)
 		return sr_error(r->e, "%s", "memory allocation failed");
 	sdpageheader *h = sd_buildheader(b);
 	sdv *sv = (sdv*)b->k.p;
-	sv->lsn       = sv_lsn(v);
-	sv->flags     = sv_flags(v) | flags;
-	sv->timestamp = 0;
-	sv->size      = sv_size(v);
-	sv->offset    = sr_bufused(&b->v) - sd_buildref(b)->v;
+	sv->lsn    = sv_lsn(v);
+	sv->flags  = sv_flags(v) | flags;
+	sv->size   = sv_size(v);
+	sv->offset = sr_bufused(&b->v) - sd_buildref(b)->v;
 	/* copy object */
 	rc = sr_bufensure(&b->v, r->a, sv->size);
 	if (srunlikely(rc == -1))
@@ -149,108 +148,5 @@ int sd_buildcommit(sdbuild *b)
 		sr_bufreset(&b->v);
 	}
 	b->n++;
-	return 0;
-}
-
-int sd_buildwritepage(sdbuild *b, sr *r, srbuf *buf)
-{
-	sdbuildref *ref = sd_buildref(b);
-	/* compressed */
-	uint32_t size = sr_bufused(&b->c);
-	int rc;
-	if (size > 0) {
-		rc = sr_bufensure(buf, r->a, ref->csize);
-		if (srunlikely(rc == -1))
-			return -1;
-		memcpy(buf->p, b->c.s, ref->csize);
-		sr_bufadvance(buf, ref->csize);
-		return 0;
-	}
-	/* not compressed */
-	assert(ref->ksize != 0);
-	rc = sr_bufensure(buf, r->a, ref->ksize + ref->vsize);
-	if (srunlikely(rc == -1))
-		return -1;
-	memcpy(buf->p, b->k.s + ref->k, ref->ksize);
-	sr_bufadvance(buf, ref->ksize);
-	memcpy(buf->p, b->v.s + ref->v, ref->vsize);
-	sr_bufadvance(buf, ref->vsize);
-	return 0;
-}
-
-typedef struct {
-	sdbuild *b;
-	uint32_t i;
-	uint32_t iovmax;
-} sdbuildiov;
-
-static inline void
-sd_buildiov_init(sdbuildiov *i, sdbuild *b, int iovmax)
-{
-	i->b = b;
-	i->iovmax = iovmax;
-	i->i = 0;
-}
-
-static inline int
-sd_buildiov(sdbuildiov *i, sriov *iov)
-{
-	uint32_t n = 0;
-	while (i->i < i->b->n && n < (i->iovmax-2)) {
-		sdbuildref *ref =
-			(sdbuildref*)sr_bufat(&i->b->list, sizeof(sdbuildref), i->i);
-		sr_iovadd(iov, i->b->k.s + ref->k, ref->ksize);
-		sr_iovadd(iov, i->b->v.s + ref->v, ref->vsize);
-		i->i++;
-		n += 2;
-	}
-	return i->i < i->b->n;
-}
-
-int sd_buildwrite(sdbuild *b, sr *r, sdindex *index, srfile *file)
-{
-	sdseal seal;
-	sd_seal(&seal, r, index->h);
-	struct iovec iovv[1024];
-	sriov iov;
-	sr_iovinit(&iov, iovv, 1024);
-	sr_iovadd(&iov, index->i.s, sr_bufused(&index->i));
-
-	SR_INJECTION(r->i, SR_INJECTION_SD_BUILD_0,
-	             sr_malfunction(r->e, "%s", "error injection");
-	             assert( sr_filewritev(file, &iov) == 0 );
-	             return -1);
-
-	/* compression enabled */
-	uint32_t size = sr_bufused(&b->c);
-	int rc;
-	if (size > 0) {
-		sr_iovadd(&iov, b->c.s, size);
-		sr_iovadd(&iov, &seal, sizeof(seal));
-		rc = sr_filewritev(file, &iov);
-		if (srunlikely(rc == -1))
-			sr_malfunction(r->e, "file '%s' write error: %s",
-			               file->file, strerror(errno));
-		return rc;
-	}
-
-	/* uncompressed */
-	sdbuildiov iter;
-	sd_buildiov_init(&iter, b, 1022);
-	int more = 1;
-	while (more) {
-		more = sd_buildiov(&iter, &iov);
-		if (srlikely(! more)) {
-			SR_INJECTION(r->i, SR_INJECTION_SD_BUILD_1,
-			             seal.crc++); /* corrupt seal */
-			sr_iovadd(&iov, &seal, sizeof(seal));
-		}
-		rc = sr_filewritev(file, &iov);
-		if (srunlikely(rc == -1)) {
-			return sr_malfunction(r->e, "file '%s' write error: %s",
-			                      file->file, strerror(errno));
-		}
-		sr_iovreset(&iov);
-	}
 	return 0;
 }

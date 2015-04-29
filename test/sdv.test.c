@@ -60,7 +60,7 @@ sdv_test(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);

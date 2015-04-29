@@ -33,7 +33,6 @@ si_branchcreate(si *index, sr *r, sdc *c, sinode *parent, svindex *vindex, uint6
 	             &i,
 	             &c->build,
 	             parent->file.size,
-	             vindex->keymax,
 	             UINT32_MAX,
 	             UINT64_MAX,
 	             index->conf->node_page_size,
@@ -61,7 +60,7 @@ si_branchcreate(si *index, sr *r, sdc *c, sinode *parent, svindex *vindex, uint6
 		goto error;
 
 	si_branchset(branch, &merge.index);
-	rc = sd_buildwrite(&c->build, r, &branch->index, &parent->file);
+	rc = sd_commit(&c->build, r, &branch->index, &parent->file);
 	if (srunlikely(rc == -1)) {
 		si_branchfree(branch, r);
 		return NULL;
@@ -165,15 +164,11 @@ int si_compact(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	if (srunlikely(rc == -1))
 		return -1;
 	uint32_t size_stream = 0;
-	uint32_t size_key = 0;
 	uint32_t gc = 0;
 	sdcbuf *cbuf = c->head;
 	sibranch *b = node->branch;
 	while (b) {
 		svmergesrc *s = sv_mergeadd(&merge, NULL);
-		uint16_t key = sd_indexkeysize(&b->index);
-		if (key > size_key)
-			size_key = key;
 		size_stream += sd_indextotal(&b->index);
 		sr_iterinit(sd_iter, &s->src, r);
 		sr_iteropen(sd_iter, &s->src, &b->index, c->c.s, 0, index->conf->compression, &cbuf->buf);
@@ -183,7 +178,7 @@ int si_compact(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	sriter i;
 	sr_iterinit(sv_mergeiter, &i, r);
 	sr_iteropen(sv_mergeiter, &i, &merge, SR_GTE);
-	rc = si_compaction(index, r, c, vlsn, node, &i, size_stream, size_key);
+	rc = si_compaction(index, r, c, vlsn, node, &i, size_stream);
 	if (srunlikely(rc == -1)) {
 		sv_mergefree(&merge, r->a);
 		return -1;

@@ -66,7 +66,8 @@ si_redistribute(si *index, sr *r, sdc *c, sinode *node, srbuf *result,
 			svv *vgc = NULL;
 			sdindexpage *page = sd_indexmin(&p->self.index);
 			int rc = sr_compare(r->cmp, sv_vpointer(v), v->size,
-			                    sd_indexpage_min(page), page->sizemin);
+			                    sd_indexpage_min(&p->self.index, page),
+			                    page->sizemin);
 			if (srunlikely(rc >= 0))
 				break;
 			sv_indexset(&prev->i0, r, vlsn, v, &vgc);
@@ -159,7 +160,6 @@ si_split(si *index, sr *r, sdc *c, srbuf *result,
          sinode   *parent,
          sriter   *i,
          uint64_t  size_node,
-         uint32_t  size_key,
          uint32_t  size_stream,
          uint64_t  vlsn)
 {
@@ -169,7 +169,6 @@ si_split(si *index, sr *r, sdc *c, srbuf *result,
 	sd_mergeinit(&merge, r, parent->self.id.id,
 	             i, &c->build,
 	             0, /* offset */
-	             size_key,
 	             size_stream,
 	             size_node,
 	             index->conf->node_page_size,
@@ -212,9 +211,7 @@ error:
 
 int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
                   sinode *node,
-                  sriter *stream,
-                  uint32_t size_stream,
-                  uint32_t size_key)
+                  sriter *stream, uint32_t size_stream)
 {
 	srbuf *result = &c->a;
 	sriter i;
@@ -228,7 +225,6 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 	rc = si_split(index, r, c, result,
 	              node, stream,
 	              index->conf->node_size,
-	              size_key,
 	              size_stream,
 	              vlsn);
 	if (srunlikely(rc == -1))

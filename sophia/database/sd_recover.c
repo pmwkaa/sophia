@@ -47,8 +47,7 @@ sd_recovernext_of(sriter *i, sdindexheader *next)
 	if (! sr_versioncheck(&next->version))
 		return sr_malfunction(i->r->e, "bad db file '%s' version",
 		                      ri->file->file);
-	char *end = start + sizeof(sdindexheader) +
-	            next->count * next->block +
+	char *end = start + sizeof(sdindexheader) + next->size +
 	            next->total +
 	            next->extension + sizeof(sdseal);
 	if (srunlikely((start > eof || (end > eof)))) {
@@ -126,7 +125,7 @@ sd_recovernext(sriter *i)
 		return;
 	sdindexheader *next =
 		(sdindexheader*)((char*)ri->v +
-		    (sizeof(sdindexheader) + ri->v->count * ri->v->block) +
+		    (sizeof(sdindexheader) + ri->v->size) +
 		     ri->v->total +
 		     ri->v->extension + sizeof(sdseal));
 	sd_recovernext_of(i, next);
@@ -150,7 +149,7 @@ int sd_recover_complete(sriter *i)
 	/* truncate file to the latest actual index */
 	char *eof =
 		(char*)ri->actual + sizeof(sdindexheader) +
-		       ri->actual->count * ri->actual->block +
+		       ri->actual->size +
 		       ri->actual->total +
 		       ri->actual->extension + sizeof(sdseal);
 	uint64_t file_size = eof - ri->map.p;

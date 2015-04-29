@@ -135,7 +135,7 @@ sdbuild_page1(stc *cx srunused)
 
 	srbuf buf;
 	sr_bufinit(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
@@ -157,7 +157,7 @@ sdbuild_page1(stc *cx srunused)
 	t( h->lsnmin == 4 );
 	t( h->lsnmax == 5 );
 	sr_bufreset(&buf);
-	t( sd_buildwritepage(&b, &r, &buf) == 0 );
+	t( sd_commitpage(&b, &r, &buf) == 0 );
 	h = (sdpageheader*)buf.s;
 	sd_pageinit(&page, h);
 	min = sd_pagemin(&page);

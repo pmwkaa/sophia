@@ -57,7 +57,8 @@ int si_close(si *i, sr *r)
 
 sr_rbget(si_match,
          sr_compare(cmp,
-                    sd_indexpage_min(sd_indexmin(&(srcast(n, sinode, node))->self.index)),
+                    sd_indexpage_min(&(srcast(n, sinode, node))->self.index,
+                                     sd_indexmin(&(srcast(n, sinode, node))->self.index)),
                     sd_indexmin(&(srcast(n, sinode, node))->self.index)->sizemin,
                     key, keysize))
 
@@ -65,7 +66,9 @@ int si_insert(si *i, sr *r, sinode *n)
 {
 	sdindexpage *min = sd_indexmin(&n->self.index);
 	srrbnode *p = NULL;
-	int rc = si_match(&i->i, r->cmp, sd_indexpage_min(min), min->sizemin, &p);
+	int rc = si_match(&i->i, r->cmp,
+	                  sd_indexpage_min(&n->self.index, min),
+	                  min->sizemin, &p);
 	assert(! (rc == 0 && p));
 	sr_rbset(&i->i, p, rc, &n->node);
 	i->n++;

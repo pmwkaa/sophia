@@ -131,7 +131,7 @@ int si_nodecreate(sinode *n, sr *r, siconf *conf, sdid *id,
 		               path.path, strerror(errno));
 		return -1;
 	}
-	rc = sd_buildwrite(build, r, &n->self.index, &n->file);
+	rc = sd_commit(build, r, &n->self.index, &n->file);
 	if (srunlikely(rc == -1))
 		return -1;
 	n->branch = &n->self;
@@ -200,8 +200,10 @@ int si_nodecmp(sinode *n, void *key, int size, srkey *c)
 {
 	sdindexpage *min = sd_indexmin(&n->self.index);
 	sdindexpage *max = sd_indexmax(&n->self.index);
-	int l = sr_compare(c, sd_indexpage_min(min), min->sizemin, key, size);
-	int r = sr_compare(c, sd_indexpage_max(max), max->sizemin, key, size);
+	int l = sr_compare(c, sd_indexpage_min(&n->self.index, min),
+	                   min->sizemin, key, size);
+	int r = sr_compare(c, sd_indexpage_max(&n->self.index, max),
+	                   max->sizemin, key, size);
 	/* inside range */
 	if (l <= 0 && r >= 0)
 		return 0;
