@@ -28,16 +28,18 @@ si_branchcreate(si *index, sr *r, sdc *c, sinode *parent, svindex *vindex, uint6
 	sr_iteropen(sv_mergeiter, &i, &vmerge, SR_GTE);
 
 	/* merge iter is not used */
+	sdmergeconf mergeconf = {
+		.size_stream = UINT32_MAX,
+		.size_node   = UINT64_MAX,
+		.size_page   = index->conf->node_page_size,
+		.checksum    = index->conf->node_page_checksum,
+		.compression = index->conf->compression,
+		.offset      = parent->file.size,
+		.vlsn        = vlsn,
+		.save_delete = 1
+	};
 	sdmerge merge;
-	sd_mergeinit(&merge, r, parent->self.id.id,
-	             &i,
-	             &c->build,
-	             parent->file.size,
-	             UINT32_MAX,
-	             UINT64_MAX,
-	             index->conf->node_page_size,
-	             index->conf->node_page_checksum,
-	             index->conf->compression, 1, vlsn);
+	sd_mergeinit(&merge, r, &i, &c->build, &mergeconf);
 	rc = sd_merge(&merge);
 	if (srunlikely(rc == -1)) {
 		sv_mergefree(&vmerge, r->a);

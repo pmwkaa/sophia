@@ -9,28 +9,31 @@
  * BSD License
 */
 
+typedef struct sdmergeconf sdmergeconf;
 typedef struct sdmerge sdmerge;
 
+struct sdmergeconf {
+	uint32_t size_stream;
+	uint64_t size_node;
+	uint32_t size_page;
+	uint32_t checksum;
+	uint32_t compression;
+	uint64_t offset;
+	uint64_t vlsn;
+	uint32_t save_delete;
+};
+
 struct sdmerge {
-	uint32_t parent;
 	sdindex index;
 	sriter *merge;
 	sriter i;
-	uint32_t size_stream;
-	uint32_t size_page;
-	uint64_t size_node;
-	uint32_t checksum;
-	uint32_t compression;
 	uint64_t processed;
-	uint64_t offset;
+	sdmergeconf *conf;
 	sr *r;
 	sdbuild *build;
 };
 
-int sd_mergeinit(sdmerge*, sr*, uint32_t, sriter*,
-                 sdbuild*, uint64_t,
-                 uint32_t, uint64_t, uint32_t, uint32_t,
-                 uint32_t, int, uint64_t);
+int sd_mergeinit(sdmerge*, sr*, sriter*, sdbuild*, sdmergeconf*);
 int sd_mergefree(sdmerge*);
 int sd_merge(sdmerge*);
 int sd_mergecommit(sdmerge*, sdid*);

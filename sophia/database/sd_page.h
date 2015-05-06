@@ -19,7 +19,6 @@ struct sdpageheader {
 	uint32_t countdup;
 	uint32_t sizeorigin;
 	uint32_t size;
-	uint32_t tsmin;
 	uint64_t lsnmin;
 	uint64_t lsnmindup;
 	uint64_t lsnmax;

@@ -31,9 +31,8 @@ int sd_buildbegin(sdbuild *b, sr *r, int crc, int compress)
 		return sr_error(r->e, "%s", "memory allocation failed");
 	sdpageheader *h = sd_buildheader(b);
 	memset(h, 0, sizeof(*h));
-	h->lsnmin     = UINT64_MAX;
-	h->lsnmindup  = UINT64_MAX;
-	h->tsmin      = 0;
+	h->lsnmin    = UINT64_MAX;
+	h->lsnmindup = UINT64_MAX;
 	memset(h->reserve, 0, sizeof(h->reserve));
 	sr_bufadvance(&b->list, sizeof(sdbuildref));
 	sr_bufadvance(&b->k, sizeof(sdpageheader));

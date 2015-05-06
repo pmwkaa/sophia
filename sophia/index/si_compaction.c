@@ -165,16 +165,18 @@ si_split(si *index, sr *r, sdc *c, srbuf *result,
 {
 	int count = 0;
 	int rc;
+	sdmergeconf mergeconf = {
+		.size_stream = size_stream,
+		.size_node   = size_node,
+		.size_page   = index->conf->node_page_size,
+		.checksum    = index->conf->node_page_checksum,
+		.compression = index->conf->compression,
+		.offset      = 0,
+		.vlsn        = vlsn,
+		.save_delete = 0
+	};
 	sdmerge merge;
-	sd_mergeinit(&merge, r, parent->self.id.id,
-	             i, &c->build,
-	             0, /* offset */
-	             size_stream,
-	             size_node,
-	             index->conf->node_page_size,
-	             index->conf->node_page_checksum,
-	             index->conf->compression,
-	             0, vlsn);
+	sd_mergeinit(&merge, r, i, &c->build, &mergeconf);
 	while ((rc = sd_merge(&merge)) > 0)
 	{
 		sinode *n = si_nodenew(r);
