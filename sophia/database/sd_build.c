@@ -47,28 +47,33 @@ int sd_buildadd(sdbuild *b, sr *r, sv *v, uint32_t flags)
 		return sr_error(r->e, "%s", "memory allocation failed");
 	sdpageheader *h = sd_buildheader(b);
 	sdv *sv = (sdv*)b->k.p;
-	sv->lsn    = sv_lsn(v);
 	sv->flags  = sv_flags(v) | flags;
-	sv->size   = sv_size(v);
 	sv->offset = sr_bufused(&b->v) - sd_buildref(b)->v;
 	/* copy object */
-	rc = sr_bufensure(&b->v, r->a, sv->size);
+	uint64_t lsn = sv_lsn(v);
+	uint32_t size = sv_size(v);
+	uint32_t sizemeta = sr_leb128size(size) + sr_leb128size(lsn);
+	rc = sr_bufensure(&b->v, r->a, sizemeta + size);
 	if (srunlikely(rc == -1))
 		return sr_error(r->e, "%s", "memory allocation failed");
-	memcpy(b->v.p, sv_pointer(v), sv->size);
-	sr_bufadvance(&b->v, sv->size);
+	/* meta */
+	sr_bufadvance(&b->v, sr_leb128write((unsigned char *)b->v.p, size));
+	sr_bufadvance(&b->v, sr_leb128write((unsigned char *)b->v.p, lsn));
+	/* object */
+	memcpy(b->v.p, sv_pointer(v), size);
+	sr_bufadvance(&b->v, size);
 	sr_bufadvance(&b->k, sizeof(sdv));
 	/* update page header */
 	h->count++;
-	h->size +=  sv->size + sizeof(sdv);
-	if (sv->lsn > h->lsnmax)
-		h->lsnmax = sv->lsn;
-	if (sv->lsn < h->lsnmin)
-		h->lsnmin = sv->lsn;
+	h->size += sizeof(sdv) + sizemeta + size;
+	if (lsn > h->lsnmax)
+		h->lsnmax = lsn;
+	if (lsn < h->lsnmin)
+		h->lsnmin = lsn;
 	if (sv->flags & SVDUP) {
 		h->countdup++;
-		if (sv->lsn < h->lsnmindup)
-			h->lsnmindup = sv->lsn;
+		if (lsn < h->lsnmindup)
+			h->lsnmindup = lsn;
 	}
 	return 0;
 }

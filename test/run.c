@@ -128,7 +128,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, deadlock_group());
 	st_planadd(plan, cache_group());
 	st_planadd(plan, branch_group());
-	st_planadd(plan, compact_group());
+	/*st_planadd(plan, compact_group());*/
 	st_planadd(plan, checkpoint_group());
 	st_planadd(plan, transaction_multidb_group());
 	st_planadd(plan, gc_group());

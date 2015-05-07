@@ -18,7 +18,11 @@ sd_vifflags(sv *v) {
 
 static uint64_t
 sd_viflsn(sv *v) {
-	return ((sdv*)v->v)->lsn;
+	sdv *dv = v->v;
+	sdpage p = {
+		.h = (sdpageheader*)v->arg
+	};
+	return sd_pagelsnof(&p, dv);
 }
 
 static char*
@@ -28,12 +32,19 @@ sd_vifpointer(sv *v)
 	sdpage p = {
 		.h = (sdpageheader*)v->arg
 	};
-	return sd_pageof(&p, dv);
+	uint64_t size, lsn;
+	return sd_pagemetaof(&p, dv, &size, &lsn);
 }
 
 static uint32_t
 sd_vifsize(sv *v) {
-	return ((sdv*)v->v)->size;
+	sdv *dv = v->v;
+	sdpage p = {
+		.h = (sdpageheader*)v->arg
+	};
+	uint64_t size, lsn;
+	sd_pagemetaof(&p, dv, &size, &lsn);
+	return size;
 }
 
 svif sd_vif =

@@ -140,10 +140,11 @@ sdbuild_page1(stc *cx srunused)
 	sdpage page;
 	sd_pageinit(&page, h);
 
+	uint64_t size, lsn;
 	sdv *min = sd_pagemin(&page);
-	t( *(int*)sr_formatkey( sd_pageof(&page, min), 0) == i );
+	t( *(int*)sr_formatkey( sd_pagemetaof(&page, min, &size, &lsn), 0) == i );
 	sdv *max = sd_pagemax(&page);
-	t( *(int*)sr_formatkey( sd_pageof(&page, max), 0) == k );
+	t( *(int*)sr_formatkey( sd_pagemetaof(&page, max, &size, &lsn), 0) == k );
 	sd_buildcommit(&b);
 
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
@@ -161,9 +162,9 @@ sdbuild_page1(stc *cx srunused)
 	h = (sdpageheader*)buf.s;
 	sd_pageinit(&page, h);
 	min = sd_pagemin(&page);
-	t( *(int*)sr_formatkey( sd_pageof(&page, min), 0) == j );
+	t( *(int*)sr_formatkey( sd_pagemetaof(&page, min, &size, &lsn), 0) == j );
 	max = sd_pagemax(&page);
-	t( *(int*)sr_formatkey( sd_pageof(&page, max), 0) == k );
+	t( *(int*)sr_formatkey( sd_pagemetaof(&page, max, &size, &lsn), 0) == k );
 	sd_buildcommit(&b);
 
 	sd_buildfree(&b, &r);

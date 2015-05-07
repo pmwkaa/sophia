@@ -10,6 +10,17 @@
 */
 
 static inline int
+sr_leb128size(uint64_t value)
+{
+	int size = 0;
+	do {
+		value >>= 7;
+		size++;
+	} while (value != 0);
+	return size;
+}
+
+static inline int
 sr_leb128write(unsigned char *dest, uint64_t value)
 {
 	int size = 0;

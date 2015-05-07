@@ -12,10 +12,8 @@
 typedef struct sdv sdv;
 
 struct sdv {
-	uint64_t lsn;
-	uint8_t  flags;
-	uint32_t offset;
-	uint32_t size;
+	uint32_t offset:21;
+	uint8_t  flags:3;
 } srpacked;
 
 extern svif sd_vif;

@@ -3388,90 +3388,6 @@ sdpageiter_update0(stc *cx srunused)
 	sr_keyfree(&cmp, &a);
 }
 
-static void
-sdpageiter_iterate_raw(stc *cx srunused)
-{
-	sra a;
-	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
-	srinjection ij;
-	memset(&ij, 0, sizeof(ij));
-	srerror error;
-	sr_errorinit(&error);
-	srseq seq;
-	sr_seqinit(&seq);
-	srcrcf crc = sr_crc32c_function();
-	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
-
-	sdbuild b;
-	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &r, 1, 0) == 0);
-
-	int i = 7;
-	int j = 9;
-	int k = 15;
-	addv(&b, &r, 5, 0, &i);
-	addv(&b, &r, 4, 0, &j);
-	addv(&b, &r, 3, 0|SVDUP, &j);
-	addv(&b, &r, 2, 0|SVDUP, &j);
-	addv(&b, &r, 1, 0, &k);
-	sd_buildend(&b, &r);
-
-	srbuf buf;
-	sr_bufinit(&buf);
-	t( sd_commitpage(&b, &r, &buf) == 0 );
-	sdpageheader *h = (sdpageheader*)buf.s;
-	sdpage page;
-	sd_pageinit(&page, h);
-
-	sriter it;
-	sr_iterinit(sd_pageiterraw, &it, &r);
-	sr_iteropen(sd_pageiterraw, &it, &page);
-	t( sr_iteratorhas(&it) != 0 );
-	sv *v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == i );
-	t( sv_lsn(v) == 5 );
-	sr_iteratornext(&it);
-
-	t( sr_iteratorhas(&it) != 0 );
-	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == j );
-	t( sv_lsn(v) == 4 );
-	sr_iteratornext(&it);
-
-	t( sr_iteratorhas(&it) != 0 );
-	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == j );
-	t( sv_lsn(v) == 3 );
-	sr_iteratornext(&it);
-
-	t( sr_iteratorhas(&it) != 0 );
-	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == j );
-	t( sv_lsn(v) == 2 );
-	sr_iteratornext(&it);
-
-	t( sr_iteratorhas(&it) != 0 );
-	v = sr_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == k );
-	t( sv_lsn(v) == 1 );
-	sr_iteratornext(&it);
-
-	t( sr_iteratorhas(&it) == 0 );
-	v = sr_iteratorof(&it);
-	t( v == NULL );
-	sr_iteratorclose(&it);
-
-	sd_buildfree(&b, &r);
-	sr_buffree(&buf, &a);
-	sr_keyfree(&cmp, &a);
-}
-
 stgroup *sdpageiter_group(void)
 {
 	stgroup *group = st_group("sdpageiter");
@@ -3519,6 +3435,5 @@ stgroup *sdpageiter_group(void)
 	st_groupadd(group, st_test("gte_dup_iterate0", sdpageiter_gte_dup_iterate0));
 	st_groupadd(group, st_test("gte_dup_iterate1", sdpageiter_gte_dup_iterate1));
 	st_groupadd(group, st_test("update0", sdpageiter_update0));
-	st_groupadd(group, st_test("iterate_raw", sdpageiter_iterate_raw));
 	return group;
 }

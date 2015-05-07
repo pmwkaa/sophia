@@ -614,6 +614,7 @@ so_ctldb(so *e, soctlrt *rt srunused, src **pc)
 		sr_clink(&p, sr_c(pc, so_ctlv,            "branch_avg",       SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_avg));
 		sr_clink(&p, sr_c(pc, so_ctlv,            "branch_max",       SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_max));
 		sr_clink(&p, sr_c(pc, so_ctlv,            "branch_histogram", SR_CSZ|SR_CRO,  o->ctl.rtp.histogram_branch_ptr));
+		sr_clink(&p, sr_c(pc, so_ctlv,            "page_count",       SR_CU32|SR_CRO, &o->ctl.rtp.total_page_count));
 		sr_clink(&p, sr_c(pc, so_ctldb_cmp,       "cmp",              SR_CVOID,       o));
 		sr_clink(&p, sr_c(pc, so_ctldb_cmpprefix, "cmp_prefix",       SR_CVOID,       o));
 		/* index keys */

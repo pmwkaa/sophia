@@ -18,11 +18,3 @@ sriterif sd_pageiter =
 	.of      = sd_pageiter_of,
 	.next    = sd_pageiter_next
 };
-
-sriterif sd_pageiterraw =
-{
-	.close = sd_pageiterraw_close,
-	.has   = sd_pageiterraw_has,
-	.of    = sd_pageiterraw_of,
-	.next  = sd_pageiterraw_next,
-};

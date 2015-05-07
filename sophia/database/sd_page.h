@@ -41,10 +41,38 @@ sd_pagev(sdpage *p, uint32_t pos) {
 }
 
 static inline void*
-sd_pageof(sdpage *p, sdv *v) {
+sd_pagepointer(sdpage *p, sdv *v) {
 	assert((sizeof(sdv) * p->h->count) + v->offset <= p->h->sizeorigin);
 	return ((char*)p->h + sizeof(sdpageheader) +
 	         sizeof(sdv) * p->h->count) + v->offset;
+}
+
+static inline uint64_t
+sd_pagesizeof(sdpage *p, sdv *v)
+{
+	unsigned char *ptr = sd_pagepointer(p, v);
+	uint64_t val = 0;
+	sr_leb128read(ptr, &val);
+	return val;
+}
+
+static inline uint64_t
+sd_pagelsnof(sdpage *p, sdv *v)
+{
+	unsigned char *ptr = sd_pagepointer(p, v);
+	uint64_t val = 0;
+	ptr += sr_leb128read(ptr, &val);
+	sr_leb128read(ptr, &val);
+	return val;
+}
+
+static inline char*
+sd_pagemetaof(sdpage *p, sdv *v, uint64_t *size, uint64_t *lsn)
+{
+	unsigned char *ptr = sd_pagepointer(p, v);
+	ptr += sr_leb128read(ptr, size);
+	ptr += sr_leb128read(ptr, lsn);
+	return (char*)ptr;
 }
 
 static inline sdv*

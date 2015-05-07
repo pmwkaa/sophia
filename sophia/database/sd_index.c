@@ -67,6 +67,7 @@ int sd_indexadd(sdindex *i, sr *r, sdbuild *build)
 	int size = ph->size + sizeof(sdpageheader);
 	int sizeorigin = ph->sizeorigin + sizeof(sdpageheader);
 
+
 	/* prepare page header.
 	 *
 	 * offset is relative to index:
@@ -75,17 +76,28 @@ int sd_indexadd(sdindex *i, sr *r, sdbuild *build)
 	sdindexpage *p = (sdindexpage*)i->i.p;
 	p->offset      = sd_buildoffset(build);
 	p->offsetindex = sr_bufused(&i->v);
+	p->lsnmin      = ph->lsnmin;
+	p->lsnmax      = ph->lsnmax;
 	p->size        = size;
 	p->sizeorigin  = sizeorigin;
+	unsigned char *minptr = NULL;
+	unsigned char *maxptr = NULL;
 	if (srlikely(ph->count > 0)) {
-		p->sizemin = sr_formatkey_total(r->cmp, sd_buildminkey(build));
-		p->sizemax = sr_formatkey_total(r->cmp, sd_buildmaxkey(build));
+		uint64_t unused;
+		minptr  = (unsigned char*)sd_buildminkey(build);
+		minptr += sr_leb128read(minptr, &unused);
+		minptr += sr_leb128read(minptr, &unused);
+		maxptr  = (unsigned char*)sd_buildmaxkey(build);
+		maxptr += sr_leb128read(maxptr, &unused);
+		maxptr += sr_leb128read(maxptr, &unused);
+		p->sizemin = sr_formatkey_total(r->cmp, (char*)minptr);
+		p->sizemax = sr_formatkey_total(r->cmp, (char*)maxptr);
 	} else {
+		minptr = NULL;
+		maxptr = NULL;
 		p->sizemin = 0;
 		p->sizemax = 0;
 	}
-	p->lsnmin      = ph->lsnmin;
-	p->lsnmax      = ph->lsnmax;
 	/* update index info */
 	sdindexheader *h = sd_indexheader(i);
 	h->count++;
@@ -112,11 +124,11 @@ int sd_indexadd(sdindex *i, sr *r, sdbuild *build)
 		return -1;
 	}
 	/* reformat key object to exclude value */
-	rc = sr_formatkey_copy(r->cmp, i->v.p, sd_buildminkey(build));
+	rc = sr_formatkey_copy(r->cmp, i->v.p, (char*)minptr);
 	assert(rc == p->sizemin);
 	(void)rc;
 	sr_bufadvance(&i->v, p->sizemin);
-	rc = sr_formatkey_copy(r->cmp, i->v.p, sd_buildmaxkey(build));
+	rc = sr_formatkey_copy(r->cmp, i->v.p, (char*)maxptr);
 	assert(rc == p->sizemax);
 	(void)rc;
 	sr_bufadvance(&i->v, p->sizemax);

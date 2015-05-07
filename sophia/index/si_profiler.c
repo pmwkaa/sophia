@@ -83,6 +83,7 @@ int si_profiler(siprofiler *p)
 			int indexsize = sd_indexsize(b->index.h);
 			p->total_node_size += indexsize + b->index.h->total;
 			p->total_node_origin_size += indexsize + b->index.h->totalorigin;
+			p->total_page_count += b->index.h->count;
 			b = b->next;
 		}
 		pn = sr_rbnext(&p->i->i, pn);
