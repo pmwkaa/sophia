@@ -75,7 +75,7 @@ sl_begin_commit(stc *cx)
 	svlog log;
 	sv_loginit(&log);
 
-	alloclogv(&log, &r, 0, SVSET, 7);
+	alloclogv(&log, &r, 0, 0, 7);
 
 	sltx ltx;
 	t( sl_begin(&lp, &ltx) == 0 );
@@ -118,7 +118,7 @@ sl_begin_rollback(stc *cx)
 	svlog log;
 	sv_loginit(&log);
 
-	alloclogv(&log, &r, 0, SVSET, 7);
+	alloclogv(&log, &r, 0, 0, 7);
 
 	sltx ltx;
 	t( sl_begin(&lp, &ltx) == 0 );

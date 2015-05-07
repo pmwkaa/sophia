@@ -10,11 +10,10 @@
 */
 
 #define SVNONE   0
-#define SVSET    1
-#define SVDELETE 2
-#define SVDUP    4
-#define SVABORT  8
-#define SVBEGIN  16
+#define SVDELETE 1
+#define SVDUP    2
+#define SVABORT  4
+#define SVBEGIN  8
 
 typedef struct svif svif;
 typedef struct sv sv;

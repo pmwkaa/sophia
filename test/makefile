@@ -2,6 +2,7 @@ OBJECTS = st.o \
           st_scene.o \
           run.o \
           srctl.test.o \
+          srleb128.test.o \
           srpager.test.o \
           sra.test.o \
           sraslab.test.o \

@@ -111,9 +111,9 @@ sdpageiter_lte_eq0(stc *cx srunused)
 	int i = 7;
 	int j = 8;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -181,9 +181,9 @@ sdpageiter_lte_eq1(stc *cx srunused)
 	int i = 7;
 	int j = 8;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -251,9 +251,9 @@ sdpageiter_lte_eq2(stc *cx srunused)
 	int i = 7;
 	int j = 8;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -321,9 +321,9 @@ sdpageiter_lte_minmax0(stc *cx srunused)
 	int i = 7;
 	int j = 8;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -383,10 +383,10 @@ sdpageiter_lte_minmax1(stc *cx srunused)
 	int i = 7;
 	int j = 8;
 	int k = 15;
-	addv(&b, &r, 4, SVSET, &z);
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 4, 0, &z);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -477,10 +477,10 @@ sdpageiter_lte_minmax2(stc *cx srunused)
 	int i = 7;
 	int j = 8;
 	int k = 15;
-	addv(&b, &r, 1, SVSET, &z);
-	addv(&b, &r, 2, SVSET, &i);
-	addv(&b, &r, 3, SVSET, &j);
-	addv(&b, &r, 4, SVSET, &k);
+	addv(&b, &r, 1, 0, &z);
+	addv(&b, &r, 2, 0, &i);
+	addv(&b, &r, 3, 0, &j);
+	addv(&b, &r, 4, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -556,9 +556,9 @@ sdpageiter_lte_mid0(stc *cx srunused)
 	int i = 7;
 	int j = 9;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -626,9 +626,9 @@ sdpageiter_lte_mid1(stc *cx srunused)
 	int i = 7;
 	int j = 9;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -708,9 +708,9 @@ sdpageiter_lte_iterate0(stc *cx srunused)
 	int i = 7;
 	int j = 9;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -775,9 +775,9 @@ sdpageiter_lte_iterate1(stc *cx srunused)
 	int i = 7;
 	int j = 9;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -844,9 +844,9 @@ sdpageiter_lt_eq(stc *cx srunused)
 	int i = 7;
 	int j = 8;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -914,9 +914,9 @@ sdpageiter_lt_minmax(stc *cx srunused)
 	int i = 7;
 	int j = 8;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -975,9 +975,9 @@ sdpageiter_lt_mid(stc *cx srunused)
 	int i = 7;
 	int j = 9;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -1045,9 +1045,9 @@ sdpageiter_lt_iterate0(stc *cx srunused)
 	int i = 7;
 	int j = 9;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -1112,9 +1112,9 @@ sdpageiter_lt_iterate1(stc *cx srunused)
 	int i = 7;
 	int j = 9;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -1175,10 +1175,10 @@ sdpageiter_lte_dup_eq(stc *cx srunused)
 
 	int j = 4;
 	int i = 7;
-	addv(&b, &r, 0, SVSET, &j);
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET|SVDUP, &i);
-	addv(&b, &r, 1, SVSET|SVDUP, &i);
+	addv(&b, &r, 0, 0, &j);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0|SVDUP, &i);
+	addv(&b, &r, 1, 0|SVDUP, &i);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -1248,11 +1248,11 @@ sdpageiter_lte_dup_mid(stc *cx srunused)
 	int i = 7;
 	int j = 9;
 	int k = 15;
-	addv(&b, &r, 5, SVSET, &i);
-	addv(&b, &r, 4, SVSET, &j);
-	addv(&b, &r, 3, SVSET|SVDUP, &j);
-	addv(&b, &r, 2, SVSET|SVDUP, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 5, 0, &i);
+	addv(&b, &r, 4, 0, &j);
+	addv(&b, &r, 3, 0|SVDUP, &j);
+	addv(&b, &r, 2, 0|SVDUP, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -1355,13 +1355,13 @@ sdpageiter_lte_dup_mid_gt(stc *cx srunused)
 	int i = 7;
 	int j = 9;
 	int k = 15;
-	addv(&b, &r, 90, SVSET, &i);
-	addv(&b, &r, 80, SVSET, &j);
-	addv(&b, &r, 70, SVSET|SVDUP, &j);
-	addv(&b, &r, 60, SVSET|SVDUP, &j);
-	addv(&b, &r, 50, SVSET, &k);
-	addv(&b, &r, 40, SVSET|SVDUP, &k);
-	addv(&b, &r, 30, SVSET|SVDUP, &k);
+	addv(&b, &r, 90, 0, &i);
+	addv(&b, &r, 80, 0, &j);
+	addv(&b, &r, 70, 0|SVDUP, &j);
+	addv(&b, &r, 60, 0|SVDUP, &j);
+	addv(&b, &r, 50, 0, &k);
+	addv(&b, &r, 40, 0|SVDUP, &k);
+	addv(&b, &r, 30, 0|SVDUP, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -1456,13 +1456,13 @@ sdpageiter_lte_dup_mid_lt(stc *cx srunused)
 	int i = 7;
 	int j = 9;
 	int k = 3;
-	addv(&b, &r, 50, SVSET, &k);
-	addv(&b, &r, 40, SVSET|SVDUP, &k);
-	addv(&b, &r, 30, SVSET|SVDUP, &k);
-	addv(&b, &r, 90, SVSET, &i);
-	addv(&b, &r, 80, SVSET, &j);
-	addv(&b, &r, 70, SVSET|SVDUP, &j);
-	addv(&b, &r, 60, SVSET|SVDUP, &j);
+	addv(&b, &r, 50, 0, &k);
+	addv(&b, &r, 40, 0|SVDUP, &k);
+	addv(&b, &r, 30, 0|SVDUP, &k);
+	addv(&b, &r, 90, 0, &i);
+	addv(&b, &r, 80, 0, &j);
+	addv(&b, &r, 70, 0|SVDUP, &j);
+	addv(&b, &r, 60, 0|SVDUP, &j);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -1545,13 +1545,13 @@ sdpageiter_lte_dup_iterate0(stc *cx srunused)
 	int i = 7;
 	int j = 9;
 	int k = 15;
-	addv(&b, &r, 90, SVSET, &i);
-	addv(&b, &r, 80, SVSET, &j);
-	addv(&b, &r, 70, SVSET|SVDUP, &j);
-	addv(&b, &r, 60, SVSET|SVDUP, &j);
-	addv(&b, &r, 50, SVSET, &k);
-	addv(&b, &r, 40, SVSET|SVDUP, &k);
-	addv(&b, &r, 30, SVSET|SVDUP, &k);
+	addv(&b, &r, 90, 0, &i);
+	addv(&b, &r, 80, 0, &j);
+	addv(&b, &r, 70, 0|SVDUP, &j);
+	addv(&b, &r, 60, 0|SVDUP, &j);
+	addv(&b, &r, 50, 0, &k);
+	addv(&b, &r, 40, 0|SVDUP, &k);
+	addv(&b, &r, 30, 0|SVDUP, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -1622,13 +1622,13 @@ sdpageiter_lte_dup_iterate1(stc *cx srunused)
 	int i = 7;
 	int j = 9;
 	int k = 15;
-	addv(&b, &r, 42, SVSET, &i);
-	addv(&b, &r, 80, SVSET, &j);
-	addv(&b, &r, 60, SVSET|SVDUP, &j);
-	addv(&b, &r, 41, SVSET|SVDUP, &j);
-	addv(&b, &r, 50, SVSET, &k);
-	addv(&b, &r, 40, SVSET|SVDUP, &k);
-	addv(&b, &r, 30, SVSET|SVDUP, &k);
+	addv(&b, &r, 42, 0, &i);
+	addv(&b, &r, 80, 0, &j);
+	addv(&b, &r, 60, 0|SVDUP, &j);
+	addv(&b, &r, 41, 0|SVDUP, &j);
+	addv(&b, &r, 50, 0, &k);
+	addv(&b, &r, 40, 0|SVDUP, &k);
+	addv(&b, &r, 30, 0|SVDUP, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -1727,9 +1727,9 @@ sdpageiter_gte_eq0(stc *cx srunused)
 	int i = 7;
 	int j = 8;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -1797,9 +1797,9 @@ sdpageiter_gte_eq1(stc *cx srunused)
 	int i = 7;
 	int j = 8;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -1867,9 +1867,9 @@ sdpageiter_gte_eq2(stc *cx srunused)
 	int i = 7;
 	int j = 8;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -1937,9 +1937,9 @@ sdpageiter_gte_minmax0(stc *cx srunused)
 	int i = 7;
 	int j = 8;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -2000,10 +2000,10 @@ sdpageiter_gte_minmax1(stc *cx srunused)
 	int i = 7;
 	int j = 8;
 	int k = 15;
-	addv(&b, &r, 4, SVSET, &z);
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 4, 0, &z);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -2094,10 +2094,10 @@ sdpageiter_gte_minmax2(stc *cx srunused)
 	int i = 7;
 	int j = 8;
 	int k = 15;
-	addv(&b, &r, 4, SVSET, &z);
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 4, 0, &z);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -2173,9 +2173,9 @@ sdpageiter_gte_mid0(stc *cx srunused)
 	int i = 7;
 	int j = 9;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -2251,9 +2251,9 @@ sdpageiter_gte_mid1(stc *cx srunused)
 	int i = 7;
 	int j = 9;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -2333,9 +2333,9 @@ sdpageiter_gte_iterate0(stc *cx srunused)
 	int i = 7;
 	int j = 9;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -2400,9 +2400,9 @@ sdpageiter_gte_iterate1(stc *cx srunused)
 	int i = 7;
 	int j = 9;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -2469,9 +2469,9 @@ sdpageiter_gt_eq(stc *cx srunused)
 	int i = 7;
 	int j = 8;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -2540,9 +2540,9 @@ sdpageiter_gt_minmax(stc *cx srunused)
 	int i = 7;
 	int j = 8;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -2602,9 +2602,9 @@ sdpageiter_gt_mid(stc *cx srunused)
 	int i = 7;
 	int j = 9;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -2672,9 +2672,9 @@ sdpageiter_gt_iterate0(stc *cx srunused)
 	int i = 7;
 	int j = 9;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -2739,9 +2739,9 @@ sdpageiter_gt_iterate1(stc *cx srunused)
 	int i = 7;
 	int j = 9;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -2802,10 +2802,10 @@ sdpageiter_gte_dup_eq(stc *cx srunused)
 
 	int j = 4;
 	int i = 7;
-	addv(&b, &r, 4, SVSET, &j);
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET|SVDUP, &i);
-	addv(&b, &r, 1, SVSET|SVDUP, &i);
+	addv(&b, &r, 4, 0, &j);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0|SVDUP, &i);
+	addv(&b, &r, 1, 0|SVDUP, &i);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -2883,11 +2883,11 @@ sdpageiter_gte_dup_mid(stc *cx srunused)
 	int i = 7;
 	int j = 9;
 	int k = 15;
-	addv(&b, &r, 5, SVSET, &i);
-	addv(&b, &r, 4, SVSET, &j);
-	addv(&b, &r, 3, SVSET|SVDUP, &j);
-	addv(&b, &r, 2, SVSET|SVDUP, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 5, 0, &i);
+	addv(&b, &r, 4, 0, &j);
+	addv(&b, &r, 3, 0|SVDUP, &j);
+	addv(&b, &r, 2, 0|SVDUP, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -2991,13 +2991,13 @@ sdpageiter_gte_dup_mid_gt(stc *cx srunused)
 	int i = 7;
 	int j = 9;
 	int k = 15;
-	addv(&b, &r, 90, SVSET, &i);
-	addv(&b, &r, 80, SVSET, &j);
-	addv(&b, &r, 70, SVSET|SVDUP, &j);
-	addv(&b, &r, 60, SVSET|SVDUP, &j);
-	addv(&b, &r, 50, SVSET, &k);
-	addv(&b, &r, 40, SVSET|SVDUP, &k);
-	addv(&b, &r, 30, SVSET|SVDUP, &k);
+	addv(&b, &r, 90, 0, &i);
+	addv(&b, &r, 80, 0, &j);
+	addv(&b, &r, 70, 0|SVDUP, &j);
+	addv(&b, &r, 60, 0|SVDUP, &j);
+	addv(&b, &r, 50, 0, &k);
+	addv(&b, &r, 40, 0|SVDUP, &k);
+	addv(&b, &r, 30, 0|SVDUP, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -3086,13 +3086,13 @@ sdpageiter_gte_dup_mid_lt(stc *cx srunused)
 	int k = 7;
 	int i = 8;
 	int j = 9;
-	addv(&b, &r, 50, SVSET, &k);
-	addv(&b, &r, 40, SVSET|SVDUP, &k);
-	addv(&b, &r, 30, SVSET|SVDUP, &k);
-	addv(&b, &r, 90, SVSET, &i);
-	addv(&b, &r, 80, SVSET, &j);
-	addv(&b, &r, 70, SVSET|SVDUP, &j);
-	addv(&b, &r, 60, SVSET|SVDUP, &j);
+	addv(&b, &r, 50, 0, &k);
+	addv(&b, &r, 40, 0|SVDUP, &k);
+	addv(&b, &r, 30, 0|SVDUP, &k);
+	addv(&b, &r, 90, 0, &i);
+	addv(&b, &r, 80, 0, &j);
+	addv(&b, &r, 70, 0|SVDUP, &j);
+	addv(&b, &r, 60, 0|SVDUP, &j);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -3175,13 +3175,13 @@ sdpageiter_gte_dup_iterate0(stc *cx srunused)
 	int i = 7;
 	int j = 9;
 	int k = 15;
-	addv(&b, &r, 90, SVSET, &i);
-	addv(&b, &r, 80, SVSET, &j);
-	addv(&b, &r, 70, SVSET|SVDUP, &j);
-	addv(&b, &r, 60, SVSET|SVDUP, &j);
-	addv(&b, &r, 50, SVSET, &k);
-	addv(&b, &r, 40, SVSET|SVDUP, &k);
-	addv(&b, &r, 30, SVSET|SVDUP, &k);
+	addv(&b, &r, 90, 0, &i);
+	addv(&b, &r, 80, 0, &j);
+	addv(&b, &r, 70, 0|SVDUP, &j);
+	addv(&b, &r, 60, 0|SVDUP, &j);
+	addv(&b, &r, 50, 0, &k);
+	addv(&b, &r, 40, 0|SVDUP, &k);
+	addv(&b, &r, 30, 0|SVDUP, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -3252,13 +3252,13 @@ sdpageiter_gte_dup_iterate1(stc *cx srunused)
 	int i = 7;
 	int j = 9;
 	int k = 15;
-	addv(&b, &r, 42, SVSET, &i);
-	addv(&b, &r, 80, SVSET, &j);
-	addv(&b, &r, 60, SVSET|SVDUP, &j);
-	addv(&b, &r, 41, SVSET|SVDUP, &j);
-	addv(&b, &r, 50, SVSET, &k);
-	addv(&b, &r, 40, SVSET|SVDUP, &k);
-	addv(&b, &r, 30, SVSET|SVDUP, &k);
+	addv(&b, &r, 42, 0, &i);
+	addv(&b, &r, 80, 0, &j);
+	addv(&b, &r, 60, 0|SVDUP, &j);
+	addv(&b, &r, 41, 0|SVDUP, &j);
+	addv(&b, &r, 50, 0, &k);
+	addv(&b, &r, 40, 0|SVDUP, &k);
+	addv(&b, &r, 30, 0|SVDUP, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -3355,7 +3355,7 @@ sdpageiter_update0(stc *cx srunused)
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
 	int i = 0;
 	for (; i < 10; i++)
-		addv(&b, &r, i, SVSET, &i);
+		addv(&b, &r, i, 0, &i);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -3415,11 +3415,11 @@ sdpageiter_iterate_raw(stc *cx srunused)
 	int i = 7;
 	int j = 9;
 	int k = 15;
-	addv(&b, &r, 5, SVSET, &i);
-	addv(&b, &r, 4, SVSET, &j);
-	addv(&b, &r, 3, SVSET|SVDUP, &j);
-	addv(&b, &r, 2, SVSET|SVDUP, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 5, 0, &i);
+	addv(&b, &r, 4, 0, &j);
+	addv(&b, &r, 3, 0|SVDUP, &j);
+	addv(&b, &r, 2, 0|SVDUP, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 
 	srbuf buf;

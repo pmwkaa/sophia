@@ -86,9 +86,9 @@ sdbuild_page0(stc *cx srunused)
 	int i = 7;
 	int j = 8;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 	sdpageheader *h = sd_buildheader(&b);
 	t( h->count == 3 );
@@ -124,9 +124,9 @@ sdbuild_page1(stc *cx srunused)
 	int i = 7;
 	int j = 8;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 	sdpageheader *h = sd_buildheader(&b);
 	t( h->count == 3 );
@@ -149,8 +149,8 @@ sdbuild_page1(stc *cx srunused)
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
 	j = 19; 
 	k = 20;
-	addv(&b, &r, 4, SVSET, &j);
-	addv(&b, &r, 5, SVSET, &k);
+	addv(&b, &r, 4, 0, &j);
+	addv(&b, &r, 5, 0, &k);
 	sd_buildend(&b, &r);
 	h = sd_buildheader(&b);
 	t( h->count == 2 );
@@ -197,9 +197,9 @@ sdbuild_compression_zstd(stc *cx srunused)
 	int i = 7;
 	int j = 8;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 	sdpageheader *h = sd_buildheader(&b);
 	t( h->count == 3 );
@@ -208,9 +208,9 @@ sdbuild_compression_zstd(stc *cx srunused)
 	sd_buildcommit(&b);
 
 	t( sd_buildbegin(&b, &r, 1, 1) == 0);
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 	h = sd_buildheader(&b);
 	t( h->count == 3 );
@@ -248,9 +248,9 @@ sdbuild_compression_lz4(stc *cx srunused)
 	int i = 7;
 	int j = 8;
 	int k = 15;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 	sdpageheader *h = sd_buildheader(&b);
 	t( h->count == 3 );
@@ -259,9 +259,9 @@ sdbuild_compression_lz4(stc *cx srunused)
 	sd_buildcommit(&b);
 
 	t( sd_buildbegin(&b, &r, 1, 1) == 0);
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 2, SVSET, &j);
-	addv(&b, &r, 1, SVSET, &k);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 2, 0, &j);
+	addv(&b, &r, 1, 0, &k);
 	sd_buildend(&b, &r);
 	h = sd_buildheader(&b);
 	t( h->count == 3 );

@@ -91,13 +91,12 @@ so_recoverlog(so *e, sl *log)
 				goto rlb;
 			so_objset(o, "raw", sv_pointer(v), sv_size(v));
 			so_objset(o, "log", log);
-			switch (sv_flags(v)) {
-			case SVSET:
-				rc = so_objset(transaction, o);
-				break;
-			case SVDELETE:
+			int flags = sv_flags(v);
+			if (flags == SVDELETE) {
 				rc = so_objdelete(transaction, o);
-				break;
+			} else {
+				assert(flags == 0);
+				rc = so_objset(transaction, o);
 			}
 			if (srunlikely(rc == -1))
 				goto rlb;

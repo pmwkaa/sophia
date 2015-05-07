@@ -75,7 +75,7 @@ sliter_tx(stc *cx)
 	svlog log;
 	sv_loginit(&log);
 
-	alloclogv(&log, &r, 0, SVSET, 7);
+	alloclogv(&log, &r, 0, 0, 7);
 
 	sltx ltx;
 	t( sl_begin(&lp, &ltx) == 0 );
@@ -169,7 +169,7 @@ sliter_tx_read0(stc *cx)
 	t( sl_poolrotate(&lp) == 0 );
 	svlog log;
 	sv_loginit(&log);
-	alloclogv(&log, &r, 0, SVSET, 7);
+	alloclogv(&log, &r, 0, 0, 7);
 	sltx ltx;
 	t( sl_begin(&lp, &ltx) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
@@ -227,9 +227,9 @@ sliter_tx_read1(stc *cx)
 	t( sl_poolrotate(&lp) == 0 );
 	svlog log;
 	sv_loginit(&log);
-	alloclogv(&log, &r, 0, SVSET, 7);
-	alloclogv(&log, &r, 0, SVSET, 8);
-	alloclogv(&log, &r, 0, SVSET, 9);
+	alloclogv(&log, &r, 0, 0, 7);
+	alloclogv(&log, &r, 0, 0, 8);
+	alloclogv(&log, &r, 0, 0, 9);
 	sltx ltx;
 	t( sl_begin(&lp, &ltx) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
@@ -296,9 +296,9 @@ sliter_tx_read2(stc *cx)
 	t( sl_poolrotate(&lp) == 0 );
 	svlog log;
 	sv_loginit(&log);
-	alloclogv(&log, &r, 0, SVSET, 7);
-	alloclogv(&log, &r, 0, SVSET, 8);
-	alloclogv(&log, &r, 0, SVSET, 9);
+	alloclogv(&log, &r, 0, 0, 7);
+	alloclogv(&log, &r, 0, 0, 8);
+	alloclogv(&log, &r, 0, 0, 9);
 	sltx ltx;
 	t( sl_begin(&lp, &ltx) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
@@ -370,7 +370,7 @@ sliter_tx_read3(stc *cx)
 	svlog log;
 
 	sv_loginit(&log);
-	alloclogv(&log, &r, 0, SVSET, 7); /* single stmt */
+	alloclogv(&log, &r, 0, 0, 7); /* single stmt */
 	sltx ltx;
 	t( sl_begin(&lp, &ltx) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
@@ -378,25 +378,25 @@ sliter_tx_read3(stc *cx)
 	freelog(&log, &r);
 
 	sv_loginit(&log);
-	alloclogv(&log, &r, 0, SVSET, 8); /* multi stmt */
-	alloclogv(&log, &r, 0, SVSET, 9);
-	alloclogv(&log, &r, 0, SVSET, 10);
+	alloclogv(&log, &r, 0, 0, 8); /* multi stmt */
+	alloclogv(&log, &r, 0, 0, 9);
+	alloclogv(&log, &r, 0, 0, 10);
 	t( sl_begin(&lp, &ltx) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );
 	freelog(&log, &r);
 
 	sv_loginit(&log);
-	alloclogv(&log, &r, 0, SVSET, 11); /* multi stmt */
-	alloclogv(&log, &r, 0, SVSET, 12);
-	alloclogv(&log, &r, 0, SVSET, 13);
+	alloclogv(&log, &r, 0, 0, 11); /* multi stmt */
+	alloclogv(&log, &r, 0, 0, 12);
+	alloclogv(&log, &r, 0, 0, 13);
 	t( sl_begin(&lp, &ltx) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );
 	freelog(&log, &r);
 
 	sv_loginit(&log);
-	alloclogv(&log, &r, 0, SVSET, 14); /* single stmt */
+	alloclogv(&log, &r, 0, 0, 14); /* single stmt */
 	t( sl_begin(&lp, &ltx) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );

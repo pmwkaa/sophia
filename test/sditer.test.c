@@ -54,11 +54,11 @@ sditer_gt0(stc *cx srunused)
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
 
 	int key = 7;
-	addv(&b, &r, 3, SVSET, &key);
+	addv(&b, &r, 3, 0, &key);
 	key = 8;
-	addv(&b, &r, 4, SVSET, &key);
+	addv(&b, &r, 4, 0, &key);
 	key = 9;
-	addv(&b, &r, 5, SVSET, &key);
+	addv(&b, &r, 5, 0, &key);
 	sd_buildend(&b, &r);
 
 	sdindex index;
@@ -137,11 +137,11 @@ sditer_gt1(stc *cx srunused)
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
 
 	int key = 7;
-	addv(&b, &r, 3, SVSET, &key);
+	addv(&b, &r, 3, 0, &key);
 	key = 8;
-	addv(&b, &r, 4, SVSET, &key);
+	addv(&b, &r, 4, 0, &key);
 	key = 9;
-	addv(&b, &r, 5, SVSET, &key);
+	addv(&b, &r, 5, 0, &key);
 	sd_buildend(&b, &r);
 
 	sdindex index;
@@ -155,11 +155,11 @@ sditer_gt1(stc *cx srunused)
 
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
 	key = 10;
-	addv(&b, &r, 6, SVSET, &key);
+	addv(&b, &r, 6, 0, &key);
 	key = 11;
-	addv(&b, &r, 7, SVSET, &key);
+	addv(&b, &r, 7, 0, &key);
 	key = 13;
-	addv(&b, &r, 8, SVSET, &key);
+	addv(&b, &r, 8, 0, &key);
 	sd_buildend(&b, &r);
 
 	rc = sd_indexadd(&index, &r, &b);
@@ -168,11 +168,11 @@ sditer_gt1(stc *cx srunused)
 
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
 	key = 15;
-	addv(&b, &r, 9, SVSET, &key);
+	addv(&b, &r, 9, 0, &key);
 	key = 18;
-	addv(&b, &r, 10, SVSET, &key);
+	addv(&b, &r, 10, 0, &key);
 	key = 20;
-	addv(&b, &r, 11, SVSET, &key);
+	addv(&b, &r, 11, 0, &key);
 	sd_buildend(&b, &r);
 
 	rc = sd_indexadd(&index, &r, &b);
@@ -268,11 +268,11 @@ sditer_gt0_compression_zstd(stc *cx srunused)
 	t( sd_buildbegin(&b, &r, 1, 1) == 0);
 
 	int key = 7;
-	addv(&b, &r, 3, SVSET, &key);
+	addv(&b, &r, 3, 0, &key);
 	key = 8;
-	addv(&b, &r, 4, SVSET, &key);
+	addv(&b, &r, 4, 0, &key);
 	key = 9;
-	addv(&b, &r, 5, SVSET, &key);
+	addv(&b, &r, 5, 0, &key);
 	t( sd_buildend(&b, &r) == 0 );
 
 	sdindex index;
@@ -356,11 +356,11 @@ sditer_gt0_compression_lz4(stc *cx srunused)
 	t( sd_buildbegin(&b, &r, 1, 1) == 0);
 
 	int key = 7;
-	addv(&b, &r, 3, SVSET, &key);
+	addv(&b, &r, 3, 0, &key);
 	key = 8;
-	addv(&b, &r, 4, SVSET, &key);
+	addv(&b, &r, 4, 0, &key);
 	key = 9;
-	addv(&b, &r, 5, SVSET, &key);
+	addv(&b, &r, 5, 0, &key);
 	t( sd_buildend(&b, &r) == 0 );
 
 	sdindex index;
@@ -445,11 +445,11 @@ sditer_gt1_compression_zstd(stc *cx srunused)
 	t( sd_buildbegin(&b, &r, 1, 1) == 0);
 
 	int key = 7;
-	addv(&b, &r, 3, SVSET, &key);
+	addv(&b, &r, 3, 0, &key);
 	key = 8;
-	addv(&b, &r, 4, SVSET, &key);
+	addv(&b, &r, 4, 0, &key);
 	key = 9;
-	addv(&b, &r, 5, SVSET, &key);
+	addv(&b, &r, 5, 0, &key);
 	sd_buildend(&b, &r);
 
 	sdindex index;
@@ -463,11 +463,11 @@ sditer_gt1_compression_zstd(stc *cx srunused)
 
 	t( sd_buildbegin(&b, &r, 1, 1) == 0);
 	key = 10;
-	addv(&b, &r, 6, SVSET, &key);
+	addv(&b, &r, 6, 0, &key);
 	key = 11;
-	addv(&b, &r, 7, SVSET, &key);
+	addv(&b, &r, 7, 0, &key);
 	key = 13;
-	addv(&b, &r, 8, SVSET, &key);
+	addv(&b, &r, 8, 0, &key);
 	sd_buildend(&b, &r);
 
 	rc = sd_indexadd(&index, &r, &b);
@@ -476,11 +476,11 @@ sditer_gt1_compression_zstd(stc *cx srunused)
 
 	t( sd_buildbegin(&b, &r, 1, 1) == 0);
 	key = 15;
-	addv(&b, &r, 9, SVSET, &key);
+	addv(&b, &r, 9, 0, &key);
 	key = 18;
-	addv(&b, &r, 10, SVSET, &key);
+	addv(&b, &r, 10, 0, &key);
 	key = 20;
-	addv(&b, &r, 11, SVSET, &key);
+	addv(&b, &r, 11, 0, &key);
 	sd_buildend(&b, &r);
 
 	rc = sd_indexadd(&index, &r, &b);
@@ -580,11 +580,11 @@ sditer_gt1_compression_lz4(stc *cx srunused)
 	t( sd_buildbegin(&b, &r, 1, 1) == 0);
 
 	int key = 7;
-	addv(&b, &r, 3, SVSET, &key);
+	addv(&b, &r, 3, 0, &key);
 	key = 8;
-	addv(&b, &r, 4, SVSET, &key);
+	addv(&b, &r, 4, 0, &key);
 	key = 9;
-	addv(&b, &r, 5, SVSET, &key);
+	addv(&b, &r, 5, 0, &key);
 	sd_buildend(&b, &r);
 
 	sdindex index;
@@ -598,11 +598,11 @@ sditer_gt1_compression_lz4(stc *cx srunused)
 
 	t( sd_buildbegin(&b, &r, 1, 1) == 0);
 	key = 10;
-	addv(&b, &r, 6, SVSET, &key);
+	addv(&b, &r, 6, 0, &key);
 	key = 11;
-	addv(&b, &r, 7, SVSET, &key);
+	addv(&b, &r, 7, 0, &key);
 	key = 13;
-	addv(&b, &r, 8, SVSET, &key);
+	addv(&b, &r, 8, 0, &key);
 	sd_buildend(&b, &r);
 
 	rc = sd_indexadd(&index, &r, &b);
@@ -611,11 +611,11 @@ sditer_gt1_compression_lz4(stc *cx srunused)
 
 	t( sd_buildbegin(&b, &r, 1, 1) == 0);
 	key = 15;
-	addv(&b, &r, 9, SVSET, &key);
+	addv(&b, &r, 9, 0, &key);
 	key = 18;
-	addv(&b, &r, 10, SVSET, &key);
+	addv(&b, &r, 10, 0, &key);
 	key = 20;
-	addv(&b, &r, 11, SVSET, &key);
+	addv(&b, &r, 11, 0, &key);
 	sd_buildend(&b, &r);
 
 	rc = sd_indexadd(&index, &r, &b);

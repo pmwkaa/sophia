@@ -189,7 +189,7 @@ static int
 so_dbasync_set(soobj *obj, va_list args)
 {
 	sodbasync *o = (sodbasync*)obj;
-	return so_txdbset(o->parent, 1, SVSET, args);
+	return so_txdbset(o->parent, 1, 0, args);
 }
 
 static int
@@ -382,7 +382,7 @@ static int
 so_dbset(soobj *obj, va_list args)
 {
 	sodb *o = (sodb*)obj;
-	return so_txdbset(o, 0, SVSET, args);
+	return so_txdbset(o, 0, 0, args);
 }
 
 static int

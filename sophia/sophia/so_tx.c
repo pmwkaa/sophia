@@ -297,7 +297,7 @@ error:
 static int
 so_txset(soobj *o, va_list args)
 {
-	return so_txwrite(o, SVSET, args);
+	return so_txwrite(o, 0, args);
 }
 
 static int

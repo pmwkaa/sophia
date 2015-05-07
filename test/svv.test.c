@@ -35,12 +35,12 @@ svv_kv(stc *cx)
 
 	svv *vv = sv_vbuild(&r, &pv, 1, (char*)&value, sizeof(value));
 	t( vv != NULL );
-	vv->flags = SVSET;
+	vv->flags = 0;
 	vv->lsn = 10;
 	sv v;
 	sv_init(&v, &sv_vif, vv, NULL);
 
-	t( sv_flags(&v) == SVSET );
+	t( sv_flags(&v) == 0 );
 	t( sv_lsn(&v) == 10 );
 	sv_lsnset(&v, 8);
 	t( sv_lsn(&v) == 8 );

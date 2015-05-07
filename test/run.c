@@ -12,6 +12,7 @@
 #include <sophia.h>
 
 extern stgroup *srctl_group(void);
+extern stgroup *srleb128_group(void);
 extern stgroup *srpager_group(void);
 extern stgroup *sraslab_group(void);
 extern stgroup *sra_group(void);
@@ -88,6 +89,7 @@ main(int argc, char *argv[])
 	st_planscene(plan, st_sceneof(&s, "test"));
 	st_planscene(plan, st_sceneof(&s, "pass"));
 	st_planadd(plan, srctl_group());
+	st_planadd(plan, srleb128_group());
 	st_planadd(plan, srpager_group());
 	st_planadd(plan, sra_group());
 	st_planadd(plan, sraslab_group());

@@ -54,8 +54,8 @@ sdv_test(stc *cx srunused)
 	t( sd_buildbegin(&b, &r, 1, 0) == 0);
 	int i = 7;
 	int j = 8;
-	addv(&b, &r, 3, SVSET, &i);
-	addv(&b, &r, 4, SVSET, &j);
+	addv(&b, &r, 3, 0, &i);
+	addv(&b, &r, 4, 0, &j);
 	sd_buildend(&b, &r);
 
 	srbuf buf;
@@ -83,7 +83,7 @@ sdv_test(stc *cx srunused)
 	
 	t( *(int*)sv_key(v, &r, 0) == j );
 	t( sv_lsn(v) == 4 );
-	t( sv_flags(v) == SVSET );
+	t( sv_flags(v) == 0 );
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);

@@ -55,8 +55,8 @@ svindex_replace0(stc *cx srunused)
 
 	uint32_t key = 7;
 	svv *old = NULL;
-	svv *h = allocv(&r, 0, SVSET, &key);
-	svv *n = allocv(&r, 1, SVSET, &key);
+	svv *h = allocv(&r, 0, 0, &key);
+	svv *n = allocv(&r, 1, 0, &key);
 	t( sv_indexset(&i, &r, 0, h, &old) == 0 );
 	t( old == NULL );
 	t( sv_indexset(&i, &r, 1, n, &old) == 0 );
@@ -91,8 +91,8 @@ svindex_replace1(stc *cx srunused)
 
 	uint32_t key = 7;
 	svv *old = NULL;
-	svv *h = allocv(&r, 0, SVSET, &key);
-	svv *n = allocv(&r, 1, SVSET, &key);
+	svv *h = allocv(&r, 0, 0, &key);
+	svv *n = allocv(&r, 1, 0, &key);
 	t( sv_indexset(&i, &r, 0, h, &old) == 0 );
 	t( sv_indexset(&i, &r, 0, n, &old) == 0 );
 	t( old == NULL );
@@ -130,9 +130,9 @@ svindex_replace2(stc *cx srunused)
 
 	uint32_t key = 7;
 	svv *old = NULL;
-	svv *h = allocv(&r, 0, SVSET, &key);
-	svv *n = allocv(&r, 1, SVSET, &key);
-	svv *p = allocv(&r, 2, SVSET, &key);
+	svv *h = allocv(&r, 0, 0, &key);
+	svv *n = allocv(&r, 1, 0, &key);
+	svv *p = allocv(&r, 2, 0, &key);
 	t( sv_indexset(&i, &r, 0, h, &old) == 0 );
 	t( old == NULL );
 	t( sv_indexset(&i, &r, 0, n, &old) == 0 );

@@ -18,7 +18,7 @@ svlocal_test(stc *cx srunused)
 	uint32_t value = 321;
 	svlocal l;
 	l.lsn         = 777;
-	l.flags       = SVSET;
+	l.flags       = 0;
 	l.key         = &key;
 	l.keysize     = sizeof(key);
 	l.value       = &value;

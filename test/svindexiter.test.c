@@ -76,11 +76,11 @@ svindexiter_lte_eq0(stc *cx srunused)
 	int keyb = 5;
 	int keyc = 2;
 	svv *vold = NULL;
-	svv *va = allocv(&r, 0, SVSET, keya);
+	svv *va = allocv(&r, 0, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 0, SVSET, keyb);
+	svv *vb = allocv(&r, 0, 0, keyb);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 0, SVSET, keyc);
+	svv *vc = allocv(&r, 0, 0, keyc);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
@@ -128,11 +128,11 @@ svindexiter_lte_eq1(stc *cx srunused)
 	int keyb = 5;
 	int keyc = 2;
 	svv *vold = NULL;
-	svv *va = allocv(&r, 2, SVSET, keya);
+	svv *va = allocv(&r, 2, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 3, SVSET, keyb);
+	svv *vb = allocv(&r, 3, 0, keyb);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 4, SVSET, keyc);
+	svv *vc = allocv(&r, 4, 0, keyc);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
@@ -174,11 +174,11 @@ svindexiter_lte_minmax(stc *cx srunused)
 	int keyb = 5;
 	int keyc = 2;
 	svv *vold = NULL;
-	svv *va = allocv(&r, 4, SVSET, keya);
+	svv *va = allocv(&r, 4, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 3, SVSET, keyb);
+	svv *vb = allocv(&r, 3, 0, keyb);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 2, SVSET, keyc);
+	svv *vc = allocv(&r, 2, 0, keyc);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
@@ -232,11 +232,11 @@ svindexiter_lte_mid0(stc *cx srunused)
 	int keyb = 5;
 	int keyc = 2;
 	svv *vold = NULL;
-	svv *va = allocv(&r, 4, SVSET, keya);
+	svv *va = allocv(&r, 4, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 3, SVSET, keyb);
+	svv *vb = allocv(&r, 3, 0, keyb);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 2, SVSET, keyc);
+	svv *vc = allocv(&r, 2, 0, keyc);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	svv *key = allocv(&r, 0, 0, 1);
@@ -298,11 +298,11 @@ svindexiter_lte_mid1(stc *cx srunused)
 	int keyb = 5;
 	int keyc = 2;
 	svv *vold = NULL;
-	svv *va = allocv(&r, 4, SVSET, keya);
+	svv *va = allocv(&r, 4, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 3, SVSET, keyb);
+	svv *vb = allocv(&r, 3, 0, keyb);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 2, SVSET, keyc);
+	svv *vc = allocv(&r, 2, 0, keyc);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	svv *key = allocv(&r, 0, 0, 15);
@@ -352,11 +352,11 @@ svindexiter_lte_iterate0(stc *cx srunused)
 	int keyb = 5;
 	int keyc = 2;
 	svv *vold = NULL;
-	svv *va = allocv(&r, 4, SVSET, keya);
+	svv *va = allocv(&r, 4, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 3, SVSET, keyb);
+	svv *vb = allocv(&r, 3, 0, keyb);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 2, SVSET, keyc);
+	svv *vc = allocv(&r, 2, 0, keyc);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	svv *key = allocv(&r, 0, 0, 15);
@@ -409,11 +409,11 @@ svindexiter_lte_iterate1(stc *cx srunused)
 	int keyb = 5;
 	int keyc = 2;
 	svv *vold = NULL;
-	svv *va = allocv(&r, 4, SVSET, keya);
+	svv *va = allocv(&r, 4, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 3, SVSET, keyb);
+	svv *vb = allocv(&r, 3, 0, keyb);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 2, SVSET, keyc);
+	svv *vc = allocv(&r, 2, 0, keyc);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	svv *key = allocv(&r, 0, 0, 15);
@@ -462,11 +462,11 @@ svindexiter_lte_iterate2(stc *cx srunused)
 	int keyb = 5;
 	int keyc = 2;
 	svv *vold = NULL;
-	svv *va = allocv(&r, 4, SVSET, keya);
+	svv *va = allocv(&r, 4, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 3, SVSET, keyb);
+	svv *vb = allocv(&r, 3, 0, keyb);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 2, SVSET, keyc);
+	svv *vc = allocv(&r, 2, 0, keyc);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
@@ -508,11 +508,11 @@ svindexiter_lt_eq(stc *cx srunused)
 	int keyb = 5;
 	int keyc = 2;
 	svv *vold = NULL;
-	svv *va = allocv(&r, 0, SVSET, keya);
+	svv *va = allocv(&r, 0, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 0, SVSET, keyb);
+	svv *vb = allocv(&r, 0, 0, keyb);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 0, SVSET, keyc);
+	svv *vc = allocv(&r, 0, 0, keyc);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
@@ -560,11 +560,11 @@ svindexiter_lt_iterate(stc *cx srunused)
 	int keyb = 5;
 	int keyc = 2;
 	svv *vold = NULL;
-	svv *va = allocv(&r, 4, SVSET, keya);
+	svv *va = allocv(&r, 4, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 3, SVSET, keyb);
+	svv *vb = allocv(&r, 3, 0, keyb);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 2, SVSET, keyc);
+	svv *vc = allocv(&r, 2, 0, keyc);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
@@ -609,11 +609,11 @@ svindexiter_lte_dup_eq(stc *cx srunused)
 	int keya = 7;
 
 	svv *vold = NULL;
-	svv *va = allocv(&r, 1, SVSET, keya);
+	svv *va = allocv(&r, 1, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 2, SVSET, keya);
+	svv *vb = allocv(&r, 2, 0, keya);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 3, SVSET, keya);
+	svv *vc = allocv(&r, 3, 0, keya);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
@@ -662,16 +662,16 @@ svindexiter_lte_dup_mid(stc *cx srunused)
 	int keyc = 15;
 
 	svv *vold = NULL;
-	svv *p = allocv(&r, 0, SVSET, keyb);
+	svv *p = allocv(&r, 0, 0, keyb);
 	t( sv_indexset(&i, &r, 0, p, &vold) == 0 );
-	p = allocv(&r, 4, SVSET, keyc);
+	p = allocv(&r, 4, 0, keyc);
 	t( sv_indexset(&i, &r, 0, p, &vold) == 0 );
 
-	svv *va = allocv(&r, 1, SVSET, keya);
+	svv *va = allocv(&r, 1, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 2, SVSET, keya);
+	svv *vb = allocv(&r, 2, 0, keya);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 3, SVSET, keya);
+	svv *vc = allocv(&r, 3, 0, keya);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
@@ -728,16 +728,16 @@ svindexiter_lte_dup_iterate(stc *cx srunused)
 	int keyc = 15;
 
 	svv *vold = NULL;
-	svv *h = allocv(&r, 0, SVSET, keyb);
+	svv *h = allocv(&r, 0, 0, keyb);
 	t( sv_indexset(&i, &r, 0, h, &vold) == 0 );
-	svv *p = allocv(&r, 2, SVSET, keyc);
+	svv *p = allocv(&r, 2, 0, keyc);
 	t( sv_indexset(&i, &r, 0, p, &vold) == 0 );
 
-	svv *va = allocv(&r, 1, SVSET, keya);
+	svv *va = allocv(&r, 1, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 2, SVSET, keya);
+	svv *vb = allocv(&r, 2, 0, keya);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 3, SVSET, keya);
+	svv *vc = allocv(&r, 3, 0, keya);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	svv *key = allocv(&r, 0, 0, 20);
@@ -821,11 +821,11 @@ svindexiter_gte_eq0(stc *cx srunused)
 	int keyb = 5;
 	int keyc = 2;
 	svv *vold = NULL;
-	svv *va = allocv(&r, 0, SVSET, keya);
+	svv *va = allocv(&r, 0, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 0, SVSET, keyb);
+	svv *vb = allocv(&r, 0, 0, keyb);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 0, SVSET, keyc);
+	svv *vc = allocv(&r, 0, 0, keyc);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
@@ -873,11 +873,11 @@ svindexiter_gte_eq1(stc *cx srunused)
 	int keyb = 5;
 	int keyc = 2;
 	svv *vold = NULL;
-	svv *va = allocv(&r, 2, SVSET, keya);
+	svv *va = allocv(&r, 2, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 3, SVSET, keyb);
+	svv *vb = allocv(&r, 3, 0, keyb);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 4, SVSET, keyc);
+	svv *vc = allocv(&r, 4, 0, keyc);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
@@ -919,11 +919,11 @@ svindexiter_gte_minmax(stc *cx srunused)
 	int keyb = 5;
 	int keyc = 2;
 	svv *vold = NULL;
-	svv *va = allocv(&r, 2, SVSET, keya);
+	svv *va = allocv(&r, 2, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 3, SVSET, keyb);
+	svv *vb = allocv(&r, 3, 0, keyb);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 4, SVSET, keyc);
+	svv *vc = allocv(&r, 4, 0, keyc);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
@@ -977,11 +977,11 @@ svindexiter_gte_mid0(stc *cx srunused)
 	int keyb = 5;
 	int keyc = 2;
 	svv *vold = NULL;
-	svv *va = allocv(&r, 4, SVSET, keya);
+	svv *va = allocv(&r, 4, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 3, SVSET, keyb);
+	svv *vb = allocv(&r, 3, 0, keyb);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 2, SVSET, keyc);
+	svv *vc = allocv(&r, 2, 0, keyc);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	svv *key = allocv(&r, 0, 0, 1);
@@ -1043,11 +1043,11 @@ svindexiter_gte_mid1(stc *cx srunused)
 	int keyb = 5;
 	int keyc = 2;
 	svv *vold = NULL;
-	svv *va = allocv(&r, 2, SVSET, keya);
+	svv *va = allocv(&r, 2, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 3, SVSET, keyb);
+	svv *vb = allocv(&r, 3, 0, keyb);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 4, SVSET, keyc);
+	svv *vc = allocv(&r, 4, 0, keyc);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	svv *key = allocv(&r, 0, 0, 1);
@@ -1097,11 +1097,11 @@ svindexiter_gte_iterate0(stc *cx srunused)
 	int keyb = 5;
 	int keyc = 2;
 	svv *vold = NULL;
-	svv *va = allocv(&r, 4, SVSET, keya);
+	svv *va = allocv(&r, 4, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 3, SVSET, keyb);
+	svv *vb = allocv(&r, 3, 0, keyb);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 2, SVSET, keyc);
+	svv *vc = allocv(&r, 2, 0, keyc);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	svv *key = allocv(&r, 0, 0, 0);
@@ -1154,11 +1154,11 @@ svindexiter_gte_iterate1(stc *cx srunused)
 	int keyb = 5;
 	int keyc = 2;
 	svv *vold = NULL;
-	svv *va = allocv(&r, 2, SVSET, keya);
+	svv *va = allocv(&r, 2, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 3, SVSET, keyb);
+	svv *vb = allocv(&r, 3, 0, keyb);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 4, SVSET, keyc);
+	svv *vc = allocv(&r, 4, 0, keyc);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	svv *key = allocv(&r, 0, 0, 1);
@@ -1207,11 +1207,11 @@ svindexiter_gt_eq(stc *cx srunused)
 	int keyb = 5;
 	int keyc = 2;
 	svv *vold = NULL;
-	svv *va = allocv(&r, 0, SVSET, keya);
+	svv *va = allocv(&r, 0, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 0, SVSET, keyb);
+	svv *vb = allocv(&r, 0, 0, keyb);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 0, SVSET, keyc);
+	svv *vc = allocv(&r, 0, 0, keyc);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
@@ -1259,11 +1259,11 @@ svindexiter_gt_iterate(stc *cx srunused)
 	int keyb = 5;
 	int keyc = 2;
 	svv *vold = NULL;
-	svv *va = allocv(&r, 4, SVSET, keya);
+	svv *va = allocv(&r, 4, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 3, SVSET, keyb);
+	svv *vb = allocv(&r, 3, 0, keyb);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 2, SVSET, keyc);
+	svv *vc = allocv(&r, 2, 0, keyc);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
@@ -1308,11 +1308,11 @@ svindexiter_gte_dup_eq(stc *cx srunused)
 	int keya = 7;
 
 	svv *vold = NULL;
-	svv *va = allocv(&r, 1, SVSET, keya);
+	svv *va = allocv(&r, 1, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 2, SVSET, keya);
+	svv *vb = allocv(&r, 2, 0, keya);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 3, SVSET, keya);
+	svv *vc = allocv(&r, 3, 0, keya);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
@@ -1361,16 +1361,16 @@ svindexiter_gte_dup_mid(stc *cx srunused)
 	int keyc = 15;
 
 	svv *vold = NULL;
-	svv *p = allocv(&r, 0, SVSET, keyb);
+	svv *p = allocv(&r, 0, 0, keyb);
 	t( sv_indexset(&i, &r, 0, p, &vold) == 0 );
-	p = allocv(&r, 4, SVSET, keyc);
+	p = allocv(&r, 4, 0, keyc);
 	t( sv_indexset(&i, &r, 0, p, &vold) == 0 );
 
-	svv *va = allocv(&r, 1, SVSET, keya);
+	svv *va = allocv(&r, 1, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 2, SVSET, keya);
+	svv *vb = allocv(&r, 2, 0, keya);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 3, SVSET, keya);
+	svv *vc = allocv(&r, 3, 0, keya);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
@@ -1427,16 +1427,16 @@ svindexiter_gte_dup_iterate(stc *cx srunused)
 	int keyc = 15;
 
 	svv *vold = NULL;
-	svv *h = allocv(&r, 0, SVSET, keyb);
+	svv *h = allocv(&r, 0, 0, keyb);
 	t( sv_indexset(&i, &r, 0, h, &vold) == 0 );
-	svv *p = allocv(&r, 2, SVSET, keyc);
+	svv *p = allocv(&r, 2, 0, keyc);
 	t( sv_indexset(&i, &r, 0, p, &vold) == 0 );
 
-	svv *va = allocv(&r, 1, SVSET, keya);
+	svv *va = allocv(&r, 1, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 2, SVSET, keya);
+	svv *vb = allocv(&r, 2, 0, keya);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 3, SVSET, keya);
+	svv *vc = allocv(&r, 3, 0, keya);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	svv *key = allocv(&r, 0, 0, 2);
@@ -1489,16 +1489,16 @@ svindexiter_iterate_raw0(stc *cx srunused)
 	int keyc = 15;
 
 	svv *vold = NULL;
-	svv *h = allocv(&r, 0, SVSET, keyb);
+	svv *h = allocv(&r, 0, 0, keyb);
 	t( sv_indexset(&i, &r, 0, h, &vold) == 0 );
-	svv *p = allocv(&r, 2, SVSET, keyc);
+	svv *p = allocv(&r, 2, 0, keyc);
 	t( sv_indexset(&i, &r, 0, p, &vold) == 0 );
 
-	svv *va = allocv(&r, 1, SVSET, keya);
+	svv *va = allocv(&r, 1, 0, keya);
 	t( sv_indexset(&i, &r, 0, va, &vold) == 0 );
-	svv *vb = allocv(&r, 2, SVSET, keya);
+	svv *vb = allocv(&r, 2, 0, keya);
 	t( sv_indexset(&i, &r, 0, vb, &vold) == 0 );
-	svv *vc = allocv(&r, 3, SVSET, keya);
+	svv *vc = allocv(&r, 3, 0, keya);
 	t( sv_indexset(&i, &r, 0, vc, &vold) == 0 );
 
 	sriter it;
@@ -1554,7 +1554,7 @@ svindexiter_iterate_raw1(stc *cx srunused)
 	svv *vold = NULL;
 	int j = 0;
 	while (j < 16) {
-		svv *v = allocv(&r, j, SVSET, j);
+		svv *v = allocv(&r, j, 0, j);
 		t( sv_indexset(&i, &r, 0, v, &vold) == 0 );
 		t( vold == NULL );
 		j++;
