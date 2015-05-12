@@ -73,8 +73,8 @@ so_vset(soobj *obj, va_list args)
 	srkeypart *part = sr_keyfind(&db->ctl.cmp, name);
 	if (srunlikely(part == NULL))
 		return -1;
-	assert(part->pos < (int)(sizeof(v->keyv) / sizeof(srformatv)));
-	srformatv *fv = &v->keyv[part->pos];
+	assert(part->pos < (int)(sizeof(v->keyv) / sizeof(srfmtv)));
+	srfmtv *fv = &v->keyv[part->pos];
 	fv->r.offset = 0;
 	fv->key = va_arg(args, char*);
 	fv->r.size = va_arg(args, int);
@@ -82,7 +82,7 @@ so_vset(soobj *obj, va_list args)
 		v->keyc++;
 	fv->part = part;
 	/* update key sum */
-	v->keysize = sr_formatsize(db->r.format, v->keyv, v->keyc, 0);
+	v->keysize = sr_fmtsize(db->r.fmt, v->keyv, v->keyc, 0);
 	return 0;
 }
 
@@ -178,8 +178,8 @@ so_vget(soobj *obj, va_list args)
 		return sv_key(&v->v, &db->r, part->pos);
 	}
 	/* database key object */
-	assert(part->pos < (int)(sizeof(v->keyv) / sizeof(srformatv)));
-	srformatv *fv = &v->keyv[part->pos];
+	assert(part->pos < (int)(sizeof(v->keyv) / sizeof(srfmtv)));
+	srfmtv *fv = &v->keyv[part->pos];
 	if (fv->key == NULL)
 		return NULL;
 	if (partsize)

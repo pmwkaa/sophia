@@ -18,33 +18,30 @@ sd_vifflags(sv *v) {
 
 static uint64_t
 sd_viflsn(sv *v) {
-	sdv *dv = v->v;
 	sdpage p = {
 		.h = (sdpageheader*)v->arg
 	};
-	return sd_pagelsnof(&p, dv);
+	return sd_pagelsnof(&p, (sdv*)v->v);
 }
 
 static char*
 sd_vifpointer(sv *v)
 {
-	sdv *dv = v->v;
 	sdpage p = {
 		.h = (sdpageheader*)v->arg
 	};
-	uint64_t size, lsn;
-	return sd_pagemetaof(&p, dv, &size, &lsn);
+	char *ptr = sd_pagepointer(&p, (sdv*)v->v);
+	ptr += sr_leb128skip(ptr);
+	ptr += sr_leb128skip(ptr);
+	return ptr;
 }
 
 static uint32_t
 sd_vifsize(sv *v) {
-	sdv *dv = v->v;
 	sdpage p = {
 		.h = (sdpageheader*)v->arg
 	};
-	uint64_t size, lsn;
-	sd_pagemetaof(&p, dv, &size, &lsn);
-	return size;
+	return sd_pagesizeof(&p, (sdv*)v->v);
 }
 
 svif sd_vif =
@@ -54,4 +51,41 @@ svif sd_vif =
 	.lsnset  = NULL,
 	.pointer = sd_vifpointer,
 	.size    = sd_vifsize
+};
+
+static uint64_t
+sd_vrawiflsn(sv *v) {
+	sdv *dv = v->v;
+	char *ptr = (char*)dv + sizeof(sdv);
+	ptr += sr_leb128skip(ptr);
+	uint64_t val;
+	sr_leb128read(ptr, &val);
+	return val;
+}
+
+static char*
+sd_vrawifpointer(sv *v)
+{
+	sdv *dv = v->v;
+	char *ptr = (char*)dv + sizeof(sdv);
+	ptr += sr_leb128skip(ptr);
+	ptr += sr_leb128skip(ptr);
+	return ptr;
+}
+
+static uint32_t
+sd_vrawifsize(sv *v) {
+	sdv *dv = v->v;
+	uint64_t val;
+	sr_leb128read((char*)dv + sizeof(sdv), &val);
+	return val;
+}
+
+svif sd_vrawif =
+{
+	.flags   = sd_vifflags,
+	.lsn     = sd_vrawiflsn,
+	.lsnset  = NULL,
+	.pointer = sd_vrawifpointer,
+	.size    = sd_vrawifsize
 };

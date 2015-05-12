@@ -72,7 +72,7 @@ mt_single_stmt(stc *cx)
 	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, &ij, crc, NULL);
 
 	soworkers w;
 	so_workersinit(&w);
@@ -151,7 +151,7 @@ mt_multi_stmt(stc *cx)
 	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, &ij, crc, NULL);
 
 	soworkers w;
 	so_workersinit(&w);
@@ -232,7 +232,7 @@ mt_multi_stmt_conflict(stc *cx)
 	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, &ij, crc, NULL);
 
 	soworkers w;
 	so_workersinit(&w);

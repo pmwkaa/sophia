@@ -5291,6 +5291,8 @@ static int
 sr_lz4filter_next(srfilter *f, srbuf *dest, char *buf, int size)
 {
 	srlz4filter *z = (srlz4filter*)f->priv;
+	if (srunlikely(size == 0))
+		return 0;
 	int rc;
 	switch (f->op) {
 	case SR_FINPUT:;

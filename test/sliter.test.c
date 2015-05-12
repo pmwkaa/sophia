@@ -17,7 +17,7 @@
 static void
 alloclogv(svlog *log, sr *r, uint64_t lsn, uint8_t flags, int key)
 {
-	srformatv pv;
+	srfmtv pv;
 	pv.key = (char*)&key;
 	pv.r.size = sizeof(uint32_t);
 	pv.r.offset = 0;
@@ -60,7 +60,7 @@ sliter_tx(stc *cx)
 	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, NULL, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, NULL, crc, NULL);
 
 	slconf conf = {
 		.path     = cx->suite->logdir,
@@ -103,7 +103,7 @@ sliter_tx_read_empty(stc *cx)
 	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, NULL, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, NULL, crc, NULL);
 
 	slconf conf = {
 		.path     = cx->suite->logdir,
@@ -156,7 +156,7 @@ sliter_tx_read0(stc *cx)
 	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, NULL, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, NULL, crc, NULL);
 
 	slconf conf = {
 		.path     = cx->suite->logdir,
@@ -214,7 +214,7 @@ sliter_tx_read1(stc *cx)
 	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, NULL, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, NULL, crc, NULL);
 
 	slconf conf = {
 		.path     = cx->suite->logdir,
@@ -283,7 +283,7 @@ sliter_tx_read2(stc *cx)
 	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, NULL, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, NULL, crc, NULL);
 
 	slconf conf = {
 		.path     = cx->suite->logdir,
@@ -356,7 +356,7 @@ sliter_tx_read3(stc *cx)
 	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, NULL, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, NULL, crc, NULL);
 
 	slconf conf = {
 		.path     = cx->suite->logdir,

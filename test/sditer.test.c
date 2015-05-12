@@ -16,7 +16,7 @@
 static void
 addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 {
-	srformatv pv;
+	srfmtv pv;
 	pv.key = (char*)key;
 	pv.r.size = sizeof(uint32_t);
 	pv.r.offset = 0;
@@ -47,11 +47,11 @@ sditer_gt0(stc *cx srunused)
 	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &r, 1, 0) == 0);
+	t( sd_buildbegin(&b, &r, 1, 0, 0) == 0);
 
 	int key = 7;
 	addv(&b, &r, 3, 0, &key);
@@ -68,7 +68,7 @@ sditer_gt0(stc *cx srunused)
 	int rc;
 	rc = sd_indexadd(&index, &r, &b);
 	t( rc == 0 );
-	t( sd_buildcommit(&b) == 0 );
+	t( sd_buildcommit(&b, &r) == 0 );
 
 	sdid id;
 	memset(&id, 0, sizeof(id));
@@ -86,9 +86,13 @@ sditer_gt0(stc *cx srunused)
 	sd_indexinit(&i);
 	i.h = (sdindexheader*)(map.p);
 
+	srbuf xfbuf;
+	sr_bufinit(&xfbuf);
+	t( sr_bufensure(&xfbuf, &a, 1024) == 0 );
+
 	sriter it;
 	sr_iterinit(sd_iter, &it, &r);
-	sr_iteropen(sd_iter, &it, &i, map.p, 1, 0, NULL);
+	sr_iteropen(sd_iter, &it, &i, map.p, 1, 0, NULL, &xfbuf);
 	t( sr_iteratorhas(&it) == 1 );
 
 	sv *v = sr_iteratorof(&it);
@@ -110,6 +114,7 @@ sditer_gt0(stc *cx srunused)
 	sd_indexfree(&index, &r);
 	sd_buildfree(&b, &r);
 	sr_keyfree(&cmp, &a);
+	sr_buffree(&xfbuf, &a);
 }
 
 static void
@@ -130,11 +135,11 @@ sditer_gt1(stc *cx srunused)
 	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &r, 1, 0) == 0);
+	t( sd_buildbegin(&b, &r, 1, 0, 0) == 0);
 
 	int key = 7;
 	addv(&b, &r, 3, 0, &key);
@@ -151,9 +156,9 @@ sditer_gt1(stc *cx srunused)
 	int rc;
 	rc = sd_indexadd(&index, &r, &b);
 	t( rc == 0 );
-	t( sd_buildcommit(&b) == 0 );
+	t( sd_buildcommit(&b, &r) == 0 );
 
-	t( sd_buildbegin(&b, &r, 1, 0) == 0);
+	t( sd_buildbegin(&b, &r, 1, 0, 0) == 0);
 	key = 10;
 	addv(&b, &r, 6, 0, &key);
 	key = 11;
@@ -164,9 +169,9 @@ sditer_gt1(stc *cx srunused)
 
 	rc = sd_indexadd(&index, &r, &b);
 	t( rc == 0 );
-	t( sd_buildcommit(&b) == 0 );
+	t( sd_buildcommit(&b, &r) == 0 );
 
-	t( sd_buildbegin(&b, &r, 1, 0) == 0);
+	t( sd_buildbegin(&b, &r, 1, 0, 0) == 0);
 	key = 15;
 	addv(&b, &r, 9, 0, &key);
 	key = 18;
@@ -177,7 +182,7 @@ sditer_gt1(stc *cx srunused)
 
 	rc = sd_indexadd(&index, &r, &b);
 	t( rc == 0 );
-	t( sd_buildcommit(&b) == 0 );
+	t( sd_buildcommit(&b, &r) == 0 );
 
 	sdid id;
 	memset(&id, 0, sizeof(id));
@@ -190,12 +195,16 @@ sditer_gt1(stc *cx srunused)
 	srmap map;
 	t( sr_mapfile(&map, &f, 1) == 0 );
 
+	srbuf xfbuf;
+	sr_bufinit(&xfbuf);
+	t( sr_bufensure(&xfbuf, &a, 1024) == 0 );
+
 	sdindex i;
 	sd_indexinit(&i);
 	i.h = (sdindexheader*)(map.p);
 	sriter it;
 	sr_iterinit(sd_iter, &it, &r);
-	sr_iteropen(sd_iter, &it, &i, map.p, 1, 0, NULL);
+	sr_iteropen(sd_iter, &it, &i, map.p, 1, 0, NULL, &xfbuf);
 	t( sr_iteratorhas(&it) == 1 );
 
 	/* page 0 */
@@ -241,6 +250,7 @@ sditer_gt1(stc *cx srunused)
 	sd_indexfree(&index, &r);
 	sd_buildfree(&b, &r);
 	sr_keyfree(&cmp, &a);
+	sr_buffree(&xfbuf, &a);
 }
 
 static void
@@ -261,11 +271,11 @@ sditer_gt0_compression_zstd(stc *cx srunused)
 	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, &sr_zstdfilter);
+	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, &ij, crc, &sr_zstdfilter);
 
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &r, 1, 1) == 0);
+	t( sd_buildbegin(&b, &r, 1, 1, 0) == 0);
 
 	int key = 7;
 	addv(&b, &r, 3, 0, &key);
@@ -282,7 +292,7 @@ sditer_gt0_compression_zstd(stc *cx srunused)
 	int rc;
 	rc = sd_indexadd(&index, &r, &b);
 	t( rc == 0 );
-	t( sd_buildcommit(&b) == 0 );
+	t( sd_buildcommit(&b, &r) == 0 );
 
 	sdid id;
 	memset(&id, 0, sizeof(id));
@@ -302,10 +312,13 @@ sditer_gt0_compression_zstd(stc *cx srunused)
 
 	srbuf compression_buf;
 	sr_bufinit(&compression_buf);
+	srbuf xfbuf;
+	sr_bufinit(&xfbuf);
+	t( sr_bufensure(&xfbuf, &a, 1024) == 0 );
 
 	sriter it;
 	sr_iterinit(sd_iter, &it, &r);
-	sr_iteropen(sd_iter, &it, &i, map.p, 1, 1, &compression_buf);
+	sr_iteropen(sd_iter, &it, &i, map.p, 1, 1, &compression_buf, &xfbuf);
 	t( sr_iteratorhas(&it) == 1 );
 
 	sv *v = sr_iteratorof(&it);
@@ -328,6 +341,7 @@ sditer_gt0_compression_zstd(stc *cx srunused)
 	sd_buildfree(&b, &r);
 
 	sr_buffree(&compression_buf, &a);
+	sr_buffree(&xfbuf, &a);
 	sr_keyfree(&cmp, &a);
 }
 
@@ -349,11 +363,11 @@ sditer_gt0_compression_lz4(stc *cx srunused)
 	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, &sr_lz4filter);
+	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, &ij, crc, &sr_lz4filter);
 
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &r, 1, 1) == 0);
+	t( sd_buildbegin(&b, &r, 1, 1, 0) == 0);
 
 	int key = 7;
 	addv(&b, &r, 3, 0, &key);
@@ -370,11 +384,10 @@ sditer_gt0_compression_lz4(stc *cx srunused)
 	int rc;
 	rc = sd_indexadd(&index, &r, &b);
 	t( rc == 0 );
-	t( sd_buildcommit(&b) == 0 );
+	t( sd_buildcommit(&b, &r) == 0 );
 
 	sdid id;
 	memset(&id, 0, sizeof(id));
-
 
 	t( sd_indexcommit(&index, &r, &id) == 0 );
 
@@ -391,10 +404,13 @@ sditer_gt0_compression_lz4(stc *cx srunused)
 
 	srbuf compression_buf;
 	sr_bufinit(&compression_buf);
+	srbuf xfbuf;
+	sr_bufinit(&xfbuf);
+	t( sr_bufensure(&xfbuf, &a, 1024) == 0 );
 
 	sriter it;
 	sr_iterinit(sd_iter, &it, &r);
-	sr_iteropen(sd_iter, &it, &i, map.p, 1, 1, &compression_buf);
+	sr_iteropen(sd_iter, &it, &i, map.p, 1, 1, &compression_buf, &xfbuf);
 	t( sr_iteratorhas(&it) == 1 );
 
 	sv *v = sr_iteratorof(&it);
@@ -417,6 +433,7 @@ sditer_gt0_compression_lz4(stc *cx srunused)
 	sd_buildfree(&b, &r);
 
 	sr_buffree(&compression_buf, &a);
+	sr_buffree(&xfbuf, &a);
 	sr_keyfree(&cmp, &a);
 }
 
@@ -438,11 +455,11 @@ sditer_gt1_compression_zstd(stc *cx srunused)
 	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, &sr_zstdfilter);
+	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, &ij, crc, &sr_zstdfilter);
 
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &r, 1, 1) == 0);
+	t( sd_buildbegin(&b, &r, 1, 1, 0) == 0);
 
 	int key = 7;
 	addv(&b, &r, 3, 0, &key);
@@ -459,9 +476,9 @@ sditer_gt1_compression_zstd(stc *cx srunused)
 	int rc;
 	rc = sd_indexadd(&index, &r, &b);
 	t( rc == 0 );
-	t( sd_buildcommit(&b) == 0 );
+	t( sd_buildcommit(&b, &r) == 0 );
 
-	t( sd_buildbegin(&b, &r, 1, 1) == 0);
+	t( sd_buildbegin(&b, &r, 1, 1, 0) == 0);
 	key = 10;
 	addv(&b, &r, 6, 0, &key);
 	key = 11;
@@ -472,9 +489,9 @@ sditer_gt1_compression_zstd(stc *cx srunused)
 
 	rc = sd_indexadd(&index, &r, &b);
 	t( rc == 0 );
-	t( sd_buildcommit(&b) == 0 );
+	t( sd_buildcommit(&b, &r) == 0 );
 
-	t( sd_buildbegin(&b, &r, 1, 1) == 0);
+	t( sd_buildbegin(&b, &r, 1, 1, 0) == 0);
 	key = 15;
 	addv(&b, &r, 9, 0, &key);
 	key = 18;
@@ -485,7 +502,7 @@ sditer_gt1_compression_zstd(stc *cx srunused)
 
 	rc = sd_indexadd(&index, &r, &b);
 	t( rc == 0 );
-	t( sd_buildcommit(&b) == 0 );
+	t( sd_buildcommit(&b, &r) == 0 );
 
 	sdid id;
 	memset(&id, 0, sizeof(id));
@@ -500,13 +517,16 @@ sditer_gt1_compression_zstd(stc *cx srunused)
 
 	srbuf compression_buf;
 	sr_bufinit(&compression_buf);
+	srbuf xfbuf;
+	sr_bufinit(&xfbuf);
+	t( sr_bufensure(&xfbuf, &a, 1024) == 0 );
 
 	sdindex i;
 	sd_indexinit(&i);
 	i.h = (sdindexheader*)(map.p);
 	sriter it;
 	sr_iterinit(sd_iter, &it, &r);
-	sr_iteropen(sd_iter, &it, &i, map.p, 1, 1, &compression_buf);
+	sr_iteropen(sd_iter, &it, &i, map.p, 1, 1, &compression_buf, &xfbuf);
 	t( sr_iteratorhas(&it) == 1 );
 
 	/* page 0 */
@@ -552,6 +572,7 @@ sditer_gt1_compression_zstd(stc *cx srunused)
 	sd_indexfree(&index, &r);
 	sd_buildfree(&b, &r);
 	sr_buffree(&compression_buf, &a);
+	sr_buffree(&xfbuf, &a);
 	sr_keyfree(&cmp, &a);
 }
 
@@ -573,11 +594,11 @@ sditer_gt1_compression_lz4(stc *cx srunused)
 	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, &ij, crc, &sr_lz4filter);
+	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, &ij, crc, &sr_lz4filter);
 
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &r, 1, 1) == 0);
+	t( sd_buildbegin(&b, &r, 1, 1, 0) == 0);
 
 	int key = 7;
 	addv(&b, &r, 3, 0, &key);
@@ -594,9 +615,9 @@ sditer_gt1_compression_lz4(stc *cx srunused)
 	int rc;
 	rc = sd_indexadd(&index, &r, &b);
 	t( rc == 0 );
-	t( sd_buildcommit(&b) == 0 );
+	t( sd_buildcommit(&b, &r) == 0 );
 
-	t( sd_buildbegin(&b, &r, 1, 1) == 0);
+	t( sd_buildbegin(&b, &r, 1, 1, 0) == 0);
 	key = 10;
 	addv(&b, &r, 6, 0, &key);
 	key = 11;
@@ -607,9 +628,9 @@ sditer_gt1_compression_lz4(stc *cx srunused)
 
 	rc = sd_indexadd(&index, &r, &b);
 	t( rc == 0 );
-	t( sd_buildcommit(&b) == 0 );
+	t( sd_buildcommit(&b, &r) == 0 );
 
-	t( sd_buildbegin(&b, &r, 1, 1) == 0);
+	t( sd_buildbegin(&b, &r, 1, 1, 0) == 0);
 	key = 15;
 	addv(&b, &r, 9, 0, &key);
 	key = 18;
@@ -620,7 +641,7 @@ sditer_gt1_compression_lz4(stc *cx srunused)
 
 	rc = sd_indexadd(&index, &r, &b);
 	t( rc == 0 );
-	t( sd_buildcommit(&b) == 0 );
+	t( sd_buildcommit(&b, &r) == 0 );
 
 	sdid id;
 	memset(&id, 0, sizeof(id));
@@ -635,13 +656,16 @@ sditer_gt1_compression_lz4(stc *cx srunused)
 
 	srbuf compression_buf;
 	sr_bufinit(&compression_buf);
+	srbuf xfbuf;
+	sr_bufinit(&xfbuf);
+	t( sr_bufensure(&xfbuf, &a, 1024) == 0 );
 
 	sdindex i;
 	sd_indexinit(&i);
 	i.h = (sdindexheader*)(map.p);
 	sriter it;
 	sr_iterinit(sd_iter, &it, &r);
-	sr_iteropen(sd_iter, &it, &i, map.p, 1, 1, &compression_buf);
+	sr_iteropen(sd_iter, &it, &i, map.p, 1, 1, &compression_buf, &xfbuf);
 	t( sr_iteratorhas(&it) == 1 );
 
 	/* page 0 */
@@ -687,6 +711,7 @@ sditer_gt1_compression_lz4(stc *cx srunused)
 	sd_indexfree(&index, &r);
 	sd_buildfree(&b, &r);
 	sr_buffree(&compression_buf, &a);
+	sr_buffree(&xfbuf, &a);
 	sr_keyfree(&cmp, &a);
 }
 

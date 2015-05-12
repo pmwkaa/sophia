@@ -9,6 +9,7 @@ OBJECTS = st.o \
           srkey.test.o \
           srorder.test.o \
           srrq.test.o \
+          srht.test.o \
           srzstdfilter.test.o \
           srlz4filter.test.o \
           svv.test.o \

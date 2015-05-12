@@ -3962,6 +3962,8 @@ sr_zstdfilter_next(srfilter *f, srbuf *dest, char *buf, int size)
 {
 	srzstdfilter *z = (srzstdfilter*)f->priv;
 	int rc;
+	if (srunlikely(size == 0))
+		return 0;
 	switch (f->op) {
 	case SR_FINPUT:;
 		size_t block = ZSTD_compressBound(size);

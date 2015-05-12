@@ -76,9 +76,9 @@ so_dbctl_free(sodbctl *c)
 		sr_free(&e->a, c->path);
 		c->path = NULL;
 	}
-	if (c->formatsz) {
-		sr_free(&e->a, c->formatsz);
-		c->formatsz = NULL;
+	if (c->fmtsz) {
+		sr_free(&e->a, c->fmtsz);
+		c->fmtsz = NULL;
 	}
 	if (c->compression) {
 		sr_free(&e->a, c->compression);
@@ -105,6 +105,7 @@ so_dbctl_init(sodbctl *c, char *name, void *db)
 	c->scheduled = 0;
 	c->dropped   = 0;
 	c->sync      = 1;
+	c->compression_key = 0;
 	c->compression_if = NULL;
 	c->compression = sr_strdup(&e->a, "none");
 	if (srunlikely(c->compression == NULL)) {
@@ -132,9 +133,10 @@ so_dbctl_init(sodbctl *c, char *name, void *db)
 		so_dbctl_free(c);
 		return -1;
 	}
-	c->format = SR_FKV;
-	c->formatsz = sr_strdup(&e->a, "kv");
-	if (srunlikely(c->formatsz == NULL)) {
+	c->fmt_storage = SR_FS_RAW;
+	c->fmt = SR_FKV;
+	c->fmtsz = sr_strdup(&e->a, "kv");
+	if (srunlikely(c->fmtsz == NULL)) {
 		so_dbctl_free(c);
 		return -1;
 	}
@@ -147,14 +149,23 @@ so_dbctl_validate(sodbctl *c)
 	sodb *o = c->parent;
 	so *e = so_of(&o->o);
 	/* format */
-	if (strcmp(c->formatsz, "kv") == 0) {
-		c->format = SR_FKV;
+	if (strcmp(c->fmtsz, "kv") == 0) {
+		c->fmt = SR_FKV;
 	} else
-	if (strcmp(c->formatsz, "document") == 0) {
-		c->format = SR_FDOCUMENT;
+	if (strcmp(c->fmtsz, "document") == 0) {
+		c->fmt = SR_FDOCUMENT;
 	} else {
-		sr_error(&e->error, "unknown format type '%s'", c->formatsz);
+		sr_error(&e->error, "unknown format type '%s'", c->fmtsz);
 		return -1;
+	}
+	/* compression_key */
+	if (c->compression_key) {
+		if (c->fmt == SR_FDOCUMENT) {
+			sr_error(&e->error, "%s", "incompatible options: format=document "
+			         "and comppression_key=1");
+			return -1;
+		}
+		c->fmt_storage = SR_FS_KEYVALUE;
 	}
 	/* compression */
 	if (strcmp(c->compression, "none") == 0) {
@@ -180,7 +191,8 @@ so_dbctl_validate(sodbctl *c)
 		}
 	}
 	o->r.cmp = &c->cmp;
-	o->r.format = c->format;
+	o->r.fmt = c->fmt;
+	o->r.fmt_storage = c->fmt_storage;
 	o->r.compression = c->compression_if;
 	return 0;
 }
@@ -611,9 +623,9 @@ svv *so_dbv(sodb *db, sov *o, int search)
 	 * copy during search operations */
 	sr *runtime = &db->r;
 	sr  runtime_search;
-	if (search && db->r.format == SR_FDOCUMENT) {
+	if (search && db->r.fmt == SR_FDOCUMENT) {
 		runtime_search = db->r;
-		runtime_search.format = SR_FKV;
+		runtime_search.fmt = SR_FKV;
 		runtime = &runtime_search;
 	}
 	v = sv_vbuild(runtime, o->keyv, o->keyc,

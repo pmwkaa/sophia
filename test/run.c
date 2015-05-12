@@ -19,6 +19,7 @@ extern stgroup *sra_group(void);
 extern stgroup *srkey_group(void);
 extern stgroup *srorder_group(void);
 extern stgroup *srrq_group(void);
+extern stgroup *srht_group(void);
 extern stgroup *srzstdfilter_group(void);
 extern stgroup *srlz4filter_group(void);
 extern stgroup *svv_group(void);
@@ -80,7 +81,7 @@ main(int argc, char *argv[])
 	st_addscene(&s, st_scene("truncate", st_scene_truncate, 1));
 	st_addscene(&s, st_scene("destroy", st_scene_destroy, 1));
 	st_addscene(&s, st_scene("pass", st_scene_pass, 1));
-	st_addscene(&s, st_scene("rerun", st_scene_rerun, 1));
+	st_addscene(&s, st_scene("recover", st_scene_recover, 1));
 	st_addscene(&s, st_scene("test", st_scene_test, 1));
 
 	stplan *plan;
@@ -95,6 +96,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, sraslab_group());
 	st_planadd(plan, srkey_group());
 	st_planadd(plan, srorder_group());
+	st_planadd(plan, srht_group());
 	st_planadd(plan, srrq_group());
 	st_planadd(plan, srzstdfilter_group());
 	st_planadd(plan, srlz4filter_group());
@@ -128,7 +130,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, deadlock_group());
 	st_planadd(plan, cache_group());
 	st_planadd(plan, branch_group());
-	/*st_planadd(plan, compact_group());*/
+	st_planadd(plan, compact_group());
 	st_planadd(plan, checkpoint_group());
 	st_planadd(plan, transaction_multidb_group());
 	st_planadd(plan, gc_group());
@@ -223,13 +225,13 @@ main(int argc, char *argv[])
 	st_planscene(plan, st_sceneof(&s, "open"));
 	st_planscene(plan, st_sceneof(&s, "test"));
 	st_planscene(plan, st_sceneof(&s, "destroy"));
-	st_planscene(plan, st_sceneof(&s, "rerun"));
+	st_planscene(plan, st_sceneof(&s, "recover"));
 	st_planscene(plan, st_sceneof(&s, "create"));
 	st_planscene(plan, st_sceneof(&s, "multithread"));
 	st_planscene(plan, st_sceneof(&s, "open"));
 	st_planscene(plan, st_sceneof(&s, "test"));
 	st_planscene(plan, st_sceneof(&s, "destroy"));
-	st_planscene(plan, st_sceneof(&s, "rerun"));
+	st_planscene(plan, st_sceneof(&s, "recover"));
 	st_planscene(plan, st_sceneof(&s, "create"));
 	st_planscene(plan, st_sceneof(&s, "multithread"));
 	st_planscene(plan, st_sceneof(&s, "open"));

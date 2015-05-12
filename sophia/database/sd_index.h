@@ -19,6 +19,7 @@ struct sdindexheader {
 	sdid      id;
 	uint64_t  offset;
 	uint32_t  size;
+	uint32_t  sizevmax;
 	uint32_t  count;
 	uint32_t  keys;
 	uint64_t  total;

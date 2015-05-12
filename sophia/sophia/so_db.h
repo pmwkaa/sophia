@@ -18,8 +18,9 @@ struct sodbctl {
 	void         *parent;
 	char         *name;
 	uint32_t      id;
-	char         *formatsz;
-	srformat      format;
+	char         *fmtsz;
+	srfmt         fmt;
+	srfmtstorage  fmt_storage;
 	srkey         cmp;
 	srtrigger     on_complete;
 	char         *path;
@@ -29,6 +30,7 @@ struct sodbctl {
 	uint32_t      sync;
 	char         *compression;
 	srfilterif   *compression_if;
+	uint32_t      compression_key;
 	siprofiler    rtp;
 } srpacked;
 

@@ -13,7 +13,8 @@ typedef struct sr sr;
 
 struct sr {
 	srerror *e;
-	srformat format;
+	srfmtstorage fmt_storage;
+	srfmt fmt;
 	srkey *cmp;
 	srseq *seq;
 	sra *a;
@@ -27,7 +28,8 @@ sr_init(sr *r,
         srerror *e,
         sra *a,
         srseq *seq,
-        srformat format,
+        srfmt fmt,
+        srfmtstorage fmt_storage,
         srkey *cmp,
         srinjection *i,
         srcrcf crc,
@@ -36,7 +38,8 @@ sr_init(sr *r,
 	r->e           = e;
 	r->a           = a;
 	r->seq         = seq;
-	r->format      = format;
+	r->fmt         = fmt;
+	r->fmt_storage = fmt_storage;
 	r->cmp         = cmp;
 	r->i           = i;
 	r->compression = compression;

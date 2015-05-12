@@ -40,6 +40,18 @@ int si_queryclose(siquery *q)
 }
 
 static inline int
+si_querydup(siquery *q, sv *result)
+{
+	svv *v = sv_vdup(q->r->a, result);
+	if (srunlikely(v == NULL)) {
+		sr_error(q->r->e, "%s", "memory allocation failed");
+		return -1;
+	}
+	sv_init(&q->result, &sv_vif, v, NULL);
+	return 1;
+}
+
+static inline int
 si_qresult(siquery *q, sriter *i)
 {
 	sv *v = sr_iteratorof(i);
@@ -53,7 +65,8 @@ si_qresult(siquery *q, sriter *i)
 		                      sv_pointer(v),
 		                      sv_size(v));
 	}
-	q->result = *v;
+	if (srunlikely(si_querydup(q, v) == -1))
+		return -1;
 	return rc;
 }
 
@@ -81,20 +94,26 @@ si_qmatchindex(siquery *q, sinode *node)
 }
 
 static inline sdpage*
-si_qread(srbuf *buf, sr *r, si *i, sinode *n, sibranch *b,
+si_qread(srbuf *buf, srbuf *bufxf, sr *r, si *i, sinode *n, sibranch *b,
          sdindexpage *ref)
 {
-	uint64_t offset =
-		b->index.h->offset + sd_indexsize(b->index.h) +
-		ref->offset;
+	sr_bufreset(bufxf);
+	int rc = sr_bufensure(bufxf, r->a, b->index.h->sizevmax);
+	if (srunlikely(rc == -1)) {
+		sr_error(r->e, "%s", "memory allocation failed");
+		return NULL;
+	}
 	sr_bufreset(buf);
-	int rc = sr_bufensure(buf, r->a, sizeof(sdpage) + ref->sizeorigin);
+	rc = sr_bufensure(buf, r->a, sizeof(sdpage) + ref->sizeorigin);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "%s", "memory allocation failed");
 		return NULL;
 	}
 	sr_bufadvance(buf, sizeof(sdpage));
 
+	uint64_t offset =
+		b->index.h->offset + sd_indexsize(b->index.h) +
+		ref->offset;
 	if (i->conf->compression)
 	{
 		/* read compressed page */
@@ -158,14 +177,15 @@ si_qmatchbranch(siquery *q, sinode *n, sibranch *b)
 	cb->ref = sr_iterof(sd_indexiter, &i);
 	if (cb->ref == NULL)
 		return 0;
-	sdpage *page = si_qread(&cb->buf, q->r, q->index, n, b, cb->ref);
+	sdpage *page = si_qread(&cb->buf_a, &cb->buf_b, q->r, q->index, n, b, cb->ref);
 	if (srunlikely(page == NULL)) {
 		cb->ref = NULL;
 		return -1;
 	}
 	sr_iterinit(sd_pageiter, &cb->i, q->r);
 	int rc;
-	rc = sr_iteropen(sd_pageiter, &cb->i, page, q->order, q->key, q->keysize, q->vlsn);
+	rc = sr_iteropen(sd_pageiter, &cb->i, &cb->buf_b, page, q->order,
+	                 q->key, q->keysize, q->vlsn);
 	if (rc == 0) {
 		cb->ref = NULL;
 		return 0;
@@ -210,17 +230,6 @@ si_qmatch(siquery *q)
 	return 0;
 }
 
-int si_querydup(siquery *q, sv *result)
-{
-	svv *v = sv_vdup(q->r->a, &q->result);
-	if (srunlikely(v == NULL)) {
-		sr_error(q->r->e, "%s", "memory allocation failed");
-		return -1;
-	}
-	sv_init(result, &sv_vif, v, NULL);
-	return 1;
-}
-
 static inline void
 si_qfetchbranch(siquery *q, sinode *n, sibranch *b, svmerge *m)
 {
@@ -243,7 +252,7 @@ si_qfetchbranch(siquery *q, sinode *n, sibranch *b, svmerge *m)
 	cb->ref = sr_iterof(sd_indexiter, &i);
 	if (cb->ref == NULL || cb->ref == prev)
 		return;
-	sdpage *page = si_qread(&cb->buf, q->r, q->index, n, b, cb->ref);
+	sdpage *page = si_qread(&cb->buf_a, &cb->buf_b, q->r, q->index, n, b, cb->ref);
 	if (srunlikely(page == NULL)) {
 		cb->ref = NULL;
 		return;
@@ -251,7 +260,8 @@ si_qfetchbranch(siquery *q, sinode *n, sibranch *b, svmerge *m)
 	svmergesrc *s = sv_mergeadd(m, &cb->i);
 	s->ptr = cb;
 	sr_iterinit(sd_pageiter, &cb->i, q->r);
-	sr_iteropen(sd_pageiter, &cb->i, page, q->order, q->key, q->keysize, q->vlsn);
+	sr_iteropen(sd_pageiter, &cb->i, &cb->buf_b, page, q->order,
+	            q->key, q->keysize, q->vlsn);
 }
 
 static inline int
@@ -321,7 +331,10 @@ next_node:
 		                      sv_pointer(v),
 		                      sv_size(v));
 	}
-	q->result = *v;
+	if (srlikely(rc == 1)) {
+		if (srunlikely(si_querydup(q, v) == -1))
+			return -1;
+	}
 
 	/* skip a possible duplicates from data sources */
 	sr_iternext(sv_readiter, &k);

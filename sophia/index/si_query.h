@@ -29,7 +29,6 @@ int si_queryopen(siquery*, sr*, sicache*, si*, srorder, uint64_t,
                  void*, uint32_t,
                  void*, uint32_t);
 int si_queryclose(siquery*);
-int si_querydup(siquery*, sv*);
 int si_query(siquery*);
 int si_querycommited(si*, sr*, sv*);
 

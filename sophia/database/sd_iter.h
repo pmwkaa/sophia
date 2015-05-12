@@ -15,6 +15,7 @@ struct sditer {
 	int validate;
 	int compression;
 	srbuf *compression_buf;
+	srbuf *transform_buf;
 	sdindex *index;
 	char *start, *end;
 	char *page;
@@ -24,6 +25,18 @@ struct sditer {
 	sdv *dv;
 	sv v;
 } srpacked;
+
+static inline void
+sd_iterresult(sditer *i, sr *r, int pos)
+{
+	i->dv = sd_pagev(&i->pagev, pos);
+	if (srlikely(r->fmt_storage == SR_FS_RAW)) {
+		sv_init(&i->v, &sd_vif, i->dv, i->pagev.h);
+		return;
+	}
+	sd_pagekv_convert(&i->pagev, r, i->dv, i->transform_buf->s);
+	sv_init(&i->v, &sd_vrawif, i->transform_buf->s, NULL);
+}
 
 static inline int
 sd_iternextpage(sriter *it)
@@ -100,15 +113,15 @@ sd_iternextpage(sriter *it)
 		i->dv = NULL;
 		return 0;
 	}
-	i->dv = sd_pagev(&i->pagev, 0);
-	sv_init(&i->v, &sd_vif, i->dv, i->pagev.h);
+	sd_iterresult(i, it->r, 0);
 	return 1;
 }
 
 static inline int
 sd_iter_open(sriter *i, sdindex *index, char *start, int validate,
              int compression,
-             srbuf *compression_buf)
+             srbuf *compression_buf,
+             srbuf *transform_buf)
 {
 	sditer *ii = (sditer*)i->priv;
 	ii->index       = index;
@@ -121,6 +134,8 @@ sd_iter_open(sriter *i, sdindex *index, char *start, int validate,
 	ii->validate    = validate;
 	ii->compression = compression;
 	ii->compression_buf = compression_buf;
+	ii->transform_buf = transform_buf;
+	memset(&ii->v, 0, sizeof(ii->v));
 	return sd_iternextpage(i);
 }
 
@@ -145,8 +160,6 @@ sd_iter_of(sriter *i)
 	if (srunlikely(ii->page == NULL))
 		return NULL;
 	assert(ii->dv != NULL);
-	assert(ii->v.v  == ii->dv);
-	assert(ii->v.arg == ii->pagev.h);
 	return &ii->v;
 }
 
@@ -158,8 +171,7 @@ sd_iter_next(sriter *i)
 		return;
 	ii->pos++;
 	if (srlikely(ii->pos < ii->pagev.h->count)) {
-		ii->dv = sd_pagev(&ii->pagev, ii->pos);
-		sv_init(&ii->v, &sd_vif, ii->dv, ii->pagev.h);
+		sd_iterresult(ii, i->r, ii->pos);
 	} else {
 		ii->dv = NULL;
 		sd_iternextpage(i);

@@ -53,7 +53,7 @@ void *so_ctlreturn(src *c, void *o)
 	}
 	if (value)
 		size++;
-	srformatv fv;
+	srfmtv fv;
 	fv.key      = c->name;
 	fv.r.size   = strlen(c->name) + 1;
 	fv.r.offset = 0;
@@ -627,18 +627,19 @@ so_ctldb(so *e, soctlrt *rt srunused, src **pc)
 		/* database */
 		src *database = *pc;
 		p = NULL;
-		sr_clink(&p,          sr_c(pc, so_ctlv,              "name",        SR_CSZ|SR_CRO,  o->ctl.name));
-		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv,              "id",          SR_CU32,        &o->ctl.id), o));
-		sr_clink(&p,          sr_c(pc, so_ctldb_status,      "status",      SR_CSZ|SR_CRO,  o));
-		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "format",      SR_CSZREF,      &o->ctl.formatsz), o));
-		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "path",        SR_CSZREF,      &o->ctl.path), o));
-		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "sync",        SR_CU32,        &o->ctl.sync), o));
-		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "compression", SR_CSZREF,      &o->ctl.compression), o));
-		sr_clink(&p,          sr_c(pc, so_ctldb_branch,      "branch",      SR_CVOID,       o));
-		sr_clink(&p,          sr_c(pc, so_ctldb_compact,     "compact",     SR_CVOID,       o));
-		sr_clink(&p,          sr_c(pc, so_ctldb_lockdetect,  "lockdetect",  SR_CVOID,       NULL));
-		sr_clink(&p,          sr_c(pc, so_ctldb_on_complete, "on_complete", SR_CVOID,       o));
-		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctldb_index,       "index",       SR_CC,          index), o));
+		sr_clink(&p,          sr_c(pc, so_ctlv,              "name",            SR_CSZ|SR_CRO, o->ctl.name));
+		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv,              "id",              SR_CU32,       &o->ctl.id), o));
+		sr_clink(&p,          sr_c(pc, so_ctldb_status,      "status",          SR_CSZ|SR_CRO, o));
+		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "format",          SR_CSZREF,     &o->ctl.fmtsz), o));
+		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "path",            SR_CSZREF,     &o->ctl.path), o));
+		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "sync",            SR_CU32,       &o->ctl.sync), o));
+		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "compression",     SR_CSZREF,     &o->ctl.compression), o));
+		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "compression_key", SR_CU32,       &o->ctl.compression_key), o));
+		sr_clink(&p,          sr_c(pc, so_ctldb_branch,      "branch",          SR_CVOID,      o));
+		sr_clink(&p,          sr_c(pc, so_ctldb_compact,     "compact",         SR_CVOID,      o));
+		sr_clink(&p,          sr_c(pc, so_ctldb_lockdetect,  "lockdetect",      SR_CVOID,      NULL));
+		sr_clink(&p,          sr_c(pc, so_ctldb_on_complete, "on_complete",     SR_CVOID,      o));
+		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctldb_index,       "index",           SR_CC,         index), o));
 		sr_clink(&prev, sr_cptr(sr_c(pc, so_ctldb_get, o->ctl.name, SR_CC, database), o));
 		if (db == NULL)
 			db = prev;

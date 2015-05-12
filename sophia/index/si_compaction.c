@@ -166,14 +166,15 @@ si_split(si *index, sr *r, sdc *c, srbuf *result,
 	int count = 0;
 	int rc;
 	sdmergeconf mergeconf = {
-		.size_stream = size_stream,
-		.size_node   = size_node,
-		.size_page   = index->conf->node_page_size,
-		.checksum    = index->conf->node_page_checksum,
-		.compression = index->conf->compression,
-		.offset      = 0,
-		.vlsn        = vlsn,
-		.save_delete = 0
+		.size_stream     = size_stream,
+		.size_node       = size_node,
+		.size_page       = index->conf->node_page_size,
+		.checksum        = index->conf->node_page_checksum,
+		.compression     = index->conf->compression,
+		.compression_key = index->conf->compression_key,
+		.offset          = 0,
+		.vlsn            = vlsn,
+		.save_delete     = 0
 	};
 	sdmerge merge;
 	sd_mergeinit(&merge, r, i, &c->build, &mergeconf);

@@ -15,7 +15,7 @@
 static sv*
 allocv(sr *r, uint64_t lsn, uint8_t flags, void *key)
 {
-	srformatv pv;
+	srfmtv pv;
 	pv.key = (char*)key;
 	pv.r.size = sizeof(uint32_t);
 	pv.r.offset = 0;
@@ -40,7 +40,7 @@ svmergeiter_merge_a(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -111,7 +111,7 @@ svmergeiter_merge_b(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -182,7 +182,7 @@ svmergeiter_merge_ab(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -269,7 +269,7 @@ svmergeiter_merge_abc(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -378,7 +378,7 @@ svmergeiter_merge_ba(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -465,7 +465,7 @@ svmergeiter_merge_dup_ab(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -562,7 +562,7 @@ svmergeiter_merge_dup_a_chain(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -649,7 +649,7 @@ svmergeiter_merge_dup_ab_chain(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -744,7 +744,7 @@ svmergeiter_merge_dup_abc_chain(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;

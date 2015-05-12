@@ -15,7 +15,7 @@
 static svv*
 allocv(sr *r, uint64_t lsn, uint8_t flags, uint32_t *key)
 {
-	srformatv pv;
+	srfmtv pv;
 	pv.key = (char*)key;
 	pv.r.size = sizeof(uint32_t);
 	pv.r.offset = 0;
@@ -48,7 +48,7 @@ svindex_replace0(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -84,7 +84,7 @@ svindex_replace1(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -123,7 +123,7 @@ svindex_replace2(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );

@@ -13,7 +13,8 @@ typedef struct sdc sdc;
 typedef struct sdcbuf sdcbuf;
 
 struct sdcbuf {
-	srbuf buf;
+	srbuf a; /* decompression */
+	srbuf b; /* transformation */
 	sdcbuf *next;
 };
 
@@ -48,7 +49,8 @@ sd_cfree(sdc *sc, sr *r)
 	sdcbuf *next;
 	while (b) {
 		next = b->next;
-		sr_buffree(&b->buf, r->a);
+		sr_buffree(&b->a, r->a);
+		sr_buffree(&b->b, r->a);
 		sr_free(r->a, b);
 		b = next;
 	}
@@ -63,7 +65,8 @@ sd_creset(sdc *sc)
 	sr_bufreset(&sc->c);
 	sdcbuf *b = sc->head;
 	while (b) {
-		sr_bufreset(&b->buf);
+		sr_bufreset(&b->a);
+		sr_bufreset(&b->b);
 		b = b->next;
 	}
 }
@@ -76,7 +79,8 @@ sd_censure(sdc *c, sr *r, int count)
 			sdcbuf *b = sr_malloc(r->a, sizeof(sdcbuf));
 			if (srunlikely(b == NULL))
 				return -1;
-			sr_bufinit(&b->buf);
+			sr_bufinit(&b->a);
+			sr_bufinit(&b->b);
 			b->next = c->head;
 			c->head = b;
 			c->count++;

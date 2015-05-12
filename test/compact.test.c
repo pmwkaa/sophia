@@ -92,7 +92,7 @@ compact_delete_node1(stc *cx srunused)
 
 	void *o = sp_get(c, "db.test.index.node_count");
 	t( o != NULL );
-	t( strcmp( sp_get(o, "value", NULL), "3") == 0 );
+	t( strcmp( sp_get(o, "value", NULL), "2") == 0 );
 	sp_destroy(o);
 
 	key = 0;
@@ -109,7 +109,7 @@ compact_delete_node1(stc *cx srunused)
 
 	o = sp_get(c, "db.test.index.node_count");
 	t( o != NULL );
-	t( strcmp( sp_get(o, "value", NULL), "2") == 0 );
+	t( strcmp( sp_get(o, "value", NULL), "1") == 0 );
 	sp_destroy(o);
 
 	o = sp_object(db);

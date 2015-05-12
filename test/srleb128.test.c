@@ -17,7 +17,7 @@
 static void
 srleb128_test(stc *cx)
 {
-	unsigned char buffer[16];
+	char buffer[16];
 	int len;
 	uint64_t value;
 

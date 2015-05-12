@@ -40,6 +40,8 @@
 #include <sr_thread.h>
 #include <sr_quota.h>
 #include <sr_rb.h>
+#include <sr_hash.h>
+#include <sr_ht.h>
 #include <sr_rq.h>
 #include <sr_leb128.h>
 #include <sr_path.h>

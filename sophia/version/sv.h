@@ -65,22 +65,22 @@ sv_size(sv *v) {
 
 static inline char*
 sv_key(sv *v, sr *r srunused, int part) {
-	return sr_formatkey(v->i->pointer(v), part);
+	return sr_fmtkey(v->i->pointer(v), part);
 }
 
 static inline int
 sv_keysize(sv *v, sr *r srunused, int part) {
-	return sr_formatkey_size(v->i->pointer(v), part);
+	return sr_fmtkey_size(v->i->pointer(v), part);
 }
 
 static inline char*
 sv_value(sv *v, sr *r) {
-	return sr_formatvalue(r->format, r->cmp, sv_pointer(v));
+	return sr_fmtvalue(r->fmt, r->cmp, sv_pointer(v));
 }
 
 static inline int
 sv_valuesize(sv *v, sr *r) {
-	return sr_formatvalue_size(r->format, r->cmp, sv_pointer(v), sv_size(v));
+	return sr_fmtvalue_size(r->fmt, r->cmp, sv_pointer(v), sv_size(v));
 }
 
 static inline int

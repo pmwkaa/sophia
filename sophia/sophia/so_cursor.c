@@ -38,13 +38,7 @@ so_cursorseek(socursor *c, void *key, int keysize)
 	so_vrelease(&c->v);
 	if (rc == 1) {
 		assert(q.result.v != NULL);
-		sv result;
-		rc = si_querydup(&q, &result);
-		if (srunlikely(rc == -1)) {
-			si_queryclose(&q);
-			return -1;
-		}
-		so_vput(&c->v, &result);
+		so_vput(&c->v, &q.result);
 		so_vimmutable(&c->v);
 	}
 	si_queryclose(&q);
@@ -159,7 +153,7 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 	{
 		/* search by prefix */
 		if (sr_keyof(&db->ctl.cmp, 0)->type == SR_STRING) {
-			srformatv fv;
+			srfmtv fv;
 			fv.key      = o->prefix;
 			fv.r.size   = o->prefixsize;
 			fv.r.offset = 0;

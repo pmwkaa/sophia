@@ -29,14 +29,15 @@ si_branchcreate(si *index, sr *r, sdc *c, sinode *parent, svindex *vindex, uint6
 
 	/* merge iter is not used */
 	sdmergeconf mergeconf = {
-		.size_stream = UINT32_MAX,
-		.size_node   = UINT64_MAX,
-		.size_page   = index->conf->node_page_size,
-		.checksum    = index->conf->node_page_checksum,
-		.compression = index->conf->compression,
-		.offset      = parent->file.size,
-		.vlsn        = vlsn,
-		.save_delete = 1
+		.size_stream     = UINT32_MAX,
+		.size_node       = UINT64_MAX,
+		.size_page       = index->conf->node_page_size,
+		.checksum        = index->conf->node_page_checksum,
+		.compression     = index->conf->compression,
+		.compression_key = index->conf->compression_key,
+		.offset          = parent->file.size,
+		.vlsn            = vlsn,
+		.save_delete     = 1
 	};
 	sdmerge merge;
 	sd_mergeinit(&merge, r, &i, &c->build, &mergeconf);
@@ -171,9 +172,15 @@ int si_compact(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	sibranch *b = node->branch;
 	while (b) {
 		svmergesrc *s = sv_mergeadd(&merge, NULL);
+		rc = sr_bufensure(&cbuf->b, r->a, b->index.h->sizevmax);
+		if (srunlikely(rc == -1)) {
+			sr_malfunction(r->e, "%s", "memory allocation failed");
+			return -1;
+		}
 		size_stream += sd_indextotal(&b->index);
 		sr_iterinit(sd_iter, &s->src, r);
-		sr_iteropen(sd_iter, &s->src, &b->index, c->c.s, 0, index->conf->compression, &cbuf->buf);
+		sr_iteropen(sd_iter, &s->src, &b->index, c->c.s, 0,
+		            index->conf->compression, &cbuf->a, &cbuf->b);
 		cbuf = cbuf->next;
 		b = b->next;
 	}

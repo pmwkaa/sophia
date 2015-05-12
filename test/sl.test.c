@@ -17,7 +17,7 @@
 static void
 alloclogv(svlog *log, sr *r, uint64_t lsn, uint8_t flags, int key)
 {
-	srformatv pv;
+	srfmtv pv;
 	pv.key = (char*)&key;
 	pv.r.size = sizeof(uint32_t);
 	pv.r.offset = 0;
@@ -60,7 +60,7 @@ sl_begin_commit(stc *cx)
 	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, NULL, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, NULL, crc, NULL);
 
 	slconf conf = {
 		.path     = cx->suite->logdir,
@@ -103,7 +103,7 @@ sl_begin_rollback(stc *cx)
 	sr_seqinit(&seq);
 	srcrcf crc = sr_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, &cmp, NULL, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, NULL, crc, NULL);
 
 	slconf conf = {
 		.path     = cx->suite->logdir,

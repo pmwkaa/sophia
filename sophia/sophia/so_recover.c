@@ -29,6 +29,7 @@ int so_recoverbegin(sodb *db)
 	c->path                = db->ctl.path;
 	c->path_fail_on_exists = 0;
 	c->compression         = db->ctl.compression_if != NULL;
+	c->compression_key     = db->ctl.compression_key;
 	/* do not allow to recover existing databases
 	 * during online (only create), since logpool
 	 * reply is required. */

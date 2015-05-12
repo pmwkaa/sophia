@@ -26,14 +26,17 @@ int sd_commitpage(sdbuild *b, sr *r, srbuf *buf)
 		return 0;
 	}
 	/* not compressed */
-	assert(ref->ksize != 0);
-	rc = sr_bufensure(buf, r->a, ref->ksize + ref->vsize);
+	assert(ref->msize != 0);
+	int total = ref->msize + ref->vsize + ref->ksize;
+	rc = sr_bufensure(buf, r->a, total);
 	if (srunlikely(rc == -1))
 		return -1;
-	memcpy(buf->p, b->k.s + ref->k, ref->ksize);
-	sr_bufadvance(buf, ref->ksize);
+	memcpy(buf->p, b->m.s + ref->m, ref->msize);
+	sr_bufadvance(buf, ref->msize);
 	memcpy(buf->p, b->v.s + ref->v, ref->vsize);
 	sr_bufadvance(buf, ref->vsize);
+	memcpy(buf->p, b->k.s + ref->k, ref->ksize);
+	sr_bufadvance(buf, ref->ksize);
 	return 0;
 }
 
@@ -55,13 +58,14 @@ static inline int
 sd_commitiov(sdcommitiov *i, sriov *iov)
 {
 	uint32_t n = 0;
-	while (i->i < i->b->n && n < (i->iovmax-2)) {
+	while (i->i < i->b->n && n < (i->iovmax - 3)) {
 		sdbuildref *ref =
 			(sdbuildref*)sr_bufat(&i->b->list, sizeof(sdbuildref), i->i);
-		sr_iovadd(iov, i->b->k.s + ref->k, ref->ksize);
+		sr_iovadd(iov, i->b->m.s + ref->m, ref->msize);
 		sr_iovadd(iov, i->b->v.s + ref->v, ref->vsize);
+		sr_iovadd(iov, i->b->k.s + ref->k, ref->ksize);
 		i->i++;
-		n += 2;
+		n += 3;
 	}
 	return i->i < i->b->n;
 }
@@ -95,7 +99,7 @@ int sd_commit(sdbuild *b, sr *r, sdindex *index, srfile *file)
 
 	/* uncompressed */
 	sdcommitiov iter;
-	sd_commitiov_init(&iter, b, 1022);
+	sd_commitiov_init(&iter, b, 1020);
 	int more = 1;
 	while (more) {
 		more = sd_commitiov(&iter, &iov);

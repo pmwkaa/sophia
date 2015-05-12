@@ -33,10 +33,10 @@ sv_vsize(svv *v) {
 }
 
 static inline svv*
-sv_vbuild(sr *r, srformatv *keys, int count, char *data, int size)
+sv_vbuild(sr *r, srfmtv *keys, int count, char *data, int size)
 {
 	assert(r->cmp->count == count);
-	int total = sr_formatsize(r->format, keys, count, size);
+	int total = sr_fmtsize(r->fmt, keys, count, size);
 	svv *v = sr_malloc(r->a, sizeof(svv) + total);
 	if (srunlikely(v == NULL))
 		return NULL;
@@ -47,7 +47,7 @@ sv_vbuild(sr *r, srformatv *keys, int count, char *data, int size)
 	v->next  = NULL;
 	memset(&v->node, 0, sizeof(v->node));
 	char *ptr = sv_vpointer(v);
-	sr_formatwrite(r->format, ptr, keys, count, data, size);
+	sr_fmtwrite(r->fmt, ptr, keys, count, data, size);
 	return v;
 }
 

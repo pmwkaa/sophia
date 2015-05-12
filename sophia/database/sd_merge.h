@@ -18,6 +18,7 @@ struct sdmergeconf {
 	uint32_t size_page;
 	uint32_t checksum;
 	uint32_t compression;
+	uint32_t compression_key;
 	uint64_t offset;
 	uint64_t vlsn;
 	uint32_t save_delete;

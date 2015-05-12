@@ -16,7 +16,8 @@ struct sicachebranch {
 	sibranch *branch;
 	sdindexpage *ref;
 	sriter i;
-	srbuf buf;
+	srbuf buf_a;
+	srbuf buf_b;
 	int iterate;
 	sicachebranch *next;
 } srpacked;
@@ -48,7 +49,8 @@ si_cachefree(sicache *c, sr *r)
 	sicachebranch *cb = c->path;
 	while (cb) {
 		next = cb->next;
-		sr_buffree(&cb->buf, r->a);
+		sr_buffree(&cb->buf_a, r->a);
+		sr_buffree(&cb->buf_b, r->a);
 		sr_free(c->ac, cb);
 		cb = next;
 	}
@@ -59,7 +61,8 @@ si_cachereset(sicache *c)
 {
 	sicachebranch *cb = c->path;
 	while (cb) {
-		sr_bufreset(&cb->buf);
+		sr_bufreset(&cb->buf_a);
+		sr_bufreset(&cb->buf_b);
 		cb->branch = NULL;
 		cb->ref = NULL;
 		cb->iterate = 0;
@@ -81,7 +84,8 @@ si_cacheadd(sicache *c, sibranch *b)
 	nb->ref     = NULL;
 	nb->iterate = 0;
 	nb->next    = NULL;
-	sr_bufinit(&nb->buf);
+	sr_bufinit(&nb->buf_a);
+	sr_bufinit(&nb->buf_b);
 	return nb;
 }
 
@@ -128,7 +132,8 @@ si_cachevalidate(sicache *c, sinode *n)
 	while (cb && b) {
 		cb->branch = b;
 		cb->ref = NULL;
-		sr_bufreset(&cb->buf);
+		sr_bufreset(&cb->buf_a);
+		sr_bufreset(&cb->buf_b);
 		last = cb;
 		cb = cb->next;
 		b  = b->next;

@@ -58,7 +58,8 @@ sinode *si_bootstrap(si *i, sr *r, uint32_t parent)
 	sd_buildinit(&build);
 	rc = sd_buildbegin(&build, r,
 	                   i->conf->node_page_checksum,
-	                   i->conf->compression);
+	                   i->conf->compression,
+	                   i->conf->compression_key);
 	if (srunlikely(rc == -1)) {
 		sd_indexfree(&index, r);
 		sd_buildfree(&build, r);
@@ -72,7 +73,7 @@ sinode *si_bootstrap(si *i, sr *r, uint32_t parent)
 		si_nodefree(n, r, 0);
 		return NULL;
 	}
-	sd_buildcommit(&build);
+	sd_buildcommit(&build, r);
 	sd_indexcommit(&index, r, &id);
 	rc = si_nodecreate(n, r, i->conf, &id, &index, &build);
 	sd_buildfree(&build, r);

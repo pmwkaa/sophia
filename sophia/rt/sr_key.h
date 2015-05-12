@@ -22,6 +22,7 @@ typedef enum {
 
 struct srkeypart {
 	srcmpf cmpprefix;
+	srcmpf cmpraw;
 	srcmpf cmp;
 	srkeytype type;
 	char *name;

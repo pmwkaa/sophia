@@ -60,7 +60,8 @@ int sd_merge(sdmerge *m)
 	while (sr_iterhas(sv_writeiter, &m->i) && (current <= limit))
 	{
 		rc = sd_buildbegin(m->build, m->r, conf->checksum,
-		                   conf->compression);
+		                   conf->compression,
+		                   conf->compression_key);
 		if (srunlikely(rc == -1))
 			return -1;
 		while (sr_iterhas(sv_writeiter, &m->i)) {
@@ -76,7 +77,7 @@ int sd_merge(sdmerge *m)
 		rc = sd_indexadd(&m->index, m->r, m->build);
 		if (srunlikely(rc == -1))
 			return -1;
-		sd_buildcommit(m->build);
+		sd_buildcommit(m->build, m->r);
 
 		current = sd_indextotal(&m->index);
 		if (srunlikely(! sv_writeiter_resume(&m->i)))

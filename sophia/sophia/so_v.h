@@ -20,7 +20,7 @@ struct sov {
 	uint8_t flags;
 	sv v;
 	srorder order;
-	srformatv keyv[8];
+	srfmtv keyv[8];
 	int keyc;
 	uint16_t keysize;
 	void *value;

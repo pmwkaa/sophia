@@ -223,8 +223,8 @@ st_scene_pass(stscene *g, stc *cx)
 }
 
 void
-st_scene_rerun(stscene *g srunused, stc *cx srunused)
+st_scene_recover(stscene *g srunused, stc *cx srunused)
 {
-	printf("\n (rerun) ");
+	printf("\n (recover) ");
 	fflush(NULL);
 }

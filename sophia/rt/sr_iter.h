@@ -22,7 +22,7 @@ struct sriterif {
 struct sriter {
 	sriterif *vif;
 	sr *r;
-	char priv[100];
+	char priv[120];
 };
 
 #define sr_iterinit(iterator_if, i, r_) \

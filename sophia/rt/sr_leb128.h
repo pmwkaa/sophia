@@ -21,7 +21,7 @@ sr_leb128size(uint64_t value)
 }
 
 static inline int
-sr_leb128write(unsigned char *dest, uint64_t value)
+sr_leb128write(char *dest, uint64_t value)
 {
 	int size = 0;
 	do {
@@ -29,22 +29,31 @@ sr_leb128write(unsigned char *dest, uint64_t value)
 		value >>= 7;
 		if (value != 0)
 			byte |= 0x80;
-		dest[size++] = byte;
+		((unsigned char*)dest)[size++] = byte;
 	} while (value != 0);
 	return size;
 }
 
 static inline int
-sr_leb128read(unsigned char *src, uint64_t *value)
+sr_leb128read(char *src, uint64_t *value)
 {
-	unsigned char *start = src;
+	unsigned char *start = (unsigned char*)src;
 	int lsh = 0;
 	*value = 0;
 	do {
-		*value |= ((uint64_t)(*src & 0x7F)) << lsh;
+		*value |= ((uint64_t)(*(unsigned char*)src & 0x7F)) << lsh;
 		lsh += 7;
-	} while (*(src++) >= 128);
-	return src - start;
+	} while (*((unsigned char*)src++) >= 128);
+
+	return (unsigned char*)src - start;
+}
+
+static inline int
+sr_leb128skip(char *src)
+{
+	unsigned char *start = (unsigned char*)src;
+	while (*((unsigned char*)src++) >= 128);
+	return (unsigned char*)src - start;
 }
 
 #endif

@@ -73,11 +73,8 @@ so_queryget(sorequest *r)
 	si_queryopen(&q, &db->r, &cache, &db->index,
 	             SR_EQ, r->vlsn,
 	             NULL, 0, key, keysize);
-	sv result;
 	int rc = si_query(&q);
-	if (rc == 1) {
-		rc = si_querydup(&q, &result);
-	}
+	sv result = q.result;
 	si_queryclose(&q);
 	si_cachefree(&cache, &db->r);
 	r->rc = rc;
@@ -414,6 +411,8 @@ so_txprepare_trigger(sx *t, sv *v, void *arg0, void *arg1)
 	             sv_pointer(v), sv_size(v));
 	int rc;
 	rc = si_query(&q);
+	if (rc == 1)
+		sv_vfree(&e->a, (svv*)q.result.v);
 	si_queryclose(&q);
 	si_cachefree(&cache, &db->r);
 	if (srunlikely(rc))

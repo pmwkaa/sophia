@@ -15,7 +15,7 @@
 static sv*
 allocv(sr *r, uint64_t lsn, uint8_t flags, void *key)
 {
-	srformatv pv;
+	srfmtv pv;
 	pv.key = (char*)key;
 	pv.r.size = sizeof(uint32_t);
 	pv.r.offset = 0;
@@ -40,7 +40,7 @@ svwriteiter_iter(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -116,7 +116,7 @@ svwriteiter_limit(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -229,7 +229,7 @@ svwriteiter_limit_small(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -358,7 +358,7 @@ svwriteiter_dup_lsn_gt(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -437,7 +437,7 @@ svwriteiter_dup_lsn_lt0(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -517,7 +517,7 @@ svwriteiter_dup_lsn_lt1(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -597,7 +597,7 @@ svwriteiter_dup_lsn_lt2(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -677,7 +677,7 @@ svwriteiter_dup_lsn_gt_chain(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -758,7 +758,7 @@ svwriteiter_dup_lsn_lt0_chain(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -841,7 +841,7 @@ svwriteiter_dup_lsn_lt1_chain(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -926,7 +926,7 @@ svwriteiter_dup_lsn_lt2_chain(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1013,7 +1013,7 @@ svwriteiter_dup_lsn_limit0(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1082,7 +1082,7 @@ svwriteiter_dup_lsn_limit1(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1153,7 +1153,7 @@ svwriteiter_dup_lsn_limit2(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1225,7 +1225,7 @@ svwriteiter_dup_lsn_limit3(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1296,7 +1296,7 @@ svwriteiter_dup_lsn_limit4(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1374,7 +1374,7 @@ svwriteiter_dup_lsn_limit5(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1452,7 +1452,7 @@ svwriteiter_delete0(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1532,7 +1532,7 @@ svwriteiter_delete1(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1612,7 +1612,7 @@ svwriteiter_delete2(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1692,7 +1692,7 @@ svwriteiter_delete3(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1772,7 +1772,7 @@ svwriteiter_delete4(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1852,7 +1852,7 @@ svwriteiter_delete5(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -1932,7 +1932,7 @@ svwriteiter_delete6(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -2017,7 +2017,7 @@ svwriteiter_delete7(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -2103,7 +2103,7 @@ svwriteiter_delete8(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -2199,7 +2199,7 @@ svwriteiter_duprange0(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;
@@ -2275,7 +2275,7 @@ svwriteiter_duprange1(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
 	srbuf vlista;
 	srbuf vlistb;

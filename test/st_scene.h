@@ -20,7 +20,7 @@ void st_scene_open(stscene*, stc*);
 void st_scene_phase(stscene*, stc*);
 void st_scene_truncate(stscene*, stc*);
 void st_scene_destroy(stscene*, stc*);
-void st_scene_rerun(stscene*, stc*);
+void st_scene_recover(stscene*, stc*);
 
 int exists(char*, char*);
 int rmrf(char*);
