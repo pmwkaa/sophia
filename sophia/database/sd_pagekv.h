@@ -13,7 +13,7 @@ static inline char*
 sd_pagekv_keyread(sdpage *p, uint32_t offset, uint64_t *size)
 {
 	char *ptr = (char*)p->h + sizeof(sdpageheader) +
-		(p->h->size - p->h->sizekeys) + offset;
+		(p->h->sizeorigin - p->h->sizekeys) + offset;
 	ptr += sr_leb128read(ptr, size);
 	return ptr;
 }
