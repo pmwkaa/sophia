@@ -156,6 +156,16 @@ ctl_validation(stc *cx)
 	t( sp_set(c, "db.test.path", "path") == -1 );
 	t( sp_set(c, "db.test.index.cmp", NULL, NULL) == -1 );
 
+	void *o = sp_object(db);
+	t( o != NULL );
+
+	char key[65000];
+	t( sp_set(o, "key", key, sizeof(key)) == -1 );
+	t( sp_set(o, "key", key, (1 << 15)) == 0 );
+
+	t( sp_set(o, "value", key, (1 << 21) + 1 ) == -1 );
+	t( sp_set(o, "value", key, (1 << 21)) == 0 );
+
 	t( sp_destroy(env) == 0 );
 }
 

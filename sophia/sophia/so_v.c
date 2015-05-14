@@ -39,8 +39,16 @@ so_vset(soobj *obj, va_list args)
 
 	char *name = va_arg(args, char*);
 	if (strcmp(name, "value") == 0) {
-		v->value = va_arg(args, char*);
-		v->valuesize = va_arg(args, int);
+		const int valuesize_max = 1 << 21;
+		char *value = va_arg(args, char*);
+		int valuesize = va_arg(args, int);
+		if (srunlikely(valuesize > valuesize_max)) {
+			sr_error(&e->error, "%s", "value is too big (%d limit)",
+			         valuesize_max);
+			return -1;
+		}
+		v->value = value;
+		v->valuesize = valuesize;
 		return 0;
 	}
 	if (strcmp(name, "prefix") == 0) {
@@ -74,10 +82,20 @@ so_vset(soobj *obj, va_list args)
 	if (srunlikely(part == NULL))
 		return -1;
 	assert(part->pos < (int)(sizeof(v->keyv) / sizeof(srfmtv)));
+
+	const int keysize_max = 1 << 15;
+	char *key = va_arg(args, char*);
+	int keysize = va_arg(args, int);
+	if (srunlikely(keysize > keysize_max)) {
+		sr_error(&e->error, "%s", "key '%s' is too big (%d limit)",
+		         key, keysize_max);
+		return -1;
+	}
+
 	srfmtv *fv = &v->keyv[part->pos];
 	fv->r.offset = 0;
-	fv->key = va_arg(args, char*);
-	fv->r.size = va_arg(args, int);
+	fv->key = key;
+	fv->r.size = keysize;
 	if (fv->part == NULL)
 		v->keyc++;
 	fv->part = part;
