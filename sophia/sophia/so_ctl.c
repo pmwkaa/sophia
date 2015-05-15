@@ -45,13 +45,13 @@ void *so_ctlreturn(src *c, void *o)
 		break;
 	case SR_CVOID: {
 		value = function_sz;
-		size = sizeof(function_sz);
+		size = sizeof(function_sz) - 1;
 		break;
 	}
 	case SR_CC: assert(0);
 		break;
 	}
-	if (value)
+	if (srlikely(value))
 		size++;
 	srfmtv fv;
 	fv.key      = c->name;

@@ -319,7 +319,7 @@ si_recovercomplete(sitrack *track, sr *r, si *index, srbuf *buf)
 	srrbnode *p = sr_rbmin(&track->i);
 	while (p) {
 		sinode *n = srcast(p, sinode, node);
-		int rc = sr_bufadd(buf, r->a, &n, sizeof(sinode**));
+		int rc = sr_bufadd(buf, r->a, &n, sizeof(sinode*));
 		if (srunlikely(rc == -1))
 			return sr_malfunction(r->e, "%s", "memory allocation failed");
 		p = sr_rbnext(&track->i, p);

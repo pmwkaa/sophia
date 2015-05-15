@@ -167,7 +167,6 @@ int si_compact(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	if (srunlikely(rc == -1))
 		return -1;
 	uint32_t size_stream = 0;
-	uint32_t gc = 0;
 	sdcbuf *cbuf = c->head;
 	sibranch *b = node->branch;
 	while (b) {
@@ -193,8 +192,5 @@ int si_compact(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 		return -1;
 	}
 	sv_mergefree(&merge, r->a);
-	if (gc) {
-		sr_quota(index->quota, SR_QREMOVE, gc);
-	}
 	return 0;
 }

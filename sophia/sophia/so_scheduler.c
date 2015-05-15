@@ -623,7 +623,7 @@ backup_error:;
 		}
 	} else {
 		if (zone->gc_prio && zone->gc_period) {
-			if ( (now - s->gc_last) >= (zone->gc_period * 1000000) ) {
+			if ( (now - s->gc_last) >= ((uint64_t)zone->gc_period * 1000000) ) {
 				s->gc = 1;
 			}
 		}
@@ -651,7 +651,7 @@ backup_error:;
 		}
 	} else {
 		if (zone->branch_prio && zone->branch_age_period) {
-			if ( (now - s->age_last) >= (zone->branch_age_period * 1000000) ) {
+			if ( (now - s->age_last) >= ((uint64_t)zone->branch_age_period * 1000000) ) {
 				s->age = 1;
 			}
 		}
@@ -811,8 +811,7 @@ int so_scheduler(soscheduler *s, soworker *w)
 		rc = so_execute(&task, w);
 		if (srunlikely(rc == -1)) {
 			if (task.plan.plan != SI_BACKUP) {
-				if (task.db)
-					so_dbmalfunction(task.db);
+				so_dbmalfunction(task.db);
 				goto error;
 			}
 			sr_mutexlock(&s->lock);

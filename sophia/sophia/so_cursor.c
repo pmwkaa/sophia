@@ -197,8 +197,7 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 	so_objindex_register(&db->cursor, &c->o);
 	return &c->o;
 error:
-	if (keyobj)
-		so_objdestroy(keyobj);
+	so_objdestroy(keyobj);
 	if (c)
 		sr_free(&e->a_cursor, c);
 	return NULL;
