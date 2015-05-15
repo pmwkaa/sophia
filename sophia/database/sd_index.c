@@ -60,8 +60,8 @@ static inline int
 sd_indexadd_raw(sdindex *i, sr *r, sdindexpage *p, char *min, char *max)
 {
 	/* calculate sizes */
-	p->sizemin = sr_fmtkey_total(r->cmp, min);
-	p->sizemax = sr_fmtkey_total(r->cmp, max);
+	p->sizemin = sr_fmtkey_total(r->scheme, min);
+	p->sizemax = sr_fmtkey_total(r->scheme, max);
 	/* prepare buffer */
 	int rc = sr_bufensure(&i->v, r->a, p->sizemin + p->sizemax);
 	if (srunlikely(rc == -1)) {
@@ -69,11 +69,11 @@ sd_indexadd_raw(sdindex *i, sr *r, sdindexpage *p, char *min, char *max)
 		return -1;
 	}
 	/* reformat key object to exclude value */
-	rc = sr_fmtkey_copy(r->cmp, i->v.p, min);
+	rc = sr_fmtkey_copy(r->scheme, i->v.p, min);
 	assert(rc == p->sizemin);
 	(void)rc;
 	sr_bufadvance(&i->v, p->sizemin);
-	rc = sr_fmtkey_copy(r->cmp, i->v.p, max);
+	rc = sr_fmtkey_copy(r->scheme, i->v.p, max);
 	assert(rc == p->sizemax);
 	(void)rc;
 	sr_bufadvance(&i->v, p->sizemax);
@@ -83,14 +83,14 @@ sd_indexadd_raw(sdindex *i, sr *r, sdindexpage *p, char *min, char *max)
 static inline int
 sd_indexadd_keyvalue(sdindex *i, sr *r, sdbuild *build, sdindexpage *p, char *min, char *max)
 {
-	assert(r->cmp->count <= 8);
+	assert(r->scheme->count <= 8);
 
 	/* min */
 	srfmtv kv[8];
 	uint64_t offset;
 	int total = 0;
 	int part = 0;
-	while (part < r->cmp->count) {
+	while (part < r->scheme->count) {
 		/* read keytab offset */
 		min += sr_leb128read(min, &offset);
 		/* read key */
@@ -104,19 +104,19 @@ sd_indexadd_keyvalue(sdindex *i, sr *r, sdbuild *build, sdindexpage *p, char *mi
 		total += keysize;
 		part++;
 	}
-	p->sizemin = total + (r->cmp->count * sizeof(srfmtref));
+	p->sizemin = total + (r->scheme->count * sizeof(srfmtref));
 	int rc = sr_bufensure(&i->v, r->a, p->sizemin);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "%s", "memory allocation failed");
 		return -1;
 	}
-	sr_fmtwrite(SR_FKV, i->v.p, kv, r->cmp->count, NULL, 0);
+	sr_fmtwrite(SR_FKV, i->v.p, kv, r->scheme->count, NULL, 0);
 	sr_bufadvance(&i->v, p->sizemin);
 
 	/* max */
 	total = 0;
 	part = 0;
-	while (part < r->cmp->count) {
+	while (part < r->scheme->count) {
 		/* read keytab offset */
 		max += sr_leb128read(max, &offset);
 		/* read key */
@@ -130,13 +130,13 @@ sd_indexadd_keyvalue(sdindex *i, sr *r, sdbuild *build, sdindexpage *p, char *mi
 		total += keysize;
 		part++;
 	}
-	p->sizemax = total + (r->cmp->count * sizeof(srfmtref));
+	p->sizemax = total + (r->scheme->count * sizeof(srfmtref));
 	rc = sr_bufensure(&i->v, r->a, p->sizemax);
 	if (srunlikely(rc == -1)) {
 		sr_error(r->e, "%s", "memory allocation failed");
 		return -1;
 	}
-	sr_fmtwrite(SR_FKV, i->v.p, kv, r->cmp->count, NULL, 0);
+	sr_fmtwrite(SR_FKV, i->v.p, kv, r->scheme->count, NULL, 0);
 	sr_bufadvance(&i->v, p->sizemax);
 	return 0;
 }

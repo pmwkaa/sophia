@@ -28,7 +28,7 @@
 #include <sr_buf.h>
 #include <sr_injection.h>
 #include <sr_crc.h>
-#include <sr_key.h>
+#include <sr_scheme.h>
 #include <sr_format.h>
 #include <sr.h>
 #include <sr_filter.h>

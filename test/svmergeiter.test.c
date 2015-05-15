@@ -32,11 +32,11 @@ svmergeiter_merge_a(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -95,7 +95,7 @@ svmergeiter_merge_a(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -103,11 +103,11 @@ svmergeiter_merge_b(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -166,7 +166,7 @@ svmergeiter_merge_b(stc *cx srunused)
 	}
 	sr_buffree(&vlistb, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -174,11 +174,11 @@ svmergeiter_merge_ab(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -253,7 +253,7 @@ svmergeiter_merge_ab(stc *cx srunused)
 	sr_buffree(&vlista, &a);
 	sr_buffree(&vlistb, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -261,11 +261,11 @@ svmergeiter_merge_abc(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -362,7 +362,7 @@ svmergeiter_merge_abc(stc *cx srunused)
 	sr_buffree(&vlistb, &a);
 	sr_buffree(&vlistc, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -370,11 +370,11 @@ svmergeiter_merge_ba(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -449,7 +449,7 @@ svmergeiter_merge_ba(stc *cx srunused)
 	sr_buffree(&vlista, &a);
 	sr_buffree(&vlistb, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -457,11 +457,11 @@ svmergeiter_merge_dup_ab(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -546,7 +546,7 @@ svmergeiter_merge_dup_ab(stc *cx srunused)
 	sr_buffree(&vlista, &a);
 	sr_buffree(&vlistb, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -554,11 +554,11 @@ svmergeiter_merge_dup_a_chain(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -633,7 +633,7 @@ svmergeiter_merge_dup_a_chain(stc *cx srunused)
 	sr_buffree(&vlista, &a);
 	sr_buffree(&vlistb, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -641,11 +641,11 @@ svmergeiter_merge_dup_ab_chain(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -728,7 +728,7 @@ svmergeiter_merge_dup_ab_chain(stc *cx srunused)
 	sr_buffree(&vlista, &a);
 	sr_buffree(&vlistb, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -736,11 +736,11 @@ svmergeiter_merge_dup_abc_chain(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -848,7 +848,7 @@ svmergeiter_merge_dup_abc_chain(stc *cx srunused)
 	sr_buffree(&vlistb, &a);
 	sr_buffree(&vlistc, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 stgroup *svmergeiter_group(void)

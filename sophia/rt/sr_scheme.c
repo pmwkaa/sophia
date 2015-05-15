@@ -40,7 +40,7 @@ sr_cmpu32_raw(char *a, int asz srunused, char *b, int bsz srunused, void *arg sr
 static inline srhot int
 sr_cmpu32(char *a, int asz srunused, char *b, int bsz srunused, void *arg srunused)
 {
-	int part = ((srkeypart*)arg)->pos;
+	int part = ((srkey*)arg)->pos;
 	a = sr_fmtkey(a, part);
 	b = sr_fmtkey(b, part);
 	sr_compare_u32(a, b);
@@ -65,7 +65,7 @@ sr_cmpu64_raw(char *a, int asz srunused, char *b, int bsz srunused,
 static inline srhot int
 sr_cmpu64(char *a, int asz srunused, char *b, int bsz srunused, void *arg)
 {
-	int part = ((srkeypart*)arg)->pos;
+	int part = ((srkey*)arg)->pos;
 	a = sr_fmtkey(a, part);
 	b = sr_fmtkey(b, part);
 	sr_compare_u64(a, b);
@@ -103,7 +103,7 @@ sr_cmpstring_raw(char *a, int asz, char *b, int bsz, void *arg srunused)
 static inline srhot int
 sr_cmpstring(char *a, int asz, char *b, int bsz, void *arg)
 {
-	int part = ((srkeypart*)arg)->pos;
+	int part = ((srkey*)arg)->pos;
 	asz = sr_fmtkey_size(a, part);
 	a   = sr_fmtkey(a, part);
 	bsz = sr_fmtkey_size(b, part);
@@ -112,11 +112,11 @@ sr_cmpstring(char *a, int asz, char *b, int bsz, void *arg)
 }
 
 inline srhot int
-sr_keycompare(char *a, int asize, char *b, int bsize, void *arg)
+sr_schemecompare(char *a, int asize, char *b, int bsize, void *arg)
 {
-	srkey *key = arg;
-	srkeypart *part = key->parts;
-	srkeypart *last = part + key->count;
+	srscheme *s = arg;
+	srkey *part = s->parts;
+	srkey *last = part + s->count;
 	int rc;
 	while (part < last) {
 		rc = part->cmp(a, asize, b, bsize, part);
@@ -128,14 +128,14 @@ sr_keycompare(char *a, int asize, char *b, int bsize, void *arg)
 }
 
 inline srhot int
-sr_keycompare_prefix(char *prefix, int prefixsize, char *key, int keysize,
+sr_schemecompare_prefix(char *prefix, int prefixsize, char *key, int keysize,
                      void *arg)
 {
-	srkeypart *part = &((srkey*)arg)->parts[0];
+	srkey *part = &((srscheme*)arg)->parts[0];
 	return part->cmpprefix(prefix, prefixsize, key, keysize, part);
 }
 
-int sr_keypart_setname(srkeypart *part, sra *a, char *name)
+int sr_keysetname(srkey *part, sra *a, char *name)
 {
 	char *p = sr_strdup(a, name);
 	if (srunlikely(p == NULL))
@@ -146,12 +146,12 @@ int sr_keypart_setname(srkeypart *part, sra *a, char *name)
 	return 0;
 }
 
-int sr_keypart_set(srkeypart *part, sra *a, char *path)
+int sr_keyset(srkey *part, sra *a, char *path)
 {
+	srtype type;
 	srcmpf cmpprefix = sr_cmpany;
 	srcmpf cmp;
 	srcmpf cmpraw;
-	srkeytype type;
 	if (strcmp(path, "string") == 0) {
 		type = SR_STRING;
 		cmp = sr_cmpstring;

@@ -61,7 +61,7 @@ sv_mergeiter_gt(sriter *it)
 			min = src;
 			continue;
 		}
-		int rc = sv_compare(minv, v, it->r->cmp);
+		int rc = sv_compare(minv, v, it->r->scheme);
 		switch (rc) {
 		case 0:
 			assert(sv_lsn(v) < sv_lsn(minv));
@@ -103,7 +103,7 @@ sv_mergeiter_lt(sriter *it)
 			max = src;
 			continue;
 		}
-		int rc = sv_compare(maxv, v, it->r->cmp);
+		int rc = sv_compare(maxv, v, it->r->scheme);
 		switch (rc) {
 		case  0:
 			assert(sv_lsn(v) < sv_lsn(maxv));

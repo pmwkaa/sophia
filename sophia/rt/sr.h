@@ -15,7 +15,7 @@ struct sr {
 	srerror *e;
 	srfmtstorage fmt_storage;
 	srfmt fmt;
-	srkey *cmp;
+	srscheme *scheme;
 	srseq *seq;
 	sra *a;
 	srinjection *i;
@@ -30,7 +30,7 @@ sr_init(sr *r,
         srseq *seq,
         srfmt fmt,
         srfmtstorage fmt_storage,
-        srkey *cmp,
+        srscheme *scheme,
         srinjection *i,
         srcrcf crc,
         void *compression)
@@ -38,9 +38,9 @@ sr_init(sr *r,
 	r->e           = e;
 	r->a           = a;
 	r->seq         = seq;
+	r->scheme      = scheme;
 	r->fmt         = fmt;
 	r->fmt_storage = fmt_storage;
-	r->cmp         = cmp;
 	r->i           = i;
 	r->compression = compression;
 	r->crc         = crc;

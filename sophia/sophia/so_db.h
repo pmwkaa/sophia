@@ -21,7 +21,7 @@ struct sodbctl {
 	char         *fmtsz;
 	srfmt         fmt;
 	srfmtstorage  fmt_storage;
-	srkey         cmp;
+	srscheme      scheme;
 	srtrigger     on_complete;
 	char         *path;
 	uint32_t      created;

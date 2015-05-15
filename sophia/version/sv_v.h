@@ -35,7 +35,7 @@ sv_vsize(svv *v) {
 static inline svv*
 sv_vbuild(sr *r, srfmtv *keys, int count, char *data, int size)
 {
-	assert(r->cmp->count == count);
+	assert(r->scheme->count == count);
 	int total = sr_fmtsize(r->fmt, keys, count, size);
 	svv *v = sr_malloc(r->a, sizeof(svv) + total);
 	if (srunlikely(v == NULL))

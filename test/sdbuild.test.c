@@ -34,11 +34,11 @@ sdbuild_empty(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
@@ -57,7 +57,7 @@ sdbuild_empty(stc *cx srunused)
 	t( h->count == 0 );
 
 	sd_buildfree(&b, &r);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -65,11 +65,11 @@ sdbuild_page0(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
@@ -95,7 +95,7 @@ sdbuild_page0(stc *cx srunused)
 	t( h->lsnmin == 1 );
 	t( h->lsnmax == 3 );
 	sd_buildfree(&b, &r);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -103,11 +103,11 @@ sdbuild_page1(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
@@ -169,7 +169,7 @@ sdbuild_page1(stc *cx srunused)
 
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -177,11 +177,11 @@ sdbuild_compression_zstd(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
@@ -220,7 +220,7 @@ sdbuild_compression_zstd(stc *cx srunused)
 	sd_buildcommit(&b, &r);
 
 	sd_buildfree(&b, &r);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -228,11 +228,11 @@ sdbuild_compression_lz4(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
@@ -271,7 +271,7 @@ sdbuild_compression_lz4(stc *cx srunused)
 	sd_buildcommit(&b, &r);
 
 	sd_buildfree(&b, &r);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 stgroup *sdbuild_group(void)

@@ -20,7 +20,7 @@ struct siiter {
 } srpacked;
 
 sr_rbget(si_itermatch,
-         si_nodecmp(srcast(n, sinode, node), key, keysize, cmp))
+         si_nodecmp(srcast(n, sinode, node), key, keysize, scheme))
 
 static inline int
 si_iter_open(sriter *i, si *index, srorder o, void *key, int keysize)
@@ -44,7 +44,7 @@ si_iter_open(sriter *i, si *index, srorder o, void *key, int keysize)
 			ii->v = sr_rbmax(&ii->index->i);
 			break;
 		}
-		rc = si_itermatch(&ii->index->i, i->r->cmp, ii->key, ii->keysize, &ii->v);
+		rc = si_itermatch(&ii->index->i, i->r->scheme, ii->key, ii->keysize, &ii->v);
 		if (ii->v == NULL)
 			break;
 		switch (rc) {
@@ -53,7 +53,7 @@ si_iter_open(sriter *i, si *index, srorder o, void *key, int keysize)
 				eq = 1;
 				sinode *n = si_nodeof(ii->v);
 				sdindexpage *min = sd_indexmin(&n->self.index);
-				int l = sr_compare(i->r->cmp,
+				int l = sr_compare(i->r->scheme,
 				                   sd_indexpage_min(&n->self.index, min),
 				                   min->sizemin,
 				                   ii->key, ii->keysize);
@@ -72,7 +72,7 @@ si_iter_open(sriter *i, si *index, srorder o, void *key, int keysize)
 			ii->v = sr_rbmin(&ii->index->i);
 			break;
 		}
-		rc = si_itermatch(&ii->index->i, i->r->cmp, ii->key, ii->keysize, &ii->v);
+		rc = si_itermatch(&ii->index->i, i->r->scheme, ii->key, ii->keysize, &ii->v);
 		if (ii->v == NULL)
 			break;
 		switch (rc) {
@@ -81,7 +81,7 @@ si_iter_open(sriter *i, si *index, srorder o, void *key, int keysize)
 				eq = 1;
 				sinode *n = si_nodeof(ii->v);
 				sdindexpage *max = sd_indexmax(&n->self.index);
-				int r = sr_compare(i->r->cmp,
+				int r = sr_compare(i->r->scheme,
 				                   sd_indexpage_max(&n->self.index, max),
 				                   max->sizemax,
 				                   ii->key, ii->keysize);
@@ -96,7 +96,7 @@ si_iter_open(sriter *i, si *index, srorder o, void *key, int keysize)
 		break;
 	case SR_ROUTE:
 		assert(ii->key != NULL);
-		rc = si_itermatch(&ii->index->i, i->r->cmp, ii->key, ii->keysize, &ii->v);
+		rc = si_itermatch(&ii->index->i, i->r->scheme, ii->key, ii->keysize, &ii->v);
 		if (srunlikely(ii->v == NULL)) {
 			assert(rc != 0);
 			if (rc == 1)

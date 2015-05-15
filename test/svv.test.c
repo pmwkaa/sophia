@@ -17,11 +17,11 @@ svv_kv(stc *cx)
 	sra a;
 	sr_aopen(&a, &sr_stda);
 
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	sr r;
 	sr_init(&r, NULL, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
 
@@ -52,7 +52,7 @@ svv_kv(stc *cx)
 	t( sr_fmtvalue_size(SR_FKV, &cmp, sv_pointer(&v), sv_size(&v) ) == sizeof(value) );
 
 	sv_vfree(&a, vv);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 stgroup *svv_group(void)

@@ -19,7 +19,7 @@ struct svindex {
 } srpacked;
 
 sr_rbget(sv_indexmatch,
-         sr_compare(cmp, sv_vpointer(srcast(n, svv, node)),
+         sr_compare(scheme, sv_vpointer(srcast(n, svv, node)),
                     (srcast(n, svv, node))->size,
                     key, keysize))
 

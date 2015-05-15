@@ -84,7 +84,7 @@ so_dbctl_free(sodbctl *c)
 		sr_free(&e->a, c->compression);
 		c->compression = NULL;
 	}
-	sr_keyfree(&c->cmp, &e->a);
+	sr_schemefree(&c->scheme, &e->a);
 	return 0;
 }
 
@@ -117,18 +117,18 @@ so_dbctl_init(sodbctl *c, char *name, void *db)
 	sr_triggerinit(&c->on_complete);
 	/* init single key part as string */
 	int rc;
-	sr_keyinit(&c->cmp);
-	srkeypart *part = sr_keyadd(&c->cmp, &e->a);
+	sr_schemeinit(&c->scheme);
+	srkey *part = sr_schemeadd(&c->scheme, &e->a);
 	if (srunlikely(part == NULL)) {
 		so_dbctl_free(c);
 		return -1;
 	}
-	rc = sr_keypart_setname(part, &e->a, "key");
+	rc = sr_keysetname(part, &e->a, "key");
 	if (srunlikely(rc == -1)) {
 		so_dbctl_free(c);
 		return -1;
 	}
-	rc = sr_keypart_set(part, &e->a, "string");
+	rc = sr_keyset(part, &e->a, "string");
 	if (srunlikely(rc == -1)) {
 		so_dbctl_free(c);
 		return -1;
@@ -190,7 +190,7 @@ so_dbctl_validate(sodbctl *c)
 			return -1;
 		}
 	}
-	o->r.cmp = &c->cmp;
+	o->r.scheme = &c->scheme;
 	o->r.fmt = c->fmt;
 	o->r.fmt_storage = c->fmt_storage;
 	o->r.compression = c->compression_if;
@@ -285,7 +285,7 @@ so_dbopen(soobj *obj, va_list args srunused)
 	int rc = so_dbctl_validate(&o->ctl);
 	if (srunlikely(rc == -1))
 		return -1;
-	sx_indexset(&o->coindex, o->ctl.id, o->r.cmp);
+	sx_indexset(&o->coindex, o->ctl.id, o->r.scheme);
 	rc = so_recoverbegin(o);
 	if (srunlikely(rc == -1))
 		return -1;
@@ -462,8 +462,8 @@ soobj *so_dbnew(so *e, char *name)
 	so_objindex_init(&o->cursor);
 	so_statusinit(&o->status);
 	so_statusset(&o->status, SO_OFFLINE);
-	o->r     = e->r;
-	o->r.cmp = &o->ctl.cmp;
+	o->r        = e->r;
+	o->r.scheme = &o->ctl.scheme;
 	int rc = so_dbctl_init(&o->ctl, name, o);
 	if (srunlikely(rc == -1)) {
 		sr_free(&e->a_db, o);
@@ -615,7 +615,7 @@ svv *so_dbv(sodb *db, sov *o, int search)
 	}
 	/* create object using current format, supplied
 	 * key-chain and value */
-	if (srunlikely(o->keyc != db->ctl.cmp.count)) {
+	if (srunlikely(o->keyc != db->ctl.scheme.count)) {
 		sr_error(&e->error, "%s", "bad object key");
 		return NULL;
 	}

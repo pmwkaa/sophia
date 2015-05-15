@@ -36,11 +36,11 @@ sd_pageiter_cmp(sdpageiter *pi, sr *r, sdv *v)
 	uint64_t size, lsn;
 	if (srlikely(r->fmt_storage == SR_FS_RAW)) {
 		char *key = sd_pagemetaof(pi->page, v, &size, &lsn);
-		return sr_compare(r->cmp, key, size, pi->key, pi->keysize);
+		return sr_compare(r->scheme, key, size, pi->key, pi->keysize);
 	}
 	/* key-value */
-	srkeypart *part = r->cmp->parts;
-	srkeypart *last = part + r->cmp->count;
+	srkey *part = r->scheme->parts;
+	srkey *last = part + r->scheme->count;
 	int rc;
 	while (part < last) {
 		char *key = sd_pagekv_key(pi->page, v, &size, part->pos);

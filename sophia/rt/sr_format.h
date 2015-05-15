@@ -18,7 +18,7 @@ struct srfmtref {
 } srpacked;
 
 struct srfmtv {
-	srkeypart *part;
+	srkey *part;
 	srfmtref r;
 	char *key;
 };
@@ -55,7 +55,7 @@ sr_fmtsize(srfmt format, srfmtv *keys, int count, int vsize)
 
 static inline void
 sr_fmtwrite(srfmt format, char *dest, srfmtv *keys, int count,
-               char *v, int vsize)
+            char *v, int vsize)
 {
 	srfmtref *ref = (srfmtref*)dest;
 	int offset = sizeof(srfmtref) * count;
@@ -96,24 +96,24 @@ sr_fmtkey_size(char *data, int pos) {
 }
 
 static inline int
-sr_fmtkey_total(srkey *key, char *data)
+sr_fmtkey_total(srscheme *s, char *data)
 {
 	int total = 0;
 	int i = 0;
-	while (i < key->count) {
+	while (i < s->count) {
 		total += sr_fmtkey_size(data, i);
 		i++;
 	}
-	return total + sizeof(srfmtref) * key->count;
+	return total + sizeof(srfmtref) * s->count;
 }
 
 static inline int
-sr_fmtkey_copy(srkey *key, char *dest, char *src)
+sr_fmtkey_copy(srscheme *s, char *dest, char *src)
 {
 	srfmtref *ref = (srfmtref*)dest;
-	int offset = sizeof(srfmtref) * key->count;
+	int offset = sizeof(srfmtref) * s->count;
 	int i = 0;
-	while (i < key->count) {
+	while (i < s->count) {
 		int size = sr_fmtkey_size(src, i);
 		ref->offset = offset;
 		ref->size = size;
@@ -126,30 +126,30 @@ sr_fmtkey_copy(srkey *key, char *dest, char *src)
 }
 
 static inline char*
-sr_fmtvalue(srfmt format, srkey *key, char *data)
+sr_fmtvalue(srfmt format, srscheme *s, char *data)
 {
-	assert(key->count > 0);
-	srfmtref *ref = ((srfmtref*)data) + (key->count - 1);
+	assert(s->count > 0);
+	srfmtref *ref = ((srfmtref*)data) + (s->count - 1);
 	switch (format) {
 	case SR_FKV:
 		return data + ref->offset + ref->size;
 	case SR_FDOCUMENT:
-		return data + (sizeof(srfmtref) * key->count);
+		return data + (sizeof(srfmtref) * s->count);
 	}
 	return NULL;
 }
 
 static inline int
-sr_fmtvalue_size(srfmt format, srkey *key, char *data, int size)
+sr_fmtvalue_size(srfmt format, srscheme *s, char *data, int size)
 {
-	assert(key->count > 0);
+	assert(s->count > 0);
 	switch (format) {
 	case SR_FKV: {
-		srfmtref *ref = ((srfmtref*)data) + (key->count - 1);
+		srfmtref *ref = ((srfmtref*)data) + (s->count - 1);
 		return size - (ref->offset + ref->size);
 	}
 	case SR_FDOCUMENT:
-		return size - (sizeof(srfmtref) * key->count);
+		return size - (sizeof(srfmtref) * s->count);
 	}
 	return 0;
 }

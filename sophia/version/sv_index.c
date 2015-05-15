@@ -93,7 +93,7 @@ int sv_indexset(svindex *i, sr *r, uint64_t vlsn srunused,
 	svv *head = NULL;
 	if (v->lsn < i->lsnmin)
 		i->lsnmin = v->lsn;
-	int rc = sv_indexmatch(&i->i, r->cmp, sv_vpointer(v), v->size, &n);
+	int rc = sv_indexmatch(&i->i, r->scheme, sv_vpointer(v), v->size, &n);
 	if (rc == 0 && n) {
 		head = srcast(n, svv, node);
 		svv *update = sv_vset(head, v);

@@ -61,7 +61,7 @@ si_qresult(siquery *q, sriter *i)
 		return 2;
 	int rc = 1;
 	if (q->prefix) {
-		rc = sr_compareprefix(q->r->cmp, q->prefix, q->prefixsize,
+		rc = sr_compareprefix(q->r->scheme, q->prefix, q->prefixsize,
 		                      sv_pointer(v),
 		                      sv_size(v));
 	}
@@ -327,7 +327,7 @@ next_node:
 	/* do prefix search */
 	rc = 1;
 	if (q->prefix) {
-		rc = sr_compareprefix(q->r->cmp, q->prefix, q->prefixsize,
+		rc = sr_compareprefix(q->r->scheme, q->prefix, q->prefixsize,
 		                      sv_pointer(v),
 		                      sv_size(v));
 	}

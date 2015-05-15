@@ -196,13 +196,13 @@ int si_nodegc_index(sr *r, svindex *i)
 	return 0;
 }
 
-int si_nodecmp(sinode *n, void *key, int size, srkey *c)
+int si_nodecmp(sinode *n, void *key, int size, srscheme *s)
 {
 	sdindexpage *min = sd_indexmin(&n->self.index);
 	sdindexpage *max = sd_indexmax(&n->self.index);
-	int l = sr_compare(c, sd_indexpage_min(&n->self.index, min),
+	int l = sr_compare(s, sd_indexpage_min(&n->self.index, min),
 	                   min->sizemin, key, size);
-	int r = sr_compare(c, sd_indexpage_max(&n->self.index, max),
+	int r = sr_compare(s, sd_indexpage_max(&n->self.index, max),
 	                   max->sizemin, key, size);
 	/* inside range */
 	if (l <= 0 && r >= 0)

@@ -59,11 +59,11 @@ mt_single_stmt(stc *cx)
 
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
@@ -78,7 +78,7 @@ mt_single_stmt(stc *cx)
 	so_workersinit(&w);
 	t( so_workersnew(&w, &r, 5, single_stmt_thread, cx->db) == 0 );
 	t( so_workersshutdown(&w, &r) == 0 );
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 
 	void *o = sp_get(c, "db.test.index.count");
 	t( o != NULL );
@@ -138,11 +138,11 @@ mt_multi_stmt(stc *cx)
 
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
@@ -158,7 +158,7 @@ mt_multi_stmt(stc *cx)
 	void *ptr[2] = { cx->env, cx->db };
 	t( so_workersnew(&w, &r, 5, multi_stmt_thread, (void*)ptr) == 0 );
 	t( so_workersshutdown(&w, &r) == 0 );
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 
 	void *o = sp_get(c, "db.test.index.count");
 	t( o != NULL );
@@ -219,11 +219,11 @@ mt_multi_stmt_conflict(stc *cx)
 
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
@@ -239,7 +239,7 @@ mt_multi_stmt_conflict(stc *cx)
 	void *ptr[2] = { cx->env, cx->db };
 	t( so_workersnew(&w, &r, 5, multi_stmt_conflict_thread, (void*)ptr) == 0 );
 	t( so_workersshutdown(&w, &r) == 0 );
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 
 	t( sp_destroy(cx->env) == 0 );
 }

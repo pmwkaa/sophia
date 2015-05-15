@@ -45,7 +45,7 @@ int si_nodefree(sinode*, sr*, int);
 int si_nodegc_index(sr*, svindex*);
 
 int si_nodesync(sinode*, sr*);
-int si_nodecmp(sinode*, void*, int, srkey*);
+int si_nodecmp(sinode*, void*, int, srscheme*);
 int si_nodeseal(sinode*, sr*, siconf*);
 int si_nodecomplete(sinode*, sr*, siconf*);
 

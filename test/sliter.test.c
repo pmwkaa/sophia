@@ -49,11 +49,11 @@ sliter_tx(stc *cx)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	srseq seq;
@@ -84,7 +84,7 @@ sliter_tx(stc *cx)
 
 	freelog(&log, &r);
 	t( sl_poolshutdown(&lp) == 0 );
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -92,11 +92,11 @@ sliter_tx_read_empty(stc *cx)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	srseq seq;
@@ -137,7 +137,7 @@ sliter_tx_read_empty(stc *cx)
 	sr_iteratorclose(&li);
 
 	t( sl_poolshutdown(&lp) == 0 );
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -145,11 +145,11 @@ sliter_tx_read0(stc *cx)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	srseq seq;
@@ -195,7 +195,7 @@ sliter_tx_read0(stc *cx)
 	sr_iteratorclose(&li);
 
 	t( sl_poolshutdown(&lp) == 0 );
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -203,11 +203,11 @@ sliter_tx_read1(stc *cx)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	srseq seq;
@@ -264,7 +264,7 @@ sliter_tx_read1(stc *cx)
 	sr_iteratorclose(&li);
 
 	t( sl_poolshutdown(&lp) == 0 );
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -272,11 +272,11 @@ sliter_tx_read2(stc *cx)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	srseq seq;
@@ -337,7 +337,7 @@ sliter_tx_read2(stc *cx)
 	sr_iteratorclose(&li);
 
 	t( sl_poolshutdown(&lp) == 0 );
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -345,11 +345,11 @@ sliter_tx_read3(stc *cx)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	srseq seq;
@@ -466,7 +466,7 @@ sliter_tx_read3(stc *cx)
 	t( state == 3);
 
 	t( sl_poolshutdown(&lp) == 0 );
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 stgroup *sliter_group(void)

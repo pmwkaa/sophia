@@ -119,7 +119,7 @@ sd_buildadd_keyvalue(sdbuild *b, sr *r, sv *v)
 	/* calculate key size */
 	uint32_t keysize = 0;
 	int i = 0;
-	while (i < r->cmp->count) {
+	while (i < r->scheme->count) {
 		keysize += sv_keysize(v, r, i);
 		i++;
 	}
@@ -139,7 +139,7 @@ sd_buildadd_keyvalue(sdbuild *b, sr *r, sv *v)
 
 	/* write key-parts */
 	i = 0;
-	for (; i < r->cmp->count; i++)
+	for (; i < r->scheme->count; i++)
 	{
 		uint32_t partsize = sv_keysize(v, r, i);
 		char *part = sv_key(v, r, i);
@@ -246,7 +246,7 @@ int sd_buildadd(sdbuild *b, sr *r, sv *v, uint32_t flags)
 	/* update page header */
 	h->count++;
 	uint32_t size = sizeof(sdv) + sv_size(v) +
-		sizeof(srfmtref) * r->cmp->count;
+		sizeof(srfmtref) * r->scheme->count;
 	if (size > b->vmax)
 		b->vmax = size;
 	uint64_t lsn = sv_lsn(v);

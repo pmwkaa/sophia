@@ -32,11 +32,11 @@ svwriteiter_iter(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -100,7 +100,7 @@ svwriteiter_iter(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -108,11 +108,11 @@ svwriteiter_limit(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -213,7 +213,7 @@ svwriteiter_limit(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -221,11 +221,11 @@ svwriteiter_limit_small(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -326,7 +326,7 @@ svwriteiter_limit_small(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -350,11 +350,11 @@ svwriteiter_dup_lsn_gt(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -421,7 +421,7 @@ svwriteiter_dup_lsn_gt(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -429,11 +429,11 @@ svwriteiter_dup_lsn_lt0(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -501,7 +501,7 @@ svwriteiter_dup_lsn_lt0(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -509,11 +509,11 @@ svwriteiter_dup_lsn_lt1(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -581,7 +581,7 @@ svwriteiter_dup_lsn_lt1(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -589,11 +589,11 @@ svwriteiter_dup_lsn_lt2(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -661,7 +661,7 @@ svwriteiter_dup_lsn_lt2(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -669,11 +669,11 @@ svwriteiter_dup_lsn_gt_chain(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -742,7 +742,7 @@ svwriteiter_dup_lsn_gt_chain(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -750,11 +750,11 @@ svwriteiter_dup_lsn_lt0_chain(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -825,7 +825,7 @@ svwriteiter_dup_lsn_lt0_chain(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -833,11 +833,11 @@ svwriteiter_dup_lsn_lt1_chain(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -910,7 +910,7 @@ svwriteiter_dup_lsn_lt1_chain(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -918,11 +918,11 @@ svwriteiter_dup_lsn_lt2_chain(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -997,7 +997,7 @@ svwriteiter_dup_lsn_lt2_chain(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -1005,11 +1005,11 @@ svwriteiter_dup_lsn_limit0(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -1066,7 +1066,7 @@ svwriteiter_dup_lsn_limit0(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -1074,11 +1074,11 @@ svwriteiter_dup_lsn_limit1(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -1137,7 +1137,7 @@ svwriteiter_dup_lsn_limit1(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -1145,11 +1145,11 @@ svwriteiter_dup_lsn_limit2(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -1209,7 +1209,7 @@ svwriteiter_dup_lsn_limit2(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -1217,11 +1217,11 @@ svwriteiter_dup_lsn_limit3(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -1280,7 +1280,7 @@ svwriteiter_dup_lsn_limit3(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -1288,11 +1288,11 @@ svwriteiter_dup_lsn_limit4(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -1358,7 +1358,7 @@ svwriteiter_dup_lsn_limit4(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -1366,11 +1366,11 @@ svwriteiter_dup_lsn_limit5(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -1436,7 +1436,7 @@ svwriteiter_dup_lsn_limit5(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -1444,11 +1444,11 @@ svwriteiter_delete0(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -1516,7 +1516,7 @@ svwriteiter_delete0(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -1524,11 +1524,11 @@ svwriteiter_delete1(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -1596,7 +1596,7 @@ svwriteiter_delete1(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -1604,11 +1604,11 @@ svwriteiter_delete2(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -1676,7 +1676,7 @@ svwriteiter_delete2(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -1684,11 +1684,11 @@ svwriteiter_delete3(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -1756,7 +1756,7 @@ svwriteiter_delete3(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -1764,11 +1764,11 @@ svwriteiter_delete4(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -1836,7 +1836,7 @@ svwriteiter_delete4(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -1844,11 +1844,11 @@ svwriteiter_delete5(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -1916,7 +1916,7 @@ svwriteiter_delete5(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -1924,11 +1924,11 @@ svwriteiter_delete6(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -2001,7 +2001,7 @@ svwriteiter_delete6(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -2009,11 +2009,11 @@ svwriteiter_delete7(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -2087,7 +2087,7 @@ svwriteiter_delete7(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -2095,11 +2095,11 @@ svwriteiter_delete8(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -2183,7 +2183,7 @@ svwriteiter_delete8(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -2191,11 +2191,11 @@ svwriteiter_duprange0(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -2259,7 +2259,7 @@ svwriteiter_duprange0(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -2267,11 +2267,11 @@ svwriteiter_duprange1(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -2334,7 +2334,7 @@ svwriteiter_duprange1(stc *cx srunused)
 	}
 	sr_buffree(&vlista, &a);
 	sv_mergefree(&m, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 stgroup *svwriteiter_group(void)

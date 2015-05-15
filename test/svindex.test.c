@@ -28,7 +28,7 @@ allocv(sr *r, uint64_t lsn, uint8_t flags, uint32_t *key)
 static inline svv*
 getv(svindex *i, sr *r, uint64_t vlsn, uint32_t *key) {
 	srrbnode *n = NULL;
-	int rc = sv_indexmatch(&i->i, r->cmp, (char*)key, sizeof(uint32_t), &n);
+	int rc = sv_indexmatch(&i->i, r->scheme, (char*)key, sizeof(uint32_t), &n);
 	if (rc == 0 && n) {
 		return sv_visible(srcast(n, svv, node), vlsn);
 	}
@@ -40,11 +40,11 @@ svindex_replace0(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -68,7 +68,7 @@ svindex_replace0(stc *cx srunused)
 	t( n->next == NULL );
 
 	sv_indexfree(&i, &r);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -76,11 +76,11 @@ svindex_replace1(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -107,7 +107,7 @@ svindex_replace1(stc *cx srunused)
 	t( h->next == NULL );
 
 	sv_indexfree(&i, &r);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 static void
@@ -115,11 +115,11 @@ svindex_replace2(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
@@ -156,7 +156,7 @@ svindex_replace2(stc *cx srunused)
 	t( h->next == NULL );
 
 	sv_indexfree(&i, &r);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 stgroup *svindex_group(void)

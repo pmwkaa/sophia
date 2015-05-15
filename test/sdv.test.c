@@ -34,11 +34,11 @@ sdv_test(stc *cx srunused)
 {
 	sra a;
 	sr_aopen(&a, &sr_stda);
-	srkey cmp;
-	sr_keyinit(&cmp);
-	srkeypart *part = sr_keyadd(&cmp, &a);
-	t( sr_keypart_setname(part, &a, "key") == 0 );
-	t( sr_keypart_set(part, &a, "u32") == 0 );
+	srscheme cmp;
+	sr_schemeinit(&cmp);
+	srkey *part = sr_schemeadd(&cmp, &a);
+	t( sr_keysetname(part, &a, "key") == 0 );
+	t( sr_keyset(part, &a, "u32") == 0 );
 	srinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
@@ -90,7 +90,7 @@ sdv_test(stc *cx srunused)
 	sd_buildfree(&b, &r);
 	sr_buffree(&buf, &a);
 	sr_buffree(&xfbuf, &a);
-	sr_keyfree(&cmp, &a);
+	sr_schemefree(&cmp, &a);
 }
 
 stgroup *sdv_group(void)

@@ -65,7 +65,7 @@ si_redistribute(si *index, sr *r, sdc *c, sinode *node, srbuf *result,
 
 			svv *vgc = NULL;
 			sdindexpage *page = sd_indexmin(&p->self.index);
-			int rc = sr_compare(r->cmp, sv_vpointer(v), v->size,
+			int rc = sr_compare(r->scheme, sv_vpointer(v), v->size,
 			                    sd_indexpage_min(&p->self.index, page),
 			                    page->sizemin);
 			if (srunlikely(rc >= 0))

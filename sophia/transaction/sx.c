@@ -33,15 +33,15 @@ int sx_indexinit(sxindex *i, void *ptr)
 {
 	sr_rbinit(&i->i);
 	i->count = 0;
-	i->cmp = NULL;
+	i->scheme = NULL;
 	i->ptr = ptr;
 	return 0;
 }
 
-int sx_indexset(sxindex *i, uint32_t dsn, srkey *cmp)
+int sx_indexset(sxindex *i, uint32_t dsn, srscheme *scheme)
 {
 	i->dsn = dsn;
-	i->cmp = cmp;
+	i->scheme = scheme;
 	return 0;
 }
 
@@ -237,7 +237,7 @@ unlink:
 }
 
 sr_rbget(sx_match,
-         sr_compare(cmp, sv_vpointer((srcast(n, sxv, node))->v),
+         sr_compare(scheme, sv_vpointer((srcast(n, sxv, node))->v),
                     (srcast(n, sxv, node))->v->size,
                     key, keysize))
 
@@ -256,7 +256,7 @@ int sx_set(sx *t, sxindex *index, svv *version)
 	sv_init(&lv.v, &sx_vif, v, NULL);
 	/* update concurrent index */
 	srrbnode *n = NULL;
-	int rc = sx_match(&index->i, index->cmp, sv_vpointer(version),
+	int rc = sx_match(&index->i, index->scheme, sv_vpointer(version),
 	                  version->size, &n);
 	if (rc == 0 && n) {
 		/* exists */
@@ -299,7 +299,7 @@ int sx_get(sx *t, sxindex *index, sv *key, sv *result)
 {
 	sxmanager *m = t->manager;
 	srrbnode *n = NULL;
-	int rc = sx_match(&index->i, index->cmp, sv_pointer(key),
+	int rc = sx_match(&index->i, index->scheme, sv_pointer(key),
 	                  sv_size(key), &n);
 	if (! (rc == 0 && n))
 		return 0;
@@ -322,7 +322,7 @@ sxstate sx_setstmt(sxmanager *m, sxindex *index, sv *v)
 {
 	sr_seq(m->r->seq, SR_TSNNEXT);
 	srrbnode *n = NULL;
-	int rc = sx_match(&index->i, index->cmp, sv_pointer(v), sv_size(v), &n);
+	int rc = sx_match(&index->i, index->scheme, sv_pointer(v), sv_size(v), &n);
 	if (rc == 0 && n)
 		return SXLOCK;
 	return SXCOMMIT;

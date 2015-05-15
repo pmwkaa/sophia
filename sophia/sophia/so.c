@@ -210,7 +210,7 @@ soobj *so_new(void)
 	sr_errorinit(&e->error);
 	srcrcf crc = sr_crc32c_function();
 	sr_init(&e->r, &e->error, &e->a, &e->seq, SR_FKV, SR_FS_RAW,
-	        &e->ctl.ctlcmp, &e->ei, crc, NULL);
+	        &e->ctl.ctlscheme, &e->ei, crc, NULL);
 	se_init(&e->se);
 	sl_poolinit(&e->lp, &e->r);
 	sx_init(&e->xm, &e->r, &e->a_sxv);

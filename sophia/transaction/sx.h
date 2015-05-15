@@ -28,7 +28,7 @@ struct sxindex {
 	srrb i;
 	uint32_t count;
 	uint32_t dsn;
-	srkey *cmp;
+	srscheme *scheme;
 	void *ptr;
 };
 
@@ -53,7 +53,7 @@ struct sxmanager {
 int       sx_init(sxmanager*, sr*, sra*);
 int       sx_free(sxmanager*);
 int       sx_indexinit(sxindex*, void*);
-int       sx_indexset(sxindex*, uint32_t, srkey*);
+int       sx_indexset(sxindex*, uint32_t, srscheme*);
 int       sx_indexfree(sxindex*, sxmanager*);
 sx       *sx_find(sxmanager*, uint32_t);
 sxstate   sx_begin(sxmanager*, sx*, uint64_t);

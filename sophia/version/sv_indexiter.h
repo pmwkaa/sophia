@@ -70,7 +70,7 @@ sv_indexiter_open(sriter *i, svindex *index, srorder o, void *key, int keysize, 
 			sv_indexiter_bkw(ii);
 			break;
 		}
-		rc = sv_indexmatch(&ii->index->i, i->r->cmp, ii->key, ii->keysize, &ii->v);
+		rc = sv_indexmatch(&ii->index->i, i->r->scheme, ii->key, ii->keysize, &ii->v);
 		if (ii->v == NULL)
 			break;
 		switch (rc) {
@@ -93,7 +93,7 @@ sv_indexiter_open(sriter *i, svindex *index, srorder o, void *key, int keysize, 
 			sv_indexiter_fwd(ii);
 			break;
 		}
-		rc = sv_indexmatch(&ii->index->i, i->r->cmp, ii->key, ii->keysize, &ii->v);
+		rc = sv_indexmatch(&ii->index->i, i->r->scheme, ii->key, ii->keysize, &ii->v);
 		if (ii->v == NULL)
 			break;
 		switch (rc) {
@@ -110,7 +110,7 @@ sv_indexiter_open(sriter *i, svindex *index, srorder o, void *key, int keysize, 
 		sv_indexiter_fwd(ii);
 		break;
 	case SR_UPDATE:
-		rc = sv_indexmatch(&ii->index->i, i->r->cmp, ii->key, ii->keysize, &ii->v);
+		rc = sv_indexmatch(&ii->index->i, i->r->scheme, ii->key, ii->keysize, &ii->v);
 		if (rc == 0 && ii->v) {
 			svv *v = srcast(ii->v, svv, node);
 			ii->vcur = v;

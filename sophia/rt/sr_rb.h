@@ -38,7 +38,7 @@ sr_rbinitnode(srrbnode *n) {
 \
 static inline int \
 name(srrb *t, \
-     srkey *cmp srunused, \
+     srscheme *scheme srunused, \
      void *key srunused, int keysize srunused, \
      srrbnode **match) \
 { \

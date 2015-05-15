@@ -75,18 +75,18 @@ sv_keysize(sv *v, sr *r srunused, int part) {
 
 static inline char*
 sv_value(sv *v, sr *r) {
-	return sr_fmtvalue(r->fmt, r->cmp, sv_pointer(v));
+	return sr_fmtvalue(r->fmt, r->scheme, sv_pointer(v));
 }
 
 static inline int
 sv_valuesize(sv *v, sr *r) {
-	return sr_fmtvalue_size(r->fmt, r->cmp, sv_pointer(v), sv_size(v));
+	return sr_fmtvalue_size(r->fmt, r->scheme, sv_pointer(v), sv_size(v));
 }
 
 static inline int
-sv_compare(sv *a, sv *b, srkey *key) {
-	return sr_compare(key, sv_pointer(a), sv_size(a),
-	                       sv_pointer(b), sv_size(b));
+sv_compare(sv *a, sv *b, srscheme *s) {
+	return sr_compare(s, sv_pointer(a), sv_size(a),
+	                     sv_pointer(b), sv_size(b));
 }
 
 #endif

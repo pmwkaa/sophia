@@ -423,11 +423,11 @@ so_ctldb_cmp(src *c, srcstmt *s, va_list args)
 			if (srunlikely(arg == NULL))
 				return -1;
 		}
-		sr_keysetcmp(&db->ctl.cmp, cmp, arg);
+		sr_schemesetcmp(&db->ctl.scheme, cmp, arg);
 		return 0;
 	}
 	/* set key type */
-	return sr_keypart_set(sr_keyof(&db->ctl.cmp, 0), &e->a, v);
+	return sr_keyset(sr_schemeof(&db->ctl.scheme, 0), &e->a, v);
 }
 
 static inline int
@@ -451,7 +451,7 @@ so_ctldb_cmpprefix(src *c, srcstmt *s, va_list args)
 		if (srunlikely(arg == NULL))
 			return -1;
 	}
-	sr_keysetcmp_prefix(&db->ctl.cmp, cmp, arg);
+	sr_schemesetcmp_prefix(&db->ctl.scheme, cmp, arg);
 	return 0;
 }
 
@@ -547,24 +547,24 @@ so_ctldb_index(src *c srunused, srcstmt *s, va_list args)
 		return -1;
 	}
 	char *name = va_arg(args, char*);
-	srkeypart *part = sr_keyfind(&db->ctl.cmp, name);
+	srkey *part = sr_schemefind(&db->ctl.scheme, name);
 	if (srunlikely(part)) {
 		sr_error(&e->error, "keypart '%s' exists", name);
 		return -1;
 	}
 	/* create new key-part */
-	part = sr_keyadd(&db->ctl.cmp, &e->a);
+	part = sr_schemeadd(&db->ctl.scheme, &e->a);
 	if (srunlikely(part == NULL))
 		return -1;
-	int rc = sr_keypart_setname(part, &e->a, name);
+	int rc = sr_keysetname(part, &e->a, name);
 	if (srunlikely(rc == -1))
 		goto error;
-	rc = sr_keypart_set(part, &e->a, "string");
+	rc = sr_keyset(part, &e->a, "string");
 	if (srunlikely(rc == -1))
 		goto error;
 	return 0;
 error:
-	sr_keydelete(&db->ctl.cmp, &e->a, part->pos);
+	sr_schemedelete(&db->ctl.scheme, &e->a, part->pos);
 	return -1;
 }
 
@@ -581,9 +581,9 @@ so_ctldb_key(src *c, srcstmt *s, va_list args)
 	}
 	char *path = va_arg(args, char*);
 	/* update key-part path */
-	srkeypart *part = sr_keyfind(&db->ctl.cmp, c->name);
+	srkey *part = sr_schemefind(&db->ctl.scheme, c->name);
 	assert(part != NULL);
-	return sr_keypart_set(part, &e->a, path);
+	return sr_keyset(part, &e->a, path);
 }
 
 static inline src*
@@ -619,8 +619,8 @@ so_ctldb(so *e, soctlrt *rt srunused, src **pc)
 		sr_clink(&p, sr_c(pc, so_ctldb_cmpprefix, "cmp_prefix",       SR_CVOID,       o));
 		/* index keys */
 		int i = 0;
-		while (i < o->ctl.cmp.count) {
-			srkeypart *part = sr_keyof(&o->ctl.cmp, i);
+		while (i < o->ctl.scheme.count) {
+			srkey *part = sr_schemeof(&o->ctl.scheme, i);
 			sr_clink(&p,  sr_cptr(sr_c(pc, so_ctldb_key, part->name, SR_CSZ, part->path), o));
 			i++;
 		}
@@ -944,10 +944,10 @@ void so_ctlinit(soctl *c, void *e)
 {
 	so *o = e;
 	so_objinit(&c->o, SOCTL, &soctlif, e);
-	sr_keyinit(&c->ctlcmp);
-	srkeypart *part = sr_keyadd(&c->ctlcmp, &o->a);
-	sr_keypart_setname(part, &o->a, "key");
-	sr_keypart_set(part, &o->a, "string");
+	sr_schemeinit(&c->ctlscheme);
+	srkey *part = sr_schemeadd(&c->ctlscheme, &o->a);
+	sr_keysetname(part, &o->a, "key");
+	sr_keyset(part, &o->a, "string");
 	c->path              = NULL;
 	c->path_create       = 1;
 	c->memory_limit      = 0;
@@ -1014,7 +1014,7 @@ void so_ctlfree(soctl *c)
 		sr_free(&e->a, c->backup_path);
 		c->backup_path = NULL;
 	}
-	sr_keyfree(&c->ctlcmp, &e->a);
+	sr_schemefree(&c->ctlscheme, &e->a);
 }
 
 int so_ctlvalidate(soctl *c)
