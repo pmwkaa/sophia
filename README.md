@@ -9,7 +9,6 @@
 	<br>
 	<br>
 </p>
-<br>
 <p align="center">
 	<a href="https://travis-ci.org/pmwkaa/sophia"><img src="https://travis-ci.org/pmwkaa/sophia.svg?branch=master" /></a>
 	<a href="https://scan.coverity.com/projects/5109"><img src="https://scan.coverity.com/projects/5109/badge.svg" /></a>
