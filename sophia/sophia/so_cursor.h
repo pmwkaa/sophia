@@ -16,7 +16,7 @@ struct socursor {
 	int ready;
 	srorder order;
 	sx t;
-	sicache cache;
+	sicache *cache;
 	sov v;
 	soobj *key;
 	sodb *db;

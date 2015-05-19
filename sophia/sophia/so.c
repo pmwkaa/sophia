@@ -116,6 +116,7 @@ so_destroy(soobj *o, va_list args srunused)
 	if (srunlikely(rc == -1))
 		rcret = -1;
 	sx_free(&e->xm);
+	si_cachepool_free(&e->cachepool, &e->r);
 	so_ctlfree(&e->ctl);
 	sr_quotafree(&e->quota);
 	sr_mutexfree(&e->apilock);
@@ -187,7 +188,8 @@ soobj *so_new(void)
 	sr_aopen(&e->a_db, &sr_slaba, &e->pager, sizeof(sodb));
 	sr_aopen(&e->a_v, &sr_slaba, &e->pager, sizeof(sov));
 	sr_aopen(&e->a_cursor, &sr_slaba, &e->pager, sizeof(socursor));
-	sr_aopen(&e->a_cursorcache, &sr_slaba, &e->pager, sizeof(sicachebranch));
+	sr_aopen(&e->a_cachebranch, &sr_slaba, &e->pager, sizeof(sicachebranch));
+	sr_aopen(&e->a_cache, &sr_slaba, &e->pager, sizeof(sicache));
 	sr_aopen(&e->a_ctlcursor, &sr_slaba, &e->pager, sizeof(soctlcursor));
 	sr_aopen(&e->a_snapshot, &sr_slaba, &e->pager, sizeof(sosnapshot));
 	sr_aopen(&e->a_tx, &sr_slaba, &e->pager, sizeof(sotx));
@@ -214,6 +216,7 @@ soobj *so_new(void)
 	se_init(&e->se);
 	sl_poolinit(&e->lp, &e->r);
 	sx_init(&e->xm, &e->r, &e->a_sxv);
+	si_cachepool_init(&e->cachepool, &e->a_cache, &e->a_cachebranch);
 	so_scheduler_init(&e->sched, e);
 	return &e->o;
 }

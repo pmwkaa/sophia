@@ -31,12 +31,14 @@ struct so {
 	sra a_db;
 	sra a_v;
 	sra a_cursor;
-	sra a_cursorcache;
+	sra a_cachebranch;
+	sra a_cache;
 	sra a_ctlcursor;
 	sra a_snapshot;
 	sra a_tx;
 	sra a_sxv;
 	sra a_req;
+	sicachepool cachepool;
 	seconf seconf;
 	se se;
 	slconf lpconf;

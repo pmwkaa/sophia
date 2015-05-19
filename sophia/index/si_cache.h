@@ -11,6 +11,7 @@
 
 typedef struct sicachebranch sicachebranch;
 typedef struct sicache sicache;
+typedef struct sicachepool sicachepool;
 
 struct sicachebranch {
 	sibranch *branch;
@@ -23,23 +24,32 @@ struct sicachebranch {
 } srpacked;
 
 struct sicache {
-	sra *ac;
 	sicachebranch *path;
 	sicachebranch *branch;
 	uint32_t count;
 	uint32_t nodeid;
 	sinode *node;
+	sicache *next;
+	sicachepool *pool;
+};
+
+struct sicachepool {
+	sicache *head;
+	int n;
+	sra *ac;
+	sra *acb;
 };
 
 static inline void
-si_cacheinit(sicache *c, sra *ac)
+si_cacheinit(sicache *c, sicachepool *pool)
 {
 	c->path   = NULL;
 	c->branch = NULL;
 	c->count  = 0;
 	c->node   = NULL;
 	c->nodeid = 0;
-	c->ac     = ac;
+	c->next   = NULL;
+	c->pool   = pool;
 }
 
 static inline void
@@ -51,7 +61,7 @@ si_cachefree(sicache *c, sr *r)
 		next = cb->next;
 		sr_buffree(&cb->buf_a, r->a);
 		sr_buffree(&cb->buf_b, r->a);
-		sr_free(c->ac, cb);
+		sr_free(c->pool->acb, cb);
 		cb = next;
 	}
 }
@@ -77,7 +87,7 @@ si_cachereset(sicache *c)
 static inline sicachebranch*
 si_cacheadd(sicache *c, sibranch *b)
 {
-	sicachebranch *nb = sr_malloc(c->ac, sizeof(sicachebranch));
+	sicachebranch *nb = sr_malloc(c->pool->acb, sizeof(sicachebranch));
 	if (srunlikely(nb == NULL))
 		return NULL;
 	nb->branch  = b;
@@ -162,6 +172,55 @@ si_cachefollow(sicache *c)
 	sicachebranch *b = c->branch;
 	c->branch = c->branch->next;
 	return b;
+}
+
+static inline void
+si_cachepool_init(sicachepool *p, sra *ac, sra *acb)
+{
+	p->head = NULL;
+	p->n    = 0;
+	p->ac   = ac;
+	p->acb  = acb;
+}
+
+static inline void
+si_cachepool_free(sicachepool *p, sr *r)
+{
+	sicache *next;
+	sicache *c = p->head;
+	while (c) {
+		next = c->next;
+		si_cachefree(c, r);
+		c = next;
+	}
+}
+
+static inline sicache*
+si_cachepool_pop(sicachepool *p)
+{
+	sicache *c;
+	if (srlikely(p->n > 0)) {
+		c = p->head;
+		p->head = c->next;
+		p->n--;
+		si_cachereset(c);
+		c->pool = p;
+		return c;
+	}
+	c = sr_malloc(p->ac, sizeof(sicache));
+	if (srunlikely(c == NULL))
+		return NULL;
+	si_cacheinit(c, p);
+	return c;
+}
+
+static inline void
+si_cachepool_push(sicache *c)
+{
+	sicachepool *p = c->pool;
+	c->next = p->head;
+	p->head = c;
+	p->n++;
 }
 
 #endif

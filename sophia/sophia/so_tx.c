@@ -67,16 +67,20 @@ so_queryget(sorequest *r)
 		r->vlsn = sr_seq(db->r.seq, SR_LSN);
 
 	/* query */
-	sicache cache;
-	si_cacheinit(&cache, &e->a_cursorcache);
+	sicache *cache = si_cachepool_pop(&e->cachepool);
+	if (srunlikely(cache == NULL)) {
+		r->rc = -1;
+		sr_error(&e->error, "%s", "memory allocation error");
+		return -1;
+	}
 	siquery q;
-	si_queryopen(&q, &db->r, &cache, &db->index,
+	si_queryopen(&q, &db->r, cache, &db->index,
 	             SR_EQ, r->vlsn,
 	             NULL, 0, key, keysize);
 	int rc = si_query(&q);
 	sv result = q.result;
 	si_queryclose(&q);
-	si_cachefree(&cache, &db->r);
+	si_cachepool_push(cache);
 	r->rc = rc;
 	if (srunlikely(rc <= 0))
 		return rc;
@@ -402,10 +406,13 @@ so_txprepare_trigger(sx *t, sv *v, void *arg0, void *arg1)
 	uint64_t lsn = sr_seq(e->r.seq, SR_LSN);
 	if (t->vlsn == lsn)
 		return SXPREPARE;
-	sicache cache;
-	si_cacheinit(&cache, &e->a_cursorcache);
+	sicache *cache = si_cachepool_pop(&e->cachepool);
+	if (srunlikely(cache == NULL)) {
+		sr_error(&e->error, "%s", "memory allocation error");
+		return SXROLLBACK;
+	}
 	siquery q;
-	si_queryopen(&q, &db->r, &cache, &db->index,
+	si_queryopen(&q, &db->r, cache, &db->index,
 	             SR_UPDATE, t->vlsn,
 	             NULL, 0,
 	             sv_pointer(v), sv_size(v));
@@ -414,7 +421,7 @@ so_txprepare_trigger(sx *t, sv *v, void *arg0, void *arg1)
 	if (rc == 1)
 		sv_vfree(&e->a, (svv*)q.result.v);
 	si_queryclose(&q);
-	si_cachefree(&cache, &db->r);
+	si_cachepool_push(cache);
 	if (srunlikely(rc))
 		return SXROLLBACK;
 	return SXPREPARE;

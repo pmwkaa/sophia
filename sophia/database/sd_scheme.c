@@ -76,7 +76,7 @@ int sd_schemewrite(sdscheme *c, sr *r, char *path, int sync)
 		goto error;
 	return 0;
 error:
-	sr_error(r->e, "%s", "meta file '%s' error: %s",
+	sr_error(r->e, "%s", "scheme file '%s' error: %s",
 	         path, strerror(errno));
 	sr_fileclose(&meta);
 	return -1;
@@ -88,7 +88,7 @@ int sd_schemerecover(sdscheme *c, sr *r, char *path)
 	if (srunlikely(size == -1))
 		goto error;
 	if (srunlikely((unsigned int)size < sizeof(sdschemeheader))) {
-		sr_error(r->e, "%s", "meta file '%s' is corrupted", path);
+		sr_error(r->e, "%s", "scheme file '%s' is corrupted", path);
 		return -1;
 	}
 	int rc = sr_bufensure(&c->buf, r->a, size);
@@ -110,7 +110,7 @@ int sd_schemerecover(sdscheme *c, sr *r, char *path)
 	sr_bufadvance(&c->buf, size);
 	return 0;
 error:
-	sr_error(r->e, "%s", "meta file '%s' error: %s",
+	sr_error(r->e, "%s", "scheme file '%s' error: %s",
 	         path, strerror(errno));
 	return -1;
 }

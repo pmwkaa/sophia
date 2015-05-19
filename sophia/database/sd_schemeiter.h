@@ -26,7 +26,7 @@ sd_schemeiter_open(sriter *i, sdscheme *c, int validate)
 		sdschemeheader *h = (sdschemeheader*)c->buf.s;
 		uint32_t crc = sr_crcs(i->r->crc, h, sr_bufused(&c->buf), 0);
 		if (h->crc != crc) {
-			sr_malfunction(i->r->e, "%s", "meta file corrupted");
+			sr_malfunction(i->r->e, "%s", "scheme file corrupted");
 			return -1;
 		}
 	}

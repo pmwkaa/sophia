@@ -30,7 +30,7 @@ so_cursorseek(socursor *c, void *key, int keysize)
 {
 	sov *pref = (sov*)c->key;
 	siquery q;
-	si_queryopen(&q, &c->db->r, &c->cache,
+	si_queryopen(&q, &c->db->r, c->cache,
 	             &c->db->index, c->order, c->t.vlsn,
 	             pref->prefix, pref->prefixsize,
 	             key, keysize);
@@ -52,7 +52,7 @@ so_cursordestroy(soobj *o, va_list args srunused)
 	so *e = so_of(o);
 	uint32_t id = c->t.id;
 	sx_end(&c->t);
-	si_cachefree(&c->cache, &c->db->r);
+	si_cachepool_push(c->cache);
 	if (c->key) {
 		so_objdestroy(c->key);
 		c->key = NULL;
@@ -135,7 +135,11 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 	c->ready = 0;
 	c->order = o->order;
 	so_vinit(&c->v, e, &db->o);
-	si_cacheinit(&c->cache, &e->a_cursorcache);
+	c->cache = si_cachepool_pop(&e->cachepool);
+	if (srunlikely(c->cache == NULL)) {
+		sr_error(&e->error, "%s", "memory allocation error");
+		goto error;
+	}
 
 	/* open cursor */
 	uint32_t keysize = 0;
@@ -198,6 +202,8 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 	return &c->o;
 error:
 	so_objdestroy(keyobj);
+	if (c->cache)
+		si_cachepool_push(c->cache);
 	if (c)
 		sr_free(&e->a_cursor, c);
 	return NULL;
