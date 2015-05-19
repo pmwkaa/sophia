@@ -14,24 +14,13 @@ typedef struct sodbasync sodbasync;
 typedef struct sodb sodb;
 
 struct sodbctl {
-	soobj         o;
-	void         *parent;
-	char         *name;
-	uint32_t      id;
-	char         *fmtsz;
-	srfmt         fmt;
-	srfmtstorage  fmt_storage;
-	srscheme      scheme;
-	srtrigger     on_complete;
-	char         *path;
-	uint32_t      created;
-	uint32_t      scheduled;
-	uint32_t      dropped;
-	uint32_t      sync;
-	char         *compression;
-	srfilterif   *compression_if;
-	uint32_t      compression_key;
-	siprofiler    rtp;
+	soobj       o;
+	void       *parent;
+	uint32_t    created;
+	uint32_t    scheduled;
+	uint32_t    dropped;
+	srtrigger   on_complete;
+	siprofiler  rtp;
 } srpacked;
 
 struct sodbasync {
@@ -47,7 +36,7 @@ struct sodb {
 	soobjindex cursor;
 	sxindex coindex;
 	sdc dc;
-	siconf indexconf;
+	sischeme scheme;
 	si index;
 	srspinlock reflock;
 	uint32_t ref;

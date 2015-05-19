@@ -23,7 +23,9 @@ env_dbid_forge(stc *cx)
 
 	t( sp_set(ctl, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(ctl, "scheduler.threads", "0") == 0 );
+	t( sp_set(ctl, "log.rotate_sync", "0") == 0 );
 	sp_set(ctl, "db", "x");
+	sp_set(ctl, "db.x.sync", "0");
 	void *dbx = sp_get(ctl, "db.x");
 	t( dbx != NULL );
 	t( sp_open(env) == 0);
@@ -45,9 +47,11 @@ env_dbid_forge(stc *cx)
 
 	t( sp_set(ctl, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(ctl, "scheduler.threads", "0") == 0 );
+	t( sp_set(ctl, "log.rotate_sync", "0") == 0 );
 
 	/* xxx: act as db.x, without schema storage */
 	sp_set(ctl, "db", "y");
+	sp_set(ctl, "db.y.sync", "0");
 	void *dby = sp_get(ctl, "db.y");
 
 	t( sp_open(env) == 0 );
@@ -76,8 +80,10 @@ env_dbid_resolve(stc *cx)
 
 	t( sp_set(ctl, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(ctl, "scheduler.threads", "0") == 0 );
+	t( sp_set(ctl, "log.rotate_sync", "0") == 0 );
 
 	sp_set(ctl, "db", "x");
+	sp_set(ctl, "db.x.sync", "0");
 	void *dbx = sp_get(ctl, "db.x");
 	t( dbx != NULL );
 	t( sp_open(env) == 0);
@@ -99,9 +105,12 @@ env_dbid_resolve(stc *cx)
 
 	t( sp_set(ctl, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(ctl, "scheduler.threads", "0") == 0 );
+	t( sp_set(ctl, "log.rotate_sync", "0") == 0 );
 
 	t( sp_set(ctl, "db", "x") == 0 );
 	t( sp_set(ctl, "db", "y") == 0 ); /* db.id == 2 */
+	sp_set(ctl, "db.x.sync", "0");
+	sp_set(ctl, "db.y.sync", "0");
 	void *dby = sp_get(ctl, "db.y");
 
 	t( sp_open(env) == 0 );

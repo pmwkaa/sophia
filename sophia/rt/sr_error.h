@@ -60,6 +60,13 @@ sr_errorrecover(srerror *e) {
 	sr_spinunlock(&e->lock);
 }
 
+static inline void
+sr_malfunction_set(srerror *e) {
+	sr_spinlock(&e->lock);
+	e->type = SR_ERROR_MALFUNCTION;
+	sr_spinunlock(&e->lock);
+}
+
 static inline int
 sr_errorof(srerror *e) {
 	sr_spinlock(&e->lock);

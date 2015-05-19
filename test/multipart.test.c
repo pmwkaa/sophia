@@ -24,6 +24,7 @@ multipart_cmp_eq_key(stc *cx srunused)
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 
 	void *o = sp_get(c, "db.test.index.key");
 	t( o != NULL );
@@ -48,6 +49,7 @@ multipart_schema(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.index.key", "string") == 0 );
 	t( sp_set(c, "db.test.index", "key_b") == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 
 	void *o = sp_get(c, "db.test.index.key");
 	t( o != NULL );
@@ -86,6 +88,7 @@ multipart_set_get0(stc *cx srunused)
 	t( sp_set(c, "db.test.index.key", "string") == 0 );
 	t( sp_set(c, "db.test.index", "key_b") == 0 );
 	t( sp_set(c, "db.test.index.key_b", "u32") == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(env) == 0 );
 
 	void *db = sp_get(c, "db.test");
@@ -133,6 +136,7 @@ multipart_set_get1(stc *cx srunused)
 	t( sp_set(c, "db.test.index.key", "string") == 0 );
 	t( sp_set(c, "db.test.index", "key_b") == 0 );
 	t( sp_set(c, "db.test.index.key_b", "u32") == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(env) == 0 );
 
 	void *db = sp_get(c, "db.test");
@@ -187,6 +191,7 @@ multipart_cursor0(stc *cx srunused)
 	t( sp_set(c, "db.test.index.key", "string") == 0 );
 	t( sp_set(c, "db.test.index", "key_b") == 0 );
 	t( sp_set(c, "db.test.index.key_b", "u32") == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(env) == 0 );
 
 	void *db = sp_get(c, "db.test");
@@ -239,6 +244,7 @@ multipart_cursor1(stc *cx srunused)
 	t( sp_set(c, "db.test.index.key", "string") == 0 );
 	t( sp_set(c, "db.test.index", "key_b") == 0 );
 	t( sp_set(c, "db.test.index.key_b", "u32") == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(env) == 0 );
 
 	void *db = sp_get(c, "db.test");

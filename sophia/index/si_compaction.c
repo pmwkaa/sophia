@@ -168,10 +168,10 @@ si_split(si *index, sr *r, sdc *c, srbuf *result,
 	sdmergeconf mergeconf = {
 		.size_stream     = size_stream,
 		.size_node       = size_node,
-		.size_page       = index->conf->node_page_size,
-		.checksum        = index->conf->node_page_checksum,
-		.compression     = index->conf->compression,
-		.compression_key = index->conf->compression_key,
+		.size_page       = index->scheme->node_page_size,
+		.checksum        = index->scheme->node_page_checksum,
+		.compression     = index->scheme->compression,
+		.compression_key = index->scheme->compression_key,
 		.offset          = 0,
 		.vlsn            = vlsn,
 		.save_delete     = 0
@@ -191,7 +191,7 @@ si_split(si *index, sr *r, sdc *c, srbuf *result,
 		rc = sd_mergecommit(&merge, &id);
 		if (srunlikely(rc == -1))
 			goto error;
-		rc = si_nodecreate(n, r, index->conf, &id, &merge.index, &c->build);
+		rc = si_nodecreate(n, r, index->scheme, &id, &merge.index, &c->build);
 		if (srunlikely(rc == -1))
 			goto error;
 		rc = sr_bufadd(result, r->a, &n, sizeof(sinode*));
@@ -227,7 +227,7 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 	int rc;
 	rc = si_split(index, r, c, result,
 	              node, stream,
-	              index->conf->node_size,
+	              index->scheme->node_size,
 	              size_stream,
 	              vlsn);
 	if (srunlikely(rc == -1))
@@ -318,12 +318,12 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 	while (sr_iterhas(sr_bufiterref, &i))
 	{
 		n = sr_iterof(sr_bufiterref, &i);
-		if (index->conf->sync) {
+		if (index->scheme->sync) {
 			rc = si_nodesync(n, r);
 			if (srunlikely(rc == -1))
 				return -1;
 		}
-		rc = si_nodeseal(n, r, index->conf);
+		rc = si_nodeseal(n, r, index->scheme);
 		if (srunlikely(rc == -1))
 			return -1;
 		SR_INJECTION(r->i, SR_INJECTION_SI_COMPACTION_3,
@@ -353,7 +353,7 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 	while (sr_iterhas(sr_bufiterref, &i))
 	{
 		n = sr_iterof(sr_bufiterref, &i);
-		rc = si_nodecomplete(n, r, index->conf);
+		rc = si_nodecomplete(n, r, index->scheme);
 		if (srunlikely(rc == -1))
 			return -1;
 		SR_INJECTION(r->i, SR_INJECTION_SI_COMPACTION_4,

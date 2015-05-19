@@ -423,11 +423,11 @@ so_ctldb_cmp(src *c, srcstmt *s, va_list args)
 			if (srunlikely(arg == NULL))
 				return -1;
 		}
-		sr_schemesetcmp(&db->ctl.scheme, cmp, arg);
+		sr_schemesetcmp(&db->scheme.scheme, cmp, arg);
 		return 0;
 	}
 	/* set key type */
-	return sr_keyset(sr_schemeof(&db->ctl.scheme, 0), &e->a, v);
+	return sr_keyset(sr_schemeof(&db->scheme.scheme, 0), &e->a, v);
 }
 
 static inline int
@@ -451,7 +451,7 @@ so_ctldb_cmpprefix(src *c, srcstmt *s, va_list args)
 		if (srunlikely(arg == NULL))
 			return -1;
 	}
-	sr_schemesetcmp_prefix(&db->ctl.scheme, cmp, arg);
+	sr_schemesetcmp_prefix(&db->scheme.scheme, cmp, arg);
 	return 0;
 }
 
@@ -547,13 +547,13 @@ so_ctldb_index(src *c srunused, srcstmt *s, va_list args)
 		return -1;
 	}
 	char *name = va_arg(args, char*);
-	srkey *part = sr_schemefind(&db->ctl.scheme, name);
+	srkey *part = sr_schemefind(&db->scheme.scheme, name);
 	if (srunlikely(part)) {
 		sr_error(&e->error, "keypart '%s' exists", name);
 		return -1;
 	}
 	/* create new key-part */
-	part = sr_schemeadd(&db->ctl.scheme, &e->a);
+	part = sr_schemeadd(&db->scheme.scheme, &e->a);
 	if (srunlikely(part == NULL))
 		return -1;
 	int rc = sr_keysetname(part, &e->a, name);
@@ -564,7 +564,7 @@ so_ctldb_index(src *c srunused, srcstmt *s, va_list args)
 		goto error;
 	return 0;
 error:
-	sr_schemedelete(&db->ctl.scheme, &e->a, part->pos);
+	sr_schemedelete(&db->scheme.scheme, &e->a, part->pos);
 	return -1;
 }
 
@@ -581,7 +581,7 @@ so_ctldb_key(src *c, srcstmt *s, va_list args)
 	}
 	char *path = va_arg(args, char*);
 	/* update key-part path */
-	srkey *part = sr_schemefind(&db->ctl.scheme, c->name);
+	srkey *part = sr_schemefind(&db->scheme.scheme, c->name);
 	assert(part != NULL);
 	return sr_keyset(part, &e->a, path);
 }
@@ -619,31 +619,30 @@ so_ctldb(so *e, soctlrt *rt srunused, src **pc)
 		sr_clink(&p, sr_c(pc, so_ctldb_cmpprefix, "cmp_prefix",       SR_CVOID,       o));
 		/* index keys */
 		int i = 0;
-		while (i < o->ctl.scheme.count) {
-			srkey *part = sr_schemeof(&o->ctl.scheme, i);
+		while (i < o->scheme.scheme.count) {
+			srkey *part = sr_schemeof(&o->scheme.scheme, i);
 			sr_clink(&p,  sr_cptr(sr_c(pc, so_ctldb_key, part->name, SR_CSZ, part->path), o));
 			i++;
 		}
 		/* database */
 		src *database = *pc;
 		p = NULL;
-		sr_clink(&p,          sr_c(pc, so_ctlv,              "name",            SR_CSZ|SR_CRO, o->ctl.name));
-		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv,              "id",              SR_CU32,       &o->ctl.id), o));
+		sr_clink(&p,          sr_c(pc, so_ctlv,              "name",            SR_CSZ|SR_CRO, o->scheme.name));
+		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv,              "id",              SR_CU32,       &o->scheme.id), o));
 		sr_clink(&p,          sr_c(pc, so_ctldb_status,      "status",          SR_CSZ|SR_CRO, o));
-		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "format",          SR_CSZREF,     &o->ctl.fmtsz), o));
-		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "path",            SR_CSZREF,     &o->ctl.path), o));
-		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "sync",            SR_CU32,       &o->ctl.sync), o));
-		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "compression",     SR_CSZREF,     &o->ctl.compression), o));
-		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "compression_key", SR_CU32,       &o->ctl.compression_key), o));
+		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "format",          SR_CSZREF,     &o->scheme.fmt_sz), o));
+		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "path",            SR_CSZREF,     &o->scheme.path), o));
+		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "sync",            SR_CU32,       &o->scheme.sync), o));
+		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "compression_key", SR_CU32,       &o->scheme.compression_key), o));
+		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctlv_dboffline,    "compression",     SR_CSZREF,     &o->scheme.compression_sz), o));
 		sr_clink(&p,          sr_c(pc, so_ctldb_branch,      "branch",          SR_CVOID,      o));
 		sr_clink(&p,          sr_c(pc, so_ctldb_compact,     "compact",         SR_CVOID,      o));
 		sr_clink(&p,          sr_c(pc, so_ctldb_lockdetect,  "lockdetect",      SR_CVOID,      NULL));
 		sr_clink(&p,          sr_c(pc, so_ctldb_on_complete, "on_complete",     SR_CVOID,      o));
 		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctldb_index,       "index",           SR_CC,         index), o));
-		sr_clink(&prev, sr_cptr(sr_c(pc, so_ctldb_get, o->ctl.name, SR_CC, database), o));
+		sr_clink(&prev, sr_cptr(sr_c(pc, so_ctldb_get, o->scheme.name, SR_CC, database), o));
 		if (db == NULL)
 			db = prev;
-
 	}
 	return sr_c(pc, so_ctldb_set, "db", SR_CC, db);
 }

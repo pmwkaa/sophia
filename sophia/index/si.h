@@ -18,12 +18,13 @@ struct si {
 	srrb i;
 	int n;
 	int destroyed;
+	uint32_t backup;
 	uint64_t update_time;
 	uint64_t read_disk;
 	uint64_t read_cache;
 	srbuf readbuf;
 	srquota *quota;
-	siconf *conf;
+	sischeme *scheme;
 };
 
 static inline void
@@ -37,7 +38,7 @@ si_unlock(si *i) {
 }
 
 int si_init(si*, sr*, srquota*);
-int si_open(si*, sr*, siconf*);
+int si_open(si*, sr*, sischeme*);
 int si_close(si*, sr*);
 int si_insert(si*, sr*, sinode*);
 int si_remove(si*, sinode*);

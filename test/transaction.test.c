@@ -2483,6 +2483,8 @@ transaction_md_set_commit(stc *cx)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "t0") == 0 );
 	t( sp_set(c, "db", "t1") == 0 );
+	t( sp_set(c, "db.t0.sync", "0") == 0 );
+	t( sp_set(c, "db.t1.sync", "0") == 0 );
 	t( sp_set(c, "db.t0.index.cmp", "u32", NULL) == 0 );
 	t( sp_set(c, "db.t1.index.cmp", "u32", NULL) == 0 );
 
@@ -2536,6 +2538,8 @@ transaction_md_set_rollback(stc *cx)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "t0") == 0 );
 	t( sp_set(c, "db", "t1") == 0 );
+	t( sp_set(c, "db.t0.sync", "0") == 0 );
+	t( sp_set(c, "db.t1.sync", "0") == 0 );
 	t( sp_set(c, "db.t0.index.cmp", "u32", NULL) == 0 );
 	t( sp_set(c, "db.t1.index.cmp", "u32", NULL) == 0 );
 

@@ -29,8 +29,10 @@ async_set(stc *cx srunused)
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
+	t( sp_set(c, "log.rotate_sync", "0") == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 
 	char pointer[64];
 	snprintf(pointer, sizeof(pointer), "pointer: %p", (void*)on_complete);
@@ -67,8 +69,10 @@ async_get(stc *cx srunused)
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
+	t( sp_set(c, "log.rotate_sync", "0") == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 
 	char pointer[64];
 	snprintf(pointer, sizeof(pointer), "pointer: %p", (void*)on_complete);

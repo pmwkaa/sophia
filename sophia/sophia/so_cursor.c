@@ -1,6 +1,6 @@
 
 /*
- * sophia databaso
+ * sophia database
  * sphia.org
  *
  * Copyright (c) Dmitry Simonenko
@@ -152,7 +152,7 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 	if (o->prefix)
 	{
 		/* search by prefix */
-		if (sr_schemeof(&db->ctl.scheme, 0)->type == SR_STRING) {
+		if (sr_schemeof(&db->scheme.scheme, 0)->type == SR_STRING) {
 			srfmtv fv;
 			fv.key      = o->prefix;
 			fv.r.size   = o->prefixsize;

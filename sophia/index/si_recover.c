@@ -57,9 +57,9 @@ sinode *si_bootstrap(si *i, sr *r, uint32_t parent)
 	sdbuild build;
 	sd_buildinit(&build);
 	rc = sd_buildbegin(&build, r,
-	                   i->conf->node_page_checksum,
-	                   i->conf->compression,
-	                   i->conf->compression_key);
+	                   i->scheme->node_page_checksum,
+	                   i->scheme->compression,
+	                   i->scheme->compression_key);
 	if (srunlikely(rc == -1)) {
 		sd_indexfree(&index, r);
 		sd_buildfree(&build, r);
@@ -75,7 +75,7 @@ sinode *si_bootstrap(si *i, sr *r, uint32_t parent)
 	}
 	sd_buildcommit(&build, r);
 	sd_indexcommit(&index, r, &id);
-	rc = si_nodecreate(n, r, i->conf, &id, &index, &build);
+	rc = si_nodecreate(n, r, i->scheme, &id, &index, &build);
 	sd_buildfree(&build, r);
 	if (srunlikely(rc == -1)) {
 		si_nodefree(n, r, 1);
@@ -87,10 +87,15 @@ sinode *si_bootstrap(si *i, sr *r, uint32_t parent)
 static inline int
 si_deploy(si *i, sr *r)
 {
-	int rc = sr_filemkdir(i->conf->path);
+	int rc = sr_filemkdir(i->scheme->path);
 	if (srunlikely(rc == -1)) {
 		sr_malfunction(r->e, "directory '%s' create error: %s",
-		               i->conf->path, strerror(errno));
+		               i->scheme->path, strerror(errno));
+		return -1;
+	}
+	rc = si_schemedeploy(i->scheme, r);
+	if (srunlikely(rc == -1)) {
+		sr_malfunction_set(r->e);
 		return -1;
 	}
 	sinode *n = si_bootstrap(i, r, 0);
@@ -100,7 +105,7 @@ si_deploy(si *i, sr *r)
 	             si_nodefree(n, r, 0);
 	             sr_malfunction(r->e, "%s", "error injection");
 	             return -1);
-	rc = si_nodecomplete(n, r, i->conf);
+	rc = si_nodecomplete(n, r, i->scheme);
 	if (srunlikely(rc == -1)) {
 		si_nodefree(n, r, 1);
 		return -1;
@@ -156,10 +161,10 @@ si_process(char *name, uint32_t *nsn, uint32_t *parent)
 static inline int
 si_trackdir(sitrack *track, sr *r, si *i)
 {
-	DIR *dir = opendir(i->conf->path);
+	DIR *dir = opendir(i->scheme->path);
 	if (srunlikely(dir == NULL)) {
 		sr_malfunction(r->e, "directory '%s' open error: %s",
-		               i->conf->path, strerror(errno));
+		               i->scheme->path, strerror(errno));
 		return -1;
 	}
 	struct dirent *de;
@@ -193,7 +198,7 @@ si_trackdir(sitrack *track, sr *r, si *i)
 			head->recover |= rc;
 			/* remove any incomplete file made during compaction */
 			if (rc == SI_RDB_DBI) {
-				sr_pathAB(&path, i->conf->path, id_parent, id, ".db.incomplete");
+				sr_pathAB(&path, i->scheme->path, id_parent, id, ".db.incomplete");
 				rc = sr_fileunlink(path.path);
 				if (srunlikely(rc == -1)) {
 					sr_malfunction(r->e, "db file '%s' unlink error: %s",
@@ -208,7 +213,7 @@ si_trackdir(sitrack *track, sr *r, si *i)
 			if (srunlikely(node == NULL))
 				goto error;
 			node->recover = SI_RDB_DBSEAL;
-			sr_pathAB(&path, i->conf->path, id_parent, id, ".db.seal");
+			sr_pathAB(&path, i->scheme->path, id_parent, id, ".db.seal");
 			rc = si_nodeopen(node, r, &path);
 			if (srunlikely(rc == -1)) {
 				si_nodefree(node, r, 0);
@@ -226,7 +231,7 @@ si_trackdir(sitrack *track, sr *r, si *i)
 		if (srunlikely(node == NULL))
 			goto error;
 		node->recover = SI_RDB;
-		sr_pathA(&path, i->conf->path, id, ".db");
+		sr_pathA(&path, i->scheme->path, id, ".db");
 		rc = si_nodeopen(node, r, &path);
 		if (srunlikely(rc == -1)) {
 			si_nodefree(node, r, 0);
@@ -243,7 +248,7 @@ si_trackdir(sitrack *track, sr *r, si *i)
 			 * incomplete compaction. */
 			if (! (head->recover & SI_RDB_UNDEF)) {
 				sr_malfunction(r->e, "corrupted database repository: %s",
-				               i->conf->path);
+				               i->scheme->path);
 				goto error;
 			}
 			si_trackreplace(track, head, node);
@@ -294,7 +299,7 @@ si_trackvalidate(sitrack *track, srbuf *buf, sr *r, si *i)
 			}
 			if (! (n->recover & SI_RDB_REMOVE)) {
 				/* complete node */
-				int rc = si_nodecomplete(n, r, i->conf);
+				int rc = si_nodecomplete(n, r, i->scheme);
 				if (srunlikely(rc == -1))
 					return -1;
 				n->recover = SI_RDB;
@@ -304,7 +309,7 @@ si_trackvalidate(sitrack *track, srbuf *buf, sr *r, si *i)
 		default:
 			/* corrupted states */
 			return sr_malfunction(r->e, "corrupted database repository: %s",
-			                      i->conf->path);
+			                      i->scheme->path);
 		}
 		p = sr_rbprev(&track->i, p);
 	}
@@ -349,10 +354,10 @@ static inline int
 si_recoverdrop(si *i, sr *r)
 {
 	char path[1024];
-	snprintf(path, sizeof(path), "%s/drop", i->conf->path);
+	snprintf(path, sizeof(path), "%s/drop", i->scheme->path);
 	if (sr_fileexists(path)) {
 		sr_malfunction(r->e, "attempt to recover a dropped database: %s:",
-		               i->conf->path);
+		               i->scheme->path);
 		return -1;
 	}
 	return 0;
@@ -373,7 +378,7 @@ si_recoverindex(si *i, sr *r)
 		goto error;
 	if (srunlikely(track.count == 0)) {
 		sr_malfunction(r->e, "corrupted database repository: %s",
-		               i->conf->path);
+		               i->scheme->path);
 		goto error;
 	}
 	rc = si_trackvalidate(&track, &buf, r, i);
@@ -397,12 +402,19 @@ error:
 
 int si_recover(si *i, sr *r)
 {
-	int exist = sr_fileexists(i->conf->path);
+	int exist = sr_fileexists(i->scheme->path);
 	if (exist == 0)
 		return si_deploy(i, r);
-	if (i->conf->path_fail_on_exists) {
-		sr_error(r->e, "directory '%s' exists.", i->conf->path);
+	if (i->scheme->path_fail_on_exists) {
+		sr_error(r->e, "directory '%s' exists.", i->scheme->path);
 		return -1;
 	}
+	int rc = si_schemerecover(i->scheme, r);
+	if (srunlikely(rc == -1))
+		return -1;
+	r->scheme = &i->scheme->scheme;
+	r->compression = i->scheme->compression_if;
+	r->fmt = i->scheme->fmt;
+	r->fmt_storage = i->scheme->fmt_storage;
 	return si_recoverindex(i, r);
 }

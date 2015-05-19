@@ -9,7 +9,7 @@
  * BSD License
 */
 
-#include <si_conf.h>
+#include <si_scheme.h>
 #include <si_zone.h>
 #include <si_branch.h>
 #include <si_node.h>

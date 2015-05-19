@@ -26,6 +26,15 @@ int sr_fileexists(char *path)
 	return rc == 0;
 }
 
+ssize_t sr_filesize(char *path)
+{
+	struct stat st;
+	int rc = lstat(path, &st);
+	if (srunlikely(rc == -1))
+		return -1;
+	return st.st_size;
+}
+
 int sr_filemkdir(char *path)
 {
 	return mkdir(path, 0750);

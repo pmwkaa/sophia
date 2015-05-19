@@ -78,7 +78,7 @@ so_vset(soobj *obj, va_list args)
 	assert(v->parent != NULL);
 	/* set keypart */
 	sodb *db = (sodb*)v->parent;
-	srkey *part = sr_schemefind(&db->ctl.scheme, name);
+	srkey *part = sr_schemefind(&db->scheme.scheme, name);
 	if (srunlikely(part == NULL))
 		return -1;
 	assert(part->pos < (int)(sizeof(v->keyv) / sizeof(srfmtv)));
@@ -186,7 +186,7 @@ so_vget(soobj *obj, va_list args)
 	}
 	/* match key-part */
 	sodb *db = (sodb*)v->parent;
-	srkey *part = sr_schemefind(&db->ctl.scheme, name);
+	srkey *part = sr_schemefind(&db->scheme.scheme, name);
 	if (srunlikely(part == NULL))
 		return NULL;
 	/* database result object */

@@ -14,7 +14,7 @@
 
 int si_init(si *i, sr *r, srquota *q)
 {
-	int rc = si_plannerinit(&i->p, r->a);
+	int rc = si_plannerinit(&i->p, r->a, i);
 	if (srunlikely(rc == -1))
 		return -1;
 	sr_bufinit(&i->readbuf);
@@ -22,17 +22,18 @@ int si_init(si *i, sr *r, srquota *q)
 	sr_mutexinit(&i->lock);
 	sr_condinit(&i->cond);
 	i->quota       = q;
-	i->conf        = NULL;
+	i->scheme      = NULL;
 	i->update_time = 0;
 	i->read_disk   = 0;
 	i->read_cache  = 0;
+	i->backup      = 0;
 	i->destroyed   = 0;
 	return 0;
 }
 
-int si_open(si *i, sr *r, siconf *conf)
+int si_open(si *i, sr *r, sischeme *scheme)
 {
-	i->conf = conf;
+	i->scheme = scheme;
 	return si_recover(i, r);
 }
 
@@ -110,6 +111,7 @@ int si_execute(si *i, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 		rc = si_compact(i, r, c, plan, vlsn);
 		break;
 	case SI_BACKUP:
+	case SI_BACKUPEND:
 		rc = si_backup(i, r, c, plan);
 		break;
 	case SI_SHUTDOWN:

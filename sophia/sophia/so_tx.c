@@ -24,7 +24,7 @@ so_querywrite(sorequest *r)
 
 	/* log write */
 	svlogv lv;
-	lv.id = db->ctl.id;
+	lv.id = db->scheme.id;
 	lv.next = 0;
 	lv.v = r->arg;
 	svlog log;

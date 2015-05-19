@@ -23,5 +23,7 @@
 #include <sd_commit.h>
 #include <sd_iter.h>
 #include <sd_recover.h>
+#include <sd_scheme.h>
+#include <sd_schemeiter.h>
 
 #endif

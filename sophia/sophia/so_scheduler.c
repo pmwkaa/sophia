@@ -154,7 +154,7 @@ so_backupstart(soscheduler *s)
 		sodb *db = s->i[i];
 		snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete/%s",
 		         e->ctl.backup_path, s->backup_bsn,
-		         db->ctl.name);
+		         db->scheme.name);
 		rc = sr_filemkdir(path);
 		if (srunlikely(rc == -1)) {
 			sr_error(&e->error, "backup directory '%s' create error: %s",
@@ -765,6 +765,7 @@ so_complete(soscheduler *s, sotask *t)
 		s->workers_branch--;
 		break;
 	case SI_BACKUP:
+	case SI_BACKUPEND:
 		s->workers_backup--;
 		break;
 	case SI_GC:
@@ -810,7 +811,8 @@ int so_scheduler(soscheduler *s, soworker *w)
 	if (job) {
 		rc = so_execute(&task, w);
 		if (srunlikely(rc == -1)) {
-			if (task.plan.plan != SI_BACKUP) {
+			if (task.plan.plan != SI_BACKUP &&
+			    task.plan.plan != SI_BACKUPEND) {
 				so_dbmalfunction(task.db);
 				goto error;
 			}

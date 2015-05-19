@@ -31,10 +31,10 @@ si_branchcreate(si *index, sr *r, sdc *c, sinode *parent, svindex *vindex, uint6
 	sdmergeconf mergeconf = {
 		.size_stream     = UINT32_MAX,
 		.size_node       = UINT64_MAX,
-		.size_page       = index->conf->node_page_size,
-		.checksum        = index->conf->node_page_checksum,
-		.compression     = index->conf->compression,
-		.compression_key = index->conf->compression_key,
+		.size_page       = index->scheme->node_page_size,
+		.checksum        = index->scheme->node_page_checksum,
+		.compression     = index->scheme->compression,
+		.compression_key = index->scheme->compression_key,
 		.offset          = parent->file.size,
 		.vlsn            = vlsn,
 		.save_delete     = 1
@@ -74,7 +74,7 @@ si_branchcreate(si *index, sr *r, sdc *c, sinode *parent, svindex *vindex, uint6
 	             si_branchfree(branch, r);
 	             return NULL);
 
-	if (index->conf->sync) {
+	if (index->scheme->sync) {
 		rc = si_nodesync(parent, r);
 		if (srunlikely(rc == -1)) {
 			si_branchfree(branch, r);
@@ -179,7 +179,7 @@ int si_compact(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 		size_stream += sd_indextotal(&b->index);
 		sr_iterinit(sd_iter, &s->src, r);
 		sr_iteropen(sd_iter, &s->src, &b->index, c->c.s, 0,
-		            index->conf->compression, &cbuf->a, &cbuf->b);
+		            index->scheme->compression, &cbuf->a, &cbuf->b);
 		cbuf = cbuf->next;
 		b = b->next;
 	}

@@ -14,12 +14,6 @@ typedef struct srscheme srscheme;
 
 typedef int (*srcmpf)(char*, int, char*, int, void*);
 
-typedef enum {
-	SR_U32,
-	SR_U64,
-	SR_STRING
-} srtype;
-
 struct srkey {
 	char *name;
 	char *path;
@@ -150,6 +144,9 @@ sr_schemeof(srscheme *s, int pos)
 
 int sr_keysetname(srkey*, sra*, char*);
 int sr_keyset(srkey*, sra*, char*);
+
+int sr_schemesave(srscheme*, sra*, srbuf*);
+int sr_schemeload(srscheme*, sra*, char*, int);
 
 static inline int
 sr_compare(srscheme *s, char *a, int asize, char *b, int bsize) {

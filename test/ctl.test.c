@@ -152,6 +152,7 @@ ctl_validation(stc *cx)
 	t( sp_set(c, "db", "test") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(db) == 0 );
 	t( sp_set(c, "db.test.path", "path") == -1 );
 	t( sp_set(c, "db.test.index.cmp", NULL, NULL) == -1 );
@@ -179,6 +180,7 @@ ctl_db(stc *cx)
 	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "db", "test") == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(env) == 0 );
 
 	void *db = sp_get(c, "db.test");
@@ -211,6 +213,7 @@ ctl_cursor(stc *cx)
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.index", "key_b") == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(env) == 0 );
 	t( sp_set(c, "snapshot", "test_snapshot0") == 0 );
 	void *o;

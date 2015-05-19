@@ -24,6 +24,7 @@ ddl_precreate(stc *cx srunused)
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -44,6 +45,7 @@ ddl_create_online0(stc *cx srunused)
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(db) == 0 );
@@ -64,6 +66,7 @@ ddl_create_online1(stc *cx srunused)
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(db) == 0 );
@@ -90,6 +93,7 @@ ddl_create_online2(stc *cx srunused)
 	t( sp_set(c, "db", "s0") == 0 );
 	t( sp_set(c, "db.s0.path", "dir0") == 0 );
 	t( sp_set(c, "db.s0.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.s0.sync", "0") == 0 );
 	void *s0 = sp_get(c, "db.s0");
 	t( s0 != NULL );
 	t( sp_open(s0) == 0 );
@@ -110,6 +114,7 @@ ddl_create_online2(stc *cx srunused)
 	t( sp_set(c, "db", "s1") == 0 );
 	t( sp_set(c, "db.s1.path", "dir1") == 0 );
 	t( sp_set(c, "db.s1.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.s1.sync", "0") == 0 );
 	void *s1 = sp_get(c, "db.s1");
 	t( s0 != NULL );
 	t( sp_open(s1) == 0 );
@@ -155,6 +160,7 @@ ddl_open_online0(stc *cx srunused)
 	t( sp_set(c, "db", "s0") == 0 );
 	t( sp_set(c, "db.s0.path", "dir0") == 0 );
 	t( sp_set(c, "db.s0.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.s0.sync", "0") == 0 );
 	void *s0 = sp_get(c, "db.s0");
 	t( s0 != NULL );
 	t( sp_open(s0) == 0 );
@@ -180,6 +186,7 @@ ddl_open_online0(stc *cx srunused)
 	t( sp_set(c, "db", "s0") == 0 );
 	t( sp_set(c, "db.s0.path", "dir0") == 0 );
 	t( sp_set(c, "db.s0.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.s0.sync", "0") == 0 );
 	/* ban open existing databases */
 	s0 = sp_get(c, "db.s0");
 	t( s0 != NULL );

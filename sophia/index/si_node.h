@@ -40,14 +40,14 @@ struct sinode {
 
 sinode *si_nodenew(sr*);
 int si_nodeopen(sinode*, sr*, srpath*);
-int si_nodecreate(sinode*, sr*, siconf*, sdid*, sdindex*, sdbuild*);
+int si_nodecreate(sinode*, sr*, sischeme*, sdid*, sdindex*, sdbuild*);
 int si_nodefree(sinode*, sr*, int);
 int si_nodegc_index(sr*, svindex*);
 
 int si_nodesync(sinode*, sr*);
 int si_nodecmp(sinode*, void*, int, srscheme*);
-int si_nodeseal(sinode*, sr*, siconf*);
-int si_nodecomplete(sinode*, sr*, siconf*);
+int si_nodeseal(sinode*, sr*, sischeme*);
+int si_nodecomplete(sinode*, sr*, sischeme*);
 
 static inline void
 si_nodelock(sinode *node) {

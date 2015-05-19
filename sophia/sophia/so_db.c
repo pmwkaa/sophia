@@ -20,22 +20,22 @@ static void*
 so_dbctl_get(soobj *obj, va_list args)
 {
 	sodbctl *ctl = (sodbctl*)obj;
+	sodb *db = ctl->parent;
 	src c;
 	memset(&c, 0, sizeof(c));
 	char *name = va_arg(args, char*);
 	if (strcmp(name, "name") == 0) {
 		c.name  = "name";
 		c.flags = SR_CSZREF|SR_CRO;
-		c.value = &ctl->name;
+		c.value = &db->scheme.name;
 	} else
 	if (strcmp(name, "id") == 0) {
 		c.name  = "id";
 		c.flags = SR_CU32|SR_CRO;
-		c.value = &ctl->id;
+		c.value = &db->scheme.id;
 	} else {
 		return NULL;
 	}
-	sodb *db = ctl->parent;
 	return so_ctlreturn(&c, so_of(&db->o));
 }
 
@@ -64,136 +64,132 @@ static soobjif sodbctlif =
 };
 
 static int
-so_dbctl_free(sodbctl *c)
+so_dbctl_init(sodbctl *c, void *db)
 {
-	sodb *o = c->parent;
-	so *e = so_of(&o->o);
-	if (c->name) {
-		sr_free(&e->a, c->name);
-		c->name = NULL;
-	}
-	if (c->path) {
-		sr_free(&e->a, c->path);
-		c->path = NULL;
-	}
-	if (c->fmtsz) {
-		sr_free(&e->a, c->fmtsz);
-		c->fmtsz = NULL;
-	}
-	if (c->compression) {
-		sr_free(&e->a, c->compression);
-		c->compression = NULL;
-	}
-	sr_schemefree(&c->scheme, &e->a);
-	return 0;
-}
-
-static int
-so_dbctl_init(sodbctl *c, char *name, void *db)
-{
-	memset(c, 0, sizeof(*c));
 	sodb *o = db;
+	/* init database ctl object */
+	memset(c, 0, sizeof(*c));
 	so *e = so_of(&o->o);
 	so_objinit(&c->o, SODBCTL, &sodbctlif, &e->o);
-	c->name = sr_strdup(&e->a, name);
-	if (srunlikely(c->name == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
-		return -1;
-	}
+	sr_triggerinit(&c->on_complete);
 	c->parent    = db;
 	c->created   = 0;
 	c->scheduled = 0;
 	c->dropped   = 0;
-	c->sync      = 1;
-	c->compression_key = 0;
-	c->compression_if = NULL;
-	c->compression = sr_strdup(&e->a, "none");
-	if (srunlikely(c->compression == NULL)) {
-		sr_free(&e->a, c->name);
-		c->name = NULL;
-		sr_error(&e->error, "%s", "memory allocation failed");
-		return -1;
-	}
-	sr_triggerinit(&c->on_complete);
-	/* init single key part as string */
-	int rc;
-	sr_schemeinit(&c->scheme);
-	srkey *part = sr_schemeadd(&c->scheme, &e->a);
-	if (srunlikely(part == NULL)) {
-		so_dbctl_free(c);
-		return -1;
-	}
-	rc = sr_keysetname(part, &e->a, "key");
-	if (srunlikely(rc == -1)) {
-		so_dbctl_free(c);
-		return -1;
-	}
-	rc = sr_keyset(part, &e->a, "string");
-	if (srunlikely(rc == -1)) {
-		so_dbctl_free(c);
-		return -1;
-	}
-	c->fmt_storage = SR_FS_RAW;
-	c->fmt = SR_FKV;
-	c->fmtsz = sr_strdup(&e->a, "kv");
-	if (srunlikely(c->fmtsz == NULL)) {
-		so_dbctl_free(c);
-		return -1;
-	}
 	return 0;
 }
 
 static int
-so_dbctl_validate(sodbctl *c)
+so_dbscheme_init(sodb *db, char *name)
 {
-	sodb *o = c->parent;
+	so *e = so_of(&db->o);
+	/* prepare index scheme */
+	sischeme *scheme = &db->scheme;
+	scheme->name = sr_strdup(&e->a, name);
+	if (srunlikely(scheme->name == NULL))
+		goto e0;
+	scheme->id              = sr_seq(&e->seq, SR_DSNNEXT);
+	scheme->sync            = 1;
+	scheme->compression     = 0;
+	scheme->compression_key = 0;
+	scheme->compression_if  = &sr_nonefilter;
+	scheme->fmt             = SR_FKV;
+	scheme->fmt_storage     = SR_FS_RAW;
+	scheme->compression_sz = sr_strdup(&e->a, scheme->compression_if->name);
+	if (srunlikely(scheme->compression_sz == NULL))
+		goto e1;
+	scheme->fmt_sz = sr_strdup(&e->a, "kv");
+	if (srunlikely(scheme->fmt_sz == NULL))
+		goto e1;
+	/* init single key part as string */
+	int rc;
+	sr_schemeinit(&scheme->scheme);
+	srkey *part = sr_schemeadd(&scheme->scheme, &e->a);
+	if (srunlikely(part == NULL))
+		goto e1;
+	rc = sr_keysetname(part, &e->a, "key");
+	if (srunlikely(rc == -1))
+		goto e1;
+	rc = sr_keyset(part, &e->a, "string");
+	if (srunlikely(rc == -1))
+		goto e1;
+
+	return 0;
+e1:
+	si_schemefree(&db->scheme, &db->r);
+e0:
+	sr_error(&e->error, "%s", "memory allocation failed");
+	return -1;
+}
+
+static int
+so_dbscheme_set(sodb *o)
+{
 	so *e = so_of(&o->o);
+	sischeme *s = &o->scheme;
+
 	/* format */
-	if (strcmp(c->fmtsz, "kv") == 0) {
-		c->fmt = SR_FKV;
+	if (strcmp(s->fmt_sz, "kv") == 0) {
+		s->fmt = SR_FKV;
 	} else
-	if (strcmp(c->fmtsz, "document") == 0) {
-		c->fmt = SR_FDOCUMENT;
+	if (strcmp(s->fmt_sz, "document") == 0) {
+		s->fmt = SR_FDOCUMENT;
 	} else {
-		sr_error(&e->error, "unknown format type '%s'", c->fmtsz);
+		sr_error(&e->error, "unknown format type '%s'", s->fmt_sz);
 		return -1;
 	}
 	/* compression_key */
-	if (c->compression_key) {
-		if (c->fmt == SR_FDOCUMENT) {
+	if (s->compression_key) {
+		if (s->fmt == SR_FDOCUMENT) {
 			sr_error(&e->error, "%s", "incompatible options: format=document "
 			         "and comppression_key=1");
 			return -1;
 		}
-		c->fmt_storage = SR_FS_KEYVALUE;
+		s->fmt_storage = SR_FS_KEYVALUE;
 	}
 	/* compression */
-	if (strcmp(c->compression, "none") == 0) {
-		c->compression_if = NULL;
+	if (strcmp(s->compression_sz, "none") == 0) {
+		s->compression_if = &sr_nonefilter;
 	} else
-	if (strcmp(c->compression, "zstd") == 0) {
-		c->compression_if = &sr_zstdfilter;
+	if (strcmp(s->compression_sz, "zstd") == 0) {
+		s->compression_if = &sr_zstdfilter;
 	} else
-	if (strcmp(c->compression, "lz4") == 0) {
-		c->compression_if = &sr_lz4filter;
+	if (strcmp(s->compression_sz, "lz4") == 0) {
+		s->compression_if = &sr_lz4filter;
 	} else {
-		sr_error(&e->error, "unknown compression type '%s'", c->compression);
+		sr_error(&e->error, "unknown compression type '%s'",
+		         s->compression_sz);
 		return -1;
 	}
+	s->compression = s->compression_if != &sr_nonefilter;
 	/* path */
-	if (c->path == NULL) {
+	if (s->path == NULL) {
 		char path[1024];
-		snprintf(path, sizeof(path), "%s/%s", e->ctl.path, c->name);
-		c->path = sr_strdup(&e->a, path);
-		if (srunlikely(c->path == NULL)) {
+		snprintf(path, sizeof(path), "%s/%s", e->ctl.path, s->name);
+		s->path = sr_strdup(&e->a, path);
+		if (srunlikely(s->path == NULL)) {
 			sr_error(&e->error, "%s", "memory allocation failed");
 			return -1;
 		}
 	}
-	o->r.scheme = &c->scheme;
-	o->r.fmt = c->fmt;
-	o->r.fmt_storage = c->fmt_storage;
-	o->r.compression = c->compression_if;
+	/* backup path */
+	s->path_backup = e->ctl.backup_path;
+	if (e->ctl.backup_path) {
+		s->path_backup = sr_strdup(&e->a, e->ctl.backup_path);
+		if (srunlikely(s->path_backup == NULL)) {
+			sr_error(&e->error, "%s", "memory allocation failed");
+			return -1;
+		}
+	}
+	/* compaction */
+	s->node_size          = e->ctl.node_size;
+	s->node_page_size     = e->ctl.page_size;
+	s->node_page_checksum = e->ctl.page_checksum;
+
+	o->r.scheme = &s->scheme;
+	o->r.fmt = s->fmt;
+	o->r.fmt_storage = s->fmt_storage;
+	o->r.compression = s->compression_if;
 	return 0;
 }
 
@@ -282,10 +278,10 @@ so_dbopen(soobj *obj, va_list args srunused)
 		goto online;
 	if (status != SO_OFFLINE)
 		return -1;
-	int rc = so_dbctl_validate(&o->ctl);
+	int rc = so_dbscheme_set(o);
 	if (srunlikely(rc == -1))
 		return -1;
-	sx_indexset(&o->coindex, o->ctl.id, o->r.scheme);
+	sx_indexset(&o->coindex, o->scheme.id, o->r.scheme);
 	rc = so_recoverbegin(o);
 	if (srunlikely(rc == -1))
 		return -1;
@@ -356,7 +352,7 @@ shutdown:;
 	rc = si_close(&o->index, &o->r);
 	if (srunlikely(rc == -1))
 		rcret = -1;
-	so_dbctl_free(&o->ctl);
+	si_schemefree(&o->scheme, &o->r);
 	sd_cfree(&o->dc, &o->r);
 	so_statusfree(&o->status);
 	sr_spinlockfree(&o->reflock);
@@ -463,8 +459,13 @@ soobj *so_dbnew(so *e, char *name)
 	so_statusinit(&o->status);
 	so_statusset(&o->status, SO_OFFLINE);
 	o->r        = e->r;
-	o->r.scheme = &o->ctl.scheme;
-	int rc = so_dbctl_init(&o->ctl, name, o);
+	o->r.scheme = &o->scheme.scheme;
+	int rc = so_dbctl_init(&o->ctl, o);
+	if (srunlikely(rc == -1)) {
+		sr_free(&e->a_db, o);
+		return NULL;
+	}
+	rc = so_dbscheme_init(o, name);
 	if (srunlikely(rc == -1)) {
 		sr_free(&e->a_db, o);
 		return NULL;
@@ -473,10 +474,9 @@ soobj *so_dbnew(so *e, char *name)
 	rc = si_init(&o->index, &o->r, &e->quota);
 	if (srunlikely(rc == -1)) {
 		sr_free(&e->a_db, o);
-		so_dbctl_free(&o->ctl);
+		si_schemefree(&o->scheme, &o->r);
 		return NULL;
 	}
-	o->ctl.id = sr_seq(&e->seq, SR_DSNNEXT);
 	sx_indexinit(&o->coindex, o);
 	sr_spinlockinit(&o->reflock);
 	o->ref_be = 0;
@@ -492,7 +492,7 @@ soobj *so_dbmatch(so *e, char *name)
 	srlist *i;
 	sr_listforeach(&e->db.list, i) {
 		sodb *db = (sodb*)srcast(i, soobj, link);
-		if (strcmp(db->ctl.name, name) == 0)
+		if (strcmp(db->scheme.name, name) == 0)
 			return &db->o;
 	}
 	return NULL;
@@ -503,7 +503,7 @@ soobj *so_dbmatch_id(so *e, uint32_t id)
 	srlist *i;
 	sr_listforeach(&e->db.list, i) {
 		sodb *db = (sodb*)srcast(i, soobj, link);
-		if (db->ctl.id == id)
+		if (db->scheme.id == id)
 			return &db->o;
 	}
 	return NULL;
@@ -615,7 +615,7 @@ svv *so_dbv(sodb *db, sov *o, int search)
 	}
 	/* create object using current format, supplied
 	 * key-chain and value */
-	if (srunlikely(o->keyc != db->ctl.scheme.count)) {
+	if (srunlikely(o->keyc != db->scheme.scheme.count)) {
 		sr_error(&e->error, "%s", "bad object key");
 		return NULL;
 	}

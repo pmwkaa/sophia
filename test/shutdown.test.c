@@ -27,6 +27,7 @@ shutdown_destroy(stc *cx srunused)
 	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(db) == 0 );
 
 	sp_destroy(db); /* unref */
@@ -56,6 +57,7 @@ shutdown_transaction0(stc *cx srunused)
 	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(db) == 0 );
 
 	void *txn = sp_begin(env);
@@ -94,6 +96,7 @@ shutdown_transaction1(stc *cx srunused)
 	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(db) == 0 );
 
 	sp_destroy(db); /* unref */
@@ -125,6 +128,7 @@ shutdown_transaction2(stc *cx srunused)
 	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(db) == 0 );
 
 	void *txn = sp_begin(env);
@@ -154,6 +158,7 @@ shutdown_transaction3(stc *cx srunused)
 	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(db) == 0 );
 
 	void *b = sp_begin(env);
@@ -199,6 +204,7 @@ shutdown_transaction4(stc *cx srunused)
 	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(db) == 0 );
 
 	sp_destroy(db); /* unref */
@@ -235,6 +241,7 @@ shutdown_transaction5(stc *cx srunused)
 	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(db) == 0 );
 
 	void *a = sp_begin(env);
@@ -274,6 +281,7 @@ shutdown_transaction6(stc *cx srunused)
 	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(db) == 0 );
 
 	void *a = sp_begin(env);
@@ -314,6 +322,7 @@ shutdown_cursor0(stc *cx srunused)
 	t( sp_open(env) == 0 );
 
 	t( sp_set(c, "db", "a") == 0 );
+	t( sp_set(c, "db.a.sync", "0") == 0 );
 	void *dba = sp_get(c, "db.a");
 
 	void *o = sp_object(dba);
@@ -325,6 +334,7 @@ shutdown_cursor0(stc *cx srunused)
 	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(db) == 0 );
 
 	o = sp_object(dba);
@@ -368,6 +378,7 @@ shutdown_cursor1(stc *cx srunused)
 	t( sp_open(env) == 0 );
 
 	t( sp_set(c, "db", "a") == 0 );
+	t( sp_set(c, "db.a.sync", "0") == 0 );
 	void *dba = sp_get(c, "db.a");
 	t( sp_open(dba) == 0 );
 
@@ -380,6 +391,7 @@ shutdown_cursor1(stc *cx srunused)
 	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(db) == 0 );
 
 	o = sp_object(dba);
@@ -429,10 +441,12 @@ shutdown_snapshot0(stc *cx srunused)
 	t( a != NULL );
 
 	t( sp_set(c, "db", "test") == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(db) == 0 );
 
 	t( sp_set(c, "snapshot", "b") == 0 );

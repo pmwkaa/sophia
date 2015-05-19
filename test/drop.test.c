@@ -25,6 +25,7 @@ drop_test(stc *cx srunused)
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(db) == 0 );
@@ -63,6 +64,7 @@ drop_test_reopen(stc *cx srunused)
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(db) == 0 );
@@ -81,6 +83,7 @@ drop_test_reopen(stc *cx srunused)
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(env) == -1 ); /* database dropped */
 	t( sp_destroy(env) == 0 );
 }

@@ -114,7 +114,7 @@ si_qread(srbuf *buf, srbuf *bufxf, sr *r, si *i, sinode *n, sibranch *b,
 	uint64_t offset =
 		b->index.h->offset + sd_indexsize(b->index.h) +
 		ref->offset;
-	if (i->conf->compression)
+	if (i->scheme->compression)
 	{
 		/* read compressed page */
 		sr_bufreset(&i->readbuf);

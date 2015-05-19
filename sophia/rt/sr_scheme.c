@@ -182,3 +182,74 @@ int sr_keyset(srkey *part, sra *a, char *path)
 	part->cmpraw = cmpraw;
 	return 0;
 }
+
+int sr_schemesave(srscheme *s, sra *a, srbuf *buf)
+{
+	/* count */
+	uint32_t v = s->count;
+	int rc = sr_bufadd(buf, a, &v, sizeof(uint32_t));
+	if (srunlikely(rc == -1))
+		return -1;
+	int i = 0;
+	while (i < s->count) {
+		srkey *key = &s->parts[i];
+		/* name */
+		v = strlen(key->name) + 1;
+		rc = sr_bufensure(buf, a, sizeof(uint32_t) + v);
+		if (srunlikely(rc == -1))
+			goto error;
+		memcpy(buf->p, &v, sizeof(v));
+		sr_bufadvance(buf, sizeof(uint32_t));
+		memcpy(buf->p, key->name, v);
+		sr_bufadvance(buf, v);
+		/* path */
+		v = strlen(key->path) + 1;
+		rc = sr_bufensure(buf, a, sizeof(uint32_t) + v);
+		if (srunlikely(rc == -1))
+			goto error;
+		memcpy(buf->p, &v, sizeof(v));
+		sr_bufadvance(buf, sizeof(uint32_t));
+		memcpy(buf->p, key->path, v);
+		sr_bufadvance(buf, v);
+		i++;
+	}
+	return 0;
+error:
+	sr_buffree(buf, a);
+	return -1;
+}
+
+int sr_schemeload(srscheme *s, sra *a, char *buf, int size srunused)
+{
+	/* count */
+	char *p = buf;
+	uint32_t v = *(uint32_t*)p;
+	p += sizeof(uint32_t);
+	int count = v;
+	int i = 0;
+	int rc;
+	while (i < count) {
+		srkey *key = sr_schemeadd(s, a);
+		if (srunlikely(key == NULL))
+			goto error;
+		/* name */
+		v = *(uint32_t*)p;
+		p += sizeof(uint32_t);
+		rc = sr_keysetname(key, a, p);
+		if (srunlikely(rc == -1))
+			goto error;
+		p += v;
+		/* path */
+		v = *(uint32_t*)p;
+		p += sizeof(uint32_t);
+		rc = sr_keyset(key, a, p);
+		if (srunlikely(rc == -1))
+			goto error;
+		p += v;
+		i++;
+	}
+	return 0;
+error:
+	sr_schemefree(s, a);
+	return -1;
+}

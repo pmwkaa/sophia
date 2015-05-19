@@ -23,7 +23,7 @@ int si_planinit(siplan *p)
 	return 0;
 }
 
-int si_plannerinit(siplanner *p, sra *a)
+int si_plannerinit(siplanner *p, sra *a, void *i)
 {
 	int rc = sr_rqinit(&p->compact, a, 1, 20);
 	if (srunlikely(rc == -1))
@@ -34,6 +34,7 @@ int si_plannerinit(siplanner *p, sra *a)
 		sr_rqfree(&p->compact, a);
 		return -1;
 	}
+	p->i = i;
 	return 0;
 }
 
@@ -58,7 +59,8 @@ int si_plannertrace(siplan *p, srtrace *t)
 		break;
 	case SI_GC: plan = "gc";
 		break;
-	case SI_BACKUP: plan = "backup";
+	case SI_BACKUP:
+	case SI_BACKUPEND: plan = "backup";
 		break;
 	case SI_SHUTDOWN: plan = "database shutdown";
 		break;
@@ -130,9 +132,17 @@ si_plannerpeek_backup(siplanner *p, siplan *plan)
 			goto match;
 		}
 	}
-	if (rc_inprogress)
+	if (rc_inprogress) {
 		plan->explain = SI_ERETRY;
-	return rc_inprogress;
+		return 2;
+	}
+	si *index = p->i;
+	if (index->backup < plan->a) {
+		plan->plan = SI_BACKUPEND;
+		plan->node = 0;
+		return 1;
+	}
+	return 0;
 match:
 	si_nodelock(n);
 	plan->explain = SI_ENONE;

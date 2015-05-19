@@ -118,13 +118,13 @@ int si_nodeopen(sinode *n, sr *r, srpath *path)
 	return rc;
 }
 
-int si_nodecreate(sinode *n, sr *r, siconf *conf, sdid *id,
+int si_nodecreate(sinode *n, sr *r, sischeme *scheme, sdid *id,
                   sdindex *i,
                   sdbuild *build)
 {
 	si_branchset(&n->self, i);
 	srpath path;
-	sr_pathAB(&path, conf->path, id->parent, id->id, ".db.incomplete");
+	sr_pathAB(&path, scheme->path, id->parent, id->id, ".db.incomplete");
 	int rc = sr_filenew(&n->file, path.path);
 	if (srunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' create error: %s",
@@ -215,10 +215,10 @@ int si_nodecmp(sinode *n, void *key, int size, srscheme *s)
 	return 1;
 }
 
-int si_nodeseal(sinode *n, sr *r, siconf *conf)
+int si_nodeseal(sinode *n, sr *r, sischeme *scheme)
 {
 	srpath path;
-	sr_pathAB(&path, conf->path, n->self.id.parent,
+	sr_pathAB(&path, scheme->path, n->self.id.parent,
 	          n->self.id.id, ".db.seal");
 	int rc = sr_filerename(&n->file, path.path);
 	if (srunlikely(rc == -1)) {
@@ -228,10 +228,10 @@ int si_nodeseal(sinode *n, sr *r, siconf *conf)
 	return rc;
 }
 
-int si_nodecomplete(sinode *n, sr *r, siconf *conf)
+int si_nodecomplete(sinode *n, sr *r, sischeme *scheme)
 {
 	srpath path;
-	sr_pathA(&path, conf->path, n->self.id.id, ".db");
+	sr_pathA(&path, scheme->path, n->self.id.id, ".db");
 	int rc = sr_filerename(&n->file, path.path);
 	if (srunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' rename error: %s",
