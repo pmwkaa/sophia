@@ -245,7 +245,7 @@ so_ctlscheduler_checkpoint(src *c, srcstmt *s, va_list args)
 }
 
 static inline int
-so_ctlscheduler_checkpoint_on_complete(src *c, srcstmt *s, va_list args)
+so_ctlscheduler_on_event(src *c, srcstmt *s, va_list args)
 {
 	so *e = s->ptr;
 	if (s->op != SR_CSET)
@@ -256,11 +256,11 @@ so_ctlscheduler_checkpoint_on_complete(src *c, srcstmt *s, va_list args)
 	}
 	char *v   = va_arg(args, char*);
 	char *arg = va_arg(args, char*);
-	int rc = sr_triggerset(&e->ctl.checkpoint_on_complete, v);
+	int rc = sr_triggerset(&e->ctl.on_event, v);
 	if (srunlikely(rc == -1))
 		return -1;
 	if (arg) {
-		rc = sr_triggersetarg(&e->ctl.checkpoint_on_complete, arg);
+		rc = sr_triggersetarg(&e->ctl.on_event, arg);
 		if (srunlikely(rc == -1))
 			return -1;
 	}
@@ -291,16 +291,17 @@ so_ctlscheduler(so *e, soctlrt *rt, src **pc)
 	src *scheduler = *pc;
 	src *prev;
 	src *p = NULL;
-	sr_clink(&p, sr_c(pc, so_ctlv_offline,     "threads",                SR_CU32,        &e->ctl.threads));
-	sr_clink(&p, sr_c(pc, so_ctlv,             "zone",                   SR_CSZ|SR_CRO,  rt->zone));
-	sr_clink(&p, sr_c(pc, so_ctlv,             "checkpoint_active",      SR_CU32|SR_CRO, &rt->checkpoint_active));
-	sr_clink(&p, sr_c(pc, so_ctlv,             "checkpoint_lsn",         SR_CU64|SR_CRO, &rt->checkpoint_lsn));
-	sr_clink(&p, sr_c(pc, so_ctlv,             "checkpoint_lsn_last",    SR_CU64|SR_CRO, &rt->checkpoint_lsn_last));
-	sr_clink(&p, sr_c(pc, so_ctlscheduler_checkpoint_on_complete, "checkpoint_on_complete", SR_CVOID, NULL));
-	sr_clink(&p, sr_c(pc, so_ctlscheduler_checkpoint, "checkpoint",      SR_CVOID, NULL));
-	sr_clink(&p, sr_c(pc, so_ctlv,             "gc_active",              SR_CU32|SR_CRO, &rt->gc_active));
-	sr_clink(&p, sr_c(pc, so_ctlscheduler_gc,  "gc",                     SR_CVOID, NULL));
-	sr_clink(&p, sr_c(pc, so_ctlscheduler_run, "run",                    SR_CVOID, NULL));
+	sr_clink(&p, sr_c(pc, so_ctlv_offline,     "threads",             SR_CU32,        &e->ctl.threads));
+	sr_clink(&p, sr_c(pc, so_ctlv,             "zone",                SR_CSZ|SR_CRO,  rt->zone));
+	sr_clink(&p, sr_c(pc, so_ctlv,             "checkpoint_active",   SR_CU32|SR_CRO, &rt->checkpoint_active));
+	sr_clink(&p, sr_c(pc, so_ctlv,             "checkpoint_lsn",      SR_CU64|SR_CRO, &rt->checkpoint_lsn));
+	sr_clink(&p, sr_c(pc, so_ctlv,             "checkpoint_lsn_last", SR_CU64|SR_CRO, &rt->checkpoint_lsn_last));
+	sr_clink(&p, sr_c(pc, so_ctlscheduler_checkpoint, "checkpoint",   SR_CVOID,       NULL));
+	sr_clink(&p, sr_c(pc, so_ctlscheduler_on_event, "on_event",       SR_CVOID,       NULL));
+	sr_clink(&p, sr_c(pc, so_ctlv_offline,     "event_on_backup",     SR_CU32,        &e->ctl.event_on_backup));
+	sr_clink(&p, sr_c(pc, so_ctlv,             "gc_active",           SR_CU32|SR_CRO, &rt->gc_active));
+	sr_clink(&p, sr_c(pc, so_ctlscheduler_gc,  "gc",                  SR_CVOID,       NULL));
+	sr_clink(&p, sr_c(pc, so_ctlscheduler_run, "run",                 SR_CVOID,       NULL));
 	prev = p;
 	srlist *i;
 	sr_listforeach(&e->sched.workers.list, i) {
@@ -452,29 +453,6 @@ so_ctldb_cmpprefix(src *c, srcstmt *s, va_list args)
 			return -1;
 	}
 	sr_schemesetcmp_prefix(&db->scheme.scheme, cmp, arg);
-	return 0;
-}
-
-static inline int
-so_ctldb_on_complete(src *c, srcstmt *s, va_list args)
-{
-	if (s->op != SR_CSET)
-		return so_ctlv(c, s, args);
-	sodb *db = c->value;
-	if (srunlikely(so_statusactive(&db->status))) {
-		sr_error(s->r->e, "write to %s is offline-only", s->path);
-		return -1;
-	}
-	char *v   = va_arg(args, char*);
-	char *arg = va_arg(args, char*);
-	int rc = sr_triggerset(&db->ctl.on_complete, v);
-	if (srunlikely(rc == -1))
-		return -1;
-	if (arg) {
-		rc = sr_triggersetarg(&db->ctl.on_complete, arg);
-		if (srunlikely(rc == -1))
-			return -1;
-	}
 	return 0;
 }
 
@@ -638,7 +616,6 @@ so_ctldb(so *e, soctlrt *rt srunused, src **pc)
 		sr_clink(&p,          sr_c(pc, so_ctldb_branch,      "branch",          SR_CVOID,      o));
 		sr_clink(&p,          sr_c(pc, so_ctldb_compact,     "compact",         SR_CVOID,      o));
 		sr_clink(&p,          sr_c(pc, so_ctldb_lockdetect,  "lockdetect",      SR_CVOID,      NULL));
-		sr_clink(&p,          sr_c(pc, so_ctldb_on_complete, "on_complete",     SR_CVOID,      o));
 		sr_clink(&p,  sr_cptr(sr_c(pc, so_ctldb_index,       "index",           SR_CC,         index), o));
 		sr_clink(&prev, sr_cptr(sr_c(pc, so_ctldb_get, o->scheme.name, SR_CC, database), o));
 		if (db == NULL)
@@ -709,29 +686,6 @@ so_ctlsnapshot(so *e, soctlrt *rt srunused, src **pc)
 }
 
 static inline int
-so_ctlbackup_on_complete(src *c, srcstmt *s, va_list args)
-{
-	so *e = s->ptr;
-	if (s->op != SR_CSET)
-		return so_ctlv(c, s, args);
-	if (srunlikely(so_statusactive(&e->status))) {
-		sr_error(s->r->e, "write to %s is offline-only", s->path);
-		return -1;
-	}
-	char *v   = va_arg(args, char*);
-	char *arg = va_arg(args, char*);
-	int rc = sr_triggerset(&e->ctl.backup_on_complete, v);
-	if (srunlikely(rc == -1))
-		return -1;
-	if (arg) {
-		rc = sr_triggersetarg(&e->ctl.backup_on_complete, arg);
-		if (srunlikely(rc == -1))
-			return -1;
-	}
-	return 0;
-}
-
-static inline int
 so_ctlbackup_run(src *c, srcstmt *s, va_list args)
 {
 	if (s->op != SR_CSET)
@@ -748,7 +702,6 @@ so_ctlbackup(so *e, soctlrt *rt, src **pc)
 	src *p = NULL;
 	sr_clink(&p, sr_c(pc, so_ctlv_offline, "path", SR_CSZREF, &e->ctl.backup_path));
 	sr_clink(&p, sr_c(pc, so_ctlbackup_run, "run", SR_CVOID, NULL));
-	sr_clink(&p, sr_c(pc, so_ctlbackup_on_complete, "on_complete", SR_CVOID, NULL));
 	sr_clink(&p, sr_c(pc, so_ctlv, "active", SR_CU32|SR_CRO, &rt->backup_active));
 	sr_clink(&p, sr_c(pc, so_ctlv, "last", SR_CU32|SR_CRO, &rt->backup_last));
 	sr_clink(&p, sr_c(pc, so_ctlv, "last_complete", SR_CU32|SR_CRO, &rt->backup_last_complete));
@@ -928,8 +881,9 @@ static soobjif soctlif =
 	.destroy  = NULL,
 	.error    = NULL,
 	.set      = so_ctlset,
-	.get      = so_ctlget,
 	.del      = NULL,
+	.get      = so_ctlget,
+	.poll     = NULL,
 	.drop     = NULL,
 	.begin    = NULL,
 	.prepare  = NULL,
@@ -947,20 +901,22 @@ void so_ctlinit(soctl *c, void *e)
 	srkey *part = sr_schemeadd(&c->ctlscheme, &o->a);
 	sr_keysetname(part, &o->a, "key");
 	sr_keyset(part, &o->a, "string");
-	c->path              = NULL;
-	c->path_create       = 1;
-	c->memory_limit      = 0;
-	c->node_size         = 64 * 1024 * 1024;
-	c->page_size         = 64 * 1024;
-	c->page_checksum     = 1;
-	c->threads           = 6;
-	c->log_enable        = 1;
-	c->log_path          = NULL;
-	c->log_rotate_wm     = 500000;
-	c->log_sync          = 0;
-	c->log_rotate_sync   = 1;
-	c->two_phase_recover = 0;
-	c->commit_lsn        = 0;
+	c->path                = NULL;
+	c->path_create         = 1;
+	c->memory_limit        = 0;
+	c->node_size           = 64 * 1024 * 1024;
+	c->page_size           = 64 * 1024;
+	c->page_checksum       = 1;
+	c->threads             = 6;
+	c->log_enable          = 1;
+	c->log_path            = NULL;
+	c->log_rotate_wm       = 500000;
+	c->log_sync            = 0;
+	c->log_rotate_sync     = 1;
+	c->two_phase_recover   = 0;
+	c->commit_lsn          = 0;
+	sr_triggerinit(&c->on_event);
+	c->event_on_backup     = 0;
 	sizone def = {
 		.enable        = 1,
 		.mode          = 3, /* branch + compact */
@@ -994,8 +950,6 @@ void so_ctlinit(soctl *c, void *e)
 	si_zonemap_set(&o->ctl.zones,  0, &def);
 	si_zonemap_set(&o->ctl.zones, 80, &redzone);
 	c->backup_path = NULL;
-	sr_triggerinit(&c->backup_on_complete);
-	sr_triggerinit(&c->checkpoint_on_complete);
 }
 
 void so_ctlfree(soctl *c)

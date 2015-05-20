@@ -9,7 +9,7 @@
  * BSD License
 */
 
-typedef int (*srtriggerf)(void *object, void *arg);
+typedef int (*srtriggerf)(void *arg);
 
 typedef struct srtrigger srtrigger;
 
@@ -24,11 +24,11 @@ int   sr_triggerset(srtrigger*, char*);
 int   sr_triggersetarg(srtrigger*, char*);
 
 static inline void
-sr_triggerrun(srtrigger *t, void *object)
+sr_triggerrun(srtrigger *t)
 {
 	if (t->func == NULL)
 		return;
-	t->func(object, t->arg);
+	t->func(t->arg);
 }
 
 #endif

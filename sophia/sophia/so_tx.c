@@ -19,50 +19,41 @@
 static inline int
 so_querywrite(sorequest *r)
 {
-	sodb *db = (sodb*)r->object;
 	so *e = so_of(r->object);
-
 	/* log write */
-	svlogv lv;
-	lv.id = db->scheme.id;
-	lv.next = 0;
-	lv.v = r->arg;
-	svlog log;
-	sv_loginit(&log);
-	sv_logadd(&log, db->r.a, &lv, db);
-	svlogindex *logindex = (svlogindex*)log.index.s;
 	sltx tl;
 	sl_begin(&e->lp, &tl);
-	sl_prepare(&e->lp, &log, 0);
-	int rc = sl_write(&tl, &log);
+	sl_prepare(&e->lp, r->logp, 0);
+	int rc = sl_write(&tl, r->logp);
 	if (srunlikely(rc == -1)) {
 		sl_rollback(&tl);
-		r->rc = -1;
-		goto done;
+		return (r->rc = -1);
 	}
-	((svv*)lv.v.v)->log = tl.l;
 	sl_commit(&tl);
-
 	/* commit */
 	uint64_t vlsn = sx_vlsn(&e->xm);
 	uint64_t now = sr_utime();
-	sitx tx;
-	si_begin(&tx, &db->r, &db->index, vlsn, now, &log, logindex);
-	si_write(&tx, 0);
-	si_commit(&tx);
-	r->rc = 0;
-done:
-	return r->rc;
+	svlogindex *i   = (svlogindex*)r->logp->index.s;
+	svlogindex *end = (svlogindex*)r->logp->index.p;
+	while (i < end) {
+		sodb *db = i->ptr;
+		sitx ti;
+		si_begin(&ti, &db->r, &db->index, vlsn, now, r->logp, i);
+		si_write(&ti, 0);
+		si_commit(&ti);
+		i++;
+	}
+	return (r->rc = 0);
 }
 
 static inline int
-so_queryget(sorequest *r)
+so_queryread(sorequest *r)
 {
 	sodb *db = (sodb*)r->object;
 	so *e = so_of(r->object);
 
-	uint32_t keysize = sv_size(&r->arg);
-	void *key = sv_pointer(&r->arg);
+	uint32_t keysize = sv_size(&r->search);
+	void *key = sv_pointer(&r->search);
 	if (r->vlsn_generate)
 		r->vlsn = sr_seq(db->r.seq, SR_LSN);
 
@@ -111,7 +102,7 @@ int so_query(sorequest *r)
 			r->rc = -1;
 			return -1;
 		}
-		return so_queryget(r);
+		return so_queryread(r);
 	default: assert(0);
 	}
 	return 0;
@@ -139,13 +130,16 @@ int so_txdbset(sodb *db, int async, uint8_t flags, va_list args)
 	svv *v = so_dbv(db, o, 0);
 	if (srunlikely(v == NULL))
 		goto error;
-	v->flags = flags;
-	sv vp;
-	sv_init(&vp, &sv_vif, v, NULL);
 	so_objdestroy(&o->o);
+	v->flags = flags;
+	svlogv lv = {
+		.id = db->scheme.id,
+		.next = 0
+	};
+	sv_init(&lv.v, &sv_vif, v, NULL);
 
 	/* concurrency */
-	sxstate s = sx_setstmt(&e->xm, &db->coindex, &vp);
+	sxstate s = sx_setstmt(&e->xm, &db->coindex, &lv.v);
 	int rc = 1; /* rlb */
 	switch (s) {
 	case SXLOCK: rc = 2;
@@ -156,22 +150,24 @@ int so_txdbset(sodb *db, int async, uint8_t flags, va_list args)
 	}
 
 	/* ensure quota */
-	sr_quota(&e->quota, SR_QADD, sizeof(svv) + sv_size(&vp));
+	sr_quota(&e->quota, SR_QADD, sizeof(svv) + sv_size(&lv.v));
 
 	/* asynchronous */
 	if (async) {
-		sorequest *task = so_requestnew(e, SO_REQWRITE, &db->o, &vp);
+		sorequest *task = so_requestnew(e, SO_REQWRITE, &db->o);
 		if (srunlikely(task == NULL)) {
 			sv_vfree(db->r.a, v);
 			return -1;
 		}
+		sv_logadd(&task->log, db->r.a, &lv, db);
 		so_requestadd(e, task);
 		return 0;
 	}
 
 	/* synchronous */
 	sorequest req;
-	so_requestinit(e, &req, SO_REQWRITE, &db->o, &vp);
+	so_requestinit(e, &req, SO_REQWRITE, &db->o);
+	sv_logadd(&req.log, db->r.a, &lv, db);
 	rc = so_querywrite(&req);
 	if (srunlikely(rc == -1))
 		sv_vfree(db->r.a, v);
@@ -213,12 +209,12 @@ void *so_txdbget(sodb *db, int async, uint64_t vlsn, int vlsn_generate, va_list 
 	/* asynchronous */
 	if (async)
 	{
-		sorequest *task = so_requestnew(e, SO_REQGET, &db->o, &vp);
+		sorequest *task = so_requestnew(e, SO_REQGET, &db->o);
 		if (srunlikely(task == NULL)) {
 			sv_vfree(db->r.a, v);
 			return NULL;
 		}
-		task->arg_free = 1;
+		so_requestarg(task, NULL, &vp, 1);
 		so_requestvlsn(task, vlsn, vlsn_generate);
 		so_requestadd(e, task);
 		return &task->o;
@@ -226,9 +222,10 @@ void *so_txdbget(sodb *db, int async, uint64_t vlsn, int vlsn_generate, va_list 
 
 	/* synchronous */
 	sorequest req;
-	so_requestinit(e, &req, SO_REQGET, &db->o, &vp);
+	so_requestinit(e, &req, SO_REQGET, &db->o);
+	so_requestarg(&req, NULL, &vp, 1);
 	so_requestvlsn(&req, vlsn, vlsn_generate);
-	so_queryget(&req);
+	so_queryread(&req);
 	sv_vfree(db->r.a, v);
 	return req.result;
 error:
@@ -368,9 +365,10 @@ so_txget(soobj *obj, va_list args)
 
 	/* run query */
 	sorequest req;
-	so_requestinit(e, &req, SO_REQGET, &db->o, &vp);
+	so_requestinit(e, &req, SO_REQGET, &db->o);
+	so_requestarg(&req, NULL, &vp, 1);
 	so_requestvlsn(&req, t->t.vlsn, 0);
-	so_queryget(&req);
+	so_queryread(&req);
 	sv_vfree(db->r.a, v);
 	return req.result;
 error:
@@ -541,9 +539,10 @@ static soobjif sotxif =
 	.destroy = so_txrollback,
 	.error   = NULL,
 	.set     = so_txset,
-	.del     = so_txdelete,
-	.drop    = so_txrollback,
 	.get     = so_txget,
+	.del     = so_txdelete,
+	.poll    = NULL,
+	.drop    = so_txrollback,
 	.begin   = NULL,
 	.prepare = so_txprepare,
 	.commit  = so_txcommit,

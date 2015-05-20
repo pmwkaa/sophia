@@ -23,8 +23,8 @@ so_requestdestroy(soobj *obj, va_list args srunused)
 	so *e = so_of(&r->o);
 	if (r->result)
 		so_objdestroy((soobj*)r->result);
-	if (r->arg_free)
-		sv_vfree(&e->a, (svv*)r->arg.v);
+	if (r->search_free)
+		sv_vfree(&e->a, (svv*)r->search.v);
 	sr_free(&e->a_req, r);
 	return 0;
 }
@@ -46,9 +46,11 @@ so_requestget(soobj *obj, va_list args)
 		return &r->op;
 	} else
 	if (strcmp(name, "status") == 0) {
+		// lock?
 		return &r->rc;
 	} else
 	if (strcmp(name, "result") == 0) {
+		// lock?
 		return r->result;
 	} 
 	return NULL;
@@ -63,8 +65,9 @@ static soobjif sorequestif =
 	.error   = NULL,
 	.set     = NULL,
 	.del     = NULL,
-	.drop    = NULL,
 	.get     = so_requestget,
+	.poll    = NULL,
+	.drop    = NULL,
 	.begin   = NULL,
 	.prepare = NULL,
 	.commit  = NULL,
@@ -73,24 +76,42 @@ static soobjif sorequestif =
 	.type    = so_requesttype
 };
 
-void so_requestinit(so *e, sorequest *r, sorequestop op, soobj *object, sv *arg)
+void so_requestinit(so *e, sorequest *r, sorequestop op, soobj *object)
 {
 	so_objinit(&r->o, SOREQUEST, &sorequestif, &e->o);
 	r->id = 0;
 	r->op = op;
 	r->object = object;
-	r->arg = *arg;
-	r->arg_free = 0;
 	r->vlsn = 0;
 	r->vlsn_generate = 0;
 	r->result = NULL;
 	r->rc = 0;
+	sv_loginit(&r->log);
+	r->logp = &r->log;
+	r->search_free = 0;
+}
+
+void so_requestarg(sorequest *r, svlog *log, sv *search, int search_free)
+{
+	if (log)
+		r->logp = log;
+	r->search_free = search_free;
+	if (search)
+		r->search = *search;
 }
 
 void so_requestvlsn(sorequest *r, uint64_t vlsn, int generate)
 {
 	r->vlsn = vlsn;
 	r->vlsn_generate = generate;
+}
+
+static inline void
+so_requestadd_ready(so *e, sorequest *r)
+{
+	sr_spinlock(&e->reqlock);
+	so_objindex_register(&e->reqready, &r->o);
+	sr_spinunlock(&e->reqlock);
 }
 
 void so_requestadd(so *e, sorequest *r)
@@ -101,23 +122,30 @@ void so_requestadd(so *e, sorequest *r)
 	sr_spinunlock(&e->reqlock);
 }
 
+void so_request_on_backup(so *e)
+{
+	if (e->ctl.event_on_backup)
+		sr_triggerrun(&e->ctl.on_event);
+}
+
 void so_requestready(sorequest *r)
 {
 	sodb *db = (sodb*)r->object;
-	/* emit callback */
-	sr_triggerrun(&db->ctl.on_complete, &r->o);
-	/* object left unfreed */
+	so *e = so_of(&db->o);
+	sr_triggerrun(&e->ctl.on_event);
+	/* ready for polling */
+	so_requestadd_ready(e, r);
 }
 
 sorequest*
-so_requestnew(so *e, sorequestop op, soobj *object, sv *arg)
+so_requestnew(so *e, sorequestop op, soobj *object)
 {
 	sorequest *r = sr_malloc(&e->a_req, sizeof(sorequest));
 	if (srunlikely(r == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");
 		return NULL;
 	}
-	so_requestinit(e, r, op, object, arg);
+	so_requestinit(e, r, op, object);
 	return r;
 }
 
@@ -131,6 +159,20 @@ so_requestdispatch(so *e)
 	}
 	sorequest *req = (sorequest*)so_objindex_first(&e->req);
 	so_objindex_unregister(&e->req, &req->o);
+	sr_spinunlock(&e->reqlock);
+	return req;
+}
+
+sorequest*
+so_requestdispatch_ready(so *e)
+{
+	sr_spinlock(&e->reqlock);
+	if (e->reqready.n == 0) {
+		sr_spinunlock(&e->reqlock);
+		return NULL;
+	}
+	sorequest *req = (sorequest*)so_objindex_first(&e->reqready);
+	so_objindex_unregister(&e->reqready, &req->o);
 	sr_spinunlock(&e->reqlock);
 	return req;
 }

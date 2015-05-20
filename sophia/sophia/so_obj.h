@@ -39,8 +39,9 @@ struct soobjif {
 	int   (*error)(soobj*, va_list);
 	int   (*destroy)(soobj*, va_list);
 	int   (*set)(soobj*, va_list);
-	void *(*get)(soobj*, va_list);
 	int   (*del)(soobj*, va_list);
+	void *(*get)(soobj*, va_list);
+	void *(*poll)(soobj*, va_list);
 	int   (*drop)(soobj*, va_list);
 	void *(*begin)(soobj*, va_list);
 	int   (*prepare)(soobj*, va_list);

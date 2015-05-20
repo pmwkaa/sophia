@@ -52,8 +52,9 @@ static soobjif sodbctlif =
 	.destroy = NULL,
 	.error   = NULL,
 	.set     = NULL,
-	.get     = so_dbctl_get,
 	.del     = NULL,
+	.get     = so_dbctl_get,
+	.poll    = NULL,
 	.drop    = NULL,
 	.begin   = NULL,
 	.prepare = NULL,
@@ -71,7 +72,6 @@ so_dbctl_init(sodbctl *c, void *db)
 	memset(c, 0, sizeof(*c));
 	so *e = so_of(&o->o);
 	so_objinit(&c->o, SODBCTL, &sodbctlif, &e->o);
-	sr_triggerinit(&c->on_complete);
 	c->parent    = db;
 	c->created   = 0;
 	c->scheduled = 0;
@@ -235,8 +235,9 @@ static soobjif sodbasyncif =
 	.destroy = NULL,
 	.error   = NULL,
 	.set     = so_dbasync_set,
-	.get     = so_dbasync_get,
 	.del     = so_dbasync_del,
+	.get     = so_dbasync_get,
+	.poll    = NULL,
 	.drop    = NULL,
 	.begin   = NULL,
 	.prepare = NULL,
@@ -435,8 +436,9 @@ static soobjif sodbif =
 	.destroy  = so_dbdestroy,
 	.error    = so_dberror,
 	.set      = so_dbset,
-	.get      = so_dbget,
 	.del      = so_dbdel,
+	.get      = so_dbget,
+	.poll     = NULL,
 	.drop     = so_dbdrop,
 	.begin    = NULL,
 	.prepare  = NULL,

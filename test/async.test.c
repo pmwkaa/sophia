@@ -14,7 +14,7 @@
 static int events = 0;
 
 static void
-on_complete(void *o, void *arg srunused)
+on_event(void *arg srunused)
 {
 	events++;
 }
@@ -33,10 +33,10 @@ async_set(stc *cx srunused)
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
-
 	char pointer[64];
-	snprintf(pointer, sizeof(pointer), "pointer: %p", (void*)on_complete);
-	t( sp_set(c, "db.test.on_complete", pointer, NULL) == 0 );
+	snprintf(pointer, sizeof(pointer), "pointer: %p", (void*)on_event);
+	t( sp_set(c, "scheduler.on_event", pointer, NULL) == 0 );
+
 	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
@@ -52,9 +52,19 @@ async_set(stc *cx srunused)
 	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(async, o) == 0 );
 
+	t( sp_poll(env) == NULL );
 	t( sp_set(c, "scheduler.run") == 0 );
 	t( sp_set(c, "scheduler.run") == 0 );
 	t( events == 1 );
+
+	o = sp_poll(env);
+	t( o != NULL );
+	t( strcmp(sp_type(o), "request") == 0 );
+	t( *(uint64_t*)sp_get(o, "seq") == 1 );
+	t( *(int*)sp_get(o, "type") == 0 );
+	t( *(int*)sp_get(o, "status") == 0 );
+	t( sp_destroy(o) == 0 );
+	t( sp_poll(env) == NULL );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -73,10 +83,10 @@ async_get(stc *cx srunused)
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
-
 	char pointer[64];
-	snprintf(pointer, sizeof(pointer), "pointer: %p", (void*)on_complete);
-	t( sp_set(c, "db.test.on_complete", pointer, NULL) == 0 );
+	snprintf(pointer, sizeof(pointer), "pointer: %p", (void*)on_event);
+	t( sp_set(c, "scheduler.on_event", pointer, NULL) == 0 );
+
 	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
@@ -102,7 +112,6 @@ async_get(stc *cx srunused)
 	o = sp_get(async, o);
 	t( o != NULL );
 	t( strcmp(sp_type(o), "request") == 0 );
-
 	t( *(uint64_t*)sp_get(o, "seq") == 2 );
 	t( *(int*)sp_get(o, "type") == 1 );
 	t( *(int*)sp_get(o, "status") == 0 );
@@ -115,7 +124,25 @@ async_get(stc *cx srunused)
 	o = sp_get(req, "result");
 	t( o != NULL );
 	t( *(int*)sp_get(o, "value", NULL) == key );
-	sp_destroy(req);
+
+	o = sp_poll(env);
+	t( o != NULL );
+	t( strcmp(sp_type(o), "request") == 0 );
+	t( *(uint64_t*)sp_get(o, "seq") == 1 );
+	t( *(int*)sp_get(o, "type") == 0 );
+	t( *(int*)sp_get(o, "status") == 0 );
+	t( sp_destroy(o) == 0 );
+
+	o = sp_poll(env);
+	t( o != NULL );
+	t( req == o );
+	t( strcmp(sp_type(o), "request") == 0 );
+	t( *(uint64_t*)sp_get(o, "seq") == 2 );
+	t( *(int*)sp_get(o, "type") == 1 );
+	t( *(int*)sp_get(o, "status") == 1 );
+	t( sp_destroy(o) == 0 );
+	t( sp_poll(env) == NULL );
+
 	t( sp_destroy(env) == 0 );
 }
 

@@ -33,6 +33,7 @@ struct soscheduler {
 	uint32_t backup_bsn;
 	uint32_t backup_last;
 	uint32_t backup_last_complete;
+	uint32_t backup_events;
 	uint32_t backup;
 	uint32_t gc;
 	uint32_t gc_last;

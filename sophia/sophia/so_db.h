@@ -19,7 +19,6 @@ struct sodbctl {
 	uint32_t    created;
 	uint32_t    scheduled;
 	uint32_t    dropped;
-	srtrigger   on_complete;
 	siprofiler  rtp;
 } srpacked;
 

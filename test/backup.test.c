@@ -119,7 +119,7 @@ backup_test0(stc *cx srunused)
 static int trigger_called = 0;
 
 static inline void
-backup_trigger(void *object, void *arg)
+on_event(void *arg)
 {
 	trigger_called = 1;
 }
@@ -141,10 +141,10 @@ backup_test1(stc *cx srunused)
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
-
 	char pointer[64];
-	snprintf(pointer, sizeof(pointer), "pointer: %p", (void*)backup_trigger);
-	t( sp_set(c, "backup.on_complete", pointer, NULL) == 0 );
+	snprintf(pointer, sizeof(pointer), "pointer: %p", (void*)on_event);
+	t( sp_set(c, "scheduler.on_event", pointer, NULL) == 0 );
+	t( sp_set(c, "scheduler.event_on_backup", "1") == 0 );
 
 	t( sp_open(env) == 0 );
 	void *db = sp_get(c, "db.test");
@@ -199,6 +199,11 @@ backup_test1(stc *cx srunused)
 	t( o != NULL );
 	t( strcmp(sp_get(o, "value", NULL), "1") == 0 );
 	sp_destroy(o);
+
+	o = sp_poll(env);
+	t( o != NULL );
+	t( sp_destroy(o) == 0 );
+	t( sp_poll(env) == NULL );
 
 	t( sp_destroy(env) == 0 );
 

@@ -20,6 +20,7 @@ struct so {
 	soobjindex db_shutdown;
 	soobjindex tx;
 	soobjindex req;
+	soobjindex reqready;
 	soobjindex snapshot;
 	soobjindex ctlcursor;
 	sostatus status;

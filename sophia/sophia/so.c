@@ -94,6 +94,9 @@ so_destroy(soobj *o, va_list args srunused)
 	rc = so_objindex_destroy(&e->req);
 	if (srunlikely(rc == -1))
 		rcret = -1;
+	rc = so_objindex_destroy(&e->reqready);
+	if (srunlikely(rc == -1))
+		rcret = -1;
 	rc = so_objindex_destroy(&e->tx);
 	if (srunlikely(rc == -1))
 		rcret = -1;
@@ -134,6 +137,30 @@ so_begin(soobj *o, va_list args srunused) {
 	return so_txnew((so*)o);
 }
 
+static void*
+so_poll(soobj *o, va_list args srunused)
+{
+	so *e = (so*)o;
+	if (e->ctl.event_on_backup) {
+		sr_mutexlock(&e->sched.lock);
+		if (srunlikely(e->sched.backup_events > 0)) {
+			e->sched.backup_events--;
+			sorequest *req = so_requestnew(e, SO_REQON_BACKUP, &e->o);
+			if (srunlikely(req == NULL)) {
+				sr_mutexunlock(&e->sched.lock);
+				return NULL;
+			}
+			sr_mutexunlock(&e->sched.lock);
+			return &req->o;
+		}
+		sr_mutexunlock(&e->sched.lock);
+	}
+	sorequest *req = so_requestdispatch_ready(e);
+	if (req == NULL)
+		return NULL;
+	return &req->o;
+}
+
 static int
 so_error(soobj *o, va_list args srunused)
 {
@@ -160,8 +187,9 @@ static soobjif soif =
 	.destroy = so_destroy,
 	.error   = so_error,
 	.set     = NULL,
-	.get     = NULL,
 	.del     = NULL,
+	.get     = NULL,
+	.poll    = so_poll,
 	.drop    = NULL,
 	.begin   = so_begin,
 	.prepare = NULL,
@@ -204,6 +232,7 @@ soobj *so_new(void)
 	so_objindex_init(&e->snapshot);
 	so_objindex_init(&e->ctlcursor);
 	so_objindex_init(&e->req);
+	so_objindex_init(&e->reqready);
 	sr_mutexinit(&e->apilock);
 	sr_spinlockinit(&e->reqlock);
 	sr_spinlockinit(&e->dblock);

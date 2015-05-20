@@ -270,6 +270,7 @@ int so_scheduler_init(soscheduler *s, void *env)
 	s->backup_bsn           = 0;
 	s->backup_last          = 0;
 	s->backup_last_complete = 0;
+	s->backup_events        = 0;
 	s->backup               = 0;
 	s->gc                   = 0;
 	s->gc_last              = 0;
@@ -592,6 +593,7 @@ checkpoint:
 				so_backuperror(s);
 				goto backup_error;
 			}
+			s->backup_events++;
 			task->gc = 1;
 			task->backup_complete = 1;
 			break;
@@ -795,19 +797,15 @@ int so_scheduler(soscheduler *s, soworker *w)
 		if (srunlikely(rc == -1))
 			goto error;
 	}
-	so *e = s->env;
 	if (task.req) {
 		rc = so_dispatch(s, w);
 		if (srunlikely(rc == -1)) {
 			goto error;
 		}
 	}
-	if (task.checkpoint_complete) {
-		sr_triggerrun(&e->ctl.checkpoint_on_complete, &e->o);
-	}
-	if (task.backup_complete) {
-		sr_triggerrun(&e->ctl.backup_on_complete, &e->o);
-	}
+	so *e = s->env;
+	if (task.backup_complete)
+		so_request_on_backup(e);
 	if (job) {
 		rc = so_execute(&task, w);
 		if (srunlikely(rc == -1)) {

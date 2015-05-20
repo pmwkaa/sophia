@@ -161,6 +161,24 @@ sp_set(void *o, ...)
 	return rc;
 }
 
+SP_API int
+sp_delete(void *o, ...)
+{
+	soobj *obj = o;
+	if (srunlikely(obj->i->del == NULL)) {
+		sp_error_unsupported_method(o, __FUNCTION__);
+		return -1;
+	}
+	soobj *env = obj->env;
+	va_list args;
+	va_start(args, o);
+	so_apilock(env);
+	int rc = obj->i->del(o, args);
+	so_apiunlock(env);
+	va_end(args);
+	return rc;
+}
+
 SP_API void*
 sp_get(void *o, ...)
 {
@@ -178,22 +196,21 @@ sp_get(void *o, ...)
 	return h;
 }
 
-SP_API int
-sp_delete(void *o, ...)
+SP_API void*
+sp_poll(void *o, ...)
 {
 	soobj *obj = o;
-	if (srunlikely(obj->i->del == NULL)) {
+	if (srunlikely(obj->i->poll == NULL)) {
 		sp_error_unsupported_method(o, __FUNCTION__);
-		return -1;
+		return NULL;
 	}
-	soobj *env = obj->env;
 	va_list args;
 	va_start(args, o);
-	so_apilock(env);
-	int rc = obj->i->del(o, args);
-	so_apiunlock(env);
+	so_apilock(obj->env);
+	void *h = obj->i->poll(o, args);
+	so_apiunlock(obj->env);
 	va_end(args);
-	return rc;
+	return h;
 }
 
 SP_API int
