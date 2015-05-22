@@ -16,98 +16,6 @@
 #include <libse.h>
 #include <libso.h>
 
-static inline int
-so_querywrite(sorequest *r)
-{
-	so *e = so_of(r->object);
-	/* log write */
-	sltx tl;
-	sl_begin(&e->lp, &tl);
-	sl_prepare(&e->lp, r->logp, 0);
-	int rc = sl_write(&tl, r->logp);
-	if (srunlikely(rc == -1)) {
-		sl_rollback(&tl);
-		return (r->rc = -1);
-	}
-	sl_commit(&tl);
-	/* commit */
-	uint64_t vlsn = sx_vlsn(&e->xm);
-	uint64_t now = sr_utime();
-	svlogindex *i   = (svlogindex*)r->logp->index.s;
-	svlogindex *end = (svlogindex*)r->logp->index.p;
-	while (i < end) {
-		sodb *db = i->ptr;
-		sitx ti;
-		si_begin(&ti, &db->r, &db->index, vlsn, now, r->logp, i);
-		si_write(&ti, 0);
-		si_commit(&ti);
-		i++;
-	}
-	return (r->rc = 0);
-}
-
-static inline int
-so_queryread(sorequest *r)
-{
-	sodb *db = (sodb*)r->object;
-	so *e = so_of(r->object);
-
-	uint32_t keysize = sv_size(&r->search);
-	void *key = sv_pointer(&r->search);
-	if (r->vlsn_generate)
-		r->vlsn = sr_seq(db->r.seq, SR_LSN);
-
-	/* query */
-	sicache *cache = si_cachepool_pop(&e->cachepool);
-	if (srunlikely(cache == NULL)) {
-		r->rc = -1;
-		sr_error(&e->error, "%s", "memory allocation error");
-		return -1;
-	}
-	siquery q;
-	si_queryopen(&q, &db->r, cache, &db->index,
-	             SR_EQ, r->vlsn,
-	             NULL, 0, key, keysize);
-	int rc = si_query(&q);
-	sv result = q.result;
-	si_queryclose(&q);
-	si_cachepool_push(cache);
-	r->rc = rc;
-	if (srunlikely(rc <= 0))
-		return rc;
-
-	/* copy result */
-	soobj *ret = so_vdup(e, &db->o, &result);
-	if (srunlikely(ret == NULL))
-		sv_vfree(&e->a, (svv*)result.v);
-	r->result = ret;
-	return 1;
-}
-
-int so_query(sorequest *r)
-{
-	sodb *db;
-	switch (r->op) {
-	case SO_REQWRITE:
-		db = (sodb*)r->object;
-		if (srunlikely(! so_online(&db->status))) {
-			r->rc = -1;
-			return -1;
-		}
-		// lock?
-		return so_querywrite(r);
-	case SO_REQGET:
-		db = (sodb*)r->object;
-		if (srunlikely(! so_online(&db->status))) {
-			r->rc = -1;
-			return -1;
-		}
-		return so_queryread(r);
-	default: assert(0);
-	}
-	return 0;
-}
-
 int so_txdbset(sodb *db, int async, uint8_t flags, va_list args)
 {
 	so *e = so_of(&db->o);
@@ -132,46 +40,34 @@ int so_txdbset(sodb *db, int async, uint8_t flags, va_list args)
 		goto error;
 	so_objdestroy(&o->o);
 	v->flags = flags;
-	svlogv lv = {
-		.id = db->scheme.id,
-		.next = 0
-	};
-	sv_init(&lv.v, &sv_vif, v, NULL);
-
-	/* concurrency */
-	sxstate s = sx_setstmt(&e->xm, &db->coindex, &lv.v);
-	int rc = 1; /* rlb */
-	switch (s) {
-	case SXLOCK: rc = 2;
-	case SXROLLBACK:
-		sv_vfree(db->r.a, v);
-		return rc;
-	default: break;
-	}
+	sv vp;
+	sv_init(&vp, &sv_vif, v, NULL);
 
 	/* ensure quota */
-	sr_quota(&e->quota, SR_QADD, sizeof(svv) + sv_size(&lv.v));
+	sr_quota(&e->quota, SR_QADD, sizeof(svv) + sv_size(&vp));
 
 	/* asynchronous */
 	if (async) {
-		sorequest *task = so_requestnew(e, SO_REQWRITE, &db->o);
+		sorequest *task = so_requestnew(e, SO_REQDBSET, &db->o, &db->o);
 		if (srunlikely(task == NULL)) {
 			sv_vfree(db->r.a, v);
 			return -1;
 		}
-		sv_logadd(&task->log, db->r.a, &lv, db);
+		sorequestarg *arg = &task->arg;
+		arg->vlsn_generate = 1;
+		arg->v = vp;
 		so_requestadd(e, task);
 		return 0;
 	}
 
 	/* synchronous */
 	sorequest req;
-	so_requestinit(e, &req, SO_REQWRITE, &db->o);
-	sv_logadd(&req.log, db->r.a, &lv, db);
-	rc = so_querywrite(&req);
-	if (srunlikely(rc == -1))
-		sv_vfree(db->r.a, v);
-	return rc;
+	so_requestinit(e, &req, SO_REQDBSET, &db->o, &db->o);
+	sorequestarg *arg = &req.arg;
+	arg->vlsn_generate = 1;
+	arg->v = vp;
+	so_query(&req);
+	return req.rc;
 error:
 	so_objdestroy(&o->o);
 	return -1;
@@ -199,34 +95,36 @@ void *so_txdbget(sodb *db, int async, uint64_t vlsn, int vlsn_generate, va_list 
 	svv *v = so_dbv(db, o, 1);
 	if (srunlikely(v == NULL))
 		goto error;
+	so_objdestroy(&o->o);
 	sv vp;
 	sv_init(&vp, &sv_vif, v, NULL);
-	so_objdestroy(&o->o);
-
-	/* register transaction statement */
-	sx_getstmt(&e->xm, &db->coindex);
 
 	/* asynchronous */
 	if (async)
 	{
-		sorequest *task = so_requestnew(e, SO_REQGET, &db->o);
+		sorequest *task = so_requestnew(e, SO_REQDBGET, &db->o, &db->o);
 		if (srunlikely(task == NULL)) {
 			sv_vfree(db->r.a, v);
 			return NULL;
 		}
-		so_requestarg(task, NULL, &vp, 1);
-		so_requestvlsn(task, vlsn, vlsn_generate);
+		sorequestarg *arg = &task->arg;
+		arg->v = vp;
+		arg->order = SR_EQ;
+		arg->vlsn_generate = 1;
 		so_requestadd(e, task);
 		return &task->o;
 	}
 
 	/* synchronous */
 	sorequest req;
-	so_requestinit(e, &req, SO_REQGET, &db->o);
-	so_requestarg(&req, NULL, &vp, 1);
-	so_requestvlsn(&req, vlsn, vlsn_generate);
-	so_queryread(&req);
-	sv_vfree(db->r.a, v);
+	so_requestinit(e, &req, SO_REQDBGET, &db->o, &db->o);
+	sorequestarg *arg = &req.arg;
+	arg->v = vp;
+	arg->order = SR_EQ;
+	/* support (sync) snapshot read-view */
+	arg->vlsn_generate = vlsn_generate;
+	arg->vlsn = vlsn;
+	so_query(&req);
 	return req.result;
 error:
 	so_objdestroy(&o->o);
@@ -250,7 +148,7 @@ so_txwrite(soobj *obj, uint8_t flags, va_list args)
 		sr_error(&e->error, "%s", "bad object parent");
 		return -1;
 	}
-	if (t->t.s == SXPREPARE) {
+	if (srunlikely(t->t.s == SXPREPARE)) {
 		sr_error(&e->error, "%s", "transaction is in 'prepare' state (read-only)");
 		goto error;
 	}
@@ -283,10 +181,26 @@ so_txwrite(soobj *obj, uint8_t flags, va_list args)
 	/* ensure quota */
 	sr_quota(&e->quota, SR_QADD, sizeof(svv) + sv_size(&vp));
 
-	int rc = sx_set(&t->t, &db->coindex, v);
-	if (srunlikely(rc == -1))
-		sv_vfree(db->r.a, v);
-	return rc;
+	/* asynchronous */
+	if (t->async) {
+		sorequest *task = so_requestnew(e, SO_REQTXSET, &t->o, &db->o);
+		if (srunlikely(task == NULL)) {
+			sv_vfree(db->r.a, v);
+			return -1;
+		}
+		sorequestarg *arg = &task->arg;
+		arg->v = vp;
+		so_requestadd(e, task);
+		return 0;
+	}
+
+	/* synchronous */
+	sorequest req;
+	so_requestinit(e, &req, SO_REQTXSET, &t->o, &db->o);
+	sorequestarg *arg = &req.arg;
+	arg->v = vp;
+	so_query(&req);
+	return req.rc;
 error:
 	so_objdestroy(&o->o);
 	return -1;
@@ -346,40 +260,39 @@ so_txget(soobj *obj, va_list args)
 	sv_init(&vp, &sv_vif, v, NULL);
 	so_objdestroy(&o->o);
 
-	/* check concurrent index first */
-	soobj *ret;
-	sv result;
-	int rc = sx_get(&t->t, &db->coindex, &vp, &result);
-	switch (rc) {
-	case -1:
-	case  2: /* delete */
-		sv_vfree(db->r.a, v);
-		return NULL;
-	case  1:
-		ret = so_vdup(e, &db->o, &result);
-		if (srunlikely(ret == NULL))
-			sv_vfree(&e->a, (svv*)result.v);
-		sv_vfree(db->r.a, v);
-		return ret;
+	/* asynchronous */
+	if (t->async) {
+		sorequest *task = so_requestnew(e, SO_REQTXGET, &t->o, &db->o);
+		if (srunlikely(task == NULL)) {
+			sv_vfree(db->r.a, v);
+			return NULL;
+		}
+		sorequestarg *arg = &task->arg;
+		arg->v = vp;
+		arg->order = SR_EQ;
+		arg->vlsn_generate = 0;
+		so_requestadd(e, task);
+		return &task->o;
 	}
 
-	/* run query */
+	/* synchronous */
 	sorequest req;
-	so_requestinit(e, &req, SO_REQGET, &db->o);
-	so_requestarg(&req, NULL, &vp, 1);
-	so_requestvlsn(&req, t->t.vlsn, 0);
-	so_queryread(&req);
-	sv_vfree(db->r.a, v);
+	so_requestinit(e, &req, SO_REQTXGET, &t->o, &db->o);
+	sorequestarg *arg = &req.arg;
+	arg->v = vp;
+	arg->order = SR_EQ;
+	arg->vlsn_generate = 0;
+	so_query(&req);
 	return req.result;
 error:
 	so_objdestroy(&o->o);
 	return NULL;
 }
 
-static inline void
-so_txend(sotx *t)
+void so_txend(sotx *t)
 {
 	so *e = so_of(&t->o);
+	sx_gc(&t->t);
 	so_dbunbind(e, t->t.id);
 	so_objindex_unregister(&e->tx, &t->o);
 	sr_free(&e->a_tx, t);
@@ -389,40 +302,21 @@ static int
 so_txrollback(soobj *o, va_list args srunused)
 {
 	sotx *t = (sotx*)o;
-	sx_rollback(&t->t);
-	sx_end(&t->t);
-	so_txend(t);
-	return 0;
-}
-
-static sxstate
-so_txprepare_trigger(sx *t, sv *v, void *arg0, void *arg1)
-{
-	sotx *te srunused = arg0;
-	sodb *db = arg1;
-	so *e = so_of(&db->o);
-	uint64_t lsn = sr_seq(e->r.seq, SR_LSN);
-	if (t->vlsn == lsn)
-		return SXPREPARE;
-	sicache *cache = si_cachepool_pop(&e->cachepool);
-	if (srunlikely(cache == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation error");
-		return SXROLLBACK;
+	so *e = so_of(o);
+	/* asynchronous */
+	if (t->async) {
+		sorequest *task = so_requestnew(e, SO_REQROLLBACK, &t->o, NULL);
+		if (srunlikely(task == NULL))
+			return -1;
+		so_requestadd(e, task);
+		return 0;
 	}
-	siquery q;
-	si_queryopen(&q, &db->r, cache, &db->index,
-	             SR_UPDATE, t->vlsn,
-	             NULL, 0,
-	             sv_pointer(v), sv_size(v));
-	int rc;
-	rc = si_query(&q);
-	if (rc == 1)
-		sv_vfree(&e->a, (svv*)q.result.v);
-	si_queryclose(&q);
-	si_cachepool_push(cache);
-	if (srunlikely(rc))
-		return SXROLLBACK;
-	return SXPREPARE;
+	/* synchronous */
+	sorequest req;
+	so_requestinit(e, &req, SO_REQROLLBACK, &t->o, NULL);
+	so_query(&req);
+	so_txend(t);
+	return req.rc;
 }
 
 static int
@@ -433,21 +327,23 @@ so_txprepare(soobj *o, va_list args srunused)
 	int status = so_status(&e->status);
 	if (srunlikely(! so_statusactive_is(status)))
 		return -1;
-	if (t->t.s == SXPREPARE)
+	/* asynchronous */
+	if (t->async) {
+		sorequest *task = so_requestnew(e, SO_REQPREPARE, &t->o, NULL);
+		if (srunlikely(task == NULL))
+			return -1;
+		task->arg.recover = (status == SO_RECOVER);
+		so_requestadd(e, task);
 		return 0;
-	/* resolve conflicts */
-	sxpreparef prepare_trigger = so_txprepare_trigger;
-	if (srunlikely(status == SO_RECOVER))
-		prepare_trigger = NULL;
-	sxstate s = sx_prepare(&t->t, prepare_trigger, t);
-	if (s == SXLOCK)
-		return 2;
-	if (s == SXROLLBACK) {
-		so_objdestroy(&t->o);
-		return 1;
 	}
-	assert(s == SXPREPARE);
-	return 0;
+	/* synchronous */
+	sorequest req;
+	so_requestinit(e, &req, SO_REQPREPARE, &t->o, NULL);
+	req.arg.recover = (status == SO_RECOVER);
+	so_query(&req);
+	if (srunlikely(req.rc == 1))
+		so_txend(t);
+	return req.rc;
 }
 
 static int
@@ -459,71 +355,39 @@ so_txcommit(soobj *o, va_list args)
 	if (srunlikely(! so_statusactive_is(status)))
 		return -1;
 
-	/* prepare transaction for commit */
-	assert (t->t.s == SXPREPARE || t->t.s == SXREADY);
-	int rc;
-	if (t->t.s == SXREADY) {
-		rc = so_txprepare(o, args);
-		if (srunlikely(rc != 0))
-			return rc;
+	/* prepare commit request */
+	sorequest req;
+	so_requestinit(e, &req, SO_REQCOMMIT, &t->o, NULL);
+	sorequestarg *arg = &req.arg;
+	arg->lsn = 0;
+	if (status == SO_RECOVER || e->ctl.commit_lsn)
+		arg->lsn = va_arg(args, uint64_t);
+	if (srunlikely(status == SO_RECOVER)) {
+		assert(t->async == 0);
+		arg->recover = 1;
+		arg->vlsn_generate = 0;
+		arg->vlsn = sr_seq(e->r.seq, SR_LSN);
+	} else {
+		arg->vlsn_generate = 1;
+		arg->vlsn = 0;
 	}
-	assert(t->t.s == SXPREPARE);
 
-	if (srunlikely(! sv_logcount(&t->t.log))) {
-		sx_commit(&t->t);
-		sx_end(&t->t);
-		so_txend(t);
+	/* asynchronous */
+	if (t->async) {
+		sorequest *task = so_requestnew(e, SO_REQCOMMIT, &t->o, NULL);
+		if (srunlikely(task == NULL))
+			return -1;
+		*task = req;
+		so_requestadd(e, task);
 		return 0;
 	}
-	sx_commit(&t->t);
 
-	/* assign lsn */
-	uint64_t lsn = 0;
-	if (status == SO_RECOVER || e->ctl.commit_lsn)
-		lsn = va_arg(args, uint64_t);
-	sl_prepare(&e->lp, &t->t.log, lsn);
-
-	/* log commit */
-	if (status == SO_ONLINE) {
-		sltx tl;
-		sl_begin(&e->lp, &tl);
-		rc = sl_write(&tl, &t->t.log);
-		if (srunlikely(rc == -1)) {
-			sl_rollback(&tl);
-			so_objdestroy(&t->o);
-			return -1;
-		}
-		sl_commit(&tl);
-	}
-
-	/* prepare commit */
-	int check_if_exists;
-	uint64_t vlsn;
-	if (srunlikely(status == SO_RECOVER)) {
-		check_if_exists = 1;
-		vlsn = sr_seq(e->r.seq, SR_LSN);
-	} else {
-		check_if_exists = 0;
-		vlsn = sx_vlsn(&e->xm);
-	}
-
-	/* multi-index commit */
-	uint64_t now = sr_utime();
-
-	svlogindex *i   = (svlogindex*)t->t.log.index.s;
-	svlogindex *end = (svlogindex*)t->t.log.index.p;
-	while (i < end) {
-		sodb *db = i->ptr;
-		sitx ti;
-		si_begin(&ti, &db->r, &db->index, vlsn, now, &t->t.log, i);
-		si_write(&ti, check_if_exists);
-		si_commit(&ti);
-		i++;
-	}
-	sx_end(&t->t);
-
+	/* synchronous */
+	so_query(&req);
+	if (srunlikely(req.rc == 2))
+		return req.rc;
 	so_txend(t);
-	return 0;
+	return req.rc;
 }
 
 static void*
@@ -551,15 +415,25 @@ static soobjif sotxif =
 	.type    = so_txtype
 };
 
-soobj *so_txnew(so *e)
+soobj *so_txnew(so *e, int async)
 {
 	sotx *t = sr_malloc(&e->a_tx, sizeof(sotx));
 	if (srunlikely(t == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");
 		return NULL;
 	}
+	t->async = async;
 	so_objinit(&t->o, SOTX, &sotxif, &e->o);
-	sx_begin(&e->xm, &t->t, 0);
+	if (srlikely(async == 0)) {
+		sx_begin(&e->xm, &t->t, 0);
+	} else {
+		sorequest *task = so_requestnew(e, SO_REQBEGIN, &t->o, NULL);
+		if (srunlikely(task == NULL)) {
+			sr_free(&e->a_tx, t);
+			return NULL;
+		}
+		so_requestadd(e, task);
+	}
 	so_dbbind(e);
 	so_objindex_register(&e->tx, &t->o);
 	return &t->o;

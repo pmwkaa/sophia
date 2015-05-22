@@ -15,6 +15,7 @@ int sx_init(sxmanager *m, sr *r, sra *asxv)
 {
 	sr_rbinit(&m->i);
 	m->count = 0;
+	sr_spinlockinit(&m->lockupd);
 	sr_spinlockinit(&m->lock);
 	m->asxv = asxv;
 	m->r = r;
@@ -26,6 +27,7 @@ int sx_free(sxmanager *m)
 	/* rollback active transactions */
 
 	sr_spinlockfree(&m->lock);
+	sr_spinlockfree(&m->lockupd);
 	return 0;
 }
 
@@ -135,46 +137,77 @@ sxstate sx_begin(sxmanager *m, sx *t, uint64_t vlsn)
 	return SXREADY;
 }
 
-sxstate sx_end(sx *t)
+void sx_gc(sx *t)
+{
+	assert(t->s == SXCOMMIT || t->s == SXROLLBACK);
+	sxmanager *m = t->manager;
+	sriter i;
+	sr_iterinit(sr_bufiter, &i, NULL);
+	sr_iteropen(sr_bufiter, &i, &t->log.buf, sizeof(svlogv));
+	if (srlikely(t->s == SXCOMMIT)) {
+		for (; sr_iterhas(sr_bufiter, &i); sr_iternext(sr_bufiter, &i))
+		{
+			svlogv *lv = sr_iterof(sr_bufiter, &i);
+			sxv *v = lv->vgc;
+			sr_free(m->asxv, v);
+		}
+	} else
+	if (t->s == SXROLLBACK) {
+		for (; sr_iterhas(sr_bufiter, &i); sr_iternext(sr_bufiter, &i))
+		{
+			svlogv *lv = sr_iterof(sr_bufiter, &i);
+			sxv *v = lv->v.v;
+			sx_vfree(m->r->a, m->asxv, v);
+		}
+	}
+	sv_logfree(&t->log, m->r->a);
+	t->s = SXUNDEF;
+}
+
+static inline void
+sx_end(sx *t)
 {
 	sxmanager *m = t->manager;
-	assert(t->s != SXUNDEF);
 	sr_spinlock(&m->lock);
 	sr_rbremove(&m->i, &t->node);
-	t->s = SXUNDEF;
 	m->count--;
 	sr_spinunlock(&m->lock);
-	sv_logfree(&t->log, m->r->a);
-	return SXUNDEF;
 }
 
 sxstate sx_prepare(sx *t, sxpreparef prepare, void *arg)
 {
+	sxmanager *m = t->manager;
 	sriter i;
 	sr_iterinit(sr_bufiter, &i, NULL);
 	sr_iteropen(sr_bufiter, &i, &t->log.buf, sizeof(svlogv));
-	sxstate s;
+	sxstate s = SXPREPARE;
+	sr_spinlock(&m->lockupd);
 	for (; sr_iterhas(sr_bufiter, &i); sr_iternext(sr_bufiter, &i))
 	{
 		svlogv *lv = sr_iterof(sr_bufiter, &i);
 		sxv *v = lv->v.v;
 		/* cancelled by a concurrent commited
 		 * transaction */
-		if (v->v->flags & SVABORT)
-			return SXROLLBACK;
+		if (v->v->flags & SVABORT) {
+			s = SXROLLBACK;
+			goto done;
+		}
 		/* concurrent update in progress */
-		if (v->prev != NULL)
-			return SXLOCK;
+		if (v->prev != NULL) {
+			s = SXLOCK;
+			goto done;
+		}
 		/* check that new key has not been committed by
 		 * a concurrent transaction */
 		if (prepare) {
 			sxindex *i = v->index;
 			s = prepare(t, &lv->v, arg, i->ptr);
 			if (srunlikely(s != SXPREPARE))
-				return s;
+				goto done;
 		}
 	}
-	s = SXPREPARE;
+done:
+	sr_spinunlock(&m->lockupd);
 	t->s = s;
 	return s;
 }
@@ -186,6 +219,7 @@ sxstate sx_commit(sx *t)
 	sriter i;
 	sr_iterinit(sr_bufiter, &i, NULL);
 	sr_iteropen(sr_bufiter, &i, &t->log.buf, sizeof(svlogv));
+	sr_spinlock(&m->lockupd);
 	for (; sr_iterhas(sr_bufiter, &i); sr_iternext(sr_bufiter, &i))
 	{
 		svlogv *lv = sr_iterof(sr_bufiter, &i);
@@ -203,9 +237,11 @@ sxstate sx_commit(sx *t)
 		sx_vunlink(v);
 		/* translate log version from sxv to svv */
 		sv_init(&lv->v, &sv_vif, v->v, NULL);
-		sr_free(m->asxv, v);
+		lv->vgc = v;
 	}
+	sr_spinunlock(&m->lockupd);
 	t->s = SXCOMMIT;
+	sx_end(t);
 	return SXCOMMIT;
 }
 
@@ -215,6 +251,7 @@ sxstate sx_rollback(sx *t)
 	sriter i;
 	sr_iterinit(sr_bufiter, &i, NULL);
 	sr_iteropen(sr_bufiter, &i, &t->log.buf, sizeof(svlogv));
+	sr_spinlock(&m->lockupd);
 	for (; sr_iterhas(sr_bufiter, &i); sr_iternext(sr_bufiter, &i))
 	{
 		svlogv *lv = sr_iterof(sr_bufiter, &i);
@@ -230,9 +267,10 @@ sxstate sx_rollback(sx *t)
 			sr_rbreplace(&i->i, &v->node, &v->next->node);
 unlink:
 		sx_vunlink(v);
-		sx_vfree(m->r->a, m->asxv, v);
 	}
+	sr_spinunlock(&m->lockupd);
 	t->s = SXROLLBACK;
+	sx_end(t);
 	return SXROLLBACK;
 }
 
@@ -252,21 +290,27 @@ int sx_set(sx *t, sxindex *index, svv *version)
 	v->index = index;
 	svlogv lv;
 	lv.id   = index->dsn;
+	lv.vgc  = NULL;
 	lv.next = UINT32_MAX;
 	sv_init(&lv.v, &sx_vif, v, NULL);
 	/* update concurrent index */
+	sr_spinlock(&m->lockupd);
 	srrbnode *n = NULL;
 	int rc = sx_match(&index->i, index->scheme, sv_vpointer(version),
 	                  version->size, &n);
-	if (rc == 0 && n) {
+	if (srunlikely(rc == 0 && n)) {
 		/* exists */
 	} else {
 		/* unique */
 		v->lo = sv_logcount(&t->log);
-		if (srunlikely(sv_logadd(&t->log, m->r->a, &lv, index->ptr) == -1))
-			return sr_error(m->r->e, "%s", "memory allocation failed");
-		sr_rbset(&index->i, n, rc, &v->node);
-		return 0;
+		if (srunlikely((sv_logadd(&t->log, m->r->a, &lv, index->ptr)) == -1)) {
+			rc = sr_error(m->r->e, "%s", "memory allocation failed");
+		} else {
+			sr_rbset(&index->i, n, rc, &v->node);
+			rc = 0;
+		}
+		sr_spinunlock(&m->lockupd);
+		return rc;
 	}
 	sxv *head = srcast(n, sxv, node);
 	/* match previous update made by current
@@ -282,16 +326,19 @@ int sx_set(sx *t, sxindex *index, svv *version)
 		/* update log */
 		sv_logreplace(&t->log, v->lo, &lv);
 		sx_vfree(m->r->a, m->asxv, own);
+		sr_spinunlock(&m->lockupd);
 		return 0;
 	}
 	/* update log */
 	rc = sv_logadd(&t->log, m->r->a, &lv, index->ptr);
 	if (srunlikely(rc == -1)) {
+		sr_spinunlock(&m->lockupd);
 		sx_vfree(m->r->a, m->asxv, v);
 		return sr_error(m->r->e, "%s", "memory allocation failed");
 	}
 	/* add version */
 	sx_vlink(head, v);
+	sr_spinunlock(&m->lockupd);
 	return 0;
 }
 
@@ -299,30 +346,43 @@ int sx_get(sx *t, sxindex *index, sv *key, sv *result)
 {
 	sxmanager *m = t->manager;
 	srrbnode *n = NULL;
-	int rc = sx_match(&index->i, index->scheme, sv_pointer(key),
+	sr_spinlock(&m->lockupd);
+	int rc = sx_match(&index->i, index->scheme,
+	                  sv_pointer(key),
 	                  sv_size(key), &n);
 	if (! (rc == 0 && n))
-		return 0;
+		goto done;
 	sxv *head = srcast(n, sxv, node);
 	sxv *v = sx_vmatch(head, t->id);
-	if (v == NULL)
-		return 0;
-	if (srunlikely((v->v->flags & SVDELETE) > 0))
-		return 2;
+	if (v == NULL) {
+		rc = 0;
+		goto done;
+	}
+	if (srunlikely((v->v->flags & SVDELETE) > 0)) {
+		rc = 2;
+		goto done;
+	}
 	sv vv;
 	sv_init(&vv, &sv_vif, v->v, NULL);
 	svv *ret = sv_vdup(m->r->a, &vv);
-	if (srunlikely(ret == NULL))
-		return sr_error(m->r->e, "%s", "memory allocation failed");
-	sv_init(result, &sv_vif, ret, NULL);
-	return 1;
+	if (srunlikely(ret == NULL)) {
+		rc = sr_error(m->r->e, "%s", "memory allocation failed");
+	} else {
+		sv_init(result, &sv_vif, ret, NULL);
+		rc = 1;
+	}
+done:
+	sr_spinunlock(&m->lockupd);
+	return rc;
 }
 
 sxstate sx_setstmt(sxmanager *m, sxindex *index, sv *v)
 {
 	sr_seq(m->r->seq, SR_TSNNEXT);
 	srrbnode *n = NULL;
+	sr_spinlock(&m->lockupd);
 	int rc = sx_match(&index->i, index->scheme, sv_pointer(v), sv_size(v), &n);
+	sr_spinunlock(&m->lockupd);
 	if (rc == 0 && n)
 		return SXLOCK;
 	return SXCOMMIT;

@@ -23,8 +23,16 @@ so_requestdestroy(soobj *obj, va_list args srunused)
 	so *e = so_of(&r->o);
 	if (r->result)
 		so_objdestroy((soobj*)r->result);
-	if (r->search_free)
-		sv_vfree(&e->a, (svv*)r->search.v);
+	if (r->arg.v.v)
+		sv_vfree(&e->a, r->arg.v.v);
+	switch (r->op) {
+	case SO_REQPREPARE:
+	case SO_REQCOMMIT:
+	case SO_REQROLLBACK:
+		so_txend((sotx*)r->object);
+		break;
+	default: break;
+	}
 	sr_free(&e->a_req, r);
 	return 0;
 }
@@ -32,6 +40,23 @@ so_requestdestroy(soobj *obj, va_list args srunused)
 static void*
 so_requesttype(soobj *o srunused, va_list args srunused) {
 	return "request";
+}
+
+static inline char*
+so_requestof(sorequestop op)
+{
+	switch (op) {
+	case SO_REQDBSET:
+	case SO_REQTXSET:     return "set";
+	case SO_REQDBGET:
+	case SO_REQTXGET:     return "get";
+	case SO_REQBEGIN:     return "begin";
+	case SO_REQPREPARE:   return "prepare";
+	case SO_REQCOMMIT:    return "commit";
+	case SO_REQROLLBACK:  return "rollback";
+	case SO_REQON_BACKUP: return "backup";
+	}
+	return NULL;
 }
 
 static void*
@@ -43,7 +68,7 @@ so_requestget(soobj *obj, va_list args)
 		return &r->id;
 	} else
 	if (strcmp(name, "type") == 0) {
-		return &r->op;
+		return so_requestof(r->op);
 	} else
 	if (strcmp(name, "status") == 0) {
 		// lock?
@@ -76,34 +101,16 @@ static soobjif sorequestif =
 	.type    = so_requesttype
 };
 
-void so_requestinit(so *e, sorequest *r, sorequestop op, soobj *object)
+void so_requestinit(so *e, sorequest *r, sorequestop op, soobj *object, soobj *db)
 {
 	so_objinit(&r->o, SOREQUEST, &sorequestif, &e->o);
 	r->id = 0;
 	r->op = op;
 	r->object = object;
-	r->vlsn = 0;
-	r->vlsn_generate = 0;
+	r->db = db;
+	memset(&r->arg, 0, sizeof(r->arg));
 	r->result = NULL;
 	r->rc = 0;
-	sv_loginit(&r->log);
-	r->logp = &r->log;
-	r->search_free = 0;
-}
-
-void so_requestarg(sorequest *r, svlog *log, sv *search, int search_free)
-{
-	if (log)
-		r->logp = log;
-	r->search_free = search_free;
-	if (search)
-		r->search = *search;
-}
-
-void so_requestvlsn(sorequest *r, uint64_t vlsn, int generate)
-{
-	r->vlsn = vlsn;
-	r->vlsn_generate = generate;
 }
 
 static inline void
@@ -138,14 +145,14 @@ void so_requestready(sorequest *r)
 }
 
 sorequest*
-so_requestnew(so *e, sorequestop op, soobj *object)
+so_requestnew(so *e, sorequestop op, soobj *object, soobj *db)
 {
 	sorequest *r = sr_malloc(&e->a_req, sizeof(sorequest));
 	if (srunlikely(r == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");
 		return NULL;
 	}
-	so_requestinit(e, r, op, object);
+	so_requestinit(e, r, op, object, db);
 	return r;
 }
 

@@ -218,7 +218,6 @@ static void*
 so_dbasync_obj(soobj *obj, va_list args srunused)
 {
 	sodbasync *o = (sodbasync*)obj;
-	/* so_dbobj() */
 	so *e = so_of(&o->o);
 	return so_vnew(e, &o->parent->o);
 }

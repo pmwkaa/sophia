@@ -51,7 +51,7 @@ so_cursordestroy(soobj *o, va_list args srunused)
 	socursor *c = (socursor*)o;
 	so *e = so_of(o);
 	uint32_t id = c->t.id;
-	sx_end(&c->t);
+	sx_rollback(&c->t);
 	si_cachepool_push(c->cache);
 	if (c->key) {
 		so_objdestroy(c->key);
@@ -179,7 +179,7 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 	if (seek)
 		sv_vfree(db->r.a, seek);
 	if (srunlikely(rc == -1)) {
-		sx_end(&c->t);
+		sx_rollback(&c->t);
 		goto error;
 	}
 

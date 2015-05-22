@@ -12,6 +12,7 @@
 typedef enum {
 	SOUNDEF      = 0L,
 	SOENV        = 0x06154834L,
+	SOENVASYNC   = 0x38970021L,
 	SOCTL        = 0x1234FFBBL,
 	SOCTLCURSOR  = 0x6AB65429L,
 	SOV          = 0x2FABCDE2L,

@@ -17,10 +17,47 @@
 #include <libso.h>
 
 static void*
+so_asyncbegin(soobj *o, va_list args srunused) {
+	return so_txnew(so_of(o), 1);
+}
+
+static void*
+so_asynctype(soobj *o srunused, va_list args srunused) {
+	return "env_async";
+}
+
+static soobjif soasyncif =
+{
+	.ctl     = NULL,
+	.async   = NULL,
+	.open    = NULL,
+	.destroy = NULL,
+	.error   = NULL,
+	.set     = NULL,
+	.del     = NULL,
+	.get     = NULL,
+	.poll    = NULL,
+	.drop    = NULL,
+	.begin   = so_asyncbegin,
+	.prepare = NULL,
+	.commit  = NULL,
+	.cursor  = NULL,
+	.object  = NULL,
+	.type    = so_asynctype
+};
+
+static void*
 so_ctl(soobj *obj, va_list args srunused)
 {
 	so *o = (so*)obj;
 	return &o->ctl;
+}
+
+static void*
+so_async(soobj *obj, va_list args srunused)
+{
+	so *o = (so*)obj;
+	return &o->async;
 }
 
 static int
@@ -134,7 +171,7 @@ so_destroy(soobj *o, va_list args srunused)
 
 static void*
 so_begin(soobj *o, va_list args srunused) {
-	return so_txnew((so*)o);
+	return so_txnew((so*)o, 0);
 }
 
 static void*
@@ -145,7 +182,7 @@ so_poll(soobj *o, va_list args srunused)
 		sr_mutexlock(&e->sched.lock);
 		if (srunlikely(e->sched.backup_events > 0)) {
 			e->sched.backup_events--;
-			sorequest *req = so_requestnew(e, SO_REQON_BACKUP, &e->o);
+			sorequest *req = so_requestnew(e, SO_REQON_BACKUP, &e->o, NULL);
 			if (srunlikely(req == NULL)) {
 				sr_mutexunlock(&e->sched.lock);
 				return NULL;
@@ -182,7 +219,7 @@ so_type(soobj *o srunused, va_list args srunused) {
 static soobjif soif =
 {
 	.ctl     = so_ctl,
-	.async   = NULL,
+	.async   = so_async,
 	.open    = so_open,
 	.destroy = so_destroy,
 	.error   = so_error,
@@ -226,6 +263,7 @@ soobj *so_new(void)
 	so_statusinit(&e->status);
 	so_statusset(&e->status, SO_OFFLINE);
 	so_ctlinit(&e->ctl, e);
+	so_objinit(&e->async.o, SOENVASYNC, &soasyncif, &e->o);
 	so_objindex_init(&e->db);
 	so_objindex_init(&e->db_shutdown);
 	so_objindex_init(&e->tx);
@@ -240,7 +278,8 @@ soobj *so_new(void)
 	sr_seqinit(&e->seq);
 	sr_errorinit(&e->error);
 	srcrcf crc = sr_crc32c_function();
-	sr_init(&e->r, &e->error, &e->a, &e->seq, SR_FKV, SR_FS_RAW,
+	sr_init(&e->r, &e->error, &e->a, &e->seq,
+	        SR_FKV, SR_FS_RAW,
 	        &e->ctl.ctlscheme, &e->ei, crc, NULL);
 	se_init(&e->se);
 	sl_poolinit(&e->lp, &e->r);

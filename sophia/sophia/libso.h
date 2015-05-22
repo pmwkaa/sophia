@@ -18,6 +18,7 @@
 #include <so_scheduler.h>
 #include <so.h>
 #include <so_request.h>
+#include <so_query.h>
 #include <so_v.h>
 #include <so_db.h>
 #include <so_recover.h>

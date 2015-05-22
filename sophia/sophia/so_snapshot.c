@@ -20,7 +20,7 @@ static int
 so_snapshotfree(sosnapshot *s)
 {
 	so *e = so_of(&s->o);
-	sx_end(&s->t);
+	sx_rollback(&s->t);
 	if (srlikely(s->name)) {
 		sr_free(&e->a, s->name);
 		s->name = NULL;
@@ -135,7 +135,7 @@ int so_snapshotupdate(sosnapshot *s)
 {
 	so *e = so_of(&s->o);
 	uint32_t id = s->t.id;
-	sx_end(&s->t);
+	sx_rollback(&s->t);
 	sx_begin(&e->xm, &s->t, s->vlsn);
 	s->t.id = id;
 	return 0;

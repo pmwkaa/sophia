@@ -9,7 +9,12 @@
  * BSD License
 */
 
+typedef struct soasync soasync;
 typedef struct so so;
+
+struct soasync {
+	soobj o;
+};
 
 struct so {
 	soobj o;
@@ -25,6 +30,7 @@ struct so {
 	soobjindex ctlcursor;
 	sostatus status;
 	soctl ctl;
+	soasync async;
 	srseq seq;
 	srquota quota;
 	srpager pager;

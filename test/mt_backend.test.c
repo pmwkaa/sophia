@@ -403,6 +403,54 @@ mt_set_get_document_multipart_cursor(stc *cx)
 	t( sp_destroy(cx->env) == 0 );
 }
 
+static void
+mt_async(stc *cx)
+{
+	cx->env = sp_env();
+	t( cx->env != NULL );
+	void *c = sp_ctl(cx->env);
+	t( c != NULL );
+	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
+	t( sp_set(c, "scheduler.threads", "5") == 0 );
+	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
+	t( sp_set(c, "log.sync", "0") == 0 );
+	t( sp_set(c, "log.rotate_sync", "0") == 0 );
+	t( sp_set(c, "db", "test") == 0 );
+	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
+	t( sp_set(c, "db.test.sync", "0") == 0 );
+	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	cx->db = sp_get(c, "db.test");
+	t( cx->db != NULL );
+	t( sp_open(cx->env) == 0 );
+
+	void *async = sp_async(cx->db);
+	t( async != NULL );
+
+	int i = 0;
+	while (i < 500000) {
+		void *o = sp_object(async);
+		assert(o != NULL);
+		sp_set(o, "key", &i, sizeof(i));
+		int rc = sp_set(async, o);
+		t( rc == 0 );
+		print_current(cx, i);
+		i++;
+	}
+	printf(" (done..gather)");
+	i = 0;
+	while (i < 500000) {
+		void *req = sp_poll(cx->env);
+		if (req == NULL)
+			continue;
+		t( strcmp(sp_get(req, "type"), "set") == 0 );
+		t( *(int*)sp_get(req, "status") == 0 );
+		sp_destroy(req);
+		print_current(cx, i);
+		i++;
+	}
+	t( sp_destroy(cx->env) == 0 );
+}
+
 stgroup *mt_backend_group(void)
 {
 	stgroup *group = st_group("mt_backend");
@@ -411,5 +459,6 @@ stgroup *mt_backend_group(void)
 	st_groupadd(group, st_test("set_get_kv_multipart", mt_set_get_kv_multipart));
 	st_groupadd(group, st_test("set_get_document_multipart", mt_set_get_document_multipart));
 	st_groupadd(group, st_test("set_get_document_multipart_cursor", mt_set_get_document_multipart_cursor));
+	st_groupadd(group, st_test("async", mt_async));
 	return group;
 }

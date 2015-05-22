@@ -43,6 +43,7 @@ struct sx {
 };
 
 struct sxmanager {
+	srspinlock lockupd;
 	srspinlock lock;
 	srrb i;
 	uint32_t count;
@@ -57,7 +58,7 @@ int       sx_indexset(sxindex*, uint32_t, srscheme*);
 int       sx_indexfree(sxindex*, sxmanager*);
 sx       *sx_find(sxmanager*, uint32_t);
 sxstate   sx_begin(sxmanager*, sx*, uint64_t);
-sxstate   sx_end(sx*);
+void      sx_gc(sx*);
 sxstate   sx_prepare(sx*, sxpreparef, void*);
 sxstate   sx_commit(sx*);
 sxstate   sx_rollback(sx*);

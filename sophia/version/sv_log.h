@@ -22,6 +22,7 @@ struct svlogindex {
 
 struct svlogv {
 	sv v;
+	void *vgc;
 	uint32_t id;
 	uint32_t next;
 } srpacked;
