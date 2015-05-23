@@ -11,7 +11,7 @@
 #include <libsv.h>
 #include <libsx.h>
 
-int sx_init(sxmanager *m, sr *r, sra *asxv)
+int sx_managerinit(sxmanager *m, sr *r, sra *asxv)
 {
 	sr_rbinit(&m->i);
 	m->count = 0;
@@ -22,10 +22,9 @@ int sx_init(sxmanager *m, sr *r, sra *asxv)
 	return 0;
 }
 
-int sx_free(sxmanager *m)
+int sx_managerfree(sxmanager *m)
 {
 	/* rollback active transactions */
-
 	sr_spinlockfree(&m->lock);
 	sr_spinlockfree(&m->lockupd);
 	return 0;
@@ -111,10 +110,16 @@ sx *sx_find(sxmanager *m, uint32_t id)
 	return NULL;
 }
 
+void sx_init(sxmanager *m, sx *t)
+{
+	t->manager = m;
+	sv_loginit(&t->log);
+	sr_listinit(&t->deadlock);
+}
+
 sxstate sx_begin(sxmanager *m, sx *t, uint64_t vlsn)
 {
 	t->s = SXREADY; 
-	t->manager = m;
 	sr_seqlock(m->r->seq);
 	t->id = sr_seqdo(m->r->seq, SR_TSNNEXT);
 	if (srlikely(vlsn == 0))
@@ -122,8 +127,7 @@ sxstate sx_begin(sxmanager *m, sx *t, uint64_t vlsn)
 	else
 		t->vlsn = vlsn;
 	sr_sequnlock(m->r->seq);
-	sv_loginit(&t->log);
-	sr_listinit(&t->deadlock);
+	sx_init(m, t);
 	sr_spinlock(&m->lock);
 	srrbnode *n = NULL;
 	int rc = sx_matchtx(&m->i, NULL, (char*)&t->id, sizeof(t->id), &n);
@@ -139,7 +143,6 @@ sxstate sx_begin(sxmanager *m, sx *t, uint64_t vlsn)
 
 void sx_gc(sx *t)
 {
-	assert(t->s == SXCOMMIT || t->s == SXROLLBACK);
 	sxmanager *m = t->manager;
 	sriter i;
 	sr_iterinit(sr_bufiter, &i, NULL);

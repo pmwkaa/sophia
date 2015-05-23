@@ -17,6 +17,9 @@ typedef enum {
 	SO_REQDBGET,
 	SO_REQTXSET,
 	SO_REQTXGET,
+	SO_REQCURSOROPEN,
+	SO_REQCURSORGET,
+	SO_REQCURSORDESTROY,
 	SO_REQBEGIN,
 	SO_REQPREPARE,
 	SO_REQCOMMIT,
@@ -27,6 +30,7 @@ typedef enum {
 struct sorequestarg {
 	srorder order;
 	sv v;
+	int prefix;
 	int recover;
 	uint64_t lsn;
 	int vlsn_generate;

@@ -26,6 +26,13 @@ so_requestdestroy(soobj *obj, va_list args srunused)
 	if (r->arg.v.v)
 		sv_vfree(&e->a, r->arg.v.v);
 	switch (r->op) {
+	case SO_REQCURSOROPEN:
+		if (srunlikely(r->rc == -1))
+			so_cursorend((socursor*)r->object);
+		break;
+	case SO_REQCURSORDESTROY:
+		so_cursorend((socursor*)r->object);
+		break;
 	case SO_REQPREPARE:
 	case SO_REQCOMMIT:
 	case SO_REQROLLBACK:
@@ -47,14 +54,17 @@ so_requestof(sorequestop op)
 {
 	switch (op) {
 	case SO_REQDBSET:
-	case SO_REQTXSET:     return "set";
+	case SO_REQTXSET:         return "set";
 	case SO_REQDBGET:
-	case SO_REQTXGET:     return "get";
-	case SO_REQBEGIN:     return "begin";
-	case SO_REQPREPARE:   return "prepare";
-	case SO_REQCOMMIT:    return "commit";
-	case SO_REQROLLBACK:  return "rollback";
-	case SO_REQON_BACKUP: return "backup";
+	case SO_REQTXGET:         return "get";
+	case SO_REQCURSOROPEN:    return "cursor";
+	case SO_REQCURSORGET:     return "cursor_get";
+	case SO_REQCURSORDESTROY: return "cursor_destroy";
+	case SO_REQBEGIN:         return "begin";
+	case SO_REQPREPARE:       return "prepare";
+	case SO_REQCOMMIT:        return "commit";
+	case SO_REQROLLBACK:      return "rollback";
+	case SO_REQON_BACKUP:     return "backup";
 	}
 	return NULL;
 }

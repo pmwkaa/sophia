@@ -72,7 +72,7 @@ so_snapshotcursor(soobj *o, va_list args)
 	if (srunlikely(v->parent == NULL || v->parent->id != SODB))
 		goto error;
 	sodb *db = (sodb*)v->parent;
-	return so_cursornew(db, s->vlsn, args);
+	return so_cursornew(db, s->vlsn, 0, args);
 error:
 	sr_error(&e->error, "%s", "bad arguments");
 	return NULL;

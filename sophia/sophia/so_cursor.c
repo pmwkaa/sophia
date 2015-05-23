@@ -4,7 +4,7 @@
  * sphia.org
  *
  * Copyright (c) Dmitry Simonenko
- * BSD Licenso
+ * BSD License
 */
 
 #include <libsr.h>
@@ -25,24 +25,18 @@ so_cursorobj(soobj *obj, va_list args srunused)
 	return &c->v;
 }
 
-static inline int
-so_cursorseek(socursor *c, void *key, int keysize)
+void so_cursorend(socursor *c)
 {
-	sov *pref = (sov*)c->key;
-	siquery q;
-	si_queryopen(&q, &c->db->r, c->cache,
-	             &c->db->index, c->order, c->t.vlsn,
-	             pref->prefix, pref->prefixsize,
-	             key, keysize);
-	int rc = si_query(&q);
+	so *e = so_of(&c->o);
+	uint32_t id = c->t.id;
+	if (c->cache)
+		si_cachepool_push(c->cache);
+	if (c->seek.v)
+		sv_vfree(c->db->r.a, c->seek.v);
 	so_vrelease(&c->v);
-	if (rc == 1) {
-		assert(q.result.v != NULL);
-		so_vput(&c->v, &q.result);
-		so_vimmutable(&c->v);
-	}
-	si_queryclose(&q);
-	return rc;
+	so_objindex_unregister(&c->db->cursor, &c->o);
+	so_dbunbind(e, id);
+	sr_free(&e->a_cursor, c);
 }
 
 static int
@@ -50,17 +44,20 @@ so_cursordestroy(soobj *o, va_list args srunused)
 {
 	socursor *c = (socursor*)o;
 	so *e = so_of(o);
-	uint32_t id = c->t.id;
-	sx_rollback(&c->t);
-	si_cachepool_push(c->cache);
-	if (c->key) {
-		so_objdestroy(c->key);
-		c->key = NULL;
+	int shutdown = so_status(&e->status) == SO_SHUTDOWN;
+	/* asynchronous */
+	if (!shutdown && c->async) {
+		sorequest *task = so_requestnew(e, SO_REQCURSORDESTROY, &c->o, &c->db->o);
+		if (srunlikely(task == NULL))
+			return -1;
+		so_requestadd(e, task);
+		return 0;
 	}
-	so_vrelease(&c->v);
-	so_objindex_unregister(&c->db->cursor, &c->o);
-	so_dbunbind(e, id);
-	sr_free(&e->a_cursor, c);
+	/* synchronous */
+	sorequest req;
+	so_requestinit(e, &req, SO_REQCURSORDESTROY, &c->o, &c->db->o);
+	so_query(&req);
+	so_cursorend(c);
 	return 0;
 }
 
@@ -68,16 +65,20 @@ static void*
 so_cursorget(soobj *o, va_list args srunused)
 {
 	socursor *c = (socursor*)o;
-	if (srunlikely(c->ready)) {
-		c->ready = 0;
-		return &c->v;
+	so *e = so_of(o);
+	/* asynchronous */
+	if (c->async) {
+		sorequest *task = so_requestnew(e, SO_REQCURSORGET, &c->o, &c->db->o);
+		if (srunlikely(task == NULL))
+			return NULL;
+		so_requestadd(e, task);
+		return &c->o;
 	}
-	if (srunlikely(c->order == SR_STOP))
-		return 0;
-	if (srunlikely(! so_vhas(&c->v)))
-		return 0;
-	int rc = so_cursorseek(c, sv_pointer(&c->v.v), sv_size(&c->v.v));
-	if (srunlikely(rc <= 0))
+	/* synchronous */
+	sorequest req;
+	so_requestinit(e, &req, SO_REQCURSORGET, &c->o, &c->db->o);
+	so_query(&req);
+	if (srunlikely(req.rc <= 0))
 		return NULL;
 	return &c->v;
 }
@@ -107,7 +108,7 @@ static soobjif socursorif =
 	.type    = so_cursortype
 };
 
-soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
+soobj *so_cursornew(sodb *db, uint64_t vlsn, int async, va_list args)
 {
 	so *e = so_of(&db->o);
 	soobj *keyobj = va_arg(args, soobj*);
@@ -131,28 +132,28 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 		goto error;
 	}
 	so_objinit(&c->o, SOCURSOR, &socursorif, &e->o);
-	c->key   = keyobj;
-	c->db    = db;
-	c->ready = 0;
-	c->order = o->order;
+	c->db     = db;
+	c->async  = async;
+	c->ready  = 0;
+	c->order  = o->order;
+	c->prefix = NULL;
+	c->prefixsize = 0;
+	c->cache  = NULL;
+	sx_init(&e->xm, &c->t);
 	so_vinit(&c->v, e, &db->o);
-	c->cache = si_cachepool_pop(&e->cachepool);
-	if (srunlikely(c->cache == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation error");
-		goto error;
-	}
 
-	/* open cursor */
-	uint32_t keysize = 0;
-	void *key = NULL;
+	/* allocate cursor cache */
+	c->cache = si_cachepool_pop(&e->cachepool);
+	if (srunlikely(c->cache == NULL))
+		goto error;
+
+	/* prepare key */
 	svv *seek = NULL;
 	if (o->keyc > 0) {
 		/* search by key */
 		seek = so_dbv(db, o, 1);
 		if (srunlikely(seek == NULL))
 			goto error;
-		keysize = seek->size;
-		key = sv_vpointer(seek);
 	} else
 	if (o->prefix)
 	{
@@ -165,44 +166,48 @@ soobj *so_cursornew(sodb *db, uint64_t vlsn, va_list args)
 			seek = sv_vbuild(&e->r, &fv, 1, NULL, 0);
 			if (srunlikely(seek == NULL))
 				goto error;
-			keysize = seek->size;
-			key = sv_vpointer(seek);
+			void *vptr = sv_vpointer(seek);
+			c->prefix = sr_fmtkey(vptr, 0);
+			c->prefixsize = sr_fmtkey_size(vptr, 0);
 		} else {
 			sr_error(&e->error, "%s", "prefix search is only supported for a"
 			         " first string-part");
 			goto error;
 		}
 	}
+	so_objdestroy(keyobj);
+	keyobj = NULL;
+	sv_init(&c->seek, &sv_vif, seek, NULL);
 
-	sx_begin(&e->xm, &c->t, vlsn);
-	int rc = so_cursorseek(c, key, keysize);
-	if (seek)
-		sv_vfree(db->r.a, seek);
-	if (srunlikely(rc == -1)) {
-		sx_rollback(&c->t);
+	/* asynchronous */
+	if (async) {
+		sorequest *task = so_requestnew(e, SO_REQCURSOROPEN, &c->o, &db->o);
+		if (srunlikely(task == NULL))
+			goto error;
+		sorequestarg *arg = &task->arg;
+		arg->vlsn = vlsn;
+		so_dbbind(e);
+		so_objindex_register(&db->cursor, &c->o);
+		so_requestadd(e, task);
+		return &c->o;
+	}
+
+	/* synchronous */
+	sorequest req;
+	so_requestinit(e, &req, SO_REQCURSOROPEN, &c->o, &db->o);
+	sorequestarg *arg = &req.arg;
+	/* support (sync) snapshot read-view */
+	arg->vlsn_generate = 0;
+	arg->vlsn = vlsn;
+	so_query(&req);
+	if (srunlikely(req.rc == -1))
 		goto error;
-	}
-
-	/* ensure correct iteration */
-	srorder next = SR_GTE;
-	switch (c->order) {
-	case SR_LT:
-	case SR_LTE: next = SR_LT;
-		break;
-	case SR_GT:
-	case SR_GTE: next = SR_GT;
-		break;
-	default: assert(0);
-	}
-	c->order = next;
-	if (rc == 1)
-		c->ready = 1;
-
 	so_dbbind(e);
 	so_objindex_register(&db->cursor, &c->o);
 	return &c->o;
 error:
-	so_objdestroy(keyobj);
+	if (keyobj)
+		so_objdestroy(keyobj);
 	if (c->cache)
 		si_cachepool_push(c->cache);
 	if (c)

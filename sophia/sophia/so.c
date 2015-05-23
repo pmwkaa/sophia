@@ -155,7 +155,7 @@ so_destroy(soobj *o, va_list args srunused)
 	rc = se_close(&e->se, &e->r);
 	if (srunlikely(rc == -1))
 		rcret = -1;
-	sx_free(&e->xm);
+	sx_managerfree(&e->xm);
 	si_cachepool_free(&e->cachepool, &e->r);
 	so_ctlfree(&e->ctl);
 	sr_quotafree(&e->quota);
@@ -283,7 +283,7 @@ soobj *so_new(void)
 	        &e->ctl.ctlscheme, &e->ei, crc, NULL);
 	se_init(&e->se);
 	sl_poolinit(&e->lp, &e->r);
-	sx_init(&e->xm, &e->r, &e->a_sxv);
+	sx_managerinit(&e->xm, &e->r, &e->a_sxv);
 	si_cachepool_init(&e->cachepool, &e->a_cache, &e->a_cachebranch);
 	so_scheduler_init(&e->sched, e);
 	return &e->o;

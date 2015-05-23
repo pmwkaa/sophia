@@ -303,8 +303,9 @@ so_txrollback(soobj *o, va_list args srunused)
 {
 	sotx *t = (sotx*)o;
 	so *e = so_of(o);
+	int shutdown = so_status(&e->status) == SO_SHUTDOWN;
 	/* asynchronous */
-	if (t->async) {
+	if (!shutdown && t->async) {
 		sorequest *task = so_requestnew(e, SO_REQROLLBACK, &t->o, NULL);
 		if (srunlikely(task == NULL))
 			return -1;
@@ -422,18 +423,25 @@ soobj *so_txnew(so *e, int async)
 		sr_error(&e->error, "%s", "memory allocation failed");
 		return NULL;
 	}
-	t->async = async;
 	so_objinit(&t->o, SOTX, &sotxif, &e->o);
-	if (srlikely(async == 0)) {
-		sx_begin(&e->xm, &t->t, 0);
-	} else {
+	sx_init(&e->xm, &t->t);
+	t->async = async;
+	/* asynchronous */
+	if (async) {
 		sorequest *task = so_requestnew(e, SO_REQBEGIN, &t->o, NULL);
 		if (srunlikely(task == NULL)) {
 			sr_free(&e->a_tx, t);
 			return NULL;
 		}
+		so_dbbind(e);
+		so_objindex_register(&e->tx, &t->o);
 		so_requestadd(e, task);
+		return &t->o;
 	}
+	/* synchronous */
+	sorequest req;
+	so_requestinit(e, &req, SO_REQBEGIN, &t->o, NULL);
+	so_query(&req);
 	so_dbbind(e);
 	so_objindex_register(&e->tx, &t->o);
 	return &t->o;

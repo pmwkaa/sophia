@@ -215,6 +215,13 @@ so_dbasync_get(soobj *obj, va_list args)
 }
 
 static void*
+so_dbasync_cursor(soobj *obj, va_list args)
+{
+	sodbasync *o = (sodbasync*)obj;
+	return so_cursornew(o->parent, 0, 1, args);
+}
+
+static void*
 so_dbasync_obj(soobj *obj, va_list args srunused)
 {
 	sodbasync *o = (sodbasync*)obj;
@@ -241,7 +248,7 @@ static soobjif sodbasyncif =
 	.begin   = NULL,
 	.prepare = NULL,
 	.commit  = NULL,
-	.cursor  = NULL,
+	.cursor  = so_dbasync_cursor,
 	.object  = so_dbasync_obj,
 	.type    = so_dbasync_type
 };
@@ -411,7 +418,7 @@ static void*
 so_dbcursor(soobj *o, va_list args)
 {
 	sodb *db = (sodb*)o;
-	return so_cursornew(db, 0, args);
+	return so_cursornew(db, 0, 0, args);
 }
 
 static void*

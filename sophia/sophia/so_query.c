@@ -208,6 +208,95 @@ so_queryprepare_trigger(sx *t, sv *v, void *arg0, void *arg1)
 	return SXPREPARE;
 }
 
+static inline int
+so_querycursor_seek(socursor *c, sv *v)
+{
+	int keysize;
+	char *key;
+	if (v->v) {
+		key = sv_pointer(v);
+		keysize = sv_size(v);
+	} else {
+		key = NULL;
+		keysize = 0;
+	}
+	siquery q;
+	si_queryopen(&q, &c->db->r, c->cache,
+	             &c->db->index, c->order, c->t.vlsn,
+	             c->prefix, c->prefixsize,
+	             key, keysize);
+	int rc = si_query(&q);
+	so_vrelease(&c->v);
+	if (rc == 1) {
+		assert(q.result.v != NULL);
+		so_vput(&c->v, &q.result);
+		so_vimmutable(&c->v);
+	}
+	si_queryclose(&q);
+	return rc;
+}
+
+static inline int
+so_querycursor_get(sorequest *r)
+{
+	socursor *c = (socursor*)r->object;
+	if (srunlikely(c->ready)) {
+		c->ready = 0;
+		r->result = &c->v;
+		return (r->rc = 1);
+	}
+	if (srunlikely(c->order == SR_STOP))
+		return (r->rc = 0);
+	if (srunlikely(! so_vhas(&c->v)))
+		return (r->rc = 0);
+	r->rc = so_querycursor_seek(c, &c->v.v);
+	if (srunlikely(r->rc <= 0))
+		return r->rc;
+	r->result = &c->v;
+	return r->rc;
+}
+
+static inline int
+so_querycursor_open(sorequest *r)
+{
+	sorequestarg *arg = &r->arg;
+	socursor *c = (socursor*)r->object;
+	so *e = so_of(r->object);
+	/* set cursor position */
+	sx_begin(&e->xm, &c->t, arg->vlsn);
+	r->rc = so_querycursor_seek(c, &c->seek);
+	switch (r->rc) {
+	case  1:
+		r->result = &c->v;
+		break;
+	case -1:
+		sx_rollback(&c->t);
+		return -1;
+	}
+	/* ensure correct iteration */
+	srorder next = SR_GTE;
+	switch (c->order) {
+	case SR_LT:
+	case SR_LTE: next = SR_LT;
+		break;
+	case SR_GT:
+	case SR_GTE: next = SR_GT;
+		break;
+	default: assert(0);
+	}
+	c->order = next;
+	if (r->rc == 1)
+		c->ready = 1;
+	return r->rc;
+}
+
+static inline int
+so_querycursor_destroy(sorequest *r)
+{
+	socursor *c = (socursor*)r->object;
+	sx_rollback(&c->t);
+	return 0;
+}
 
 static inline int
 so_querybegin(sorequest *r)
@@ -278,14 +367,17 @@ so_queryrollback(sorequest *r)
 int so_query(sorequest *r)
 {
 	switch (r->op) {
-	case SO_REQDBSET:    return so_querydb_set(r);
-	case SO_REQDBGET:    return so_querydb_get(r);
-	case SO_REQTXSET:    return so_querytx_set(r);
-	case SO_REQTXGET:    return so_querytx_get(r);
-	case SO_REQBEGIN:    return so_querybegin(r);
-	case SO_REQPREPARE:  return so_queryprepare(r);
-	case SO_REQCOMMIT:   return so_querycommit(r);
-	case SO_REQROLLBACK: return so_queryrollback(r);
+	case SO_REQDBSET:         return so_querydb_set(r);
+	case SO_REQDBGET:         return so_querydb_get(r);
+	case SO_REQTXSET:         return so_querytx_set(r);
+	case SO_REQTXGET:         return so_querytx_get(r);
+	case SO_REQCURSOROPEN:    return so_querycursor_open(r);
+	case SO_REQCURSORGET:     return so_querycursor_get(r);
+	case SO_REQCURSORDESTROY: return so_querycursor_destroy(r);
+	case SO_REQBEGIN:         return so_querybegin(r);
+	case SO_REQPREPARE:       return so_queryprepare(r);
+	case SO_REQCOMMIT:        return so_querycommit(r);
+	case SO_REQROLLBACK:      return so_queryrollback(r);
 	default: assert(0);
 	}
 	return 0;
