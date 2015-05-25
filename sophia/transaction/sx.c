@@ -353,8 +353,10 @@ int sx_get(sx *t, sxindex *index, sv *key, sv *result)
 	int rc = sx_match(&index->i, index->scheme,
 	                  sv_pointer(key),
 	                  sv_size(key), &n);
-	if (! (rc == 0 && n))
+	if (! (rc == 0 && n)) {
+		rc = 0;
 		goto done;
+	}
 	sxv *head = srcast(n, sxv, node);
 	sxv *v = sx_vmatch(head, t->id);
 	if (v == NULL) {
