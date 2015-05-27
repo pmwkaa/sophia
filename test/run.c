@@ -7,21 +7,23 @@
  * BSD License
 */
 
-#include <libsr.h>
+#include <libss.h>
+#include <libsf.h>
+#include <libss.h>
 #include <libst.h>
 #include <sophia.h>
 
+extern stgroup *ssleb128_group(void);
+extern stgroup *sspager_group(void);
+extern stgroup *ssaslab_group(void);
+extern stgroup *ssa_group(void);
+extern stgroup *ssorder_group(void);
+extern stgroup *ssrq_group(void);
+extern stgroup *ssht_group(void);
+extern stgroup *sszstdfilter_group(void);
+extern stgroup *sslz4filter_group(void);
 extern stgroup *srctl_group(void);
-extern stgroup *srleb128_group(void);
-extern stgroup *srpager_group(void);
-extern stgroup *sraslab_group(void);
-extern stgroup *sra_group(void);
 extern stgroup *srscheme_group(void);
-extern stgroup *srorder_group(void);
-extern stgroup *srrq_group(void);
-extern stgroup *srht_group(void);
-extern stgroup *srzstdfilter_group(void);
-extern stgroup *srlz4filter_group(void);
 extern stgroup *svv_group(void);
 extern stgroup *svindex_group(void);
 extern stgroup *svindexiter_group(void);
@@ -90,17 +92,17 @@ main(int argc, char *argv[])
 	st_planscene(plan, st_sceneof(&s, "rmrf"));
 	st_planscene(plan, st_sceneof(&s, "test"));
 	st_planscene(plan, st_sceneof(&s, "pass"));
+	st_planadd(plan, ssleb128_group());
+	st_planadd(plan, sspager_group());
+	st_planadd(plan, ssa_group());
+	st_planadd(plan, ssaslab_group());
+	st_planadd(plan, ssorder_group());
+	st_planadd(plan, ssht_group());
+	st_planadd(plan, ssrq_group());
+	st_planadd(plan, sszstdfilter_group());
+	st_planadd(plan, sslz4filter_group());
 	st_planadd(plan, srctl_group());
-	st_planadd(plan, srleb128_group());
-	st_planadd(plan, srpager_group());
-	st_planadd(plan, sra_group());
-	st_planadd(plan, sraslab_group());
 	st_planadd(plan, srscheme_group());
-	st_planadd(plan, srorder_group());
-	st_planadd(plan, srht_group());
-	st_planadd(plan, srrq_group());
-	st_planadd(plan, srzstdfilter_group());
-	st_planadd(plan, srlz4filter_group());
 	st_planadd(plan, svv_group());
 	st_planadd(plan, svindex_group());
 	st_planadd(plan, svindexiter_group());

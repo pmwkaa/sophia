@@ -7,12 +7,14 @@
  * BSD License
 */
 
-#include <libsr.h>
+#include <libss.h>
+#include <libsf.h>
+#include <libss.h>
 #include <libst.h>
 #include <sophia.h>
 
 static void
-branch_loggc(stc *cx srunused)
+branch_loggc(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );

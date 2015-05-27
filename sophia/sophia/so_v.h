@@ -16,11 +16,11 @@ typedef struct sov sov;
 #define SO_VIMMUTABLE 4
 
 struct sov {
-	soobj o;
+	srobj o;
 	uint8_t flags;
 	sv v;
-	srorder order;
-	srfmtv keyv[8];
+	ssorder order;
+	sfv keyv[8];
 	int keyc;
 	uint16_t keysize;
 	void *value;
@@ -30,19 +30,19 @@ struct sov {
 	void *prefix;
 	uint16_t prefixsize;
 	void *log;
-	soobj *parent;
-} srpacked;
+	srobj *parent;
+} sspacked;
 
 static inline int
 so_vhas(sov *v) {
 	return v->v.v != NULL;
 }
 
-soobj *so_vnew(so*, soobj*);
-soobj *so_vdup(so*, soobj*, sv*);
-soobj *so_vinit(sov*, so*, soobj*);
-soobj *so_vrelease(sov*);
-soobj *so_vput(sov*, sv*);
+srobj *so_vnew(so*, srobj*);
+srobj *so_vdup(so*, srobj*, sv*);
+srobj *so_vinit(sov*, so*, srobj*);
+srobj *so_vrelease(sov*);
+srobj *so_vput(sov*, sv*);
 int    so_vimmutable(sov*);
 
 #endif

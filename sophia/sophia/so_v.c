@@ -7,32 +7,34 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
-#include <libsx.h>
 #include <libsl.h>
 #include <libsd.h>
 #include <libsi.h>
+#include <libsx.h>
 #include <libse.h>
 #include <libso.h>
 
 static int
-so_vdestroy(soobj *obj, va_list args srunused)
+so_vdestroy(srobj *obj, va_list args ssunused)
 {
 	sov *v = (sov*)obj;
 	if (v->flags & SO_VIMMUTABLE)
 		return 0;
 	so_vrelease(v);
-	sr_free(&so_of(obj)->a_v, v);
+	ss_free(&so_of(obj)->a_v, v);
 	return 0;
 }
 
 static int
-so_vset(soobj *obj, va_list args)
+so_vset(srobj *obj, va_list args)
 {
 	sov *v = (sov*)obj;
 	so *e = so_of(obj);
-	if (srunlikely(v->flags & SO_VRO)) {
+	if (ssunlikely(v->flags & SO_VRO)) {
 		sr_error(&e->error, "%s", "object is read-only");
 		return -1;
 	}
@@ -42,7 +44,7 @@ so_vset(soobj *obj, va_list args)
 		const int valuesize_max = 1 << 21;
 		char *value = va_arg(args, char*);
 		int valuesize = va_arg(args, int);
-		if (srunlikely(valuesize > valuesize_max)) {
+		if (ssunlikely(valuesize > valuesize_max)) {
 			sr_error(&e->error, "%s", "value is too big (%d limit)",
 			         valuesize_max);
 			return -1;
@@ -62,8 +64,8 @@ so_vset(soobj *obj, va_list args)
 	}
 	if (strcmp(name, "order") == 0) {
 		char *order = va_arg(args, void*);
-		srorder cmp = sr_orderof(order);
-		if (srunlikely(cmp == SR_STOP)) {
+		ssorder cmp = ss_orderof(order);
+		if (ssunlikely(cmp == SS_STOP)) {
 			sr_error(&e->error, "%s", "bad order name");
 			return -1;
 		}
@@ -79,20 +81,20 @@ so_vset(soobj *obj, va_list args)
 	/* set keypart */
 	sodb *db = (sodb*)v->parent;
 	srkey *part = sr_schemefind(&db->scheme.scheme, name);
-	if (srunlikely(part == NULL))
+	if (ssunlikely(part == NULL))
 		return -1;
-	assert(part->pos < (int)(sizeof(v->keyv) / sizeof(srfmtv)));
+	assert(part->pos < (int)(sizeof(v->keyv) / sizeof(sfv)));
 
 	const int keysize_max = 1 << 15;
 	char *key = va_arg(args, char*);
 	int keysize = va_arg(args, int);
-	if (srunlikely(keysize > keysize_max)) {
+	if (ssunlikely(keysize > keysize_max)) {
 		sr_error(&e->error, "%s", "key '%s' is too big (%d limit)",
 		         key, keysize_max);
 		return -1;
 	}
 
-	srfmtv *fv = &v->keyv[part->pos];
+	sfv *fv = &v->keyv[part->pos];
 	fv->r.offset = 0;
 	fv->key = key;
 	fv->r.size = keysize;
@@ -100,12 +102,12 @@ so_vset(soobj *obj, va_list args)
 		v->keyc++;
 	fv->part = part;
 	/* update key sum */
-	v->keysize = sr_fmtsize(db->r.fmt, v->keyv, v->keyc, 0);
+	v->keysize = sf_size(db->r.fmt, v->keyv, v->keyc, 0);
 	return 0;
 }
 
 static void*
-so_vget(soobj *obj, va_list args)
+so_vget(srobj *obj, va_list args)
 {
 	sov *v = (sov*)obj;
 	so *e = so_of(obj);
@@ -136,7 +138,7 @@ so_vget(soobj *obj, va_list args)
 		return sv_value(&v->v, &db->r);
 	}
 	if (strcmp(name, "prefix") == 0) {
-		if (srunlikely(v->prefix == NULL))
+		if (ssunlikely(v->prefix == NULL))
 			return NULL;
 		int *prefixsize = va_arg(args, int*);
 		if (prefixsize)
@@ -152,14 +154,14 @@ so_vget(soobj *obj, va_list args)
 	if (strcmp(name, "order") == 0) {
 		src order = {
 			.name     = "order",
-			.value    = sr_ordername(v->order),
+			.value    = ss_ordername(v->order),
 			.flags    = SR_CSZ,
 			.ptr      = NULL,
 			.function = NULL,
 			.next     = NULL
 		};
 		void *o = so_ctlreturn(&order, e);
-		if (srunlikely(o == NULL))
+		if (ssunlikely(o == NULL))
 			return NULL;
 		return o;
 	}
@@ -177,7 +179,7 @@ so_vget(soobj *obj, va_list args)
 
 	int *partsize = va_arg(args, int*);
 	/* ctl key */
-	if (srunlikely(v->parent == NULL)) {
+	if (ssunlikely(v->parent == NULL)) {
 		if (strcmp(name, "key") != 0)
 			return NULL;
 		if (partsize)
@@ -187,7 +189,7 @@ so_vget(soobj *obj, va_list args)
 	/* match key-part */
 	sodb *db = (sodb*)v->parent;
 	srkey *part = sr_schemefind(&db->scheme.scheme, name);
-	if (srunlikely(part == NULL))
+	if (ssunlikely(part == NULL))
 		return NULL;
 	/* database result object */
 	if (v->v.v) {
@@ -196,8 +198,8 @@ so_vget(soobj *obj, va_list args)
 		return sv_key(&v->v, &db->r, part->pos);
 	}
 	/* database key object */
-	assert(part->pos < (int)(sizeof(v->keyv) / sizeof(srfmtv)));
-	srfmtv *fv = &v->keyv[part->pos];
+	assert(part->pos < (int)(sizeof(v->keyv) / sizeof(sfv)));
+	sfv *fv = &v->keyv[part->pos];
 	if (fv->key == NULL)
 		return NULL;
 	if (partsize)
@@ -206,11 +208,11 @@ so_vget(soobj *obj, va_list args)
 }
 
 static void*
-so_vtype(soobj *o srunused, va_list args srunused) {
+so_vtype(srobj *o ssunused, va_list args ssunused) {
 	return "object";
 }
 
-static soobjif sovif =
+static srobjif sovif =
 {
 	.ctl     = NULL,
 	.async   = NULL,
@@ -230,26 +232,26 @@ static soobjif sovif =
 	.type    = so_vtype
 };
 
-soobj *so_vinit(sov *v, so *e, soobj *parent)
+srobj *so_vinit(sov *v, so *e, srobj *parent)
 {
 	memset(v, 0, sizeof(*v));
-	so_objinit(&v->o, SOV, &sovif, &e->o);
-	v->order = SR_GTE;
+	sr_objinit(&v->o, SOV, &sovif, &e->o);
+	v->order = SS_GTE;
 	v->parent = parent;
 	return &v->o;
 }
 
-soobj *so_vnew(so *e, soobj *parent)
+srobj *so_vnew(so *e, srobj *parent)
 {
-	sov *v = sr_malloc(&e->a_v, sizeof(sov));
-	if (srunlikely(v == NULL)) {
+	sov *v = ss_malloc(&e->a_v, sizeof(sov));
+	if (ssunlikely(v == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");
 		return NULL;
 	}
 	return so_vinit(v, e, parent);
 }
 
-soobj *so_vrelease(sov *v)
+srobj *so_vrelease(sov *v)
 {
 	so *e = so_of(&v->o);
 	if (v->flags & SO_VALLOCATED)
@@ -259,17 +261,17 @@ soobj *so_vrelease(sov *v)
 	return &v->o;
 }
 
-soobj *so_vput(sov *o, sv *v)
+srobj *so_vput(sov *o, sv *v)
 {
 	o->flags = SO_VALLOCATED|SO_VRO;
 	o->v = *v;
 	return &o->o;
 }
 
-soobj *so_vdup(so *e, soobj *parent, sv *v)
+srobj *so_vdup(so *e, srobj *parent, sv *v)
 {
 	sov *ret = (sov*)so_vnew(e, parent);
-	if (srunlikely(ret == NULL))
+	if (ssunlikely(ret == NULL))
 		return NULL;
 	ret->flags = SO_VALLOCATED|SO_VRO;
 	ret->v = *v;

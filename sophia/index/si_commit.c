@@ -7,6 +7,8 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
 #include <libsl.h>
@@ -14,7 +16,7 @@
 #include <libsi.h>
 
 uint32_t
-si_vgc(sra *a, svv *gc)
+si_vgc(ssa *a, svv *gc)
 {
 	uint32_t used = 0;
 	svv *v = gc;
@@ -23,8 +25,8 @@ si_vgc(sra *a, svv *gc)
 		svv *n = v->next;
 		sl *log = (sl*)v->log;
 		if (log)
-			sr_gcsweep(&log->gc, 1);
-		sr_free(a, v);
+			ss_gcsweep(&log->gc, 1);
+		ss_free(a, v);
 		v = n;
 	}
 	return used;
@@ -40,17 +42,17 @@ void si_begin(sitx *t, sr *r, si *index, uint64_t vlsn, uint64_t time,
 	t->r     = r;
 	t->l     = l;
 	t->li    = li;
-	sr_listinit(&t->nodelist);
+	ss_listinit(&t->nodelist);
 	si_lock(index);
 }
 
 void si_commit(sitx *t)
 {
 	/* reschedule nodes */
-	srlist *i, *n;
-	sr_listforeach_safe(&t->nodelist, i, n) {
-		sinode *node = srcast(i, sinode, commit);
-		sr_listinit(&node->commit);
+	sslist *i, *n;
+	ss_listforeach_safe(&t->nodelist, i, n) {
+		sinode *node = sscast(i, sinode, commit);
+		ss_listinit(&node->commit);
 		si_plannerupdate(&t->index->p, SI_BRANCH, node);
 	}
 	si_unlock(t->index);
@@ -62,10 +64,10 @@ si_set(sitx *t, svv *v)
 	si *index = t->index;
 	t->index->update_time = t->time;
 	/* match node */
-	sriter i;
-	sr_iterinit(si_iter, &i, t->r);
-	sr_iteropen(si_iter, &i, index, SR_ROUTE, sv_vpointer(v), v->size);
-	sinode *node = sr_iterof(si_iter, &i);
+	ssiter i;
+	ss_iterinit(si_iter, &i);
+	ss_iteropen(si_iter, &i, t->r, index, SS_ROUTE, sv_vpointer(v), v->size);
+	sinode *node = ss_iterof(si_iter, &i);
 	assert(node != NULL);
 	/* update node */
 	svindex *vindex = si_nodeindex(node);
@@ -73,13 +75,13 @@ si_set(sitx *t, svv *v)
 	sv_indexset(vindex, t->r, t->vlsn, v, &vgc);
 	node->update_time = index->update_time;
 	node->used += sv_vsize(v);
-	if (srunlikely(vgc)) {
+	if (ssunlikely(vgc)) {
 		uint32_t gc = si_vgc(t->r->a, vgc);
 		node->used -= gc;
-		sr_quota(index->quota, SR_QREMOVE, gc);
+		ss_quota(index->quota, SS_QREMOVE, gc);
 	}
-	if (sr_listempty(&node->commit))
-		sr_listappend(&t->nodelist, &node->commit);
+	if (ss_listempty(&node->commit))
+		ss_listappend(&t->nodelist, &node->commit);
 }
 
 void si_write(sitx *t, int check)
@@ -90,7 +92,7 @@ void si_write(sitx *t, int check)
 		svv *v = cv->v.v;
 		if (check && si_querycommited(t->index, t->r, &cv->v)) {
 			uint32_t gc = si_vgc(t->r->a, v);
-			sr_quota(t->index->quota, SR_QREMOVE, gc);
+			ss_quota(t->index->quota, SS_QREMOVE, gc);
 			goto next;
 		}
 		si_set(t, v);

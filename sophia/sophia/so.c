@@ -7,26 +7,28 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
-#include <libsx.h>
 #include <libsl.h>
 #include <libsd.h>
 #include <libsi.h>
+#include <libsx.h>
 #include <libse.h>
 #include <libso.h>
 
 static void*
-so_asyncbegin(soobj *o, va_list args srunused) {
+so_asyncbegin(srobj *o, va_list args ssunused) {
 	return so_txnew(so_of(o), 1);
 }
 
 static void*
-so_asynctype(soobj *o srunused, va_list args srunused) {
+so_asynctype(srobj *o ssunused, va_list args ssunused) {
 	return "env_async";
 }
 
-static soobjif soasyncif =
+static srobjif soasyncif =
 {
 	.ctl     = NULL,
 	.async   = NULL,
@@ -47,21 +49,21 @@ static soobjif soasyncif =
 };
 
 static void*
-so_ctl(soobj *obj, va_list args srunused)
+so_ctl(srobj *obj, va_list args ssunused)
 {
 	so *o = (so*)obj;
 	return &o->ctl;
 }
 
 static void*
-so_async(soobj *obj, va_list args srunused)
+so_async(srobj *obj, va_list args ssunused)
 {
 	so *o = (so*)obj;
 	return &o->async;
 }
 
 static int
-so_open(soobj *o, va_list args)
+so_open(srobj *o, va_list args)
 {
 	so *e = (so*)o;
 	int status = so_status(&e->status);
@@ -73,124 +75,124 @@ so_open(soobj *o, va_list args)
 		return -1;
 	int rc;
 	rc = so_ctlvalidate(&e->ctl);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		return -1;
 	so_statusset(&e->status, SO_RECOVER);
 
 	/* set memory quota (disable during recovery) */
-	sr_quotaset(&e->quota, e->ctl.memory_limit);
-	sr_quotaenable(&e->quota, 0);
+	ss_quotaset(&e->quota, e->ctl.memory_limit);
+	ss_quotaenable(&e->quota, 0);
 
 	/* repository recover */
 	rc = so_recover_repository(e);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		return -1;
 	/* databases recover */
-	srlist *i, *n;
-	sr_listforeach_safe(&e->db.list, i, n) {
-		soobj *o = srcast(i, soobj, link);
+	sslist *i, *n;
+	ss_listforeach_safe(&e->db.list, i, n) {
+		srobj *o = sscast(i, srobj, link);
 		rc = o->i->open(o, args);
-		if (srunlikely(rc == -1))
+		if (ssunlikely(rc == -1))
 			return -1;
 	}
 	/* recover logpool */
 	rc = so_recover(e);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		return -1;
 	if (e->ctl.two_phase_recover)
 		return 0;
 
 online:
 	/* complete */
-	sr_listforeach_safe(&e->db.list, i, n) {
-		soobj *o = srcast(i, soobj, link);
+	ss_listforeach_safe(&e->db.list, i, n) {
+		srobj *o = sscast(i, srobj, link);
 		rc = o->i->open(o, args);
-		if (srunlikely(rc == -1))
+		if (ssunlikely(rc == -1))
 			return -1;
 	}
 	/* enable quota */
-	sr_quotaenable(&e->quota, 1);
+	ss_quotaenable(&e->quota, 1);
 	so_statusset(&e->status, SO_ONLINE);
 	/* run thread-pool and scheduler */
 	rc = so_scheduler_run(&e->sched);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		return -1;
 	return 0;
 }
 
 static int
-so_destroy(soobj *o, va_list args srunused)
+so_destroy(srobj *o, va_list args ssunused)
 {
 	so *e = (so*)o;
 	int rcret = 0;
 	int rc;
 	so_statusset(&e->status, SO_SHUTDOWN);
 	rc = so_scheduler_shutdown(&e->sched);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_objindex_destroy(&e->req);
-	if (srunlikely(rc == -1))
+	rc = sr_objlist_destroy(&e->req);
+	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_objindex_destroy(&e->reqready);
-	if (srunlikely(rc == -1))
+	rc = sr_objlist_destroy(&e->reqready);
+	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_objindex_destroy(&e->tx);
-	if (srunlikely(rc == -1))
+	rc = sr_objlist_destroy(&e->tx);
+	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_objindex_destroy(&e->snapshot);
-	if (srunlikely(rc == -1))
+	rc = sr_objlist_destroy(&e->snapshot);
+	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_objindex_destroy(&e->ctlcursor);
-	if (srunlikely(rc == -1))
+	rc = sr_objlist_destroy(&e->ctlcursor);
+	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_objindex_destroy(&e->db);
-	if (srunlikely(rc == -1))
+	rc = sr_objlist_destroy(&e->db);
+	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_objindex_destroy(&e->db_shutdown);
-	if (srunlikely(rc == -1))
+	rc = sr_objlist_destroy(&e->db_shutdown);
+	if (ssunlikely(rc == -1))
 		rcret = -1;
 	rc = sl_poolshutdown(&e->lp);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		rcret = -1;
 	rc = se_close(&e->se, &e->r);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		rcret = -1;
 	sx_managerfree(&e->xm);
 	si_cachepool_free(&e->cachepool, &e->r);
 	so_ctlfree(&e->ctl);
-	sr_quotafree(&e->quota);
-	sr_mutexfree(&e->apilock);
-	sr_spinlockfree(&e->reqlock);
-	sr_spinlockfree(&e->dblock);
+	ss_quotafree(&e->quota);
+	ss_mutexfree(&e->apilock);
+	ss_spinlockfree(&e->reqlock);
+	ss_spinlockfree(&e->dblock);
 	sr_seqfree(&e->seq);
-	sr_pagerfree(&e->pager);
+	ss_pagerfree(&e->pager);
 	so_statusfree(&e->status);
 	free(e);
 	return rcret;
 }
 
 static void*
-so_begin(soobj *o, va_list args srunused) {
+so_begin(srobj *o, va_list args ssunused) {
 	return so_txnew((so*)o, 0);
 }
 
 static void*
-so_poll(soobj *o, va_list args srunused)
+so_poll(srobj *o, va_list args ssunused)
 {
 	so *e = (so*)o;
 	if (e->ctl.event_on_backup) {
-		sr_mutexlock(&e->sched.lock);
-		if (srunlikely(e->sched.backup_events > 0)) {
+		ss_mutexlock(&e->sched.lock);
+		if (ssunlikely(e->sched.backup_events > 0)) {
 			e->sched.backup_events--;
 			sorequest *req = so_requestnew(e, SO_REQON_BACKUP, &e->o, NULL);
-			if (srunlikely(req == NULL)) {
-				sr_mutexunlock(&e->sched.lock);
+			if (ssunlikely(req == NULL)) {
+				ss_mutexunlock(&e->sched.lock);
 				return NULL;
 			}
-			sr_mutexunlock(&e->sched.lock);
+			ss_mutexunlock(&e->sched.lock);
 			return &req->o;
 		}
-		sr_mutexunlock(&e->sched.lock);
+		ss_mutexunlock(&e->sched.lock);
 	}
 	sorequest *req = so_requestdispatch_ready(e);
 	if (req == NULL)
@@ -199,7 +201,7 @@ so_poll(soobj *o, va_list args srunused)
 }
 
 static int
-so_error(soobj *o, va_list args srunused)
+so_error(srobj *o, va_list args ssunused)
 {
 	so *e = (so*)o;
 	int status = sr_errorof(&e->error);
@@ -212,11 +214,11 @@ so_error(soobj *o, va_list args srunused)
 }
 
 static void*
-so_type(soobj *o srunused, va_list args srunused) {
+so_type(srobj *o ssunused, va_list args ssunused) {
 	return "env";
 }
 
-static soobjif soif =
+static srobjif soif =
 {
 	.ctl     = so_ctl,
 	.async   = so_async,
@@ -236,50 +238,50 @@ static soobjif soif =
 	.type    = so_type
 };
 
-soobj *so_new(void)
+srobj *so_new(void)
 {
 	so *e = malloc(sizeof(*e));
-	if (srunlikely(e == NULL))
+	if (ssunlikely(e == NULL))
 		return NULL;
 	memset(e, 0, sizeof(*e));
-	so_objinit(&e->o, SOENV, &soif, &e->o /* self */);
-	sr_pagerinit(&e->pager, 10, 4096);
-	int rc = sr_pageradd(&e->pager);
-	if (srunlikely(rc == -1)) {
+	sr_objinit(&e->o, SOENV, &soif, &e->o /* self */);
+	ss_pagerinit(&e->pager, 10, 4096);
+	int rc = ss_pageradd(&e->pager);
+	if (ssunlikely(rc == -1)) {
 		free(e);
 		return NULL;
 	}
-	sr_aopen(&e->a, &sr_stda);
-	sr_aopen(&e->a_db, &sr_slaba, &e->pager, sizeof(sodb));
-	sr_aopen(&e->a_v, &sr_slaba, &e->pager, sizeof(sov));
-	sr_aopen(&e->a_cursor, &sr_slaba, &e->pager, sizeof(socursor));
-	sr_aopen(&e->a_cachebranch, &sr_slaba, &e->pager, sizeof(sicachebranch));
-	sr_aopen(&e->a_cache, &sr_slaba, &e->pager, sizeof(sicache));
-	sr_aopen(&e->a_ctlcursor, &sr_slaba, &e->pager, sizeof(soctlcursor));
-	sr_aopen(&e->a_snapshot, &sr_slaba, &e->pager, sizeof(sosnapshot));
-	sr_aopen(&e->a_tx, &sr_slaba, &e->pager, sizeof(sotx));
-	sr_aopen(&e->a_sxv, &sr_slaba, &e->pager, sizeof(sxv));
-	sr_aopen(&e->a_req, &sr_slaba, &e->pager, sizeof(sorequest));
+	ss_aopen(&e->a, &ss_stda);
+	ss_aopen(&e->a_db, &ss_slaba, &e->pager, sizeof(sodb));
+	ss_aopen(&e->a_v, &ss_slaba, &e->pager, sizeof(sov));
+	ss_aopen(&e->a_cursor, &ss_slaba, &e->pager, sizeof(socursor));
+	ss_aopen(&e->a_cachebranch, &ss_slaba, &e->pager, sizeof(sicachebranch));
+	ss_aopen(&e->a_cache, &ss_slaba, &e->pager, sizeof(sicache));
+	ss_aopen(&e->a_ctlcursor, &ss_slaba, &e->pager, sizeof(soctlcursor));
+	ss_aopen(&e->a_snapshot, &ss_slaba, &e->pager, sizeof(sosnapshot));
+	ss_aopen(&e->a_tx, &ss_slaba, &e->pager, sizeof(sotx));
+	ss_aopen(&e->a_sxv, &ss_slaba, &e->pager, sizeof(sxv));
+	ss_aopen(&e->a_req, &ss_slaba, &e->pager, sizeof(sorequest));
 	so_statusinit(&e->status);
 	so_statusset(&e->status, SO_OFFLINE);
 	so_ctlinit(&e->ctl, e);
-	so_objinit(&e->async.o, SOENVASYNC, &soasyncif, &e->o);
-	so_objindex_init(&e->db);
-	so_objindex_init(&e->db_shutdown);
-	so_objindex_init(&e->tx);
-	so_objindex_init(&e->snapshot);
-	so_objindex_init(&e->ctlcursor);
-	so_objindex_init(&e->req);
-	so_objindex_init(&e->reqready);
-	sr_mutexinit(&e->apilock);
-	sr_spinlockinit(&e->reqlock);
-	sr_spinlockinit(&e->dblock);
-	sr_quotainit(&e->quota);
+	sr_objinit(&e->async.o, SOENVASYNC, &soasyncif, &e->o);
+	sr_objlist_init(&e->db);
+	sr_objlist_init(&e->db_shutdown);
+	sr_objlist_init(&e->tx);
+	sr_objlist_init(&e->snapshot);
+	sr_objlist_init(&e->ctlcursor);
+	sr_objlist_init(&e->req);
+	sr_objlist_init(&e->reqready);
+	ss_mutexinit(&e->apilock);
+	ss_spinlockinit(&e->reqlock);
+	ss_spinlockinit(&e->dblock);
+	ss_quotainit(&e->quota);
 	sr_seqinit(&e->seq);
 	sr_errorinit(&e->error);
-	srcrcf crc = sr_crc32c_function();
+	sscrcf crc = ss_crc32c_function();
 	sr_init(&e->r, &e->error, &e->a, &e->seq,
-	        SR_FKV, SR_FS_RAW,
+	        SF_KV, SF_SRAW,
 	        &e->ctl.ctlscheme, &e->ei, crc, NULL);
 	se_init(&e->se);
 	sl_poolinit(&e->lp, &e->r);

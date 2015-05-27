@@ -7,12 +7,14 @@
  * BSD License
 */
 
-#include <libsr.h>
+#include <libss.h>
+#include <libsf.h>
+#include <libss.h>
 #include <libst.h>
 #include <sophia.h>
 
 static void
-compact_delete_node0(stc *cx srunused)
+compact_delete_node0(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -57,7 +59,7 @@ compact_delete_node0(stc *cx srunused)
 }
 
 static void
-compact_delete_node1(stc *cx srunused)
+compact_delete_node1(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -135,7 +137,7 @@ compact_delete_node1(stc *cx srunused)
 }
 
 static void
-compact_delete0(stc *cx srunused)
+compact_delete0(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -192,7 +194,7 @@ compact_delete0(stc *cx srunused)
 }
 
 static void
-compact_delete1(stc *cx srunused)
+compact_delete1(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -250,7 +252,7 @@ compact_delete1(stc *cx srunused)
 }
 
 static void
-compact_delete_cursor(stc *cx srunused)
+compact_delete_cursor(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );

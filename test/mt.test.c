@@ -7,6 +7,8 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
 #include <libsx.h>
@@ -57,22 +59,22 @@ mt_single_stmt(stc *cx)
 	t( cx->db != NULL );
 	t( sp_open(cx->env) == 0 );
 
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
 	srkey *part = sr_schemeadd(&cmp, &a);
 	t( sr_keysetname(part, &a, "key") == 0 );
 	t( sr_keyset(part, &a, "u32") == 0 );
-	srinjection ij;
+	ssinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
 	sr_errorinit(&error);
 	srseq seq;
 	sr_seqinit(&seq);
-	srcrcf crc = sr_crc32c_function();
+	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
 
 	soworkers w;
 	so_workersinit(&w);
@@ -136,22 +138,22 @@ mt_multi_stmt(stc *cx)
 	t( cx->db != NULL );
 	t( sp_open(cx->env) == 0 );
 
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
 	srkey *part = sr_schemeadd(&cmp, &a);
 	t( sr_keysetname(part, &a, "key") == 0 );
 	t( sr_keyset(part, &a, "u32") == 0 );
-	srinjection ij;
+	ssinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
 	sr_errorinit(&error);
 	srseq seq;
 	sr_seqinit(&seq);
-	srcrcf crc = sr_crc32c_function();
+	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
 
 	soworkers w;
 	so_workersinit(&w);
@@ -217,22 +219,22 @@ mt_multi_stmt_conflict(stc *cx)
 	t( cx->db != NULL );
 	t( sp_open(cx->env) == 0 );
 
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
 	srkey *part = sr_schemeadd(&cmp, &a);
 	t( sr_keysetname(part, &a, "key") == 0 );
 	t( sr_keyset(part, &a, "u32") == 0 );
-	srinjection ij;
+	ssinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
 	sr_errorinit(&error);
 	srseq seq;
 	sr_seqinit(&seq);
-	srcrcf crc = sr_crc32c_function();
+	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
 
 	soworkers w;
 	so_workersinit(&w);

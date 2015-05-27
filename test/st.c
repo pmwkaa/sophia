@@ -7,7 +7,9 @@
  * BSD License
 */
 
-#include <libsr.h>
+#include <libss.h>
+#include <libsf.h>
+#include <libss.h>
 #include <libst.h>
 #include <sophia.h>
 #include <assert.h>
@@ -20,7 +22,7 @@ stscene *st_scene(char *name, stscenef function, int statemax)
 	scene->state = 0;
 	scene->statemax = statemax;
 	scene->function = function;
-	sr_listinit(&scene->link);
+	ss_listinit(&scene->link);
 	return scene;
 }
 
@@ -31,8 +33,8 @@ stplan *st_plan(char *name)
 	plan->name = name;
 	plan->scene_count = 0;
 	plan->group_count = 0;
-	sr_listinit(&plan->group);
-	sr_listinit(&plan->link);
+	ss_listinit(&plan->group);
+	ss_listinit(&plan->link);
 	return plan;
 }
 
@@ -42,8 +44,8 @@ stgroup *st_group(char *name)
 	assert( group != NULL );
 	group->name = name;
 	group->count = 0;
-	sr_listinit(&group->test);
-	sr_listinit(&group->link);
+	ss_listinit(&group->test);
+	ss_listinit(&group->link);
 	return group;
 }
 
@@ -53,7 +55,7 @@ sttest *st_test(char *name, stf function)
 	assert( test != NULL );
 	test->name = name;
 	test->function = function;
-	sr_listinit(&test->link);
+	ss_listinit(&test->link);
 	return test;
 }
 
@@ -66,9 +68,9 @@ st_testfree(sttest *test)
 static void
 st_groupfree(stgroup *group)
 {
-	srlist *i, *n;
-	sr_listforeach_safe(&group->test, i, n) {
-		sttest *test = srcast(i, sttest, link);
+	sslist *i, *n;
+	ss_listforeach_safe(&group->test, i, n) {
+		sttest *test = sscast(i, sttest, link);
 		st_testfree(test);
 	}
 	free(group);
@@ -77,9 +79,9 @@ st_groupfree(stgroup *group)
 static void
 st_planfree(stplan *plan)
 {
-	srlist *i, *n;
-	sr_listforeach_safe(&plan->group, i, n) {
-		stgroup *group = srcast(i, stgroup, link);
+	sslist *i, *n;
+	ss_listforeach_safe(&plan->group, i, n) {
+		stgroup *group = sscast(i, stgroup, link);
 		st_groupfree(group);
 	}
 	free(plan);
@@ -99,8 +101,8 @@ void st_init(st *s, char *sophiadir, char *backupdir,
 	s->backupdir = backupdir;
 	s->dir = dir;
 	s->logdir = logdir;
-	sr_listinit(&s->scene);
-	sr_listinit(&s->plan);
+	ss_listinit(&s->scene);
+	ss_listinit(&s->plan);
 	s->scene_count = 0;
 	s->plan_count = 0;
 	s->stat_stmt = 0;
@@ -109,28 +111,28 @@ void st_init(st *s, char *sophiadir, char *backupdir,
 
 void st_free(st *s)
 {
-	srlist *i, *n;
-	sr_listforeach_safe(&s->plan, i, n) {
-		stplan *plan = srcast(i, stplan, link);
+	sslist *i, *n;
+	ss_listforeach_safe(&s->plan, i, n) {
+		stplan *plan = sscast(i, stplan, link);
 		st_planfree(plan);
 	}
-	sr_listforeach_safe(&s->scene, i, n) {
-		stscene *scene = srcast(i, stscene, link);
+	ss_listforeach_safe(&s->scene, i, n) {
+		stscene *scene = sscast(i, stscene, link);
 		st_scenefree(scene);
 	}
 }
 
 void st_add(st *s, stplan *p)
 {
-	sr_listappend(&s->plan, &p->link);
+	ss_listappend(&s->plan, &p->link);
 	s->plan_count++;
 }
 
 stscene *st_sceneof(st *s, char *name)
 {
-	srlist *i;
-	sr_listforeach(&s->scene, i) {
-		stscene *scene = srcast(i, stscene, link);
+	sslist *i;
+	ss_listforeach(&s->scene, i) {
+		stscene *scene = sscast(i, stscene, link);
 		if (strcmp(scene->name, name) == 0)
 			return scene;
 	}
@@ -139,13 +141,13 @@ stscene *st_sceneof(st *s, char *name)
 
 void st_addscene(st *s, stscene *scene)
 {
-	sr_listappend(&s->scene, &scene->link);
+	ss_listappend(&s->scene, &scene->link);
 	s->scene_count++;
 }
 
 void st_planadd(stplan *p, stgroup *g)
 {
-	sr_listappend(&p->group, &g->link);
+	ss_listappend(&p->group, &g->link);
 	p->group_count++;
 }
 
@@ -169,7 +171,7 @@ st_planreset(stplan *p)
 
 void st_groupadd(stgroup *g, sttest *t)
 {
-	sr_listappend(&g->test, &t->link);
+	ss_listappend(&g->test, &t->link);
 	g->count++;
 }
 
@@ -194,10 +196,10 @@ void st_error(stc *cx)
 static void
 st_rungroup(st *s, stplan *plan, stgroup *group)
 {
-	srlist *i;
-	sr_listforeach(&group->test, i)
+	sslist *i;
+	ss_listforeach(&group->test, i)
 	{
-		sttest *test = srcast(i, sttest, link);
+		sttest *test = sscast(i, sttest, link);
 		stc context = {
 			.env         = NULL,
 			.db          = NULL,
@@ -240,9 +242,9 @@ static inline void
 st_runplan(st *s, stplan *plan)
 {
 	printf("\n<%s>\n", plan->name);
-	srlist *i;
-	sr_listforeach(&plan->group, i) {
-		stgroup *group = srcast(i, stgroup, link);
+	sslist *i;
+	ss_listforeach(&plan->group, i) {
+		stgroup *group = sscast(i, stgroup, link);
 		do {
 			st_rungroup(s, plan, group);
 		} while (st_plannext(plan));
@@ -254,9 +256,9 @@ void st_run(st *s)
 {
 	printf("sophia test-suite.\n");
 
-	srlist *i;
-	sr_listforeach(&s->plan, i) {
-		stplan *plan = srcast(i, stplan, link);
+	sslist *i;
+	ss_listforeach(&s->plan, i) {
+		stplan *plan = sscast(i, stplan, link);
 		st_runplan(s, plan);
 	}
 

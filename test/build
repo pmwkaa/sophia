@@ -2,7 +2,7 @@
 # sophia test-suite builder
 #
 
-SOPHIA_DIRS    = rt version transaction log database index repository sophia
+SOPHIA_DIRS    = std format runtime version transaction log database index repository sophia
 CC            ?= cc
 ifdef ENABLE_COVERAGE
 TEST_COVERAGE  = --coverage

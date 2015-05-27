@@ -12,15 +12,15 @@
 typedef struct svindex svindex;
 
 struct svindex {
-	srrb i;
+	ssrb i;
 	uint32_t count;
 	uint32_t used;
 	uint64_t lsnmin;
-} srpacked;
+} sspacked;
 
-sr_rbget(sv_indexmatch,
-         sr_compare(scheme, sv_vpointer(srcast(n, svv, node)),
-                    (srcast(n, svv, node))->size,
+ss_rbget(sv_indexmatch,
+         sr_compare(scheme, sv_vpointer(sscast(n, svv, node)),
+                    (sscast(n, svv, node))->size,
                     key, keysize))
 
 int sv_indexinit(svindex*);

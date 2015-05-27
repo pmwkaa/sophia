@@ -9,7 +9,7 @@
  * BSD License
 */
 
-int sd_commit(sdbuild*, sr*, sdindex*, srfile*);
-int sd_commitpage(sdbuild*, sr*, srbuf*);
+int sd_commit(sdbuild*, sr*, sdindex*, ssfile*);
+int sd_commitpage(sdbuild*, sr*, ssbuf*);
 
 #endif

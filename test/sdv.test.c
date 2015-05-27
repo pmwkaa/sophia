@@ -7,6 +7,8 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
 #include <libsd.h>
@@ -16,7 +18,7 @@
 static void
 addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 {
-	srfmtv pv;
+	sfv pv;
 	pv.key = (char*)key;
 	pv.r.size = sizeof(uint32_t);
 	pv.r.offset = 0;
@@ -30,24 +32,24 @@ addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 }
 
 static void
-sdv_test(stc *cx srunused)
+sdv_test(stc *cx ssunused)
 {
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
 	srkey *part = sr_schemeadd(&cmp, &a);
 	t( sr_keysetname(part, &a, "key") == 0 );
 	t( sr_keyset(part, &a, "u32") == 0 );
-	srinjection ij;
+	ssinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
 	sr_errorinit(&error);
 	srseq seq;
 	sr_seqinit(&seq);
-	srcrcf crc = sr_crc32c_function();
+	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -58,29 +60,29 @@ sdv_test(stc *cx srunused)
 	addv(&b, &r, 4, 0, &j);
 	sd_buildend(&b, &r);
 
-	srbuf buf;
-	sr_bufinit(&buf);
-	srbuf xfbuf;
-	sr_bufinit(&xfbuf);
-	t( sr_bufensure(&xfbuf, &a, 1024) == 0 );
+	ssbuf buf;
+	ss_bufinit(&buf);
+	ssbuf xfbuf;
+	ss_bufinit(&xfbuf);
+	t( ss_bufensure(&xfbuf, &a, 1024) == 0 );
 
 	t( sd_commitpage(&b, &r, &buf) == 0 );
 	sdpageheader *h = (sdpageheader*)buf.s;
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	sriter it;
-	sr_iterinit(sd_pageiter, &it, &r);
-	sr_iteropen(sd_pageiter, &it, &xfbuf, &page, SR_GTE, NULL, 0, UINT64_MAX);
-	t( sr_iteratorhas(&it) != 0 );
-	sv *v = sr_iteratorof(&it);
+	ssiter it;
+	ss_iterinit(sd_pageiter, &it);
+	ss_iteropen(sd_pageiter, &it, &r, &xfbuf, &page, SS_GTE, NULL, 0, UINT64_MAX);
+	t( ss_iteratorhas(&it) != 0 );
+	sv *v = ss_iteratorof(&it);
 	t( v != NULL );
 
 	t( *(int*)sv_key(v, &r, 0) == i );
-	sr_iteratornext(&it);
-	t( sr_iteratorhas(&it) != 0 );
+	ss_iteratornext(&it);
+	t( ss_iteratorhas(&it) != 0 );
 
-	v = sr_iteratorof(&it);
+	v = ss_iteratorof(&it);
 	t( v != NULL );
 	
 	t( *(int*)sv_key(v, &r, 0) == j );
@@ -88,8 +90,8 @@ sdv_test(stc *cx srunused)
 	t( sv_flags(v) == 0 );
 
 	sd_buildfree(&b, &r);
-	sr_buffree(&buf, &a);
-	sr_buffree(&xfbuf, &a);
+	ss_buffree(&buf, &a);
+	ss_buffree(&xfbuf, &a);
 	sr_schemefree(&cmp, &a);
 }
 

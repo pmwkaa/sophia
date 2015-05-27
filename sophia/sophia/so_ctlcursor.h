@@ -12,13 +12,13 @@
 typedef struct soctlcursor soctlcursor;
 
 struct soctlcursor {
-	soobj o;
+	srobj o;
 	int ready;
-	srbuf dump;
+	ssbuf dump;
 	srcv *pos;
-	soobj *v;
-} srpacked;
+	srobj *v;
+} sspacked;
 
-soobj *so_ctlcursor_new(void*);
+srobj *so_ctlcursor_new(void*);
 
 #endif

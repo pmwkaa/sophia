@@ -25,7 +25,7 @@ typedef enum {
 typedef sxstate (*sxpreparef)(sx*, sv*, void*, void*);
 
 struct sxindex {
-	srrb i;
+	ssrb i;
 	uint32_t count;
 	uint32_t dsn;
 	srscheme *scheme;
@@ -37,21 +37,21 @@ struct sx {
 	sxstate s;
 	uint64_t vlsn;
 	svlog log;
-	srlist deadlock;
+	sslist deadlock;
 	sxmanager *manager;
-	srrbnode node;
+	ssrbnode node;
 };
 
 struct sxmanager {
-	srspinlock lockupd;
-	srspinlock lock;
-	srrb i;
+	ssspinlock lockupd;
+	ssspinlock lock;
+	ssrb i;
 	uint32_t count;
-	sra *asxv;
+	ssa *asxv;
 	sr *r;
 };
 
-int       sx_managerinit(sxmanager*, sr*, sra*);
+int       sx_managerinit(sxmanager*, sr*, ssa*);
 int       sx_managerfree(sxmanager*);
 int       sx_indexinit(sxindex*, void*);
 int       sx_indexset(sxindex*, uint32_t, srscheme*);

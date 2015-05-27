@@ -12,7 +12,6 @@
 #include <so_status.h>
 #include <so_worker.h>
 #include <so_obj.h>
-#include <so_objindex.h>
 #include <so_ctlcursor.h>
 #include <so_ctl.h>
 #include <so_scheduler.h>

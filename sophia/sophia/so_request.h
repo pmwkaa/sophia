@@ -28,7 +28,7 @@ typedef enum {
 } sorequestop;
 
 struct sorequestarg {
-	srorder order;
+	ssorder order;
 	sv v;
 	int prefix;
 	int recover;
@@ -38,22 +38,22 @@ struct sorequestarg {
 };
 
 struct sorequest {
-	soobj o;
+	srobj o;
 	uint64_t id;
 	uint32_t op;
-	soobj *object;
-	soobj *db;
+	srobj *object;
+	srobj *db;
 	sorequestarg arg;
 	void *result;
 	int rc; 
-} srpacked;
+} sspacked;
 
-void so_requestinit(so*, sorequest*, sorequestop, soobj*, soobj*);
+void so_requestinit(so*, sorequest*, sorequestop, srobj*, srobj*);
 void so_requestadd(so*, sorequest*);
 void so_request_on_backup(so*);
 void so_requestready(sorequest*);
 int  so_requestcount(so*);
-sorequest *so_requestnew(so*, sorequestop, soobj*, soobj*);
+sorequest *so_requestnew(so*, sorequestop, srobj*, srobj*);
 sorequest *so_requestdispatch(so*);
 sorequest *so_requestdispatch_ready(so*);
 

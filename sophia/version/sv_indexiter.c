@@ -7,10 +7,12 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
 
-sriterif sv_indexiter =
+ssiterif sv_indexiter =
 {
 	.close   = sv_indexiter_close,
 	.has     = sv_indexiter_has,
@@ -18,7 +20,7 @@ sriterif sv_indexiter =
 	.next    = sv_indexiter_next
 };
 
-sriterif sv_indexiterraw =
+ssiterif sv_indexiterraw =
 {
 	.close   = sv_indexiterraw_close,
 	.has     = sv_indexiterraw_has,

@@ -24,7 +24,7 @@ struct sotask {
 
 struct soscheduler {
 	soworkers workers;
-	srmutex lock;
+	ssmutex lock;
 	uint64_t checkpoint_lsn_last;
 	uint64_t checkpoint_lsn;
 	uint32_t checkpoint;

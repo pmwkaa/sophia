@@ -7,6 +7,8 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
 #include <libsl.h>
@@ -15,8 +17,8 @@
 
 sinode *si_nodenew(sr *r)
 {
-	sinode *n = (sinode*)sr_malloc(r->a, sizeof(sinode));
-	if (srunlikely(n == NULL)) {
+	sinode *n = (sinode*)ss_malloc(r->a, sizeof(sinode));
+	if (ssunlikely(n == NULL)) {
 		sr_malfunction(r->e, "%s", "memory allocation failed");
 		return NULL;
 	}
@@ -28,13 +30,13 @@ sinode *si_nodenew(sr *r)
 	si_branchinit(&n->self);
 	n->branch = NULL;
 	n->branch_count = 0;
-	sr_fileinit(&n->file, r->a);
+	ss_fileinit(&n->file, r->a);
 	sv_indexinit(&n->i0);
 	sv_indexinit(&n->i1);
-	sr_rbinitnode(&n->node);
-	sr_rqinitnode(&n->nodecompact);
-	sr_rqinitnode(&n->nodebranch);
-	sr_listinit(&n->commit);
+	ss_rbinitnode(&n->node);
+	ss_rqinitnode(&n->nodecompact);
+	ss_rqinitnode(&n->nodebranch);
+	ss_listinit(&n->commit);
 	return n;
 }
 
@@ -42,8 +44,8 @@ static inline int
 si_nodeclose(sinode *n, sr *r)
 {
 	int rcret = 0;
-	int rc = sr_fileclose(&n->file);
-	if (srunlikely(rc == -1)) {
+	int rc = ss_fileclose(&n->file);
+	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' close error: %s",
 		               n->file.file, strerror(errno));
 		rcret = -1;
@@ -57,26 +59,26 @@ static inline int
 si_noderecover(sinode *n, sr *r)
 {
 	/* recover branches */
-	sriter i;
-	sr_iterinit(sd_recover, &i, r);
-	sr_iteropen(sd_recover, &i, &n->file);
+	ssiter i;
+	ss_iterinit(sd_recover, &i);
+	ss_iteropen(sd_recover, &i, r, &n->file);
 	int first = 1;
 	int rc;
-	while (sr_iteratorhas(&i))
+	while (ss_iteratorhas(&i))
 	{
-		sdindexheader *h = sr_iteratorof(&i);
+		sdindexheader *h = ss_iteratorof(&i);
 		sibranch *b;
 		if (first) {
 			b =  &n->self;
 		} else {
 			b = si_branchnew(r);
-			if (srunlikely(b == NULL))
+			if (ssunlikely(b == NULL))
 				goto error;
 		}
 		sdindex index;
 		sd_indexinit(&index);
 		rc = sd_indexcopy(&index, r, h);
-		if (srunlikely(rc == -1))
+		if (ssunlikely(rc == -1))
 			goto error;
 		si_branchset(b, &index);
 
@@ -85,35 +87,35 @@ si_noderecover(sinode *n, sr *r)
 		n->branch_count++;
 
 		first = 0;
-		sr_iteratornext(&i);
+		ss_iteratornext(&i);
 	}
 	rc = sd_recover_complete(&i);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		goto error;
-	sr_iteratorclose(&i);
+	ss_iteratorclose(&i);
 	return 0;
 error:
-	sr_iteratorclose(&i);
+	ss_iteratorclose(&i);
 	return -1;
 }
 
-int si_nodeopen(sinode *n, sr *r, srpath *path)
+int si_nodeopen(sinode *n, sr *r, sspath *path)
 {
-	int rc = sr_fileopen(&n->file, path->path);
-	if (srunlikely(rc == -1)) {
+	int rc = ss_fileopen(&n->file, path->path);
+	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' open error: %s",
 		               n->file.file, strerror(errno));
 		return -1;
 	}
-	rc = sr_fileseek(&n->file, n->file.size);
-	if (srunlikely(rc == -1)) {
+	rc = ss_fileseek(&n->file, n->file.size);
+	if (ssunlikely(rc == -1)) {
 		si_nodeclose(n, r);
 		sr_malfunction(r->e, "db file '%s' seek error: %s",
 		               n->file.file, strerror(errno));
 		return -1;
 	}
 	rc = si_noderecover(n, r);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		si_nodeclose(n, r);
 	return rc;
 }
@@ -123,16 +125,16 @@ int si_nodecreate(sinode *n, sr *r, sischeme *scheme, sdid *id,
                   sdbuild *build)
 {
 	si_branchset(&n->self, i);
-	srpath path;
-	sr_pathAB(&path, scheme->path, id->parent, id->id, ".db.incomplete");
-	int rc = sr_filenew(&n->file, path.path);
-	if (srunlikely(rc == -1)) {
+	sspath path;
+	ss_pathAB(&path, scheme->path, id->parent, id->id, ".db.incomplete");
+	int rc = ss_filenew(&n->file, path.path);
+	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' create error: %s",
 		               path.path, strerror(errno));
 		return -1;
 	}
 	rc = sd_commit(build, r, &n->self.index, &n->file);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		return -1;
 	n->branch = &n->self;
 	n->branch_count++;
@@ -141,8 +143,8 @@ int si_nodecreate(sinode *n, sr *r, sischeme *scheme, sdid *id,
 
 int si_nodesync(sinode *n, sr *r)
 {
-	int rc = sr_filesync(&n->file);
-	if (srunlikely(rc == -1)) {
+	int rc = ss_filesync(&n->file);
+	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' sync error: %s",
 		               n->file.file, strerror(errno));
 		return -1;
@@ -168,8 +170,8 @@ int si_nodefree(sinode *n, sr *r, int gc)
 	int rcret = 0;
 	int rc;
 	if (gc && n->file.file) {
-		rc = sr_fileunlink(n->file.file);
-		if (srunlikely(rc == -1)) {
+		rc = ss_fileunlink(n->file.file);
+		if (ssunlikely(rc == -1)) {
 			sr_malfunction(r->e, "db file '%s' unlink error: %s",
 			               n->file.file, strerror(errno));
 			rcret = -1;
@@ -177,16 +179,16 @@ int si_nodefree(sinode *n, sr *r, int gc)
 	}
 	si_nodefree_branches(n, r);
 	rc = si_nodeclose(n, r);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		rcret = -1;
-	sr_free(r->a, n);
+	ss_free(r->a, n);
 	return rcret;
 }
 
-uint32_t si_vgc(sra*, svv*);
+uint32_t si_vgc(ssa*, svv*);
 
-sr_rbtruncate(si_nodegc_indexgc,
-              si_vgc((sra*)arg, srcast(n, svv, node)))
+ss_rbtruncate(si_nodegc_indexgc,
+              si_vgc((ssa*)arg, sscast(n, svv, node)))
 
 int si_nodegc_index(sr *r, svindex *i)
 {
@@ -217,11 +219,11 @@ int si_nodecmp(sinode *n, void *key, int size, srscheme *s)
 
 int si_nodeseal(sinode *n, sr *r, sischeme *scheme)
 {
-	srpath path;
-	sr_pathAB(&path, scheme->path, n->self.id.parent,
+	sspath path;
+	ss_pathAB(&path, scheme->path, n->self.id.parent,
 	          n->self.id.id, ".db.seal");
-	int rc = sr_filerename(&n->file, path.path);
-	if (srunlikely(rc == -1)) {
+	int rc = ss_filerename(&n->file, path.path);
+	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' rename error: %s",
 		               n->file.file, strerror(errno));
 	}
@@ -230,10 +232,10 @@ int si_nodeseal(sinode *n, sr *r, sischeme *scheme)
 
 int si_nodecomplete(sinode *n, sr *r, sischeme *scheme)
 {
-	srpath path;
-	sr_pathA(&path, scheme->path, n->self.id.id, ".db");
-	int rc = sr_filerename(&n->file, path.path);
-	if (srunlikely(rc == -1)) {
+	sspath path;
+	ss_pathA(&path, scheme->path, n->self.id.id, ".db");
+	int rc = ss_filerename(&n->file, path.path);
+	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' rename error: %s",
 		               n->file.file, strerror(errno));
 	}

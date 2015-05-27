@@ -13,15 +13,16 @@ typedef struct sdpageiter sdpageiter;
 
 struct sdpageiter {
 	sdpage *page;
-	srbuf *xfbuf;
+	ssbuf *xfbuf;
 	int64_t pos;
 	sdv *v;
 	sv current;
-	srorder order;
+	ssorder order;
 	void *key;
 	int keysize;
 	uint64_t vlsn;
-} srpacked;
+	sr *r;
+} sspacked;
 
 static inline void
 sd_pageiter_end(sdpageiter *i)
@@ -31,22 +32,22 @@ sd_pageiter_end(sdpageiter *i)
 }
 
 static inline int
-sd_pageiter_cmp(sdpageiter *pi, sr *r, sdv *v)
+sd_pageiter_cmp(sdpageiter *i, sr *r, sdv *v)
 {
 	uint64_t size, lsn;
-	if (srlikely(r->fmt_storage == SR_FS_RAW)) {
-		char *key = sd_pagemetaof(pi->page, v, &size, &lsn);
-		return sr_compare(r->scheme, key, size, pi->key, pi->keysize);
+	if (sslikely(r->fmt_storage == SF_SRAW)) {
+		char *key = sd_pagemetaof(i->page, v, &size, &lsn);
+		return sr_compare(r->scheme, key, size, i->key, i->keysize);
 	}
 	/* key-value */
 	srkey *part = r->scheme->parts;
 	srkey *last = part + r->scheme->count;
 	int rc;
 	while (part < last) {
-		char *key = sd_pagekv_key(pi->page, v, &size, part->pos);
+		char *key = sd_pagekv_key(i->page, v, &size, part->pos);
 		rc = part->cmpraw(key, size,
-		                  sr_fmtkey(pi->key, part->pos),
-		                  sr_fmtkey_size(pi->key, part->pos),
+		                  sf_key(i->key, part->pos),
+		                  sf_keysize(i->key, part->pos),
 		                  NULL);
 		if (rc != 0)
 			return rc;
@@ -56,16 +57,15 @@ sd_pageiter_cmp(sdpageiter *pi, sr *r, sdv *v)
 }
 
 static inline int
-sd_pageiter_search(sriter *i, int search_min)
+sd_pageiter_search(sdpageiter *i, int search_min)
 {
-	sdpageiter *pi = (sdpageiter*)i->priv;
 	int min = 0;
 	int mid = 0;
-	int max = pi->page->h->count - 1;
+	int max = i->page->h->count - 1;
 	while (max >= min)
 	{
 		mid = min + (max - min) / 2;
-		int rc = sd_pageiter_cmp(pi, i->r, sd_pagev(pi->page, mid));
+		int rc = sd_pageiter_cmp(i, i->r, sd_pagev(i->page, mid));
 		switch (rc) {
 		case -1: min = mid + 1;
 			continue;
@@ -209,7 +209,7 @@ sd_pageiter_bkw(sdpageiter *i)
 				break;
 			pos--;
 		}
-		if (srunlikely(pos < 0)) {
+		if (ssunlikely(pos < 0)) {
 			sd_pageiter_end(i);
 			return;
 		}
@@ -232,7 +232,7 @@ sd_pageiter_fwd(sdpageiter *i)
 			break;
 		pos++;
 	}
-	if (srunlikely(pos >= i->page->h->count)) {
+	if (ssunlikely(pos >= i->page->h->count)) {
 		sd_pageiter_end(i);
 		return;
 	}
@@ -247,7 +247,7 @@ sd_pageiter_fwd(sdpageiter *i)
 		}
 		pos++;
 	}
-	if (srunlikely(pos == i->page->h->count)) {
+	if (ssunlikely(pos == i->page->h->count)) {
 		sd_pageiter_end(i);
 		return;
 	}
@@ -257,87 +257,86 @@ sd_pageiter_fwd(sdpageiter *i)
 }
 
 static inline int
-sd_pageiter_lt(sriter *i, int e)
+sd_pageiter_lt(sdpageiter *i, int e)
 {
-	sdpageiter *pi = (sdpageiter*)i->priv;
-	if (srunlikely(pi->page->h->count == 0)) {
-		sd_pageiter_end(pi);
+	if (ssunlikely(i->page->h->count == 0)) {
+		sd_pageiter_end(i);
 		return 0;
 	}
-	if (pi->key == NULL) {
-		sd_pageiter_lv(pi, pi->page->h->count - 1);
+	if (i->key == NULL) {
+		sd_pageiter_lv(i, i->page->h->count - 1);
 		return 0;
 	}
 	int64_t pos = sd_pageiter_search(i, 1);
-	if (srunlikely(pos >= pi->page->h->count))
-		pos = pi->page->h->count - 1;
-	sd_pageiter_lland(pi, pos);
-	if (pi->v == NULL)
+	if (ssunlikely(pos >= i->page->h->count))
+		pos = i->page->h->count - 1;
+	sd_pageiter_lland(i, pos);
+	if (i->v == NULL)
 		return 0;
-	int rc = sd_pageiter_cmp(pi, i->r, pi->v);
+	int rc = sd_pageiter_cmp(i, i->r, i->v);
 	int match = rc == 0;
 	switch (rc) {
 		case  0:
 			if (! e)
-				sd_pageiter_bkw(pi);
+				sd_pageiter_bkw(i);
 			break;
 		case  1:
-			sd_pageiter_bkw(pi);
+			sd_pageiter_bkw(i);
 			break;
 	}
 	return match;
 }
 
 static inline int
-sd_pageiter_gt(sriter *i, int e)
+sd_pageiter_gt(sdpageiter *i, int e)
 {
-	sdpageiter *pi = (sdpageiter*)i->priv;
-	if (srunlikely(pi->page->h->count == 0)) {
-		sd_pageiter_end(pi);
+	if (ssunlikely(i->page->h->count == 0)) {
+		sd_pageiter_end(i);
 		return 0;
 	}
-	if (pi->key == NULL) {
-		sd_pageiter_gv(pi, 0);
+	if (i->key == NULL) {
+		sd_pageiter_gv(i, 0);
 		return 0;
 	}
 	int64_t pos = sd_pageiter_search(i, 1);
-	if (srunlikely(pos >= pi->page->h->count))
-		pos = pi->page->h->count - 1;
-	sd_pageiter_gland(pi, pos);
-	if (pi->v == NULL)
+	if (ssunlikely(pos >= i->page->h->count))
+		pos = i->page->h->count - 1;
+	sd_pageiter_gland(i, pos);
+	if (i->v == NULL)
 		return 0;
-	int rc = sd_pageiter_cmp(pi, i->r, pi->v);
+	int rc = sd_pageiter_cmp(i, i->r, i->v);
 	int match = rc == 0;
 	switch (rc) {
 		case  0:
 			if (! e)
-				sd_pageiter_fwd(pi);
+				sd_pageiter_fwd(i);
 			break;
 		case -1:
-			sd_pageiter_fwd(pi);
+			sd_pageiter_fwd(i);
 			break;
 	}
 	return match;
 }
 
 static inline void
-sd_pageiter_result(sdpageiter *i, sr *r)
+sd_pageiter_result(sdpageiter *i)
 {
-	if (srunlikely(i->v == NULL))
+	if (ssunlikely(i->v == NULL))
 		return;
-	if (srlikely(r->fmt_storage == SR_FS_RAW)) {
+	if (sslikely(i->r->fmt_storage == SF_SRAW)) {
 		sv_init(&i->current, &sd_vif, i->v, i->page->h);
 		return;
 	}
-	sd_pagekv_convert(i->page, r, i->v, i->xfbuf->s);
+	sd_pagekv_convert(i->page, i->r, i->v, i->xfbuf->s);
 	sv_init(&i->current, &sd_vrawif, i->xfbuf->s, NULL);
 }
 
 static inline int
-sd_pageiter_open(sriter *i, srbuf *xfbuf, sdpage *page, srorder o,
+sd_pageiter_open(ssiter *i, sr *r, ssbuf *xfbuf, sdpage *page, ssorder o,
                  void *key, int keysize, uint64_t vlsn)
 {
 	sdpageiter *pi = (sdpageiter*)i->priv;
+	pi->r       = r;
 	pi->page    = page;
 	pi->xfbuf   = xfbuf;
 	pi->order   = o;
@@ -346,26 +345,26 @@ sd_pageiter_open(sriter *i, srbuf *xfbuf, sdpage *page, srorder o,
 	pi->vlsn    = vlsn;
 	pi->v       = NULL;
 	pi->pos     = 0;
-	if (srunlikely(pi->page->h->lsnmin > pi->vlsn &&
-	               pi->order != SR_UPDATE))
+	if (ssunlikely(pi->page->h->lsnmin > pi->vlsn &&
+	               pi->order != SS_UPDATE))
 		return 0;
 	int match;
 	int rc;
 	switch (pi->order) {
-	case SR_LT:  rc = sd_pageiter_lt(i, 0);
+	case SS_LT:  rc = sd_pageiter_lt(pi, 0);
 		break;
-	case SR_LTE: rc = sd_pageiter_lt(i, 1);
+	case SS_LTE: rc = sd_pageiter_lt(pi, 1);
 		break;
-	case SR_GT:  rc = sd_pageiter_gt(i, 0);
+	case SS_GT:  rc = sd_pageiter_gt(pi, 0);
 		break;
-	case SR_GTE: rc = sd_pageiter_gt(i, 1);
+	case SS_GTE: rc = sd_pageiter_gt(pi, 1);
 		break;
-	case SR_EQ:  rc = sd_pageiter_lt(i, 1);
+	case SS_EQ:  rc = sd_pageiter_lt(pi, 1);
 		break;
-	case SR_UPDATE: {
+	case SS_UPDATE: {
 		uint64_t vlsn = pi->vlsn;
 		pi->vlsn = (uint64_t)-1;
-		match = sd_pageiter_lt(i, 1);
+		match = sd_pageiter_lt(pi, 1);
 		if (match == 0)
 			return 0;
 		rc = sd_pagelsnof(pi->page, pi->v) > vlsn;
@@ -373,46 +372,46 @@ sd_pageiter_open(sriter *i, srbuf *xfbuf, sdpage *page, srorder o,
 	}
 	default: assert(0);
 	}
-	sd_pageiter_result(pi, i->r);
+	sd_pageiter_result(pi);
 	return rc;
 }
 
 static inline void
-sd_pageiter_close(sriter *i srunused)
+sd_pageiter_close(ssiter *i ssunused)
 { }
 
 static inline int
-sd_pageiter_has(sriter *i)
+sd_pageiter_has(ssiter *i)
 {
 	sdpageiter *pi = (sdpageiter*)i->priv;
 	return pi->v != NULL;
 }
 
 static inline void*
-sd_pageiter_of(sriter *i)
+sd_pageiter_of(ssiter *i)
 {
 	sdpageiter *pi = (sdpageiter*)i->priv;
-	if (srunlikely(pi->v == NULL))
+	if (ssunlikely(pi->v == NULL))
 		return NULL;
 	return &pi->current;
 }
 
 static inline void
-sd_pageiter_next(sriter *i)
+sd_pageiter_next(ssiter *i)
 {
 	sdpageiter *pi = (sdpageiter*)i->priv;
 	switch (pi->order) {
-	case SR_LT:
-	case SR_LTE: sd_pageiter_bkw(pi);
+	case SS_LT:
+	case SS_LTE: sd_pageiter_bkw(pi);
 		break;
-	case SR_GT:
-	case SR_GTE: sd_pageiter_fwd(pi);
+	case SS_GT:
+	case SS_GTE: sd_pageiter_fwd(pi);
 		break;
 	default: assert(0);
 	}
-	sd_pageiter_result(pi, i->r);
+	sd_pageiter_result(pi);
 }
 
-extern sriterif sd_pageiter;
+extern ssiterif sd_pageiter;
 
 #endif

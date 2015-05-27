@@ -7,12 +7,14 @@
  * BSD License
 */
 
-#include <libsr.h>
+#include <libss.h>
+#include <libsf.h>
+#include <libss.h>
 #include <libst.h>
 #include <sophia.h>
 
 static void
-backup_test0(stc *cx srunused)
+backup_test0(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -125,7 +127,7 @@ on_event(void *arg)
 }
 
 static void
-backup_test1(stc *cx srunused)
+backup_test1(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );

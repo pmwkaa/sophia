@@ -13,24 +13,25 @@ typedef struct svindexiter svindexiter;
 
 struct svindexiter {
 	svindex *index;
-	srrbnode *v;
+	ssrbnode *v;
 	svv *vcur;
 	sv current;
-	srorder order;
+	ssorder order;
 	void *key;
 	int keysize;
 	uint64_t vlsn;
-} srpacked;
+	sr *r;
+} sspacked;
 
 static inline void
 sv_indexiter_fwd(svindexiter *i)
 {
 	while (i->v) {
-		svv *v = srcast(i->v, svv, node);
+		svv *v = sscast(i->v, svv, node);
 		i->vcur = sv_visible(v, i->vlsn);
-		if (srlikely(i->vcur))
+		if (sslikely(i->vcur))
 			return;
-		i->v = sr_rbnext(&i->index->i, i->v);
+		i->v = ss_rbnext(&i->index->i, i->v);
 	}
 }
 
@@ -38,18 +39,19 @@ static inline void
 sv_indexiter_bkw(svindexiter *i)
 {
 	while (i->v) {
-		svv *v = srcast(i->v, svv, node);
+		svv *v = sscast(i->v, svv, node);
 		i->vcur = sv_visible(v, i->vlsn);
-		if (srlikely(i->vcur))
+		if (sslikely(i->vcur))
 			return;
-		i->v = sr_rbprev(&i->index->i, i->v);
+		i->v = ss_rbprev(&i->index->i, i->v);
 	}
 }
 
 static inline int
-sv_indexiter_open(sriter *i, svindex *index, srorder o, void *key, int keysize, uint64_t vlsn)
+sv_indexiter_open(ssiter *i, sr *r, svindex *index, ssorder o, void *key, int keysize, uint64_t vlsn)
 {
 	svindexiter *ii = (svindexiter*)i->priv;
+	ii->r       = r;
 	ii->index   = index;
 	ii->order   = o;
 	ii->key     = key;
@@ -58,61 +60,61 @@ sv_indexiter_open(sriter *i, svindex *index, srorder o, void *key, int keysize, 
 	ii->v       = NULL;
 	ii->vcur    = NULL;
 	memset(&ii->current, 0, sizeof(ii->current));
-	srrbnode *n = NULL;
+	ssrbnode *n = NULL;
 	int eq = 0;
 	int rc;
 	switch (ii->order) {
-	case SR_LT:
-	case SR_LTE:
-	case SR_EQ:
-		if (srunlikely(ii->key == NULL)) {
-			ii->v = sr_rbmax(&ii->index->i);
+	case SS_LT:
+	case SS_LTE:
+	case SS_EQ:
+		if (ssunlikely(ii->key == NULL)) {
+			ii->v = ss_rbmax(&ii->index->i);
 			sv_indexiter_bkw(ii);
 			break;
 		}
-		rc = sv_indexmatch(&ii->index->i, i->r->scheme, ii->key, ii->keysize, &ii->v);
+		rc = sv_indexmatch(&ii->index->i, ii->r->scheme, ii->key, ii->keysize, &ii->v);
 		if (ii->v == NULL)
 			break;
 		switch (rc) {
 		case 0:
 			eq = 1;
-			if (ii->order == SR_LT)
-				ii->v = sr_rbprev(&ii->index->i, ii->v);
+			if (ii->order == SS_LT)
+				ii->v = ss_rbprev(&ii->index->i, ii->v);
 			break;
 		case 1:
-			ii->v = sr_rbprev(&ii->index->i, ii->v);
+			ii->v = ss_rbprev(&ii->index->i, ii->v);
 			break;
 		}
 		n = ii->v;
 		sv_indexiter_bkw(ii);
 		break;
-	case SR_GT:
-	case SR_GTE:
-		if (srunlikely(ii->key == NULL)) {
-			ii->v = sr_rbmin(&ii->index->i);
+	case SS_GT:
+	case SS_GTE:
+		if (ssunlikely(ii->key == NULL)) {
+			ii->v = ss_rbmin(&ii->index->i);
 			sv_indexiter_fwd(ii);
 			break;
 		}
-		rc = sv_indexmatch(&ii->index->i, i->r->scheme, ii->key, ii->keysize, &ii->v);
+		rc = sv_indexmatch(&ii->index->i, ii->r->scheme, ii->key, ii->keysize, &ii->v);
 		if (ii->v == NULL)
 			break;
 		switch (rc) {
 		case  0:
 			eq = 1;
-			if (ii->order == SR_GT)
-				ii->v = sr_rbnext(&ii->index->i, ii->v);
+			if (ii->order == SS_GT)
+				ii->v = ss_rbnext(&ii->index->i, ii->v);
 			break;
 		case -1:
-			ii->v = sr_rbnext(&ii->index->i, ii->v);
+			ii->v = ss_rbnext(&ii->index->i, ii->v);
 			break;
 		}
 		n = ii->v;
 		sv_indexiter_fwd(ii);
 		break;
-	case SR_UPDATE:
-		rc = sv_indexmatch(&ii->index->i, i->r->scheme, ii->key, ii->keysize, &ii->v);
+	case SS_UPDATE:
+		rc = sv_indexmatch(&ii->index->i, ii->r->scheme, ii->key, ii->keysize, &ii->v);
 		if (rc == 0 && ii->v) {
-			svv *v = srcast(ii->v, svv, node);
+			svv *v = sscast(ii->v, svv, node);
 			ii->vcur = v;
 			return v->lsn > ii->vlsn;
 		}
@@ -123,21 +125,21 @@ sv_indexiter_open(sriter *i, svindex *index, srorder o, void *key, int keysize, 
 }
 
 static inline void
-sv_indexiter_close(sriter *i srunused)
+sv_indexiter_close(ssiter *i ssunused)
 {}
 
 static inline int
-sv_indexiter_has(sriter *i)
+sv_indexiter_has(ssiter *i)
 {
 	svindexiter *ii = (svindexiter*)i->priv;
 	return ii->v != NULL;
 }
 
 static inline void*
-sv_indexiter_of(sriter *i)
+sv_indexiter_of(ssiter *i)
 {
 	svindexiter *ii = (svindexiter*)i->priv;
-	if (srunlikely(ii->v == NULL))
+	if (ssunlikely(ii->v == NULL))
 		return NULL;
 	assert(ii->vcur != NULL);
 	sv_init(&ii->current, &sv_vif, ii->vcur, NULL);
@@ -145,21 +147,21 @@ sv_indexiter_of(sriter *i)
 }
 
 static inline void
-sv_indexiter_next(sriter *i)
+sv_indexiter_next(ssiter *i)
 {
 	svindexiter *ii = (svindexiter*)i->priv;
-	if (srunlikely(ii->v == NULL))
+	if (ssunlikely(ii->v == NULL))
 		return;
 	switch (ii->order) {
-	case SR_LT:
-	case SR_LTE:
-		ii->v = sr_rbprev(&ii->index->i, ii->v);
+	case SS_LT:
+	case SS_LTE:
+		ii->v = ss_rbprev(&ii->index->i, ii->v);
 		ii->vcur = NULL;
 		sv_indexiter_bkw(ii);
 		break;
-	case SR_GT:
-	case SR_GTE:
-		ii->v = sr_rbnext(&ii->index->i, ii->v);
+	case SS_GT:
+	case SS_GTE:
+		ii->v = ss_rbnext(&ii->index->i, ii->v);
 		ii->vcur = NULL;
 		sv_indexiter_fwd(ii);
 		break;
@@ -171,40 +173,40 @@ typedef struct svindexiterraw svindexiterraw;
 
 struct svindexiterraw {
 	svindex *index;
-	srrbnode *v;
+	ssrbnode *v;
 	svv *vcur;
 	sv current;
-} srpacked;
+} sspacked;
 
 static inline int
-sv_indexiterraw_open(sriter *i, svindex *index)
+sv_indexiterraw_open(ssiter *i, svindex *index)
 {
 	svindexiterraw *ii = (svindexiterraw*)i->priv;
 	ii->index = index;
-	ii->v = sr_rbmin(&ii->index->i);
+	ii->v = ss_rbmin(&ii->index->i);
 	ii->vcur = NULL;
 	if (ii->v) {
-		ii->vcur = srcast(ii->v, svv, node);
+		ii->vcur = sscast(ii->v, svv, node);
 	}
 	return 0;
 }
 
 static inline void
-sv_indexiterraw_close(sriter *i srunused)
+sv_indexiterraw_close(ssiter *i ssunused)
 {}
 
 static inline int
-sv_indexiterraw_has(sriter *i)
+sv_indexiterraw_has(ssiter *i)
 {
 	svindexiterraw *ii = (svindexiterraw*)i->priv;
 	return ii->v != NULL;
 }
 
 static inline void*
-sv_indexiterraw_of(sriter *i)
+sv_indexiterraw_of(ssiter *i)
 {
 	svindexiterraw *ii = (svindexiterraw*)i->priv;
-	if (srunlikely(ii->v == NULL))
+	if (ssunlikely(ii->v == NULL))
 		return NULL;
 	assert(ii->vcur != NULL);
 	sv_init(&ii->current, &sv_vif, ii->vcur, NULL);
@@ -212,10 +214,10 @@ sv_indexiterraw_of(sriter *i)
 }
 
 static inline void
-sv_indexiterraw_next(sriter *i)
+sv_indexiterraw_next(ssiter *i)
 {
 	svindexiterraw *ii = (svindexiterraw*)i->priv;
-	if (srunlikely(ii->v == NULL))
+	if (ssunlikely(ii->v == NULL))
 		return;
 	assert(ii->vcur != NULL);
 	svv *v = ii->vcur->next;
@@ -223,14 +225,14 @@ sv_indexiterraw_next(sriter *i)
 		ii->vcur = v;
 		return;
 	}
-	ii->v = sr_rbnext(&ii->index->i, ii->v);
+	ii->v = ss_rbnext(&ii->index->i, ii->v);
 	ii->vcur = NULL;
 	if (ii->v) {
-		ii->vcur = srcast(ii->v, svv, node);
+		ii->vcur = sscast(ii->v, svv, node);
 	}
 }
 
-extern sriterif sv_indexiter;
-extern sriterif sv_indexiterraw;
+extern ssiterif sv_indexiter;
+extern ssiterif sv_indexiterraw;
 
 #endif

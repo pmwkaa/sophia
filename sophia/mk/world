@@ -7,7 +7,9 @@ buildworld = 1
 include mk/sophia
 include $(addsuffix /makefile, $(SOPHIA_DIRS))
 
-OPLATFORM = $(LIBSR_OBJECTS) \
+OPLATFORM = $(LIBSS_OBJECTS) \
+            $(LIBSF_OBJECTS) \
+            $(LIBSR_OBJECTS) \
             $(LIBSV_OBJECTS) \
             $(LIBSX_OBJECTS) \
             $(LIBSL_OBJECTS) \

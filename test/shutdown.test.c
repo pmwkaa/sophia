@@ -7,12 +7,14 @@
  * BSD License
 */
 
-#include <libsr.h>
+#include <libss.h>
+#include <libsf.h>
+#include <libss.h>
 #include <libst.h>
 #include <sophia.h>
 
 static void
-shutdown_destroy(stc *cx srunused)
+shutdown_destroy(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -42,7 +44,7 @@ shutdown_destroy(stc *cx srunused)
 }
 
 static void
-shutdown_transaction0(stc *cx srunused)
+shutdown_transaction0(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -77,7 +79,7 @@ shutdown_transaction0(stc *cx srunused)
 }
 
 static void
-shutdown_transaction1(stc *cx srunused)
+shutdown_transaction1(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -113,7 +115,7 @@ shutdown_transaction1(stc *cx srunused)
 }
 
 static void
-shutdown_transaction2(stc *cx srunused)
+shutdown_transaction2(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -139,7 +141,7 @@ shutdown_transaction2(stc *cx srunused)
 }
 
 static void
-shutdown_transaction3(stc *cx srunused)
+shutdown_transaction3(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -185,7 +187,7 @@ shutdown_transaction3(stc *cx srunused)
 }
 
 static void
-shutdown_transaction4(stc *cx srunused)
+shutdown_transaction4(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -225,7 +227,7 @@ shutdown_transaction4(stc *cx srunused)
 }
 
 static void
-shutdown_transaction5(stc *cx srunused)
+shutdown_transaction5(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -265,7 +267,7 @@ shutdown_transaction5(stc *cx srunused)
 }
 
 static void
-shutdown_transaction6(stc *cx srunused)
+shutdown_transaction6(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -310,7 +312,7 @@ shutdown_transaction6(stc *cx srunused)
 }
 
 static void
-shutdown_cursor0(stc *cx srunused)
+shutdown_cursor0(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -366,7 +368,7 @@ shutdown_cursor0(stc *cx srunused)
 }
 
 static void
-shutdown_cursor1(stc *cx srunused)
+shutdown_cursor1(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -425,7 +427,7 @@ shutdown_cursor1(stc *cx srunused)
 }
 
 static void
-shutdown_snapshot0(stc *cx srunused)
+shutdown_snapshot0(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );

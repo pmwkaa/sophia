@@ -7,12 +7,14 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libst.h>
 #include <sophia.h>
 
 static void
-method_unsupported(stc *cx srunused)
+method_unsupported(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );

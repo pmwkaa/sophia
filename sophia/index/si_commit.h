@@ -14,7 +14,7 @@ typedef struct sitx sitx;
 struct sitx {
 	uint64_t time;
 	uint64_t vlsn;
-	srlist nodelist;
+	sslist nodelist;
 	svlog *l;
 	svlogindex *li;
 	si *index;

@@ -24,7 +24,7 @@ struct sdpageheader {
 	uint64_t lsnmindup;
 	uint64_t lsnmax;
 	char     reserve[8];
-} srpacked;
+} sspacked;
 
 struct sdpage {
 	sdpageheader *h;
@@ -63,7 +63,7 @@ sd_pagesizeof(sdpage *p, sdv *v)
 {
 	char *ptr = sd_pagepointer(p, v);
 	uint64_t val = 0;
-	sr_leb128read(ptr, &val);
+	ss_leb128read(ptr, &val);
 	return val;
 }
 
@@ -71,9 +71,9 @@ static inline uint64_t
 sd_pagelsnof(sdpage *p, sdv *v)
 {
 	char *ptr = sd_pagepointer(p, v);
-	ptr += sr_leb128skip(ptr);
+	ptr += ss_leb128skip(ptr);
 	uint64_t val;
-	sr_leb128read(ptr, &val);
+	ss_leb128read(ptr, &val);
 	return val;
 }
 
@@ -81,8 +81,8 @@ static inline char*
 sd_pagemetaof(sdpage *p, sdv *v, uint64_t *size, uint64_t *lsn)
 {
 	char *ptr = sd_pagepointer(p, v);
-	ptr += sr_leb128read(ptr, size);
-	ptr += sr_leb128read(ptr, lsn);
+	ptr += ss_leb128read(ptr, size);
+	ptr += ss_leb128read(ptr, lsn);
 	return ptr;
 }
 

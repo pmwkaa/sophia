@@ -7,6 +7,8 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
 #include <libsl.h>
@@ -17,7 +19,7 @@
 static void
 alloclogv(svlog *log, sr *r, uint64_t lsn, uint8_t flags, int key)
 {
-	srfmtv pv;
+	sfv pv;
 	pv.key = (char*)&key;
 	pv.r.size = sizeof(uint32_t);
 	pv.r.offset = 0;
@@ -26,7 +28,8 @@ alloclogv(svlog *log, sr *r, uint64_t lsn, uint8_t flags, int key)
 	v->flags = flags;
 	svlogv logv;
 	logv.id = 0;
-	logv.next = 0;
+	logv.next = UINT32_MAX;
+	logv.vgc = NULL;
 	sv_init(&logv.v, &sv_vif, v, NULL);
 	sv_logadd(log, r->a, &logv, NULL);
 }
@@ -34,12 +37,12 @@ alloclogv(svlog *log, sr *r, uint64_t lsn, uint8_t flags, int key)
 static void
 freelog(svlog *log, sr *c)
 {
-	sriter i;
-	sr_iterinit(sr_bufiter, &i, c);
-	sr_iteropen(sr_bufiter, &i, &log->buf, sizeof(svlogv));
-	for (; sr_iteratorhas(&i); sr_iteratornext(&i)) {
-		svlogv *v = sr_iteratorof(&i);
-		sr_free(c->a, v->v.v);
+	ssiter i;
+	ss_iterinit(ss_bufiter, &i);
+	ss_iteropen(ss_bufiter, &i, &log->buf, sizeof(svlogv));
+	for (; ss_iteratorhas(&i); ss_iteratornext(&i)) {
+		svlogv *v = ss_iteratorof(&i);
+		ss_free(c->a, v->v.v);
 	}
 	sv_logfree(log, c->a);
 }
@@ -47,8 +50,8 @@ freelog(svlog *log, sr *c)
 static void
 sl_begin_commit(stc *cx)
 {
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
 	srkey *part = sr_schemeadd(&cmp, &a);
@@ -58,9 +61,9 @@ sl_begin_commit(stc *cx)
 	sr_errorinit(&error);
 	srseq seq;
 	sr_seqinit(&seq);
-	srcrcf crc = sr_crc32c_function();
+	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, NULL, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, NULL, crc, NULL);
 
 	slconf conf = {
 		.path     = cx->suite->logdir,
@@ -90,8 +93,8 @@ sl_begin_commit(stc *cx)
 static void
 sl_begin_rollback(stc *cx)
 {
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
 	srkey *part = sr_schemeadd(&cmp, &a);
@@ -101,9 +104,9 @@ sl_begin_rollback(stc *cx)
 	sr_errorinit(&error);
 	srseq seq;
 	sr_seqinit(&seq);
-	srcrcf crc = sr_crc32c_function();
+	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, NULL, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, NULL, crc, NULL);
 
 	slconf conf = {
 		.path     = cx->suite->logdir,

@@ -7,11 +7,13 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
 #include <libsd.h>
 
-sriterif sd_indexiter =
+ssiterif sd_indexiter =
 {
 	.close = sd_indexiter_close,
 	.has   = sd_indexiter_has,

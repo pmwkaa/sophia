@@ -7,20 +7,22 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
 #include <libsd.h>
 #include <libsi.h>
 
-int si_init(si *i, sr *r, srquota *q)
+int si_init(si *i, sr *r, ssquota *q)
 {
 	int rc = si_plannerinit(&i->p, r->a, i);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		return -1;
-	sr_bufinit(&i->readbuf);
-	sr_rbinit(&i->i);
-	sr_mutexinit(&i->lock);
-	sr_condinit(&i->cond);
+	ss_bufinit(&i->readbuf);
+	ss_rbinit(&i->i);
+	ss_mutexinit(&i->lock);
+	ss_condinit(&i->cond);
 	i->quota       = q;
 	i->scheme      = NULL;
 	i->update_time = 0;
@@ -37,8 +39,8 @@ int si_open(si *i, sr *r, sischeme *scheme)
 	return si_recover(i, r);
 }
 
-sr_rbtruncate(si_truncate,
-              si_nodefree(srcast(n, sinode, node), (sr*)arg, 0))
+ss_rbtruncate(si_truncate,
+              si_nodefree(sscast(n, sinode, node), (sr*)arg, 0))
 
 int si_close(si *i, sr *r)
 {
@@ -48,44 +50,44 @@ int si_close(si *i, sr *r)
 	if (i->i.root)
 		si_truncate(i->i.root, r);
 	i->i.root = NULL;
-	sr_buffree(&i->readbuf, r->a);
+	ss_buffree(&i->readbuf, r->a);
 	si_plannerfree(&i->p, r->a);
-	sr_condfree(&i->cond);
-	sr_mutexfree(&i->lock);
+	ss_condfree(&i->cond);
+	ss_mutexfree(&i->lock);
 	i->destroyed = 1;
 	return rcret;
 }
 
-sr_rbget(si_match,
+ss_rbget(si_match,
          sr_compare(scheme,
-                    sd_indexpage_min(&(srcast(n, sinode, node))->self.index,
-                                     sd_indexmin(&(srcast(n, sinode, node))->self.index)),
-                    sd_indexmin(&(srcast(n, sinode, node))->self.index)->sizemin,
+                    sd_indexpage_min(&(sscast(n, sinode, node))->self.index,
+                                     sd_indexmin(&(sscast(n, sinode, node))->self.index)),
+                    sd_indexmin(&(sscast(n, sinode, node))->self.index)->sizemin,
                     key, keysize))
 
 int si_insert(si *i, sr *r, sinode *n)
 {
 	sdindexpage *min = sd_indexmin(&n->self.index);
-	srrbnode *p = NULL;
+	ssrbnode *p = NULL;
 	int rc = si_match(&i->i, r->scheme,
 	                  sd_indexpage_min(&n->self.index, min),
 	                  min->sizemin, &p);
 	assert(! (rc == 0 && p));
-	sr_rbset(&i->i, p, rc, &n->node);
+	ss_rbset(&i->i, p, rc, &n->node);
 	i->n++;
 	return 0;
 }
 
 int si_remove(si *i, sinode *n)
 {
-	sr_rbremove(&i->i, &n->node);
+	ss_rbremove(&i->i, &n->node);
 	i->n--;
 	return 0;
 }
 
 int si_replace(si *i, sinode *o, sinode *n)
 {
-	sr_rbreplace(&i->i, &o->node, &n->node);
+	ss_rbreplace(&i->i, &o->node, &n->node);
 	return 0;
 }
 

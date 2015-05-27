@@ -31,15 +31,15 @@ struct sinode {
 	sibranch *branch;
 	uint32_t  branch_count;
 	svindex   i0, i1;
-	srfile    file;
-	srrbnode  node;
-	srrqnode  nodecompact;
-	srrqnode  nodebranch;
-	srlist    commit;
-} srpacked;
+	ssfile    file;
+	ssrbnode  node;
+	ssrqnode  nodecompact;
+	ssrqnode  nodebranch;
+	sslist    commit;
+} sspacked;
 
 sinode *si_nodenew(sr*);
-int si_nodeopen(sinode*, sr*, srpath*);
+int si_nodeopen(sinode*, sr*, sspath*);
 int si_nodecreate(sinode*, sr*, sischeme*, sdid*, sdindex*, sdbuild*);
 int si_nodefree(sinode*, sr*, int);
 int si_nodegc_index(sr*, svindex*);
@@ -85,7 +85,7 @@ si_nodeindex(sinode *node) {
 static inline svindex*
 si_nodeindex_priority(sinode *node, svindex **second)
 {
-	if (srunlikely(node->flags & SI_ROTATE)) {
+	if (ssunlikely(node->flags & SI_ROTATE)) {
 		*second = &node->i0;
 		return &node->i1;
 	}
@@ -94,8 +94,8 @@ si_nodeindex_priority(sinode *node, svindex **second)
 }
 
 static inline sinode*
-si_nodeof(srrbnode *node) {
-	return srcast(node, sinode, node);
+si_nodeof(ssrbnode *node) {
+	return sscast(node, sinode, node);
 }
 
 #endif

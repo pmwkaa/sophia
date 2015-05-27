@@ -31,7 +31,7 @@ struct sdindexheader {
 	uint64_t  dupmin;
 	uint32_t  extension;
 	char      reserve[32];
-} srpacked;
+} sspacked;
 
 struct sdindexpage {
 	uint64_t offset;
@@ -42,10 +42,10 @@ struct sdindexpage {
 	uint16_t sizemax;
 	uint64_t lsnmin;
 	uint64_t lsnmax;
-} srpacked;
+} sspacked;
 
 struct sdindex {
-	srbuf i, v;
+	ssbuf i, v;
 	sdindexheader *h;
 };
 
@@ -62,15 +62,15 @@ sd_indexpage_max(sdindex *i, sdindexpage *p) {
 
 static inline void
 sd_indexinit(sdindex *i) {
-	sr_bufinit(&i->i);
-	sr_bufinit(&i->v);
+	ss_bufinit(&i->i);
+	ss_bufinit(&i->v);
 	i->h = NULL;
 }
 
 static inline void
 sd_indexfree(sdindex *i, sr *r) {
-	sr_buffree(&i->i, r->a);
-	sr_buffree(&i->v, r->a);
+	ss_buffree(&i->i, r->a);
+	ss_buffree(&i->v, r->a);
 }
 
 static inline sdindexheader*
@@ -82,7 +82,7 @@ static inline sdindexpage*
 sd_indexpage(sdindex *i, uint32_t pos)
 {
 	assert(pos < i->h->count);
-	char *p = (char*)sr_bufat(&i->i, sizeof(sdindexpage), pos);
+	char *p = (char*)ss_bufat(&i->i, sizeof(sdindexpage), pos);
    	p += sizeof(sdindexheader);
 	return (sdindexpage*)p;
 }
@@ -100,7 +100,7 @@ sd_indexmax(sdindex *i) {
 static inline uint32_t
 sd_indexkeys(sdindex *i)
 {
-	if (srunlikely(i->i.s == NULL))
+	if (ssunlikely(i->i.s == NULL))
 		return 0;
 	return sd_indexheader(i)->keys;
 }
@@ -108,7 +108,7 @@ sd_indexkeys(sdindex *i)
 static inline uint32_t
 sd_indextotal(sdindex *i)
 {
-	if (srunlikely(i->i.s == NULL))
+	if (ssunlikely(i->i.s == NULL))
 		return 0;
 	return sd_indexheader(i)->total;
 }

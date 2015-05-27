@@ -14,19 +14,19 @@ typedef struct sdschemeiter sdschemeiter;
 struct sdschemeiter {
 	sdscheme *c;
 	char *p;
-} srpacked;
+} sspacked;
 
 static inline int
-sd_schemeiter_open(sriter *i, sdscheme *c, int validate)
+sd_schemeiter_open(ssiter *i, sr *r, sdscheme *c, int validate)
 {
 	sdschemeiter *ci = (sdschemeiter*)i->priv;
 	ci->c = c;
 	ci->p = NULL;
 	if (validate) {
 		sdschemeheader *h = (sdschemeheader*)c->buf.s;
-		uint32_t crc = sr_crcs(i->r->crc, h, sr_bufused(&c->buf), 0);
+		uint32_t crc = ss_crcs(r->crc, h, ss_bufused(&c->buf), 0);
 		if (h->crc != crc) {
-			sr_malfunction(i->r->e, "%s", "scheme file corrupted");
+			sr_malfunction(r->e, "%s", "scheme file corrupted");
 			return -1;
 		}
 	}
@@ -35,38 +35,38 @@ sd_schemeiter_open(sriter *i, sdscheme *c, int validate)
 }
 
 static inline void
-sd_schemeiter_close(sriter *i srunused)
+sd_schemeiter_close(ssiter *i ssunused)
 {
 	sdschemeiter *ci = (sdschemeiter*)i->priv;
 	(void)ci;
 }
 
 static inline int
-sd_schemeiter_has(sriter *i)
+sd_schemeiter_has(ssiter *i)
 {
 	sdschemeiter *ci = (sdschemeiter*)i->priv;
 	return ci->p < ci->c->buf.p;
 }
 
 static inline void*
-sd_schemeiter_of(sriter *i)
+sd_schemeiter_of(ssiter *i)
 {
 	sdschemeiter *ci = (sdschemeiter*)i->priv;
-	if (srunlikely(ci->p >= ci->c->buf.p))
+	if (ssunlikely(ci->p >= ci->c->buf.p))
 		return NULL;
 	return ci->p;
 }
 
 static inline void
-sd_schemeiter_next(sriter *i)
+sd_schemeiter_next(ssiter *i)
 {
 	sdschemeiter *ci = (sdschemeiter*)i->priv;
-	if (srunlikely(ci->p >= ci->c->buf.p))
+	if (ssunlikely(ci->p >= ci->c->buf.p))
 		return;
 	sdschemeopt *o = (sdschemeopt*)ci->p;
 	ci->p = (char*)o + sizeof(sdschemeopt) + o->size;
 }
 
-extern sriterif sd_schemeiter;
+extern ssiterif sd_schemeiter;
 
 #endif

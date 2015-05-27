@@ -7,12 +7,14 @@
  * BSD License
 */
 
-#include <libsr.h>
+#include <libss.h>
+#include <libsf.h>
+#include <libss.h>
 #include <libst.h>
 #include <sophia.h>
 
 static void
-schema_test0(stc *cx srunused)
+schema_test0(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -68,7 +70,7 @@ schema_test0(stc *cx srunused)
 }
 
 static void
-schema_test1(stc *cx srunused)
+schema_test1(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );

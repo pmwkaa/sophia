@@ -5,7 +5,7 @@
 SOPHIA_VMAJOR   = 1
 SOPHIA_VMINOR   = 2
 SOPHIA_BUILD   := $(shell git rev-parse --short HEAD)
-SOPHIA_DIRS     = rt version transaction log database index repository sophia
+SOPHIA_DIRS     = std format runtime version transaction log database index repository sophia
 
 CC             ?= gcc
 E               = @echo

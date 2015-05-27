@@ -7,12 +7,14 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libst.h>
 #include <sophia.h>
 
 static void
-ctl_version(stc *cx srunused)
+ctl_version(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -29,7 +31,7 @@ ctl_version(stc *cx srunused)
 }
 
 static void
-ctl_error_injection(stc *cx srunused)
+ctl_error_injection(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );

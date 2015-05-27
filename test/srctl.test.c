@@ -7,18 +7,20 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libst.h>
 
 static void
-srctl_set_cc(stc *cx srunused)
+srctl_set_cc(stc *cx ssunused)
 {
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	sr r;
 	srerror error;
 	sr_errorinit(&error);
-	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, NULL, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, NULL, NULL, NULL);
 	src root = {
 		"test", SR_CC, NULL, NULL, NULL
 	};
@@ -46,14 +48,14 @@ srctl_set_cc_trigger_f(src *c, srcstmt *s, va_list args)
 }
 
 static void
-srctl_set_cc_trigger(stc *cx srunused)
+srctl_set_cc_trigger(stc *cx ssunused)
 {
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	sr r;
 	srerror error;
 	sr_errorinit(&error);
-	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, NULL, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, NULL, NULL, NULL);
 	src root = {
 		"test", SR_CC, srctl_set_cc_trigger_f, NULL, NULL
 	};
@@ -79,14 +81,14 @@ srctl_set_u32_f(src *c, srcstmt *s, va_list args)
 }
 
 static void
-srctl_set_u32(stc *cx srunused)
+srctl_set_u32(stc *cx ssunused)
 {
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	sr r;
 	srerror error;
 	sr_errorinit(&error);
-	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, NULL, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, NULL, NULL, NULL);
 	uint32_t value = 0;
 	src root = {
 		"test", SR_CU32, srctl_set_u32_f, &value, NULL
@@ -104,14 +106,14 @@ srctl_set_u32(stc *cx srunused)
 }
 
 static void
-srctl_set_cc_u32(stc *cx srunused)
+srctl_set_cc_u32(stc *cx ssunused)
 {
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	sr r;
 	srerror error;
 	sr_errorinit(&error);
-	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, NULL, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, NULL, NULL, NULL);
 	uint32_t value = 0;
 	src u32cc = {
 		"u32", SR_CU32, srctl_set_u32_f, &value, NULL
@@ -132,14 +134,14 @@ srctl_set_cc_u32(stc *cx srunused)
 }
 
 static void
-srctl_set_cc_cc_u32(stc *cx srunused)
+srctl_set_cc_cc_u32(stc *cx ssunused)
 {
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	sr r;
 	srerror error;
 	sr_errorinit(&error);
-	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, NULL, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, NULL, NULL, NULL);
 	uint32_t value = 0;
 	src u32v = {
 		"u32", SR_CU32, srctl_set_u32_f, &value , NULL
@@ -163,14 +165,14 @@ srctl_set_cc_cc_u32(stc *cx srunused)
 }
 
 static void
-srctl_set_cc_cc_u32_bad(stc *cx srunused)
+srctl_set_cc_cc_u32_bad(stc *cx ssunused)
 {
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	sr r;
 	srerror error;
 	sr_errorinit(&error);
-	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, NULL, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, NULL, NULL, NULL);
 	uint32_t value = 0;
 	src u32v = {
 		"u32", SR_CU32, srctl_set_u32_f, &value, NULL
@@ -202,14 +204,14 @@ srctl_serialize_f(src *c, srcstmt *s, va_list args)
 }
 
 static void
-srctl_serialize0(stc *cx srunused)
+srctl_serialize0(stc *cx ssunused)
 {
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	sr r;
 	srerror error;
 	sr_errorinit(&error);
-	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, NULL, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, NULL, NULL, NULL);
 	uint32_t value0 = 8;
 	uint64_t value1 = UINT64_MAX;
 
@@ -224,8 +226,8 @@ srctl_serialize0(stc *cx srunused)
 	src *root;
 	root    = sr_c(&pc, NULL, "test", SR_CC, cc);
 
-	srbuf buf;
-	sr_bufinit(&buf);
+	ssbuf buf;
+	ss_bufinit(&buf);
 	srcstmt stmt = {
 		.op = SR_CSERIALIZE,
 		.path = NULL,
@@ -235,7 +237,7 @@ srctl_serialize0(stc *cx srunused)
 		.r = &r
 	};
 	t( sr_cexec(root, &stmt) == 0 );
-	t( sr_bufused(&buf) != 0 );
+	t( ss_bufused(&buf) != 0 );
 
 	srcv *vp = (srcv*)buf.s;
 	t( strcmp(sr_cvname(vp), "test.test.u32") == 0 );
@@ -244,7 +246,7 @@ srctl_serialize0(stc *cx srunused)
 	t( strcmp(sr_cvname(vp), "test.test.u64") == 0 );
 	t( *(uint64_t*)sr_cvvalue(vp) == UINT64_MAX );
 
-	sr_buffree(&buf, &a);
+	ss_buffree(&buf, &a);
 }
 
 stgroup *srctl_group(void)

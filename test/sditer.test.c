@@ -7,6 +7,8 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
 #include <libsd.h>
@@ -16,7 +18,7 @@
 static void
 addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 {
-	srfmtv pv;
+	sfv pv;
 	pv.key = (char*)key;
 	pv.r.size = sizeof(uint32_t);
 	pv.r.offset = 0;
@@ -30,24 +32,24 @@ addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 }
 
 static void
-sditer_gt0(stc *cx srunused)
+sditer_gt0(stc *cx ssunused)
 {
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
 	srkey *part = sr_schemeadd(&cmp, &a);
 	t( sr_keysetname(part, &a, "key") == 0 );
 	t( sr_keyset(part, &a, "u32") == 0 );
-	srinjection ij;
+	ssinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
 	sr_errorinit(&error);
 	srseq seq;
 	sr_seqinit(&seq);
-	srcrcf crc = sr_crc32c_function();
+	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -75,67 +77,67 @@ sditer_gt0(stc *cx srunused)
 
 	t( sd_indexcommit(&index, &r, &id) == 0 );
 
-	srfile f;
-	sr_fileinit(&f, &a);
-	t( sr_filenew(&f, "./0000.db") == 0 );
+	ssfile f;
+	ss_fileinit(&f, &a);
+	t( ss_filenew(&f, "./0000.db") == 0 );
 	t( sd_commit(&b, &r, &index, &f) == 0 );
-	srmap map;
-	t( sr_mapfile(&map, &f, 1) == 0 );
+	ssmap map;
+	t( ss_mapfile(&map, &f, 1) == 0 );
 
 	sdindex i;
 	sd_indexinit(&i);
 	i.h = (sdindexheader*)(map.p);
 
-	srbuf xfbuf;
-	sr_bufinit(&xfbuf);
-	t( sr_bufensure(&xfbuf, &a, 1024) == 0 );
+	ssbuf xfbuf;
+	ss_bufinit(&xfbuf);
+	t( ss_bufensure(&xfbuf, &a, 1024) == 0 );
 
-	sriter it;
-	sr_iterinit(sd_iter, &it, &r);
-	sr_iteropen(sd_iter, &it, &i, map.p, 1, 0, NULL, &xfbuf);
-	t( sr_iteratorhas(&it) == 1 );
+	ssiter it;
+	ss_iterinit(sd_iter, &it);
+	ss_iteropen(sd_iter, &it, &r, &i, map.p, 1, 0, NULL, &xfbuf);
+	t( ss_iteratorhas(&it) == 1 );
 
-	sv *v = sr_iteratorof(&it);
+	sv *v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 7);
-	sr_iteratornext(&it);
-	v = sr_iteratorof(&it);
+	ss_iteratornext(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 8);
-	sr_iteratornext(&it);
-	v = sr_iteratorof(&it);
+	ss_iteratornext(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 9);
-	sr_iteratornext(&it);
-	t( sr_iteratorhas(&it) == 0 );
-	sr_iteratorclose(&it);
+	ss_iteratornext(&it);
+	t( ss_iteratorhas(&it) == 0 );
+	ss_iteratorclose(&it);
 
-	sr_fileclose(&f);
-	t( sr_mapunmap(&map) == 0 );
-	t( sr_fileunlink("./0000.db") == 0 );
+	ss_fileclose(&f);
+	t( ss_mapunmap(&map) == 0 );
+	t( ss_fileunlink("./0000.db") == 0 );
 
 	sd_indexfree(&index, &r);
 	sd_buildfree(&b, &r);
 	sr_schemefree(&cmp, &a);
-	sr_buffree(&xfbuf, &a);
+	ss_buffree(&xfbuf, &a);
 }
 
 static void
-sditer_gt1(stc *cx srunused)
+sditer_gt1(stc *cx ssunused)
 {
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
 	srkey *part = sr_schemeadd(&cmp, &a);
 	t( sr_keysetname(part, &a, "key") == 0 );
 	t( sr_keyset(part, &a, "u32") == 0 );
-	srinjection ij;
+	ssinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
 	sr_errorinit(&error);
 	srseq seq;
 	sr_seqinit(&seq);
-	srcrcf crc = sr_crc32c_function();
+	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -188,90 +190,90 @@ sditer_gt1(stc *cx srunused)
 	memset(&id, 0, sizeof(id));
 	t( sd_indexcommit(&index, &r, &id) == 0 );
 
-	srfile f;
-	sr_fileinit(&f, &a);
-	t( sr_filenew(&f, "./0000.db") == 0 );
+	ssfile f;
+	ss_fileinit(&f, &a);
+	t( ss_filenew(&f, "./0000.db") == 0 );
 	t( sd_commit(&b, &r, &index, &f) == 0 );
-	srmap map;
-	t( sr_mapfile(&map, &f, 1) == 0 );
+	ssmap map;
+	t( ss_mapfile(&map, &f, 1) == 0 );
 
-	srbuf xfbuf;
-	sr_bufinit(&xfbuf);
-	t( sr_bufensure(&xfbuf, &a, 1024) == 0 );
+	ssbuf xfbuf;
+	ss_bufinit(&xfbuf);
+	t( ss_bufensure(&xfbuf, &a, 1024) == 0 );
 
 	sdindex i;
 	sd_indexinit(&i);
 	i.h = (sdindexheader*)(map.p);
-	sriter it;
-	sr_iterinit(sd_iter, &it, &r);
-	sr_iteropen(sd_iter, &it, &i, map.p, 1, 0, NULL, &xfbuf);
-	t( sr_iteratorhas(&it) == 1 );
+	ssiter it;
+	ss_iterinit(sd_iter, &it);
+	ss_iteropen(sd_iter, &it, &r, &i, map.p, 1, 0, NULL, &xfbuf);
+	t( ss_iteratorhas(&it) == 1 );
 
 	/* page 0 */
-	t( sr_iteratorhas(&it) != 0 );
-	sv *v = sr_iteratorof(&it);
+	t( ss_iteratorhas(&it) != 0 );
+	sv *v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 7);
-	sr_iteratornext(&it);
-	v = sr_iteratorof(&it);
+	ss_iteratornext(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 8);
-	sr_iteratornext(&it);
-	v = sr_iteratorof(&it);
+	ss_iteratornext(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 9);
-	sr_iteratornext(&it);
+	ss_iteratornext(&it);
 
 	/* page 1 */
-	v = sr_iteratorof(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 10);
-	sr_iteratornext(&it);
-	v = sr_iteratorof(&it);
+	ss_iteratornext(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 11);
-	sr_iteratornext(&it);
-	v = sr_iteratorof(&it);
+	ss_iteratornext(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 13);
-	sr_iteratornext(&it);
+	ss_iteratornext(&it);
 
 	/* page 2 */
-	v = sr_iteratorof(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 15);
-	sr_iteratornext(&it);
-	v = sr_iteratorof(&it);
+	ss_iteratornext(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 18);
-	sr_iteratornext(&it);
-	v = sr_iteratorof(&it);
+	ss_iteratornext(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 20);
-	sr_iteratornext(&it);
-	t( sr_iteratorhas(&it) == 0 );
-	sr_iteratorclose(&it);
+	ss_iteratornext(&it);
+	t( ss_iteratorhas(&it) == 0 );
+	ss_iteratorclose(&it);
 
-	sr_fileclose(&f);
-	t( sr_mapunmap(&map) == 0 );
-	t( sr_fileunlink("./0000.db") == 0 );
+	ss_fileclose(&f);
+	t( ss_mapunmap(&map) == 0 );
+	t( ss_fileunlink("./0000.db") == 0 );
 
 	sd_indexfree(&index, &r);
 	sd_buildfree(&b, &r);
 	sr_schemefree(&cmp, &a);
-	sr_buffree(&xfbuf, &a);
+	ss_buffree(&xfbuf, &a);
 }
 
 static void
-sditer_gt0_compression_zstd(stc *cx srunused)
+sditer_gt0_compression_zstd(stc *cx ssunused)
 {
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
 	srkey *part = sr_schemeadd(&cmp, &a);
 	t( sr_keysetname(part, &a, "key") == 0 );
 	t( sr_keyset(part, &a, "u32") == 0 );
-	srinjection ij;
+	ssinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
 	sr_errorinit(&error);
 	srseq seq;
 	sr_seqinit(&seq);
-	srcrcf crc = sr_crc32c_function();
+	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, &ij, crc, &sr_zstdfilter);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, &ss_zstdfilter);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -299,71 +301,71 @@ sditer_gt0_compression_zstd(stc *cx srunused)
 
 	t( sd_indexcommit(&index, &r, &id) == 0 );
 
-	srfile f;
-	sr_fileinit(&f, &a);
-	t( sr_filenew(&f, "./0000.db") == 0 );
+	ssfile f;
+	ss_fileinit(&f, &a);
+	t( ss_filenew(&f, "./0000.db") == 0 );
 	t( sd_commit(&b, &r, &index, &f) == 0 );
-	srmap map;
-	t( sr_mapfile(&map, &f, 1) == 0 );
+	ssmap map;
+	t( ss_mapfile(&map, &f, 1) == 0 );
 
 	sdindex i;
 	sd_indexinit(&i);
 	i.h = (sdindexheader*)(map.p);
 
-	srbuf compression_buf;
-	sr_bufinit(&compression_buf);
-	srbuf xfbuf;
-	sr_bufinit(&xfbuf);
-	t( sr_bufensure(&xfbuf, &a, 1024) == 0 );
+	ssbuf compression_buf;
+	ss_bufinit(&compression_buf);
+	ssbuf xfbuf;
+	ss_bufinit(&xfbuf);
+	t( ss_bufensure(&xfbuf, &a, 1024) == 0 );
 
-	sriter it;
-	sr_iterinit(sd_iter, &it, &r);
-	sr_iteropen(sd_iter, &it, &i, map.p, 1, 1, &compression_buf, &xfbuf);
-	t( sr_iteratorhas(&it) == 1 );
+	ssiter it;
+	ss_iterinit(sd_iter, &it);
+	ss_iteropen(sd_iter, &it, &r, &i, map.p, 1, 1, &compression_buf, &xfbuf);
+	t( ss_iteratorhas(&it) == 1 );
 
-	sv *v = sr_iteratorof(&it);
+	sv *v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 7);
-	sr_iteratornext(&it);
-	v = sr_iteratorof(&it);
+	ss_iteratornext(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 8);
-	sr_iteratornext(&it);
-	v = sr_iteratorof(&it);
+	ss_iteratornext(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 9);
-	sr_iteratornext(&it);
-	t( sr_iteratorhas(&it) == 0 );
-	sr_iteratorclose(&it);
+	ss_iteratornext(&it);
+	t( ss_iteratorhas(&it) == 0 );
+	ss_iteratorclose(&it);
 
-	sr_fileclose(&f);
-	t( sr_mapunmap(&map) == 0 );
-	t( sr_fileunlink("./0000.db") == 0 );
+	ss_fileclose(&f);
+	t( ss_mapunmap(&map) == 0 );
+	t( ss_fileunlink("./0000.db") == 0 );
 
 	sd_indexfree(&index, &r);
 	sd_buildfree(&b, &r);
 
-	sr_buffree(&compression_buf, &a);
-	sr_buffree(&xfbuf, &a);
+	ss_buffree(&compression_buf, &a);
+	ss_buffree(&xfbuf, &a);
 	sr_schemefree(&cmp, &a);
 }
 
 static void
-sditer_gt0_compression_lz4(stc *cx srunused)
+sditer_gt0_compression_lz4(stc *cx ssunused)
 {
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
 	srkey *part = sr_schemeadd(&cmp, &a);
 	t( sr_keysetname(part, &a, "key") == 0 );
 	t( sr_keyset(part, &a, "u32") == 0 );
-	srinjection ij;
+	ssinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
 	sr_errorinit(&error);
 	srseq seq;
 	sr_seqinit(&seq);
-	srcrcf crc = sr_crc32c_function();
+	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, &ij, crc, &sr_lz4filter);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, &ss_lz4filter);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -391,71 +393,71 @@ sditer_gt0_compression_lz4(stc *cx srunused)
 
 	t( sd_indexcommit(&index, &r, &id) == 0 );
 
-	srfile f;
-	sr_fileinit(&f, &a);
-	t( sr_filenew(&f, "./0000.db") == 0 );
+	ssfile f;
+	ss_fileinit(&f, &a);
+	t( ss_filenew(&f, "./0000.db") == 0 );
 	t( sd_commit(&b, &r, &index, &f) == 0 );
-	srmap map;
-	t( sr_mapfile(&map, &f, 1) == 0 );
+	ssmap map;
+	t( ss_mapfile(&map, &f, 1) == 0 );
 
 	sdindex i;
 	sd_indexinit(&i);
 	i.h = (sdindexheader*)(map.p);
 
-	srbuf compression_buf;
-	sr_bufinit(&compression_buf);
-	srbuf xfbuf;
-	sr_bufinit(&xfbuf);
-	t( sr_bufensure(&xfbuf, &a, 1024) == 0 );
+	ssbuf compression_buf;
+	ss_bufinit(&compression_buf);
+	ssbuf xfbuf;
+	ss_bufinit(&xfbuf);
+	t( ss_bufensure(&xfbuf, &a, 1024) == 0 );
 
-	sriter it;
-	sr_iterinit(sd_iter, &it, &r);
-	sr_iteropen(sd_iter, &it, &i, map.p, 1, 1, &compression_buf, &xfbuf);
-	t( sr_iteratorhas(&it) == 1 );
+	ssiter it;
+	ss_iterinit(sd_iter, &it);
+	ss_iteropen(sd_iter, &it, &r, &i, map.p, 1, 1, &compression_buf, &xfbuf);
+	t( ss_iteratorhas(&it) == 1 );
 
-	sv *v = sr_iteratorof(&it);
+	sv *v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 7);
-	sr_iteratornext(&it);
-	v = sr_iteratorof(&it);
+	ss_iteratornext(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 8);
-	sr_iteratornext(&it);
-	v = sr_iteratorof(&it);
+	ss_iteratornext(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 9);
-	sr_iteratornext(&it);
-	t( sr_iteratorhas(&it) == 0 );
-	sr_iteratorclose(&it);
+	ss_iteratornext(&it);
+	t( ss_iteratorhas(&it) == 0 );
+	ss_iteratorclose(&it);
 
-	sr_fileclose(&f);
-	t( sr_mapunmap(&map) == 0 );
-	t( sr_fileunlink("./0000.db") == 0 );
+	ss_fileclose(&f);
+	t( ss_mapunmap(&map) == 0 );
+	t( ss_fileunlink("./0000.db") == 0 );
 
 	sd_indexfree(&index, &r);
 	sd_buildfree(&b, &r);
 
-	sr_buffree(&compression_buf, &a);
-	sr_buffree(&xfbuf, &a);
+	ss_buffree(&compression_buf, &a);
+	ss_buffree(&xfbuf, &a);
 	sr_schemefree(&cmp, &a);
 }
 
 static void
-sditer_gt1_compression_zstd(stc *cx srunused)
+sditer_gt1_compression_zstd(stc *cx ssunused)
 {
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
 	srkey *part = sr_schemeadd(&cmp, &a);
 	t( sr_keysetname(part, &a, "key") == 0 );
 	t( sr_keyset(part, &a, "u32") == 0 );
-	srinjection ij;
+	ssinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
 	sr_errorinit(&error);
 	srseq seq;
 	sr_seqinit(&seq);
-	srcrcf crc = sr_crc32c_function();
+	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, &ij, crc, &sr_zstdfilter);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, &ss_zstdfilter);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -508,93 +510,93 @@ sditer_gt1_compression_zstd(stc *cx srunused)
 	memset(&id, 0, sizeof(id));
 	t( sd_indexcommit(&index, &r, &id) == 0 );
 
-	srfile f;
-	sr_fileinit(&f, &a);
-	t( sr_filenew(&f, "./0000.db") == 0 );
+	ssfile f;
+	ss_fileinit(&f, &a);
+	t( ss_filenew(&f, "./0000.db") == 0 );
 	t( sd_commit(&b, &r, &index, &f) == 0 );
-	srmap map;
-	t( sr_mapfile(&map, &f, 1) == 0 );
+	ssmap map;
+	t( ss_mapfile(&map, &f, 1) == 0 );
 
-	srbuf compression_buf;
-	sr_bufinit(&compression_buf);
-	srbuf xfbuf;
-	sr_bufinit(&xfbuf);
-	t( sr_bufensure(&xfbuf, &a, 1024) == 0 );
+	ssbuf compression_buf;
+	ss_bufinit(&compression_buf);
+	ssbuf xfbuf;
+	ss_bufinit(&xfbuf);
+	t( ss_bufensure(&xfbuf, &a, 1024) == 0 );
 
 	sdindex i;
 	sd_indexinit(&i);
 	i.h = (sdindexheader*)(map.p);
-	sriter it;
-	sr_iterinit(sd_iter, &it, &r);
-	sr_iteropen(sd_iter, &it, &i, map.p, 1, 1, &compression_buf, &xfbuf);
-	t( sr_iteratorhas(&it) == 1 );
+	ssiter it;
+	ss_iterinit(sd_iter, &it);
+	ss_iteropen(sd_iter, &it, &r, &i, map.p, 1, 1, &compression_buf, &xfbuf);
+	t( ss_iteratorhas(&it) == 1 );
 
 	/* page 0 */
-	t( sr_iteratorhas(&it) != 0 );
-	sv *v = sr_iteratorof(&it);
+	t( ss_iteratorhas(&it) != 0 );
+	sv *v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 7);
-	sr_iteratornext(&it);
-	v = sr_iteratorof(&it);
+	ss_iteratornext(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 8);
-	sr_iteratornext(&it);
-	v = sr_iteratorof(&it);
+	ss_iteratornext(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 9);
-	sr_iteratornext(&it);
+	ss_iteratornext(&it);
 
 	/* page 1 */
-	v = sr_iteratorof(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 10);
-	sr_iteratornext(&it);
-	v = sr_iteratorof(&it);
+	ss_iteratornext(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 11);
-	sr_iteratornext(&it);
-	v = sr_iteratorof(&it);
+	ss_iteratornext(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 13);
-	sr_iteratornext(&it);
+	ss_iteratornext(&it);
 
 	/* page 2 */
-	v = sr_iteratorof(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 15);
-	sr_iteratornext(&it);
-	v = sr_iteratorof(&it);
+	ss_iteratornext(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 18);
-	sr_iteratornext(&it);
-	v = sr_iteratorof(&it);
+	ss_iteratornext(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 20);
-	sr_iteratornext(&it);
-	t( sr_iteratorhas(&it) == 0 );
-	sr_iteratorclose(&it);
+	ss_iteratornext(&it);
+	t( ss_iteratorhas(&it) == 0 );
+	ss_iteratorclose(&it);
 
-	sr_fileclose(&f);
-	t( sr_mapunmap(&map) == 0 );
-	t( sr_fileunlink("./0000.db") == 0 );
+	ss_fileclose(&f);
+	t( ss_mapunmap(&map) == 0 );
+	t( ss_fileunlink("./0000.db") == 0 );
 
 	sd_indexfree(&index, &r);
 	sd_buildfree(&b, &r);
-	sr_buffree(&compression_buf, &a);
-	sr_buffree(&xfbuf, &a);
+	ss_buffree(&compression_buf, &a);
+	ss_buffree(&xfbuf, &a);
 	sr_schemefree(&cmp, &a);
 }
 
 static void
-sditer_gt1_compression_lz4(stc *cx srunused)
+sditer_gt1_compression_lz4(stc *cx ssunused)
 {
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
 	srkey *part = sr_schemeadd(&cmp, &a);
 	t( sr_keysetname(part, &a, "key") == 0 );
 	t( sr_keyset(part, &a, "u32") == 0 );
-	srinjection ij;
+	ssinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
 	sr_errorinit(&error);
 	srseq seq;
 	sr_seqinit(&seq);
-	srcrcf crc = sr_crc32c_function();
+	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, &ij, crc, &sr_lz4filter);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, &ss_lz4filter);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -647,71 +649,71 @@ sditer_gt1_compression_lz4(stc *cx srunused)
 	memset(&id, 0, sizeof(id));
 	t( sd_indexcommit(&index, &r, &id) == 0 );
 
-	srfile f;
-	sr_fileinit(&f, &a);
-	t( sr_filenew(&f, "./0000.db") == 0 );
+	ssfile f;
+	ss_fileinit(&f, &a);
+	t( ss_filenew(&f, "./0000.db") == 0 );
 	t( sd_commit(&b, &r, &index, &f) == 0 );
-	srmap map;
-	t( sr_mapfile(&map, &f, 1) == 0 );
+	ssmap map;
+	t( ss_mapfile(&map, &f, 1) == 0 );
 
-	srbuf compression_buf;
-	sr_bufinit(&compression_buf);
-	srbuf xfbuf;
-	sr_bufinit(&xfbuf);
-	t( sr_bufensure(&xfbuf, &a, 1024) == 0 );
+	ssbuf compression_buf;
+	ss_bufinit(&compression_buf);
+	ssbuf xfbuf;
+	ss_bufinit(&xfbuf);
+	t( ss_bufensure(&xfbuf, &a, 1024) == 0 );
 
 	sdindex i;
 	sd_indexinit(&i);
 	i.h = (sdindexheader*)(map.p);
-	sriter it;
-	sr_iterinit(sd_iter, &it, &r);
-	sr_iteropen(sd_iter, &it, &i, map.p, 1, 1, &compression_buf, &xfbuf);
-	t( sr_iteratorhas(&it) == 1 );
+	ssiter it;
+	ss_iterinit(sd_iter, &it);
+	ss_iteropen(sd_iter, &it, &r, &i, map.p, 1, 1, &compression_buf, &xfbuf);
+	t( ss_iteratorhas(&it) == 1 );
 
 	/* page 0 */
-	t( sr_iteratorhas(&it) != 0 );
-	sv *v = sr_iteratorof(&it);
+	t( ss_iteratorhas(&it) != 0 );
+	sv *v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 7);
-	sr_iteratornext(&it);
-	v = sr_iteratorof(&it);
+	ss_iteratornext(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 8);
-	sr_iteratornext(&it);
-	v = sr_iteratorof(&it);
+	ss_iteratornext(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 9);
-	sr_iteratornext(&it);
+	ss_iteratornext(&it);
 
 	/* page 1 */
-	v = sr_iteratorof(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 10);
-	sr_iteratornext(&it);
-	v = sr_iteratorof(&it);
+	ss_iteratornext(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 11);
-	sr_iteratornext(&it);
-	v = sr_iteratorof(&it);
+	ss_iteratornext(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 13);
-	sr_iteratornext(&it);
+	ss_iteratornext(&it);
 
 	/* page 2 */
-	v = sr_iteratorof(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 15);
-	sr_iteratornext(&it);
-	v = sr_iteratorof(&it);
+	ss_iteratornext(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 18);
-	sr_iteratornext(&it);
-	v = sr_iteratorof(&it);
+	ss_iteratornext(&it);
+	v = ss_iteratorof(&it);
 	t( *(int*)sv_key(v, &r, 0) == 20);
-	sr_iteratornext(&it);
-	t( sr_iteratorhas(&it) == 0 );
-	sr_iteratorclose(&it);
+	ss_iteratornext(&it);
+	t( ss_iteratorhas(&it) == 0 );
+	ss_iteratorclose(&it);
 
-	sr_fileclose(&f);
-	t( sr_mapunmap(&map) == 0 );
-	t( sr_fileunlink("./0000.db") == 0 );
+	ss_fileclose(&f);
+	t( ss_mapunmap(&map) == 0 );
+	t( ss_fileunlink("./0000.db") == 0 );
 
 	sd_indexfree(&index, &r);
 	sd_buildfree(&b, &r);
-	sr_buffree(&compression_buf, &a);
-	sr_buffree(&xfbuf, &a);
+	ss_buffree(&compression_buf, &a);
+	ss_buffree(&xfbuf, &a);
 	sr_schemefree(&cmp, &a);
 }
 

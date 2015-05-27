@@ -7,6 +7,8 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libst.h>
 #include <sophia.h>
@@ -15,7 +17,7 @@
 #include <sys/time.h>
 
 static inline void
-print_current(stc *cx srunused, int i) {
+print_current(stc *cx ssunused, int i) {
 	if (i > 0 && (i % 100000) == 0) {
 		printf(" %.1fM", i / 1000000.0);
 		fflush(NULL);
@@ -285,7 +287,7 @@ mt_set_get_document_multipart(stc *cx)
 		char used1[15];
 		uint32_t key_b;
 		char used2[10];
-	} srpacked;
+	} sspacked;
 	struct document doc;
 	memset(&doc, 'x', sizeof(doc));
 
@@ -362,7 +364,7 @@ mt_set_get_document_multipart_cursor(stc *cx)
 		char used1[15];
 		uint32_t key_b;
 		char used2[10];
-	} srpacked;
+	} sspacked;
 	struct document doc;
 	memset(&doc, 'x', sizeof(doc));
 

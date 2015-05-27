@@ -27,8 +27,8 @@ si_branchinit(sibranch *b) {
 static inline sibranch*
 si_branchnew(sr *r)
 {
-	sibranch *b = (sibranch*)sr_malloc(r->a, sizeof(sibranch));
-	if (srunlikely(b == NULL)) {
+	sibranch *b = (sibranch*)ss_malloc(r->a, sizeof(sibranch));
+	if (ssunlikely(b == NULL)) {
 		sr_malfunction(r->e, "%s", "memory allocation failed");
 		return NULL;
 	}
@@ -47,7 +47,7 @@ static inline void
 si_branchfree(sibranch *b, sr *r)
 {
 	sd_indexfree(&b->index, r);
-	sr_free(r->a, b);
+	ss_free(r->a, b);
 }
 
 #endif

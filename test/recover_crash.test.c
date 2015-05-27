@@ -7,12 +7,14 @@
  * BSD License
 */
 
-#include <libsr.h>
+#include <libss.h>
+#include <libsf.h>
+#include <libss.h>
 #include <libst.h>
 #include <sophia.h>
 
 static void
-recovercrash_deploy0(stc *cx srunused)
+recovercrash_deploy0(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -83,7 +85,7 @@ recovercrash_deploy0(stc *cx srunused)
 }
 
 static void
-recovercrash_branch0(stc *cx srunused)
+recovercrash_branch0(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -166,7 +168,7 @@ recovercrash_branch0(stc *cx srunused)
 }
 
 static void
-recovercrash_build0(stc *cx srunused)
+recovercrash_build0(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -248,7 +250,7 @@ recovercrash_build0(stc *cx srunused)
 }
 
 static void
-recovercrash_build1(stc *cx srunused)
+recovercrash_build1(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -330,7 +332,7 @@ recovercrash_build1(stc *cx srunused)
 }
 
 static void
-recovercrash_compact0(stc *cx srunused)
+recovercrash_compact0(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -415,7 +417,7 @@ recovercrash_compact0(stc *cx srunused)
 }
 
 static void
-recovercrash_compact1(stc *cx srunused)
+recovercrash_compact1(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -503,7 +505,7 @@ recovercrash_compact1(stc *cx srunused)
 }
 
 static void
-recovercrash_compact2(stc *cx srunused)
+recovercrash_compact2(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -591,7 +593,7 @@ recovercrash_compact2(stc *cx srunused)
 }
 
 static void
-recovercrash_compact3(stc *cx srunused)
+recovercrash_compact3(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -672,7 +674,7 @@ recovercrash_compact3(stc *cx srunused)
 }
 
 static void
-recovercrash_compact4(stc *cx srunused)
+recovercrash_compact4(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -755,7 +757,7 @@ recovercrash_compact4(stc *cx srunused)
 }
 
 static void
-recovercrash_compact5(stc *cx srunused)
+recovercrash_compact5(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -838,7 +840,7 @@ recovercrash_compact5(stc *cx srunused)
 }
 
 static void
-recovercrash_compact6(stc *cx srunused)
+recovercrash_compact6(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -921,7 +923,7 @@ recovercrash_compact6(stc *cx srunused)
 }
 
 static void
-recovercrash_compact7(stc *cx srunused)
+recovercrash_compact7(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );

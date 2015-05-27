@@ -33,7 +33,7 @@ struct soctlrt {
 };
 
 struct soctl {
-	soobj o;
+	srobj o;
 	/* sophia */
 	char       *path;
 	uint32_t    path_create;
@@ -46,7 +46,7 @@ struct soctl {
 	sizonemap   zones;
 	/* scheduler */
 	uint32_t    threads;
-	srtrigger   on_event;
+	sstrigger   on_event;
 	uint32_t    event_on_backup;
 	/* memory */
 	uint64_t    memory_limit;
@@ -64,7 +64,7 @@ struct soctl {
 void  so_ctlinit(soctl*, void*);
 void  so_ctlfree(soctl*);
 int   so_ctlvalidate(soctl*);
-int   so_ctlserialize(soctl*, srbuf*);
+int   so_ctlserialize(soctl*, ssbuf*);
 void *so_ctlreturn(src*, void*);
 
 #endif

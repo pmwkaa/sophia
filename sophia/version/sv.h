@@ -29,7 +29,7 @@ struct svif {
 struct sv {
 	svif *i;
 	void *v, *arg;
-} srpacked;
+} sspacked;
 
 static inline void
 sv_init(sv *v, svif *i, void *vptr, void *arg) {
@@ -64,23 +64,23 @@ sv_size(sv *v) {
 }
 
 static inline char*
-sv_key(sv *v, sr *r srunused, int part) {
-	return sr_fmtkey(v->i->pointer(v), part);
+sv_key(sv *v, sr *r ssunused, int part) {
+	return sf_key(v->i->pointer(v), part);
 }
 
 static inline int
-sv_keysize(sv *v, sr *r srunused, int part) {
-	return sr_fmtkey_size(v->i->pointer(v), part);
+sv_keysize(sv *v, sr *r ssunused, int part) {
+	return sf_keysize(v->i->pointer(v), part);
 }
 
 static inline char*
 sv_value(sv *v, sr *r) {
-	return sr_fmtvalue(r->fmt, r->scheme, sv_pointer(v));
+	return sf_value(r->fmt, sv_pointer(v), r->scheme->count);
 }
 
 static inline int
 sv_valuesize(sv *v, sr *r) {
-	return sr_fmtvalue_size(r->fmt, r->scheme, sv_pointer(v), sv_size(v));
+	return sf_valuesize(r->fmt, sv_pointer(v), sv_size(v), r->scheme->count);
 }
 
 static inline int

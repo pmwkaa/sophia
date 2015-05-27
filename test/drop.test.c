@@ -7,12 +7,14 @@
  * BSD License
 */
 
-#include <libsr.h>
+#include <libss.h>
+#include <libsf.h>
+#include <libss.h>
 #include <libst.h>
 #include <sophia.h>
 
 static void
-drop_test(stc *cx srunused)
+drop_test(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -51,7 +53,7 @@ drop_test(stc *cx srunused)
 }
 
 static void
-drop_test_reopen(stc *cx srunused)
+drop_test_reopen(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );

@@ -7,6 +7,8 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
 #include <libst.h>
@@ -14,8 +16,8 @@
 static void
 svv_kv(stc *cx)
 {
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 
 	srscheme cmp;
 	sr_schemeinit(&cmp);
@@ -23,12 +25,12 @@ svv_kv(stc *cx)
 	t( sr_keysetname(part, &a, "key") == 0 );
 	t( sr_keyset(part, &a, "u32") == 0 );
 	sr r;
-	sr_init(&r, NULL, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
+	sr_init(&r, NULL, &a, NULL, SF_KV, SF_SRAW, &cmp, NULL, NULL, NULL);
 
 	uint32_t key = 123;
 	uint32_t value = 321;
 
-	srfmtv pv;
+	sfv pv;
 	pv.key = (char*)&key;
 	pv.r.size = sizeof(key);
 	pv.r.offset = 0;
@@ -45,11 +47,11 @@ svv_kv(stc *cx)
 	sv_lsnset(&v, 8);
 	t( sv_lsn(&v) == 8 );
 
-	t( *(uint32_t*)sr_fmtkey(sv_pointer(&v), 0) == key );
-	t( sr_fmtkey_size(sv_pointer(&v), 0) == sizeof(key) );
+	t( *(uint32_t*)sf_key(sv_pointer(&v), 0) == key );
+	t( sf_keysize(sv_pointer(&v), 0) == sizeof(key) );
 
-	t( *(uint32_t*)sr_fmtvalue(SR_FKV, &cmp, sv_pointer(&v)) == value );
-	t( sr_fmtvalue_size(SR_FKV, &cmp, sv_pointer(&v), sv_size(&v) ) == sizeof(value) );
+	t( *(uint32_t*)sf_value(SF_KV, sv_pointer(&v), cmp.count) == value );
+	t( sf_valuesize(SF_KV, sv_pointer(&v), sv_size(&v), cmp.count) == sizeof(value) );
 
 	sv_vfree(&a, vv);
 	sr_schemefree(&cmp, &a);

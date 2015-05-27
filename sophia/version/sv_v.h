@@ -17,8 +17,8 @@ struct svv {
 	uint8_t   flags;
 	void     *log;
 	svv      *next;
-	srrbnode  node;
-} srpacked;
+	ssrbnode  node;
+} sspacked;
 
 extern svif sv_vif;
 
@@ -33,12 +33,12 @@ sv_vsize(svv *v) {
 }
 
 static inline svv*
-sv_vbuild(sr *r, srfmtv *keys, int count, char *data, int size)
+sv_vbuild(sr *r, sfv *keys, int count, char *data, int size)
 {
 	assert(r->scheme->count == count);
-	int total = sr_fmtsize(r->fmt, keys, count, size);
-	svv *v = sr_malloc(r->a, sizeof(svv) + total);
-	if (srunlikely(v == NULL))
+	int total = sf_size(r->fmt, keys, count, size);
+	svv *v = ss_malloc(r->a, sizeof(svv) + total);
+	if (ssunlikely(v == NULL))
 		return NULL;
 	v->size  = total;
 	v->lsn   = 0;
@@ -47,15 +47,15 @@ sv_vbuild(sr *r, srfmtv *keys, int count, char *data, int size)
 	v->next  = NULL;
 	memset(&v->node, 0, sizeof(v->node));
 	char *ptr = sv_vpointer(v);
-	sr_fmtwrite(r->fmt, ptr, keys, count, data, size);
+	sf_write(r->fmt, ptr, keys, count, data, size);
 	return v;
 }
 
 static inline svv*
-sv_vbuildraw(sra *a, char *src, int size)
+sv_vbuildraw(ssa *a, char *ssc, int size)
 {
-	svv *v = sr_malloc(a, sizeof(svv) + size);
-	if (srunlikely(v == NULL))
+	svv *v = ss_malloc(a, sizeof(svv) + size);
+	if (ssunlikely(v == NULL))
 		return NULL;
 	v->size  = size;
 	v->flags = 0;
@@ -63,27 +63,27 @@ sv_vbuildraw(sra *a, char *src, int size)
 	v->next  = NULL;
 	v->log   = NULL;
 	memset(&v->node, 0, sizeof(v->node));
-	memcpy(sv_vpointer(v), src, size);
+	memcpy(sv_vpointer(v), ssc, size);
 	return v;
 }
 
 static inline svv*
-sv_vdup(sra *a, sv *src)
+sv_vdup(ssa *a, sv *ssc)
 {
-	svv *v = sv_vbuildraw(a, sv_pointer(src), sv_size(src));
-	if (srunlikely(v == NULL))
+	svv *v = sv_vbuildraw(a, sv_pointer(ssc), sv_size(ssc));
+	if (ssunlikely(v == NULL))
 		return NULL;
-	v->flags = sv_flags(src);
-	v->lsn   = sv_lsn(src);
+	v->flags = sv_flags(ssc);
+	v->lsn   = sv_lsn(ssc);
 	return v;
 }
 
 static inline void
-sv_vfree(sra *a, svv *v)
+sv_vfree(ssa *a, svv *v)
 {
 	while (v) {
 		svv *n = v->next;
-		sr_free(a, v);
+		ss_free(a, v);
 		v = n;
 	}
 }

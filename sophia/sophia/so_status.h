@@ -21,52 +21,52 @@ typedef struct sostatus sostatus;
 
 struct sostatus {
 	int status;
-	srspinlock lock;
+	ssspinlock lock;
 };
 
 static inline void
 so_statusinit(sostatus *s)
 {
 	s->status = SO_OFFLINE;
-	sr_spinlockinit(&s->lock);
+	ss_spinlockinit(&s->lock);
 }
 
 static inline void
 so_statusfree(sostatus *s)
 {
-	sr_spinlockfree(&s->lock);
+	ss_spinlockfree(&s->lock);
 }
 
 static inline void
 so_statuslock(sostatus *s) {
-	sr_spinlock(&s->lock);
+	ss_spinlock(&s->lock);
 }
 
 static inline void
 so_statusunlock(sostatus *s) {
-	sr_spinunlock(&s->lock);
+	ss_spinunlock(&s->lock);
 }
 
 static inline int
 so_statusset(sostatus *s, int status)
 {
-	sr_spinlock(&s->lock);
+	ss_spinlock(&s->lock);
 	int old = s->status;
 	if (old == SO_MALFUNCTION) {
-		sr_spinunlock(&s->lock);
+		ss_spinunlock(&s->lock);
 		return -1;
 	}
 	s->status = status;
-	sr_spinunlock(&s->lock);
+	ss_spinunlock(&s->lock);
 	return old;
 }
 
 static inline int
 so_status(sostatus *s)
 {
-	sr_spinlock(&s->lock);
+	ss_spinlock(&s->lock);
 	int status = s->status;
-	sr_spinunlock(&s->lock);
+	ss_spinunlock(&s->lock);
 	return status;
 }
 

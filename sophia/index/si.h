@@ -12,32 +12,32 @@
 typedef struct si si;
 
 struct si {
-	srmutex lock;
-	srcond cond;
+	ssmutex lock;
+	sscond cond;
 	siplanner p;
-	srrb i;
+	ssrb i;
 	int n;
 	int destroyed;
 	uint32_t backup;
 	uint64_t update_time;
 	uint64_t read_disk;
 	uint64_t read_cache;
-	srbuf readbuf;
-	srquota *quota;
+	ssbuf readbuf;
+	ssquota *quota;
 	sischeme *scheme;
 };
 
 static inline void
 si_lock(si *i) {
-	sr_mutexlock(&i->lock);
+	ss_mutexlock(&i->lock);
 }
 
 static inline void
 si_unlock(si *i) {
-	sr_mutexunlock(&i->lock);
+	ss_mutexunlock(&i->lock);
 }
 
-int si_init(si*, sr*, srquota*);
+int si_init(si*, sr*, ssquota*);
 int si_open(si*, sr*, sischeme*);
 int si_close(si*, sr*);
 int si_insert(si*, sr*, sinode*);

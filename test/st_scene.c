@@ -7,6 +7,8 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libst.h>
 #include <sophia.h>
@@ -14,7 +16,7 @@
 int exists(char *path, char *name) {
 	char file[1024];
 	snprintf(file, sizeof(file), "%s/%s", path, name);
-	return sr_fileexists(file);
+	return ss_fileexists(file);
 }
 
 int rmrf(char *path)
@@ -223,7 +225,7 @@ st_scene_pass(stscene *g, stc *cx)
 }
 
 void
-st_scene_recover(stscene *g srunused, stc *cx srunused)
+st_scene_recover(stscene *g ssunused, stc *cx ssunused)
 {
 	printf("\n (recover) ");
 	fflush(NULL);

@@ -7,11 +7,13 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
 #include <libsd.h>
 
-sriterif sd_schemeiter =
+ssiterif sd_schemeiter =
 {
 	.close   = sd_schemeiter_close,
 	.has     = sd_schemeiter_has,

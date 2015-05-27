@@ -12,13 +12,13 @@
 typedef struct sosnapshot sosnapshot;
 
 struct sosnapshot {
-	soobj o;
+	srobj o;
 	sx t;
 	uint64_t vlsn;
 	char *name;
-} srpacked;
+} sspacked;
 
-soobj *so_snapshotnew(so*, uint64_t, char*);
+srobj *so_snapshotnew(so*, uint64_t, char*);
 int    so_snapshotupdate(sosnapshot*);
 
 #endif

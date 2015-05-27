@@ -7,12 +7,14 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
-#include <libsx.h>
 #include <libsl.h>
 #include <libsd.h>
 #include <libsi.h>
+#include <libsx.h>
 #include <libse.h>
 #include <libso.h>
 
@@ -51,19 +53,19 @@ void *so_ctlreturn(src *c, void *o)
 	case SR_CC: assert(0);
 		break;
 	}
-	if (srlikely(value))
+	if (sslikely(value))
 		size++;
-	srfmtv fv;
+	sfv fv;
 	fv.key      = c->name;
 	fv.r.size   = strlen(c->name) + 1;
 	fv.r.offset = 0;
 	svv *v = sv_vbuild(&e->r, &fv, 1, value, size);
-	if (srunlikely(v == NULL)) {
+	if (ssunlikely(v == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");
 		return NULL;
 	}
 	sov *result = (sov*)so_vnew(e, NULL);
-	if (srunlikely(result == NULL)) {
+	if (ssunlikely(result == NULL)) {
 		sv_vfree(&e->a, v);
 		sr_error(&e->error, "%s", "memory allocation failed");
 		return NULL;
@@ -79,7 +81,7 @@ so_ctlv(src *c, srcstmt *s, va_list args)
 	switch (s->op) {
 	case SR_CGET: {
 		void *ret = so_ctlreturn(c, s->ptr);
-		if ((srunlikely(ret == NULL)))
+		if ((ssunlikely(ret == NULL)))
 			return -1;
 		*s->result = ret;
 		return 0;
@@ -99,7 +101,7 @@ static inline int
 so_ctlv_offline(src *c, srcstmt *s, va_list args)
 {
 	so *e = s->ptr;
-	if (srunlikely(s->op == SR_CSET && so_statusactive(&e->status))) {
+	if (ssunlikely(s->op == SR_CSET && so_statusactive(&e->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
@@ -107,14 +109,14 @@ so_ctlv_offline(src *c, srcstmt *s, va_list args)
 }
 
 static inline int
-so_ctlsophia_error(src *c, srcstmt *s, va_list args srunused)
+so_ctlsophia_error(src *c, srcstmt *s, va_list args ssunused)
 {
 	so *e = s->ptr;
 	char *errorp;
 	char  error[128];
 	error[0] = 0;
 	int len = sr_errorcopy(&e->error, error, sizeof(error));
-	if (srlikely(len == 0))
+	if (sslikely(len == 0))
 		errorp = NULL;
 	else
 		errorp = error;
@@ -155,14 +157,14 @@ so_ctlmemory(so *e, soctlrt *rt, src **pc)
 }
 
 static inline int
-so_ctlcompaction_set(src *c srunused, srcstmt *s, va_list args)
+so_ctlcompaction_set(src *c ssunused, srcstmt *s, va_list args)
 {
 	so *e = s->ptr;
 	if (s->op != SR_CSET) {
 		sr_error(&e->error, "%s", "bad operation");
 		return -1;
 	}
-	if (srunlikely(so_statusactive(&e->status))) {
+	if (ssunlikely(so_statusactive(&e->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
@@ -181,7 +183,7 @@ so_ctlcompaction_set(src *c srunused, srcstmt *s, va_list args)
 }
 
 static inline src*
-so_ctlcompaction(so *e, soctlrt *rt srunused, src **pc)
+so_ctlcompaction(so *e, soctlrt *rt ssunused, src **pc)
 {
 	src *compaction = *pc;
 	src *prev;
@@ -215,13 +217,13 @@ so_ctlcompaction(so *e, soctlrt *rt srunused, src **pc)
 }
 
 static inline int
-so_ctlscheduler_trace(src *c, srcstmt *s, va_list args srunused)
+so_ctlscheduler_trace(src *c, srcstmt *s, va_list args ssunused)
 {
 	soworker *w = c->value;
 	char tracesz[128];
 	char *trace;
-	int tracelen = sr_tracecopy(&w->trace, tracesz, sizeof(tracesz));
-	if (srlikely(tracelen == 0))
+	int tracelen = ss_tracecopy(&w->trace, tracesz, sizeof(tracesz));
+	if (sslikely(tracelen == 0))
 		trace = NULL;
 	else
 		trace = tracesz;
@@ -250,18 +252,18 @@ so_ctlscheduler_on_event(src *c, srcstmt *s, va_list args)
 	so *e = s->ptr;
 	if (s->op != SR_CSET)
 		return so_ctlv(c, s, args);
-	if (srunlikely(so_statusactive(&e->status))) {
+	if (ssunlikely(so_statusactive(&e->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
 	char *v   = va_arg(args, char*);
 	char *arg = va_arg(args, char*);
-	int rc = sr_triggerset(&e->ctl.on_event, v);
-	if (srunlikely(rc == -1))
+	int rc = ss_triggerset(&e->ctl.on_event, v);
+	if (ssunlikely(rc == -1))
 		return -1;
 	if (arg) {
-		rc = sr_triggersetarg(&e->ctl.on_event, arg);
-		if (srunlikely(rc == -1))
+		rc = ss_triggersetarg(&e->ctl.on_event, arg);
+		if (ssunlikely(rc == -1))
 			return -1;
 	}
 	return 0;
@@ -303,9 +305,9 @@ so_ctlscheduler(so *e, soctlrt *rt, src **pc)
 	sr_clink(&p, sr_c(pc, so_ctlscheduler_gc,  "gc",                  SR_CVOID,       NULL));
 	sr_clink(&p, sr_c(pc, so_ctlscheduler_run, "run",                 SR_CVOID,       NULL));
 	prev = p;
-	srlist *i;
-	sr_listforeach(&e->sched.workers.list, i) {
-		soworker *w = srcast(i, soworker, link);
+	sslist *i;
+	ss_listforeach(&e->sched.workers.list, i) {
+		soworker *w = sscast(i, soworker, link);
 		src *worker = *pc;
 		p = NULL;
 		sr_clink(&p,    sr_c(pc, so_ctlscheduler_trace, "trace", SR_CSZ|SR_CRO, w));
@@ -351,7 +353,7 @@ so_ctllog(so *e, soctlrt *rt, src **pc)
 }
 
 static inline src*
-so_ctlmetric(so *e srunused, soctlrt *rt, src **pc)
+so_ctlmetric(so *e ssunused, soctlrt *rt, src **pc)
 {
 	src *metric = *pc;
 	src *p = NULL;
@@ -365,7 +367,7 @@ so_ctlmetric(so *e srunused, soctlrt *rt, src **pc)
 }
 
 static inline int
-so_ctldb_set(src *c srunused, srcstmt *s, va_list args)
+so_ctldb_set(src *c ssunused, srcstmt *s, va_list args)
 {
 	/* set(db) */
 	so *e = s->ptr;
@@ -375,19 +377,19 @@ so_ctldb_set(src *c srunused, srcstmt *s, va_list args)
 	}
 	char *name = va_arg(args, char*);
 	sodb *db = (sodb*)so_dbmatch(e, name);
-	if (srunlikely(db)) {
+	if (ssunlikely(db)) {
 		sr_error(&e->error, "database '%s' exists", name);
 		return -1;
 	}
 	db = (sodb*)so_dbnew(e, name);
-	if (srunlikely(db == NULL))
+	if (ssunlikely(db == NULL))
 		return -1;
-	so_objindex_register(&e->db, &db->o);
+	sr_objlist_add(&e->db, &db->o);
 	return 0;
 }
 
 static inline int
-so_ctldb_get(src *c, srcstmt *s, va_list args srunused)
+so_ctldb_get(src *c, srcstmt *s, va_list args ssunused)
 {
 	/* get(db.name) */
 	so *e = s->ptr;
@@ -409,19 +411,19 @@ so_ctldb_cmp(src *c, srcstmt *s, va_list args)
 		return so_ctlv(c, s, args);
 	sodb *db = c->value;
 	so *e = so_of(&db->o);
-	if (srunlikely(so_statusactive(&db->status))) {
+	if (ssunlikely(so_statusactive(&db->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
 	char *v = va_arg(args, char*);
 	/* set custom comparator */
-	srcmpf cmp  = (srcmpf)(uintptr_t)sr_triggerpointer_of(v);
-	if (srunlikely(cmp)) {
+	srcmpf cmp  = (srcmpf)(uintptr_t)ss_triggerpointer_of(v);
+	if (ssunlikely(cmp)) {
 		v = va_arg(args, char*);
 		void *arg = NULL;
 		if (v) {
-			arg = sr_triggerpointer_of(v);
-			if (srunlikely(arg == NULL))
+			arg = ss_triggerpointer_of(v);
+			if (ssunlikely(arg == NULL))
 				return -1;
 		}
 		sr_schemesetcmp(&db->scheme.scheme, cmp, arg);
@@ -437,19 +439,19 @@ so_ctldb_cmpprefix(src *c, srcstmt *s, va_list args)
 	if (s->op != SR_CSET)
 		return so_ctlv(c, s, args);
 	sodb *db = c->value;
-	if (srunlikely(so_statusactive(&db->status))) {
+	if (ssunlikely(so_statusactive(&db->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
 	char *v = va_arg(args, char*);
-	srcmpf cmp = (srcmpf)(uintptr_t)sr_triggerpointer_of(v);
-	if (srunlikely(cmp == NULL))
+	srcmpf cmp = (srcmpf)(uintptr_t)ss_triggerpointer_of(v);
+	if (ssunlikely(cmp == NULL))
 		return -1;
 	v = va_arg(args, char*);
 	void *arg = NULL;
 	if (v) {
-		arg = sr_triggerpointer_of(v);
-		if (srunlikely(arg == NULL))
+		arg = ss_triggerpointer_of(v);
+		if (ssunlikely(arg == NULL))
 			return -1;
 	}
 	sr_schemesetcmp_prefix(&db->scheme.scheme, cmp, arg);
@@ -503,7 +505,7 @@ static inline int
 so_ctlv_dboffline(src *c, srcstmt *s, va_list args)
 {
 	sodb *db = c->ptr;
-	if (srunlikely(s->op == SR_CSET && so_statusactive(&db->status))) {
+	if (ssunlikely(s->op == SR_CSET && so_statusactive(&db->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
@@ -511,7 +513,7 @@ so_ctlv_dboffline(src *c, srcstmt *s, va_list args)
 }
 
 static inline int
-so_ctldb_index(src *c srunused, srcstmt *s, va_list args)
+so_ctldb_index(src *c ssunused, srcstmt *s, va_list args)
 {
 	/* set(index, key) */
 	sodb *db = c->ptr;
@@ -520,25 +522,25 @@ so_ctldb_index(src *c srunused, srcstmt *s, va_list args)
 		sr_error(&e->error, "%s", "bad operation");
 		return -1;
 	}
-	if (srunlikely(so_statusactive(&db->status))) {
+	if (ssunlikely(so_statusactive(&db->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
 	char *name = va_arg(args, char*);
 	srkey *part = sr_schemefind(&db->scheme.scheme, name);
-	if (srunlikely(part)) {
+	if (ssunlikely(part)) {
 		sr_error(&e->error, "keypart '%s' exists", name);
 		return -1;
 	}
 	/* create new key-part */
 	part = sr_schemeadd(&db->scheme.scheme, &e->a);
-	if (srunlikely(part == NULL))
+	if (ssunlikely(part == NULL))
 		return -1;
 	int rc = sr_keysetname(part, &e->a, name);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		goto error;
 	rc = sr_keyset(part, &e->a, "string");
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		goto error;
 	return 0;
 error:
@@ -553,7 +555,7 @@ so_ctldb_key(src *c, srcstmt *s, va_list args)
 	so *e = so_of(&db->o);
 	if (s->op != SR_CSET)
 		return so_ctlv(c, s, args);
-	if (srunlikely(so_statusactive(&db->status))) {
+	if (ssunlikely(so_statusactive(&db->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
@@ -565,15 +567,15 @@ so_ctldb_key(src *c, srcstmt *s, va_list args)
 }
 
 static inline src*
-so_ctldb(so *e, soctlrt *rt srunused, src **pc)
+so_ctldb(so *e, soctlrt *rt ssunused, src **pc)
 {
 	src *db = NULL;
 	src *prev = NULL;
 	src *p;
-	srlist *i;
-	sr_listforeach(&e->db.list, i)
+	sslist *i;
+	ss_listforeach(&e->db.list, i)
 	{
-		sodb *o = (sodb*)srcast(i, soobj, link);
+		sodb *o = (sodb*)sscast(i, srobj, link);
 		si_profilerbegin(&o->ctl.rtp, &o->index);
 		si_profiler(&o->ctl.rtp);
 		si_profilerend(&o->ctl.rtp);
@@ -635,9 +637,9 @@ so_ctlsnapshot_set(src *c, srcstmt *s, va_list args)
 	/* create snapshot object */
 	sosnapshot *snapshot =
 		(sosnapshot*)so_snapshotnew(e, lsn, name);
-	if (srunlikely(snapshot == NULL))
+	if (ssunlikely(snapshot == NULL))
 		return -1;
-	so_objindex_register(&e->snapshot, &snapshot->o);
+	sr_objlist_add(&e->snapshot, &snapshot->o);
 	return 0;
 }
 
@@ -645,7 +647,7 @@ static inline int
 so_ctlsnapshot_setlsn(src *c, srcstmt *s, va_list args)
 {
 	int rc = so_ctlv(c, s, args);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		return -1;
 	if (s->op != SR_CSET)
 		return  0;
@@ -655,7 +657,7 @@ so_ctlsnapshot_setlsn(src *c, srcstmt *s, va_list args)
 }
 
 static inline int
-so_ctlsnapshot_get(src *c, srcstmt *s, va_list args srunused)
+so_ctlsnapshot_get(src *c, srcstmt *s, va_list args ssunused)
 {
 	/* get(snapshot.name) */
 	so *e = s->ptr;
@@ -669,14 +671,14 @@ so_ctlsnapshot_get(src *c, srcstmt *s, va_list args srunused)
 }
 
 static inline src*
-so_ctlsnapshot(so *e, soctlrt *rt srunused, src **pc)
+so_ctlsnapshot(so *e, soctlrt *rt ssunused, src **pc)
 {
 	src *snapshot = NULL;
 	src *prev = NULL;
-	srlist *i;
-	sr_listforeach(&e->snapshot.list, i)
+	sslist *i;
+	ss_listforeach(&e->snapshot.list, i)
 	{
-		sosnapshot *s = (sosnapshot*)srcast(i, soobj, link);
+		sosnapshot *s = (sosnapshot*)sscast(i, srobj, link);
 		src *p = sr_cptr(sr_c(pc, so_ctlsnapshot_setlsn, "lsn", SR_CU64, &s->vlsn), s);
 		sr_clink(&prev, sr_cptr(sr_c(pc, so_ctlsnapshot_get, s->name, SR_CC, p), s));
 		if (snapshot == NULL)
@@ -709,7 +711,7 @@ so_ctlbackup(so *e, soctlrt *rt, src **pc)
 }
 
 static inline src*
-so_ctldebug(so *e, soctlrt *rt srunused, src **pc)
+so_ctldebug(so *e, soctlrt *rt ssunused, src **pc)
 {
 	src *prev = NULL;
 	src *p = NULL;
@@ -769,10 +771,10 @@ so_ctlrt(so *e, soctlrt *rt)
 	         SR_VERSION_C - '0');
 
 	/* memory */
-	rt->memory_used = sr_quotaused(&e->quota);
+	rt->memory_used = ss_quotaused(&e->quota);
 
 	/* scheduler */
-	sr_mutexlock(&e->sched.lock);
+	ss_mutexlock(&e->sched.lock);
 	rt->checkpoint_active    = e->sched.checkpoint;
 	rt->checkpoint_lsn_last  = e->sched.checkpoint_lsn_last;
 	rt->checkpoint_lsn       = e->sched.checkpoint_lsn;
@@ -780,9 +782,9 @@ so_ctlrt(so *e, soctlrt *rt)
 	rt->backup_last          = e->sched.backup_last;
 	rt->backup_last_complete = e->sched.backup_last_complete;
 	rt->gc_active            = e->sched.gc;
-	sr_mutexunlock(&e->sched.lock);
+	ss_mutexunlock(&e->sched.lock);
 
-	int v = sr_quotaused_percent(&e->quota);
+	int v = ss_quotaused_percent(&e->quota);
 	sizone *z = si_zonemap(&e->ctl.zones, v);
 	memcpy(rt->zone, z->name, sizeof(rt->zone));
 
@@ -797,7 +799,7 @@ so_ctlrt(so *e, soctlrt *rt)
 }
 
 static int
-so_ctlset(soobj *obj, va_list args)
+so_ctlset(srobj *obj, va_list args)
 {
 	so *e = so_of(obj);
 	soctlrt rt;
@@ -818,7 +820,7 @@ so_ctlset(soobj *obj, va_list args)
 }
 
 static void*
-so_ctlget(soobj *obj, va_list args)
+so_ctlget(srobj *obj, va_list args)
 {
 	so *e = so_of(obj);
 	soctlrt rt;
@@ -837,12 +839,12 @@ so_ctlget(soobj *obj, va_list args)
 		.r         = &e->r
 	};
 	int rc = sr_cexecv(root, &stmt, args);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		return NULL;
 	return result;
 }
 
-int so_ctlserialize(soctl *c, srbuf *buf)
+int so_ctlserialize(soctl *c, ssbuf *buf)
 {
 	so *e = so_of(&c->o);
 	soctlrt rt;
@@ -862,18 +864,18 @@ int so_ctlserialize(soctl *c, srbuf *buf)
 }
 
 static void*
-so_ctlcursor(soobj *o, va_list args srunused)
+so_ctlcursor(srobj *o, va_list args ssunused)
 {
 	so *e = so_of(o);
 	return so_ctlcursor_new(e);
 }
 
 static void*
-so_ctltype(soobj *o srunused, va_list args srunused) {
+so_ctltype(srobj *o ssunused, va_list args ssunused) {
 	return "ctl";
 }
 
-static soobjif soctlif =
+static srobjif soctlif =
 {
 	.ctl      = NULL,
 	.async    = NULL,
@@ -896,7 +898,7 @@ static soobjif soctlif =
 void so_ctlinit(soctl *c, void *e)
 {
 	so *o = e;
-	so_objinit(&c->o, SOCTL, &soctlif, e);
+	sr_objinit(&c->o, SOCTL, &soctlif, e);
 	sr_schemeinit(&c->ctlscheme);
 	srkey *part = sr_schemeadd(&c->ctlscheme, &o->a);
 	sr_keysetname(part, &o->a, "key");
@@ -915,7 +917,7 @@ void so_ctlinit(soctl *c, void *e)
 	c->log_rotate_sync     = 1;
 	c->two_phase_recover   = 0;
 	c->commit_lsn          = 0;
-	sr_triggerinit(&c->on_event);
+	ss_triggerinit(&c->on_event);
 	c->event_on_backup     = 0;
 	sizone def = {
 		.enable        = 1,
@@ -956,15 +958,15 @@ void so_ctlfree(soctl *c)
 {
 	so *e = so_of(&c->o);
 	if (c->path) {
-		sr_free(&e->a, c->path);
+		ss_free(&e->a, c->path);
 		c->path = NULL;
 	}
 	if (c->log_path) {
-		sr_free(&e->a, c->log_path);
+		ss_free(&e->a, c->log_path);
 		c->log_path = NULL;
 	}
 	if (c->backup_path) {
-		sr_free(&e->a, c->backup_path);
+		ss_free(&e->a, c->backup_path);
 		c->backup_path = NULL;
 	}
 	sr_schemefree(&c->ctlscheme, &e->a);
@@ -980,8 +982,8 @@ int so_ctlvalidate(soctl *c)
 	char path[1024];
 	if (c->log_path == NULL) {
 		snprintf(path, sizeof(path), "%s/log", c->path);
-		c->log_path = sr_strdup(&e->a, path);
-		if (srunlikely(c->log_path == NULL)) {
+		c->log_path = ss_strdup(&e->a, path);
+		if (ssunlikely(c->log_path == NULL)) {
 			sr_error(&e->error, "%s", "memory allocation failed");
 			return -1;
 		}

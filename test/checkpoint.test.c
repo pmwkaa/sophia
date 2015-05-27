@@ -7,12 +7,14 @@
  * BSD License
 */
 
-#include <libsr.h>
+#include <libss.h>
+#include <libsf.h>
+#include <libss.h>
 #include <libst.h>
 #include <sophia.h>
 
 static void
-checkpoint_test0(stc *cx srunused)
+checkpoint_test0(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -87,7 +89,7 @@ checkpoint_test0(stc *cx srunused)
 }
 
 static void
-checkpoint_test1(stc *cx srunused)
+checkpoint_test1(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );

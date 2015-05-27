@@ -7,12 +7,14 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libst.h>
 #include <sophia.h>
 
 static void
-error_test0(stc *cx srunused)
+error_test0(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );

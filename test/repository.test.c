@@ -7,12 +7,14 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libst.h>
 #include <sophia.h>
 
 static void
-repository_empty(stc *cx srunused)
+repository_empty(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -21,7 +23,7 @@ repository_empty(stc *cx srunused)
 }
 
 static void
-repository_test0(stc *cx srunused)
+repository_test0(stc *cx ssunused)
 {
 	rmrf("./sophia");
 	rmrf("./logdir");
@@ -38,7 +40,7 @@ repository_test0(stc *cx srunused)
 }
 
 static void
-repository_test1(stc *cx srunused)
+repository_test1(stc *cx ssunused)
 {
 	rmrf("./sophia");
 	rmrf("./logdir");
@@ -57,7 +59,7 @@ repository_test1(stc *cx srunused)
 }
 
 static void
-repository_test2(stc *cx srunused)
+repository_test2(stc *cx ssunused)
 {
 	rmrf("./sophia");
 	rmrf("./logdir");
@@ -78,7 +80,7 @@ repository_test2(stc *cx srunused)
 }
 
 static void
-repository_test3(stc *cx srunused)
+repository_test3(stc *cx ssunused)
 {
 	rmrf("./sophia");
 	rmrf("./logdir");
@@ -100,7 +102,7 @@ repository_test3(stc *cx srunused)
 }
 
 static void
-repository_test4(stc *cx srunused)
+repository_test4(stc *cx ssunused)
 {
 	rmrf("./sophia");
 	rmrf("./logdir");

@@ -7,18 +7,21 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
+#include <libss.h>
 #include <libsv.h>
 
-sr_rbtruncate(sv_indextruncate,
-              sv_vfree((sra*)arg, srcast(n, svv, node)))
+ss_rbtruncate(sv_indextruncate,
+              sv_vfree((ssa*)arg, sscast(n, svv, node)))
 
 int sv_indexinit(svindex *i)
 {
 	i->lsnmin = UINT64_MAX;
 	i->count  = 0;
 	i->used   = 0;
-	sr_rbinit(&i->i);
+	ss_rbinit(&i->i);
 	return 0;
 }
 
@@ -26,7 +29,7 @@ int sv_indexfree(svindex *i, sr *r)
 {
 	if (i->i.root)
 		sv_indextruncate(i->i.root, r->a);
-	sr_rbinit(&i->i);
+	ss_rbinit(&i->i);
 	return 0;
 }
 
@@ -34,7 +37,7 @@ static inline svv*
 sv_vset(svv *head, svv *v)
 {
 	/* default */
-	if (srlikely(head->lsn < v->lsn)) {
+	if (sslikely(head->lsn < v->lsn)) {
 		v->next = head;
 		head->flags |= SVDUP;
 		return v;
@@ -85,20 +88,20 @@ sv_vstat(svv *v, uint32_t *count) {
 }
 #endif
 
-int sv_indexset(svindex *i, sr *r, uint64_t vlsn srunused,
+int sv_indexset(svindex *i, sr *r, uint64_t vlsn ssunused,
                 svv  *v,
-                svv **gc srunused)
+                svv **gc ssunused)
 {
-	srrbnode *n = NULL;
+	ssrbnode *n = NULL;
 	svv *head = NULL;
 	if (v->lsn < i->lsnmin)
 		i->lsnmin = v->lsn;
 	int rc = sv_indexmatch(&i->i, r->scheme, sv_vpointer(v), v->size, &n);
 	if (rc == 0 && n) {
-		head = srcast(n, svv, node);
+		head = sscast(n, svv, node);
 		svv *update = sv_vset(head, v);
 		if (head != update)
-			sr_rbreplace(&i->i, n, &update->node);
+			ss_rbreplace(&i->i, n, &update->node);
 #if 0
 		*gc = sv_vgc(update, vlsn);
 		if (*gc) {
@@ -108,7 +111,7 @@ int sv_indexset(svindex *i, sr *r, uint64_t vlsn srunused,
 		}
 #endif
 	} else {
-		sr_rbset(&i->i, n, rc, &v->node);
+		ss_rbset(&i->i, n, rc, &v->node);
 	}
 	i->count++;
 	i->used += v->size;

@@ -13,37 +13,37 @@ typedef struct soworker soworker;
 typedef struct soworkers soworkers;
 
 struct soworker {
-	srthread t;
+	ssthread t;
 	char name[16];
-	srtrace trace;
+	sstrace trace;
 	void *arg;
 	sdc dc;
-	srlist link;
+	sslist link;
 };
 
 struct soworkers {
-	srlist list;
+	sslist list;
 	int n;
 };
 
 int so_workersinit(soworkers*);
 int so_workersshutdown(soworkers*, sr*);
-int so_workersnew(soworkers*, sr*, int, srthreadf, void*);
+int so_workersnew(soworkers*, sr*, int, ssthreadf, void*);
 
 static inline void
 so_workerstub_init(soworker *w)
 {
 	sd_cinit(&w->dc);
-	sr_listinit(&w->link);
-	sr_traceinit(&w->trace);
-	sr_trace(&w->trace, "%s", "init");
+	ss_listinit(&w->link);
+	ss_traceinit(&w->trace);
+	ss_trace(&w->trace, "%s", "init");
 }
 
 static inline void
 so_workerstub_free(soworker *w, sr *r)
 {
 	sd_cfree(&w->dc, r);
-	sr_tracefree(&w->trace);
+	ss_tracefree(&w->trace);
 }
 
 #endif

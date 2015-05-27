@@ -1,17 +1,17 @@
 OBJECTS = st.o \
           st_scene.o \
           run.o \
-          srctl.test.o \
-          srleb128.test.o \
-          srpager.test.o \
-          sra.test.o \
-          sraslab.test.o \
+          ssleb128.test.o \
+          sspager.test.o \
+          ssa.test.o \
+          ssaslab.test.o \
+          ssorder.test.o \
+          ssrq.test.o \
+          ssht.test.o \
+          sszstdfilter.test.o \
+          sslz4filter.test.o \
           srscheme.test.o \
-          srorder.test.o \
-          srrq.test.o \
-          srht.test.o \
-          srzstdfilter.test.o \
-          srlz4filter.test.o \
+          srctl.test.o \
           svv.test.o \
           svindex.test.o \
           svindexiter.test.o \

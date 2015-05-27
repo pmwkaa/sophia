@@ -7,12 +7,14 @@
  * BSD License
 */
 
-#include <libsr.h>
+#include <libss.h>
+#include <libsf.h>
+#include <libss.h>
 #include <libst.h>
 #include <sophia.h>
 
 static void
-multipart_cmp_eq_key(stc *cx srunused)
+multipart_cmp_eq_key(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -36,7 +38,7 @@ multipart_cmp_eq_key(stc *cx srunused)
 }
 
 static void
-multipart_schema(stc *cx srunused)
+multipart_schema(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -74,7 +76,7 @@ multipart_schema(stc *cx srunused)
 }
 
 static void
-multipart_set_get0(stc *cx srunused)
+multipart_set_get0(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -122,7 +124,7 @@ multipart_set_get0(stc *cx srunused)
 }
 
 static void
-multipart_set_get1(stc *cx srunused)
+multipart_set_get1(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -177,7 +179,7 @@ multipart_set_get1(stc *cx srunused)
 }
 
 static void
-multipart_cursor0(stc *cx srunused)
+multipart_cursor0(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -230,7 +232,7 @@ multipart_cursor0(stc *cx srunused)
 }
 
 static void
-multipart_cursor1(stc *cx srunused)
+multipart_cursor1(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );

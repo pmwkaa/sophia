@@ -17,16 +17,16 @@ struct sxv {
 	svv *v;
 	sxv *next;
 	sxv *prev;
-	srrbnode node;
-} srpacked;
+	ssrbnode node;
+} sspacked;
 
 extern svif sx_vif;
 
 static inline sxv*
-sx_valloc(sra *asxv, svv *v)
+sx_valloc(ssa *asxv, svv *v)
 {
-	sxv *vv = sr_malloc(asxv, sizeof(sxv));
-	if (srunlikely(vv == NULL))
+	sxv *vv = ss_malloc(asxv, sizeof(sxv));
+	if (ssunlikely(vv == NULL))
 		return NULL;
 	vv->index = NULL;
 	vv->id    = 0;
@@ -39,10 +39,10 @@ sx_valloc(sra *asxv, svv *v)
 }
 
 static inline void
-sx_vfree(sra *a, sra *asxv, sxv *v)
+sx_vfree(ssa *a, ssa *asxv, sxv *v)
 {
-	sr_free(a, v->v);
-	sr_free(asxv, v);
+	ss_free(a, v->v);
+	ss_free(asxv, v);
 }
 
 static inline sxv*

@@ -7,6 +7,8 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
 #include <libsd.h>
@@ -16,7 +18,7 @@
 static void
 addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 {
-	srfmtv pv;
+	sfv pv;
 	pv.key = (char*)key;
 	pv.r.size = sizeof(uint32_t);
 	pv.r.offset = 0;
@@ -30,24 +32,24 @@ addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 }
 
 static void
-sdbuild_empty(stc *cx srunused)
+sdbuild_empty(stc *cx ssunused)
 {
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
 	srkey *part = sr_schemeadd(&cmp, &a);
 	t( sr_keysetname(part, &a, "key") == 0 );
 	t( sr_keyset(part, &a, "u32") == 0 );
-	srinjection ij;
+	ssinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
 	sr_errorinit(&error);
 	srseq seq;
 	sr_seqinit(&seq);
-	srcrcf crc = sr_crc32c_function();
+	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -61,24 +63,24 @@ sdbuild_empty(stc *cx srunused)
 }
 
 static void
-sdbuild_page0(stc *cx srunused)
+sdbuild_page0(stc *cx ssunused)
 {
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
 	srkey *part = sr_schemeadd(&cmp, &a);
 	t( sr_keysetname(part, &a, "key") == 0 );
 	t( sr_keyset(part, &a, "u32") == 0 );
-	srinjection ij;
+	ssinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
 	sr_errorinit(&error);
 	srseq seq;
 	sr_seqinit(&seq);
-	srcrcf crc = sr_crc32c_function();
+	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -99,24 +101,24 @@ sdbuild_page0(stc *cx srunused)
 }
 
 static void
-sdbuild_page1(stc *cx srunused)
+sdbuild_page1(stc *cx ssunused)
 {
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
 	srkey *part = sr_schemeadd(&cmp, &a);
 	t( sr_keysetname(part, &a, "key") == 0 );
 	t( sr_keyset(part, &a, "u32") == 0 );
-	srinjection ij;
+	ssinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
 	sr_errorinit(&error);
 	srseq seq;
 	sr_seqinit(&seq);
-	srcrcf crc = sr_crc32c_function();
+	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -133,8 +135,8 @@ sdbuild_page1(stc *cx srunused)
 	t( h->lsnmin == 1 );
 	t( h->lsnmax == 3 );
 
-	srbuf buf;
-	sr_bufinit(&buf);
+	ssbuf buf;
+	ss_bufinit(&buf);
 	t( sd_commitpage(&b, &r, &buf) == 0 );
 	h = (sdpageheader*)buf.s;
 	sdpage page;
@@ -142,9 +144,9 @@ sdbuild_page1(stc *cx srunused)
 
 	uint64_t size, lsn;
 	sdv *min = sd_pagemin(&page);
-	t( *(int*)sr_fmtkey( sd_pagemetaof(&page, min, &size, &lsn), 0) == i );
+	t( *(int*)sf_key( sd_pagemetaof(&page, min, &size, &lsn), 0) == i );
 	sdv *max = sd_pagemax(&page);
-	t( *(int*)sr_fmtkey( sd_pagemetaof(&page, max, &size, &lsn), 0) == k );
+	t( *(int*)sf_key( sd_pagemetaof(&page, max, &size, &lsn), 0) == k );
 	sd_buildcommit(&b, &r);
 
 	t( sd_buildbegin(&b, &r, 1, 0, 0) == 0);
@@ -157,40 +159,40 @@ sdbuild_page1(stc *cx srunused)
 	t( h->count == 2 );
 	t( h->lsnmin == 4 );
 	t( h->lsnmax == 5 );
-	sr_bufreset(&buf);
+	ss_bufreset(&buf);
 	t( sd_commitpage(&b, &r, &buf) == 0 );
 	h = (sdpageheader*)buf.s;
 	sd_pageinit(&page, h);
 	min = sd_pagemin(&page);
-	t( *(int*)sr_fmtkey( sd_pagemetaof(&page, min, &size, &lsn), 0) == j );
+	t( *(int*)sf_key( sd_pagemetaof(&page, min, &size, &lsn), 0) == j );
 	max = sd_pagemax(&page);
-	t( *(int*)sr_fmtkey( sd_pagemetaof(&page, max, &size, &lsn), 0) == k );
+	t( *(int*)sf_key( sd_pagemetaof(&page, max, &size, &lsn), 0) == k );
 	sd_buildcommit(&b, &r);
 
 	sd_buildfree(&b, &r);
-	sr_buffree(&buf, &a);
+	ss_buffree(&buf, &a);
 	sr_schemefree(&cmp, &a);
 }
 
 static void
-sdbuild_compression_zstd(stc *cx srunused)
+sdbuild_compression_zstd(stc *cx ssunused)
 {
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
 	srkey *part = sr_schemeadd(&cmp, &a);
 	t( sr_keysetname(part, &a, "key") == 0 );
 	t( sr_keyset(part, &a, "u32") == 0 );
-	srinjection ij;
+	ssinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
 	sr_errorinit(&error);
 	srseq seq;
 	sr_seqinit(&seq);
-	srcrcf crc = sr_crc32c_function();
+	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, &ij, crc, &sr_zstdfilter);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, &ss_zstdfilter);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -224,24 +226,24 @@ sdbuild_compression_zstd(stc *cx srunused)
 }
 
 static void
-sdbuild_compression_lz4(stc *cx srunused)
+sdbuild_compression_lz4(stc *cx ssunused)
 {
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
 	srkey *part = sr_schemeadd(&cmp, &a);
 	t( sr_keysetname(part, &a, "key") == 0 );
 	t( sr_keyset(part, &a, "u32") == 0 );
-	srinjection ij;
+	ssinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srerror error;
 	sr_errorinit(&error);
 	srseq seq;
 	sr_seqinit(&seq);
-	srcrcf crc = sr_crc32c_function();
+	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SR_FKV, SR_FS_RAW, &cmp, &ij, crc, &sr_lz4filter);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, &ss_lz4filter);
 
 	sdbuild b;
 	sd_buildinit(&b);

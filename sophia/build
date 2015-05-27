@@ -62,7 +62,9 @@ cat <<EOF >> $output
 
 EOF
 
-process $root $output "libsr.h" "rt"
+process $root $output "libss.h" "std"
+process $root $output "libsf.h" "format"
+process $root $output "libsr.h" "runtime"
 process $root $output "libsv.h" "version"
 process $root $output "libsx.h" "transaction"
 process $root $output "libsl.h" "log"

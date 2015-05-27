@@ -15,25 +15,25 @@ struct sdindexiter {
 	sdindex *index;
 	sdindexpage *v;
 	int pos;
-	srorder cmp;
+	ssorder cmp;
 	void *key;
 	int keysize;
-} srpacked;
+	sr *r;
+} sspacked;
 
 static inline int
-sd_indexiter_seek(sriter *i, void *key, int size, int *minp, int *midp, int *maxp)
+sd_indexiter_seek(sdindexiter *i, void *key, int size, int *minp, int *midp, int *maxp)
 {
-	sdindexiter *ii = (sdindexiter*)i->priv;
 	int match = 0;
 	int min = 0;
-	int max = ii->index->h->count - 1;
+	int max = i->index->h->count - 1;
 	int mid = 0;
 	while (max >= min)
 	{
 		mid = min + ((max - min) >> 1);
-		sdindexpage *page = sd_indexpage(ii->index, mid);
+		sdindexpage *page = sd_indexpage(i->index, mid);
 
-		int rc = sd_indexpage_cmp(ii->index, page, key, size, i->r->scheme);
+		int rc = sd_indexpage_cmp(i->index, page, key, size, i->r->scheme);
 		switch (rc) {
 		case -1: min = mid + 1;
 			continue;
@@ -51,22 +51,22 @@ done:
 }
 
 static inline int
-sd_indexiter_route(sriter *i)
+sd_indexiter_route(sdindexiter *i)
 {
-	sdindexiter *ii = (sdindexiter*)i->priv;
 	int mid, min, max;
-	int rc = sd_indexiter_seek(i, ii->key, ii->keysize, &min, &mid, &max);
-	if (srlikely(rc))
+	int rc = sd_indexiter_seek(i, i->key, i->keysize, &min, &mid, &max);
+	if (sslikely(rc))
 		return mid;
-	if (srunlikely(min >= (int)ii->index->h->count))
-		min = ii->index->h->count - 1;
+	if (ssunlikely(min >= (int)i->index->h->count))
+		min = i->index->h->count - 1;
 	return min;
 }
 
 static inline int
-sd_indexiter_open(sriter *i, sdindex *index, srorder o, void *key, int keysize)
+sd_indexiter_open(ssiter *i, sr *r, sdindex *index, ssorder o, void *key, int keysize)
 {
 	sdindexiter *ii = (sdindexiter*)i->priv;
+	ii->r       = r;
 	ii->index   = index;
 	ii->cmp     = o;
 	ii->key     = key;
@@ -85,39 +85,39 @@ sd_indexiter_open(sriter *i, sdindex *index, srorder o, void *key, int keysize)
 	}
 	if (ii->key == NULL) {
 		switch (ii->cmp) {
-		case SR_LT:
-		case SR_LTE: ii->pos = ii->index->h->count - 1;
+		case SS_LT:
+		case SS_LTE: ii->pos = ii->index->h->count - 1;
 			break;
-		case SR_GT:
-		case SR_GTE: ii->pos = 0;
+		case SS_GT:
+		case SS_GTE: ii->pos = 0;
 			break;
 		default:
 			assert(0);
 		}
 	} else {
-		ii->pos = sd_indexiter_route(i);
+		ii->pos = sd_indexiter_route(ii);
 		sdindexpage *p = sd_indexpage(ii->index, ii->pos);
 		switch (ii->cmp) {
-		case SR_LTE: break;
-		case SR_LT: {
-			int l = sr_compare(i->r->scheme, sd_indexpage_min(ii->index, p), p->sizemin,
+		case SS_LTE: break;
+		case SS_LT: {
+			int l = sr_compare(ii->r->scheme, sd_indexpage_min(ii->index, p), p->sizemin,
 			                   ii->key, ii->keysize);
-			if (srunlikely(l == 0))
+			if (ssunlikely(l == 0))
 				ii->pos--;
 			break;
 		}
-		case SR_GTE: break;
-		case SR_GT: {
-			int r = sr_compare(i->r->scheme, sd_indexpage_max(ii->index, p), p->sizemax,
+		case SS_GTE: break;
+		case SS_GT: {
+			int r = sr_compare(ii->r->scheme, sd_indexpage_max(ii->index, p), p->sizemax,
 			                   ii->key, ii->keysize);
-			if (srunlikely(r == 0))
+			if (ssunlikely(r == 0))
 				ii->pos++;
 			break;
 		}
 		default: assert(0);
 		}
 	}
-	if (srunlikely(ii->pos == -1 ||
+	if (ssunlikely(ii->pos == -1 ||
 	               ii->pos >= (int)ii->index->h->count))
 		return 0;
 	ii->v = sd_indexpage(ii->index, ii->pos);
@@ -125,49 +125,49 @@ sd_indexiter_open(sriter *i, sdindex *index, srorder o, void *key, int keysize)
 }
 
 static inline void
-sd_indexiter_close(sriter *i srunused)
+sd_indexiter_close(ssiter *i ssunused)
 { }
 
 static inline int
-sd_indexiter_has(sriter *i)
+sd_indexiter_has(ssiter *i)
 {
 	sdindexiter *ii = (sdindexiter*)i->priv;
 	return ii->v != NULL;
 }
 
 static inline void*
-sd_indexiter_of(sriter *i)
+sd_indexiter_of(ssiter *i)
 {
 	sdindexiter *ii = (sdindexiter*)i->priv;
 	return ii->v;
 }
 
 static inline void
-sd_indexiter_next(sriter *i)
+sd_indexiter_next(ssiter *i)
 {
 	sdindexiter *ii = (sdindexiter*)i->priv;
 	switch (ii->cmp) {
-	case SR_LT:
-	case SR_LTE:
+	case SS_LT:
+	case SS_LTE:
 		ii->pos--;
 		break;
-	case SR_GT:
-	case SR_GTE:
+	case SS_GT:
+	case SS_GTE:
 		ii->pos++;
 		break;
 	default:
 		assert(0);
 		break;
 	}
-	if (srunlikely(ii->pos < 0))
+	if (ssunlikely(ii->pos < 0))
 		ii->v = NULL;
 	else
-	if (srunlikely(ii->pos >= (int)ii->index->h->count))
+	if (ssunlikely(ii->pos >= (int)ii->index->h->count))
 		ii->v = NULL;
 	else
 		ii->v = sd_indexpage(ii->index, ii->pos);
 }
 
-extern sriterif sd_indexiter;
+extern ssiterif sd_indexiter;
 
 #endif

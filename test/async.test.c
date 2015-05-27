@@ -7,20 +7,22 @@
  * BSD License
 */
 
-#include <libsr.h>
+#include <libss.h>
+#include <libsf.h>
+#include <libss.h>
 #include <libst.h>
 #include <sophia.h>
 
 static int events = 0;
 
 static void
-on_event(void *arg srunused)
+on_event(void *arg ssunused)
 {
 	events++;
 }
 
 static void
-async_set(stc *cx srunused)
+async_set(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -70,7 +72,7 @@ async_set(stc *cx srunused)
 }
 
 static void
-async_get(stc *cx srunused)
+async_get(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -147,7 +149,7 @@ async_get(stc *cx srunused)
 }
 
 static void
-async_transaction(stc *cx srunused)
+async_transaction(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -280,7 +282,7 @@ async_transaction(stc *cx srunused)
 }
 
 static void
-async_cursor(stc *cx srunused)
+async_cursor(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -427,7 +429,7 @@ async_cursor(stc *cx srunused)
 }
 
 static void
-async_free0(stc *cx srunused)
+async_free0(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -485,7 +487,7 @@ async_free0(stc *cx srunused)
 }
 
 static void
-async_free1(stc *cx srunused)
+async_free1(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );

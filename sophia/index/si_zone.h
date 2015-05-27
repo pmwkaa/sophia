@@ -42,7 +42,7 @@ si_zonemap_init(sizonemap *m) {
 static inline void
 si_zonemap_set(sizonemap *m, uint32_t percent, sizone *z)
 {
-	if (srunlikely(percent > 100))
+	if (ssunlikely(percent > 100))
 		percent = 100;
 	percent = percent - percent % 10;
 	int p = percent / 10;
@@ -53,7 +53,7 @@ si_zonemap_set(sizonemap *m, uint32_t percent, sizone *z)
 static inline sizone*
 si_zonemap(sizonemap *m, uint32_t percent)
 {
-	if (srunlikely(percent > 100))
+	if (ssunlikely(percent > 100))
 		percent = 100;
 	percent = percent - percent % 10;
 	int p = percent / 10;

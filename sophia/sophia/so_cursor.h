@@ -12,10 +12,10 @@
 typedef struct socursor socursor;
 
 struct socursor {
-	soobj o;
+	srobj o;
 	int async;
 	int ready;
-	srorder order;
+	ssorder order;
 	sx t;
 	sicache *cache;
 	sv seek;
@@ -23,9 +23,9 @@ struct socursor {
 	int prefixsize;
 	sov v;
 	sodb *db;
-} srpacked;
+} sspacked;
 
-soobj *so_cursornew(sodb*, uint64_t, int, va_list);
+srobj *so_cursornew(sodb*, uint64_t, int, va_list);
 void   so_cursorend(socursor*);
 
 #endif

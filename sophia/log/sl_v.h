@@ -17,8 +17,7 @@ struct slv {
 	uint32_t dsn;
 	uint32_t size;
 	uint8_t  flags;
-	uint64_t reserve;
-} srpacked;
+} sspacked;
 
 extern svif sl_vif;
 

@@ -7,6 +7,8 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
 #include <libsd.h>
@@ -59,11 +61,11 @@ si_profiler_histogram_branch(siprofiler *p)
 int si_profiler(siprofiler *p)
 {
 	uint64_t memory_used = 0;
-	srrbnode *pn;
+	ssrbnode *pn;
 	sinode *n;
-	pn = sr_rbmin(&p->i->i);
+	pn = ss_rbmin(&p->i->i);
 	while (pn) {
-		n = srcast(pn, sinode, node);
+		n = sscast(pn, sinode, node);
 		p->total_node_count++;
 		p->count += n->i0.count;
 		p->count += n->i1.count;
@@ -86,7 +88,7 @@ int si_profiler(siprofiler *p)
 			p->total_page_count += b->index.h->count;
 			b = b->next;
 		}
-		pn = sr_rbnext(&p->i->i, pn);
+		pn = ss_rbnext(&p->i->i, pn);
 	}
 	if (p->total_node_count > 0)
 		p->total_branch_avg =

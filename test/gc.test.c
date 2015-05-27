@@ -7,12 +7,14 @@
  * BSD License
 */
 
-#include <libsr.h>
+#include <libss.h>
+#include <libsf.h>
+#include <libss.h>
 #include <libst.h>
 #include <sophia.h>
 
 static void
-gc_test0(stc *cx srunused)
+gc_test0(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -103,7 +105,7 @@ gc_test0(stc *cx srunused)
 }
 
 static void
-gc_test1(stc *cx srunused)
+gc_test1(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -194,7 +196,7 @@ gc_test1(stc *cx srunused)
 }
 
 static void
-gc_test2(stc *cx srunused)
+gc_test2(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -285,7 +287,7 @@ gc_test2(stc *cx srunused)
 }
 
 static void
-gc_test3(stc *cx srunused)
+gc_test3(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );

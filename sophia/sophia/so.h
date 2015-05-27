@@ -13,38 +13,38 @@ typedef struct soasync soasync;
 typedef struct so so;
 
 struct soasync {
-	soobj o;
+	srobj o;
 };
 
 struct so {
-	soobj o;
-	srmutex apilock;
-	srspinlock reqlock;
-	srspinlock dblock;
-	soobjindex db;
-	soobjindex db_shutdown;
-	soobjindex tx;
-	soobjindex req;
-	soobjindex reqready;
-	soobjindex snapshot;
-	soobjindex ctlcursor;
+	srobj o;
+	ssmutex apilock;
+	ssspinlock reqlock;
+	ssspinlock dblock;
+	srobjlist db;
+	srobjlist db_shutdown;
+	srobjlist tx;
+	srobjlist req;
+	srobjlist reqready;
+	srobjlist snapshot;
+	srobjlist ctlcursor;
 	sostatus status;
 	soctl ctl;
 	soasync async;
 	srseq seq;
-	srquota quota;
-	srpager pager;
-	sra a;
-	sra a_db;
-	sra a_v;
-	sra a_cursor;
-	sra a_cachebranch;
-	sra a_cache;
-	sra a_ctlcursor;
-	sra a_snapshot;
-	sra a_tx;
-	sra a_sxv;
-	sra a_req;
+	ssquota quota;
+	sspager pager;
+	ssa a;
+	ssa a_db;
+	ssa a_v;
+	ssa a_cursor;
+	ssa a_cachebranch;
+	ssa a_cache;
+	ssa a_ctlcursor;
+	ssa a_snapshot;
+	ssa a_tx;
+	ssa a_sxv;
+	ssa a_req;
 	sicachepool cachepool;
 	seconf seconf;
 	se se;
@@ -52,7 +52,7 @@ struct so {
 	slpool lp;
 	sxmanager xm;
 	soscheduler sched;
-	srinjection ei;
+	ssinjection ei;
 	srerror error;
 	sr r;
 };
@@ -63,20 +63,20 @@ so_active(so *o) {
 }
 
 static inline void
-so_apilock(soobj *o) {
-	sr_mutexlock(&((so*)o)->apilock);
+so_apilock(srobj *o) {
+	ss_mutexlock(&((so*)o)->apilock);
 }
 
 static inline void
-so_apiunlock(soobj *o) {
-	sr_mutexunlock(&((so*)o)->apilock);
+so_apiunlock(srobj *o) {
+	ss_mutexunlock(&((so*)o)->apilock);
 }
 
 static inline so*
-so_of(soobj *o) {
+so_of(srobj *o) {
 	return (so*)o->env;
 }
 
-soobj *so_new(void);
+srobj *so_new(void);
 
 #endif

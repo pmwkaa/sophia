@@ -7,19 +7,21 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
-#include <libsx.h>
 #include <libsl.h>
 #include <libsd.h>
 #include <libsi.h>
+#include <libsx.h>
 #include <libse.h>
 #include <libso.h>
 
 static inline sizone*
 so_zoneof(so *e)
 {
-	int p = sr_quotaused_percent(&e->quota);
+	int p = ss_quotaused_percent(&e->quota);
 	return si_zonemap(&e->ctl.zones, p);
 }
 
@@ -45,7 +47,7 @@ int so_scheduler_branch(void *arg)
 		if (rc == 0)
 			break;
 		rc = si_execute(&db->index, &db->r, &stub.dc, &plan, vlsn);
-		if (srunlikely(rc == -1))
+		if (ssunlikely(rc == -1))
 			break;
 	}
 	so_workerstub_free(&stub, &db->r);
@@ -74,7 +76,7 @@ int so_scheduler_compact(void *arg)
 		if (rc == 0)
 			break;
 		rc = si_execute(&db->index, &db->r, &stub.dc, &plan, vlsn);
-		if (srunlikely(rc == -1))
+		if (ssunlikely(rc == -1))
 			break;
 	}
 	so_workerstub_free(&stub, &db->r);
@@ -86,10 +88,10 @@ int so_scheduler_checkpoint(void *arg)
 	so *o = arg;
 	soscheduler *s = &o->sched;
 	uint64_t lsn = sr_seq(&o->seq, SR_LSN);
-	sr_mutexlock(&s->lock);
+	ss_mutexlock(&s->lock);
 	s->checkpoint_lsn = lsn;
 	s->checkpoint = 1;
-	sr_mutexunlock(&s->lock);
+	ss_mutexunlock(&s->lock);
 	return 0;
 }
 
@@ -97,9 +99,9 @@ int so_scheduler_gc(void *arg)
 {
 	so *o = arg;
 	soscheduler *s = &o->sched;
-	sr_mutexlock(&s->lock);
+	ss_mutexlock(&s->lock);
 	s->gc = 1;
-	sr_mutexunlock(&s->lock);
+	ss_mutexunlock(&s->lock);
 	return 0;
 }
 
@@ -107,7 +109,7 @@ int so_scheduler_backup(void *arg)
 {
 	so *e = arg;
 	soscheduler *s = &e->sched;
-	if (srunlikely(e->ctl.backup_path == NULL)) {
+	if (ssunlikely(e->ctl.backup_path == NULL)) {
 		sr_error(&e->error, "%s", "backup is not enabled");
 		return -1;
 	}
@@ -117,9 +119,9 @@ int so_scheduler_backup(void *arg)
 	 * disable log garbage-collection
 	*/
 	sl_poolgc_enable(&e->lp, 0);
-	sr_mutexlock(&s->lock);
-	if (srunlikely(s->backup > 0)) {
-		sr_mutexunlock(&s->lock);
+	ss_mutexlock(&s->lock);
+	if (ssunlikely(s->backup > 0)) {
+		ss_mutexunlock(&s->lock);
 		sl_poolgc_enable(&e->lp, 1);
 		/* in progress */
 		return 0;
@@ -127,7 +129,7 @@ int so_scheduler_backup(void *arg)
 	uint64_t bsn = sr_seq(&e->seq, SR_BSNNEXT);
 	s->backup = 1;
 	s->backup_bsn = bsn;
-	sr_mutexunlock(&s->lock);
+	ss_mutexunlock(&s->lock);
 	return 0;
 }
 
@@ -143,8 +145,8 @@ so_backupstart(soscheduler *s)
 	char path[1024];
 	snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete",
 	         e->ctl.backup_path, s->backup_bsn);
-	int rc = sr_filemkdir(path);
-	if (srunlikely(rc == -1)) {
+	int rc = ss_filemkdir(path);
+	if (ssunlikely(rc == -1)) {
 		sr_error(&e->error, "backup directory '%s' create error: %s",
 		         path, strerror(errno));
 		return -1;
@@ -155,8 +157,8 @@ so_backupstart(soscheduler *s)
 		snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete/%s",
 		         e->ctl.backup_path, s->backup_bsn,
 		         db->scheme.name);
-		rc = sr_filemkdir(path);
-		if (srunlikely(rc == -1)) {
+		rc = ss_filemkdir(path);
+		if (ssunlikely(rc == -1)) {
 			sr_error(&e->error, "backup directory '%s' create error: %s",
 			         path, strerror(errno));
 			return -1;
@@ -165,8 +167,8 @@ so_backupstart(soscheduler *s)
 	}
 	snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete/log",
 	         e->ctl.backup_path, s->backup_bsn);
-	rc = sr_filemkdir(path);
-	if (srunlikely(rc == -1)) {
+	rc = ss_filemkdir(path);
+	if (ssunlikely(rc == -1)) {
 		sr_error(&e->error, "backup directory '%s' create error: %s",
 		         path, strerror(errno));
 		return -1;
@@ -187,19 +189,19 @@ so_backupcomplete(soscheduler *s, soworker *w)
 	so *e = s->env;
 
 	/* force log rotation */
-	sr_trace(&w->trace, "%s", "log rotation for backup");
+	ss_trace(&w->trace, "%s", "log rotation for backup");
 	int rc = sl_poolrotate(&e->lp);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		return -1;
 
 	/* copy log files */
-	sr_trace(&w->trace, "%s", "log files backup");
+	ss_trace(&w->trace, "%s", "log files backup");
 
 	char path[1024];
 	snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete/log",
 	         e->ctl.backup_path, s->backup_bsn);
 	rc = sl_poolcopy(&e->lp, path, &w->dc.c);
-	if (srunlikely(rc == -1)) {
+	if (ssunlikely(rc == -1)) {
 		sr_errorrecover(&e->error);
 		return -1;
 	}
@@ -214,7 +216,7 @@ so_backupcomplete(soscheduler *s, soworker *w)
 	snprintf(newpath, sizeof(newpath), "%s/%" PRIu32,
 	         e->ctl.backup_path, s->backup_bsn);
 	rc = rename(path, newpath);
-	if (srunlikely(rc == -1)) {
+	if (ssunlikely(rc == -1)) {
 		sr_error(&e->error, "backup directory '%s' rename error: %s",
 		         path, strerror(errno));
 		return -1;
@@ -251,7 +253,7 @@ int so_scheduler_call(void *arg)
 
 int so_scheduler_init(soscheduler *s, void *env)
 {
-	sr_mutexinit(&s->lock);
+	ss_mutexinit(&s->lock);
 	s->workers_branch       = 0;
 	s->workers_backup       = 0;
 	s->workers_gc           = 0;
@@ -283,24 +285,24 @@ int so_scheduler_shutdown(soscheduler *s)
 	so *e = s->env;
 	int rcret = 0;
 	int rc = so_workersshutdown(&s->workers, &e->r);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		rcret = -1;
 	if (s->i) {
-		sr_free(&e->a, s->i);
+		ss_free(&e->a, s->i);
 		s->i = NULL;
 	}
-	sr_mutexfree(&s->lock);
+	ss_mutexfree(&s->lock);
 	return rcret;
 }
 
 int so_scheduler_add(soscheduler *s , void *db)
 {
-	sr_mutexlock(&s->lock);
+	ss_mutexlock(&s->lock);
 	so *e = s->env;
 	int count = s->count + 1;
-	void **i = sr_malloc(&e->a, count * sizeof(void*));
-	if (srunlikely(i == NULL)) {
-		sr_mutexunlock(&s->lock);
+	void **i = ss_malloc(&e->a, count * sizeof(void*));
+	if (ssunlikely(i == NULL)) {
+		ss_mutexunlock(&s->lock);
 		return -1;
 	}
 	memcpy(i, s->i, s->count * sizeof(void*));
@@ -308,29 +310,29 @@ int so_scheduler_add(soscheduler *s , void *db)
 	void *iprev = s->i;
 	s->i = i;
 	s->count = count;
-	sr_mutexunlock(&s->lock);
+	ss_mutexunlock(&s->lock);
 	if (iprev)
-		sr_free(&e->a, iprev);
+		ss_free(&e->a, iprev);
 	return 0;
 }
 
 int so_scheduler_del(soscheduler *s, void *db)
 {
-	if (srunlikely(s->i == NULL))
+	if (ssunlikely(s->i == NULL))
 		return 0;
-	sr_mutexlock(&s->lock);
+	ss_mutexlock(&s->lock);
 	so *e = s->env;
 	int count = s->count - 1;
-	if (srunlikely(count == 0)) {
+	if (ssunlikely(count == 0)) {
 		s->count = 0;
-		sr_free(&e->a, s->i);
+		ss_free(&e->a, s->i);
 		s->i = NULL;
-		sr_mutexunlock(&s->lock);
+		ss_mutexunlock(&s->lock);
 		return 0;
 	}
-	void **i = sr_malloc(&e->a, count * sizeof(void*));
-	if (srunlikely(i == NULL)) {
-		sr_mutexunlock(&s->lock);
+	void **i = ss_malloc(&e->a, count * sizeof(void*));
+	if (ssunlikely(i == NULL)) {
+		ss_mutexunlock(&s->lock);
 		return -1;
 	}
 	int j = 0;
@@ -347,10 +349,10 @@ int so_scheduler_del(soscheduler *s, void *db)
 	void *iprev = s->i;
 	s->i = i;
 	s->count = count;
-	if (srunlikely(s->rr >= s->count))
+	if (ssunlikely(s->rr >= s->count))
 		s->rr = 0;
-	sr_mutexunlock(&s->lock);
-	sr_free(&e->a, iprev);
+	ss_mutexunlock(&s->lock);
+	ss_free(&e->a, iprev);
 	return 0;
 }
 
@@ -361,13 +363,13 @@ static void *so_worker(void *arg)
 	for (;;)
 	{
 		int rc = so_active(o);
-		if (srunlikely(rc == 0))
+		if (ssunlikely(rc == 0))
 			break;
 		rc = so_scheduler(&o->sched, self);
-		if (srunlikely(rc == -1))
+		if (ssunlikely(rc == -1))
 			break;
-		if (srunlikely(rc == 0))
-			sr_sleep(10000000); /* 10ms */
+		if (ssunlikely(rc == 0))
+			ss_sleep(10000000); /* 10ms */
 	}
 	return NULL;
 }
@@ -378,7 +380,7 @@ int so_scheduler_run(soscheduler *s)
 	int rc;
 	rc = so_workersnew(&s->workers, &e->r, e->ctl.threads,
 	                   so_worker, e);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		return -1;
 	return 0;
 }
@@ -395,7 +397,7 @@ so_schedule_plan(soscheduler *s, siplan *plan, sodb **dbret)
 first_half:
 	while (i < limit) {
 		sodb *db = s->i[i];
-		if (srunlikely(! so_dbactive(db))) {
+		if (ssunlikely(! so_dbactive(db))) {
 			i++;
 			continue;
 		}
@@ -422,10 +424,10 @@ first_half:
 static int
 so_schedule(soscheduler *s, sotask *task, soworker *w)
 {
-	sr_trace(&w->trace, "%s", "schedule");
+	ss_trace(&w->trace, "%s", "schedule");
 	si_planinit(&task->plan);
 
-	uint64_t now = sr_utime();
+	uint64_t now = ss_utime();
 	so *e = s->env;
 	sodb *db;
 	sizone *zone = so_zoneof(e);
@@ -438,13 +440,13 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 	task->gc = 0;
 	task->db = NULL;
 
-	sr_mutexlock(&s->lock);
+	ss_mutexlock(&s->lock);
 
 	/* dispatch asynchronous requests */
-	if (srunlikely(s->req == 0 && so_requestcount(e))) {
+	if (ssunlikely(s->req == 0 && so_requestcount(e))) {
 		s->req = 1;
 		task->req = 1;
-		sr_mutexunlock(&s->lock);
+		ss_mutexunlock(&s->lock);
 		return 0;
 	}
 
@@ -469,7 +471,7 @@ checkpoint:
 			so_dbref(db, 1);
 			task->db = db;
 			task->gc = 1;
-			sr_mutexunlock(&s->lock);
+			ss_mutexunlock(&s->lock);
 			return 1;
 		case 2: /* work in progress */
 			in_progress = 1;
@@ -492,7 +494,7 @@ checkpoint:
 	case 2:  /* checkpoint */
 	{
 		if (in_progress) {
-			sr_mutexunlock(&s->lock);
+			ss_mutexunlock(&s->lock);
 			return 0;
 		}
 		uint64_t lsn = sr_seq(&e->seq, SR_LSN);
@@ -506,18 +508,18 @@ checkpoint:
 
 	/* database shutdown-drop */
 	if (s->workers_gc_db < zone->gc_db_prio) {
-		sr_spinlock(&e->dblock);
+		ss_spinlock(&e->dblock);
 		db = NULL;
-		if (srunlikely(e->db_shutdown.n > 0)) {
-			db = (sodb*)so_objindex_first(&e->db_shutdown);
+		if (ssunlikely(e->db_shutdown.n > 0)) {
+			db = (sodb*)sr_objlist_first(&e->db_shutdown);
 			if (so_dbgarbage(db)) {
-				so_objindex_unregister(&e->db_shutdown, &db->o);
+				sr_objlist_del(&e->db_shutdown, &db->o);
 			} else {
 				db = NULL;
 			}
 		}
-		sr_spinunlock(&e->dblock);
-		if (srunlikely(db)) {
+		ss_spinunlock(&e->dblock);
+		if (ssunlikely(db)) {
 			if (db->ctl.dropped)
 				task->plan.plan = SI_DROP;
 			else
@@ -525,7 +527,7 @@ checkpoint:
 			s->workers_gc_db++;
 			so_dbref(db, 1);
 			task->db = db;
-			sr_mutexunlock(&s->lock);
+			ss_mutexunlock(&s->lock);
 			return 1;
 		}
 	}
@@ -568,7 +570,7 @@ checkpoint:
 		if (s->backup == 1) {
 			/* state 1 */
 			rc = so_backupstart(s);
-			if (srunlikely(rc == -1)) {
+			if (ssunlikely(rc == -1)) {
 				so_backuperror(s);
 				goto backup_error;
 			}
@@ -583,13 +585,13 @@ checkpoint:
 			s->workers_backup++;
 			so_dbref(db, 1);
 			task->db = db;
-			sr_mutexunlock(&s->lock);
+			ss_mutexunlock(&s->lock);
 			return 1;
 		case 2: /* work in progress */
 			break;
 		case 0: /* state 3 */
 			rc = so_backupcomplete(s, w);
-			if (srunlikely(rc == -1)) {
+			if (ssunlikely(rc == -1)) {
 				so_backuperror(s);
 				goto backup_error;
 			}
@@ -613,7 +615,7 @@ backup_error:;
 				s->workers_gc++;
 				so_dbref(db, 1);
 				task->db = db;
-				sr_mutexunlock(&s->lock);
+				ss_mutexunlock(&s->lock);
 				return 1;
 			case 2: /* work in progress */
 				break;
@@ -643,7 +645,7 @@ backup_error:;
 				s->workers_branch++;
 				so_dbref(db, 1);
 				task->db = db;
-				sr_mutexunlock(&s->lock);
+				ss_mutexunlock(&s->lock);
 				return 1;
 			case 0:
 				s->age = 0;
@@ -685,7 +687,7 @@ backup_error:;
 			so_dbref(db, 1);
 			task->db = db;
 			task->gc = 1;
-			sr_mutexunlock(&s->lock);
+			ss_mutexunlock(&s->lock);
 			return 1;
 		}
 	}
@@ -697,21 +699,21 @@ backup_error:;
 	if (rc == 1) {
 		so_dbref(db, 1);
 		task->db = db;
-		sr_mutexunlock(&s->lock);
+		ss_mutexunlock(&s->lock);
 		return 1;
 	}
 
-	sr_mutexunlock(&s->lock);
+	ss_mutexunlock(&s->lock);
 	return 0;
 }
 
 static int
 so_gc(soscheduler *s, soworker *w)
 {
-	sr_trace(&w->trace, "%s", "log gc");
+	ss_trace(&w->trace, "%s", "log gc");
 	so *e = s->env;
 	int rc = sl_poolgc(&e->lp);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		return -1;
 	return 0;
 }
@@ -719,12 +721,12 @@ so_gc(soscheduler *s, soworker *w)
 static int
 so_rotate(soscheduler *s, soworker *w)
 {
-	sr_trace(&w->trace, "%s", "log rotation");
+	ss_trace(&w->trace, "%s", "log rotation");
 	so *e = s->env;
 	int rc = sl_poolrotate_ready(&e->lp, e->ctl.log_rotate_wm);
 	if (rc) {
 		rc = sl_poolrotate(&e->lp);
-		if (srunlikely(rc == -1))
+		if (ssunlikely(rc == -1))
 			return -1;
 	}
 	return 0;
@@ -743,7 +745,7 @@ so_execute(sotask *t, soworker *w)
 static int
 so_dispatch(soscheduler *s, soworker *w)
 {
-	sr_trace(&w->trace, "%s", "dispatcher");
+	ss_trace(&w->trace, "%s", "dispatcher");
 	so *e = s->env;
 	sorequest *req;
 	while ((req = so_requestdispatch(e))) {
@@ -756,7 +758,7 @@ so_dispatch(soscheduler *s, soworker *w)
 static int
 so_complete(soscheduler *s, sotask *t)
 {
-	sr_mutexlock(&s->lock);
+	ss_mutexlock(&s->lock);
 	sodb *db = t->db;
 	if (db)
 		so_dbunref(db, 1);
@@ -776,14 +778,14 @@ so_complete(soscheduler *s, sotask *t)
 	case SI_SHUTDOWN:
 	case SI_DROP:
 		s->workers_gc_db--;
-		so_objdestroy(&db->o);
+		sr_objdestroy(&db->o);
 		break;
 	}
 	if (t->rotate == 1)
 		s->rotate = 0;
 	if (t->req == 1)
 		s->req = 0;
-	sr_mutexunlock(&s->lock);
+	ss_mutexunlock(&s->lock);
 	return 0;
 }
 
@@ -794,12 +796,12 @@ int so_scheduler(soscheduler *s, soworker *w)
 	int job = rc;
 	if (task.rotate) {
 		rc = so_rotate(s, w);
-		if (srunlikely(rc == -1))
+		if (ssunlikely(rc == -1))
 			goto error;
 	}
 	if (task.req) {
 		rc = so_dispatch(s, w);
-		if (srunlikely(rc == -1)) {
+		if (ssunlikely(rc == -1)) {
 			goto error;
 		}
 	}
@@ -808,26 +810,26 @@ int so_scheduler(soscheduler *s, soworker *w)
 		so_request_on_backup(e);
 	if (job) {
 		rc = so_execute(&task, w);
-		if (srunlikely(rc == -1)) {
+		if (ssunlikely(rc == -1)) {
 			if (task.plan.plan != SI_BACKUP &&
 			    task.plan.plan != SI_BACKUPEND) {
 				so_dbmalfunction(task.db);
 				goto error;
 			}
-			sr_mutexlock(&s->lock);
+			ss_mutexlock(&s->lock);
 			so_backuperror(s);
-			sr_mutexunlock(&s->lock);
+			ss_mutexunlock(&s->lock);
 		}
 	}
 	if (task.gc) {
 		rc = so_gc(s, w);
-		if (srunlikely(rc == -1))
+		if (ssunlikely(rc == -1))
 			goto error;
 	}
 	so_complete(s, &task);
-	sr_trace(&w->trace, "%s", "sleep");
+	ss_trace(&w->trace, "%s", "sleep");
 	return job;
 error:
-	sr_trace(&w->trace, "%s", "malfunction");
+	ss_trace(&w->trace, "%s", "malfunction");
 	return -1;
 }

@@ -7,17 +7,19 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
-#include <libsx.h>
 #include <libsl.h>
 #include <libsd.h>
 #include <libsi.h>
+#include <libsx.h>
 #include <libse.h>
 #include <libso.h>
 
 static inline void
-sp_error_unsupported_method(soobj *o, const char *method, ...)
+sp_error_unsupported_method(srobj *o, const char *method, ...)
 {
 	assert(o->env != NULL);
 	assert(o->env->id == SOENV);
@@ -39,8 +41,8 @@ sp_env(void)
 SP_API void*
 sp_ctl(void *o, ...)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->ctl == NULL)) {
+	srobj *obj = o;
+	if (ssunlikely(obj->i->ctl == NULL)) {
 		sp_error_unsupported_method(o, __FUNCTION__);
 		return NULL;
 	}
@@ -56,8 +58,8 @@ sp_ctl(void *o, ...)
 SP_API void*
 sp_async(void *o, ...)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->async == NULL)) {
+	srobj *obj = o;
+	if (ssunlikely(obj->i->async == NULL)) {
 		sp_error_unsupported_method(o, __FUNCTION__);
 		return NULL;
 	}
@@ -73,8 +75,8 @@ sp_async(void *o, ...)
 SP_API void*
 sp_object(void *o, ...)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->object == NULL)) {
+	srobj *obj = o;
+	if (ssunlikely(obj->i->object == NULL)) {
 		sp_error_unsupported_method(o, __FUNCTION__);
 		return NULL;
 	}
@@ -90,8 +92,8 @@ sp_object(void *o, ...)
 SP_API int
 sp_open(void *o, ...)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->open == NULL)) {
+	srobj *obj = o;
+	if (ssunlikely(obj->i->open == NULL)) {
 		sp_error_unsupported_method(o, __FUNCTION__);
 		return -1;
 	}
@@ -107,16 +109,16 @@ sp_open(void *o, ...)
 SP_API int
 sp_destroy(void *o, ...)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->destroy == NULL)) {
+	srobj *obj = o;
+	if (ssunlikely(obj->i->destroy == NULL)) {
 		sp_error_unsupported_method(o, __FUNCTION__);
 		return -1;
 	}
 	va_list args;
 	va_start(args, o);
-	soobj *env = obj->env;
+	srobj *env = obj->env;
 	int rc;
-	if (srunlikely(env == o)) {
+	if (ssunlikely(env == o)) {
 		rc = obj->i->destroy(o, args);
 		va_end(args);
 		return rc;
@@ -130,8 +132,8 @@ sp_destroy(void *o, ...)
 
 SP_API int sp_error(void *o, ...)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->error == NULL)) {
+	srobj *obj = o;
+	if (ssunlikely(obj->i->error == NULL)) {
 		sp_error_unsupported_method(o, __FUNCTION__);
 		return -1;
 	}
@@ -147,8 +149,8 @@ SP_API int sp_error(void *o, ...)
 SP_API int
 sp_set(void *o, ...)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->set == NULL)) {
+	srobj *obj = o;
+	if (ssunlikely(obj->i->set == NULL)) {
 		sp_error_unsupported_method(o, __FUNCTION__);
 		return -1;
 	}
@@ -164,12 +166,12 @@ sp_set(void *o, ...)
 SP_API int
 sp_delete(void *o, ...)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->del == NULL)) {
+	srobj *obj = o;
+	if (ssunlikely(obj->i->del == NULL)) {
 		sp_error_unsupported_method(o, __FUNCTION__);
 		return -1;
 	}
-	soobj *env = obj->env;
+	srobj *env = obj->env;
 	va_list args;
 	va_start(args, o);
 	so_apilock(env);
@@ -182,8 +184,8 @@ sp_delete(void *o, ...)
 SP_API void*
 sp_get(void *o, ...)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->get == NULL)) {
+	srobj *obj = o;
+	if (ssunlikely(obj->i->get == NULL)) {
 		sp_error_unsupported_method(o, __FUNCTION__);
 		return NULL;
 	}
@@ -199,8 +201,8 @@ sp_get(void *o, ...)
 SP_API void*
 sp_poll(void *o, ...)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->poll == NULL)) {
+	srobj *obj = o;
+	if (ssunlikely(obj->i->poll == NULL)) {
 		sp_error_unsupported_method(o, __FUNCTION__);
 		return NULL;
 	}
@@ -216,12 +218,12 @@ sp_poll(void *o, ...)
 SP_API int
 sp_drop(void *o, ...)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->drop == NULL)) {
+	srobj *obj = o;
+	if (ssunlikely(obj->i->drop == NULL)) {
 		sp_error_unsupported_method(o, __FUNCTION__);
 		return -1;
 	}
-	soobj *env = obj->env;
+	srobj *env = obj->env;
 	va_list args;
 	va_start(args, o);
 	so_apilock(env);
@@ -234,8 +236,8 @@ sp_drop(void *o, ...)
 SP_API void*
 sp_begin(void *o, ...)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->begin == NULL)) {
+	srobj *obj = o;
+	if (ssunlikely(obj->i->begin == NULL)) {
 		sp_error_unsupported_method(o, __FUNCTION__);
 		return NULL;
 	}
@@ -251,12 +253,12 @@ sp_begin(void *o, ...)
 SP_API int
 sp_prepare(void *o, ...)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->prepare == NULL)) {
+	srobj *obj = o;
+	if (ssunlikely(obj->i->prepare == NULL)) {
 		sp_error_unsupported_method(o, __FUNCTION__);
 		return -1;
 	}
-	soobj *env = obj->env;
+	srobj *env = obj->env;
 	va_list args;
 	va_start(args, o);
 	so_apilock(env);
@@ -269,12 +271,12 @@ sp_prepare(void *o, ...)
 SP_API int
 sp_commit(void *o, ...)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->commit == NULL)) {
+	srobj *obj = o;
+	if (ssunlikely(obj->i->commit == NULL)) {
 		sp_error_unsupported_method(o, __FUNCTION__);
 		return -1;
 	}
-	soobj *env = obj->env;
+	srobj *env = obj->env;
 	va_list args;
 	va_start(args, o);
 	so_apilock(env);
@@ -287,8 +289,8 @@ sp_commit(void *o, ...)
 SP_API void*
 sp_cursor(void *o, ...)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->cursor == NULL)) {
+	srobj *obj = o;
+	if (ssunlikely(obj->i->cursor == NULL)) {
 		sp_error_unsupported_method(o, __FUNCTION__);
 		return NULL;
 	}
@@ -303,8 +305,8 @@ sp_cursor(void *o, ...)
 
 SP_API void *sp_type(void *o, ...)
 {
-	soobj *obj = o;
-	if (srunlikely(obj->i->type == NULL)) {
+	srobj *obj = o;
+	if (ssunlikely(obj->i->type == NULL)) {
 		sp_error_unsupported_method(o, __FUNCTION__);
 		return NULL;
 	}

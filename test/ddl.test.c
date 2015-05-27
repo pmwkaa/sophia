@@ -7,12 +7,14 @@
  * BSD License
 */
 
-#include <libsr.h>
+#include <libss.h>
+#include <libsf.h>
+#include <libss.h>
 #include <libst.h>
 #include <sophia.h>
 
 static void
-ddl_precreate(stc *cx srunused)
+ddl_precreate(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -32,7 +34,7 @@ ddl_precreate(stc *cx srunused)
 }
 
 static void
-ddl_create_online0(stc *cx srunused)
+ddl_create_online0(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -53,7 +55,7 @@ ddl_create_online0(stc *cx srunused)
 }
 
 static void
-ddl_create_online1(stc *cx srunused)
+ddl_create_online1(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -75,7 +77,7 @@ ddl_create_online1(stc *cx srunused)
 }
 
 static void
-ddl_create_online2(stc *cx srunused)
+ddl_create_online2(stc *cx ssunused)
 {
 	rmrf("./logdir");
 	rmrf("./dir0");
@@ -142,7 +144,7 @@ ddl_create_online2(stc *cx srunused)
 }
 
 static void
-ddl_open_online0(stc *cx srunused)
+ddl_open_online0(stc *cx ssunused)
 {
 	rmrf("./logdir");
 	rmrf("./dir0");

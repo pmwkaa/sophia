@@ -14,45 +14,45 @@ typedef struct sodbasync sodbasync;
 typedef struct sodb sodb;
 
 struct sodbctl {
-	soobj       o;
+	srobj       o;
 	void       *parent;
 	uint32_t    created;
 	uint32_t    scheduled;
 	uint32_t    dropped;
 	siprofiler  rtp;
-} srpacked;
+} sspacked;
 
 struct sodbasync {
-	soobj o;
+	srobj o;
 	sodb *parent;
 };
 
 struct sodb {
-	soobj o;
+	srobj o;
 	sostatus status;
 	sodbctl ctl;
 	sodbasync async;
-	soobjindex cursor;
+	srobjlist cursor;
 	sxindex coindex;
 	sdc dc;
 	sischeme scheme;
 	si index;
-	srspinlock reflock;
+	ssspinlock reflock;
 	uint32_t ref;
 	uint32_t ref_be;
 	uint32_t txn_min;
 	uint32_t txn_max;
 	sr r;
-} srpacked;
+} sspacked;
 
 static inline int
 so_dbactive(sodb *o) {
 	return so_statusactive(&o->status);
 }
 
-soobj    *so_dbnew(so*, char*);
-soobj    *so_dbmatch(so*, char*);
-soobj    *so_dbmatch_id(so*, uint32_t);
+srobj    *so_dbnew(so*, char*);
+srobj    *so_dbmatch(so*, char*);
+srobj    *so_dbmatch_id(so*, uint32_t);
 void      so_dbref(sodb*, int);
 uint32_t  so_dbunref(sodb*, int);
 uint32_t  so_dbrefof(sodb*, int);

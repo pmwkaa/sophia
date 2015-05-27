@@ -7,6 +7,8 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
 #include <libst.h>
@@ -15,7 +17,7 @@
 static svv*
 allocv(sr *r, uint64_t lsn, uint8_t flags, uint32_t *key)
 {
-	srfmtv pv;
+	sfv pv;
 	pv.key = (char*)key;
 	pv.r.size = sizeof(uint32_t);
 	pv.r.offset = 0;
@@ -27,19 +29,19 @@ allocv(sr *r, uint64_t lsn, uint8_t flags, uint32_t *key)
 
 static inline svv*
 getv(svindex *i, sr *r, uint64_t vlsn, uint32_t *key) {
-	srrbnode *n = NULL;
+	ssrbnode *n = NULL;
 	int rc = sv_indexmatch(&i->i, r->scheme, (char*)key, sizeof(uint32_t), &n);
 	if (rc == 0 && n) {
-		return sv_visible(srcast(n, svv, node), vlsn);
+		return sv_visible(sscast(n, svv, node), vlsn);
 	}
 	return NULL;
 }
 
 static void
-svindex_replace0(stc *cx srunused)
+svindex_replace0(stc *cx ssunused)
 {
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
 	srkey *part = sr_schemeadd(&cmp, &a);
@@ -48,7 +50,7 @@ svindex_replace0(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -61,7 +63,7 @@ svindex_replace0(stc *cx srunused)
 	t( old == NULL );
 	t( sv_indexset(&i, &r, 1, n, &old) == 0 );
 	t( old == h );
-	sr_free(&a, old);
+	ss_free(&a, old);
 
 	svv *p = getv(&i, &r, 1, &key);
 	t( p == n );
@@ -72,10 +74,10 @@ svindex_replace0(stc *cx srunused)
 }
 
 static void
-svindex_replace1(stc *cx srunused)
+svindex_replace1(stc *cx ssunused)
 {
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
 	srkey *part = sr_schemeadd(&cmp, &a);
@@ -84,7 +86,7 @@ svindex_replace1(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -111,10 +113,10 @@ svindex_replace1(stc *cx srunused)
 }
 
 static void
-svindex_replace2(stc *cx srunused)
+svindex_replace2(stc *cx ssunused)
 {
-	sra a;
-	sr_aopen(&a, &sr_stda);
+	ssa a;
+	ss_aopen(&a, &ss_stda);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
 	srkey *part = sr_schemeadd(&cmp, &a);
@@ -123,7 +125,7 @@ svindex_replace2(stc *cx srunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SR_FKV, SR_FS_RAW, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );

@@ -33,14 +33,14 @@ struct stc {
 struct sttest {
 	char *name;
 	stf function;
-	srlist link;
+	sslist link;
 };
 
 struct stgroup {
 	char *name;
-	srlist test;
+	sslist test;
 	int count;
-	srlist link;
+	sslist link;
 };
 
 struct stscene {
@@ -48,16 +48,16 @@ struct stscene {
 	int statemax;
 	int state;
 	stscenef function;
-	srlist link;
+	sslist link;
 };
 
 struct stplan {
 	char *name;
-	srlist group;
+	sslist group;
 	stscene scene[20];
 	int group_count;
 	int scene_count;
-	srlist link;
+	sslist link;
 };
 
 struct st {
@@ -65,8 +65,8 @@ struct st {
 	char *backupdir;
 	char *logdir;
 	char *dir;
-	srlist scene;
-	srlist plan;
+	sslist scene;
+	sslist plan;
 	int scene_count;
 	int plan_count;
 	int stat_stmt;

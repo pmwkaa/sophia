@@ -7,6 +7,8 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
 #include <libsd.h>
@@ -28,11 +30,11 @@ si_dropof(sischeme *scheme, sr *r)
 		if (de->d_name[0] == '.')
 			continue;
 		/* skip drop file */
-		if (srunlikely(strcmp(de->d_name, "drop") == 0))
+		if (ssunlikely(strcmp(de->d_name, "drop") == 0))
 			continue;
 		snprintf(path, sizeof(path), "%s/%s", scheme->path, de->d_name);
-		rc = sr_fileunlink(path);
-		if (srunlikely(rc == -1)) {
+		rc = ss_fileunlink(path);
+		if (ssunlikely(rc == -1)) {
 			sr_malfunction(r->e, "db file '%s' unlink error: %s",
 			               path, strerror(errno));
 			closedir(dir);
@@ -42,14 +44,14 @@ si_dropof(sischeme *scheme, sr *r)
 	closedir(dir);
 
 	snprintf(path, sizeof(path), "%s/drop", scheme->path);
-	rc = sr_fileunlink(path);
-	if (srunlikely(rc == -1)) {
+	rc = ss_fileunlink(path);
+	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' unlink error: %s",
 		               path, strerror(errno));
 		return -1;
 	}
 	rc = rmdir(scheme->path);
-	if (srunlikely(rc == -1)) {
+	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "directory '%s' unlink error: %s",
 		               scheme->path, strerror(errno));
 		return -1;
@@ -62,15 +64,15 @@ int si_dropmark(si *i, sr *r)
 	/* create drop file */
 	char path[1024];
 	snprintf(path, sizeof(path), "%s/drop", i->scheme->path);
-	srfile drop;
-	sr_fileinit(&drop, r->a);
-	int rc = sr_filenew(&drop, path);
-	if (srunlikely(rc == -1)) {
+	ssfile drop;
+	ss_fileinit(&drop, r->a);
+	int rc = ss_filenew(&drop, path);
+	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "drop file '%s' create error: %s",
 		               path, strerror(errno));
 		return -1;
 	}
-	sr_fileclose(&drop);
+	ss_fileclose(&drop);
 	return 0;
 }
 
@@ -80,7 +82,7 @@ int si_drop(si *i, sr *r)
 	/* drop file must exists at this point */
 	/* shutdown */
 	int rc = si_close(i, r);
-	if (srunlikely(rc == -1))
+	if (ssunlikely(rc == -1))
 		return -1;
 	/* remove directory */
 	rc = si_dropof(scheme, r);

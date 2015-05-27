@@ -12,7 +12,7 @@
 typedef struct svwriteiter svwriteiter;
 
 struct svwriteiter {
-	sriter *merge;
+	ssiter *merge;
 	uint64_t limit;
 	uint64_t size;
 	uint32_t sizev;
@@ -21,19 +21,19 @@ struct svwriteiter {
 	int next;
 	uint64_t prevlsn;
 	sv *v;
-} srpacked;
+} sspacked;
 
 static inline void
-sv_writeiter_next(sriter *i)
+sv_writeiter_next(ssiter *i)
 {
 	svwriteiter *im = (svwriteiter*)i->priv;
 	if (im->next)
-		sr_iternext(sv_mergeiter, im->merge);
+		ss_iternext(sv_mergeiter, im->merge);
 	im->next = 0;
 	im->v = NULL;
-	for (; sr_iterhas(sv_mergeiter, im->merge); sr_iternext(sv_mergeiter, im->merge))
+	for (; ss_iterhas(sv_mergeiter, im->merge); ss_iternext(sv_mergeiter, im->merge))
 	{
-		sv *v = sr_iterof(sv_mergeiter, im->merge);
+		sv *v = ss_iterof(sv_mergeiter, im->merge);
 		int dup = (sv_flags(v) & SVDUP) | sv_mergeisdup(im->merge);
 		if (im->size >= im->limit) {
 			if (! dup)
@@ -41,7 +41,7 @@ sv_writeiter_next(sriter *i)
 		}
 		uint64_t lsn = sv_lsn(v);
 		int kv = sv_size(v);
-		if (srunlikely(dup)) {
+		if (ssunlikely(dup)) {
 			/* keep atleast one visible version for <= vlsn */
 			if (im->prevlsn <= im->vlsn)
 				continue;
@@ -49,7 +49,7 @@ sv_writeiter_next(sriter *i)
 			/* branched or stray deletes */
 			if (! im->save_delete) {
 				int del = (sv_flags(v) & SVDELETE) > 0;
-				if (srunlikely(del && (lsn <= im->vlsn))) {
+				if (ssunlikely(del && (lsn <= im->vlsn))) {
 					im->prevlsn = lsn;
 					continue;
 				}
@@ -64,7 +64,7 @@ sv_writeiter_next(sriter *i)
 }
 
 static inline int
-sv_writeiter_open(sriter *i, sriter *iterator, uint64_t limit,
+sv_writeiter_open(ssiter *i, ssiter *iterator, uint64_t limit,
                   uint32_t sizev, uint64_t vlsn,
                   int save_delete)
 {
@@ -84,37 +84,37 @@ sv_writeiter_open(sriter *i, sriter *iterator, uint64_t limit,
 }
 
 static inline void
-sv_writeiter_close(sriter *i srunused)
+sv_writeiter_close(ssiter *i ssunused)
 { }
 
 static inline int
-sv_writeiter_has(sriter *i)
+sv_writeiter_has(ssiter *i)
 {
 	svwriteiter *im = (svwriteiter*)i->priv;
 	return im->v != NULL;
 }
 
 static inline void*
-sv_writeiter_of(sriter *i)
+sv_writeiter_of(ssiter *i)
 {
 	svwriteiter *im = (svwriteiter*)i->priv;
-	if (srunlikely(im->v == NULL))
+	if (ssunlikely(im->v == NULL))
 		return NULL;
 	return im->v;
 }
 
 static inline int
-sv_writeiter_resume(sriter *i)
+sv_writeiter_resume(ssiter *i)
 {
 	svwriteiter *im = (svwriteiter*)i->priv;
-	im->v    = sr_iterof(sv_mergeiter, im->merge);
-	if (srunlikely(im->v == NULL))
+	im->v    = ss_iterof(sv_mergeiter, im->merge);
+	if (ssunlikely(im->v == NULL))
 		return 0;
 	im->next = 1;
 	im->size = im->sizev + sv_size(im->v);
 	return 1;
 }
 
-extern sriterif sv_writeiter;
+extern ssiterif sv_writeiter;
 
 #endif

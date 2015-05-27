@@ -26,15 +26,15 @@ struct sdmergeconf {
 
 struct sdmerge {
 	sdindex index;
-	sriter *merge;
-	sriter i;
+	ssiter *merge;
+	ssiter i;
 	uint64_t processed;
 	sdmergeconf *conf;
 	sr *r;
 	sdbuild *build;
 };
 
-int sd_mergeinit(sdmerge*, sr*, sriter*, sdbuild*, sdmergeconf*);
+int sd_mergeinit(sdmerge*, sr*, ssiter*, sdbuild*, sdmergeconf*);
 int sd_mergefree(sdmerge*);
 int sd_merge(sdmerge*);
 int sd_mergecommit(sdmerge*, sdid*);

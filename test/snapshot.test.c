@@ -7,12 +7,14 @@
  * BSD License
 */
 
-#include <libsr.h>
+#include <libss.h>
+#include <libsf.h>
+#include <libss.h>
 #include <libst.h>
 #include <sophia.h>
 
 static void
-snapshot_create_delete(stc *cx srunused)
+snapshot_create_delete(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -40,7 +42,7 @@ snapshot_create_delete(stc *cx srunused)
 }
 
 static void
-snapshot_cursor(stc *cx srunused)
+snapshot_cursor(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -110,7 +112,7 @@ snapshot_cursor(stc *cx srunused)
 }
 
 static void
-snapshot_get(stc *cx srunused)
+snapshot_get(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -164,7 +166,7 @@ snapshot_get(stc *cx srunused)
 }
 
 static void
-snapshot_recover_cursor(stc *cx srunused)
+snapshot_recover_cursor(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -272,7 +274,7 @@ snapshot_recover_cursor(stc *cx srunused)
 }
 
 static void
-snapshot_recover_get(stc *cx srunused)
+snapshot_recover_get(stc *cx ssunused)
 {
 	void *env = sp_env();
 	t( env != NULL );

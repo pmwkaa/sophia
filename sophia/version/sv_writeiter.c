@@ -7,10 +7,12 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
 
-sriterif sv_writeiter =
+ssiterif sv_writeiter =
 {
 	.close   = sv_writeiter_close,
 	.has     = sv_writeiter_has,

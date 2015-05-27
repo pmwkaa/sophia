@@ -7,12 +7,14 @@
  * BSD License
 */
 
+#include <libss.h>
+#include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
-#include <libsx.h>
 #include <libsl.h>
 #include <libsd.h>
 #include <libsi.h>
+#include <libsx.h>
 #include <libse.h>
 #include <libso.h>
 
@@ -21,28 +23,28 @@ so_snapshotfree(sosnapshot *s)
 {
 	so *e = so_of(&s->o);
 	sx_rollback(&s->t);
-	if (srlikely(s->name)) {
-		sr_free(&e->a, s->name);
+	if (sslikely(s->name)) {
+		ss_free(&e->a, s->name);
 		s->name = NULL;
 	}
-	sr_free(&e->a_snapshot, s);
+	ss_free(&e->a_snapshot, s);
 	return 0;
 }
 
 static int
-so_snapshotdestroy(soobj *o, va_list args srunused)
+so_snapshotdestroy(srobj *o, va_list args ssunused)
 {
 	sosnapshot *s = (sosnapshot*)o;
 	so *e = so_of(o);
 	uint32_t id = s->t.id;
-	so_objindex_unregister(&e->snapshot, &s->o);
+	sr_objlist_del(&e->snapshot, &s->o);
 	so_dbunbind(e, id);
 	so_snapshotfree(s);
 	return 0;
 }
 
 static void*
-so_snapshotget(soobj *o, va_list args)
+so_snapshotget(srobj *o, va_list args)
 {
 	sosnapshot *s = (sosnapshot*)o;
 	so *e = so_of(o);
@@ -50,7 +52,7 @@ so_snapshotget(soobj *o, va_list args)
 	va_copy(va, args);
 	sov *v = va_arg(va, sov*);
 	va_end(va);
-	if (srunlikely(v->o.id != SOV)) {
+	if (ssunlikely(v->o.id != SOV)) {
 		sr_error(&e->error, "%s", "bad arguments");
 		return NULL;
 	}
@@ -59,7 +61,7 @@ so_snapshotget(soobj *o, va_list args)
 }
 
 static void*
-so_snapshotcursor(soobj *o, va_list args)
+so_snapshotcursor(srobj *o, va_list args)
 {
 	sosnapshot *s = (sosnapshot*)o;
 	so *e = so_of(o);
@@ -67,9 +69,9 @@ so_snapshotcursor(soobj *o, va_list args)
 	va_copy(va, args);
 	sov *v = va_arg(va, sov*);
 	va_end(va);
-	if (srunlikely(v->o.id != SOV))
+	if (ssunlikely(v->o.id != SOV))
 		goto error;
-	if (srunlikely(v->parent == NULL || v->parent->id != SODB))
+	if (ssunlikely(v->parent == NULL || v->parent->id != SODB))
 		goto error;
 	sodb *db = (sodb*)v->parent;
 	return so_cursornew(db, s->vlsn, 0, args);
@@ -79,11 +81,11 @@ error:
 }
 
 static void*
-so_snapshottype(soobj *o srunused, va_list args srunused) {
+so_snapshottype(srobj *o ssunused, va_list args ssunused) {
 	return "snapshot";
 }
 
-static soobjif sosnapshotif =
+static srobjif sosnapshotif =
 {
 	.ctl     = NULL,
 	.async   = NULL,
@@ -103,26 +105,26 @@ static soobjif sosnapshotif =
 	.type    = so_snapshottype
 };
 
-soobj *so_snapshotnew(so *e, uint64_t vlsn, char *name)
+srobj *so_snapshotnew(so *e, uint64_t vlsn, char *name)
 {
-	srlist *i;
-	sr_listforeach(&e->snapshot.list, i) {
-		sosnapshot *s = (sosnapshot*)srcast(i, soobj, link);
-		if (srunlikely(strcmp(s->name, name) == 0)) {
+	sslist *i;
+	ss_listforeach(&e->snapshot.list, i) {
+		sosnapshot *s = (sosnapshot*)sscast(i, srobj, link);
+		if (ssunlikely(strcmp(s->name, name) == 0)) {
 			sr_error(&e->error, "snapshot '%s' already exists", name);
 			return NULL;
 		}
 	}
-	sosnapshot *s = sr_malloc(&e->a_snapshot, sizeof(sosnapshot));
-	if (srunlikely(s == NULL)) {
+	sosnapshot *s = ss_malloc(&e->a_snapshot, sizeof(sosnapshot));
+	if (ssunlikely(s == NULL)) {
 		sr_error(&e->error, "%s", "memory allocation failed");
 		return NULL;
 	}
-	so_objinit(&s->o, SOSNAPSHOT, &sosnapshotif, &e->o);
+	sr_objinit(&s->o, SOSNAPSHOT, &sosnapshotif, &e->o);
 	s->vlsn = vlsn;
-	s->name = sr_strdup(&e->a, name);
-	if (srunlikely(s->name == NULL)) {
-		sr_free(&e->a_snapshot, s);
+	s->name = ss_strdup(&e->a, name);
+	if (ssunlikely(s->name == NULL)) {
+		ss_free(&e->a_snapshot, s);
 		sr_error(&e->error, "%s", "memory allocation failed");
 		return NULL;
 	}
