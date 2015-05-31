@@ -245,7 +245,7 @@ srobj *so_vnew(so *e, srobj *parent)
 {
 	sov *v = ss_malloc(&e->a_v, sizeof(sov));
 	if (ssunlikely(v == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
+		sr_oom(&e->error);
 		return NULL;
 	}
 	return so_vinit(v, e, parent);

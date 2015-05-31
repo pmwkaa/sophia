@@ -18,7 +18,7 @@ sl_alloc(slpool *p, uint32_t id)
 {
 	sl *l = ss_malloc(p->r->a, sizeof(*l));
 	if (ssunlikely(l == NULL)) {
-		sr_malfunction(p->r->e, "%s", "memory allocation failed");
+		sr_oom_malfunction(p->r->e);
 		return NULL;
 	}
 	l->id   = id;
@@ -104,7 +104,7 @@ int sl_poolinit(slpool *p, sr *r)
 	struct iovec *iov =
 		ss_malloc(r->a, sizeof(struct iovec) * 1021);
 	if (ssunlikely(iov == NULL))
-		return sr_malfunction(r->e, "%s", "memory allocation failed");
+		return sr_oom_malfunction(r->e);
 	ss_iovinit(&p->iov, iov, 1021);
 	return 0;
 }
@@ -330,7 +330,7 @@ int sl_poolcopy(slpool *p, char *dest, ssbuf *buf)
 		}
 		rc = ss_bufensure(buf, p->r->a, l->file.size);
 		if (ssunlikely(rc == -1)) {
-			sr_malfunction(p->r->e, "%s", "memory allocation failed");
+			sr_oom_malfunction(p->r->e);
 			ss_fileclose(&file);
 			return -1;
 		}

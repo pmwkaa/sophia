@@ -117,11 +117,19 @@ sr_errorset(srerror *e, int type,
 	return -1;
 }
 
-#define sr_malfunction(e, fmt, ...) \
-	sr_errorset(e, SR_ERROR_MALFUNCTION, __FILE__, __FUNCTION__, \
-	            __LINE__, fmt, __VA_ARGS__)
+#define sr_e(e, type, fmt, ...) \
+	sr_errorset(e, type, __FILE__, __FUNCTION__, __LINE__, fmt, __VA_ARGS__)
 
 #define sr_error(e, fmt, ...) \
-	sr_errorset(e, SR_ERROR, __FILE__, __FUNCTION__, __LINE__, fmt, __VA_ARGS__)
+	sr_e(e, SR_ERROR, fmt, __VA_ARGS__)
+
+#define sr_malfunction(e, fmt, ...) \
+	sr_e(e, SR_ERROR_MALFUNCTION, fmt, __VA_ARGS__)
+
+#define sr_oom(e) \
+	sr_e(e, SR_ERROR, "%s", "memory allocation failed")
+
+#define sr_oom_malfunction(e) \
+	sr_e(e, SR_ERROR_MALFUNCTION, "%s", "memory allocation failed")
 
 #endif

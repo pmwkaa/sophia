@@ -328,7 +328,7 @@ si_recovercomplete(sitrack *track, sr *r, si *index, ssbuf *buf)
 		sinode *n = sscast(p, sinode, node);
 		int rc = ss_bufadd(buf, r->a, &n, sizeof(sinode*));
 		if (ssunlikely(rc == -1))
-			return sr_malfunction(r->e, "%s", "memory allocation failed");
+			return sr_oom_malfunction(r->e);
 		p = ss_rbnext(&track->i, p);
 	}
 	ssiter i;

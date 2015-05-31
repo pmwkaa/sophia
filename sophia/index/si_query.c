@@ -45,10 +45,8 @@ static inline int
 si_querydup(siquery *q, sv *result)
 {
 	svv *v = sv_vdup(q->r->a, result);
-	if (ssunlikely(v == NULL)) {
-		sr_error(q->r->e, "%s", "memory allocation failed");
-		return -1;
-	}
+	if (ssunlikely(v == NULL))
+		return sr_oom(q->r->e);
 	sv_init(&q->result, &sv_vif, v, NULL);
 	return 1;
 }
@@ -102,13 +100,13 @@ si_qread(ssbuf *buf, ssbuf *bufxf, sr *r, si *i, sinode *n, sibranch *b,
 	ss_bufreset(bufxf);
 	int rc = ss_bufensure(bufxf, r->a, b->index.h->sizevmax);
 	if (ssunlikely(rc == -1)) {
-		sr_error(r->e, "%s", "memory allocation failed");
+		sr_oom(r->e);
 		return NULL;
 	}
 	ss_bufreset(buf);
 	rc = ss_bufensure(buf, r->a, sizeof(sdpage) + ref->sizeorigin);
 	if (ssunlikely(rc == -1)) {
-		sr_error(r->e, "%s", "memory allocation failed");
+		sr_oom(r->e);
 		return NULL;
 	}
 	ss_bufadvance(buf, sizeof(sdpage));
@@ -122,7 +120,7 @@ si_qread(ssbuf *buf, ssbuf *bufxf, sr *r, si *i, sinode *n, sibranch *b,
 		ss_bufreset(&i->readbuf);
 		rc = ss_bufensure(&i->readbuf, r->a, ref->size);
 		if (ssunlikely(rc == -1)) {
-			sr_error(r->e, "%s", "memory allocation failed");
+			sr_oom(r->e);
 			return NULL;
 		}
 		rc = ss_filepread(&n->file, offset, i->readbuf.s, ref->size);
@@ -215,7 +213,7 @@ si_qmatch(siquery *q)
 	/* */
 	rc = si_cachevalidate(q->cache, node);
 	if (ssunlikely(rc == -1)) {
-		sr_error(q->r->e, "%s", "memory allocation failed");
+		sr_oom(q->r->e);
 		return -1;
 	}
 	/* search on disk */
@@ -305,7 +303,7 @@ next_node:
 	/* cache and branches */
 	rc = si_cachevalidate(q->cache, node);
 	if (ssunlikely(rc == -1)) {
-		sr_error(q->r->e, "%s", "memory allocation failed");
+		sr_oom(q->r->e);
 		return -1;
 	}
 	sibranch *b = node->branch;

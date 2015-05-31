@@ -132,7 +132,7 @@ srobj *so_cursornew(sodb *db, uint64_t vlsn, int async, va_list args)
 	/* prepare cursor */
 	socursor *c = ss_malloc(&e->a_cursor, sizeof(socursor));
 	if (ssunlikely(c == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
+		sr_oom(&e->error);
 		goto error;
 	}
 	sr_objinit(&c->o, SOCURSOR, &socursorif, &e->o);

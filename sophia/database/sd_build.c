@@ -74,11 +74,11 @@ int sd_buildbegin(sdbuild *b, sr *r, int crc, int compress, int compress_dup)
 	if (compress_dup && b->tracker.size == 0) {
 		rc = ss_htinit(&b->tracker, r->a, 32768);
 		if (ssunlikely(rc == -1))
-			return sr_error(r->e, "%s", "memory allocation failed");
+			return sr_oom(r->e);
 	}
 	rc = ss_bufensure(&b->list, r->a, sizeof(sdbuildref));
 	if (ssunlikely(rc == -1))
-		return sr_error(r->e, "%s", "memory allocation failed");
+		return sr_oom(r->e);
 	sdbuildref *ref =
 		(sdbuildref*)ss_bufat(&b->list, sizeof(sdbuildref), b->n);
 	ref->m     = ss_bufused(&b->m);
@@ -91,7 +91,7 @@ int sd_buildbegin(sdbuild *b, sr *r, int crc, int compress, int compress_dup)
 	ref->csize = 0;
 	rc = ss_bufensure(&b->m, r->a, sizeof(sdpageheader));
 	if (ssunlikely(rc == -1))
-		return sr_error(r->e, "%s", "memory allocation failed");
+		return sr_oom(r->e);
 	sdpageheader *h = sd_buildheader(b);
 	memset(h, 0, sizeof(*h));
 	h->lsnmin    = UINT64_MAX;
@@ -133,7 +133,7 @@ sd_buildadd_keyvalue(sdbuild *b, sr *r, sv *v)
 	uint32_t sizemeta = ss_leb128size(size) + ss_leb128size(lsn);
 	int rc = ss_bufensure(&b->v, r->a, sizemeta);
 	if (ssunlikely(rc == -1))
-		return sr_error(r->e, "%s", "memory allocation failed");
+		return sr_oom(r->e);
 
 	/* write meta */
 	ss_bufadvance(&b->v, ss_leb128write(b->v.p, size));
@@ -166,7 +166,7 @@ sd_buildadd_keyvalue(sdbuild *b, sr *r, sv *v)
 		/* offset */
 		rc = ss_bufensure(&b->v, r->a, ss_leb128size(offset));
 		if (ssunlikely(rc == -1))
-			return sr_error(r->e, "%s", "memory allocation failed");
+			return sr_oom(r->e);
 		ss_bufadvance(&b->v, ss_leb128write(b->v.p, offset));
 		if (is_duplicate)
 			continue;
@@ -175,7 +175,7 @@ sd_buildadd_keyvalue(sdbuild *b, sr *r, sv *v)
 		int partsize_meta = ss_leb128size(partsize);
 		rc = ss_bufensure(&b->k, r->a, partsize_meta + partsize);
 		if (ssunlikely(rc == -1))
-			return sr_error(r->e, "%s", "memory allocation failed");
+			return sr_oom(r->e);
 		ss_bufadvance(&b->k, ss_leb128write(b->k.p, partsize));
 		memcpy(b->k.p, part, partsize);
 		ss_bufadvance(&b->k, partsize);
@@ -185,11 +185,11 @@ sd_buildadd_keyvalue(sdbuild *b, sr *r, sv *v)
 			if (ssunlikely(ss_htisfull(&b->tracker))) {
 				rc = ss_htresize(&b->tracker, r->a);
 				if (ssunlikely(rc == -1))
-					return sr_error(r->e, "%s", "memory allocation failed");
+					return sr_oom(r->e);
 			}
 			sdbuildkey *ref = ss_malloc(r->a, sizeof(sdbuildkey));
 			if (ssunlikely(rc == -1))
-				return sr_error(r->e, "%s", "memory allocation failed");
+				return sr_oom(r->e);
 			ref->node.hash = hash;
 			ref->offset = offset;
 			ref->offsetstart = offsetstart + partsize_meta;
@@ -201,7 +201,7 @@ sd_buildadd_keyvalue(sdbuild *b, sr *r, sv *v)
 	/* write value */
 	rc = ss_bufensure(&b->v, r->a, valuesize);
 	if (ssunlikely(rc == -1))
-		return sr_error(r->e, "%s", "memory allocation failed");
+		return sr_oom(r->e);
 	memcpy(b->v.p, sv_value(v, r), valuesize);
 	ss_bufadvance(&b->v, valuesize);
 	return 0;
@@ -215,7 +215,7 @@ sd_buildadd_raw(sdbuild *b, sr *r, sv *v)
 	uint32_t sizemeta = ss_leb128size(size) + ss_leb128size(lsn);
 	int rc = ss_bufensure(&b->v, r->a, sizemeta + size);
 	if (ssunlikely(rc == -1))
-		return sr_error(r->e, "%s", "memory allocation failed");
+		return sr_oom(r->e);
 	ss_bufadvance(&b->v, ss_leb128write(b->v.p, size));
 	ss_bufadvance(&b->v, ss_leb128write(b->v.p, lsn));
 	memcpy(b->v.p, sv_pointer(v), size);
@@ -228,7 +228,7 @@ int sd_buildadd(sdbuild *b, sr *r, sv *v, uint32_t flags)
 	/* prepare object metadata */
 	int rc = ss_bufensure(&b->m, r->a, sizeof(sdv));
 	if (ssunlikely(rc == -1))
-		return sr_error(r->e, "%s", "memory allocation failed");
+		return sr_oom(r->e);
 	sdpageheader *h = sd_buildheader(b);
 	sdv *sv = (sdv*)b->m.p;
 	sv->flags  = sv_flags(v) | flags;

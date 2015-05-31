@@ -31,7 +31,7 @@ static inline int
 sv_mergeprepare(svmerge *m, sr *r, int count) {
 	int rc = ss_bufensure(&m->buf, r->a, sizeof(svmergessc) * count);
 	if (ssunlikely(rc == -1))
-		return sr_error(r->e, "%s", "memory allocation failed");
+		return sr_oom(r->e);
 	return 0;
 }
 

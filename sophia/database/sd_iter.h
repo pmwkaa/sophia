@@ -67,8 +67,7 @@ sd_iternextpage(sditer *i)
 		int rc = ss_bufensure(i->compression_buf, i->r->a, h->sizeorigin + sizeof(sdpageheader));
 		if (ssunlikely(rc == -1)) {
 			i->page = NULL;
-			sr_malfunction(i->r->e, "%s", "memory allocation failed");
-			return -1;
+			return sr_oom_malfunction(i->r->e);
 		}
 
 		/* copy page header */

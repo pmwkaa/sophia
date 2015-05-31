@@ -39,7 +39,7 @@ struct srobj {
 };
 
 static inline void*
-sr_cast(void *obj, uint32_t id)
+sr_cast(void *obj, uint32_t id ssunused)
 {
 	assert( *(uint32_t*)obj == id );
 	return obj;

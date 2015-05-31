@@ -104,7 +104,7 @@ void *so_txdbget(sodb *db, int async, uint64_t vlsn, int vlsn_generate, va_list 
 
 	sicache *cache = si_cachepool_pop(&e->cachepool);
 	if (ssunlikely(cache == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation error");
+		sr_oom(&e->error);
 		sv_vfree(db->r.a, v);
 		return NULL;
 	}
@@ -281,7 +281,7 @@ so_txget(srobj *obj, va_list args)
 
 	sicache *cache = si_cachepool_pop(&e->cachepool);
 	if (ssunlikely(cache == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation error");
+		sr_oom(&e->error);
 		sv_vfree(db->r.a, v);
 		return NULL;
 	}
@@ -365,10 +365,8 @@ so_txprepare(srobj *o, va_list args ssunused)
 		return -1;
 
 	sicache *cache = si_cachepool_pop(&e->cachepool);
-	if (ssunlikely(cache == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation error");
-		return -1;
-	}
+	if (ssunlikely(cache == NULL))
+		return sr_oom(&e->error);
 
 	/* asynchronous */
 	if (t->async) {
@@ -407,10 +405,8 @@ so_txcommit(srobj *o, va_list args)
 		return -1;
 
 	sicache *cache = si_cachepool_pop(&e->cachepool);
-	if (ssunlikely(cache == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation error");
-		return -1;
-	}
+	if (ssunlikely(cache == NULL))
+		return sr_oom(&e->error);
 
 	/* prepare commit request */
 	sorequest req;
@@ -477,7 +473,7 @@ srobj *so_txnew(so *e, int async)
 {
 	sotx *t = ss_malloc(&e->a_tx, sizeof(sotx));
 	if (ssunlikely(t == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
+		sr_oom(&e->error);
 		return NULL;
 	}
 	sr_objinit(&t->o, SOTX, &sotxif, &e->o);

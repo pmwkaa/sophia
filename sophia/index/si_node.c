@@ -19,7 +19,7 @@ sinode *si_nodenew(sr *r)
 {
 	sinode *n = (sinode*)ss_malloc(r->a, sizeof(sinode));
 	if (ssunlikely(n == NULL)) {
-		sr_malfunction(r->e, "%s", "memory allocation failed");
+		sr_oom_malfunction(r->e);
 		return NULL;
 	}
 	n->recover = 0;

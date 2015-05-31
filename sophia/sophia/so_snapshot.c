@@ -117,7 +117,7 @@ srobj *so_snapshotnew(so *e, uint64_t vlsn, char *name)
 	}
 	sosnapshot *s = ss_malloc(&e->a_snapshot, sizeof(sosnapshot));
 	if (ssunlikely(s == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
+		sr_oom(&e->error);
 		return NULL;
 	}
 	sr_objinit(&s->o, SOSNAPSHOT, &sosnapshotif, &e->o);
@@ -125,7 +125,7 @@ srobj *so_snapshotnew(so *e, uint64_t vlsn, char *name)
 	s->name = ss_strdup(&e->a, name);
 	if (ssunlikely(s->name == NULL)) {
 		ss_free(&e->a_snapshot, s);
-		sr_error(&e->error, "%s", "memory allocation failed");
+		sr_oom(&e->error);
 		return NULL;
 	}
 	sx_begin(&e->xm, &s->t, vlsn);

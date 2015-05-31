@@ -348,8 +348,7 @@ sd_pageiter_open(ssiter *i, sr *r, ssbuf *xfbuf, sdpage *page, ssorder o,
 	if (ssunlikely(pi->page->h->lsnmin > pi->vlsn &&
 	               pi->order != SS_UPDATE))
 		return 0;
-	int match;
-	int rc;
+	int rc = 0;
 	switch (pi->order) {
 	case SS_LT:  rc = sd_pageiter_lt(pi, 0);
 		break;
@@ -364,7 +363,7 @@ sd_pageiter_open(ssiter *i, sr *r, ssbuf *xfbuf, sdpage *page, ssorder o,
 	case SS_UPDATE: {
 		uint64_t vlsn = pi->vlsn;
 		pi->vlsn = (uint64_t)-1;
-		match = sd_pageiter_lt(pi, 1);
+		int match = sd_pageiter_lt(pi, 1);
 		if (match == 0)
 			return 0;
 		rc = sd_pagelsnof(pi->page, pi->v) > vlsn;

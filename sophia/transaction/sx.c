@@ -309,7 +309,7 @@ int sx_set(sx *t, sxindex *index, svv *version)
 		/* unique */
 		v->lo = sv_logcount(&t->log);
 		if (ssunlikely((sv_logadd(&t->log, m->r->a, &lv, index->ptr)) == -1)) {
-			rc = sr_error(m->r->e, "%s", "memory allocation failed");
+			rc = sr_oom(m->r->e);
 		} else {
 			ss_rbset(&index->i, n, rc, &v->node);
 			rc = 0;
@@ -339,7 +339,7 @@ int sx_set(sx *t, sxindex *index, svv *version)
 	if (ssunlikely(rc == -1)) {
 		ss_spinunlock(&m->lockupd);
 		sx_vfree(m->r->a, m->asxv, v);
-		return sr_error(m->r->e, "%s", "memory allocation failed");
+		return sr_oom(m->r->e);
 	}
 	/* add version */
 	sx_vlink(head, v);
@@ -373,7 +373,7 @@ int sx_get(sx *t, sxindex *index, sv *key, sv *result)
 	sv_init(&vv, &sv_vif, v->v, NULL);
 	svv *ret = sv_vdup(m->r->a, &vv);
 	if (ssunlikely(ret == NULL)) {
-		rc = sr_error(m->r->e, "%s", "memory allocation failed");
+		rc = sr_oom(m->r->e);
 	} else {
 		sv_init(result, &sv_vif, ret, NULL);
 		rc = 1;

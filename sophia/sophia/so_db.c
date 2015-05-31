@@ -120,7 +120,7 @@ so_dbscheme_init(sodb *db, char *name)
 e1:
 	si_schemefree(&db->scheme, &db->r);
 e0:
-	sr_error(&e->error, "%s", "memory allocation failed");
+	sr_oom(&e->error);
 	return -1;
 }
 
@@ -169,19 +169,15 @@ so_dbscheme_set(sodb *o)
 		char path[1024];
 		snprintf(path, sizeof(path), "%s/%s", e->ctl.path, s->name);
 		s->path = ss_strdup(&e->a, path);
-		if (ssunlikely(s->path == NULL)) {
-			sr_error(&e->error, "%s", "memory allocation failed");
-			return -1;
-		}
+		if (ssunlikely(s->path == NULL))
+			return sr_oom(&e->error);
 	}
 	/* backup path */
 	s->path_backup = e->ctl.backup_path;
 	if (e->ctl.backup_path) {
 		s->path_backup = ss_strdup(&e->a, e->ctl.backup_path);
-		if (ssunlikely(s->path_backup == NULL)) {
-			sr_error(&e->error, "%s", "memory allocation failed");
-			return -1;
-		}
+		if (ssunlikely(s->path_backup == NULL))
+			return sr_oom(&e->error);
 	}
 	/* compaction */
 	s->node_size          = e->ctl.node_size;
@@ -460,7 +456,7 @@ srobj *so_dbnew(so *e, char *name)
 {
 	sodb *o = ss_malloc(&e->a_db, sizeof(sodb));
 	if (ssunlikely(o == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
+		sr_oom(&e->error);
 		return NULL;
 	}
 	memset(o, 0, sizeof(*o));
@@ -643,7 +639,7 @@ svv *so_dbv(sodb *db, sov *o, int search)
 	              o->valuesize);
 ret:
 	if (ssunlikely(v == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
+		sr_oom(&e->error);
 		return NULL;
 	}
 	return v;

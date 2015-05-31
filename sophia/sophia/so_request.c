@@ -182,7 +182,7 @@ so_requestnew(so *e, sorequestop op, srobj *object, srobj *db)
 {
 	sorequest *r = ss_malloc(&e->a_req, sizeof(sorequest));
 	if (ssunlikely(r == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
+		sr_oom(&e->error);
 		return NULL;
 	}
 	so_requestinit(e, r, op, object, db);

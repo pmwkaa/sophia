@@ -129,10 +129,8 @@ int sr_cserialize(src *c, srcstmt *stmt)
 	ssbuf *buf = stmt->serialize;
 	int size = sizeof(v) + v.namelen + v.valuelen;
 	int rc = ss_bufensure(buf, stmt->r->a, size);
-	if (ssunlikely(rc == -1)) {
-		sr_error(stmt->r->e, "%s", "memory allocation failed");
-		return -1;
-	}
+	if (ssunlikely(rc == -1))
+		return sr_oom(stmt->r->e);
 	memcpy(buf->p, &v, sizeof(v));
 	memcpy(buf->p + sizeof(v), name, v.namelen);
 	memcpy(buf->p + sizeof(v) + v.namelen, value, v.valuelen);
@@ -170,10 +168,8 @@ int sr_cset(src *c, srcstmt *stmt, char *value)
 		char *nsz = NULL;
 		if (value) {
 			nsz = ss_strdup(stmt->r->a, value);
-			if (ssunlikely(nsz == NULL)) {
-				sr_error(stmt->r->e, "%s", "memory allocation failed");
-				return -1;
-			}
+			if (ssunlikely(nsz == NULL))
+				return sr_oom(stmt->r->e);
 		}
 		char **sz = (char**)c->value;
 		if (*sz)

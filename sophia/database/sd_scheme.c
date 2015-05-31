@@ -16,10 +16,8 @@
 int sd_schemebegin(sdscheme *c, sr *r)
 {
 	int rc = ss_bufensure(&c->buf, r->a, sizeof(sdschemeheader));
-	if (ssunlikely(rc == -1)) {
-		sr_error(r->e, "%s", "memory allocation failed");
-		return -1;
-	}
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
 	sdschemeheader *h = (sdschemeheader*)c->buf.s;
 	memset(h, 0, sizeof(sdschemeheader));
 	ss_bufadvance(&c->buf, sizeof(sdschemeheader));
@@ -44,8 +42,7 @@ int sd_schemeadd(sdscheme *c, sr *r, uint8_t id, sstype type,
 	h->count++;
 	return 0;
 error:
-	sr_error(r->e, "%s", "memory allocation failed");
-	return -1;
+	return sr_oom(r->e);
 }
 
 int sd_schemecommit(sdscheme *c, sr *r)
@@ -94,10 +91,8 @@ int sd_schemerecover(sdscheme *c, sr *r, char *path)
 		return -1;
 	}
 	int rc = ss_bufensure(&c->buf, r->a, size);
-	if (ssunlikely(rc == -1)) {
-		sr_error(r->e, "%s", "memory allocation failed");
-		return -1;
-	}
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
 	ssfile meta;
 	ss_fileinit(&meta, r->a);
 	rc = ss_fileopen(&meta, path);

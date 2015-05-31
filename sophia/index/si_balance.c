@@ -46,7 +46,7 @@ si_branchcreate(si *index, sr *r, sdc *c, sinode *parent, svindex *vindex, uint6
 	rc = sd_merge(&merge);
 	if (ssunlikely(rc == -1)) {
 		sv_mergefree(&vmerge, r->a);
-		sr_malfunction(r->e, "%s", "memory allocation failed");
+		sr_oom_malfunction(r->e);
 		goto error;
 	}
 	assert(rc == 1);
@@ -132,10 +132,8 @@ static inline int
 si_noderead(sr *r, ssbuf *dest, sinode *node)
 {
 	int rc = ss_bufensure(dest, r->a, node->file.size);
-	if (ssunlikely(rc == -1)) {
-		sr_malfunction(r->e, "%s", "memory allocation failed");
-		return -1;
-	}
+	if (ssunlikely(rc == -1))
+		return sr_oom_malfunction(r->e);
 	rc = ss_filepread(&node->file, 0, dest->s, node->file.size);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' read error: %s",
@@ -159,10 +157,8 @@ int si_compact(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 
 	/* prepare for compaction */
 	rc = sd_censure(c, r, node->branch_count);
-	if (ssunlikely(rc == -1)) {
-		sr_malfunction(r->e, "%s", "memory allocation failed");
-		return -1;
-	}
+	if (ssunlikely(rc == -1))
+		return sr_oom_malfunction(r->e);
 	svmerge merge;
 	sv_mergeinit(&merge);
 	rc = sv_mergeprepare(&merge, r, node->branch_count);
@@ -174,10 +170,8 @@ int si_compact(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	while (b) {
 		svmergessc *s = sv_mergeadd(&merge, NULL);
 		rc = ss_bufensure(&cbuf->b, r->a, b->index.h->sizevmax);
-		if (ssunlikely(rc == -1)) {
-			sr_malfunction(r->e, "%s", "memory allocation failed");
-			return -1;
-		}
+		if (ssunlikely(rc == -1))
+			return sr_oom_malfunction(r->e);
 		size_stream += sd_indextotal(&b->index);
 		ss_iterinit(sd_iter, &s->ssc);
 		ss_iteropen(sd_iter, &s->ssc, r, &b->index, c->c.s, 0,

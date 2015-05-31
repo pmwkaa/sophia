@@ -35,10 +35,8 @@ si_backupend(si *index, sr *r, sdc *c, siplan *plan)
 		return -1;
 	}
 	int rc = ss_bufensure(&c->c, r->a, size);
-	if (ssunlikely(rc == -1)) {
-		sr_error(r->e, "%s", "memory allocation failed");
-		return -1;
-	}
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
 
 	/* read scheme file */
 	ssfile file;
@@ -102,10 +100,8 @@ int si_backup(si *index, sr *r, sdc *c, siplan *plan)
 
 	/* read origin file */
 	int rc = ss_bufensure(&c->c, r->a, node->file.size);
-	if (ssunlikely(rc == -1)) {
-		sr_error(r->e, "%s", "memory allocation failed");
-		return -1;
-	}
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
 	rc = ss_filepread(&node->file, 0, c->c.s, node->file.size);
 	if (ssunlikely(rc == -1)) {
 		sr_error(r->e, "db file '%s' read error: %s",

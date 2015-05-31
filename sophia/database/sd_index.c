@@ -17,7 +17,7 @@ int sd_indexbegin(sdindex *i, sr *r, uint64_t offset)
 {
 	int rc = ss_bufensure(&i->i, r->a, sizeof(sdindexheader));
 	if (ssunlikely(rc == -1))
-		return sr_error(r->e, "%s", "memory allocation failed");
+		return sr_oom(r->e);
 	sdindexheader *h = sd_indexheader(i);
 	sr_version(&h->version);
 	h->crc         = 0;
@@ -45,10 +45,8 @@ int sd_indexcommit(sdindex *i, sr *r, sdid *id)
 {
 	int size = ss_bufused(&i->v);
 	int rc = ss_bufensure(&i->i, r->a, size);
-	if (ssunlikely(rc == -1)) {
-		sr_error(r->e, "%s", "memory allocation failed");
-		return -1;
-	}
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
 	memcpy(i->i.p, i->v.s, size);
 	ss_bufadvance(&i->i, size);
 	ss_buffree(&i->v, r->a);
@@ -66,10 +64,8 @@ sd_indexadd_raw(sdindex *i, sr *r, sdindexpage *p, char *min, char *max)
 	p->sizemax = sf_keytotal(max, r->scheme->count);
 	/* prepare buffer */
 	int rc = ss_bufensure(&i->v, r->a, p->sizemin + p->sizemax);
-	if (ssunlikely(rc == -1)) {
-		sr_error(r->e, "%s", "memory allocation failed");
-		return -1;
-	}
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
 	/* reformat key object to exclude value */
 	rc = sf_keycopy(i->v.p, min, r->scheme->count);
 	assert(rc == p->sizemin);
@@ -108,10 +104,8 @@ sd_indexadd_keyvalue(sdindex *i, sr *r, sdbuild *build, sdindexpage *p, char *mi
 	}
 	p->sizemin = total + (r->scheme->count * sizeof(sfref));
 	int rc = ss_bufensure(&i->v, r->a, p->sizemin);
-	if (ssunlikely(rc == -1)) {
-		sr_error(r->e, "%s", "memory allocation failed");
-		return -1;
-	}
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
 	sf_write(SF_KV, i->v.p, kv, r->scheme->count, NULL, 0);
 	ss_bufadvance(&i->v, p->sizemin);
 
@@ -134,10 +128,8 @@ sd_indexadd_keyvalue(sdindex *i, sr *r, sdbuild *build, sdindexpage *p, char *mi
 	}
 	p->sizemax = total + (r->scheme->count * sizeof(sfref));
 	rc = ss_bufensure(&i->v, r->a, p->sizemax);
-	if (ssunlikely(rc == -1)) {
-		sr_error(r->e, "%s", "memory allocation failed");
-		return -1;
-	}
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
 	sf_write(SF_KV, i->v.p, kv, r->scheme->count, NULL, 0);
 	ss_bufadvance(&i->v, p->sizemax);
 	return 0;
@@ -146,10 +138,8 @@ sd_indexadd_keyvalue(sdindex *i, sr *r, sdbuild *build, sdindexpage *p, char *mi
 int sd_indexadd(sdindex *i, sr *r, sdbuild *build)
 {
 	int rc = ss_bufensure(&i->i, r->a, sizeof(sdindexpage));
-	if (ssunlikely(rc == -1)) {
-		sr_error(r->e, "%s", "memory allocation failed");
-		return -1;
-	}
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
 	sdpageheader *ph = sd_buildheader(build);
 
 	int size = ph->size + sizeof(sdpageheader);
@@ -218,7 +208,7 @@ int sd_indexcopy(sdindex *i, sr *r, sdindexheader *h)
 	int size = sd_indexsize(h);
 	int rc = ss_bufensure(&i->i, r->a, size);
 	if (ssunlikely(rc == -1))
-		return sr_error(r->e, "%s", "memory allocation failed");
+		return sr_oom(r->e);
 	memcpy(i->i.s, (char*)h, size);
 	ss_bufadvance(&i->i, size);
 	i->h = sd_indexheader(i);

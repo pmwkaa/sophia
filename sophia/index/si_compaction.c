@@ -29,7 +29,7 @@ si_redistribute(si *index, sr *r, sdc *c, sinode *node, ssbuf *result,
 		sv *v = ss_iterof(sv_indexiterraw, &i);
 		int rc = ss_bufadd(&c->b, r->a, &v->v, sizeof(svv**));
 		if (ssunlikely(rc == -1))
-			return sr_malfunction(r->e, "%s", "memory allocation failed");
+			return sr_oom_malfunction(r->e);
 		ss_iternext(sv_indexiterraw, &i);
 	}
 	if (ssunlikely(ss_bufused(&c->b) == 0))
@@ -126,7 +126,7 @@ si_redistribute_index(si *index, sr *r, sdc *c, sinode *node, uint64_t vlsn)
 		sv *v = ss_iterof(sv_indexiterraw, &i);
 		int rc = ss_bufadd(&c->b, r->a, &v->v, sizeof(svv**));
 		if (ssunlikely(rc == -1))
-			return sr_malfunction(r->e, "%s", "memory allocation failed");
+			return sr_oom_malfunction(r->e);
 		ss_iternext(sv_indexiterraw, &i);
 	}
 	if (ssunlikely(ss_bufused(&c->b) == 0))
@@ -198,7 +198,7 @@ si_split(si *index, sr *r, sdc *c, ssbuf *result,
 			goto error;
 		rc = ss_bufadd(result, r->a, &n, sizeof(sinode*));
 		if (ssunlikely(rc == -1)) {
-			sr_malfunction(r->e, "%s", "memory allocation failed");
+			sr_oom_malfunction(r->e);
 			si_nodefree(n, r, 1);
 			goto error;
 		}
@@ -257,7 +257,7 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 			return -1;
 		rc = ss_bufadd(result, r->a, &n, sizeof(sinode*));
 		if (ssunlikely(rc == -1)) {
-			sr_malfunction(r->e, "%s", "memory allocation failed");
+			sr_oom_malfunction(r->e);
 			si_nodefree(n, r, 1);
 			return -1;
 		}

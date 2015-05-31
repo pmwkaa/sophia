@@ -61,13 +61,13 @@ void *so_ctlreturn(src *c, void *o)
 	fv.r.offset = 0;
 	svv *v = sv_vbuild(&e->r, &fv, 1, value, size);
 	if (ssunlikely(v == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation failed");
+		sr_oom(&e->error);
 		return NULL;
 	}
 	sov *result = (sov*)so_vnew(e, NULL);
 	if (ssunlikely(result == NULL)) {
 		sv_vfree(&e->a, v);
-		sr_error(&e->error, "%s", "memory allocation failed");
+		sr_oom(&e->error);
 		return NULL;
 	}
 	sv vp;
@@ -981,8 +981,7 @@ int so_ctlvalidate(soctl *c)
 		snprintf(path, sizeof(path), "%s/log", c->path);
 		c->log_path = ss_strdup(&e->a, path);
 		if (ssunlikely(c->log_path == NULL)) {
-			sr_error(&e->error, "%s", "memory allocation failed");
-			return -1;
+			return sr_oom(&e->error);
 		}
 	}
 	int i = 0;
