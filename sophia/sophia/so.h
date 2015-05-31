@@ -33,6 +33,7 @@ struct so {
 	soasync async;
 	srseq seq;
 	ssquota quota;
+	sspager pagersx;
 	sspager pager;
 	ssa a;
 	ssa a_db;

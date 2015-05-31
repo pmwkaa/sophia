@@ -18,15 +18,33 @@
 #include <libse.h>
 #include <libso.h>
 
+void
+so_requestend(sorequest *r)
+{
+	so *e = so_of(&r->o);
+	/* free key */
+	if (r->arg.v.v)
+		sv_vfree(&e->a, r->arg.v.v);
+	/* free request cache */
+	if (sslikely(r->arg.cache))
+		si_cachepool_push(r->arg.cache);
+	/* unref db */
+	if (sslikely(r->db))
+		so_dbunref((sodb*)r->db, 1);
+	if (ssunlikely(r->v))
+		sv_vfree(&e->a, (svv*)r->v);
+}
+
 static int
 so_requestdestroy(srobj *obj, va_list args ssunused)
 {
 	sorequest *r = (sorequest*)obj;
 	so *e = so_of(&r->o);
+	so_requestend(r);
+	/* free request result object */
 	if (r->result)
 		sr_objdestroy((srobj*)r->result);
-	if (r->arg.v.v)
-		sv_vfree(&e->a, r->arg.v.v);
+	/* gc used object */
 	switch (r->op) {
 	case SO_REQCURSOROPEN:
 		if (ssunlikely(r->rc == -1))
@@ -120,8 +138,11 @@ void so_requestinit(so *e, sorequest *r, sorequestop op, srobj *object, srobj *d
 	r->op = op;
 	r->object = object;
 	r->db = db;
+	if (r->db)
+		so_dbref((sodb*)r->db, 1);
 	memset(&r->arg, 0, sizeof(r->arg));
 	r->result = NULL;
+	r->v = NULL;
 	r->rc = 0;
 }
 
@@ -202,4 +223,21 @@ int so_requestcount(so *e)
 	int n = e->req.n;
 	ss_spinunlock(&e->reqlock);
 	return n;
+}
+
+srobj*
+so_requestresult(sorequest *r)
+{
+	if (r->op != SO_REQDBGET &&
+	    r->op != SO_REQTXGET)
+		return NULL;
+	if (r->rc <= 0)
+		return NULL;
+	so *e = so_of(&r->o);
+	sv result;
+	sv_init(&result, &sv_vif, r->v, NULL);
+	r->result = so_vdup(e, r->db, &result);
+	if (sslikely(r->result))
+		r->v = NULL;
+	return r->result;
 }

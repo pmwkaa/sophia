@@ -30,6 +30,7 @@ typedef enum {
 struct sorequestarg {
 	ssorder order;
 	sv v;
+	sicache *cache;
 	int prefix;
 	int recover;
 	uint64_t lsn;
@@ -44,6 +45,7 @@ struct sorequest {
 	srobj *object;
 	srobj *db;
 	sorequestarg arg;
+	void *v;
 	void *result;
 	int rc; 
 } sspacked;
@@ -56,5 +58,7 @@ int  so_requestcount(so*);
 sorequest *so_requestnew(so*, sorequestop, srobj*, srobj*);
 sorequest *so_requestdispatch(so*);
 sorequest *so_requestdispatch_ready(so*);
+srobj     *so_requestresult(sorequest*);
+void       so_requestend(sorequest*);
 
 #endif

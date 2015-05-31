@@ -166,6 +166,7 @@ so_destroy(srobj *o, va_list args ssunused)
 	ss_spinlockfree(&e->dblock);
 	sr_seqfree(&e->seq);
 	ss_pagerfree(&e->pager);
+	ss_pagerfree(&e->pagersx);
 	so_statusfree(&e->status);
 	free(e);
 	return rcret;
@@ -194,9 +195,11 @@ so_poll(srobj *o, va_list args ssunused)
 		}
 		ss_mutexunlock(&e->sched.lock);
 	}
+
 	sorequest *req = so_requestdispatch_ready(e);
 	if (req == NULL)
 		return NULL;
+	so_requestresult(req);
 	return &req->o;
 }
 
@@ -251,6 +254,13 @@ srobj *so_new(void)
 		free(e);
 		return NULL;
 	}
+	ss_pagerinit(&e->pagersx, 10, 4096);
+	rc = ss_pageradd(&e->pagersx);
+	if (ssunlikely(rc == -1)) {
+		ss_pagerfree(&e->pager);
+		free(e);
+		return NULL;
+	}
 	ss_aopen(&e->a, &ss_stda);
 	ss_aopen(&e->a_db, &ss_slaba, &e->pager, sizeof(sodb));
 	ss_aopen(&e->a_v, &ss_slaba, &e->pager, sizeof(sov));
@@ -260,8 +270,8 @@ srobj *so_new(void)
 	ss_aopen(&e->a_ctlcursor, &ss_slaba, &e->pager, sizeof(soctlcursor));
 	ss_aopen(&e->a_snapshot, &ss_slaba, &e->pager, sizeof(sosnapshot));
 	ss_aopen(&e->a_tx, &ss_slaba, &e->pager, sizeof(sotx));
-	ss_aopen(&e->a_sxv, &ss_slaba, &e->pager, sizeof(sxv));
 	ss_aopen(&e->a_req, &ss_slaba, &e->pager, sizeof(sorequest));
+	ss_aopen(&e->a_sxv, &ss_slaba, &e->pagersx, sizeof(sxv));
 	so_statusinit(&e->status);
 	so_statusset(&e->status, SO_OFFLINE);
 	so_ctlinit(&e->ctl, e);

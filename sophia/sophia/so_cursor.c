@@ -59,6 +59,7 @@ so_cursordestroy(srobj *o, va_list args ssunused)
 	sorequest req;
 	so_requestinit(e, &req, SO_REQCURSORDESTROY, &c->o, &c->db->o);
 	so_query(&req);
+	so_requestend(&req);
 	so_cursorend(c);
 	return 0;
 }
@@ -80,6 +81,7 @@ so_cursorget(srobj *o, va_list args ssunused)
 	sorequest req;
 	so_requestinit(e, &req, SO_REQCURSORGET, &c->o, &c->db->o);
 	so_query(&req);
+	so_requestend(&req);
 	if (ssunlikely(req.rc <= 0))
 		return NULL;
 	return &c->v;
@@ -202,6 +204,7 @@ srobj *so_cursornew(sodb *db, uint64_t vlsn, int async, va_list args)
 	arg->vlsn_generate = 0;
 	arg->vlsn = vlsn;
 	so_query(&req);
+	so_requestend(&req);
 	if (ssunlikely(req.rc == -1))
 		goto error;
 	so_dbbind(e);

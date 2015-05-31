@@ -69,6 +69,7 @@ int so_txdbset(sodb *db, int async, uint8_t flags, va_list args)
 	arg->vlsn_generate = 1;
 	arg->v = vp;
 	so_query(&req);
+	so_requestend(&req);
 	return req.rc;
 error:
 	sr_objdestroy(&o->o);
@@ -101,16 +102,25 @@ void *so_txdbget(sodb *db, int async, uint64_t vlsn, int vlsn_generate, va_list 
 	sv vp;
 	sv_init(&vp, &sv_vif, v, NULL);
 
+	sicache *cache = si_cachepool_pop(&e->cachepool);
+	if (ssunlikely(cache == NULL)) {
+		sr_error(&e->error, "%s", "memory allocation error");
+		sv_vfree(db->r.a, v);
+		return NULL;
+	}
+
 	/* asynchronous */
 	if (async)
 	{
 		sorequest *task = so_requestnew(e, SO_REQDBGET, &db->o, &db->o);
 		if (ssunlikely(task == NULL)) {
 			sv_vfree(db->r.a, v);
+			si_cachepool_push(cache);
 			return NULL;
 		}
 		sorequestarg *arg = &task->arg;
 		arg->v = vp;
+		arg->cache = cache;
 		arg->order = SS_EQ;
 		arg->vlsn_generate = 1;
 		so_requestadd(e, task);
@@ -122,12 +132,18 @@ void *so_txdbget(sodb *db, int async, uint64_t vlsn, int vlsn_generate, va_list 
 	so_requestinit(e, &req, SO_REQDBGET, &db->o, &db->o);
 	sorequestarg *arg = &req.arg;
 	arg->v = vp;
+	arg->cache = cache;
 	arg->order = SS_EQ;
-	/* support (sync) snapshot read-view */
 	arg->vlsn_generate = vlsn_generate;
 	arg->vlsn = vlsn;
-	so_query(&req);
-	return req.result;
+	int rc = so_query(&req);
+	if (rc == 1) {
+		so_requestresult(&req);
+		so_requestend(&req);
+		return req.result;
+	}
+	so_requestend(&req);
+	return NULL;
 error:
 	sr_objdestroy(&o->o);
 	return NULL;
@@ -202,6 +218,7 @@ so_txwrite(srobj *obj, uint8_t flags, va_list args)
 	sorequestarg *arg = &req.arg;
 	arg->v = vp;
 	so_query(&req);
+	so_requestend(&req);
 	return req.rc;
 error:
 	sr_objdestroy(&o->o);
@@ -262,15 +279,24 @@ so_txget(srobj *obj, va_list args)
 	sv_init(&vp, &sv_vif, v, NULL);
 	sr_objdestroy(&o->o);
 
+	sicache *cache = si_cachepool_pop(&e->cachepool);
+	if (ssunlikely(cache == NULL)) {
+		sr_error(&e->error, "%s", "memory allocation error");
+		sv_vfree(db->r.a, v);
+		return NULL;
+	}
+
 	/* asynchronous */
 	if (t->async) {
 		sorequest *task = so_requestnew(e, SO_REQTXGET, &t->o, &db->o);
 		if (ssunlikely(task == NULL)) {
 			sv_vfree(db->r.a, v);
+			si_cachepool_push(cache);
 			return NULL;
 		}
 		sorequestarg *arg = &task->arg;
 		arg->v = vp;
+		arg->cache = cache;
 		arg->order = SS_EQ;
 		arg->vlsn_generate = 0;
 		so_requestadd(e, task);
@@ -282,10 +308,17 @@ so_txget(srobj *obj, va_list args)
 	so_requestinit(e, &req, SO_REQTXGET, &t->o, &db->o);
 	sorequestarg *arg = &req.arg;
 	arg->v = vp;
+	arg->cache = cache;
 	arg->order = SS_EQ;
 	arg->vlsn_generate = 0;
-	so_query(&req);
-	return req.result;
+	int rc = so_query(&req);
+	if (rc == 1) {
+		so_requestresult(&req);
+		so_requestend(&req);
+		return req.result;
+	}
+	so_requestend(&req);
+	return NULL;
 error:
 	sr_objdestroy(&o->o);
 	return NULL;
@@ -330,20 +363,35 @@ so_txprepare(srobj *o, va_list args ssunused)
 	int status = so_status(&e->status);
 	if (ssunlikely(! so_statusactive_is(status)))
 		return -1;
+
+	sicache *cache = si_cachepool_pop(&e->cachepool);
+	if (ssunlikely(cache == NULL)) {
+		sr_error(&e->error, "%s", "memory allocation error");
+		return -1;
+	}
+
 	/* asynchronous */
 	if (t->async) {
 		sorequest *task = so_requestnew(e, SO_REQPREPARE, &t->o, NULL);
-		if (ssunlikely(task == NULL))
+		if (ssunlikely(task == NULL)) {
+			si_cachepool_push(cache);
 			return -1;
-		task->arg.recover = (status == SO_RECOVER);
+		}
+		sorequestarg *arg = &task->arg;
+		arg->recover = (status == SO_RECOVER);
+		arg->cache = cache;
 		so_requestadd(e, task);
 		return 0;
 	}
+
 	/* synchronous */
 	sorequest req;
 	so_requestinit(e, &req, SO_REQPREPARE, &t->o, NULL);
-	req.arg.recover = (status == SO_RECOVER);
+	sorequestarg *arg = &req.arg;
+	arg->recover = (status == SO_RECOVER);
+	arg->cache = cache;
 	so_query(&req);
+	so_requestend(&req);
 	if (ssunlikely(req.rc == 1))
 		so_txend(t);
 	return req.rc;
@@ -358,10 +406,17 @@ so_txcommit(srobj *o, va_list args)
 	if (ssunlikely(! so_statusactive_is(status)))
 		return -1;
 
+	sicache *cache = si_cachepool_pop(&e->cachepool);
+	if (ssunlikely(cache == NULL)) {
+		sr_error(&e->error, "%s", "memory allocation error");
+		return -1;
+	}
+
 	/* prepare commit request */
 	sorequest req;
 	so_requestinit(e, &req, SO_REQCOMMIT, &t->o, NULL);
 	sorequestarg *arg = &req.arg;
+	arg->cache = cache;
 	arg->lsn = 0;
 	if (status == SO_RECOVER || e->ctl.commit_lsn)
 		arg->lsn = va_arg(args, uint64_t);
@@ -387,9 +442,9 @@ so_txcommit(srobj *o, va_list args)
 
 	/* synchronous */
 	so_query(&req);
-	if (ssunlikely(req.rc == 2))
-		return req.rc;
-	so_txend(t);
+	so_requestend(&req);
+	if (ssunlikely(req.rc != 2))
+		so_txend(t);
 	return req.rc;
 }
 

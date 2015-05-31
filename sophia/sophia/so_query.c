@@ -58,34 +58,19 @@ so_queryread(sorequest *r)
 {
 	sorequestarg *arg = &r->arg;
 	sodb *db = (sodb*)r->db;
-	so *e = so_of(r->object);
-	/* query */
 	uint32_t keysize = sv_size(&arg->v);
 	void *key = sv_pointer(&arg->v);
 	if (sslikely(arg->vlsn_generate))
 		arg->vlsn = sr_seq(db->r.seq, SR_LSN);
-	sicache *cache = si_cachepool_pop(&e->cachepool);
-	if (ssunlikely(cache == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation error");
-		return (r->rc = -1);
-	}
 	siquery q;
-	si_queryopen(&q, &db->r, cache, &db->index,
+	si_queryopen(&q, &db->r, arg->cache, &db->index,
 	             arg->order,
 	             arg->vlsn,
 	             NULL, 0, key, keysize);
 	int rc = si_query(&q);
-	sv result = q.result;
-	si_queryclose(&q);
-	si_cachepool_push(cache);
 	r->rc = rc;
-	if (ssunlikely(rc <= 0))
-		return rc;
-	/* result */
-	srobj *ret = so_vdup(e, &db->o, &result);
-	if (ssunlikely(ret == NULL))
-		sv_vfree(&e->a, (svv*)result.v);
-	r->result = ret;
+	r->v = q.result.v;
+	si_queryclose(&q);
 	return rc;
 }
 
@@ -101,8 +86,6 @@ so_querydb_set(sorequest *r)
 	switch (s) {
 	case SXLOCK: rc = 2;
 	case SXROLLBACK:
-		sv_vfree(db->r.a, arg->v.v);
-		arg->v.v = NULL;
 		return (r->rc = rc);
 	default: break;
 	}
@@ -116,8 +99,6 @@ so_querydb_set(sorequest *r)
 	sv_loginit(&log);
 	sv_logadd(&log, db->r.a, &v, db);
 	so_querywrite(r, &log);
-	if (ssunlikely(r->rc == -1))
-		sv_vfree(db->r.a, arg->v.v);
 	arg->v.v = NULL;
 	return r->rc;
 }
@@ -130,8 +111,6 @@ so_querydb_get(sorequest *r)
 	/* register transaction statement */
 	sx_getstmt(&e->xm, &db->coindex);
 	so_queryread(r);
-	sv_vfree(db->r.a, (svv*)r->arg.v.v);
-	r->arg.v.v = NULL;
 	return r->rc;
 }
 
@@ -143,9 +122,8 @@ so_querytx_set(sorequest *r)
 	sotx *t = (sotx*)r->object;
 	/* concurrent index only */
 	r->rc = sx_set(&t->t, &db->coindex, (svv*)arg->v.v);
-	if (ssunlikely(r->rc == -1))
-		sv_vfree(db->r.a, arg->v.v);
-	arg->v.v = NULL;
+	if (sslikely(r->rc == 0))
+		arg->v.v = NULL;
 	return r->rc;
 }
 
@@ -155,7 +133,6 @@ so_querytx_get(sorequest *r)
 	sorequestarg *arg = &r->arg;
 	sodb *db = (sodb*)r->db;
 	sotx *t = (sotx*)r->object;
-	so *e = so_of(r->object);
 	/* derive vlsn */
 	arg->vlsn = t->t.vlsn;
 	arg->vlsn_generate = 0;
@@ -164,50 +141,14 @@ so_querytx_get(sorequest *r)
 	r->rc = sx_get(&t->t, &db->coindex, &arg->v, &result);
 	switch (r->rc) {
 	case  1:
-		r->result = so_vdup(e, &db->o, &result);
-		if (ssunlikely(r->result == NULL)) {
-			r->rc = -1;
-			sv_vfree(&e->a, (svv*)result.v);
-		}
+		r->v = result.v;
 		break;
 	case  0:
 		/* storage */
 		so_queryread(r);
 		break;
 	}
-	sv_vfree(db->r.a, (svv*)arg->v.v);
-	arg->v.v = NULL;
 	return r->rc;
-}
-
-static sxstate
-so_queryprepare_trigger(sx *t, sv *v, void *arg0, void *arg1)
-{
-	sotx *te ssunused = arg0;
-	sodb *db = arg1;
-	so *e = so_of(&db->o);
-	uint64_t lsn = sr_seq(e->r.seq, SR_LSN);
-	if (t->vlsn == lsn)
-		return SXPREPARE;
-	sicache *cache = si_cachepool_pop(&e->cachepool);
-	if (ssunlikely(cache == NULL)) {
-		sr_error(&e->error, "%s", "memory allocation error");
-		return SXROLLBACK;
-	}
-	siquery q;
-	si_queryopen(&q, &db->r, cache, &db->index,
-	             SS_UPDATE, t->vlsn,
-	             NULL, 0,
-	             sv_pointer(v), sv_size(v));
-	int rc;
-	rc = si_query(&q);
-	if (rc == 1)
-		sv_vfree(&e->a, (svv*)q.result.v);
-	si_queryclose(&q);
-	si_cachepool_push(cache);
-	if (ssunlikely(rc))
-		return SXROLLBACK;
-	return SXPREPARE;
 }
 
 static inline int
@@ -310,6 +251,30 @@ so_querybegin(sorequest *r)
 	return 0;
 }
 
+static sxstate
+so_queryprepare_trigger(sx *t, sv *v, void *arg0, void *arg1)
+{
+	sicache *cache = arg0;
+	sodb *db = arg1;
+	so *e = so_of(&db->o);
+	uint64_t lsn = sr_seq(e->r.seq, SR_LSN);
+	if (t->vlsn == lsn)
+		return SXPREPARE;
+	siquery q;
+	si_queryopen(&q, &db->r, cache, &db->index,
+	             SS_UPDATE, t->vlsn,
+	             NULL, 0,
+	             sv_pointer(v), sv_size(v));
+	int rc;
+	rc = si_query(&q);
+	if (rc == 1)
+		sv_vfree(&e->a, (svv*)q.result.v);
+	si_queryclose(&q);
+	if (ssunlikely(rc))
+		return SXROLLBACK;
+	return SXPREPARE;
+}
+
 static inline int
 so_queryprepare(sorequest *r)
 {
@@ -320,7 +285,7 @@ so_queryprepare(sorequest *r)
 	sxpreparef prepare_trigger = so_queryprepare_trigger;
 	if (r->arg.recover)
 		prepare_trigger = NULL;
-	sxstate s = sx_prepare(&t->t, prepare_trigger, t);
+	sxstate s = sx_prepare(&t->t, prepare_trigger, r->arg.cache);
 	if (s == SXLOCK)
 		return (r->rc = 2);
 	if (s == SXROLLBACK) {
@@ -348,6 +313,7 @@ so_querycommit(sorequest *r)
 		sorequest req;
 		so_requestinit(e, &req, SO_REQPREPARE, &t->o, NULL);
 		req.arg.recover = r->arg.recover;
+		req.arg.cache = r->arg.cache;
 		rc = so_queryprepare(&req);
 		if (ssunlikely(rc != 0))
 			return (r->rc = rc);

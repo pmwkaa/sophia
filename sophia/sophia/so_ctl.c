@@ -148,11 +148,8 @@ so_ctlmemory(so *e, soctlrt *rt, src **pc)
 {
 	src *memory = *pc;
 	src *p = NULL;
-	sr_clink(&p, sr_c(pc, so_ctlv_offline, "limit",           SR_CU64,        &e->ctl.memory_limit));
-	sr_clink(&p, sr_c(pc, so_ctlv,         "used",            SR_CU64|SR_CRO, &rt->memory_used));
-	sr_clink(&p, sr_c(pc, so_ctlv,         "pager_pool_size", SR_CU32|SR_CRO, &e->pager.pool_size));
-	sr_clink(&p, sr_c(pc, so_ctlv,         "pager_page_size", SR_CU32|SR_CRO, &e->pager.page_size));
-	sr_clink(&p, sr_c(pc, so_ctlv,         "pager_pools",     SR_CU32|SR_CRO, &e->pager.pools));
+	sr_clink(&p, sr_c(pc, so_ctlv_offline, "limit", SR_CU64,        &e->ctl.memory_limit));
+	sr_clink(&p, sr_c(pc, so_ctlv,         "used",  SR_CU64|SR_CRO, &rt->memory_used));
 	return sr_c(pc, NULL, "memory", SR_CC, memory);
 }
 
