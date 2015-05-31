@@ -75,7 +75,7 @@ so_cursorget(srobj *o, va_list args ssunused)
 		if (ssunlikely(task == NULL))
 			return NULL;
 		so_requestadd(e, task);
-		return &c->o;
+		return &task->o;
 	}
 	/* synchronous */
 	sorequest req;
