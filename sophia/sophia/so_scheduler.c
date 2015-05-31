@@ -443,7 +443,7 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 	ss_mutexlock(&s->lock);
 
 	/* dispatch asynchronous requests */
-	if (ssunlikely(s->req == 0 && so_requestcount(e))) {
+	if (ssunlikely(s->req == 0 && so_requestqueue(e))) {
 		s->req = 1;
 		task->req = 1;
 		ss_mutexunlock(&s->lock);

@@ -133,6 +133,9 @@ so_destroy(srobj *o, va_list args ssunused)
 	rc = sr_objlist_destroy(&e->req);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
+	rc = sr_objlist_destroy(&e->reqactive);
+	if (ssunlikely(rc == -1))
+		rcret = -1;
 	rc = sr_objlist_destroy(&e->reqready);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
@@ -283,6 +286,7 @@ srobj *so_new(void)
 	sr_objlist_init(&e->ctlcursor);
 	sr_objlist_init(&e->req);
 	sr_objlist_init(&e->reqready);
+	sr_objlist_init(&e->reqactive);
 	ss_mutexinit(&e->apilock);
 	ss_spinlockinit(&e->reqlock);
 	ss_spinlockinit(&e->dblock);

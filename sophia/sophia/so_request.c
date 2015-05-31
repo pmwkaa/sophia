@@ -146,14 +146,6 @@ void so_requestinit(so *e, sorequest *r, sorequestop op, srobj *object, srobj *d
 	r->rc = 0;
 }
 
-static inline void
-so_requestadd_ready(so *e, sorequest *r)
-{
-	ss_spinlock(&e->reqlock);
-	sr_objlist_add(&e->reqready, &r->o);
-	ss_spinunlock(&e->reqlock);
-}
-
 void so_requestadd(so *e, sorequest *r)
 {
 	r->id = sr_seq(&e->seq, SR_RSNNEXT);
@@ -172,9 +164,11 @@ void so_requestready(sorequest *r)
 {
 	sodb *db = (sodb*)r->object;
 	so *e = so_of(&db->o);
+	ss_spinlock(&e->reqlock);
+	sr_objlist_del(&e->reqactive, &r->o);
+	sr_objlist_add(&e->reqready, &r->o);
+	ss_spinunlock(&e->reqlock);
 	ss_triggerrun(&e->ctl.on_event);
-	/* ready for polling */
-	so_requestadd_ready(e, r);
 }
 
 sorequest*
@@ -197,10 +191,11 @@ so_requestdispatch(so *e)
 		ss_spinunlock(&e->reqlock);
 		return NULL;
 	}
-	sorequest *req = (sorequest*)sr_objlist_first(&e->req);
-	sr_objlist_del(&e->req, &req->o);
+	sorequest *r = (sorequest*)sr_objlist_first(&e->req);
+	sr_objlist_del(&e->req, &r->o);
+	sr_objlist_add(&e->reqactive, &r->o);
 	ss_spinunlock(&e->reqlock);
-	return req;
+	return r;
 }
 
 sorequest*
@@ -211,16 +206,24 @@ so_requestdispatch_ready(so *e)
 		ss_spinunlock(&e->reqlock);
 		return NULL;
 	}
-	sorequest *req = (sorequest*)sr_objlist_first(&e->reqready);
-	sr_objlist_del(&e->reqready, &req->o);
+	sorequest *r = (sorequest*)sr_objlist_first(&e->reqready);
+	sr_objlist_del(&e->reqready, &r->o);
 	ss_spinunlock(&e->reqlock);
-	return req;
+	return r;
+}
+
+int so_requestqueue(so *e)
+{
+	ss_spinlock(&e->reqlock);
+	int n = e->req.n;
+	ss_spinunlock(&e->reqlock);
+	return n;
 }
 
 int so_requestcount(so *e)
 {
 	ss_spinlock(&e->reqlock);
-	int n = e->req.n;
+	int n = e->req.n + e->reqactive.n + e->reqready.n;
 	ss_spinunlock(&e->reqlock);
 	return n;
 }

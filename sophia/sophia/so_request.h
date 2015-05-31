@@ -55,6 +55,7 @@ void so_requestadd(so*, sorequest*);
 void so_request_on_backup(so*);
 void so_requestready(sorequest*);
 int  so_requestcount(so*);
+int  so_requestqueue(so*);
 sorequest *so_requestnew(so*, sorequestop, srobj*, srobj*);
 sorequest *so_requestdispatch(so*);
 sorequest *so_requestdispatch_ready(so*);

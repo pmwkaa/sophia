@@ -783,8 +783,10 @@ so_ctlrt(so *e, soctlrt *rt)
 	ss_mutexunlock(&e->sched.lock);
 
 	/* requests */
+	rt->reqs = so_requestcount(e);
+
 	ss_spinlock(&e->reqlock);
-	rt->reqs = e->req.n + e->reqready.n;
+	rt->reqs = e->req.n + e->reqactive.n + e->reqready.n;
 	ss_spinunlock(&e->reqlock);
 
 	int v = ss_quotaused_percent(&e->quota);

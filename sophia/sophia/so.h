@@ -24,7 +24,7 @@ struct so {
 	srobjlist db;
 	srobjlist db_shutdown;
 	srobjlist tx;
-	srobjlist req;
+	srobjlist req, reqactive;
 	srobjlist reqready;
 	srobjlist snapshot;
 	srobjlist ctlcursor;
