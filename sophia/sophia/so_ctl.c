@@ -300,6 +300,7 @@ so_ctlscheduler(so *e, soctlrt *rt, src **pc)
 	sr_clink(&p, sr_c(pc, so_ctlv_offline,     "event_on_backup",     SR_CU32,        &e->ctl.event_on_backup));
 	sr_clink(&p, sr_c(pc, so_ctlv,             "gc_active",           SR_CU32|SR_CRO, &rt->gc_active));
 	sr_clink(&p, sr_c(pc, so_ctlscheduler_gc,  "gc",                  SR_CVOID,       NULL));
+	sr_clink(&p, sr_c(pc, so_ctlv,             "reqs",                SR_CU32|SR_CRO, &rt->reqs));
 	sr_clink(&p, sr_c(pc, so_ctlscheduler_run, "run",                 SR_CVOID,       NULL));
 	prev = p;
 	sslist *i;
@@ -780,6 +781,11 @@ so_ctlrt(so *e, soctlrt *rt)
 	rt->backup_last_complete = e->sched.backup_last_complete;
 	rt->gc_active            = e->sched.gc;
 	ss_mutexunlock(&e->sched.lock);
+
+	/* requests */
+	ss_spinlock(&e->reqlock);
+	rt->reqs = e->req.n + e->reqready.n;
+	ss_spinunlock(&e->reqlock);
 
 	int v = ss_quotaused_percent(&e->quota);
 	sizone *z = si_zonemap(&e->ctl.zones, v);

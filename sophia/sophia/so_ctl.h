@@ -26,6 +26,7 @@ struct soctlrt {
 	uint32_t  backup_last;
 	uint32_t  backup_last_complete;
 	uint32_t  gc_active;
+	uint32_t  reqs;
 	/* log */
 	uint32_t  log_files;
 	/* metric */
