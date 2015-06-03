@@ -18,15 +18,6 @@
 #include <libse.h>
 #include <libso.h>
 
-static void*
-so_cursorobj(srobj *obj, va_list args ssunused)
-{
-	socursor *c = (socursor*)obj;
-	if (ssunlikely(! so_vhas(&c->v)))
-		return NULL;
-	return &c->v;
-}
-
 void so_cursorend(socursor *c)
 {
 	so *e = so_of(&c->o);
@@ -35,7 +26,8 @@ void so_cursorend(socursor *c)
 		si_cachepool_push(c->cache);
 	if (c->seek.v)
 		sv_vfree(c->db->r.a, c->seek.v);
-	so_vrelease(&c->v);
+	if (c->v.v)
+		sv_vfree(c->db->r.a, c->v.v);
 	sr_objlist_del(&c->db->cursor, &c->o);
 	so_dbunbind(e, id);
 	ss_free(&e->a_cursor, c);
@@ -74,17 +66,29 @@ so_cursorget(srobj *o, va_list args ssunused)
 		sorequest *task = so_requestnew(e, SO_REQCURSORGET, &c->o, &c->db->o);
 		if (ssunlikely(task == NULL))
 			return NULL;
+		sorequestarg *arg = &task->arg;
+		arg->order = c->order;
+		arg->vlsn_generate = 0;
+		arg->vlsn = c->t.vlsn;
+		arg->prefix = c->prefix;
+		arg->prefixsize = c->prefixsize;
 		so_requestadd(e, task);
 		return &task->o;
 	}
 	/* synchronous */
 	sorequest req;
 	so_requestinit(e, &req, SO_REQCURSORGET, &c->o, &c->db->o);
-	so_query(&req);
-	so_requestend(&req);
-	if (ssunlikely(req.rc <= 0))
-		return NULL;
-	return &c->v;
+	sorequestarg *arg = &req.arg;
+	arg->order = c->order;
+	arg->vlsn_generate = 0;
+	arg->vlsn = c->t.vlsn;
+	arg->prefix = c->prefix;
+	arg->prefixsize = c->prefixsize;
+	int rc = so_query(&req);
+	so_dbunref(c->db, 1);
+	if (rc == 1)
+		so_requestresult(&req);
+	return req.result;
 }
 
 static void*
@@ -108,7 +112,7 @@ static srobjif socursorif =
 	.prepare = NULL,
 	.commit  = NULL,
 	.cursor  = NULL,
-	.object  = so_cursorobj,
+	.object  = NULL,
 	.type    = so_cursortype
 };
 
@@ -136,15 +140,15 @@ srobj *so_cursornew(sodb *db, uint64_t vlsn, int async, va_list args)
 		goto error;
 	}
 	sr_objinit(&c->o, SOCURSOR, &socursorif, &e->o);
-	c->db     = db;
-	c->async  = async;
-	c->ready  = 0;
-	c->order  = o->order;
-	c->prefix = NULL;
+	c->db         = db;
+	c->async      = async;
+	c->ready      = 0;
+	c->order      = o->order;
+	c->prefix     = NULL;
 	c->prefixsize = 0;
-	c->cache  = NULL;
+	c->cache      = NULL;
+	memset(&c->v, 0, sizeof(c->v));
 	sx_init(&e->xm, &c->t);
-	so_vinit(&c->v, e, &db->o);
 
 	/* allocate cursor cache */
 	c->cache = si_cachepool_pop(&e->cachepool);
@@ -189,7 +193,11 @@ srobj *so_cursornew(sodb *db, uint64_t vlsn, int async, va_list args)
 		if (ssunlikely(task == NULL))
 			goto error;
 		sorequestarg *arg = &task->arg;
+		arg->order = c->order;
+		arg->vlsn_generate = 0;
 		arg->vlsn = vlsn;
+		arg->prefix = c->prefix;
+		arg->prefixsize = c->prefixsize;
 		so_dbbind(e);
 		sr_objlist_add(&db->cursor, &c->o);
 		so_requestadd(e, task);
@@ -200,11 +208,13 @@ srobj *so_cursornew(sodb *db, uint64_t vlsn, int async, va_list args)
 	sorequest req;
 	so_requestinit(e, &req, SO_REQCURSOROPEN, &c->o, &db->o);
 	sorequestarg *arg = &req.arg;
-	/* support (sync) snapshot read-view */
+	arg->order = c->order;
 	arg->vlsn_generate = 0;
 	arg->vlsn = vlsn;
+	arg->prefix = c->prefix;
+	arg->prefixsize = c->prefixsize;
 	so_query(&req);
-	so_requestend(&req);
+	so_dbunref(c->db, 1);
 	if (ssunlikely(req.rc == -1))
 		goto error;
 	so_dbbind(e);

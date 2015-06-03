@@ -22,8 +22,6 @@ static int
 so_vdestroy(srobj *obj, va_list args ssunused)
 {
 	sov *v = (sov*)obj;
-	if (v->flags & SO_VIMMUTABLE)
-		return 0;
 	so_vrelease(v);
 	ss_free(&so_of(obj)->a_v, v);
 	return 0;
@@ -276,10 +274,4 @@ srobj *so_vdup(so *e, srobj *parent, sv *v)
 	ret->flags = SO_VALLOCATED|SO_VRO;
 	ret->v = *v;
 	return &ret->o;
-}
-
-int so_vimmutable(sov *v)
-{
-	v->flags |= SO_VIMMUTABLE;
-	return 0;
 }

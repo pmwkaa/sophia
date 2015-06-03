@@ -68,13 +68,13 @@ sv_vbuildraw(ssa *a, char *ssc, int size)
 }
 
 static inline svv*
-sv_vdup(ssa *a, sv *ssc)
+sv_vdup(ssa *a, sv *src)
 {
-	svv *v = sv_vbuildraw(a, sv_pointer(ssc), sv_size(ssc));
+	svv *v = sv_vbuildraw(a, sv_pointer(src), sv_size(src));
 	if (ssunlikely(v == NULL))
 		return NULL;
-	v->flags = sv_flags(ssc);
-	v->lsn   = sv_lsn(ssc);
+	v->flags = sv_flags(src);
+	v->lsn   = sv_lsn(src);
 	return v;
 }
 

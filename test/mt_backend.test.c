@@ -397,6 +397,7 @@ mt_set_get_document_multipart_cursor(stc *cx)
 		t( ret->key_a == i );
 		t( ret->key_b == i );
 		print_current(cx, i);
+		t( sp_destroy(o) == 0 );
 		i++;
 	}
 	sp_destroy(cursor);

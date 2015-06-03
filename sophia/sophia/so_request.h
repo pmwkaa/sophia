@@ -31,7 +31,8 @@ struct sorequestarg {
 	ssorder order;
 	sv v;
 	sicache *cache;
-	int prefix;
+	char *prefix;
+	int prefixsize;
 	int recover;
 	uint64_t lsn;
 	int vlsn_generate;

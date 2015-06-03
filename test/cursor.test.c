@@ -104,12 +104,15 @@ cursor_gte(stc *cx)
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -151,12 +154,15 @@ cursor_gt(stc *cx)
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -198,12 +204,15 @@ cursor_lte(stc *cx)
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -245,12 +254,15 @@ cursor_lt(stc *cx)
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -294,12 +306,15 @@ cursor_pos_gte0(stc *cx)
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -343,9 +358,11 @@ cursor_pos_gte1(stc *cx)
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -389,6 +406,7 @@ cursor_pos_gte2(stc *cx)
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -472,9 +490,11 @@ cursor_pos_gte4(stc *cx)
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 80 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 90 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -518,12 +538,15 @@ cursor_pos_gte5(stc *cx)
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -567,9 +590,11 @@ cursor_pos_gt0(stc *cx)
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -613,6 +638,7 @@ cursor_pos_gt1(stc *cx)
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -696,12 +722,15 @@ cursor_pos_lte0(stc *cx)
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -745,9 +774,11 @@ cursor_pos_lte1(stc *cx)
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -791,6 +822,7 @@ cursor_pos_lte2(stc *cx)
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -874,12 +906,15 @@ cursor_pos_lte4(stc *cx)
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -923,9 +958,11 @@ cursor_pos_lt0(stc *cx)
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -969,6 +1006,7 @@ cursor_pos_lt1(stc *cx)
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -1092,12 +1130,15 @@ cursor_pos_lt4(stc *cx)
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	sp_destroy(o);
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -1135,6 +1176,7 @@ cursor_pos_gte_range(stc *cx)
 		t( v != NULL );
 		t( *(int*)sp_get(v, "key", NULL) == i );
 		t( *(int*)sp_get(v, "value", NULL) == i );
+		t( sp_destroy(v) == 0 );
 		t( sp_destroy(c) == 0 );
 		i++;
 	}
@@ -1172,6 +1214,7 @@ cursor_pos_gt_range(stc *cx)
 		t( v != NULL );
 		t( *(int*)sp_get(v, "key", NULL) == i + 1);
 		t( *(int*)sp_get(v, "value", NULL) == i + 1);
+		t( sp_destroy(v) == 0 );
 		t( sp_destroy(c) == 0 );
 		i++;
 	}
@@ -1209,6 +1252,7 @@ cursor_pos_lte_range(stc *cx)
 		t( v != NULL );
 		t( *(int*)sp_get(v, "key", NULL) == i);
 		t( *(int*)sp_get(v, "value", NULL) == i);
+		t( sp_destroy(v) == 0 );
 		t( sp_destroy(c) == 0 );
 		i++;
 	}
@@ -1246,6 +1290,7 @@ cursor_pos_lt_range(stc *cx)
 		t( v != NULL );
 		t( *(int*)sp_get(v, "key", NULL) == i - 1);
 		t( *(int*)sp_get(v, "value", NULL) == i - 1);
+		t( sp_destroy(v) == 0 );
 		t( sp_destroy(c) == 0 );
 		i++;
 	}
@@ -1288,6 +1333,7 @@ cursor_pos_gte_random(stc *cx)
 		t( v != NULL );
 		t( *(int*)sp_get(v, "key", NULL) == key);
 		t( *(int*)sp_get(v, "value", NULL) == i);
+		t( sp_destroy(v) == 0 );
 		t( sp_destroy(c) == 0 );
 		i++;
 	}
@@ -1330,6 +1376,7 @@ cursor_pos_lte_random(stc *cx)
 		t( v != NULL );
 		t( *(int*)sp_get(v, "key", NULL) == key);
 		t( *(int*)sp_get(v, "value", NULL) == i);
+		t( sp_destroy(v) == 0 );
 		t( sp_destroy(c) == 0 );
 		i++;
 	}
@@ -1428,12 +1475,15 @@ cursor_consistency1(stc *cx)
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 7 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 8 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 9 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -1492,14 +1542,17 @@ cursor_consistency2(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 1 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 2 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 3 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -1565,14 +1618,17 @@ cursor_consistency3(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 1 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 2 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 3 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -1658,14 +1714,17 @@ cursor_consistency4(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 1 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 2 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 3 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -1711,6 +1770,7 @@ cursor_consistency5(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 1 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 
 	tx = sp_begin(cx->env);
 	t( tx != NULL );
@@ -1729,10 +1789,12 @@ cursor_consistency5(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 4 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 6 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -1779,6 +1841,7 @@ cursor_consistency6(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 1 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 
 	tx = sp_begin(cx->env);
 	t( tx != NULL );
@@ -1811,10 +1874,12 @@ cursor_consistency6(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 4 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 6 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -1860,6 +1925,7 @@ cursor_consistency7(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 1 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 
 	tx = sp_begin(cx->env);
 	t( tx != NULL );
@@ -1906,10 +1972,12 @@ cursor_consistency7(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 4 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 6 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -1955,6 +2023,7 @@ cursor_consistency8(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 1 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 
 	tx = sp_begin(cx->env);
 	t( tx != NULL );
@@ -1980,6 +2049,7 @@ cursor_consistency8(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 4 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 
 	tx = sp_begin(cx->env);
 	t( tx != NULL );
@@ -2011,6 +2081,7 @@ cursor_consistency8(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 6 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 
 	tx = sp_begin(cx->env);
 	t( tx != NULL );
@@ -2067,6 +2138,7 @@ cursor_consistency9(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 1 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 
 	tx = sp_begin(cx->env);
 	t( tx != NULL );
@@ -2105,6 +2177,7 @@ cursor_consistency9(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 4 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 
 	tx = sp_begin(cx->env);
 	t( tx != NULL );
@@ -2130,6 +2203,7 @@ cursor_consistency9(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 6 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 
 	tx = sp_begin(cx->env);
 	t( tx != NULL );
@@ -2163,30 +2237,37 @@ cursor_consistency9(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 0 );
 	t( *(int*)sp_get(o, "value",  NULL) == 3 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 1 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 4 );
 	t( *(int*)sp_get(o, "value",  NULL) == 3 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 5 );
 	t( *(int*)sp_get(o, "value",  NULL) == 3 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 6 );
 	t( *(int*)sp_get(o, "value",  NULL) == 3 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 7 );
 	t( *(int*)sp_get(o, "value",  NULL) == 3 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 8 );
 	t( *(int*)sp_get(o, "value",  NULL) == 3 );
+	t( sp_destroy(o) == 0 );
 	t( sp_get(c) == NULL );
 	t( sp_destroy(c) == 0 );
 	st_transaction(cx);
@@ -2231,6 +2312,7 @@ cursor_consistencyN(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 1 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 
 	tx = sp_begin(cx->env);
 	t( tx != NULL );
@@ -2273,10 +2355,12 @@ cursor_consistencyN(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 2 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 3 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o == NULL );
 	sp_destroy(c);
@@ -2285,27 +2369,32 @@ cursor_consistencyN(stc *cx)
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 0 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 
 	o = sp_get(c2);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 1 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 
 	o = sp_get(c2);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 2 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 	st_transaction(cx);
 
 	o = sp_get(c2);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 3 );
 	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( sp_destroy(o) == 0 );
 
 	o = sp_get(c2);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key",  NULL) == 4 );
 	t( *(int*)sp_get(o, "value",  NULL) == 3 );
+	t( sp_destroy(o) == 0 );
 	t( sp_get(c2) == NULL );
 	t( sp_destroy(c2) == 0 );
 }
@@ -2361,20 +2450,20 @@ cursor_consistency_rewrite0(stc *cx)
 	t( sp_get(c0) == NULL );
 
 	i = 0;
-	while (sp_get(c1)) {
-		void *o = sp_object(c1);
+	while ((o = sp_get(c1))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		t( *(int*)sp_get(o, "value", NULL) == 15 );
+		t( sp_destroy(o) == 0 );
 		i++;
 	}
 	t(i == 385);
 	st_transaction(cx);
 
 	i = 0;
-	while (sp_get(c2)) {
-		void *o = sp_object(c2);
+	while ((o = sp_get(c2))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		t( *(int*)sp_get(o, "value", NULL) == 20 );
+		t( sp_destroy(o) == 0 );
 		i++;
 	}
 	t(i == 385);
@@ -2430,10 +2519,10 @@ cursor_consistency_rewrite1(stc *cx)
 	t( sp_get(c0) == NULL );
 
 	i = 0;
-	while (sp_get(c1)) {
-		void *o = sp_object(c1);
+	while ((o = sp_get(c1))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		t( *(int*)sp_get(o, "value", NULL) == 15 );
+		t( sp_destroy(o) == 0 );
 		i++;
 	}
 	t(i == 385);
@@ -2443,11 +2532,13 @@ cursor_consistency_rewrite1(stc *cx)
 		void *ckey = sp_object(db);
 		t( sp_set(ckey, "key", &i, sizeof(i)) == 0 );
 		t( sp_set(ckey, "order", ">=") == 0 );
+
 		void *c2 = sp_cursor(db, ckey);
 		t( c2 != NULL );
-		void *o = sp_object(c2);
+		void *o = sp_get(c2);
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		t( *(int*)sp_get(o, "value", NULL) == 20 );
+		t( sp_destroy(o) == 0 );
 		t( sp_destroy(c2) == 0 );
 		i++;
 	}
@@ -2487,10 +2578,10 @@ cursor_consistency_rewrite2(stc *cx)
 	void *c1 = sp_cursor(db, o);
 	v = 20;
 	i = 0;
-	while (sp_get(c1)) {
-		void *o = sp_object(c1);
+	while ((o = sp_get(c1))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		t( *(int*)sp_get(o, "value", NULL) == 15 );
+		t( sp_destroy(o) == 0 );
 
 		tx = sp_begin(cx->env);
 		o = sp_object(db);
@@ -2511,10 +2602,10 @@ cursor_consistency_rewrite2(stc *cx)
 	t( sp_set(o, "order", ">=") == 0 );
 	void *c2 = sp_cursor(db, o);
 	i = 0;
-	while (sp_get(c2)) {
-		void *o = sp_object(c2);
+	while ((o = sp_get(c2))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		t( *(int*)sp_get(o, "value", NULL) == 20 );
+		t( sp_destroy(o) == 0 );
 		i++;
 	}
 	t(i == 385);
@@ -2589,8 +2680,10 @@ cursor_consistency_delete1(stc *cx)
 	t( o != NULL );
 	t( sp_set(o, "order", ">=") == 0 );
 	void *c1 = sp_cursor(db, o);
-	while ((o = sp_get(c1)))
+	while ((o = sp_get(c1))) {
 		t( sp_delete(tx, o) == 0 );
+		t( sp_destroy(o) == 0 );
+	}
 	t( sp_commit(tx) == 0 );
 	t( sp_destroy(c1) == 0 );
 	st_transaction(cx);

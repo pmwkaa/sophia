@@ -339,12 +339,7 @@ async_cursor(stc *cx ssunused)
 	t( *(uint64_t*)sp_get(o, "seq") == 1 );
 	t( strcmp(sp_get(o, "type"), "cursor") == 0 );
 	t( *(int*)sp_get(o, "status") == 1 );
-
-	void *req = o;
-	o = sp_get(req, "result");
-	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 7 );
-	t( sp_destroy(req) == 0 );
+	t( sp_destroy(o) == 0 );
 
 		t( sp_get(cur) != NULL ); // 1
 		t( sp_set(c, "scheduler.run") == 0 );
@@ -356,7 +351,7 @@ async_cursor(stc *cx ssunused)
 	t( *(uint64_t*)sp_get(o, "seq") == 2 );
 	t( strcmp(sp_get(o, "type"), "cursor_get") == 0 );
 	t( *(int*)sp_get(o, "status") == 1 );
-	req = o;
+	void *req = o;
 	o = sp_get(req, "result");
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 7 );

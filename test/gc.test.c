@@ -60,10 +60,10 @@ gc_test0(stc *cx ssunused)
 	void *o = sp_object(db);
 	t( o != NULL );
 	void *cur = sp_cursor(db, o);
-	while (sp_get(cur)) {
-		o = sp_object(cur);
+	while ((o = sp_get(cur))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		t( *(int*)sp_get(o, "value", NULL) == i + 1);
+		t( sp_destroy(o) == 0 );
 		i++;
 	}
 	sp_destroy(cur);
@@ -83,10 +83,10 @@ gc_test0(stc *cx ssunused)
 	o = sp_object(db);
 	t( o != NULL );
 	cur = sp_cursor(db, o);
-	while (sp_get(cur)) {
-		o = sp_object(cur);
+	while ((o = sp_get(cur))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		t( *(int*)sp_get(o, "value", NULL) == i + 1);
+		t( sp_destroy(o) == 0 );
 		i++;
 	}
 	sp_destroy(cur);
@@ -151,10 +151,10 @@ gc_test1(stc *cx ssunused)
 	void *o = sp_object(db);
 	t( o != NULL );
 	void *cur = sp_cursor(db, o);
-	while (sp_get(cur)) {
-		o = sp_object(cur);
+	while ((o = sp_get(cur))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		t( *(int*)sp_get(o, "value", NULL) == i + 1);
+		t( sp_destroy(o) == 0 );
 		i++;
 	}
 	sp_destroy(cur);
@@ -174,10 +174,10 @@ gc_test1(stc *cx ssunused)
 	o = sp_object(db);
 	t( o != NULL );
 	cur = sp_cursor(db, o);
-	while (sp_get(cur)) {
-		o = sp_object(cur);
+	while ((o = sp_get(cur))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		t( *(int*)sp_get(o, "value", NULL) == i + 1);
+		t( sp_destroy(o) == 0 );
 		i++;
 	}
 	sp_destroy(cur);
@@ -242,10 +242,10 @@ gc_test2(stc *cx ssunused)
 	void *o = sp_object(db);
 	t( o != NULL );
 	void *cur = sp_cursor(db, o);
-	while (sp_get(cur)) {
-		o = sp_object(cur);
+	while ((o = sp_get(cur))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		t( *(int*)sp_get(o, "value", NULL) == i + 1);
+		t( sp_destroy(o) == 0 );
 		i++;
 	}
 	sp_destroy(cur);
@@ -265,10 +265,10 @@ gc_test2(stc *cx ssunused)
 	o = sp_object(db);
 	t( o != NULL );
 	cur = sp_cursor(db, o);
-	while (sp_get(cur)) {
-		o = sp_object(cur);
+	while ((o = sp_get(cur))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		t( *(int*)sp_get(o, "value", NULL) == i + 1);
+		t( sp_destroy(o) == 0 );
 		i++;
 	}
 	sp_destroy(cur);
@@ -335,10 +335,10 @@ gc_test3(stc *cx ssunused)
 	void *o = sp_object(db);
 	t( o != NULL );
 	void *cur = sp_cursor(db, o);
-	while (sp_get(cur)) {
-		o = sp_object(cur);
+	while ((o = sp_get(cur))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		t( *(int*)sp_get(o, "value", NULL) == i + 1);
+		t( sp_destroy(o) == 0 );
 		i++;
 	}
 	sp_destroy(cur);

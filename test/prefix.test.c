@@ -72,12 +72,15 @@ prefix_test0(stc *cx)
 	o = sp_get(c);
 	t( o != NULL );
 	t( strcmp((char*)sp_get(o, "key", NULL), "ab") == 0 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( strcmp((char*)sp_get(o, "key", NULL), "aba") == 0 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( strcmp((char*)sp_get(o, "key", NULL), "abac") == 0 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o == NULL );
 
@@ -141,6 +144,7 @@ prefix_test1(stc *cx)
 	t( c != NULL );
 	o = sp_get(c);
 	t( strcmp((char*)sp_get(o, "key", NULL), "ab") == 0 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o == NULL );
 

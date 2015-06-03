@@ -152,12 +152,15 @@ recovercrash_branch0(stc *cx ssunused)
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -234,12 +237,15 @@ recovercrash_build0(stc *cx ssunused)
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -316,12 +322,15 @@ recovercrash_build1(stc *cx ssunused)
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -400,12 +409,15 @@ recovercrash_compact0(stc *cx ssunused)
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -486,12 +498,15 @@ recovercrash_compact1(stc *cx ssunused)
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -574,12 +589,15 @@ recovercrash_compact2(stc *cx ssunused)
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o != NULL );
 	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -661,6 +679,7 @@ recovercrash_compact3(stc *cx ssunused)
 	while ((o = sp_get(c))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		i++;
+		t( sp_destroy(o) == 0 );
 	}
 	t( sp_destroy(c) == 0 );
 
@@ -742,6 +761,7 @@ recovercrash_compact4(stc *cx ssunused)
 	while ((o = sp_get(c))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		i++;
+		t( sp_destroy(o) == 0 );
 	}
 	t( sp_destroy(c) == 0 );
 
@@ -825,6 +845,7 @@ recovercrash_compact5(stc *cx ssunused)
 	while ((o = sp_get(c))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		i++;
+		t( sp_destroy(o) == 0 );
 	}
 	t( sp_destroy(c) == 0 );
 
@@ -908,6 +929,7 @@ recovercrash_compact6(stc *cx ssunused)
 	while ((o = sp_get(c))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		i++;
+		t( sp_destroy(o) == 0 );
 	}
 	t( sp_destroy(c) == 0 );
 
@@ -992,6 +1014,7 @@ recovercrash_compact7(stc *cx ssunused)
 	while ((o = sp_get(c))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		i++;
+		t( sp_destroy(o) == 0 );
 	}
 	t( sp_destroy(c) == 0 );
 

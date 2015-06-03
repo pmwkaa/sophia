@@ -58,20 +58,27 @@ so_queryread(sorequest *r)
 {
 	sorequestarg *arg = &r->arg;
 	sodb *db = (sodb*)r->db;
-	uint32_t keysize = sv_size(&arg->v);
-	void *key = sv_pointer(&arg->v);
+	uint32_t keysize;
+	void *key;
+	if (sslikely(arg->v.v)) {
+		keysize = sv_size(&arg->v);
+		key = sv_pointer(&arg->v);
+	} else {
+		keysize = 0;
+		key = NULL;
+	}
 	if (sslikely(arg->vlsn_generate))
 		arg->vlsn = sr_seq(db->r.seq, SR_LSN);
 	siquery q;
 	si_queryopen(&q, &db->r, arg->cache, &db->index,
 	             arg->order,
 	             arg->vlsn,
-	             NULL, 0, key, keysize);
-	int rc = si_query(&q);
-	r->rc = rc;
+	             arg->prefix,
+	             arg->prefixsize, key, keysize);
+	r->rc = si_query(&q);
 	r->v = q.result.v;
 	si_queryclose(&q);
-	return rc;
+	return r->rc;
 }
 
 static inline int
@@ -152,50 +159,52 @@ so_querytx_get(sorequest *r)
 }
 
 static inline int
-so_querycursor_seek(socursor *c, sv *v)
-{
-	int keysize;
-	char *key;
-	if (v->v) {
-		key = sv_pointer(v);
-		keysize = sv_size(v);
-	} else {
-		key = NULL;
-		keysize = 0;
-	}
-	siquery q;
-	si_queryopen(&q, &c->db->r, c->cache,
-	             &c->db->index, c->order, c->t.vlsn,
-	             c->prefix, c->prefixsize,
-	             key, keysize);
-	int rc = si_query(&q);
-	so_vrelease(&c->v);
-	if (rc == 1) {
-		assert(q.result.v != NULL);
-		so_vput(&c->v, &q.result);
-		so_vimmutable(&c->v);
-	}
-	si_queryclose(&q);
-	return rc;
-}
-
-static inline int
 so_querycursor_get(sorequest *r)
 {
 	socursor *c = (socursor*)r->object;
-	if (ssunlikely(c->ready)) {
-		c->ready = 0;
-		r->result = &c->v;
-		return (r->rc = 1);
-	}
+	so *e = so_of(r->object);
 	if (ssunlikely(c->order == SS_STOP))
 		return (r->rc = 0);
-	if (ssunlikely(! so_vhas(&c->v)))
+	if (ssunlikely(c->v.v == NULL))
 		return (r->rc = 0);
-	r->rc = so_querycursor_seek(c, &c->v.v);
-	if (ssunlikely(r->rc <= 0))
-		return r->rc;
-	r->result = &c->v;
+
+	/* reuse first key */
+	if (ssunlikely(c->ready))
+	{
+		r->v = sv_vdup(&e->a, &c->v);
+		if (ssunlikely(r->v == NULL)) {
+			sr_oom(&e->error);
+			return -1;
+		}
+		c->ready = 0;
+		return (r->rc = 1);
+	}
+
+	/* read next */
+	sorequestarg *arg = &r->arg;
+	svv *v = NULL;
+	arg->cache = c->cache;
+	arg->v = c->v;
+	so_queryread(r);
+	arg->cache = NULL;
+	arg->v.v = NULL;
+	switch (r->rc) {
+	case -1: return r->rc;
+	case  1: {
+		sv vp;
+		sv_init(&vp, &sv_vif, r->v, NULL);
+		v = sv_vdup(&e->a, &vp);
+		if (ssunlikely(v == NULL)) {
+			sr_oom(&e->error);
+			return -1;
+		}
+		break;
+	}
+	}
+
+	/* free previous */
+	sv_vfree(c->db->r.a, c->v.v);
+	sv_init(&c->v, &sv_vif, v, NULL);
 	return r->rc;
 }
 
@@ -205,17 +214,28 @@ so_querycursor_open(sorequest *r)
 	sorequestarg *arg = &r->arg;
 	socursor *c = (socursor*)r->object;
 	so *e = so_of(r->object);
-	/* set cursor position */
+
+	/* start cursor transaction */
 	sx_begin(&e->xm, &c->t, arg->vlsn);
-	r->rc = so_querycursor_seek(c, &c->seek);
+
+	/* read */
+	arg->cache = c->cache;
+	arg->vlsn = c->t.vlsn;
+	arg->v = c->seek;
+	so_queryread(r);
+	arg->cache = NULL;
+	arg->v.v = NULL;
 	switch (r->rc) {
 	case  1:
-		r->result = &c->v;
+		sv_init(&c->v, &sv_vif, r->v, NULL);
+		r->v = NULL;
+		c->ready = 1;
 		break;
 	case -1:
 		sx_rollback(&c->t);
 		return -1;
 	}
+
 	/* ensure correct iteration */
 	ssorder next = SS_GTE;
 	switch (c->order) {
@@ -228,8 +248,6 @@ so_querycursor_open(sorequest *r)
 	default: assert(0);
 	}
 	c->order = next;
-	if (r->rc == 1)
-		c->ready = 1;
 	return r->rc;
 }
 

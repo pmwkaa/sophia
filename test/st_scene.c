@@ -202,6 +202,7 @@ st_scene_truncate(stscene *g, stc *cx)
 		void *key = sp_get(o, "key", &keysize);
 		sp_set(k, "key", key, keysize);
 		t( sp_delete(cx->db, k) == 0 );
+		t( sp_destroy(o) == 0 );
 	}
 	t( sp_destroy(c) == 0 );
 }

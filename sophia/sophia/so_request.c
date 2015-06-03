@@ -232,7 +232,8 @@ srobj*
 so_requestresult(sorequest *r)
 {
 	if (r->op != SO_REQDBGET &&
-	    r->op != SO_REQTXGET)
+	    r->op != SO_REQTXGET &&
+	    r->op != SO_REQCURSORGET)
 		return NULL;
 	if (r->rc <= 0)
 		return NULL;

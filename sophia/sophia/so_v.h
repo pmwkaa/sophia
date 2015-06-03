@@ -13,7 +13,6 @@ typedef struct sov sov;
 
 #define SO_VALLOCATED 1
 #define SO_VRO        2
-#define SO_VIMMUTABLE 4
 
 struct sov {
 	srobj o;
@@ -43,6 +42,5 @@ srobj *so_vdup(so*, srobj*, sv*);
 srobj *so_vinit(sov*, so*, srobj*);
 srobj *so_vrelease(sov*);
 srobj *so_vput(sov*, sv*);
-int    so_vimmutable(sov*);
 
 #endif

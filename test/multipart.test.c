@@ -224,6 +224,7 @@ multipart_cursor0(stc *cx ssunused)
 		t( asize == sizeof(key_a) );
 		t( bsize == sizeof(i) );
 		t( vsize == sizeof(i) );
+		t( sp_destroy(o) == 0 );
 		i++;
 	}
 	sp_destroy(cur);
@@ -280,6 +281,7 @@ multipart_cursor1(stc *cx ssunused)
 		t( asize == sizeof(key_a) );
 		t( bsize == sizeof(i) );
 		t( vsize == sizeof(i) );
+		t( sp_destroy(o) == 0 );
 		i++;
 	}
 	sp_destroy(cur);

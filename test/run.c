@@ -160,6 +160,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, cursor_group());
 	st_add(&s, plan);
 
+
 	plan = st_plan("truncate-repeat");
 	st_planscene(plan, st_sceneof(&s, "rmrf"));
 	st_planscene(plan, st_sceneof(&s, "create"));

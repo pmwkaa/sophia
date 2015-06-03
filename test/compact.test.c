@@ -116,11 +116,10 @@ compact_delete_node1(stc *cx ssunused)
 
 	o = sp_object(db);
 	void *cur = sp_cursor(db, o);
-	while (sp_get(cur)) {
-		void *o = sp_object(cur);
-		t( o != NULL );
+	while ((o = sp_get(cur))) {
 		t( sp_delete(db, o) == 0 );
 		key++;
+		sp_destroy(o);
 	}
 	sp_destroy(cur);
 	t( key == 13000 );
@@ -182,11 +181,10 @@ compact_delete0(stc *cx ssunused)
 	void *cur = sp_cursor(db, o);
 	t( o != NULL );
 	int i = 0;
-	while (sp_get(cur)) {
-		o = sp_object(cur);
-		t( o != NULL );
+	while ((o = sp_get(cur))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		i++;
+		sp_destroy(o);
 	}
 	t( i == 0 );
 
@@ -240,11 +238,10 @@ compact_delete1(stc *cx ssunused)
 	void *cur = sp_cursor(db, o);
 	t( o != NULL );
 	int i = 0;
-	while (sp_get(cur)) {
-		o = sp_object(cur);
-		t( o != NULL );
+	while ((o = sp_get(cur))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		i++;
+		sp_destroy(o);
 	}
 	t( i == 0 );
 
@@ -297,11 +294,10 @@ compact_delete_cursor(stc *cx ssunused)
 	void *cur = sp_cursor(db, o);
 	t( o != NULL );
 	int i = 0;
-	while (sp_get(cur)) {
-		o = sp_object(cur);
-		t( o != NULL );
+	while ((o = sp_get(cur))) {
 		t( *(int*)sp_get(o, "key", NULL) == 20 + i );
 		i++;
+		sp_destroy(o);
 	}
 	t( i == 5 );
 

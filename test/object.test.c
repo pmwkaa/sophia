@@ -64,6 +64,7 @@ object_lsn0(stc *cx)
 	t( *(int*)sp_get(o, "value", &size) == key );
 	t( size == sizeof(key) );
 	t( *(uint64_t*)sp_get(o, "lsn") > 0 );
+	t( sp_destroy(o) == 0 );
 	o = sp_get(c);
 	t( o ==  NULL );
 	sp_destroy(c);
@@ -106,6 +107,7 @@ object_readonly1(stc *cx)
 	o = sp_get(c);
 	t( o != NULL );
 	t( sp_set(o, "key", &key, sizeof(key)) == -1 );
+	sp_destroy(o);
 	sp_destroy(c);
 }
 

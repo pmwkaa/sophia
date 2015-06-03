@@ -87,11 +87,11 @@ snapshot_cursor(stc *cx ssunused)
 	t( o != NULL );
 	t( sp_set(o, "order", ">=") == 0 );
 	void *cur = sp_cursor(db, o);
-	while (sp_get(cur)) {
-		o = sp_object(cur);
+	while ((o = sp_get(cur))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		t( *(int*)sp_get(o, "value", NULL) == i + 1);
 		i++;
+		t( sp_destroy(o) == 0 );
 	}
 	sp_destroy(cur);
 
@@ -100,11 +100,11 @@ snapshot_cursor(stc *cx ssunused)
 	t( o != NULL );
 	t( sp_set(o, "order", ">=") == 0 );
 	cur = sp_cursor(snapshot, o);
-	while (sp_get(cur)) {
-		o = sp_object(cur);
+	while ((o = sp_get(cur))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		t( *(int*)sp_get(o, "value", NULL) == i );
 		i++;
+		t( sp_destroy(o) == 0 );
 	}
 	sp_destroy(cur);
 
@@ -249,11 +249,11 @@ snapshot_recover_cursor(stc *cx ssunused)
 	t( o != NULL );
 	t( sp_set(o, "order", ">=") == 0 );
 	void *cur = sp_cursor(db, o);
-	while (sp_get(cur)) {
-		o = sp_object(cur);
+	while ((o = sp_get(cur))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		t( *(int*)sp_get(o, "value", NULL) == i + 1);
 		i++;
+		t( sp_destroy(o) == 0 );
 	}
 	sp_destroy(cur);
 
@@ -262,11 +262,11 @@ snapshot_recover_cursor(stc *cx ssunused)
 	t( o != NULL );
 	t( sp_set(o, "order", ">=") == 0 );
 	cur = sp_cursor(snapshot, o);
-	while (sp_get(cur)) {
-		o = sp_object(cur);
+	while ((o = sp_get(cur))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		t( *(int*)sp_get(o, "value", NULL) == i );
 		i++;
+		t( sp_destroy(o) == 0 );
 	}
 	sp_destroy(cur);
 

@@ -49,6 +49,7 @@ cache_test0(stc *cx)
 	while ((o = sp_get(cur))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		i++;
+		sp_destroy(o);
 	}
 	t( i == 185 );
 	t( sp_destroy(cur) == 0 );
@@ -112,6 +113,7 @@ cache_test1(stc *cx)
 	while ((o = sp_get(cur))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		i++;
+		sp_destroy(o);
 	}
 	t( sp_destroy(cur) == 0 );
 
@@ -184,6 +186,7 @@ cache_invalidate(stc *cx)
 			t( sp_set(c, "db.test.branch") == 0 );
 		}
 		i++;
+		sp_destroy(o);
 	}
 	t( i == 371 );
 	t( sp_destroy(cur) == 0 );

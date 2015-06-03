@@ -17,11 +17,11 @@ struct socursor {
 	int ready;
 	ssorder order;
 	sx t;
-	sicache *cache;
 	sv seek;
+	sv v;
 	void *prefix;
 	int prefixsize;
-	sov v;
+	sicache *cache;
 	sodb *db;
 } sspacked;
 

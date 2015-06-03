@@ -111,6 +111,7 @@ backup_test0(stc *cx ssunused)
 	while ((o = sp_get(cur))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		i++;
+		sp_destroy(o);
 	}
 	t( i == 100 );
 	t( sp_destroy(cur) == 0 );
@@ -234,6 +235,7 @@ backup_test1(stc *cx ssunused)
 	while ((o = sp_get(cur))) {
 		t( *(int*)sp_get(o, "key", NULL) == i );
 		i++;
+		sp_destroy(o);
 	}
 	t( i == 100 );
 	t( sp_destroy(cur) == 0 );
