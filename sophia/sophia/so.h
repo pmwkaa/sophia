@@ -19,7 +19,8 @@ struct soasync {
 struct so {
 	srobj o;
 	ssmutex apilock;
-	ssspinlock reqlock;
+	ssmutex reqlock;
+	sscond reqcond;
 	ssspinlock dblock;
 	srobjlist db;
 	srobjlist db_shutdown;

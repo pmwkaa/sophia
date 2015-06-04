@@ -1,5 +1,5 @@
-#ifndef SI_ZONE_H_
-#define SI_ZONE_H_
+#ifndef SR_ZONE_H_
+#define SR_ZONE_H_
 
 /*
  * sophia database
@@ -9,10 +9,10 @@
  * BSD License
 */
 
-typedef struct sizone sizone;
-typedef struct sizonemap sizonemap;
+typedef struct srzone srzone;
+typedef struct srzonemap srzonemap;
 
-struct sizone {
+struct srzone {
 	uint32_t enable;
 	char     name[4];
 	uint32_t mode;
@@ -27,20 +27,21 @@ struct sizone {
 	uint32_t gc_prio;
 	uint32_t gc_period;
 	uint32_t gc_wm;
+	uint32_t async;
 };
 
-struct sizonemap {
-	sizone zones[11];
+struct srzonemap {
+	srzone zones[11];
 };
 
 static inline int
-si_zonemap_init(sizonemap *m) {
+sr_zonemap_init(srzonemap *m) {
 	memset(m->zones, 0, sizeof(m->zones));
 	return 0;
 }
 
 static inline void
-si_zonemap_set(sizonemap *m, uint32_t percent, sizone *z)
+sr_zonemap_set(srzonemap *m, uint32_t percent, srzone *z)
 {
 	if (ssunlikely(percent > 100))
 		percent = 100;
@@ -50,14 +51,14 @@ si_zonemap_set(sizonemap *m, uint32_t percent, sizone *z)
 	snprintf(m->zones[p].name, sizeof(m->zones[p].name), "%d", percent);
 }
 
-static inline sizone*
-si_zonemap(sizonemap *m, uint32_t percent)
+static inline srzone*
+sr_zonemap(srzonemap *m, uint32_t percent)
 {
 	if (ssunlikely(percent > 100))
 		percent = 100;
 	percent = percent - percent % 10;
 	int p = percent / 10;
-	sizone *z = &m->zones[p];
+	srzone *z = &m->zones[p];
 	if (!z->enable) {
 		while (p >= 0) {
 			z = &m->zones[p];

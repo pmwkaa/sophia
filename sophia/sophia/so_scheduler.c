@@ -18,18 +18,18 @@
 #include <libse.h>
 #include <libso.h>
 
-static inline sizone*
+static inline srzone*
 so_zoneof(so *e)
 {
 	int p = ss_quotaused_percent(&e->quota);
-	return si_zonemap(&e->ctl.zones, p);
+	return sr_zonemap(&e->ctl.zones, p);
 }
 
 int so_scheduler_branch(void *arg)
 {
 	sodb *db = arg;
 	so *e = so_of(&db->o);
-	sizone *z = so_zoneof(e);
+	srzone *z = so_zoneof(e);
 	soworker stub;
 	so_workerstub_init(&stub);
 	int rc;
@@ -58,7 +58,7 @@ int so_scheduler_compact(void *arg)
 {
 	sodb *db = arg;
 	so *e = so_of(&db->o);
-	sizone *z = so_zoneof(e);
+	srzone *z = so_zoneof(e);
 	soworker stub;
 	so_workerstub_init(&stub);
 	int rc;
@@ -430,7 +430,7 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 	uint64_t now = ss_utime();
 	so *e = s->env;
 	sodb *db;
-	sizone *zone = so_zoneof(e);
+	srzone *zone = so_zoneof(e);
 	assert(zone != NULL);
 
 	task->checkpoint_complete = 0;
@@ -442,12 +442,18 @@ so_schedule(soscheduler *s, sotask *task, soworker *w)
 
 	ss_mutexlock(&s->lock);
 
-	/* dispatch asynchronous requests */
-	if (ssunlikely(s->req == 0 && so_requestqueue(e))) {
-		s->req = 1;
-		task->req = 1;
-		ss_mutexunlock(&s->lock);
-		return 0;
+	/* asynchronous requests dispatcher */
+	if (s->req == 0) {
+		switch (zone->async) {
+		case 2:
+			if (so_requestqueue(e) == 0)
+				break;
+		case 1:
+			s->req = 1;
+			task->req = zone->async;
+			ss_mutexunlock(&s->lock);
+			return 0;
+		}
 	}
 
 	/* log gc and rotation */
@@ -743,15 +749,21 @@ so_execute(sotask *t, soworker *w)
 }
 
 static int
-so_dispatch(soscheduler *s, soworker *w)
+so_dispatch(soscheduler *s, soworker *w, sotask *t)
 {
 	ss_trace(&w->trace, "%s", "dispatcher");
 	so *e = s->env;
-	sorequest *req;
-	while ((req = so_requestdispatch(e))) {
-		so_query(req);
-		so_requestready(req);
-	}
+	int block = t->req == 1;
+	do {
+		int rc = so_active(e);
+		if (ssunlikely(rc == 0))
+			break;
+		sorequest *req;
+		while ((req = so_requestdispatch(e, block))) {
+			so_query(req);
+			so_requestready(req);
+		}
+	} while (block);
 	return 0;
 }
 
@@ -783,7 +795,7 @@ so_complete(soscheduler *s, sotask *t)
 	}
 	if (t->rotate == 1)
 		s->rotate = 0;
-	if (t->req == 1)
+	if (t->req)
 		s->req = 0;
 	ss_mutexunlock(&s->lock);
 	return 0;
@@ -800,7 +812,7 @@ int so_scheduler(soscheduler *s, soworker *w)
 			goto error;
 	}
 	if (task.req) {
-		rc = so_dispatch(s, w);
+		rc = so_dispatch(s, w, &task);
 		if (ssunlikely(rc == -1)) {
 			goto error;
 		}

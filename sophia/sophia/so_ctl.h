@@ -44,7 +44,7 @@ struct soctl {
 	uint32_t    node_size;
 	uint32_t    page_size;
 	uint32_t    page_checksum;
-	sizonemap   zones;
+	srzonemap   zones;
 	/* scheduler */
 	uint32_t    threads;
 	sstrigger   on_event;

@@ -172,10 +172,10 @@ so_ctlcompaction_set(src *c ssunused, srcstmt *s, va_list args)
 		sr_error(&e->error, "%s", "bad argument");
 		return -1;
 	}
-	sizone z;
+	srzone z;
 	memset(&z, 0, sizeof(z));
 	z.enable = 1;
-	si_zonemap_set(&e->ctl.zones, percent, &z);
+	sr_zonemap_set(&e->ctl.zones, percent, &z);
 	return 0;
 }
 
@@ -191,7 +191,7 @@ so_ctlcompaction(so *e, soctlrt *rt ssunused, src **pc)
 	prev = p;
 	int i = 0;
 	for (; i < 11; i++) {
-		sizone *z = &e->ctl.zones.zones[i];
+		srzone *z = &e->ctl.zones.zones[i];
 		if (! z->enable)
 			continue;
 		src *zone = *pc;
@@ -208,6 +208,7 @@ so_ctlcompaction(so *e, soctlrt *rt ssunused, src **pc)
 		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "gc_db_prio",        SR_CU32, &z->gc_db_prio));
 		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "gc_prio",           SR_CU32, &z->gc_prio));
 		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "gc_period",         SR_CU32, &z->gc_period));
+		sr_clink(&p,    sr_c(pc, so_ctlv_offline, "async",             SR_CU32, &z->async));
 		sr_clink(&prev, sr_c(pc, NULL, z->name, SR_CC, zone));
 	}
 	return sr_c(pc, so_ctlcompaction_set, "compaction", SR_CC, compaction);
@@ -785,12 +786,12 @@ so_ctlrt(so *e, soctlrt *rt)
 	/* requests */
 	rt->reqs = so_requestcount(e);
 
-	ss_spinlock(&e->reqlock);
+	ss_mutexlock(&e->reqlock);
 	rt->reqs = e->req.n + e->reqactive.n + e->reqready.n;
-	ss_spinunlock(&e->reqlock);
+	ss_mutexunlock(&e->reqlock);
 
 	int v = ss_quotaused_percent(&e->quota);
-	sizone *z = si_zonemap(&e->ctl.zones, v);
+	srzone *z = sr_zonemap(&e->ctl.zones, v);
 	memcpy(rt->zone, z->name, sizeof(rt->zone));
 
 	/* log */
@@ -924,7 +925,7 @@ void so_ctlinit(soctl *c, void *e)
 	c->commit_lsn          = 0;
 	ss_triggerinit(&c->on_event);
 	c->event_on_backup     = 0;
-	sizone def = {
+	srzone def = {
 		.enable        = 1,
 		.mode          = 3, /* branch + compact */
 		.compact_wm    = 2,
@@ -937,9 +938,10 @@ void so_ctlinit(soctl *c, void *e)
 		.gc_db_prio    = 1,
 		.gc_prio       = 1,
 		.gc_period     = 60,
-		.gc_wm         = 30
+		.gc_wm         = 30,
+		.async         = 2 /* do not own thread */
 	};
-	sizone redzone = {
+	srzone redzone = {
 		.enable        = 1,
 		.mode          = 2, /* checkpoint */
 		.compact_wm    = 4,
@@ -952,10 +954,11 @@ void so_ctlinit(soctl *c, void *e)
 		.gc_db_prio    = 0,
 		.gc_prio       = 0,
 		.gc_period     = 0,
-		.gc_wm         = 0
+		.gc_wm         = 0,
+		.async         = 2
 	};
-	si_zonemap_set(&o->ctl.zones,  0, &def);
-	si_zonemap_set(&o->ctl.zones, 80, &redzone);
+	sr_zonemap_set(&o->ctl.zones,  0, &def);
+	sr_zonemap_set(&o->ctl.zones, 80, &redzone);
 	c->backup_path = NULL;
 }
 
@@ -994,7 +997,7 @@ int so_ctlvalidate(soctl *c)
 	}
 	int i = 0;
 	for (; i < 11; i++) {
-		sizone *z = &e->ctl.zones.zones[i];
+		srzone *z = &e->ctl.zones.zones[i];
 		if (! z->enable)
 			continue;
 		if (z->compact_wm <= 1) {

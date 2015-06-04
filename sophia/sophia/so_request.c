@@ -146,12 +146,20 @@ void so_requestinit(so *e, sorequest *r, sorequestop op, srobj *object, srobj *d
 	r->rc = 0;
 }
 
+void so_requestwakeup(so *e)
+{
+	ss_mutexlock(&e->reqlock);
+	ss_condsignal(&e->reqcond);
+	ss_mutexunlock(&e->reqlock);
+}
+
 void so_requestadd(so *e, sorequest *r)
 {
 	r->id = sr_seq(&e->seq, SR_RSNNEXT);
-	ss_spinlock(&e->reqlock);
+	ss_mutexlock(&e->reqlock);
 	sr_objlist_add(&e->req, &r->o);
-	ss_spinunlock(&e->reqlock);
+	ss_condsignal(&e->reqcond);
+	ss_mutexunlock(&e->reqlock);
 }
 
 void so_request_on_backup(so *e)
@@ -164,10 +172,10 @@ void so_requestready(sorequest *r)
 {
 	sodb *db = (sodb*)r->object;
 	so *e = so_of(&db->o);
-	ss_spinlock(&e->reqlock);
+	ss_mutexlock(&e->reqlock);
 	sr_objlist_del(&e->reqactive, &r->o);
 	sr_objlist_add(&e->reqready, &r->o);
-	ss_spinunlock(&e->reqlock);
+	ss_mutexunlock(&e->reqlock);
 	ss_triggerrun(&e->ctl.on_event);
 }
 
@@ -184,47 +192,53 @@ so_requestnew(so *e, sorequestop op, srobj *object, srobj *db)
 }
 
 sorequest*
-so_requestdispatch(so *e)
+so_requestdispatch(so *e, int block)
 {
-	ss_spinlock(&e->reqlock);
+	ss_mutexlock(&e->reqlock);
 	if (e->req.n == 0) {
-		ss_spinunlock(&e->reqlock);
-		return NULL;
+		if (! block)
+			goto empty;
+		ss_condwait(&e->reqcond, &e->reqlock);
+		if (ssunlikely(e->req.n == 0))
+			goto empty;
 	}
 	sorequest *r = (sorequest*)sr_objlist_first(&e->req);
 	sr_objlist_del(&e->req, &r->o);
 	sr_objlist_add(&e->reqactive, &r->o);
-	ss_spinunlock(&e->reqlock);
+	ss_mutexunlock(&e->reqlock);
 	return r;
+empty:
+	ss_mutexunlock(&e->reqlock);
+	return NULL;
 }
 
 sorequest*
 so_requestdispatch_ready(so *e)
 {
-	ss_spinlock(&e->reqlock);
+	ss_mutexlock(&e->reqlock);
 	if (e->reqready.n == 0) {
-		ss_spinunlock(&e->reqlock);
+		ss_mutexunlock(&e->reqlock);
 		return NULL;
 	}
 	sorequest *r = (sorequest*)sr_objlist_first(&e->reqready);
 	sr_objlist_del(&e->reqready, &r->o);
-	ss_spinunlock(&e->reqlock);
+	ss_mutexunlock(&e->reqlock);
 	return r;
 }
 
 int so_requestqueue(so *e)
 {
-	ss_spinlock(&e->reqlock);
+	ss_mutexlock(&e->reqlock);
 	int n = e->req.n;
-	ss_spinunlock(&e->reqlock);
+	ss_mutexunlock(&e->reqlock);
 	return n;
 }
 
 int so_requestcount(so *e)
 {
-	ss_spinlock(&e->reqlock);
+	ss_mutexlock(&e->reqlock);
 	int n = e->req.n + e->reqactive.n + e->reqready.n;
-	ss_spinunlock(&e->reqlock);
+	ss_mutexunlock(&e->reqlock);
 	return n;
 }
 

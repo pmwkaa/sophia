@@ -17,5 +17,6 @@
 #include <sr_objlist.h>
 #include <sr.h>
 #include <sr_c.h>
+#include <sr_zone.h>
 
 #endif

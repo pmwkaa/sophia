@@ -127,6 +127,7 @@ so_destroy(srobj *o, va_list args ssunused)
 	int rcret = 0;
 	int rc;
 	so_statusset(&e->status, SO_SHUTDOWN);
+	so_requestwakeup(e);
 	rc = so_scheduler_shutdown(&e->sched);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
@@ -165,7 +166,8 @@ so_destroy(srobj *o, va_list args ssunused)
 	so_ctlfree(&e->ctl);
 	ss_quotafree(&e->quota);
 	ss_mutexfree(&e->apilock);
-	ss_spinlockfree(&e->reqlock);
+	ss_mutexfree(&e->reqlock);
+	ss_condfree(&e->reqcond);
 	ss_spinlockfree(&e->dblock);
 	sr_seqfree(&e->seq);
 	ss_pagerfree(&e->pager);
@@ -198,7 +200,6 @@ so_poll(srobj *o, va_list args ssunused)
 		}
 		ss_mutexunlock(&e->sched.lock);
 	}
-
 	sorequest *req = so_requestdispatch_ready(e);
 	if (req == NULL)
 		return NULL;
@@ -288,7 +289,8 @@ srobj *so_new(void)
 	sr_objlist_init(&e->reqready);
 	sr_objlist_init(&e->reqactive);
 	ss_mutexinit(&e->apilock);
-	ss_spinlockinit(&e->reqlock);
+	ss_mutexinit(&e->reqlock);
+	ss_condinit(&e->reqcond);
 	ss_spinlockinit(&e->dblock);
 	ss_quotainit(&e->quota);
 	sr_seqinit(&e->seq);
