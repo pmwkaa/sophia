@@ -146,13 +146,6 @@ void so_requestinit(so *e, sorequest *r, sorequestop op, srobj *object, srobj *d
 	r->rc = 0;
 }
 
-void so_requestwakeup(so *e)
-{
-	ss_mutexlock(&e->reqlock);
-	ss_condsignal(&e->reqcond);
-	ss_mutexunlock(&e->reqlock);
-}
-
 void so_requestadd(so *e, sorequest *r)
 {
 	r->id = sr_seq(&e->seq, SR_RSNNEXT);
@@ -198,8 +191,12 @@ so_requestdispatch(so *e, int block)
 	if (e->req.n == 0) {
 		if (! block)
 			goto empty;
-		ss_condwait(&e->reqcond, &e->reqlock);
-		if (ssunlikely(e->req.n == 0))
+		struct timespec tm = {
+			.tv_sec  = 0,
+			.tv_nsec = 10000000 /* 10ms */
+		};
+		ss_condtimedwait(&e->reqcond, &e->reqlock, &tm);
+		if (e->req.n == 0)
 			goto empty;
 	}
 	sorequest *r = (sorequest*)sr_objlist_first(&e->req);

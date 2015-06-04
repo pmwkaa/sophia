@@ -127,7 +127,6 @@ so_destroy(srobj *o, va_list args ssunused)
 	int rcret = 0;
 	int rc;
 	so_statusset(&e->status, SO_SHUTDOWN);
-	so_requestwakeup(e);
 	rc = so_scheduler_shutdown(&e->sched);
 	if (ssunlikely(rc == -1))
 		rcret = -1;

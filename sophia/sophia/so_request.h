@@ -52,7 +52,6 @@ struct sorequest {
 } sspacked;
 
 void so_requestinit(so*, sorequest*, sorequestop, srobj*, srobj*);
-void so_requestwakeup(so*);
 void so_requestadd(so*, sorequest*);
 void so_request_on_backup(so*);
 void so_requestready(sorequest*);
