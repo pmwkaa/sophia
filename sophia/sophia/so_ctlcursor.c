@@ -24,15 +24,13 @@ so_ctlcursor_destroy(srobj *o, va_list args ssunused)
 	soctlcursor *c = (soctlcursor*)o;
 	so *e = so_of(o);
 	ss_buffree(&c->dump, &e->a);
-	if (c->v)
-		sr_objdestroy(c->v);
 	sr_objlist_del(&e->ctlcursor, &c->o);
 	ss_free(&e->a_ctlcursor, c);
 	return 0;
 }
 
-static inline int
-so_ctlcursor_set(soctlcursor *c)
+static inline srobj*
+so_ctlcursor_object(soctlcursor *c)
 {
 	int type = c->pos->type;
 	void *value = NULL;
@@ -47,21 +45,16 @@ so_ctlcursor_set(soctlcursor *c)
 		.next     = NULL
 	};
 	so *e = so_of(&c->o);
-	void *v = so_ctlreturn(&match, e);
-	if (ssunlikely(v == NULL))
-		return -1;
-	if (c->v)
-		sr_objdestroy(c->v);
-	c->v = v;
-	return 0;
+	return so_ctlreturn(&match, e);
 }
 
-static inline int
-so_ctlcursor_next(soctlcursor *c)
+static void*
+so_ctlcursor_get(srobj *o, va_list args ssunused)
 {
-	int rc;
-	if (c->pos == NULL) {
+	soctlcursor *c = (soctlcursor*)o;
+	if (c->first) {
 		assert( ss_bufsize(&c->dump) >= (int)sizeof(srcv) );
+		c->first = 0;
 		c->pos = (srcv*)c->dump.s;
 	} else {
 		int size = sizeof(srcv) + c->pos->namelen + c->pos->valuelen;
@@ -69,38 +62,9 @@ so_ctlcursor_next(soctlcursor *c)
 		if ((char*)c->pos >= c->dump.p)
 			c->pos = NULL;
 	}
-	if (ssunlikely(c->pos == NULL)) {
-		if (c->v)
-			sr_objdestroy(c->v);
-		c->v = NULL;
-		return 0;
-	}
-	rc = so_ctlcursor_set(c);
-	if (ssunlikely(rc == -1))
-		return -1;
-	return 1;
-}
-
-static void*
-so_ctlcursor_get(srobj *o, va_list args ssunused)
-{
-	soctlcursor *c = (soctlcursor*)o;
-	if (c->ready) {
-		c->ready = 0;
-		return c->v;
-	}
-	if (so_ctlcursor_next(c) == 0)
+	if (ssunlikely(c->pos == NULL))
 		return NULL;
-	return c->v;
-}
-
-static void*
-so_ctlcursor_obj(srobj *obj, va_list args ssunused)
-{
-	soctlcursor *c = (soctlcursor*)obj;
-	if (c->v == NULL)
-		return NULL;
-	return c->v;
+	return so_ctlcursor_object(c);
 }
 
 static void*
@@ -124,23 +88,9 @@ static srobjif soctlcursorif =
 	.prepare = NULL,
 	.commit  = NULL,
 	.cursor  = NULL,
-	.object  = so_ctlcursor_obj,
+	.object  = NULL,
 	.type    = so_ctlcursor_type
 };
-
-static inline int
-so_ctlcursor_open(soctlcursor *c)
-{
-	so *e = so_of(&c->o);
-	int rc = so_ctlserialize(&e->ctl, &c->dump);
-	if (ssunlikely(rc == -1))
-		return -1;
-	rc = so_ctlcursor_next(c);
-	if (ssunlikely(rc == -1))
-		return -1;
-	c->ready = 1;
-	return 0;
-}
 
 srobj *so_ctlcursor_new(void *o)
 {
@@ -152,10 +102,9 @@ srobj *so_ctlcursor_new(void *o)
 	}
 	sr_objinit(&c->o, SOCTLCURSOR, &soctlcursorif, &e->o);
 	c->pos = NULL;
-	c->v = NULL;
-	c->ready = 0;
+	c->first = 1;
 	ss_bufinit(&c->dump);
-	int rc = so_ctlcursor_open(c);
+	int rc = so_ctlserialize(&e->ctl, &c->dump);
 	if (ssunlikely(rc == -1)) {
 		sr_objdestroy(&c->o);
 		return NULL;

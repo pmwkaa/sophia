@@ -230,6 +230,7 @@ ctl_cursor(stc *cx)
 			printf(" = %s\n", value);
 		else
 			printf(" = \n");
+		sp_destroy(o);
 	}
 	t( sp_destroy(cur) == 0 );
 	t( sp_destroy(env) == 0 );

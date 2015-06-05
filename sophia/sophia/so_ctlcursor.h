@@ -13,10 +13,9 @@ typedef struct soctlcursor soctlcursor;
 
 struct soctlcursor {
 	srobj o;
-	int ready;
 	ssbuf dump;
+	int first;
 	srcv *pos;
-	srobj *v;
 } sspacked;
 
 srobj *so_ctlcursor_new(void*);
