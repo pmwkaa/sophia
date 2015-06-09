@@ -184,6 +184,13 @@ so_requestnew(so *e, sorequestop op, srobj *object, srobj *db)
 	return r;
 }
 
+void so_requestwakeup(so *e)
+{
+	ss_mutexlock(&e->reqlock);
+	ss_condsignal(&e->reqcond);
+	ss_mutexunlock(&e->reqlock);
+}
+
 sorequest*
 so_requestdispatch(so *e, int block)
 {
@@ -191,11 +198,7 @@ so_requestdispatch(so *e, int block)
 	if (e->req.n == 0) {
 		if (! block)
 			goto empty;
-		struct timespec tm = {
-			.tv_sec  = 0,
-			.tv_nsec = 10000000 /* 10ms */
-		};
-		ss_condtimedwait(&e->reqcond, &e->reqlock, &tm);
+		ss_condwait(&e->reqcond, &e->reqlock);
 		if (e->req.n == 0)
 			goto empty;
 	}

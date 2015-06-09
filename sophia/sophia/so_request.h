@@ -60,6 +60,7 @@ int  so_requestqueue(so*);
 sorequest *so_requestnew(so*, sorequestop, srobj*, srobj*);
 sorequest *so_requestdispatch(so*, int);
 sorequest *so_requestdispatch_ready(so*);
+void       so_requestwakeup(so*);
 srobj     *so_requestresult(sorequest*);
 void       so_requestend(sorequest*);
 

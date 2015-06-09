@@ -35,9 +35,4 @@ ss_condwait(sscond *c, ssmutex *m) {
 	pthread_cond_wait(&c->c, &m->m);
 }
 
-static inline void
-ss_condtimedwait(sscond *c, ssmutex *m, struct timespec *tm) {
-	pthread_cond_timedwait(&c->c, &m->m, tm);
-}
-
 #endif

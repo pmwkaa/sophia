@@ -205,6 +205,11 @@ async_transaction(stc *cx ssunused)
 	t( sp_set(c, "scheduler.run") == 0 );
 	t( sp_set(c, "scheduler.run") == 0 );
 	t( sp_set(c, "scheduler.run") == 0 );
+	t( sp_set(c, "scheduler.run") == 0 );
+	t( sp_set(c, "scheduler.run") == 0 );
+	t( sp_set(c, "scheduler.run") == 0 );
+	t( sp_set(c, "scheduler.run") == 0 );
+	t( sp_set(c, "scheduler.run") == 0 );
 	t( events == 8 );
 
 	// - - - -

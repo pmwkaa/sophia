@@ -283,6 +283,7 @@ int so_scheduler_init(soscheduler *s, void *env)
 int so_scheduler_shutdown(soscheduler *s)
 {
 	so *e = s->env;
+	so_requestwakeup(e);
 	int rcret = 0;
 	int rc = so_workersshutdown(&s->workers, &e->r);
 	if (ssunlikely(rc == -1))
@@ -758,8 +759,8 @@ so_dispatch(soscheduler *s, soworker *w, sotask *t)
 		int rc = so_active(e);
 		if (ssunlikely(rc == 0))
 			break;
-		sorequest *req;
-		while ((req = so_requestdispatch(e, block))) {
+		sorequest *req = so_requestdispatch(e, block);
+		if (req) {
 			so_query(req);
 			so_requestready(req);
 		}
