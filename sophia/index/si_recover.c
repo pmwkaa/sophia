@@ -95,13 +95,16 @@ sinode *si_bootstrap(si *i, sr *r, uint32_t parent)
 }
 
 static inline int
-si_deploy(si *i, sr *r)
+si_deploy(si *i, sr *r, int create_directory)
 {
-	int rc = sr_filemkdir(i->conf->path);
-	if (srunlikely(rc == -1)) {
-		sr_malfunction(r->e, "directory '%s' create error: %s",
-		               i->conf->path, strerror(errno));
-		return -1;
+	int rc;
+	if (srlikely(create_directory)) {
+		rc = sr_filemkdir(i->conf->path);
+		if (srunlikely(rc == -1)) {
+			sr_malfunction(r->e, "directory '%s' create error: %s",
+						   i->conf->path, strerror(errno));
+			return -1;
+		}
 	}
 	sinode *n = si_bootstrap(i, r, 0);
 	if (srunlikely(n == NULL))
@@ -381,11 +384,8 @@ si_recoverindex(si *i, sr *r)
 	rc = si_trackdir(&track, r, i);
 	if (srunlikely(rc == -1))
 		goto error;
-	if (srunlikely(track.count == 0)) {
-		sr_malfunction(r->e, "corrupted database repository: %s",
-		               i->conf->path);
-		goto error;
-	}
+	if (srunlikely(track.count == 0))
+		return 1;
 	rc = si_trackvalidate(&track, &buf, r, i);
 	if (srunlikely(rc == -1))
 		goto error;
@@ -409,10 +409,14 @@ int si_recover(si *i, sr *r)
 {
 	int exist = sr_fileexists(i->conf->path);
 	if (exist == 0)
-		return si_deploy(i, r);
+		goto deploy;
 	if (i->conf->path_fail_on_exists) {
 		sr_error(r->e, "directory '%s' is exists.", i->conf->path);
 		return -1;
 	}
-	return si_recoverindex(i, r);
+	int rc = si_recoverindex(i, r);
+	if (srlikely(rc <= 0))
+		return rc;
+deploy:
+	return si_deploy(i, r, !exist);
 }
