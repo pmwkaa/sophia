@@ -77,10 +77,10 @@ recovercrash_deploy0(stc *cx ssunused)
 	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );
-	t( sp_open(env) == -1 );
+	t( sp_open(env) == 0 ); /* reuse empty directory */
 	t( sp_destroy(env) == 0 );
 
-	t( exists(cx->suite->dir, "0000000001.db") == 0 );
+	t( exists(cx->suite->dir, "0000000001.db") == 1 );
 	t( exists(cx->suite->dir, "0000000000.0000000001.db.incomplete") == 0 );
 }
 
