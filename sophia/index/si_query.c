@@ -238,7 +238,7 @@ si_qfetchbranch(siquery *q, sinode *n, sibranch *b, svmerge *m)
 	/* cache iteration */
 	if (sslikely(cb->ref)) {
 		if (ss_iterhas(sd_pageiter, &cb->i)) {
-			svmergessc *s = sv_mergeadd(m, &cb->i);
+			svmergesrc *s = sv_mergeadd(m, &cb->i);
 			s->ptr = cb;
 			q->index->read_cache++;
 			return;
@@ -257,7 +257,7 @@ si_qfetchbranch(siquery *q, sinode *n, sibranch *b, svmerge *m)
 		cb->ref = NULL;
 		return;
 	}
-	svmergessc *s = sv_mergeadd(m, &cb->i);
+	svmergesrc *s = sv_mergeadd(m, &cb->i);
 	s->ptr = cb;
 	ss_iterinit(sd_pageiter, &cb->i);
 	ss_iteropen(sd_pageiter, &cb->i, q->r, &cb->buf_b, page, q->order,
@@ -288,15 +288,15 @@ next_node:
 	/* in-memory indexes */
 	svindex *second;
 	svindex *first = si_nodeindex_priority(node, &second);
-	svmergessc *s;
+	svmergesrc *s;
 	s = sv_mergeadd(m, NULL);
-	ss_iterinit(sv_indexiter, &s->ssc);
-	ss_iteropen(sv_indexiter, &s->ssc, q->r, first, q->order,
+	ss_iterinit(sv_indexiter, &s->src);
+	ss_iteropen(sv_indexiter, &s->src, q->r, first, q->order,
 	            q->key, q->keysize, q->vlsn);
 	if (ssunlikely(second)) {
 		s = sv_mergeadd(m, NULL);
-		ss_iterinit(sv_indexiter, &s->ssc);
-		ss_iteropen(sv_indexiter, &s->ssc, q->r, second, q->order,
+		ss_iterinit(sv_indexiter, &s->src);
+		ss_iteropen(sv_indexiter, &s->src, q->r, second, q->order,
 		            q->key, q->keysize, q->vlsn);
 	}
 

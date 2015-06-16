@@ -23,15 +23,15 @@ typedef struct svmergeiter svmergeiter;
 struct svmergeiter {
 	ssorder order;
 	svmerge *merge;
-	svmergessc *ssc, *end;
-	svmergessc *v;
+	svmergesrc *src, *end;
+	svmergesrc *v;
 	sr *r;
 } sspacked;
 
 static inline void
-sv_mergeiter_dupreset(svmergeiter *i, svmergessc *pos)
+sv_mergeiter_dupreset(svmergeiter *i, svmergesrc *pos)
 {
-	svmergessc *v = i->ssc;
+	svmergesrc *v = i->src;
 	while (v != pos) {
 		v->dup = 0;
 		v = sv_mergenextof(v);
@@ -46,31 +46,31 @@ sv_mergeiter_gt(svmergeiter *i)
 		ss_iteratornext(i->v->i);
 	}
 	i->v = NULL;
-	svmergessc *min, *ssc;
+	svmergesrc *min, *src;
 	sv *minv;
 	minv = NULL;
 	min  = NULL;
-	ssc  = i->ssc;
-	for (; ssc < i->end; ssc = sv_mergenextof(ssc))
+	src  = i->src;
+	for (; src < i->end; src = sv_mergenextof(src))
 	{
-		sv *v = ss_iteratorof(ssc->i);
+		sv *v = ss_iteratorof(src->i);
 		if (v == NULL)
 			continue;
 		if (min == NULL) {
 			minv = v;
-			min = ssc;
+			min = src;
 			continue;
 		}
 		int rc = sv_compare(minv, v, i->r->scheme);
 		switch (rc) {
 		case 0:
 			assert(sv_lsn(v) < sv_lsn(minv));
-			ssc->dup = 1;
+			src->dup = 1;
 			break;
 		case 1:
-			sv_mergeiter_dupreset(i, ssc);
+			sv_mergeiter_dupreset(i, src);
 			minv = v;
-			min = ssc;
+			min = src;
 			break;
 		}
 	}
@@ -87,31 +87,31 @@ sv_mergeiter_lt(svmergeiter *i)
 		ss_iteratornext(i->v->i);
 	}
 	i->v = NULL;
-	svmergessc *max, *ssc;
+	svmergesrc *max, *src;
 	sv *maxv;
 	maxv = NULL;
 	max  = NULL;
-	ssc  = i->ssc;
-	for (; ssc < i->end; ssc = sv_mergenextof(ssc))
+	src  = i->src;
+	for (; src < i->end; src = sv_mergenextof(src))
 	{
-		sv *v = ss_iteratorof(ssc->i);
+		sv *v = ss_iteratorof(src->i);
 		if (v == NULL)
 			continue;
 		if (max == NULL) {
 			maxv = v;
-			max = ssc;
+			max = src;
 			continue;
 		}
 		int rc = sv_compare(maxv, v, i->r->scheme);
 		switch (rc) {
 		case  0:
 			assert(sv_lsn(v) < sv_lsn(maxv));
-			ssc->dup = 1;
+			src->dup = 1;
 			break;
 		case -1:
-			sv_mergeiter_dupreset(i, ssc);
+			sv_mergeiter_dupreset(i, src);
 			maxv = v;
-			max = ssc;
+			max = src;
 			break;
 		}
 	}
@@ -144,8 +144,8 @@ sv_mergeiter_open(ssiter *i, sr *r, svmerge *m, ssorder o)
 	im->merge = m;
 	im->r     = r;
 	im->order = o;
-	im->ssc   = (svmergessc*)(im->merge->buf.s);
-	im->end   = (svmergessc*)(im->merge->buf.p);
+	im->src   = (svmergesrc*)(im->merge->buf.s);
+	im->end   = (svmergesrc*)(im->merge->buf.p);
 	im->v     = NULL;
 	sv_mergeiter_next(i);
 	return 0;

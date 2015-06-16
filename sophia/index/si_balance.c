@@ -22,9 +22,9 @@ si_branchcreate(si *index, sr *r, sdc *c, sinode *parent, svindex *vindex, uint6
 	int rc = sv_mergeprepare(&vmerge, r, 1);
 	if (ssunlikely(rc == -1))
 		return NULL;
-	svmergessc *s = sv_mergeadd(&vmerge, NULL);
-	ss_iterinit(sv_indexiterraw, &s->ssc);
-	ss_iteropen(sv_indexiterraw, &s->ssc, vindex);
+	svmergesrc *s = sv_mergeadd(&vmerge, NULL);
+	ss_iterinit(sv_indexiterraw, &s->src);
+	ss_iteropen(sv_indexiterraw, &s->src, vindex);
 	ssiter i;
 	ss_iterinit(sv_mergeiter, &i);
 	ss_iteropen(sv_mergeiter, &i, r, &vmerge, SS_GTE);
@@ -168,13 +168,13 @@ int si_compact(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	sdcbuf *cbuf = c->head;
 	sibranch *b = node->branch;
 	while (b) {
-		svmergessc *s = sv_mergeadd(&merge, NULL);
+		svmergesrc *s = sv_mergeadd(&merge, NULL);
 		rc = ss_bufensure(&cbuf->b, r->a, b->index.h->sizevmax);
 		if (ssunlikely(rc == -1))
 			return sr_oom_malfunction(r->e);
 		size_stream += sd_indextotal(&b->index);
-		ss_iterinit(sd_iter, &s->ssc);
-		ss_iteropen(sd_iter, &s->ssc, r, &b->index, c->c.s, 0,
+		ss_iterinit(sd_iter, &s->src);
+		ss_iteropen(sd_iter, &s->src, r, &b->index, c->c.s, 0,
 		            index->scheme->compression, &cbuf->a, &cbuf->b);
 		cbuf = cbuf->next;
 		b = b->next;

@@ -9,11 +9,11 @@
  * BSD License
 */
 
-typedef struct svmergessc svmergessc;
+typedef struct svmergesrc svmergesrc;
 typedef struct svmerge svmerge;
 
-struct svmergessc {
-	ssiter *i, ssc;
+struct svmergesrc {
+	ssiter *i, src;
 	uint8_t dup;
 	void *ptr;
 } sspacked;
@@ -29,7 +29,7 @@ sv_mergeinit(svmerge *m) {
 
 static inline int
 sv_mergeprepare(svmerge *m, sr *r, int count) {
-	int rc = ss_bufensure(&m->buf, r->a, sizeof(svmergessc) * count);
+	int rc = ss_bufensure(&m->buf, r->a, sizeof(svmergesrc) * count);
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
 	return 0;
@@ -45,23 +45,23 @@ sv_mergereset(svmerge *m) {
 	m->buf.p = m->buf.s;
 }
 
-static inline svmergessc*
+static inline svmergesrc*
 sv_mergeadd(svmerge *m, ssiter *i)
 {
 	assert(m->buf.p < m->buf.e);
-	svmergessc *s = (svmergessc*)m->buf.p;
+	svmergesrc *s = (svmergesrc*)m->buf.p;
 	s->dup = 0;
 	s->i = i;
 	s->ptr = NULL;
 	if (i == NULL)
-		s->i = &s->ssc;
-	ss_bufadvance(&m->buf, sizeof(svmergessc));
+		s->i = &s->src;
+	ss_bufadvance(&m->buf, sizeof(svmergesrc));
 	return s;
 }
 
-static inline svmergessc*
-sv_mergenextof(svmergessc *ssc) {
-	return (svmergessc*)((char*)ssc + sizeof(svmergessc));
+static inline svmergesrc*
+sv_mergenextof(svmergesrc *src) {
+	return (svmergesrc*)((char*)src + sizeof(svmergesrc));
 }
 
 #endif

@@ -13,7 +13,6 @@ typedef struct si si;
 
 struct si {
 	ssmutex lock;
-	sscond cond;
 	siplanner p;
 	ssrb i;
 	int n;

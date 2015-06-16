@@ -22,7 +22,6 @@ int si_init(si *i, sr *r, ssquota *q)
 	ss_bufinit(&i->readbuf);
 	ss_rbinit(&i->i);
 	ss_mutexinit(&i->lock);
-	ss_condinit(&i->cond);
 	i->quota       = q;
 	i->scheme      = NULL;
 	i->update_time = 0;
@@ -52,7 +51,6 @@ int si_close(si *i, sr *r)
 	i->i.root = NULL;
 	ss_buffree(&i->readbuf, r->a);
 	si_plannerfree(&i->p, r->a);
-	ss_condfree(&i->cond);
 	ss_mutexfree(&i->lock);
 	i->destroyed = 1;
 	return rcret;
@@ -63,7 +61,7 @@ ss_rbget(si_match,
                     sd_indexpage_min(&(sscast(n, sinode, node))->self.index,
                                      sd_indexmin(&(sscast(n, sinode, node))->self.index)),
                     sd_indexmin(&(sscast(n, sinode, node))->self.index)->sizemin,
-                    key, keysize))
+                                key, keysize))
 
 int si_insert(si *i, sr *r, sinode *n)
 {
