@@ -15,23 +15,6 @@
 #include <libsd.h>
 #include <libsi.h>
 
-uint32_t
-si_vgc(ssa *a, svv *gc)
-{
-	uint32_t used = 0;
-	svv *v = gc;
-	while (v) {
-		used += sv_vsize(v);
-		svv *n = v->next;
-		sl *log = (sl*)v->log;
-		if (log)
-			ss_gcsweep(&log->gc, 1);
-		ss_free(a, v);
-		v = n;
-	}
-	return used;
-}
-
 void si_begin(sitx *t, sr *r, si *index, uint64_t vlsn, uint64_t time,
               svlog *l,
               svlogindex *li)
@@ -58,7 +41,34 @@ void si_commit(sitx *t)
 	si_unlock(t->index);
 }
 
-static inline void
+static inline svv*
+si_update(sitx *t, svv *head, svv *v)
+{
+	if (sslikely((v->flags & SVUPDATE) == 0))
+		return v;
+	if (sslikely(head == NULL))
+		return v;
+	if ((head->flags & SVUPDATE) > 0)
+		return v;
+	sv a, b, c;
+	sv_init(&a, &sv_vif, head, NULL);
+	sv_init(&b, &sv_vif, v, NULL);
+	int rc = sv_update(t->r, &a, &b, &c);
+	if (ssunlikely(rc == -1)) {
+		sr_oom(t->r->e);
+		return NULL;
+	}
+	((svv*)c.v)->log = v->log;
+	/* gc */
+	uint32_t grow = sv_vsize(c.v);
+	uint32_t gc = sv_vsize(v);
+	ss_free(t->r->a, v);
+	ss_quota(t->index->quota, SS_QGROW, grow);
+	ss_quota(t->index->quota, SS_QREMOVE, gc);
+	return c.v;
+}
+
+static inline int
 si_set(sitx *t, svv *v)
 {
 	si *index = t->index;
@@ -69,19 +79,21 @@ si_set(sitx *t, svv *v)
 	ss_iteropen(si_iter, &i, t->r, index, SS_ROUTE, sv_vpointer(v), v->size);
 	sinode *node = ss_iterof(si_iter, &i);
 	assert(node != NULL);
-	/* update node */
+	/* insert into node index */
 	svindex *vindex = si_nodeindex(node);
-	svv *vgc = NULL;
-	sv_indexset(vindex, t->r, t->vlsn, v, &vgc);
+	svindexpos pos;
+	svv *head = sv_indexget(vindex, t->r, &pos, v);
+	/* apply update */
+	v = si_update(t, head, v);
+	if (ssunlikely(v == NULL))
+		return -1;
+	sv_indexupdate(vindex, &pos, v);
+	/* update node */
 	node->update_time = index->update_time;
 	node->used += sv_vsize(v);
-	if (ssunlikely(vgc)) {
-		uint32_t gc = si_vgc(t->r->a, vgc);
-		node->used -= gc;
-		ss_quota(index->quota, SS_QREMOVE, gc);
-	}
 	if (ss_listempty(&node->commit))
 		ss_listappend(&t->nodelist, &node->commit);
+	return 0;
 }
 
 void si_write(sitx *t, int check)
@@ -91,7 +103,7 @@ void si_write(sitx *t, int check)
 	while (c) {
 		svv *v = cv->v.v;
 		if (check && si_querycommited(t->index, t->r, &cv->v)) {
-			uint32_t gc = si_vgc(t->r->a, v);
+			uint32_t gc = si_gcv(t->r->a, v);
 			ss_quota(t->index->quota, SS_QREMOVE, gc);
 			goto next;
 		}
@@ -100,4 +112,5 @@ next:
 		cv = sv_logat(t->l, cv->next);
 		c--;
 	}
+	return;
 }

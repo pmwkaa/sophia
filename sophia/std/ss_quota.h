@@ -12,6 +12,7 @@
 typedef struct ssquota ssquota;
 
 typedef enum ssquotaop {
+	SS_QGROW,
 	SS_QADD,
 	SS_QREMOVE
 } ssquotaop;

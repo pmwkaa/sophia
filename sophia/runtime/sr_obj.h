@@ -18,6 +18,7 @@ struct srobjif {
 	int   (*open)(srobj*, va_list);
 	int   (*error)(srobj*, va_list);
 	int   (*destroy)(srobj*, va_list);
+	int   (*update)(srobj*, va_list);
 	int   (*set)(srobj*, va_list);
 	int   (*del)(srobj*, va_list);
 	void *(*get)(srobj*, va_list);

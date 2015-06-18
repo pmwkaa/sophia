@@ -185,10 +185,8 @@ int si_nodefree(sinode *n, sr *r, int gc)
 	return rcret;
 }
 
-uint32_t si_vgc(ssa*, svv*);
-
 ss_rbtruncate(si_nodegc_indexgc,
-              si_vgc((ssa*)arg, sscast(n, svv, node)))
+              si_gcv((ssa*)arg, sscast(n, svv, node)))
 
 int si_nodegc_index(sr *r, svindex *i)
 {

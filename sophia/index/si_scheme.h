@@ -28,6 +28,7 @@ struct sischeme {
 	char       *fmt_sz;
 	sf          fmt;
 	sfstorage   fmt_storage;
+	sfupdate    fmt_update;
 	srscheme    scheme;
 };
 

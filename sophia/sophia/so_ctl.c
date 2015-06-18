@@ -404,6 +404,33 @@ so_ctldb_get(src *c, srcstmt *s, va_list args ssunused)
 }
 
 static inline int
+so_ctldb_update(src *c, srcstmt *s, va_list args)
+{
+	if (s->op != SR_CSET)
+		return so_ctlv(c, s, args);
+	sodb *db = c->value;
+	if (ssunlikely(so_statusactive(&db->status))) {
+		sr_error(s->r->e, "write to %s is offline-only", s->path);
+		return -1;
+	}
+	char *v = va_arg(args, char*);
+	/* set update function */
+	sfupdatef update = (sfupdatef)(uintptr_t)ss_triggerpointer_of(v);
+	if (ssunlikely(update)) {
+		v = va_arg(args, char*);
+		void *arg = NULL;
+		if (v) {
+			arg = ss_triggerpointer_of(v);
+			if (ssunlikely(arg == NULL))
+				return -1;
+		}
+		sf_updateset(&db->scheme.fmt_update, update, arg);
+		return 0;
+	}
+	return -1;
+}
+
+static inline int
 so_ctldb_cmp(src *c, srcstmt *s, va_list args)
 {
 	if (s->op != SR_CSET)
@@ -596,6 +623,7 @@ so_ctldb(so *e, soctlrt *rt ssunused, src **pc)
 		sr_clink(&p, sr_c(pc, so_ctlv,            "page_count",       SR_CU32|SR_CRO, &o->ctl.rtp.total_page_count));
 		sr_clink(&p, sr_c(pc, so_ctldb_cmp,       "cmp",              SR_CVOID,       o));
 		sr_clink(&p, sr_c(pc, so_ctldb_cmpprefix, "cmp_prefix",       SR_CVOID,       o));
+		sr_clink(&p, sr_c(pc, so_ctldb_update,    "update",           SR_CVOID,       o));
 		/* index keys */
 		int i = 0;
 		while (i < o->scheme.scheme.count) {
@@ -889,6 +917,7 @@ static srobjif soctlif =
 	.destroy  = NULL,
 	.error    = NULL,
 	.set      = so_ctlset,
+	.update   = NULL,
 	.del      = NULL,
 	.get      = so_ctlget,
 	.poll     = NULL,

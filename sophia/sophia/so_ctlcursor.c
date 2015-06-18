@@ -80,6 +80,7 @@ static srobjif soctlcursorif =
 	.destroy = so_ctlcursor_destroy,
 	.error   = NULL,
 	.set     = NULL,
+	.update  = NULL,
 	.del     = NULL,
 	.get     = so_ctlcursor_get,
 	.poll    = NULL,

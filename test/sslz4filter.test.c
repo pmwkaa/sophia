@@ -18,7 +18,7 @@ sslz4filter_compress_decompress(stc *cx ssunused)
 	ssa a;
 	ss_aopen(&a, &ss_stda);
 	sr r;
-	sr_init(&r, NULL, &a, NULL, SF_KV, SF_SRAW, NULL, NULL, NULL, NULL);
+	sr_init(&r, NULL, &a, NULL, SF_KV, SF_SRAW, NULL, NULL, NULL, NULL, NULL);
 
 	char text[] =
 	"The Early English Text Society is a text publication society dedicated to the"

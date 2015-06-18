@@ -50,6 +50,7 @@ extern stgroup *env_group(void);
 extern stgroup *profiler_group(void);
 extern stgroup *snapshot_group(void);
 extern stgroup *gc_group(void);
+extern stgroup *update_group(void);
 extern stgroup *backup_group(void);
 extern stgroup *transaction_group(void);
 extern stgroup *transaction_multidb_group(void);
@@ -143,6 +144,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, env_group());
 	st_planadd(plan, prefix_group());
 	st_planadd(plan, async_group());
+	st_planadd(plan, update_group());
 	st_add(&s, plan);
 
 	plan = st_plan("default");
@@ -159,7 +161,6 @@ main(int argc, char *argv[])
 	st_planadd(plan, tpc_group());
 	st_planadd(plan, cursor_group());
 	st_add(&s, plan);
-
 
 	plan = st_plan("truncate-repeat");
 	st_planscene(plan, st_sceneof(&s, "rmrf"));

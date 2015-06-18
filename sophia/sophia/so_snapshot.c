@@ -93,6 +93,7 @@ static srobjif sosnapshotif =
 	.destroy = so_snapshotdestroy,
 	.error   = NULL,
 	.set     = NULL,
+	.update  = NULL,
 	.del     = NULL,
 	.get     = so_snapshotget,
 	.poll    = NULL,

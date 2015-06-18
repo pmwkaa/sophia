@@ -1,0 +1,37 @@
+#ifndef SF_UPDATE_H_
+#define SF_UPDATE_H_
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+typedef int (*sfupdatef)(char*, int, char*, int, void*, void**, int*);
+
+typedef struct {
+	sfupdatef function;
+	void *arg;
+} sfupdate;
+
+static inline void
+sf_updateinit(sfupdate *u)
+{
+	memset(u, 0, sizeof(*u));
+}
+
+static inline void
+sf_updateset(sfupdate *u, sfupdatef function, void *arg)
+{
+	u->function = function;
+	u->arg = arg;
+}
+
+static inline int
+sf_updatehas(sfupdate *u) {
+	return u->function != NULL;
+}
+
+#endif

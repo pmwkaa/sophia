@@ -46,6 +46,10 @@ sv_readiter_next(ssiter *i)
 		int del = (sv_flags(v) & SVDELETE) > 0;
 		if (ssunlikely(del))
 			continue;
+		/* ignore stray updates */
+		int update = (sv_flags(v) & SVUPDATE) > 0;
+		if (ssunlikely(update))
+			continue;
 		im->v = v;
 		im->next = 1;
 		break;

@@ -19,7 +19,7 @@ struct sditer {
 	sdindex *index;
 	char *start, *end;
 	char *page;
-	char *pagessc;
+	char *pagesrc;
 	sdpage pagev;
 	uint32_t pos;
 	sdv *dv;
@@ -49,14 +49,14 @@ sd_iternextpage(sditer *i)
 		page = i->start + h->offset + sd_indexsize(i->index->h);
 		i->end = page + h->total;
 	} else {
-		page = i->pagessc + sizeof(sdpageheader) + i->pagev.h->size;
+		page = i->pagesrc + sizeof(sdpageheader) + i->pagev.h->size;
 	}
 	if (ssunlikely(page >= i->end)) {
 		i->page = NULL;
 		return 0;
 	}
-	i->pagessc = page;
-	i->page = i->pagessc;
+	i->pagesrc = page;
+	i->page = i->pagesrc;
 
 	/* decompression */
 	if (i->compression) {
@@ -128,7 +128,7 @@ sd_iter_open(ssiter *i, sr *r, sdindex *index, char *start, int validate,
 	ii->start       = start;
 	ii->end         = NULL;
 	ii->page        = NULL;
-	ii->pagessc     = NULL;
+	ii->pagesrc     = NULL;
 	ii->pos         = 0;
 	ii->dv          = NULL;
 	ii->validate    = validate;

@@ -30,6 +30,7 @@ struct sxindex {
 	uint32_t dsn;
 	srscheme *scheme;
 	void *ptr;
+	sr *r;
 };
 
 struct sx {
@@ -48,12 +49,13 @@ struct sxmanager {
 	ssrb i;
 	uint32_t count;
 	ssa *asxv;
-	sr *r;
+	ssa *a;
+	srseq *seq;
 };
 
-int       sx_managerinit(sxmanager*, sr*, ssa*);
+int       sx_managerinit(sxmanager*, srseq*, ssa*, ssa*);
 int       sx_managerfree(sxmanager*);
-int       sx_indexinit(sxindex*, void*);
+int       sx_indexinit(sxindex*, sr*, void*);
 int       sx_indexset(sxindex*, uint32_t, srscheme*);
 int       sx_indexfree(sxindex*, sxmanager*);
 sx       *sx_find(sxmanager*, uint32_t);

@@ -111,7 +111,7 @@ sv_indexiter_open(ssiter *i, sr *r, svindex *index, ssorder o, void *key, int ke
 		n = ii->v;
 		sv_indexiter_fwd(ii);
 		break;
-	case SS_UPDATE:
+	case SS_HAS:
 		rc = sv_indexmatch(&ii->index->i, ii->r->scheme, ii->key, ii->keysize, &ii->v);
 		if (rc == 0 && ii->v) {
 			svv *v = sscast(ii->v, svv, node);

@@ -49,7 +49,7 @@ sdv_test(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);

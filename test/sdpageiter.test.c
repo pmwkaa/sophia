@@ -59,7 +59,7 @@ sdpageiter_lte_empty(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -108,7 +108,7 @@ sdpageiter_lte_eq0(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -182,7 +182,7 @@ sdpageiter_lte_eq1(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -256,7 +256,7 @@ sdpageiter_lte_eq2(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -330,7 +330,7 @@ sdpageiter_lte_minmax0(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -395,7 +395,7 @@ sdpageiter_lte_minmax1(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -493,7 +493,7 @@ sdpageiter_lte_minmax2(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -577,7 +577,7 @@ sdpageiter_lte_mid0(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -651,7 +651,7 @@ sdpageiter_lte_mid1(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -737,7 +737,7 @@ sdpageiter_lte_iterate0(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -808,7 +808,7 @@ sdpageiter_lte_iterate1(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -881,7 +881,7 @@ sdpageiter_lt_eq(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -955,7 +955,7 @@ sdpageiter_lt_minmax(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -1020,7 +1020,7 @@ sdpageiter_lt_mid(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -1094,7 +1094,7 @@ sdpageiter_lt_iterate0(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -1165,7 +1165,7 @@ sdpageiter_lt_iterate1(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -1233,7 +1233,7 @@ sdpageiter_lte_dup_eq(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -1309,7 +1309,7 @@ sdpageiter_lte_dup_mid(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -1420,7 +1420,7 @@ sdpageiter_lte_dup_mid_gt(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -1525,7 +1525,7 @@ sdpageiter_lte_dup_mid_lt(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -1618,7 +1618,7 @@ sdpageiter_lte_dup_iterate0(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -1699,7 +1699,7 @@ sdpageiter_lte_dup_iterate1(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -1808,7 +1808,7 @@ sdpageiter_gte_eq0(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -1882,7 +1882,7 @@ sdpageiter_gte_eq1(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -1956,7 +1956,7 @@ sdpageiter_gte_eq2(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -2030,7 +2030,7 @@ sdpageiter_gte_minmax0(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -2096,7 +2096,7 @@ sdpageiter_gte_minmax1(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -2194,7 +2194,7 @@ sdpageiter_gte_minmax2(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -2278,7 +2278,7 @@ sdpageiter_gte_mid0(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -2360,7 +2360,7 @@ sdpageiter_gte_mid1(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -2446,7 +2446,7 @@ sdpageiter_gte_iterate0(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -2517,7 +2517,7 @@ sdpageiter_gte_iterate1(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -2590,7 +2590,7 @@ sdpageiter_gt_eq(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -2665,7 +2665,7 @@ sdpageiter_gt_minmax(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -2731,7 +2731,7 @@ sdpageiter_gt_mid(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -2805,7 +2805,7 @@ sdpageiter_gt_iterate0(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -2876,7 +2876,7 @@ sdpageiter_gt_iterate1(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -2944,7 +2944,7 @@ sdpageiter_gte_dup_eq(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -3028,7 +3028,7 @@ sdpageiter_gte_dup_mid(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -3140,7 +3140,7 @@ sdpageiter_gte_dup_mid_gt(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -3239,7 +3239,7 @@ sdpageiter_gte_dup_mid_lt(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -3332,7 +3332,7 @@ sdpageiter_gte_dup_iterate0(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -3413,7 +3413,7 @@ sdpageiter_gte_dup_iterate1(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -3522,7 +3522,7 @@ sdpageiter_update0(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -3546,17 +3546,17 @@ sdpageiter_update0(stc *cx ssunused)
 	ss_iterinit(sd_pageiter, &it);
 	svv *key = allocv(&r, 5);
 	i = 5;
-	t( ss_iteropen(sd_pageiter, &it, &r, &xfbuf, &page, SS_UPDATE, sv_vpointer(key), key->size, (uint64_t)i) == 0 );
+	t( ss_iteropen(sd_pageiter, &it, &r, &xfbuf, &page, SS_HAS, sv_vpointer(key), key->size, (uint64_t)i) == 0 );
 	ss_iteratorclose(&it);
 
 	ss_iterinit(sd_pageiter, &it);
 	i = 5;
-	t( ss_iteropen(sd_pageiter, &it, &r, &xfbuf, &page, SS_UPDATE, sv_vpointer(key), key->size, (uint64_t)(i - 1)) == 1 );
+	t( ss_iteropen(sd_pageiter, &it, &r, &xfbuf, &page, SS_HAS, sv_vpointer(key), key->size, (uint64_t)(i - 1)) == 1 );
 	ss_iteratorclose(&it);
 
 	ss_iterinit(sd_pageiter, &it);
 	i = 5;
-	t( ss_iteropen(sd_pageiter, &it, &r, &xfbuf, &page, SS_UPDATE, sv_vpointer(key), key->size, (uint64_t)(i + 1)) == 0 );
+	t( ss_iteropen(sd_pageiter, &it, &r, &xfbuf, &page, SS_HAS, sv_vpointer(key), key->size, (uint64_t)(i + 1)) == 0 );
 	ss_iteratorclose(&it);
 	sv_vfree(&a, key);
 

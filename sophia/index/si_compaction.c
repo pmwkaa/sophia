@@ -14,12 +14,10 @@
 #include <libsd.h>
 #include <libsi.h>
 
-extern uint32_t si_vgc(ssa*, svv*);
-
 static int
-si_redistribute(si *index, sr *r, sdc *c, sinode *node, ssbuf *result,
-                uint64_t vlsn)
+si_redistribute(si *index, sr *r, sdc *c, sinode *node, ssbuf *result)
 {
+	(void)index;
 	svindex *vindex = si_nodeindex(node);
 	ssiter i;
 	ss_iterinit(sv_indexiterraw, &i);
@@ -34,7 +32,6 @@ si_redistribute(si *index, sr *r, sdc *c, sinode *node, ssbuf *result,
 	}
 	if (ssunlikely(ss_bufused(&c->b) == 0))
 		return 0;
-	uint32_t gc = 0;
 	ss_iterinit(ss_bufiterref, &i);
 	ss_iteropen(ss_bufiterref, &i, &c->b, sizeof(svv*));
 	ssiter j;
@@ -50,13 +47,8 @@ si_redistribute(si *index, sr *r, sdc *c, sinode *node, ssbuf *result,
 			while (ss_iterhas(ss_bufiterref, &i)) {
 				svv *v = ss_iterof(ss_bufiterref, &i);
 				v->next = NULL;
-
-				svv *vgc = NULL;
-				sv_indexset(&prev->i0, r, vlsn, v, &vgc);
+				sv_indexset(&prev->i0, r, v);
 				ss_iternext(ss_bufiterref, &i);
-				if (vgc) {
-					gc += si_vgc(r->a, vgc);
-				}
 			}
 			break;
 		}
@@ -64,34 +56,26 @@ si_redistribute(si *index, sr *r, sdc *c, sinode *node, ssbuf *result,
 		{
 			svv *v = ss_iterof(ss_bufiterref, &i);
 			v->next = NULL;
-
-			svv *vgc = NULL;
 			sdindexpage *page = sd_indexmin(&p->self.index);
 			int rc = sr_compare(r->scheme, sv_vpointer(v), v->size,
 			                    sd_indexpage_min(&p->self.index, page),
 			                    page->sizemin);
 			if (ssunlikely(rc >= 0))
 				break;
-			sv_indexset(&prev->i0, r, vlsn, v, &vgc);
+			sv_indexset(&prev->i0, r, v);
 			ss_iternext(ss_bufiterref, &i);
-			if (vgc) {
-				gc += si_vgc(r->a, vgc);
-			}
 		}
 		if (ssunlikely(! ss_iterhas(ss_bufiterref, &i)))
 			break;
 		prev = p;
 		ss_iternext(ss_bufiterref, &j);
 	}
-	if (gc) {
-		ss_quota(index->quota, SS_QREMOVE, gc);
-	}
 	assert(ss_iterof(ss_bufiterref, &i) == NULL);
 	return 0;
 }
 
 static inline void
-si_redistribute_set(si *index, sr *r, uint64_t vlsn, uint64_t now, svv *v)
+si_redistribute_set(si *index, sr *r, uint64_t now, svv *v)
 {
 	index->update_time = now;
 	/* match node */
@@ -102,21 +86,15 @@ si_redistribute_set(si *index, sr *r, uint64_t vlsn, uint64_t now, svv *v)
 	assert(node != NULL);
 	/* update node */
 	svindex *vindex = si_nodeindex(node);
-	svv *vgc = NULL;
-	sv_indexset(vindex, r, vlsn, v, &vgc);
+	sv_indexset(vindex, r, v);
 	node->update_time = index->update_time;
 	node->used += sv_vsize(v);
-	if (ssunlikely(vgc)) {
-		uint32_t gc = si_vgc(r->a, vgc);
-		node->used -= gc;
-		ss_quota(index->quota, SS_QREMOVE, gc);
-	}
 	/* schedule node */
 	si_plannerupdate(&index->p, SI_BRANCH, node);
 }
 
 static int
-si_redistribute_index(si *index, sr *r, sdc *c, sinode *node, uint64_t vlsn)
+si_redistribute_index(si *index, sr *r, sdc *c, sinode *node)
 {
 	svindex *vindex = si_nodeindex(node);
 	ssiter i;
@@ -136,7 +114,7 @@ si_redistribute_index(si *index, sr *r, sdc *c, sinode *node, uint64_t vlsn)
 	ss_iteropen(ss_bufiterref, &i, &c->b, sizeof(svv*));
 	while (ss_iterhas(ss_bufiterref, &i)) {
 		svv *v = ss_iterof(ss_bufiterref, &i);
-		si_redistribute_set(index, r, vlsn, now, v);
+		si_redistribute_set(index, r, now, v);
 		ss_iternext(ss_bufiterref, &i);
 	}
 	return 0;
@@ -271,7 +249,7 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 	switch (count) {
 	case 0: /* delete */
 		si_remove(index, node);
-		si_redistribute_index(index, r, c, node, vlsn);
+		si_redistribute_index(index, r, c, node);
 		uint32_t used = sv_indexused(j);
 		if (used) {
 			ss_quota(index->quota, SS_QREMOVE, used);
@@ -286,7 +264,7 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 		si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH, n);
 		break;
 	default: /* split */
-		rc = si_redistribute(index, r, c, node, result, vlsn);
+		rc = si_redistribute(index, r, c, node, result);
 		if (ssunlikely(rc == -1)) {
 			si_unlock(index);
 			si_splitfree(result, r);

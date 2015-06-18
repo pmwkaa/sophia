@@ -44,14 +44,12 @@ libsophia.so: sophia.o
 	@$(CC) sophia.o $(SOPHIA_LDFLAGS) -o libsophia.so.1.2.3
 	@ln -sf libsophia.so.1.2.3 libsophia.so.1.2
 	@ln -sf libsophia.so.1.2.3 libsophia.so
-
 ifeq ($(shell uname), Linux)
 	@strip --strip-unneeded libsophia.so.1.2.3
 endif
 ifeq ($(shell uname), Darwin)
 	@strip -u -r -x libsophia.so.1.2.3
 endif
-
 static: libsophia.a
 dynamic: libsophia.so
 clean:

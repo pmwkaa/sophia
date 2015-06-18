@@ -49,7 +49,7 @@ sditer_gt0(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -137,7 +137,7 @@ sditer_gt1(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -273,7 +273,7 @@ sditer_gt0_compression_zstd(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, &ss_zstdfilter);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, &ss_zstdfilter);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -365,7 +365,7 @@ sditer_gt0_compression_lz4(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, &ss_lz4filter);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, &ss_lz4filter);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -457,7 +457,7 @@ sditer_gt1_compression_zstd(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, &ss_zstdfilter);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, &ss_zstdfilter);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -596,7 +596,7 @@ sditer_gt1_compression_lz4(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, &ss_lz4filter);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, &ss_lz4filter);
 
 	sdbuild b;
 	sd_buildinit(&b);

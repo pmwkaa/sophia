@@ -11,9 +11,10 @@
 
 #define SVNONE   0
 #define SVDELETE 1
-#define SVDUP    2
-#define SVABORT  4
-#define SVBEGIN  8
+#define SVUPDATE 2
+#define SVDUP    4
+#define SVABORT  8
+#define SVBEGIN  16
 
 typedef struct svif svif;
 typedef struct sv sv;
@@ -81,12 +82,6 @@ sv_value(sv *v, sr *r) {
 static inline int
 sv_valuesize(sv *v, sr *r) {
 	return sf_valuesize(r->fmt, sv_pointer(v), sv_size(v), r->scheme->count);
-}
-
-static inline int
-sv_compare(sv *a, sv *b, srscheme *s) {
-	return sr_compare(s, sv_pointer(a), sv_size(a),
-	                     sv_pointer(b), sv_size(b));
 }
 
 #endif

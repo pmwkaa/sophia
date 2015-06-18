@@ -52,6 +52,7 @@ int ss_quota(ssquota *q, ssquotaop op, uint64_t v)
 				ss_condwait(&q->cond, &q->lock);
 			}
 		}
+	case SS_QGROW:
 		q->used += v;
 		break;
 	case SS_QREMOVE:

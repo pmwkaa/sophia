@@ -218,6 +218,7 @@ static srobjif sovif =
 	.destroy = so_vdestroy,
 	.error   = NULL,
 	.set     = so_vset,
+	.update  = NULL,
 	.del     = NULL,
 	.get     = so_vget,
 	.poll    = NULL,

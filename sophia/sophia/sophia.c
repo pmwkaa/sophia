@@ -164,6 +164,23 @@ sp_set(void *o, ...)
 }
 
 SP_API int
+sp_update(void *o, ...)
+{
+	srobj *obj = o;
+	if (ssunlikely(obj->i->update == NULL)) {
+		sp_error_unsupported_method(o, __FUNCTION__);
+		return -1;
+	}
+	va_list args;
+	va_start(args, o);
+	so_apilock(obj->env);
+	int rc = obj->i->update(o, args);
+	so_apiunlock(obj->env);
+	va_end(args);
+	return rc;
+}
+
+SP_API int
 sp_delete(void *o, ...)
 {
 	srobj *obj = o;

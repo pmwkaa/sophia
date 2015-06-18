@@ -34,6 +34,7 @@ OBJECTS = st.o \
           multipart.test.o \
           snapshot.test.o \
           gc.test.o \
+          update.test.o \
           backup.test.o \
           branch.test.o \
           compact.test.o \

@@ -30,6 +30,7 @@ SP_API int   sp_open(void*, ...);
 SP_API int   sp_destroy(void*, ...);
 SP_API int   sp_error(void*, ...);
 SP_API int   sp_set(void*, ...);
+SP_API int   sp_update(void*, ...);
 SP_API int   sp_delete(void*, ...);
 SP_API void *sp_get(void*, ...);
 SP_API void *sp_poll(void*, ...);

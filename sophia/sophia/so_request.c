@@ -119,6 +119,7 @@ static srobjif sorequestif =
 	.destroy = so_requestdestroy,
 	.error   = NULL,
 	.set     = NULL,
+	.update  = NULL,
 	.del     = NULL,
 	.get     = so_requestget,
 	.poll    = NULL,

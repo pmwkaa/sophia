@@ -36,6 +36,7 @@ static srobjif soasyncif =
 	.destroy = NULL,
 	.error   = NULL,
 	.set     = NULL,
+	.update  = NULL,
 	.del     = NULL,
 	.get     = NULL,
 	.poll    = NULL,
@@ -232,6 +233,7 @@ static srobjif soif =
 	.destroy = so_destroy,
 	.error   = so_error,
 	.set     = NULL,
+	.update  = NULL,
 	.del     = NULL,
 	.get     = NULL,
 	.poll    = so_poll,
@@ -296,11 +298,11 @@ srobj *so_new(void)
 	sr_errorinit(&e->error);
 	sscrcf crc = ss_crc32c_function();
 	sr_init(&e->r, &e->error, &e->a, &e->seq,
-	        SF_KV, SF_SRAW,
+	        SF_KV, SF_SRAW, NULL,
 	        &e->ctl.ctlscheme, &e->ei, crc, NULL);
 	se_init(&e->se);
 	sl_poolinit(&e->lp, &e->r);
-	sx_managerinit(&e->xm, &e->r, &e->a_sxv);
+	sx_managerinit(&e->xm, &e->seq, &e->a, &e->a_sxv);
 	si_cachepool_init(&e->cachepool, &e->a_cache, &e->a_cachebranch);
 	so_scheduler_init(&e->sched, e);
 	return &e->o;

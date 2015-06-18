@@ -52,7 +52,7 @@ sv_vbuild(sr *r, sfv *keys, int count, char *data, int size)
 }
 
 static inline svv*
-sv_vbuildraw(ssa *a, char *ssc, int size)
+sv_vbuildraw(ssa *a, char *src, int size)
 {
 	svv *v = ss_malloc(a, sizeof(svv) + size);
 	if (ssunlikely(v == NULL))
@@ -63,7 +63,7 @@ sv_vbuildraw(ssa *a, char *ssc, int size)
 	v->next  = NULL;
 	v->log   = NULL;
 	memset(&v->node, 0, sizeof(v->node));
-	memcpy(sv_vpointer(v), ssc, size);
+	memcpy(sv_vpointer(v), src, size);
 	return v;
 }
 

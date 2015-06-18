@@ -28,8 +28,8 @@ struct srscheme {
 	srkey *parts;
 	int count;
 	srcmpf cmp;
-	void *cmparg;
 	srcmpf cmpprefix;
+	void *cmparg;
 	void *cmpprefix_arg;
 };
 

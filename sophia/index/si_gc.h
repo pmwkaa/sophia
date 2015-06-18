@@ -1,5 +1,5 @@
-#ifndef LIBSF_H_
-#define LIBSF_H_
+#ifndef SI_GC_H_
+#define SI_GC_H_
 
 /*
  * sophia database
@@ -9,7 +9,6 @@
  * BSD License
 */
 
-#include <sf.h>
-#include <sf_update.h>
+uint32_t si_gcv(ssa*, svv*);
 
 #endif

@@ -346,7 +346,7 @@ sd_pageiter_open(ssiter *i, sr *r, ssbuf *xfbuf, sdpage *page, ssorder o,
 	pi->v       = NULL;
 	pi->pos     = 0;
 	if (ssunlikely(pi->page->h->lsnmin > pi->vlsn &&
-	               pi->order != SS_UPDATE))
+	               pi->order != SS_HAS))
 		return 0;
 	int rc = 0;
 	switch (pi->order) {
@@ -360,7 +360,7 @@ sd_pageiter_open(ssiter *i, sr *r, ssbuf *xfbuf, sdpage *page, ssorder o,
 		break;
 	case SS_EQ:  rc = sd_pageiter_lt(pi, 1);
 		break;
-	case SS_UPDATE: {
+	case SS_HAS: {
 		uint64_t vlsn = pi->vlsn;
 		pi->vlsn = (uint64_t)-1;
 		int match = sd_pageiter_lt(pi, 1);

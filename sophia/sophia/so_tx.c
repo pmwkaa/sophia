@@ -18,7 +18,7 @@
 #include <libse.h>
 #include <libso.h>
 
-int so_txdbset(sodb *db, int async, uint8_t flags, va_list args)
+int so_txdbwrite(sodb *db, int async, uint8_t flags, va_list args)
 {
 	so *e = so_of(&db->o);
 
@@ -35,6 +35,9 @@ int so_txdbset(sodb *db, int async, uint8_t flags, va_list args)
 	}
 	if (ssunlikely(! so_online(&db->status)))
 		goto error;
+
+	if (flags == SVUPDATE && !sf_updatehas(&db->scheme.fmt_update))
+		flags = 0;
 
 	/* prepare object */
 	svv *v = so_dbv(db, o, 0);
@@ -186,6 +189,9 @@ so_txwrite(srobj *obj, uint8_t flags, va_list args)
 	default: goto error;
 	}
 
+	if (flags == SVUPDATE && !sf_updatehas(&db->scheme.fmt_update))
+		flags = 0;
+
 	/* prepare object */
 	svv *v = so_dbv(db, o, 0);
 	if (ssunlikely(v == NULL))
@@ -229,6 +235,12 @@ static int
 so_txset(srobj *o, va_list args)
 {
 	return so_txwrite(o, 0, args);
+}
+
+static int
+so_txupdate(srobj *o, va_list args)
+{
+	return so_txwrite(o, SVUPDATE, args);
 }
 
 static int
@@ -457,6 +469,7 @@ static srobjif sotxif =
 	.destroy = so_txrollback,
 	.error   = NULL,
 	.set     = so_txset,
+	.update  = so_txupdate,
 	.get     = so_txget,
 	.del     = so_txdelete,
 	.poll    = NULL,

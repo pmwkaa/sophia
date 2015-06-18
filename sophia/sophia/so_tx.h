@@ -17,7 +17,7 @@ struct sotx {
 	sx t;
 } sspacked;
 
-int    so_txdbset(sodb*, int, uint8_t, va_list);
+int    so_txdbwrite(sodb*, int, uint8_t, va_list);
 void  *so_txdbget(sodb*, int, uint64_t, int, va_list);
 void   so_txend(sotx*);
 srobj *so_txnew(so*, int);

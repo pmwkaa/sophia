@@ -54,6 +54,7 @@ static srobjif sodbctlif =
 	.destroy = NULL,
 	.error   = NULL,
 	.set     = NULL,
+	.update  = NULL,
 	.del     = NULL,
 	.get     = so_dbctl_get,
 	.poll    = NULL,
@@ -97,6 +98,7 @@ so_dbscheme_init(sodb *db, char *name)
 	scheme->compression_if  = &ss_nonefilter;
 	scheme->fmt             = SF_KV;
 	scheme->fmt_storage     = SF_SRAW;
+	sf_updateinit(&scheme->fmt_update);
 	scheme->compression_sz = ss_strdup(&e->a, scheme->compression_if->name);
 	if (ssunlikely(scheme->compression_sz == NULL))
 		goto e1;
@@ -115,7 +117,6 @@ so_dbscheme_init(sodb *db, char *name)
 	rc = sr_keyset(part, &e->a, "string");
 	if (ssunlikely(rc == -1))
 		goto e1;
-
 	return 0;
 e1:
 	si_schemefree(&db->scheme, &db->r);
@@ -187,6 +188,7 @@ so_dbscheme_set(sodb *o)
 	o->r.scheme = &s->scheme;
 	o->r.fmt = s->fmt;
 	o->r.fmt_storage = s->fmt_storage;
+	o->r.fmt_update  = &s->fmt_update;
 	o->r.compression = s->compression_if;
 	return 0;
 }
@@ -195,14 +197,21 @@ static int
 so_dbasync_set(srobj *obj, va_list args)
 {
 	sodbasync *o = (sodbasync*)obj;
-	return so_txdbset(o->parent, 1, 0, args);
+	return so_txdbwrite(o->parent, 1, 0, args);
+}
+
+static int
+so_dbasync_update(srobj *obj, va_list args)
+{
+	sodbasync *o = (sodbasync*)obj;
+	return so_txdbwrite(o->parent, 1, SVUPDATE, args);
 }
 
 static int
 so_dbasync_del(srobj *obj, va_list args)
 {
 	sodbasync *o = (sodbasync*)obj;
-	return so_txdbset(o->parent, 1, SVDELETE, args);
+	return so_txdbwrite(o->parent, 1, SVDELETE, args);
 }
 
 static void*
@@ -236,9 +245,11 @@ static srobjif sodbasyncif =
 {
 	.ctl     = NULL,
 	.async   = NULL,
+	.open    = NULL,
 	.destroy = NULL,
 	.error   = NULL,
 	.set     = so_dbasync_set,
+	.update  = so_dbasync_update,
 	.del     = so_dbasync_del,
 	.get     = so_dbasync_get,
 	.poll    = NULL,
@@ -395,14 +406,21 @@ static int
 so_dbset(srobj *obj, va_list args)
 {
 	sodb *o = (sodb*)obj;
-	return so_txdbset(o, 0, 0, args);
+	return so_txdbwrite(o, 0, 0, args);
+}
+
+static int
+so_dbupdate(srobj *obj, va_list args)
+{
+	sodb *o = (sodb*)obj;
+	return so_txdbwrite(o, 0, SVUPDATE, args);
 }
 
 static int
 so_dbdel(srobj *obj, va_list args)
 {
 	sodb *o = (sodb*)obj;
-	return so_txdbset(o, 0, SVDELETE, args);
+	return so_txdbwrite(o, 0, SVDELETE, args);
 }
 
 static void*
@@ -440,6 +458,7 @@ static srobjif sodbif =
 	.destroy  = so_dbdestroy,
 	.error    = so_dberror,
 	.set      = so_dbset,
+	.update   = so_dbupdate,
 	.del      = so_dbdel,
 	.get      = so_dbget,
 	.poll     = NULL,
@@ -483,7 +502,7 @@ srobj *so_dbnew(so *e, char *name)
 		si_schemefree(&o->scheme, &o->r);
 		return NULL;
 	}
-	sx_indexinit(&o->coindex, o);
+	sx_indexinit(&o->coindex, &o->r, o);
 	ss_spinlockinit(&o->reflock);
 	o->ref_be = 0;
 	o->ref = 0;

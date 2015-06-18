@@ -104,6 +104,7 @@ static srobjif socursorif =
 	.destroy = so_cursordestroy,
 	.error   = NULL,
 	.set     = NULL,
+	.update  = NULL,
 	.del     = NULL,
 	.get     = so_cursorget,
 	.poll    = NULL,

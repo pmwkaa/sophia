@@ -75,6 +75,8 @@ so_queryread(sorequest *r)
 	             arg->vlsn,
 	             arg->prefix,
 	             arg->prefixsize, key, keysize);
+	if (arg->update)
+		si_queryupdate(&q, arg->update_v);
 	r->rc = si_query(&q);
 	r->v = q.result.v;
 	si_queryclose(&q);
@@ -113,10 +115,18 @@ so_querydb_set(sorequest *r)
 static inline int
 so_querydb_get(sorequest *r)
 {
-	so *e = so_of(r->object);
+	sorequestarg *arg = &r->arg;
 	sodb *db = (sodb*)r->db;
+	so *e = so_of(r->object);
 	/* register transaction statement */
 	sx_getstmt(&e->xm, &db->coindex);
+	/* switch to cursor iteration to support
+	 * update operations */
+	if (sf_updatehas(&db->scheme.fmt_update)) {
+		arg->order    = SS_LTE;
+		arg->update   = 1;
+		arg->update_v = NULL;
+	}
 	so_queryread(r);
 	return r->rc;
 }
@@ -144,15 +154,22 @@ so_querytx_get(sorequest *r)
 	arg->vlsn = t->t.vlsn;
 	arg->vlsn_generate = 0;
 	/* concurrent */
-	sv result;
+	sv result = { .v = NULL };
 	r->rc = sx_get(&t->t, &db->coindex, &arg->v, &result);
 	switch (r->rc) {
 	case  1:
-		r->v = result.v;
-		break;
+		if (! (sv_flags(&result) & SVUPDATE)) {
+			r->v = result.v;
+			break;
+		}
+		arg->order    = SS_LTE;
+		arg->update   = 1;
+		arg->update_v = &result;
 	case  0:
 		/* storage */
 		so_queryread(r);
+		if (result.v)
+			sv_vfree(db->r.a, result.v);
 		break;
 	}
 	return r->rc;
@@ -280,7 +297,7 @@ so_queryprepare_trigger(sx *t, sv *v, void *arg0, void *arg1)
 		return SXPREPARE;
 	siquery q;
 	si_queryopen(&q, &db->r, cache, &db->index,
-	             SS_UPDATE, t->vlsn,
+	             SS_HAS, t->vlsn,
 	             NULL, 0,
 	             sv_pointer(v), sv_size(v));
 	int rc;

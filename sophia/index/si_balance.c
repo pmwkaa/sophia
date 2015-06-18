@@ -183,10 +183,6 @@ int si_compact(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	ss_iterinit(sv_mergeiter, &i);
 	ss_iteropen(sv_mergeiter, &i, r, &merge, SS_GTE);
 	rc = si_compaction(index, r, c, vlsn, node, &i, size_stream);
-	if (ssunlikely(rc == -1)) {
-		sv_mergefree(&merge, r->a);
-		return -1;
-	}
 	sv_mergefree(&merge, r->a);
-	return 0;
+	return rc;
 }

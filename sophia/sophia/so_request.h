@@ -33,6 +33,8 @@ struct sorequestarg {
 	sicache *cache;
 	char *prefix;
 	int prefixsize;
+	int update;
+	sv *update_v;
 	int recover;
 	uint64_t lsn;
 	int vlsn_generate;

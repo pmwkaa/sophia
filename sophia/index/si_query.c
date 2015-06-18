@@ -19,19 +19,27 @@ int si_queryopen(siquery *q, sr *r, sicache *c, si *i, ssorder o,
                  void *prefix, uint32_t prefixsize,
                  void *key, uint32_t keysize)
 {
-	q->order   = o;
-	q->key     = key;
-	q->keysize = keysize;
-	q->vlsn    = vlsn;
-	q->index   = i;
-	q->r       = r;
-	q->cache   = c;
-	q->prefix  = prefix;
+	q->order      = o;
+	q->key        = key;
+	q->keysize    = keysize;
+	q->vlsn       = vlsn;
+	q->index      = i;
+	q->r          = r;
+	q->cache      = c;
+	q->prefix     = prefix;
 	q->prefixsize = prefixsize;
+	q->update     = 0;
+	q->update_v   = NULL;
 	memset(&q->result, 0, sizeof(q->result));
 	sv_mergeinit(&q->merge);
 	si_lock(q->index);
 	return 0;
+}
+
+void si_queryupdate(siquery *q, sv *v)
+{
+	q->update = 1;
+	q->update_v = v;
 }
 
 int si_queryclose(siquery *q)
@@ -278,17 +286,28 @@ next_node:
 
 	/* prepare sources */
 	svmerge *m = &q->merge;
-	int count = node->branch_count + 2;
+	int count = node->branch_count + 2 + 1;
 	int rc = sv_mergeprepare(m, q->r, count);
 	if (ssunlikely(rc == -1)) {
 		sr_errorreset(q->r->e);
 		return -1;
 	}
 
+	/* external source (update) */
+	svmergesrc *s;
+	sv upbuf_reserve;
+	ssbuf upbuf;
+	if (ssunlikely(q->update_v)) {
+		ss_bufinit_reserve(&upbuf, &upbuf_reserve, sizeof(upbuf_reserve));
+		ss_bufadd(&upbuf, NULL, (void*)&q->update_v, sizeof(sv*));
+		s = sv_mergeadd(m, NULL);
+		ss_iterinit(ss_bufiterref, &s->src);
+		ss_iteropen(ss_bufiterref, &s->src, &upbuf, sizeof(sv*));
+	}
+
 	/* in-memory indexes */
 	svindex *second;
 	svindex *first = si_nodeindex_priority(node, &second);
-	svmergesrc *s;
 	s = sv_mergeadd(m, NULL);
 	ss_iterinit(sv_indexiter, &s->src);
 	ss_iteropen(sv_indexiter, &s->src, q->r, first, q->order,
@@ -321,14 +340,20 @@ next_node:
 	ss_iteropen(sv_readiter, &k, &j, q->vlsn);
 	sv *v = ss_iterof(sv_readiter, &k);
 	if (ssunlikely(v == NULL)) {
-		sv_mergereset(&q->merge);
+		sv_mergereset(&q->merge, q->r->a);
 		ss_iternext(si_iter, &i);
 		goto next_node;
 	}
 
-	/* do prefix search */
 	rc = 1;
-	if (q->prefix) {
+	/* do update validation */
+	if (q->update) {
+		rc = sr_compare(q->r->scheme, sv_pointer(v), sv_size(v),
+		                q->key, q->keysize);
+		rc = rc == 0;
+	}
+	/* do prefix search */
+	if (q->prefix && rc) {
 		rc = sr_compareprefix(q->r->scheme, q->prefix, q->prefixsize,
 		                      sv_pointer(v),
 		                      sv_size(v));
@@ -347,7 +372,7 @@ int si_query(siquery *q)
 {
 	switch (q->order) {
 	case SS_EQ:
-	case SS_UPDATE:
+	case SS_HAS:
 		return si_qmatch(q);
 	case SS_LT:
 	case SS_LTE:

@@ -9,7 +9,13 @@
  * BSD License
 */
 
+typedef struct svindexpos svindexpos;
 typedef struct svindex svindex;
+
+struct svindexpos {
+	ssrbnode *node;
+	int rc;
+};
 
 struct svindex {
 	ssrb i;
@@ -23,9 +29,19 @@ ss_rbget(sv_indexmatch,
                     (sscast(n, svv, node))->size,
                     key, keysize))
 
-int sv_indexinit(svindex*);
-int sv_indexfree(svindex*, sr*);
-int sv_indexset(svindex*, sr*, uint64_t, svv*, svv**);
+int  sv_indexinit(svindex*);
+int  sv_indexfree(svindex*, sr*);
+svv *sv_indexget(svindex*, sr*, svindexpos*, svv*);
+int  sv_indexupdate(svindex*, svindexpos*, svv*);
+
+static inline int
+sv_indexset(svindex *i, sr *r, svv  *v)
+{
+	svindexpos pos;
+	sv_indexget(i, r, &pos, v);
+	sv_indexupdate(i, &pos, v);
+	return 0;
+}
 
 static inline uint32_t
 sv_indexused(svindex *i) {

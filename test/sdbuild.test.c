@@ -49,7 +49,7 @@ sdbuild_empty(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -80,7 +80,7 @@ sdbuild_page0(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -118,7 +118,7 @@ sdbuild_page1(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, NULL);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -192,7 +192,7 @@ sdbuild_compression_zstd(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, &ss_zstdfilter);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, &ss_zstdfilter);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -243,7 +243,7 @@ sdbuild_compression_lz4(stc *cx ssunused)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, &cmp, &ij, crc, &ss_lz4filter);
+	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, &ss_lz4filter);
 
 	sdbuild b;
 	sd_buildinit(&b);
