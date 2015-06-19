@@ -365,7 +365,7 @@ shutdown:;
 	if (ssunlikely(rc == -1))
 		rcret = -1;
 	sx_indexfree(&o->coindex, &e->xm);
-	rc = si_close(&o->index, &o->r);
+	rc = si_close(&o->index);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
 	si_schemefree(&o->scheme, &o->r);
@@ -385,7 +385,7 @@ so_dbdrop(srobj *obj, va_list args ssunused)
 		return -1;
 	if (ssunlikely(o->ctl.dropped))
 		return 0;
-	int rc = si_dropmark(&o->index, &o->r);
+	int rc = si_dropmark(&o->index);
 	if (ssunlikely(rc == -1))
 		return -1;
 	o->ctl.dropped = 1;
@@ -496,7 +496,7 @@ srobj *so_dbnew(so *e, char *name)
 		return NULL;
 	}
 	so_dbasync_init(&o->async, o);
-	rc = si_init(&o->index, &o->r, &e->quota);
+	rc = si_init(&o->index, &o->r);
 	if (ssunlikely(rc == -1)) {
 		ss_free(&e->a_db, o);
 		si_schemefree(&o->scheme, &o->r);

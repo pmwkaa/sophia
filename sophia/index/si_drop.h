@@ -9,7 +9,7 @@
  * BSD License
 */
 
-int si_dropmark(si*, sr*);
-int si_drop(si*, sr*);
+int si_dropmark(si*);
+int si_drop(si*);
 
 #endif

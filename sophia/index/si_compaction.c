@@ -136,13 +136,14 @@ si_splitfree(ssbuf *result, sr *r)
 }
 
 static inline int
-si_split(si *index, sr *r, sdc *c, ssbuf *result,
+si_split(si *index, sdc *c, ssbuf *result,
          sinode   *parent,
          ssiter   *i,
          uint64_t  size_node,
          uint32_t  size_stream,
          uint64_t  vlsn)
 {
+	sr *r = index->r;
 	int count = 0;
 	int rc;
 	sdmergeconf mergeconf = {
@@ -166,7 +167,7 @@ si_split(si *index, sr *r, sdc *c, ssbuf *result,
 		sdid id = {
 			.parent = parent->self.id.id,
 			.flags  = 0,
-			.id     = sr_seq(r->seq, SR_NSNNEXT)
+			.id     = sr_seq(index->r->seq, SR_NSNNEXT)
 		};
 		rc = sd_mergecommit(&merge, &id);
 		if (ssunlikely(rc == -1))
@@ -174,9 +175,9 @@ si_split(si *index, sr *r, sdc *c, ssbuf *result,
 		rc = si_nodecreate(n, r, index->scheme, &id, &merge.index, &c->build);
 		if (ssunlikely(rc == -1))
 			goto error;
-		rc = ss_bufadd(result, r->a, &n, sizeof(sinode*));
+		rc = ss_bufadd(result, index->r->a, &n, sizeof(sinode*));
 		if (ssunlikely(rc == -1)) {
-			sr_oom_malfunction(r->e);
+			sr_oom_malfunction(index->r->e);
 			si_nodefree(n, r, 1);
 			goto error;
 		}
@@ -192,10 +193,11 @@ error:
 	return -1;
 }
 
-int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
+int si_compaction(si *index, sdc *c, uint64_t vlsn,
                   sinode *node,
                   ssiter *stream, uint32_t size_stream)
 {
+	sr *r = index->r;
 	ssbuf *result = &c->a;
 	ssiter i;
 
@@ -205,7 +207,7 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 	 * of a new nodes.
 	 */
 	int rc;
-	rc = si_split(index, r, c, result,
+	rc = si_split(index, c, result,
 	              node, stream,
 	              index->scheme->node_size,
 	              size_stream,
@@ -230,7 +232,7 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 	sinode *n;
 	if (ssunlikely(count == 0 && count_index == 1))
 	{
-		n = si_bootstrap(index, r, node->self.id.id);
+		n = si_bootstrap(index, node->self.id.id);
 		if (ssunlikely(n == NULL))
 			return -1;
 		rc = ss_bufadd(result, r->a, &n, sizeof(sinode*));
@@ -252,7 +254,7 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 		si_redistribute_index(index, r, c, node);
 		uint32_t used = sv_indexused(j);
 		if (used) {
-			ss_quota(index->quota, SS_QREMOVE, used);
+			ss_quota(r->quota, SS_QREMOVE, used);
 		}
 		break;
 	case 1: /* self update */
@@ -282,7 +284,7 @@ int si_compaction(si *index, sr *r, sdc *c, uint64_t vlsn,
 			n = ss_iterof(ss_bufiterref, &i);
 			n->used = sv_indexused(&n->i0);
 			si_nodelock(n);
-			si_insert(index, r, n);
+			si_insert(index, n);
 			si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH, n);
 		}
 		break;

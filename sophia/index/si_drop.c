@@ -59,16 +59,16 @@ si_dropof(sischeme *scheme, sr *r)
 	return 0;
 }
 
-int si_dropmark(si *i, sr *r)
+int si_dropmark(si *i)
 {
 	/* create drop file */
 	char path[1024];
 	snprintf(path, sizeof(path), "%s/drop", i->scheme->path);
 	ssfile drop;
-	ss_fileinit(&drop, r->a);
+	ss_fileinit(&drop, i->r->a);
 	int rc = ss_filenew(&drop, path);
 	if (ssunlikely(rc == -1)) {
-		sr_malfunction(r->e, "drop file '%s' create error: %s",
+		sr_malfunction(i->r->e, "drop file '%s' create error: %s",
 		               path, strerror(errno));
 		return -1;
 	}
@@ -76,12 +76,13 @@ int si_dropmark(si *i, sr *r)
 	return 0;
 }
 
-int si_drop(si *i, sr *r)
+int si_drop(si *i)
 {
+	sr *r = i->r;
 	sischeme *scheme = i->scheme;
 	/* drop file must exists at this point */
 	/* shutdown */
-	int rc = si_close(i, r);
+	int rc = si_close(i);
 	if (ssunlikely(rc == -1))
 		return -1;
 	/* remove directory */

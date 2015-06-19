@@ -19,6 +19,7 @@ struct sr {
 	srscheme *scheme;
 	srseq *seq;
 	ssa *a;
+	ssquota *quota;
 	ssinjection *i;
 	void *compression;
 	sscrcf crc;
@@ -28,6 +29,7 @@ static inline void
 sr_init(sr *r,
         srerror *e,
         ssa *a,
+        ssquota *quota,
         srseq *seq,
         sf fmt,
         sfstorage fmt_storage,
@@ -39,6 +41,7 @@ sr_init(sr *r,
 {
 	r->e           = e;
 	r->a           = a;
+	r->quota       = quota;
 	r->seq         = seq;
 	r->scheme      = scheme;
 	r->fmt         = fmt;

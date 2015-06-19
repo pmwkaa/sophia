@@ -341,8 +341,12 @@ int sx_set(sx *t, sxindex *index, svv *version)
 				sx_vfree(m->a, m->asxv, v);
 				return sr_oom(index->r->e);
 			}
-			/* TODO: quota fixup */
+			/* gc */
+			uint32_t grow = sv_vsize(c.v);
+			uint32_t gc = sv_vsize(v->v);
 			ss_free(m->a, v->v);
+			ss_quota(index->r->quota, SS_QGROW, grow);
+			ss_quota(index->r->quota, SS_QREMOVE, gc);
 			v->v = c.v;
 		}
 		/* replace old object with the new one */

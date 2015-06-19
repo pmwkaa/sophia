@@ -15,8 +15,9 @@
 #include <libsi.h>
 
 static inline int
-si_backupend(si *index, sr *r, sdc *c, siplan *plan)
+si_backupend(si *index, sdc *c, siplan *plan)
 {
+	sr *r = index->r;
 	/* copy index scheme file */
 	char src[PATH_MAX];
 	snprintf(src, sizeof(src), "%s/scheme", index->scheme->path);
@@ -85,11 +86,12 @@ si_backupend(si *index, sr *r, sdc *c, siplan *plan)
 	return 0;
 }
 
-int si_backup(si *index, sr *r, sdc *c, siplan *plan)
+int si_backup(si *index, sdc *c, siplan *plan)
 {
+	sr *r = index->r;
 	sd_creset(c);
 	if (ssunlikely(plan->plan == SI_BACKUPEND))
-		return si_backupend(index, r, c, plan);
+		return si_backupend(index, c, plan);
 
 	sinode *node = plan->node;
 	char dst[PATH_MAX];

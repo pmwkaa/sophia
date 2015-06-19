@@ -25,7 +25,7 @@ svv_kv(stc *cx)
 	t( sr_keysetname(part, &a, "key") == 0 );
 	t( sr_keyset(part, &a, "u32") == 0 );
 	sr r;
-	sr_init(&r, NULL, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, NULL, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	uint32_t key = 123;
 	uint32_t value = 321;

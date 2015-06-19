@@ -40,7 +40,7 @@ svindexiter_lte_empty(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -69,7 +69,7 @@ svindexiter_lte_eq0(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -120,7 +120,7 @@ svindexiter_lte_eq1(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -165,7 +165,7 @@ svindexiter_lte_minmax(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -222,7 +222,7 @@ svindexiter_lte_mid0(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -287,7 +287,7 @@ svindexiter_lte_mid1(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -340,7 +340,7 @@ svindexiter_lte_iterate0(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -396,7 +396,7 @@ svindexiter_lte_iterate1(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -448,7 +448,7 @@ svindexiter_lte_iterate2(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -493,7 +493,7 @@ svindexiter_lt_eq(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -544,7 +544,7 @@ svindexiter_lt_iterate(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -593,7 +593,7 @@ svindexiter_lte_dup_eq(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -643,7 +643,7 @@ svindexiter_lte_dup_mid(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -708,7 +708,7 @@ svindexiter_lte_dup_iterate(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -770,7 +770,7 @@ svindexiter_gte_empty(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -801,7 +801,7 @@ svindexiter_gte_eq0(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -852,7 +852,7 @@ svindexiter_gte_eq1(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -897,7 +897,7 @@ svindexiter_gte_minmax(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -954,7 +954,7 @@ svindexiter_gte_mid0(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -1019,7 +1019,7 @@ svindexiter_gte_mid1(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -1072,7 +1072,7 @@ svindexiter_gte_iterate0(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -1128,7 +1128,7 @@ svindexiter_gte_iterate1(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -1180,7 +1180,7 @@ svindexiter_gt_eq(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -1231,7 +1231,7 @@ svindexiter_gt_iterate(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -1280,7 +1280,7 @@ svindexiter_gte_dup_eq(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -1330,7 +1330,7 @@ svindexiter_gte_dup_mid(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -1395,7 +1395,7 @@ svindexiter_gte_dup_iterate(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -1456,7 +1456,7 @@ svindexiter_iterate_raw0(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
@@ -1522,7 +1522,7 @@ svindexiter_iterate_raw1(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	svindex i;
 	t( sv_indexinit(&i) == 0 );

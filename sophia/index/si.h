@@ -22,8 +22,8 @@ struct si {
 	uint64_t read_disk;
 	uint64_t read_cache;
 	ssbuf readbuf;
-	ssquota *quota;
 	sischeme *scheme;
+	sr *r;
 };
 
 static inline void
@@ -36,13 +36,13 @@ si_unlock(si *i) {
 	ss_mutexunlock(&i->lock);
 }
 
-int si_init(si*, sr*, ssquota*);
-int si_open(si*, sr*, sischeme*);
-int si_close(si*, sr*);
-int si_insert(si*, sr*, sinode*);
+int si_init(si*, sr*);
+int si_open(si*, sischeme*);
+int si_close(si*);
+int si_insert(si*, sinode*);
 int si_remove(si*, sinode*);
 int si_replace(si*, sinode*, sinode*);
 int si_plan(si*, siplan*);
-int si_execute(si*, sr*, sdc*, siplan*, uint64_t);
+int si_execute(si*, sdc*, siplan*, uint64_t);
 
 #endif

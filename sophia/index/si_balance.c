@@ -15,8 +15,9 @@
 #include <libsi.h>
 
 static inline sibranch*
-si_branchcreate(si *index, sr *r, sdc *c, sinode *parent, svindex *vindex, uint64_t vlsn)
+si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vlsn)
 {
+	sr *r = index->r;
 	svmerge vmerge;
 	sv_mergeinit(&vmerge);
 	int rc = sv_mergeprepare(&vmerge, r, 1);
@@ -89,8 +90,9 @@ error:
 	return NULL;
 }
 
-int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
+int si_branch(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 {
+	sr *r = index->r;
 	sinode *n = plan->node;
 	assert(n->flags & SI_LOCK);
 
@@ -105,7 +107,7 @@ int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	si_unlock(index);
 
 	sd_creset(c);
-	sibranch *branch = si_branchcreate(index, r, c, n, i, vlsn);
+	sibranch *branch = si_branchcreate(index, c, n, i, vlsn);
 	if (ssunlikely(branch == NULL))
 		return -1;
 
@@ -116,7 +118,7 @@ int si_branch(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	n->branch_count++;
 	uint32_t used = sv_indexused(i);
 	n->used -= used;
-	ss_quota(index->quota, SS_QREMOVE, used);
+	ss_quota(r->quota, SS_QREMOVE, used);
 	svindex swap = *i;
 	si_nodeunrotate(n);
 	si_nodeunlock(n);
@@ -144,8 +146,9 @@ si_noderead(sr *r, ssbuf *dest, sinode *node)
 	return 0;
 }
 
-int si_compact(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
+int si_compact(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 {
+	sr *r = index->r;
 	sinode *node = plan->node;
 	assert(node->flags & SI_LOCK);
 
@@ -182,7 +185,7 @@ int si_compact(si *index, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
 	ssiter i;
 	ss_iterinit(sv_mergeiter, &i);
 	ss_iteropen(sv_mergeiter, &i, r, &merge, SS_GTE);
-	rc = si_compaction(index, r, c, vlsn, node, &i, size_stream);
+	rc = si_compaction(index, c, vlsn, node, &i, size_stream);
 	sv_mergefree(&merge, r->a);
 	return rc;
 }

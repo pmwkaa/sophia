@@ -14,7 +14,7 @@
 #include <libsd.h>
 #include <libsi.h>
 
-int si_init(si *i, sr *r, ssquota *q)
+int si_init(si *i, sr *r)
 {
 	int rc = si_plannerinit(&i->p, r->a, i);
 	if (ssunlikely(rc == -1))
@@ -22,35 +22,35 @@ int si_init(si *i, sr *r, ssquota *q)
 	ss_bufinit(&i->readbuf);
 	ss_rbinit(&i->i);
 	ss_mutexinit(&i->lock);
-	i->quota       = q;
 	i->scheme      = NULL;
 	i->update_time = 0;
 	i->read_disk   = 0;
 	i->read_cache  = 0;
 	i->backup      = 0;
 	i->destroyed   = 0;
+	i->r           = r;
 	return 0;
 }
 
-int si_open(si *i, sr *r, sischeme *scheme)
+int si_open(si *i, sischeme *scheme)
 {
 	i->scheme = scheme;
-	return si_recover(i, r);
+	return si_recover(i);
 }
 
 ss_rbtruncate(si_truncate,
               si_nodefree(sscast(n, sinode, node), (sr*)arg, 0))
 
-int si_close(si *i, sr *r)
+int si_close(si *i)
 {
 	if (i->destroyed)
 		return 0;
 	int rcret = 0;
 	if (i->i.root)
-		si_truncate(i->i.root, r);
+		si_truncate(i->i.root, i->r);
 	i->i.root = NULL;
-	ss_buffree(&i->readbuf, r->a);
-	si_plannerfree(&i->p, r->a);
+	ss_buffree(&i->readbuf, i->r->a);
+	si_plannerfree(&i->p, i->r->a);
 	ss_mutexfree(&i->lock);
 	i->destroyed = 1;
 	return rcret;
@@ -63,11 +63,11 @@ ss_rbget(si_match,
                     sd_indexmin(&(sscast(n, sinode, node))->self.index)->sizemin,
                                 key, keysize))
 
-int si_insert(si *i, sr *r, sinode *n)
+int si_insert(si *i, sinode *n)
 {
 	sdindexpage *min = sd_indexmin(&n->self.index);
 	ssrbnode *p = NULL;
-	int rc = si_match(&i->i, r->scheme,
+	int rc = si_match(&i->i, i->r->scheme,
 	                  sd_indexpage_min(&n->self.index, min),
 	                  min->sizemin, &p);
 	assert(! (rc == 0 && p));
@@ -97,28 +97,28 @@ int si_plan(si *i, siplan *plan)
 	return rc;
 }
 
-int si_execute(si *i, sr *r, sdc *c, siplan *plan, uint64_t vlsn)
+int si_execute(si *i, sdc *c, siplan *plan, uint64_t vlsn)
 {
 	int rc = -1;
 	switch (plan->plan) {
 	case SI_CHECKPOINT:
 	case SI_BRANCH:
 	case SI_AGE:
-		rc = si_branch(i, r, c, plan, vlsn);
+		rc = si_branch(i, c, plan, vlsn);
 		break;
 	case SI_GC:
 	case SI_COMPACT:
-		rc = si_compact(i, r, c, plan, vlsn);
+		rc = si_compact(i, c, plan, vlsn);
 		break;
 	case SI_BACKUP:
 	case SI_BACKUPEND:
-		rc = si_backup(i, r, c, plan);
+		rc = si_backup(i, c, plan);
 		break;
 	case SI_SHUTDOWN:
-		rc = si_close(i, r);
+		rc = si_close(i);
 		break;
 	case SI_DROP:
-		rc = si_drop(i, r);
+		rc = si_drop(i);
 		break;
 	}
 	return rc;

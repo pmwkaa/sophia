@@ -28,7 +28,7 @@ int so_recoverbegin(sodb *db)
 	 * reply is required. */
 	if (so_status(&e->status) == SO_ONLINE)
 		db->scheme.path_fail_on_exists = 1;
-	int rc = si_open(&db->index, &db->r, &db->scheme);
+	int rc = si_open(&db->index, &db->scheme);
 	if (ssunlikely(rc == -1))
 		goto error;
 	db->ctl.created = rc;

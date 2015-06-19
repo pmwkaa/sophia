@@ -63,8 +63,8 @@ si_update(sitx *t, svv *head, svv *v)
 	uint32_t grow = sv_vsize(c.v);
 	uint32_t gc = sv_vsize(v);
 	ss_free(t->r->a, v);
-	ss_quota(t->index->quota, SS_QGROW, grow);
-	ss_quota(t->index->quota, SS_QREMOVE, gc);
+	ss_quota(t->r->quota, SS_QGROW, grow);
+	ss_quota(t->r->quota, SS_QREMOVE, gc);
 	return c.v;
 }
 
@@ -104,7 +104,7 @@ void si_write(sitx *t, int check)
 		svv *v = cv->v.v;
 		if (check && si_querycommited(t->index, t->r, &cv->v)) {
 			uint32_t gc = si_gcv(t->r->a, v);
-			ss_quota(t->index->quota, SS_QREMOVE, gc);
+			ss_quota(t->r->quota, SS_QREMOVE, gc);
 			goto next;
 		}
 		si_set(t, v);

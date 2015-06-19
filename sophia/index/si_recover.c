@@ -39,8 +39,9 @@
 #include <libsd.h>
 #include <libsi.h>
 
-sinode *si_bootstrap(si *i, sr *r, uint32_t parent)
+sinode *si_bootstrap(si *i, uint32_t parent)
 {
+	sr *r = i->r;
 	sinode *n = si_nodenew(r);
 	if (ssunlikely(n == NULL))
 		return NULL;
@@ -103,7 +104,7 @@ si_deploy(si *i, sr *r, int create_directory)
 		sr_malfunction_set(r->e);
 		return -1;
 	}
-	sinode *n = si_bootstrap(i, r, 0);
+	sinode *n = si_bootstrap(i, 0);
 	if (ssunlikely(n == NULL))
 		return -1;
 	SS_INJECTION(r->i, SS_INJECTION_SI_RECOVER_0,
@@ -115,7 +116,7 @@ si_deploy(si *i, sr *r, int create_directory)
 		si_nodefree(n, r, 1);
 		return -1;
 	}
-	si_insert(i, r, n);
+	si_insert(i, n);
 	si_plannerupdate(&i->p, SI_COMPACT|SI_BRANCH, n);
 	return 1;
 }
@@ -348,7 +349,7 @@ si_recovercomplete(sitrack *track, sr *r, si *index, ssbuf *buf)
 			continue;
 		}
 		n->recover = SI_RDB;
-		si_insert(index, r, n);
+		si_insert(index, n);
 		si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH, n);
 		ss_iternext(ss_bufiterref, &i);
 	}
@@ -402,8 +403,9 @@ error:
 	return -1;
 }
 
-int si_recover(si *i, sr *r)
+int si_recover(si *i)
 {
+	sr *r = i->r;
 	int exist = ss_fileexists(i->scheme->path);
 	if (exist == 0)
 		goto deploy;

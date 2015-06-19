@@ -46,7 +46,7 @@ int so_scheduler_branch(void *arg)
 		rc = si_plan(&db->index, &plan);
 		if (rc == 0)
 			break;
-		rc = si_execute(&db->index, &db->r, &stub.dc, &plan, vlsn);
+		rc = si_execute(&db->index, &stub.dc, &plan, vlsn);
 		if (ssunlikely(rc == -1))
 			break;
 	}
@@ -75,7 +75,7 @@ int so_scheduler_compact(void *arg)
 		rc = si_plan(&db->index, &plan);
 		if (rc == 0)
 			break;
-		rc = si_execute(&db->index, &db->r, &stub.dc, &plan, vlsn);
+		rc = si_execute(&db->index, &stub.dc, &plan, vlsn);
 		if (ssunlikely(rc == -1))
 			break;
 	}
@@ -746,7 +746,7 @@ so_execute(sotask *t, soworker *w)
 	sodb *db = t->db;
 	so *e = (so*)db->o.env;
 	uint64_t vlsn = sx_vlsn(&e->xm);
-	return si_execute(&db->index, &db->r, &w->dc, &t->plan, vlsn);
+	return si_execute(&db->index, &w->dc, &t->plan, vlsn);
 }
 
 static int

@@ -9,6 +9,6 @@
  * BSD License
 */
 
-int si_backup(si*, sr*, sdc*, siplan*);
+int si_backup(si*, sdc*, siplan*);
 
 #endif

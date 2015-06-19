@@ -297,7 +297,7 @@ srobj *so_new(void)
 	sr_seqinit(&e->seq);
 	sr_errorinit(&e->error);
 	sscrcf crc = ss_crc32c_function();
-	sr_init(&e->r, &e->error, &e->a, &e->seq,
+	sr_init(&e->r, &e->error, &e->a, &e->quota, &e->seq,
 	        SF_KV, SF_SRAW, NULL,
 	        &e->ctl.ctlscheme, &e->ei, crc, NULL);
 	se_init(&e->se);

@@ -62,7 +62,7 @@ sliter_tx(stc *cx)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, NULL, crc, NULL);
+	sr_init(&r, &error, &a, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp, NULL, crc, NULL);
 
 	slconf conf = {
 		.path     = cx->suite->logdir,
@@ -105,7 +105,7 @@ sliter_tx_read_empty(stc *cx)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, NULL, crc, NULL);
+	sr_init(&r, &error, &a, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp, NULL, crc, NULL);
 
 	slconf conf = {
 		.path     = cx->suite->logdir,
@@ -158,7 +158,7 @@ sliter_tx_read0(stc *cx)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, NULL, crc, NULL);
+	sr_init(&r, &error, &a, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp, NULL, crc, NULL);
 
 	slconf conf = {
 		.path     = cx->suite->logdir,
@@ -216,7 +216,7 @@ sliter_tx_read1(stc *cx)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, NULL, crc, NULL);
+	sr_init(&r, &error, &a, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp, NULL, crc, NULL);
 
 	slconf conf = {
 		.path     = cx->suite->logdir,
@@ -285,7 +285,7 @@ sliter_tx_read2(stc *cx)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, NULL, crc, NULL);
+	sr_init(&r, &error, &a, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp, NULL, crc, NULL);
 
 	slconf conf = {
 		.path     = cx->suite->logdir,
@@ -358,7 +358,7 @@ sliter_tx_read3(stc *cx)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &seq, SF_KV, SF_SRAW, NULL, &cmp, NULL, crc, NULL);
+	sr_init(&r, &error, &a, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp, NULL, crc, NULL);
 
 	slconf conf = {
 		.path     = cx->suite->logdir,

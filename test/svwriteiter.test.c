@@ -42,7 +42,7 @@ svwriteiter_iter(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -118,7 +118,7 @@ svwriteiter_limit(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -231,7 +231,7 @@ svwriteiter_limit_small(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -360,7 +360,7 @@ svwriteiter_dup_lsn_gt(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -439,7 +439,7 @@ svwriteiter_dup_lsn_lt0(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -519,7 +519,7 @@ svwriteiter_dup_lsn_lt1(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -599,7 +599,7 @@ svwriteiter_dup_lsn_lt2(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -679,7 +679,7 @@ svwriteiter_dup_lsn_gt_chain(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -760,7 +760,7 @@ svwriteiter_dup_lsn_lt0_chain(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -843,7 +843,7 @@ svwriteiter_dup_lsn_lt1_chain(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -928,7 +928,7 @@ svwriteiter_dup_lsn_lt2_chain(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -1015,7 +1015,7 @@ svwriteiter_dup_lsn_limit0(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -1084,7 +1084,7 @@ svwriteiter_dup_lsn_limit1(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -1155,7 +1155,7 @@ svwriteiter_dup_lsn_limit2(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -1227,7 +1227,7 @@ svwriteiter_dup_lsn_limit3(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -1298,7 +1298,7 @@ svwriteiter_dup_lsn_limit4(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -1376,7 +1376,7 @@ svwriteiter_dup_lsn_limit5(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -1454,7 +1454,7 @@ svwriteiter_delete0(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -1534,7 +1534,7 @@ svwriteiter_delete1(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -1614,7 +1614,7 @@ svwriteiter_delete2(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -1694,7 +1694,7 @@ svwriteiter_delete3(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -1774,7 +1774,7 @@ svwriteiter_delete4(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -1854,7 +1854,7 @@ svwriteiter_delete5(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -1934,7 +1934,7 @@ svwriteiter_delete6(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -2019,7 +2019,7 @@ svwriteiter_delete7(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -2105,7 +2105,7 @@ svwriteiter_delete8(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -2201,7 +2201,7 @@ svwriteiter_duprange0(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
@@ -2277,7 +2277,7 @@ svwriteiter_duprange1(stc *cx ssunused)
 	srerror error;
 	sr_errorinit(&error);
 	sr r;
-	sr_init(&r, &error, &a, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
+	sr_init(&r, &error, &a, NULL, NULL, SF_KV, SF_SRAW, NULL, &cmp, NULL, NULL, NULL);
 
 	ssbuf vlista;
 	ssbuf vlistb;
