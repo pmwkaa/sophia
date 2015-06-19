@@ -10,6 +10,7 @@
 */
 
 #include <sl_conf.h>
+#include <sl_dir.h>
 #include <sl_v.h>
 #include <sl.h>
 #include <sl_iter.h>

@@ -8,8 +8,7 @@ LIBSS_O = ss_time.o \
           ss_bufiter.o \
           ss_thread.o \
           ss_file.o \
-          ss_dir.o \
-          ss_map.o \
+          ss_mmap.o \
           ss_crc.o \
           ss_nonefilter.o \
           ss_lz4filter.o \

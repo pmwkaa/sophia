@@ -9,7 +9,7 @@
 
 #include <libss.h>
 
-int ss_map(ssmap *m, int fd, uint64_t size, int ro)
+int ss_mmap(ssmmap *m, int fd, uint64_t size, int ro)
 {
 	int flags = PROT_READ;
 	if (! ro)
@@ -23,7 +23,7 @@ int ss_map(ssmap *m, int fd, uint64_t size, int ro)
 	return 0;
 }
 
-int ss_mapunmap(ssmap *m)
+int ss_munmap(ssmmap *m)
 {
 	if (ssunlikely(m->p == NULL))
 		return 0;

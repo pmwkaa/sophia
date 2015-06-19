@@ -19,7 +19,7 @@ struct sliter {
 	int validate;
 	int error;
 	ssfile *log;
-	ssmap map;
+	ssmmap map;
 	slv *v;
 	slv *next;
 	uint32_t count;
@@ -148,7 +148,7 @@ int sl_iter_open(ssiter *i, sr *r, ssfile *file, int validate)
 	}
 	if (ssunlikely(li->log->size == sizeof(srversion)))
 		return 0;
-	int rc = ss_map(&li->map, li->log->fd, li->log->size, 1);
+	int rc = ss_mmap(&li->map, li->log->fd, li->log->size, 1);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(li->r->e, "failed to mmap log file '%s': %s",
 		               li->log->file, strerror(errno));
@@ -156,7 +156,7 @@ int sl_iter_open(ssiter *i, sr *r, ssfile *file, int validate)
 	}
 	rc = sl_iterprepare(li);
 	if (ssunlikely(rc == -1))
-		ss_mapunmap(&li->map);
+		ss_munmap(&li->map);
 	return 0;
 }
 
@@ -164,7 +164,7 @@ static void
 sl_iter_close(ssiter *i ssunused)
 {
 	sliter *li = (sliter*)i->priv;
-	ss_mapunmap(&li->map);
+	ss_munmap(&li->map);
 }
 
 static int

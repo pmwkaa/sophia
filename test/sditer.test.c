@@ -81,8 +81,8 @@ sditer_gt0(stc *cx ssunused)
 	ss_fileinit(&f, &a);
 	t( ss_filenew(&f, "./0000.db") == 0 );
 	t( sd_commit(&b, &r, &index, &f) == 0 );
-	ssmap map;
-	t( ss_mapfile(&map, &f, 1) == 0 );
+	ssmmap map;
+	t( ss_mmap(&map, f.fd, f.size, 1) == 0 );
 
 	sdindex i;
 	sd_indexinit(&i);
@@ -110,7 +110,7 @@ sditer_gt0(stc *cx ssunused)
 	ss_iteratorclose(&it);
 
 	ss_fileclose(&f);
-	t( ss_mapunmap(&map) == 0 );
+	t( ss_munmap(&map) == 0 );
 	t( ss_fileunlink("./0000.db") == 0 );
 
 	sd_indexfree(&index, &r);
@@ -194,8 +194,8 @@ sditer_gt1(stc *cx ssunused)
 	ss_fileinit(&f, &a);
 	t( ss_filenew(&f, "./0000.db") == 0 );
 	t( sd_commit(&b, &r, &index, &f) == 0 );
-	ssmap map;
-	t( ss_mapfile(&map, &f, 1) == 0 );
+	ssmmap map;
+	t( ss_mmap(&map, f.fd, f.size, 1) == 0 );
 
 	ssbuf xfbuf;
 	ss_bufinit(&xfbuf);
@@ -246,7 +246,7 @@ sditer_gt1(stc *cx ssunused)
 	ss_iteratorclose(&it);
 
 	ss_fileclose(&f);
-	t( ss_mapunmap(&map) == 0 );
+	t( ss_munmap(&map) == 0 );
 	t( ss_fileunlink("./0000.db") == 0 );
 
 	sd_indexfree(&index, &r);
@@ -305,8 +305,8 @@ sditer_gt0_compression_zstd(stc *cx ssunused)
 	ss_fileinit(&f, &a);
 	t( ss_filenew(&f, "./0000.db") == 0 );
 	t( sd_commit(&b, &r, &index, &f) == 0 );
-	ssmap map;
-	t( ss_mapfile(&map, &f, 1) == 0 );
+	ssmmap map;
+	t( ss_mmap(&map, f.fd, f.size, 1) == 0 );
 
 	sdindex i;
 	sd_indexinit(&i);
@@ -336,7 +336,7 @@ sditer_gt0_compression_zstd(stc *cx ssunused)
 	ss_iteratorclose(&it);
 
 	ss_fileclose(&f);
-	t( ss_mapunmap(&map) == 0 );
+	t( ss_munmap(&map) == 0 );
 	t( ss_fileunlink("./0000.db") == 0 );
 
 	sd_indexfree(&index, &r);
@@ -397,8 +397,8 @@ sditer_gt0_compression_lz4(stc *cx ssunused)
 	ss_fileinit(&f, &a);
 	t( ss_filenew(&f, "./0000.db") == 0 );
 	t( sd_commit(&b, &r, &index, &f) == 0 );
-	ssmap map;
-	t( ss_mapfile(&map, &f, 1) == 0 );
+	ssmmap map;
+	t( ss_mmap(&map, f.fd, f.fd, 1) == 0 );
 
 	sdindex i;
 	sd_indexinit(&i);
@@ -428,7 +428,7 @@ sditer_gt0_compression_lz4(stc *cx ssunused)
 	ss_iteratorclose(&it);
 
 	ss_fileclose(&f);
-	t( ss_mapunmap(&map) == 0 );
+	t( ss_munmap(&map) == 0 );
 	t( ss_fileunlink("./0000.db") == 0 );
 
 	sd_indexfree(&index, &r);
@@ -514,8 +514,8 @@ sditer_gt1_compression_zstd(stc *cx ssunused)
 	ss_fileinit(&f, &a);
 	t( ss_filenew(&f, "./0000.db") == 0 );
 	t( sd_commit(&b, &r, &index, &f) == 0 );
-	ssmap map;
-	t( ss_mapfile(&map, &f, 1) == 0 );
+	ssmmap map;
+	t( ss_mmap(&map, f.fd, f.size, 1) == 0 );
 
 	ssbuf compression_buf;
 	ss_bufinit(&compression_buf);
@@ -568,7 +568,7 @@ sditer_gt1_compression_zstd(stc *cx ssunused)
 	ss_iteratorclose(&it);
 
 	ss_fileclose(&f);
-	t( ss_mapunmap(&map) == 0 );
+	t( ss_munmap(&map) == 0 );
 	t( ss_fileunlink("./0000.db") == 0 );
 
 	sd_indexfree(&index, &r);
@@ -653,8 +653,8 @@ sditer_gt1_compression_lz4(stc *cx ssunused)
 	ss_fileinit(&f, &a);
 	t( ss_filenew(&f, "./0000.db") == 0 );
 	t( sd_commit(&b, &r, &index, &f) == 0 );
-	ssmap map;
-	t( ss_mapfile(&map, &f, 1) == 0 );
+	ssmmap map;
+	t( ss_mmap(&map, f.fd, f.size, 1) == 0 );
 
 	ssbuf compression_buf;
 	ss_bufinit(&compression_buf);
@@ -707,7 +707,7 @@ sditer_gt1_compression_lz4(stc *cx ssunused)
 	ss_iteratorclose(&it);
 
 	ss_fileclose(&f);
-	t( ss_mapunmap(&map) == 0 );
+	t( ss_munmap(&map) == 0 );
 	t( ss_fileunlink("./0000.db") == 0 );
 
 	sd_indexfree(&index, &r);

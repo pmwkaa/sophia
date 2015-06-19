@@ -8,8 +8,12 @@
 */
 
 #include <libss.h>
+#include <libsf.h>
+#include <libsr.h>
+#include <libsv.h>
+#include <libsl.h>
 
-static inline ssize_t ss_diridof(char *s)
+static inline ssize_t sl_diridof(char *s)
 {
 	size_t v = 0;
 	while (*s && *s != '.') {
@@ -21,12 +25,12 @@ static inline ssize_t ss_diridof(char *s)
 	return v;
 }
 
-static inline ssdirid*
-ss_dirmatch(ssbuf *list, uint64_t id)
+static inline sldirid*
+sl_dirmatch(ssbuf *list, uint64_t id)
 {
 	if (ssunlikely(ss_bufused(list) == 0))
 		return NULL;
-	ssdirid *n = (ssdirid*)list->s;
+	sldirid *n = (sldirid*)list->s;
 	while ((char*)n < list->p) {
 		if (n->id == id)
 			return n;
@@ -35,10 +39,10 @@ ss_dirmatch(ssbuf *list, uint64_t id)
 	return NULL;
 }
 
-static inline ssdirtype*
-ss_dirtypeof(ssdirtype *types, char *ext)
+static inline sldirtype*
+sl_dirtypeof(sldirtype *types, char *ext)
 {
-	ssdirtype *p = &types[0];
+	sldirtype *p = &types[0];
 	int n = 0;
 	while (p[n].ext != NULL) {
 		if (strcmp(p[n].ext, ext) == 0)
@@ -49,15 +53,15 @@ ss_dirtypeof(ssdirtype *types, char *ext)
 }
 
 static int
-ss_dircmp(const void *p1, const void *p2)
+sl_dircmp(const void *p1, const void *p2)
 {
-	ssdirid *a = (ssdirid*)p1;
-	ssdirid *b = (ssdirid*)p2;
+	sldirid *a = (sldirid*)p1;
+	sldirid *b = (sldirid*)p2;
 	assert(a->id != b->id);
 	return (a->id > b->id)? 1: -1;
 }
 
-int ss_dirread(ssbuf *list, ssa *a, ssdirtype *types, char *dir)
+int sl_dirread(ssbuf *list, ssa *a, sldirtype *types, char *dir)
 {
 	DIR *d = opendir(dir);
 	if (ssunlikely(d == NULL))
@@ -67,27 +71,27 @@ int ss_dirread(ssbuf *list, ssa *a, ssdirtype *types, char *dir)
 	while ((de = readdir(d))) {
 		if (ssunlikely(de->d_name[0] == '.'))
 			continue;
-		ssize_t id = ss_diridof(de->d_name);
+		ssize_t id = sl_diridof(de->d_name);
 		if (ssunlikely(id == -1))
 			goto error;
 		char *ext = strstr(de->d_name, ".");
 		if (ssunlikely(ext == NULL))
 			goto error;
 		ext++;
-		ssdirtype *type = ss_dirtypeof(types, ext);
+		sldirtype *type = sl_dirtypeof(types, ext);
 		if (ssunlikely(type == NULL))
 			continue;
-		ssdirid *n = ss_dirmatch(list, id);
+		sldirid *n = sl_dirmatch(list, id);
 		if (n) {
 			n->mask |= type->mask;
 			type->count++;
 			continue;
 		}
-		int rc = ss_bufensure(list, a, sizeof(ssdirid));
+		int rc = ss_bufensure(list, a, sizeof(sldirid));
 		if (ssunlikely(rc == -1))
 			goto error;
-		n = (ssdirid*)list->p;
-		ss_bufadvance(list, sizeof(ssdirid));
+		n = (sldirid*)list->p;
+		ss_bufadvance(list, sizeof(sldirid));
 		n->id  = id;
 		n->mask = type->mask;
 		type->count++;
@@ -97,8 +101,8 @@ int ss_dirread(ssbuf *list, ssa *a, ssdirtype *types, char *dir)
 	if (ssunlikely(ss_bufused(list) == 0))
 		return 0;
 
-	int n = ss_bufused(list) / sizeof(ssdirid);
-	qsort(list->s, n, sizeof(ssdirid), ss_dircmp);
+	int n = ss_bufused(list) / sizeof(sldirid);
+	qsort(list->s, n, sizeof(sldirid), sl_dircmp);
 	return n;
 
 error:

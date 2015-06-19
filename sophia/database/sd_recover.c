@@ -20,7 +20,7 @@ struct sdrecover {
 	int corrupt;
 	sdindexheader *actual;
 	sdindexheader *v;
-	ssmap map;
+	ssmmap map;
 	sr *r;
 } sspacked;
 
@@ -86,7 +86,7 @@ int sd_recover_open(ssiter *i, sr *r, ssfile *file)
 		ri->corrupt = 1;
 		return -1;
 	}
-	int rc = ss_map(&ri->map, ri->file->fd, ri->file->size, 1);
+	int rc = ss_mmap(&ri->map, ri->file->fd, ri->file->size, 1);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(ri->r->e, "failed to mmap db file '%s': %s",
 		               ri->file->file, strerror(errno));
@@ -95,7 +95,7 @@ int sd_recover_open(ssiter *i, sr *r, ssfile *file)
 	sdindexheader *next = (sdindexheader*)((char*)ri->map.p);
 	rc = sd_recovernext_of(ri, next);
 	if (ssunlikely(rc == -1))
-		ss_mapunmap(&ri->map);
+		ss_munmap(&ri->map);
 	return rc;
 }
 
@@ -103,7 +103,7 @@ static void
 sd_recoverclose(ssiter *i ssunused)
 {
 	sdrecover *ri = (sdrecover*)i->priv;
-	ss_mapunmap(&ri->map);
+	ss_munmap(&ri->map);
 }
 
 static int

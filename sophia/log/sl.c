@@ -125,20 +125,20 @@ sl_poolrecover(slpool *p)
 {
 	ssbuf list;
 	ss_bufinit(&list);
-	ssdirtype types[] =
+	sldirtype types[] =
 	{
 		{ "log", 1, 0 },
 		{ NULL,  0, 0 }
 	};
-	int rc = ss_dirread(&list, p->r->a, types, p->conf->path);
+	int rc = sl_dirread(&list, p->r->a, types, p->conf->path);
 	if (ssunlikely(rc == -1))
 		return sr_malfunction(p->r->e, "log directory '%s' open error",
 		                      p->conf->path);
 	ssiter i;
 	ss_iterinit(ss_bufiter, &i);
-	ss_iteropen(ss_bufiter, &i, &list, sizeof(ssdirid));
+	ss_iteropen(ss_bufiter, &i, &list, sizeof(sldirid));
 	while(ss_iterhas(ss_bufiter, &i)) {
-		ssdirid *id = ss_iterof(ss_bufiter, &i);
+		sldirid *id = ss_iterof(ss_bufiter, &i);
 		sl *l = sl_open(p, id->id);
 		if (ssunlikely(l == NULL)) {
 			ss_buffree(&list, p->r->a);

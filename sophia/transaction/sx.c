@@ -27,7 +27,7 @@ int sx_managerinit(sxmanager *m, srseq *seq, ssa *a, ssa *asxv)
 
 int sx_managerfree(sxmanager *m)
 {
-	/* rollback active transactions */
+	assert(m->count == 0);
 	ss_spinlockfree(&m->lock);
 	ss_spinlockfree(&m->lockupd);
 	return 0;
