@@ -2487,8 +2487,8 @@ transaction_md_set_commit(stc *cx)
 	t( sp_set(c, "db", "t1") == 0 );
 	t( sp_set(c, "db.t0.sync", "0") == 0 );
 	t( sp_set(c, "db.t1.sync", "0") == 0 );
-	t( sp_set(c, "db.t0.index.cmp", "u32", NULL) == 0 );
-	t( sp_set(c, "db.t1.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.t0.index.key", "u32", NULL) == 0 );
+	t( sp_set(c, "db.t1.index.key", "u32", NULL) == 0 );
 
 	void *t0 = sp_get(c, "db.t0");
 	t( t0 != NULL );
@@ -2542,8 +2542,8 @@ transaction_md_set_rollback(stc *cx)
 	t( sp_set(c, "db", "t1") == 0 );
 	t( sp_set(c, "db.t0.sync", "0") == 0 );
 	t( sp_set(c, "db.t1.sync", "0") == 0 );
-	t( sp_set(c, "db.t0.index.cmp", "u32", NULL) == 0 );
-	t( sp_set(c, "db.t1.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.t0.index.key", "u32", NULL) == 0 );
+	t( sp_set(c, "db.t1.index.key", "u32", NULL) == 0 );
 
 	void *t0 = sp_get(c, "db.t0");
 	t( t0 != NULL );

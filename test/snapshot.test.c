@@ -25,7 +25,7 @@ snapshot_create_delete(stc *cx ssunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(env) == 0 );
 	void *db = sp_get(c, "db.test");
@@ -53,7 +53,7 @@ snapshot_cursor(stc *cx ssunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(env) == 0 );
 	void *db = sp_get(c, "db.test");
@@ -123,7 +123,7 @@ snapshot_get(stc *cx ssunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(env) == 0 );
 	void *db = sp_get(c, "db.test");
@@ -178,7 +178,7 @@ snapshot_recover_cursor(stc *cx ssunused)
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(env) == 0 );
 	void *db = sp_get(c, "db.test");
@@ -226,7 +226,7 @@ snapshot_recover_cursor(stc *cx ssunused)
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 
 	/* recover snapshot */
@@ -286,7 +286,7 @@ snapshot_recover_get(stc *cx ssunused)
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(env) == 0 );
 	void *db = sp_get(c, "db.test");
@@ -332,7 +332,7 @@ snapshot_recover_get(stc *cx ssunused)
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 
 	/* recover snapshot */

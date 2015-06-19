@@ -157,7 +157,7 @@ ctl_validation(stc *cx)
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(db) == 0 );
 	t( sp_set(c, "db.test.path", "path") == -1 );
-	t( sp_set(c, "db.test.index.cmp", NULL, NULL) == -1 );
+	t( sp_set(c, "db.test.index.key", NULL, NULL) == -1 );
 
 	void *o = sp_object(db);
 	t( o != NULL );

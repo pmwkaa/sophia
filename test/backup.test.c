@@ -27,7 +27,7 @@ backup_test0(stc *cx ssunused)
 	t( sp_set(c, "backup.path", cx->suite->backupdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(env) == 0 );
 	void *db = sp_get(c, "db.test");
@@ -90,7 +90,7 @@ backup_test0(stc *cx ssunused)
 	t( sp_set(c, "backup.path", cx->suite->backupdir) == 0 );
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(env) == 0 );
@@ -142,7 +142,7 @@ backup_test1(stc *cx ssunused)
 	t( sp_set(c, "backup.path", cx->suite->backupdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	char pointer[64];
 	snprintf(pointer, sizeof(pointer), "pointer: %p", (void*)on_event);
@@ -222,7 +222,7 @@ backup_test1(stc *cx ssunused)
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "log.rotate_sync", "0") == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_open(env) == 0 );
 	db = sp_get(c, "db.test");
 	t( db != NULL );

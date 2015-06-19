@@ -25,7 +25,7 @@ update_no_operator(stc *cx ssunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	t( sp_open(env) == 0 );
@@ -89,7 +89,7 @@ update_set_update_get_index(stc *cx ssunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.index.update", pointer, NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
@@ -138,7 +138,7 @@ update_set_update_get_branch0(stc *cx ssunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.index.update", pointer, NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
@@ -189,7 +189,7 @@ update_set_update_get_branch1(stc *cx ssunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.index.update", pointer, NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
@@ -242,7 +242,7 @@ update_set_update_get_compact(stc *cx ssunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.index.update", pointer, NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
@@ -296,7 +296,7 @@ update_set_update_update_get_index(stc *cx ssunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.index.update", pointer, NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
@@ -351,7 +351,7 @@ update_set_update_update_get_branch0(stc *cx ssunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.index.update", pointer, NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
@@ -408,7 +408,7 @@ update_set_update_update_get_branch1(stc *cx ssunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.index.update", pointer, NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
@@ -467,7 +467,7 @@ update_set_update_update_get_branch2(stc *cx ssunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.index.update", pointer, NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
@@ -528,7 +528,7 @@ update_set_update_update_get_compact(stc *cx ssunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.index.update", pointer, NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
@@ -590,7 +590,7 @@ update_set_update_update_get_cursor(stc *cx ssunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.index.update", pointer, NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
@@ -654,7 +654,7 @@ update_sx_set_update_get(stc *cx ssunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.index.update", pointer, NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
@@ -707,7 +707,7 @@ update_sx_set_update_update_get(stc *cx ssunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.index.update", pointer, NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
@@ -766,7 +766,7 @@ update_sx_set_update_get_branch(stc *cx ssunused)
 	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.index.update", pointer, NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );

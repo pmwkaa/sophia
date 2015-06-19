@@ -431,60 +431,6 @@ so_ctldb_update(src *c, srcstmt *s, va_list args)
 }
 
 static inline int
-so_ctldb_cmp(src *c, srcstmt *s, va_list args)
-{
-	if (s->op != SR_CSET)
-		return so_ctlv(c, s, args);
-	sodb *db = c->value;
-	so *e = so_of(&db->o);
-	if (ssunlikely(so_statusactive(&db->status))) {
-		sr_error(s->r->e, "write to %s is offline-only", s->path);
-		return -1;
-	}
-	char *v = va_arg(args, char*);
-	/* set custom comparator */
-	srcmpf cmp  = (srcmpf)(uintptr_t)ss_triggerpointer_of(v);
-	if (ssunlikely(cmp)) {
-		v = va_arg(args, char*);
-		void *arg = NULL;
-		if (v) {
-			arg = ss_triggerpointer_of(v);
-			if (ssunlikely(arg == NULL))
-				return -1;
-		}
-		sr_schemesetcmp(&db->scheme.scheme, cmp, arg);
-		return 0;
-	}
-	/* set key type */
-	return sr_keyset(sr_schemeof(&db->scheme.scheme, 0), &e->a, v);
-}
-
-static inline int
-so_ctldb_cmpprefix(src *c, srcstmt *s, va_list args)
-{
-	if (s->op != SR_CSET)
-		return so_ctlv(c, s, args);
-	sodb *db = c->value;
-	if (ssunlikely(so_statusactive(&db->status))) {
-		sr_error(s->r->e, "write to %s is offline-only", s->path);
-		return -1;
-	}
-	char *v = va_arg(args, char*);
-	srcmpf cmp = (srcmpf)(uintptr_t)ss_triggerpointer_of(v);
-	if (ssunlikely(cmp == NULL))
-		return -1;
-	v = va_arg(args, char*);
-	void *arg = NULL;
-	if (v) {
-		arg = ss_triggerpointer_of(v);
-		if (ssunlikely(arg == NULL))
-			return -1;
-	}
-	sr_schemesetcmp_prefix(&db->scheme.scheme, cmp, arg);
-	return 0;
-}
-
-static inline int
 so_ctldb_status(src *c, srcstmt *s, va_list args)
 {
 	sodb *db = c->value;
@@ -608,22 +554,20 @@ so_ctldb(so *e, soctlrt *rt ssunused, src **pc)
 		/* database index */
 		src *index = *pc;
 		p = NULL;
-		sr_clink(&p, sr_c(pc, so_ctlv,            "memory_used",      SR_CU64|SR_CRO, &o->ctl.rtp.memory_used));
-		sr_clink(&p, sr_c(pc, so_ctlv,            "node_count",       SR_CU32|SR_CRO, &o->ctl.rtp.total_node_count));
-		sr_clink(&p, sr_c(pc, so_ctlv,            "node_size",        SR_CU64|SR_CRO, &o->ctl.rtp.total_node_size));
-		sr_clink(&p, sr_c(pc, so_ctlv,            "node_origin_size", SR_CU64|SR_CRO, &o->ctl.rtp.total_node_origin_size));
-		sr_clink(&p, sr_c(pc, so_ctlv,            "count",            SR_CU64|SR_CRO, &o->ctl.rtp.count));
-		sr_clink(&p, sr_c(pc, so_ctlv,            "count_dup",        SR_CU64|SR_CRO, &o->ctl.rtp.count_dup));
-		sr_clink(&p, sr_c(pc, so_ctlv,            "read_disk",        SR_CU64|SR_CRO, &o->ctl.rtp.read_disk));
-		sr_clink(&p, sr_c(pc, so_ctlv,            "read_cache",       SR_CU64|SR_CRO, &o->ctl.rtp.read_cache));
-		sr_clink(&p, sr_c(pc, so_ctlv,            "branch_count",     SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_count));
-		sr_clink(&p, sr_c(pc, so_ctlv,            "branch_avg",       SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_avg));
-		sr_clink(&p, sr_c(pc, so_ctlv,            "branch_max",       SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_max));
-		sr_clink(&p, sr_c(pc, so_ctlv,            "branch_histogram", SR_CSZ|SR_CRO,  o->ctl.rtp.histogram_branch_ptr));
-		sr_clink(&p, sr_c(pc, so_ctlv,            "page_count",       SR_CU32|SR_CRO, &o->ctl.rtp.total_page_count));
-		sr_clink(&p, sr_c(pc, so_ctldb_cmp,       "cmp",              SR_CVOID,       o));
-		sr_clink(&p, sr_c(pc, so_ctldb_cmpprefix, "cmp_prefix",       SR_CVOID,       o));
-		sr_clink(&p, sr_c(pc, so_ctldb_update,    "update",           SR_CVOID,       o));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "memory_used",      SR_CU64|SR_CRO, &o->ctl.rtp.memory_used));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "node_count",       SR_CU32|SR_CRO, &o->ctl.rtp.total_node_count));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "node_size",        SR_CU64|SR_CRO, &o->ctl.rtp.total_node_size));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "node_origin_size", SR_CU64|SR_CRO, &o->ctl.rtp.total_node_origin_size));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "count",            SR_CU64|SR_CRO, &o->ctl.rtp.count));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "count_dup",        SR_CU64|SR_CRO, &o->ctl.rtp.count_dup));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "read_disk",        SR_CU64|SR_CRO, &o->ctl.rtp.read_disk));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "read_cache",       SR_CU64|SR_CRO, &o->ctl.rtp.read_cache));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "branch_count",     SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_count));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "branch_avg",       SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_avg));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "branch_max",       SR_CU32|SR_CRO, &o->ctl.rtp.total_branch_max));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "branch_histogram", SR_CSZ|SR_CRO,  o->ctl.rtp.histogram_branch_ptr));
+		sr_clink(&p, sr_c(pc, so_ctlv,         "page_count",       SR_CU32|SR_CRO, &o->ctl.rtp.total_page_count));
+		sr_clink(&p, sr_c(pc, so_ctldb_update, "update",           SR_CVOID,       o));
 		/* index keys */
 		int i = 0;
 		while (i < o->scheme.scheme.count) {

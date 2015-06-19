@@ -24,7 +24,7 @@ cache_test0(stc *cx)
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(env) == 0 );
 
@@ -77,7 +77,7 @@ cache_test1(stc *cx)
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(env) == 0 );
 
@@ -140,7 +140,7 @@ cache_invalidate(stc *cx)
 	t( sp_set(c, "scheduler.threads", "0") == 0 );
 	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
 	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_open(env) == 0 );
 

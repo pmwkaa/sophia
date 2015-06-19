@@ -422,7 +422,7 @@ mt_async(stc *cx)
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	cx->db = sp_get(c, "db.test");
 	t( cx->db != NULL );
 	t( sp_open(cx->env) == 0 );

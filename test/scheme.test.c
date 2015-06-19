@@ -86,7 +86,8 @@ schema_test1(stc *cx ssunused)
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.compression_key", "1") == 0 );
 	t( sp_set(c, "db.test.compression", "none") == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32") == 0 );
+	t( sp_set(c, "db.test.index.key", "u32") == 0 );
 	t( sp_set(c, "db.test.index", "key_b") == 0 );
 	t( sp_set(c, "db.test.index.key_b", "string") == 0 );
 	void *db = sp_get(c, "db.test");
@@ -126,6 +127,11 @@ schema_test1(stc *cx ssunused)
 	t( o != NULL );
 	t( strcmp(sp_get(o, "value", NULL), "u32") == 0 );
 	sp_destroy(o);
+	o = sp_get(c, "db.test.index.key");
+	t( o != NULL );
+	t( strcmp(sp_get(o, "value", NULL), "u32") == 0 );
+	sp_destroy(o);
+
 	o = sp_get(c, "db.test.index.key_b");
 	t( o != NULL );
 	t( strcmp(sp_get(o, "value", NULL), "string") == 0 );

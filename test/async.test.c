@@ -39,7 +39,7 @@ async_set(stc *cx ssunused)
 	snprintf(pointer, sizeof(pointer), "pointer: %p", (void*)on_event);
 	t( sp_set(c, "scheduler.on_event", pointer, NULL) == 0 );
 
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -89,7 +89,7 @@ async_get(stc *cx ssunused)
 	snprintf(pointer, sizeof(pointer), "pointer: %p", (void*)on_event);
 	t( sp_set(c, "scheduler.on_event", pointer, NULL) == 0 );
 
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -164,7 +164,7 @@ async_transaction(stc *cx ssunused)
 	snprintf(pointer, sizeof(pointer), "pointer: %p", (void*)on_event);
 	t( sp_set(c, "scheduler.on_event", pointer, NULL) == 0 );
 
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -302,7 +302,7 @@ async_cursor(stc *cx ssunused)
 	snprintf(pointer, sizeof(pointer), "pointer: %p", (void*)on_event);
 	t( sp_set(c, "scheduler.on_event", pointer, NULL) == 0 );
 
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -445,7 +445,7 @@ async_free0(stc *cx ssunused)
 	snprintf(pointer, sizeof(pointer), "pointer: %p", (void*)on_event);
 	t( sp_set(c, "scheduler.on_event", pointer, NULL) == 0 );
 
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -503,7 +503,7 @@ async_free1(stc *cx ssunused)
 	snprintf(pointer, sizeof(pointer), "pointer: %p", (void*)on_event);
 	t( sp_set(c, "scheduler.on_event", pointer, NULL) == 0 );
 
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );

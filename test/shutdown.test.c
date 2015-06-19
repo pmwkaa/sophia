@@ -26,7 +26,7 @@ shutdown_destroy(stc *cx ssunused)
 	t( sp_open(env) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
@@ -56,7 +56,7 @@ shutdown_transaction0(stc *cx ssunused)
 	t( sp_open(env) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
@@ -95,7 +95,7 @@ shutdown_transaction1(stc *cx ssunused)
 
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
@@ -127,7 +127,7 @@ shutdown_transaction2(stc *cx ssunused)
 	t( sp_open(env) == 0 );
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
@@ -157,7 +157,7 @@ shutdown_transaction3(stc *cx ssunused)
 
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
@@ -203,7 +203,7 @@ shutdown_transaction4(stc *cx ssunused)
 
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
@@ -240,7 +240,7 @@ shutdown_transaction5(stc *cx ssunused)
 
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
@@ -280,7 +280,7 @@ shutdown_transaction6(stc *cx ssunused)
 
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
@@ -333,7 +333,7 @@ shutdown_cursor0(stc *cx ssunused)
 
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
@@ -390,7 +390,7 @@ shutdown_cursor1(stc *cx ssunused)
 
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
@@ -445,7 +445,7 @@ shutdown_snapshot0(stc *cx ssunused)
 	t( sp_set(c, "db", "test") == 0 );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
 	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.cmp", "u32", NULL) == 0 );
+	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
 	void *db = sp_get(c, "db.test");
 	t( db != NULL );
 	t( sp_set(c, "db.test.sync", "0") == 0 );
