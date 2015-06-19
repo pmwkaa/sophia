@@ -377,7 +377,7 @@ so_ctldb_set(src *c ssunused, srcstmt *s, va_list args)
 	char *name = va_arg(args, char*);
 	sodb *db = (sodb*)so_dbmatch(e, name);
 	if (ssunlikely(db)) {
-		sr_error(&e->error, "database '%s' exists", name);
+		sr_error(&e->error, "database '%s' already exists", name);
 		return -1;
 	}
 	db = (sodb*)so_dbnew(e, name);
@@ -501,7 +501,7 @@ so_ctldb_index(src *c ssunused, srcstmt *s, va_list args)
 	char *name = va_arg(args, char*);
 	srkey *part = sr_schemefind(&db->scheme.scheme, name);
 	if (ssunlikely(part)) {
-		sr_error(&e->error, "keypart '%s' exists", name);
+		sr_error(&e->error, "keypart '%s' already exists", name);
 		return -1;
 	}
 	/* create new key-part */

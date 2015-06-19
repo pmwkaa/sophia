@@ -408,7 +408,7 @@ int si_recover(si *i, sr *r)
 	if (exist == 0)
 		goto deploy;
 	if (i->scheme->path_fail_on_exists) {
-		sr_error(r->e, "directory '%s' is exists.", i->scheme->path);
+		sr_error(r->e, "directory '%s' already exists.", i->scheme->path);
 		return -1;
 	}
 	int rc = si_schemerecover(i->scheme, r);
