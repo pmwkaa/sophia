@@ -14,7 +14,7 @@
 #include <libsd.h>
 #include <libsi.h>
 
-int si_queryopen(siquery *q, sr *r, sicache *c, si *i, ssorder o,
+int si_queryopen(siquery *q, sicache *c, si *i, ssorder o,
                  uint64_t vlsn,
                  void *prefix, uint32_t prefixsize,
                  void *key, uint32_t keysize)
@@ -24,7 +24,7 @@ int si_queryopen(siquery *q, sr *r, sicache *c, si *i, ssorder o,
 	q->keysize    = keysize;
 	q->vlsn       = vlsn;
 	q->index      = i;
-	q->r          = r;
+	q->r          = i->r;
 	q->cache      = c;
 	q->prefix     = prefix;
 	q->prefixsize = prefixsize;
@@ -65,7 +65,7 @@ si_qresult(siquery *q, ssiter *i)
 	sv *v = ss_iteratorof(i);
 	if (ssunlikely(v == NULL))
 		return 0;
-	if (ssunlikely(sv_flags(v) & SVDELETE))
+	if (ssunlikely(sv_is(v, SVDELETE)))
 		return 2;
 	int rc = 1;
 	if (q->prefix) {

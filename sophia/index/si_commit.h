@@ -18,10 +18,9 @@ struct sitx {
 	svlog *l;
 	svlogindex *li;
 	si *index;
-	sr *r;
 };
 
-void si_begin(sitx*, sr*, si*, uint64_t, uint64_t,
+void si_begin(sitx*, si*, uint64_t, uint64_t,
               svlog*, svlogindex*);
 void si_commit(sitx*);
 void si_write(sitx*, int);

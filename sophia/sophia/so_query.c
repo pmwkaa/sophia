@@ -45,7 +45,7 @@ so_querywrite(sorequest *r, svlog *log)
 	while (i < end) {
 		sodb *db = i->ptr;
 		sitx ti;
-		si_begin(&ti, &db->r, &db->index, arg->vlsn, now, log, i);
+		si_begin(&ti, &db->index, arg->vlsn, now, log, i);
 		si_write(&ti, arg->recover);
 		si_commit(&ti);
 		i++;
@@ -70,7 +70,7 @@ so_queryread(sorequest *r)
 	if (sslikely(arg->vlsn_generate))
 		arg->vlsn = sr_seq(db->r.seq, SR_LSN);
 	siquery q;
-	si_queryopen(&q, &db->r, arg->cache, &db->index,
+	si_queryopen(&q, arg->cache, &db->index,
 	             arg->order,
 	             arg->vlsn,
 	             arg->prefix,
@@ -158,7 +158,7 @@ so_querytx_get(sorequest *r)
 	r->rc = sx_get(&t->t, &db->coindex, &arg->v, &result);
 	switch (r->rc) {
 	case  1:
-		if (! (sv_flags(&result) & SVUPDATE)) {
+		if (! sv_is(&result, SVUPDATE)) {
 			r->v = result.v;
 			break;
 		}
@@ -296,7 +296,7 @@ so_queryprepare_trigger(sx *t, sv *v, void *arg0, void *arg1)
 	if (t->vlsn == lsn)
 		return SXPREPARE;
 	siquery q;
-	si_queryopen(&q, &db->r, cache, &db->index,
+	si_queryopen(&q, cache, &db->index,
 	             SS_HAS, t->vlsn,
 	             NULL, 0,
 	             sv_pointer(v), sv_size(v));

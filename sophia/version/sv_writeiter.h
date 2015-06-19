@@ -34,7 +34,7 @@ sv_writeiter_next(ssiter *i)
 	for (; ss_iterhas(sv_mergeiter, im->merge); ss_iternext(sv_mergeiter, im->merge))
 	{
 		sv *v = ss_iterof(sv_mergeiter, im->merge);
-		int dup = (sv_flags(v) & SVDUP) | sv_mergeisdup(im->merge);
+		int dup = sv_is(v, SVDUP) || sv_mergeisdup(im->merge);
 		if (im->size >= im->limit) {
 			if (! dup)
 				break;
@@ -48,7 +48,7 @@ sv_writeiter_next(ssiter *i)
 		} else {
 			/* branched or stray deletes */
 			if (! im->save_delete) {
-				int del = (sv_flags(v) & SVDELETE) > 0;
+				int del = sv_is(v, SVDELETE);
 				if (ssunlikely(del && (lsn <= im->vlsn))) {
 					im->prevlsn = lsn;
 					continue;

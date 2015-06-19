@@ -77,8 +77,7 @@ sv_mergeiter_gt(svmergeiter *i)
 			assert(sv_lsn(v) < sv_lsn(minv));
 			*/
 			src->dup = 1;
-			if ((sv_flags(minv) & SVUPDATE) > 0 &&
-			    (sv_flags(v) & SVUPDATE) == 0)
+			if (sv_is(minv, SVUPDATE) && !sv_is(v, SVUPDATE))
 			{
 				assert(min->update.v == NULL);
 				rc = sv_update(i->r, v, minv, &min->update);
@@ -139,8 +138,7 @@ sv_mergeiter_lt(svmergeiter *i)
 			assert(sv_lsn(v) < sv_lsn(maxv));
 			*/
 			src->dup = 1;
-			if ((sv_flags(maxv) & SVUPDATE) > 0 &&
-			    (sv_flags(v) & SVUPDATE) == 0)
+			if (sv_is(maxv, SVUPDATE) && !sv_is(v, SVUPDATE))
 			{
 				assert(max->update.v == NULL);
 				rc = sv_update(i->r, v, maxv, &max->update);

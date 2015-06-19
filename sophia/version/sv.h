@@ -44,6 +44,11 @@ sv_flags(sv *v) {
 	return v->i->flags(v);
 }
 
+static inline int
+sv_is(sv *v, uint8_t flags) {
+	return (sv_flags(v) & flags) > 0;
+}
+
 static inline uint64_t
 sv_lsn(sv *v) {
 	return v->i->lsn(v);

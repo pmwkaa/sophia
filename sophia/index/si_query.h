@@ -27,7 +27,7 @@ struct siquery {
 	si *index;
 };
 
-int  si_queryopen(siquery*, sr*, sicache*, si*, ssorder, uint64_t,
+int  si_queryopen(siquery*, sicache*, si*, ssorder, uint64_t,
                   void*, uint32_t,
                   void*, uint32_t);
 int  si_queryclose(siquery*);

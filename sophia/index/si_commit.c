@@ -15,14 +15,13 @@
 #include <libsd.h>
 #include <libsi.h>
 
-void si_begin(sitx *t, sr *r, si *index, uint64_t vlsn, uint64_t time,
+void si_begin(sitx *t, si *index, uint64_t vlsn, uint64_t time,
               svlog *l,
               svlogindex *li)
 {
 	t->index = index;
 	t->time  = time;
 	t->vlsn  = vlsn;
-	t->r     = r;
 	t->l     = l;
 	t->li    = li;
 	ss_listinit(&t->nodelist);
@@ -50,21 +49,22 @@ si_update(sitx *t, svv *head, svv *v)
 		return v;
 	if ((head->flags & SVUPDATE) > 0)
 		return v;
+	sr *r = t->index->r;
 	sv a, b, c;
 	sv_init(&a, &sv_vif, head, NULL);
 	sv_init(&b, &sv_vif, v, NULL);
-	int rc = sv_update(t->r, &a, &b, &c);
+	int rc = sv_update(r, &a, &b, &c);
 	if (ssunlikely(rc == -1)) {
-		sr_oom(t->r->e);
+		sr_oom(r->e);
 		return NULL;
 	}
 	((svv*)c.v)->log = v->log;
 	/* gc */
 	uint32_t grow = sv_vsize(c.v);
 	uint32_t gc = sv_vsize(v);
-	ss_free(t->r->a, v);
-	ss_quota(t->r->quota, SS_QGROW, grow);
-	ss_quota(t->r->quota, SS_QREMOVE, gc);
+	ss_free(r->a, v);
+	ss_quota(r->quota, SS_QGROW, grow);
+	ss_quota(r->quota, SS_QREMOVE, gc);
 	return c.v;
 }
 
@@ -76,13 +76,14 @@ si_set(sitx *t, svv *v)
 	/* match node */
 	ssiter i;
 	ss_iterinit(si_iter, &i);
-	ss_iteropen(si_iter, &i, t->r, index, SS_ROUTE, sv_vpointer(v), v->size);
+	ss_iteropen(si_iter, &i, t->index->r, index, SS_ROUTE,
+	            sv_vpointer(v), v->size);
 	sinode *node = ss_iterof(si_iter, &i);
 	assert(node != NULL);
 	/* insert into node index */
 	svindex *vindex = si_nodeindex(node);
 	svindexpos pos;
-	svv *head = sv_indexget(vindex, t->r, &pos, v);
+	svv *head = sv_indexget(vindex, t->index->r, &pos, v);
 	/* apply update */
 	v = si_update(t, head, v);
 	if (ssunlikely(v == NULL))
@@ -102,9 +103,9 @@ void si_write(sitx *t, int check)
 	int c = t->li->count;
 	while (c) {
 		svv *v = cv->v.v;
-		if (check && si_querycommited(t->index, t->r, &cv->v)) {
-			uint32_t gc = si_gcv(t->r->a, v);
-			ss_quota(t->r->quota, SS_QREMOVE, gc);
+		if (check && si_querycommited(t->index, t->index->r, &cv->v)) {
+			uint32_t gc = si_gcv(t->index->r->a, v);
+			ss_quota(t->index->r->quota, SS_QREMOVE, gc);
 			goto next;
 		}
 		si_set(t, v);

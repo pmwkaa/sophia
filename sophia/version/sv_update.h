@@ -12,8 +12,8 @@
 static inline int
 sv_update(sr *r, sv *src, sv *update, sv *result)
 {
-	assert((sv_flags(update) & SVUPDATE) > 0);
-	assert((sv_flags(src) & SVUPDATE) == 0);
+	assert(sv_is(update, SVUPDATE));
+	assert(! sv_is(src, SVUPDATE));
 
 	void *pointer;
 	int size;

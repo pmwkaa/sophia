@@ -43,12 +43,10 @@ sv_readiter_next(ssiter *i)
 		 * version aware */
 		assert(sv_lsn(v) <= im->vlsn);
 		im->nextdup = 1;
-		int del = (sv_flags(v) & SVDELETE) > 0;
-		if (ssunlikely(del))
+		if (ssunlikely(sv_is(v, SVDELETE)))
 			continue;
 		/* ignore stray updates */
-		int update = (sv_flags(v) & SVUPDATE) > 0;
-		if (ssunlikely(update))
+		if (ssunlikely(sv_is(v, SVUPDATE)))
 			continue;
 		im->v = v;
 		im->next = 1;
