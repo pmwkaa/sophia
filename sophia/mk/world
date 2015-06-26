@@ -1,4 +1,3 @@
-
 # sophia makefile
 #
 
@@ -10,11 +9,13 @@ include $(addsuffix /makefile, $(SOPHIA_DIRS))
 OPLATFORM = $(LIBSS_OBJECTS) \
             $(LIBSF_OBJECTS) \
             $(LIBSR_OBJECTS) \
+            $(LIBSO_OBJECTS) \
             $(LIBSV_OBJECTS) \
-            $(LIBSX_OBJECTS) \
             $(LIBSL_OBJECTS) \
             $(LIBSD_OBJECTS) \
             $(LIBSI_OBJECTS) \
+            $(LIBSX_OBJECTS) \
+            $(LIBSY_OBJECTS) \
             $(LIBSE_OBJECTS) \
             $(SOPHIA_OBJECTS)
 O = $(OPLATFORM)

@@ -22,24 +22,28 @@ extern "C" {
 #  define SP_API
 #endif
 
-SP_API void *sp_env(void);
-SP_API void *sp_ctl(void*, ...);
-SP_API void *sp_async(void*, ...);
-SP_API void *sp_object(void*, ...);
-SP_API int   sp_open(void*, ...);
-SP_API int   sp_destroy(void*, ...);
-SP_API int   sp_error(void*, ...);
-SP_API int   sp_set(void*, ...);
-SP_API int   sp_update(void*, ...);
-SP_API int   sp_delete(void*, ...);
-SP_API void *sp_get(void*, ...);
-SP_API void *sp_poll(void*, ...);
-SP_API int   sp_drop(void*, ...);
-SP_API void *sp_begin(void*, ...);
-SP_API int   sp_prepare(void*, ...);
-SP_API int   sp_commit(void*, ...);
-SP_API void *sp_cursor(void*, ...);
-SP_API void *sp_type(void*, ...);
+SP_API void    *sp_env(void);
+SP_API void    *sp_object(void*);
+SP_API int      sp_open(void*);
+SP_API int      sp_drop(void*);
+SP_API int      sp_destroy(void*);
+SP_API int      sp_error(void*);
+SP_API void    *sp_asynchronous(void*);
+SP_API void    *sp_poll(void*);
+SP_API int      sp_setobject(void*, char*, void*);
+SP_API int      sp_setstring(void*, char*, void*, int);
+SP_API int      sp_setint(void*, char*, int64_t);
+SP_API void    *sp_getobject(void*, char*);
+SP_API void    *sp_getstring(void*, char*, int*);
+SP_API int64_t  sp_getint(void*, char*);
+SP_API int      sp_set(void*, void*);
+SP_API int      sp_update(void*, void*);
+SP_API int      sp_delete(void*, void*);
+SP_API void    *sp_get(void*, void*);
+SP_API void    *sp_cursor(void*, void*);
+SP_API void    *sp_begin(void*);
+SP_API int      sp_prepare(void*);
+SP_API int      sp_commit(void*);
 
 #ifdef __cplusplus
 }

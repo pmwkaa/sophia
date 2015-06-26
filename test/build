@@ -19,6 +19,9 @@ TEST_LOGDIR    = logdir
 TEST_DIR       = dir
 TEST_BINARY    = run
 
+disabled:
+	@echo "build system temporary disabled."
+
 all: banner validate $(OBJECTS)
 	@echo "ld   $(TEST_BINARY)"
 	@$(CC) $(OBJECTS) $(TEST_LDFLAGS) -o $(TEST_BINARY)

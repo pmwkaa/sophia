@@ -1,3 +1,5 @@
+#ifndef LIBSY_H_
+#define LIBSY_H_
 
 /*
  * sophia database
@@ -7,4 +9,7 @@
  * BSD License
 */
 
-#include <libss.h>
+#include <sy_conf.h>
+#include <sy.h>
+
+#endif

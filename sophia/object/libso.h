@@ -1,3 +1,5 @@
+#ifndef LIBSO_H_
+#define LIBSO_H_
 
 /*
  * sophia database
@@ -7,4 +9,7 @@
  * BSD License
 */
 
-#include <libss.h>
+#include <so.h>
+#include <so_list.h>
+
+#endif

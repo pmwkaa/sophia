@@ -8,3 +8,6 @@
 */
 
 #include <libss.h>
+#include <libsf.h>
+#include <libsr.h>
+#include <libso.h>

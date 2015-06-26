@@ -13,10 +13,8 @@
 #include <sr_error.h>
 #include <sr_seq.h>
 #include <sr_scheme.h>
-#include <sr_obj.h>
-#include <sr_objlist.h>
 #include <sr.h>
-#include <sr_c.h>
+#include <sr_meta.h>
 #include <sr_zone.h>
 
 #endif

@@ -11,7 +11,7 @@ OBJECTS = st.o \
           sszstdfilter.test.o \
           sslz4filter.test.o \
           srscheme.test.o \
-          srctl.test.o \
+          srmeta.test.o \
           svv.test.o \
           svindex.test.o \
           svindexiter.test.o \

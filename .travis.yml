@@ -12,8 +12,8 @@ branches:
   only:
     - master
 script:
-  - make ENABLE_COVERAGE=1
-  - cd test
-  - make ENABLE_COVERAGE=1
-  - make test
-  - cd ..
+#  - make ENABLE_COVERAGE=1
+#  - cd test
+#  - make ENABLE_COVERAGE=1
+#  - make test
+#  - cd ..

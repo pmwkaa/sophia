@@ -65,13 +65,15 @@ EOF
 process $root $output "libss.h" "std"
 process $root $output "libsf.h" "format"
 process $root $output "libsr.h" "runtime"
+process $root $output "libso.h" "object"
 process $root $output "libsv.h" "version"
 process $root $output "libsx.h" "transaction"
 process $root $output "libsl.h" "log"
 process $root $output "libsd.h" "database"
 process $root $output "libsi.h" "index"
-process $root $output "libse.h" "repository"
-process $root $output "libso.h" "sophia"
+process $root $output "libsy.h" "repository"
+process $root $output "libse.h" "environment"
+process $root $output "libsp.h" "sophia"
 
 cat <<EOF >> $output
 /* vim: foldmethod=marker

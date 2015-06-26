@@ -10,328 +10,315 @@
 #include <libss.h>
 #include <libsf.h>
 #include <libsr.h>
+#include <libso.h>
 #include <libsv.h>
 #include <libsl.h>
 #include <libsd.h>
 #include <libsi.h>
 #include <libsx.h>
+#include <libsy.h>
 #include <libse.h>
-#include <libso.h>
+#include <libsp.h>
 
 static inline void
-sp_error_unsupported_method(srobj *o, const char *method, ...)
+sp_unsupported(so *o, const char *method)
 {
-	assert(o->env != NULL);
-	assert(o->env->id == SOENV);
-	va_list args;
-	va_start(args, method);
-	so *e = (so*)o->env;
-	sr_error(&e->error, "unsupported %s(%s) operation",
-	         (char*)method,
-	         (char*)o->i->type(o, args));
-	va_end(args);
+	fprintf(stderr, "%s(%s): unsupported operation",
+	        (char*)method, o->type->name);
+	abort();
 }
 
-SP_API void*
-sp_env(void)
+static inline so*
+sp_cast(void *ptr, const char *method)
 {
-	return so_new();
+	so *o = se_cast_validate(ptr);
+	if (ssunlikely(o == NULL)) {
+		fprintf(stderr, "%s(x%p): bad object", method, ptr);
+		abort();
+	}
+	return o;
 }
 
-SP_API void*
-sp_ctl(void *o, ...)
+SP_API void *sp_env(void)
 {
-	srobj *obj = o;
-	if (ssunlikely(obj->i->ctl == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
+	return se_new();
+}
+
+SP_API void *sp_object(void *ptr)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->object == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
 		return NULL;
 	}
-	va_list args;
-	va_start(args, o);
-	so_apilock(obj->env);
-	void *h = obj->i->ctl(o, args);
-	so_apiunlock(obj->env);
-	va_end(args);
+	se_apilock(o->env);
+	void *h = o->i->object(o);
+	se_apiunlock(o->env);
 	return h;
 }
 
-SP_API void*
-sp_async(void *o, ...)
+SP_API int sp_open(void *ptr)
 {
-	srobj *obj = o;
-	if (ssunlikely(obj->i->async == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
-		return NULL;
-	}
-	va_list args;
-	va_start(args, o);
-	so_apilock(obj->env);
-	void *h = obj->i->async(o, args);
-	so_apiunlock(obj->env);
-	va_end(args);
-	return h;
-}
-
-SP_API void*
-sp_object(void *o, ...)
-{
-	srobj *obj = o;
-	if (ssunlikely(obj->i->object == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
-		return NULL;
-	}
-	va_list args;
-	va_start(args, o);
-	so_apilock(obj->env);
-	void *h = obj->i->object(o, args);
-	so_apiunlock(obj->env);
-	va_end(args);
-	return h;
-}
-
-SP_API int
-sp_open(void *o, ...)
-{
-	srobj *obj = o;
-	if (ssunlikely(obj->i->open == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->open == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
 		return -1;
 	}
-	va_list args;
-	va_start(args, o);
-	so_apilock(obj->env);
-	int rc = obj->i->open(o, args);
-	so_apiunlock(obj->env);
-	va_end(args);
+	se_apilock(o->env);
+	int rc = o->i->open(o);
+	se_apiunlock(o->env);
 	return rc;
 }
 
-SP_API int
-sp_destroy(void *o, ...)
+SP_API int sp_drop(void *ptr)
 {
-	srobj *obj = o;
-	if (ssunlikely(obj->i->destroy == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->drop == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
 		return -1;
 	}
-	va_list args;
-	va_start(args, o);
-	srobj *env = obj->env;
+	se_apilock(o->env);
+	int rc = o->i->drop(o);
+	se_apiunlock(o->env);
+	return rc;
+}
+
+SP_API int sp_destroy(void *ptr)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->drop == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return -1;
+	}
+	so *env = o->env;
 	int rc;
 	if (ssunlikely(env == o)) {
-		rc = obj->i->destroy(o, args);
-		va_end(args);
+		rc = o->i->destroy(o);
 		return rc;
 	}
-	so_apilock(env);
-	rc = obj->i->destroy(o, args);
-	so_apiunlock(env);
-	va_end(args);
+	se_apilock(env);
+	rc = o->i->destroy(o);
+	se_apiunlock(env);
 	return rc;
 }
 
-SP_API int sp_error(void *o, ...)
+SP_API int sp_error(void *ptr)
 {
-	srobj *obj = o;
-	if (ssunlikely(obj->i->error == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->error == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
 		return -1;
 	}
-	va_list args;
-	va_start(args, o);
-	so_apilock(obj->env);
-	int rc = obj->i->error(o, args);
-	so_apiunlock(obj->env);
-	va_end(args);
+	se_apilock(o->env);
+	int rc = o->i->error(o);
+	se_apiunlock(o->env);
 	return rc;
 }
 
-SP_API int
-sp_set(void *o, ...)
+SP_API void *sp_asynchronous(void *ptr)
 {
-	srobj *obj = o;
-	if (ssunlikely(obj->i->set == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
-		return -1;
-	}
-	va_list args;
-	va_start(args, o);
-	so_apilock(obj->env);
-	int rc = obj->i->set(o, args);
-	so_apiunlock(obj->env);
-	va_end(args);
-	return rc;
-}
-
-SP_API int
-sp_update(void *o, ...)
-{
-	srobj *obj = o;
-	if (ssunlikely(obj->i->update == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
-		return -1;
-	}
-	va_list args;
-	va_start(args, o);
-	so_apilock(obj->env);
-	int rc = obj->i->update(o, args);
-	so_apiunlock(obj->env);
-	va_end(args);
-	return rc;
-}
-
-SP_API int
-sp_delete(void *o, ...)
-{
-	srobj *obj = o;
-	if (ssunlikely(obj->i->del == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
-		return -1;
-	}
-	srobj *env = obj->env;
-	va_list args;
-	va_start(args, o);
-	so_apilock(env);
-	int rc = obj->i->del(o, args);
-	so_apiunlock(env);
-	va_end(args);
-	return rc;
-}
-
-SP_API void*
-sp_get(void *o, ...)
-{
-	srobj *obj = o;
-	if (ssunlikely(obj->i->get == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->asynchronous == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
 		return NULL;
 	}
-	va_list args;
-	va_start(args, o);
-	so_apilock(obj->env);
-	void *h = obj->i->get(o, args);
-	so_apiunlock(obj->env);
-	va_end(args);
+	se_apilock(o->env);
+	void *h = o->i->asynchronous(o);
+	se_apiunlock(o->env);
 	return h;
 }
 
-SP_API void*
-sp_poll(void *o, ...)
+SP_API void *sp_poll(void *ptr)
 {
-	srobj *obj = o;
-	if (ssunlikely(obj->i->poll == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->poll == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
 		return NULL;
 	}
-	va_list args;
-	va_start(args, o);
-	so_apilock(obj->env);
-	void *h = obj->i->poll(o, args);
-	so_apiunlock(obj->env);
-	va_end(args);
+	se_apilock(o->env);
+	void *h = o->i->poll(o);
+	se_apiunlock(o->env);
 	return h;
 }
 
-SP_API int
-sp_drop(void *o, ...)
+SP_API int sp_setobject(void *ptr, char *path, void *object)
 {
-	srobj *obj = o;
-	if (ssunlikely(obj->i->drop == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->setobject == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
 		return -1;
 	}
-	srobj *env = obj->env;
-	va_list args;
-	va_start(args, o);
-	so_apilock(env);
-	int rc = obj->i->drop(o, args);
-	so_apiunlock(env);
-	va_end(args);
+	se_apilock(o->env);
+	int rc = o->i->setobject(o, path, object);
+	se_apiunlock(o->env);
 	return rc;
 }
 
-SP_API void*
-sp_begin(void *o, ...)
+SP_API int sp_setstring(void *ptr, char *path, void *pointer, int size)
 {
-	srobj *obj = o;
-	if (ssunlikely(obj->i->begin == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->setstring == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return -1;
+	}
+	se_apilock(o->env);
+	int rc = o->i->setstring(o, path, pointer, size);
+	se_apiunlock(o->env);
+	return rc;
+}
+
+SP_API int sp_setint(void *ptr, char *path, int64_t v)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->setint == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return -1;
+	}
+	se_apilock(o->env);
+	int rc = o->i->setint(o, path, v);
+	se_apiunlock(o->env);
+	return rc;
+}
+
+SP_API void *sp_getobject(void *ptr, char *path)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->getobject == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
 		return NULL;
 	}
-	va_list args;
-	va_start(args, o);
-	so_apilock(obj->env);
-	void *h = obj->i->begin(o, args);
-	so_apiunlock(obj->env);
-	va_end(args);
+	se_apilock(o->env);
+	void *h = o->i->getobject(o, path);
+	se_apiunlock(o->env);
 	return h;
 }
 
-SP_API int
-sp_prepare(void *o, ...)
+SP_API void *sp_getstring(void *ptr, char *path, int *size)
 {
-	srobj *obj = o;
-	if (ssunlikely(obj->i->prepare == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
-		return -1;
-	}
-	srobj *env = obj->env;
-	va_list args;
-	va_start(args, o);
-	so_apilock(env);
-	int rc = obj->i->prepare(o, args);
-	so_apiunlock(env);
-	va_end(args);
-	return rc;
-}
-
-SP_API int
-sp_commit(void *o, ...)
-{
-	srobj *obj = o;
-	if (ssunlikely(obj->i->commit == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
-		return -1;
-	}
-	srobj *env = obj->env;
-	va_list args;
-	va_start(args, o);
-	so_apilock(env);
-	int rc = obj->i->commit(o, args);
-	so_apiunlock(env);
-	va_end(args);
-	return rc;
-}
-
-SP_API void*
-sp_cursor(void *o, ...)
-{
-	srobj *obj = o;
-	if (ssunlikely(obj->i->cursor == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->getstring == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
 		return NULL;
 	}
-	va_list args;
-	va_start(args, o);
-	so_apilock(obj->env);
-	void *cursor = obj->i->cursor(o, args);
-	so_apiunlock(obj->env);
-	va_end(args);
-	return cursor;
-}
-
-SP_API void *sp_type(void *o, ...)
-{
-	srobj *obj = o;
-	if (ssunlikely(obj->i->type == NULL)) {
-		sp_error_unsupported_method(o, __FUNCTION__);
-		return NULL;
-	}
-	va_list args;
-	va_start(args, o);
-	so_apilock(obj->env);
-	void *h = obj->i->type(o, args);
-	so_apiunlock(obj->env);
-	va_end(args);
+	se_apilock(o->env);
+	void *h = o->i->getstring(o, path, size);
+	se_apiunlock(o->env);
 	return h;
+}
+
+SP_API int64_t sp_getint(void *ptr, char *path)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->getint == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return -1;
+	}
+	se_apilock(o->env);
+	int64_t rc = o->i->getint(o, path);
+	se_apiunlock(o->env);
+	return rc;
+}
+
+SP_API int sp_set(void *ptr, void *v)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->set == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return -1;
+	}
+	se_apilock(o->env);
+	int rc = o->i->set(o, v);
+	se_apiunlock(o->env);
+	return rc;
+}
+
+SP_API int sp_update(void *ptr, void *v)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->update == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return -1;
+	}
+	se_apilock(o->env);
+	int rc = o->i->update(o, v);
+	se_apiunlock(o->env);
+	return rc;
+}
+
+SP_API int sp_delete(void *ptr, void *v)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->del == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return -1;
+	}
+	se_apilock(o->env);
+	int rc = o->i->del(o, v);
+	se_apiunlock(o->env);
+	return rc;
+}
+
+SP_API void *sp_get(void *ptr, void *v)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->get == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return NULL;
+	}
+	se_apilock(o->env);
+	void *h = o->i->get(o, v);
+	se_apiunlock(o->env);
+	return h;
+}
+
+SP_API void *sp_cursor(void *ptr, void *v)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->cursor == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return NULL;
+	}
+	se_apilock(o->env);
+	void *h = o->i->cursor(o, v);
+	se_apiunlock(o->env);
+	return h;
+}
+
+SP_API void *sp_begin(void *ptr)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->begin == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return NULL;
+	}
+	se_apilock(o->env);
+	void *h = o->i->begin(o);
+	se_apiunlock(o->env);
+	return h;
+}
+
+SP_API int sp_prepare(void *ptr)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->prepare == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return -1;
+	}
+	se_apilock(o->env);
+	int rc = o->i->prepare(o);
+	se_apiunlock(o->env);
+	return rc;
+}
+
+SP_API int sp_commit(void *ptr)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->commit == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return -1;
+	}
+	se_apilock(o->env);
+	int rc = o->i->commit(o);
+	se_apiunlock(o->env);
+	return rc;
 }

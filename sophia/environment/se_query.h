@@ -1,3 +1,5 @@
+#ifndef SE_QUERY_H_
+#define SE_QUERY_H_
 
 /*
  * sophia database
@@ -7,4 +9,6 @@
  * BSD License
 */
 
-#include <libss.h>
+int se_query(serequest*);
+
+#endif

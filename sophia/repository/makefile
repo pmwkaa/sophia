@@ -1,6 +1,6 @@
-LIBSE_O = se.o
-LIBSE_OBJECTS = $(addprefix repository/, $(LIBSE_O))
-OBJECTS = $(LIBSE_O)
+LIBSY_O = sy.o
+LIBSY_OBJECTS = $(addprefix repository/, $(LIBSY_O))
+OBJECTS = $(LIBSY_O)
 ifndef buildworld
   include ../mk/sophia
   include ../mk/component

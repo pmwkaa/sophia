@@ -22,7 +22,7 @@ extern stgroup *ssrq_group(void);
 extern stgroup *ssht_group(void);
 extern stgroup *sszstdfilter_group(void);
 extern stgroup *sslz4filter_group(void);
-extern stgroup *srctl_group(void);
+extern stgroup *srmeta_group(void);
 extern stgroup *srscheme_group(void);
 extern stgroup *svv_group(void);
 extern stgroup *svindex_group(void);
@@ -102,7 +102,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, ssrq_group());
 	st_planadd(plan, sszstdfilter_group());
 	st_planadd(plan, sslz4filter_group());
-	st_planadd(plan, srctl_group());
+	st_planadd(plan, srmeta_group());
 	st_planadd(plan, srscheme_group());
 	st_planadd(plan, svv_group());
 	st_planadd(plan, svindex_group());

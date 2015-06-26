@@ -14,21 +14,35 @@ typedef int (*sstriggerf)(void *arg);
 typedef struct sstrigger sstrigger;
 
 struct sstrigger {
-	sstriggerf func;
+	sstriggerf function;
 	void *arg;
 };
 
-void *ss_triggerpointer_of(char*);
-void  ss_triggerinit(sstrigger*);
-int   ss_triggerset(sstrigger*, char*);
-int   ss_triggersetarg(sstrigger*, char*);
+static inline void
+ss_triggerinit(sstrigger *t)
+{
+	t->function = NULL;
+	t->arg = NULL;
+}
+
+static inline void
+ss_triggerset(sstrigger *t, void *pointer)
+{
+	t->function = (sstriggerf)(uintptr_t)pointer;
+}
+
+static inline void
+ss_triggerset_arg(sstrigger *t, void *pointer)
+{
+	t->arg = pointer;
+}
 
 static inline void
 ss_triggerrun(sstrigger *t)
 {
-	if (t->func == NULL)
+	if (t->function == NULL)
 		return;
-	t->func(t->arg);
+	t->function(t->arg);
 }
 
 #endif

@@ -23,9 +23,14 @@ sf_updateinit(sfupdate *u)
 }
 
 static inline void
-sf_updateset(sfupdate *u, sfupdatef function, void *arg)
+sf_updateset(sfupdate *u, sfupdatef function)
 {
 	u->function = function;
+}
+
+static inline void
+sf_updateset_arg(sfupdate *u, void *arg)
+{
 	u->arg = arg;
 }
 

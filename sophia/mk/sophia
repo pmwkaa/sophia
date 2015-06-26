@@ -5,11 +5,18 @@
 SOPHIA_VMAJOR   = 1
 SOPHIA_VMINOR   = 2
 SOPHIA_BUILD   := $(shell git rev-parse --short HEAD)
-SOPHIA_DIRS     = std format runtime version transaction log database index repository sophia
-
-CC             ?= gcc
-E               = @echo
-Q               = @
+SOPHIA_DIRS     = std \
+                  format \
+                  runtime \
+                  object \
+                  version \
+                  log \
+                  database \
+                  index \
+                  transaction \
+                  repository \
+                  environment \
+                  sophia
 
 ifndef buildworld
 INCLUDE_A       =
@@ -33,5 +40,9 @@ CFLAGS_SOPHIA   = $(CFLAGS_INCLUDE) \
                   $(CFLAGS_STRICT) \
                   $(CFLAGS_BUILD) \
                   $(CFLAGS)
+
+CC             ?= gcc
+E               = @echo
+Q               = @
 
 # vim: syntax=make
