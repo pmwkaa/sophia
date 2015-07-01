@@ -2,7 +2,7 @@
 # sophia test-suite
 #
 
-include objects.mk
+include ./objects.mk
 
 SOPHIA_DIRS     = std format runtime object version log database \
                   index \
