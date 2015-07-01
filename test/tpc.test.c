@@ -7,123 +7,197 @@
  * BSD License
 */
 
+#include <sophia.h>
 #include <libss.h>
 #include <libsf.h>
 #include <libsr.h>
+#include <libsv.h>
+#include <libsd.h>
 #include <libst.h>
-#include <sophia.h>
 
 static void
-tpc_prepare_commit_empty(stc *cx)
+tpc_prepare_commit_empty(void)
 {
-	int rc;
-	void *tx = sp_begin(cx->env);
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_open(env) == 0 );
+
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	void *tx = sp_begin(env);
 	t( tx != NULL );
+	int rc;
 	rc = sp_prepare(tx);
 	t( rc == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+
+	t( sp_destroy(env) == 0 );
 }
 
 static void
-tpc_prepare_rollback_empty(stc *cx)
+tpc_prepare_rollback_empty(void)
 {
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_open(env) == 0 );
+
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(env);
 	t( tx != NULL );
 	rc = sp_prepare(tx);
 	t( rc == 0 );
 	rc = sp_destroy(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+
+	t( sp_destroy(env) == 0 );
 }
 
 static void
-tpc_prepare_prepare_empty(stc *cx)
+tpc_prepare_prepare_empty(void)
 {
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_open(env) == 0 );
+
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(env);
 	t( tx != NULL );
 	rc = sp_prepare(tx);
 	t( rc == 0 );
 	rc = sp_prepare(tx);
 	t( rc == 0 );
 	rc = sp_destroy(tx);
-	t( rc == 0 );
-	st_transaction(cx);
+
+	t( sp_destroy(env) == 0 );
 }
 
 static void
-tpc_prepare_commit(stc *cx)
+tpc_prepare_commit(void)
 {
-	void *db = cx->db;
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_open(env) == 0 );
+	void *db = sp_getobject(env, "db.test");
+
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(env);
 	t( tx != NULL );
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	o = sp_object(db);
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(tx, o);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "value", NULL) == key );
+	t( *(int*)sp_getstring(o, "value", NULL) == key );
 	sp_destroy(o);
 	rc = sp_prepare(tx);
 	t( rc == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+
+	t( sp_destroy(env) == 0 );
 }
 
 static void
-tpc_prepare_rollback(stc *cx)
+tpc_prepare_rollback(void)
 {
-	void *db = cx->db;
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_open(env) == 0 );
+	void *db = sp_getobject(env, "db.test");
+
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(env);
 	t( tx != NULL );
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	o = sp_object(db);
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(tx, o);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "value", NULL) == key );
+	t( *(int*)sp_getstring(o, "value", NULL) == key );
 	sp_destroy(o);
 	rc = sp_prepare(tx);
 	t( rc == 0 );
 	rc = sp_destroy(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+
+	t( sp_destroy(env) == 0 );
 }
 
 static void
-tpc_prepare_prepare(stc *cx)
+tpc_prepare_prepare(void)
 {
-	void *db = cx->db;
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_open(env) == 0 );
+	void *db = sp_getobject(env, "db.test");
+
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(env);
 	t( tx != NULL );
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	o = sp_object(db);
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(tx, o);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "value", NULL) == key );
+	t( *(int*)sp_getstring(o, "value", NULL) == key );
 	sp_destroy(o);
 	rc = sp_prepare(tx);
 	t( rc == 0 );
@@ -131,110 +205,138 @@ tpc_prepare_prepare(stc *cx)
 	t( rc == 0 );
 	rc = sp_destroy(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+
+	t( sp_destroy(env) == 0 );
 }
 
 static void
-tpc_prepare_set(stc *cx)
+tpc_prepare_set(void)
 {
-	void *db = cx->db;
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_open(env) == 0 );
+	void *db = sp_getobject(env, "db.test");
+
 	int rc;
-	void *a = sp_begin(cx->env);
+	void *a = sp_begin(env);
 	t( a != NULL );
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(a, o) == 0 );
 	rc = sp_prepare(a);
 	t( rc == 0 );
 	key = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(a, o) == -1 );
 	rc = sp_commit(a);
 	t( rc == 0 );
-	st_transaction(cx);
+
+	t( sp_destroy(env) == 0 );
 }
 
 static void
-tpc_prepare_wait0(stc *cx)
+tpc_prepare_wait0(void)
 {
-	void *db = cx->db;
-	int rc;
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_open(env) == 0 );
+	void *db = sp_getobject(env, "db.test");
 
-	void *a = sp_begin(cx->env);
+	int rc;
+	void *a = sp_begin(env);
 	t( a != NULL );
-	void *b = sp_begin(cx->env);
+	void *b = sp_begin(env);
 	t( b != NULL );
 
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(a, o) == 0 );
 
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(b, o) == 0 );
 
 	t( sp_commit(b) == 2 ); /* wait */
-	st_transaction(cx);
 
 	rc = sp_prepare(a);
 	t( rc == 0 );
-	st_transaction(cx);
 
 	t( sp_commit(b) == 2 ); /* wait */
-	st_transaction(cx);
 
 	rc = sp_commit(a);
 	t( rc == 0 );
-	st_transaction(cx);
 
 	t( sp_commit(b) == 1 ); /* rlb */
-	st_transaction(cx);
+
+	t( sp_destroy(env) == 0 );
 }
 
 static void
-tpc_prepare_wait1(stc *cx)
+tpc_prepare_wait1(void)
 {
-	void *db = cx->db;
-	int rc;
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_open(env) == 0 );
+	void *db = sp_getobject(env, "db.test");
 
-	void *a = sp_begin(cx->env);
+	int rc;
+	void *a = sp_begin(env);
 	t( a != NULL );
-	void *b = sp_begin(cx->env);
+	void *b = sp_begin(env);
 	t( b != NULL );
 
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(b, o) == 0 );
 
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(a, o) == 0 );
 
 	rc = sp_prepare(a);
 	t( rc == 2 ); /* wait */
-	st_transaction(cx);
 
 	t( sp_commit(b) == 0 ); /* commit */
-	st_transaction(cx);
-
 	t( sp_prepare(a) == 1 ); /* rlb */
-	st_transaction(cx);
+
+	t( sp_destroy(env) == 0 );
 }
 
 stgroup *tpc_group(void)

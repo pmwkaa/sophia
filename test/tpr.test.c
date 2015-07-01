@@ -7,45 +7,45 @@
  * BSD License
 */
 
+#include <sophia.h>
 #include <libss.h>
 #include <libsf.h>
-#include <libss.h>
+#include <libsr.h>
+#include <libsv.h>
+#include <libsd.h>
 #include <libst.h>
-#include <sophia.h>
 
 static void
-tpr_test0(stc *cx ssunused)
+tpr_test0(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
-	t( sp_set(c, "log.enable", "0") == 0 );
-	t( sp_set(c, "log.two_phase_recover", "1") == 0 );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.enable", 0) == 0 );
+	t( sp_setint(env, "log.two_phase_recover", 1) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+
 	t( sp_open(env) == 0 );
 
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
-	void *db = sp_get(c, "db.test");
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_open(db) == 0 );
 
-	void *o = sp_get(c, "db.test.status");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "recover") == 0 );
-	sp_destroy(o);
+	char *v = sp_getstring(env, "db.test.status", NULL);
+	t( strcmp(v, "recover") == 0 );
+	free(v);
 
 	t( sp_open(env) == 0 ); /* complete */
 
-	o = sp_get(c, "db.test.status");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "online") == 0 );
-	sp_destroy(o);
+	v = sp_getstring(env, "db.test.status", NULL);
+	t( strcmp(v, "online") == 0 );
+	free(v);
 
 	t( sp_open(db) == -1 );
 
@@ -54,65 +54,65 @@ tpr_test0(stc *cx ssunused)
 }
 
 static void
-tpr_test1(stc *cx ssunused)
+tpr_test1(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
-	t( sp_set(c, "log.enable", "0") == 0 );
-	t( sp_set(c, "log.two_phase_recover", "1") == 0 );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.enable", 0) == 0 );
+	t( sp_setint(env, "log.two_phase_recover", 1) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+
 	t( sp_open(env) == 0 );
 
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
-	void *db = sp_get(c, "db.test");
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_open(db) == 0 );
 	t( sp_open(env) == 0 );
+
 	int key = 7;
 	int value = 8;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &value, sizeof(value)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(db, o) == 0 );
-	t( sp_set(c, "db.test.branch") == 0 );
+	t( sp_setint(env, "db.test.branch", 0) == 0 );
 	key = 7;
 	value = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &value, sizeof(value)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(db, o) == 0 );
 	t( sp_destroy(env) == 0 );
 
 	env = sp_env();
 	t( env != NULL );
-	c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.enable", "0") == 0 );
-	t( sp_set(c, "log.two_phase_recover", "1") == 0 );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.enable", 0) == 0 );
+	t( sp_setint(env, "log.two_phase_recover", 1) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_open(env) == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
-	db = sp_get(c, "db.test");
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_open(db) == 0 );
 
-	o = sp_get(c, "db.test.status");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "recover") == 0 );
-	sp_destroy(o);
+	char *v = sp_getstring(env, "db.test.status", NULL);
+	t( strcmp(v, "recover") == 0 );
+	free(v);
 
 	void *tx = sp_begin(env);
 	t( tx != NULL );
@@ -120,10 +120,11 @@ tpr_test1(stc *cx ssunused)
 	value = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &value, sizeof(value)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(tx, o) == 0 );
-	t( sp_commit(tx, 1ULL) == 0 ); /* skip */
+	t( sp_setint(tx, "lsn", 1) == 0 );
+	t( sp_commit(tx) == 0 ); /* skip */
 
 	tx = sp_begin(env);
 	t( tx != NULL );
@@ -131,74 +132,74 @@ tpr_test1(stc *cx ssunused)
 	value = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &value, sizeof(value)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(tx, o) == 0 );
-	t( sp_commit(tx, 2ULL) == 0 ); /* commit */
+	t( sp_setint(tx, "lsn", 2) == 0 );
+	t( sp_commit(tx) == 0 ); /* commit */
 
 	t( sp_open(env) == 0 );
 
-	o = sp_get(c, "db.test.status");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "online") == 0 );
-	sp_destroy(o);
+	v = sp_getstring(env, "db.test.status", NULL);
+	t( strcmp(v, "online") == 0 );
+	free(v);
 
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "value", NULL) == 9 );
-	t( *(uint64_t*)sp_get(o, "lsn") == 2ULL );
+	t( *(int*)sp_getstring(o, "value", NULL) == 9 );
+	t( sp_getint(o, "lsn") == 2ULL );
 	t( sp_destroy(o) == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
 
 static void
-tpr_test2(stc *cx ssunused)
+tpr_test2(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
-	t( sp_set(c, "log.enable", "0") == 0 );
-	t( sp_set(c, "log.two_phase_recover", "1") == 0 );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.enable", 0) == 0 );
+	t( sp_setint(env, "log.two_phase_recover", 1) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+
 	t( sp_open(env) == 0 );
 
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
-	void *db = sp_get(c, "db.test");
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_destroy(db) == 0 );
-
+	t( sp_open(env) == 0 );
 	t( sp_destroy(env) == 0 );
 }
 
 static void
-tpr_test3(stc *cx ssunused)
+tpr_test3(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
-	t( sp_set(c, "log.enable", "0") == 0 );
-	t( sp_set(c, "log.two_phase_recover", "1") == 0 );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.enable", 0) == 0 );
+	t( sp_setint(env, "log.two_phase_recover", 1) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+
 	t( sp_open(env) == 0 );
 
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
-	void *db = sp_get(c, "db.test");
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_open(db) == 0 );
 	t( sp_destroy(db) == 0 );

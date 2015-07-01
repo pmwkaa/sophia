@@ -57,7 +57,7 @@ se_metasophia_error(srmeta *c, srmetastmt *s)
 	else
 		errorp = error;
 	srmeta meta = {
-		.name     = c->name,
+		.key      = c->key,
 		.flags    = c->flags,
 		.type     = c->type,
 		.function = NULL,
@@ -73,10 +73,10 @@ se_metasophia(se *e, semetart *rt, srmeta **pc)
 {
 	srmeta *sophia = *pc;
 	srmeta *p = NULL;
-	sr_M(&p, pc, se_metav, "version", SS_STRING, &rt->version, SR_RO, NULL);
-	sr_M(&p, pc, se_metav, "build", SS_STRING, &rt->build, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "version", SS_STRING, rt->version, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "build", SS_STRING, rt->build, SR_RO, NULL);
 	sr_M(&p, pc, se_metasophia_error, "error", SS_STRING, NULL, SR_RO, NULL);
-	sr_m(&p, pc, se_metav_offline, "path", SS_STRING, &e->meta.path);
+	sr_m(&p, pc, se_metav_offline, "path", SS_STRINGPTR, &e->meta.path);
 	sr_m(&p, pc, se_metav_offline, "path_create", SS_U32, &e->meta.path_create);
 	return sr_M(NULL, pc, NULL, "sophia", SS_UNDEF, sophia, SR_NS, NULL);
 }
@@ -164,7 +164,7 @@ se_metascheduler_trace(srmeta *c, srmetastmt *s)
 	else
 		trace = tracesz;
 	srmeta meta = {
-		.name     = c->name,
+		.key      = c->key,
 		.flags    = c->flags,
 		.type     = c->type,
 		.function = NULL,
@@ -237,7 +237,7 @@ se_metascheduler(se *e, semetart *rt, srmeta **pc)
 	srmeta *prev;
 	srmeta *p = NULL;
 	sr_m(&p, pc, se_metav_offline, "threads", SS_U32, &e->meta.threads);
-	sr_M(&p, pc, se_metav, "zone", SS_STRING, &rt->zone, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "zone", SS_STRING, rt->zone, SR_RO, NULL);
 	sr_M(&p, pc, se_metav, "checkpoint_active", SS_U32, &rt->checkpoint_active, SR_RO, NULL);
 	sr_M(&p, pc, se_metav, "checkpoint_lsn", SS_U64, &rt->checkpoint_lsn, SR_RO, NULL);
 	sr_M(&p, pc, se_metav, "checkpoint_lsn_last", SS_U64, &rt->checkpoint_lsn_last, SR_RO, NULL);
@@ -285,7 +285,7 @@ se_metalog(se *e, semetart *rt, srmeta **pc)
 	srmeta *log = *pc;
 	srmeta *p = NULL;
 	sr_m(&p, pc, se_metav_offline, "enable", SS_U32, &e->meta.log_enable);
-	sr_m(&p, pc, se_metav_offline, "path", SS_STRING, &e->meta.log_path);
+	sr_m(&p, pc, se_metav_offline, "path", SS_STRINGPTR, &e->meta.log_path);
 	sr_m(&p, pc, se_metav_offline, "sync", SS_U32, &e->meta.log_sync);
 	sr_m(&p, pc, se_metav_offline, "rotate_wm", SS_U32, &e->meta.log_rotate_wm);
 	sr_m(&p, pc, se_metav_offline, "rotate_sync", SS_U32, &e->meta.log_rotate_sync);
@@ -345,7 +345,7 @@ se_metadb_get(srmeta *c, srmetastmt *s)
 	assert(c->ptr != NULL);
 	sedb *db = c->ptr;
 	se_dbref(db, 0);
-	s->result = db;
+	*(void**)s->value = db;
 	return 0;
 }
 
@@ -354,7 +354,7 @@ se_metadb_update(srmeta *c, srmetastmt *s)
 {
 	if (s->op != SR_WRITE)
 		return se_metav(c, s);
-	sedb *db = c->value;
+	sedb *db = c->ptr;
 	if (ssunlikely(se_statusactive(&db->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
@@ -370,7 +370,7 @@ se_metadb_updatearg(srmeta *c, srmetastmt *s)
 {
 	if (s->op != SR_WRITE)
 		return se_metav(c, s);
-	sedb *db = c->value;
+	sedb *db = c->ptr;
 	if (ssunlikely(se_statusactive(&db->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
@@ -385,7 +385,7 @@ se_metadb_status(srmeta *c, srmetastmt *s)
 	sedb *db = c->value;
 	char *status = se_statusof(&db->status);
 	srmeta meta = {
-		.name     = c->name,
+		.key      = c->key,
 		.flags    = c->flags,
 		.type     = c->type,
 		.function = NULL,
@@ -415,10 +415,14 @@ se_metadb_compact(srmeta *c, srmetastmt *s)
 }
 
 static inline int
-se_metadb_lockdetect(srmeta *c, srmetastmt *s)
+se_metadb_deadlock(srmeta *c, srmetastmt *s)
 {
 	if (s->op != SR_WRITE)
 		return se_metav(c, s);
+	if (s->valuetype != SS_OBJECT) {
+		sr_error(s->r->e, "%s", "deadlock(transaction) expected");
+		return -1;
+	}
 	setx *tx = se_cast(s->value, setx*, SETX);
 	int rc = sx_deadlock(&tx->t);
 	return rc;
@@ -486,7 +490,7 @@ se_metadb_key(srmeta *c, srmetastmt *s)
 	}
 	char *path = s->value;
 	/* update key-part path */
-	srkey *part = sr_schemefind(&db->scheme.scheme, c->name);
+	srkey *part = sr_schemefind(&db->scheme.scheme, c->key);
 	assert(part != NULL);
 	return sr_keyset(part, &e->a, path);
 }
@@ -518,10 +522,10 @@ se_metadb(se *e, semetart *rt ssunused, srmeta **pc)
 		sr_M(&p, pc, se_metav, "branch_count", SS_U32, &o->rtp.total_branch_count, SR_RO, NULL);
 		sr_M(&p, pc, se_metav, "branch_avg", SS_U32, &o->rtp.total_branch_avg, SR_RO, NULL);
 		sr_M(&p, pc, se_metav, "branch_max", SS_U32, &o->rtp.total_branch_max, SR_RO, NULL);
-		sr_M(&p, pc, se_metav, "branch_histogram", SS_STRING, &o->rtp.histogram_branch_ptr, SR_RO, NULL);
+		sr_M(&p, pc, se_metav, "branch_histogram", SS_STRINGPTR, &o->rtp.histogram_branch_ptr, SR_RO, NULL);
 		sr_M(&p, pc, se_metav, "page_count", SS_U32, &o->rtp.total_page_count, SR_RO, NULL);
-		sr_m(&p, pc, se_metadb_update, "update", SS_STRING, o);
-		sr_m(&p, pc, se_metadb_updatearg, "update_arg", SS_STRING, o);
+		sr_M(&p, pc, se_metadb_update, "update", SS_STRING, NULL, 0, o);
+		sr_M(&p, pc, se_metadb_updatearg, "update_arg", SS_STRING, NULL, 0, o);
 		/* index keys */
 		int i = 0;
 		while (i < o->scheme.scheme.count) {
@@ -532,19 +536,19 @@ se_metadb(se *e, semetart *rt ssunused, srmeta **pc)
 		/* database */
 		srmeta *database = *pc;
 		p = NULL;
-		sr_M(&p, pc, se_metav, "name", SS_STRING, &o->scheme.name, SR_RO, NULL);
+		sr_M(&p, pc, se_metav, "name", SS_STRINGPTR, &o->scheme.name, SR_RO, NULL);
 		sr_M(&p, pc, se_metav, "id", SS_U32, &o->scheme.id, SR_RO, NULL);
 		sr_M(&p, pc, se_metadb_status, "status", SS_STRING, o, SR_RO, NULL);
-		sr_M(&p, pc, se_metav_dboffline, "format", SS_STRING, &o->scheme.fmt_sz, 0, o);
-		sr_M(&p, pc, se_metav_dboffline, "path", SS_STRING, &o->scheme.path, 0, o);
+		sr_M(&p, pc, se_metav_dboffline, "format", SS_STRINGPTR, &o->scheme.fmt_sz, 0, o);
+		sr_M(&p, pc, se_metav_dboffline, "path", SS_STRINGPTR, &o->scheme.path, 0, o);
 		sr_M(&p, pc, se_metav_dboffline, "sync", SS_U32, &o->scheme.sync, 0, o);
 		sr_M(&p, pc, se_metav_dboffline, "compression_key", SS_U32, &o->scheme.compression_key, 0, o);
-		sr_M(&p, pc, se_metav_dboffline, "compression", SS_STRING, &o->scheme.compression_sz, 0, o);
+		sr_M(&p, pc, se_metav_dboffline, "compression", SS_STRINGPTR, &o->scheme.compression_sz, 0, o);
 		sr_m(&p, pc, se_metadb_branch, "branch", SS_FUNCTION, o);
 		sr_m(&p, pc, se_metadb_compact, "compact", SS_FUNCTION, o);
-		sr_m(&p, pc, se_metadb_lockdetect, "lockdetect", SS_OBJECT, NULL);
-		sr_M(&p, pc, se_metadb_index, "index", SS_STRING, index, 0, o);
-		sr_M(&prev, pc, se_metadb_get, o->scheme.name, SS_OBJECT, database, 0, o);
+		sr_m(&p, pc, se_metadb_deadlock, "deadlock", SS_FUNCTION, NULL);
+		sr_M(&p, pc, se_metadb_index, "index", SS_UNDEF, index, SR_NS, o);
+		sr_M(&prev, pc, se_metadb_get, o->scheme.name, SS_STRING, database, SR_NS, o);
 		if (db == NULL)
 			db = prev;
 	}
@@ -569,13 +573,13 @@ se_metasnapshot_set(srmeta *c, srmetastmt *s)
 }
 
 static inline int
-se_metasnapshot_setlsn(srmeta *c, srmetastmt *s)
+se_metasnapshot_lsn(srmeta *c, srmetastmt *s)
 {
 	int rc = se_metav(c, s);
 	if (ssunlikely(rc == -1))
 		return -1;
 	if (s->op != SR_WRITE)
-		return  0;
+		return 0;
 	sesnapshot *snapshot = c->ptr;
 	se_snapshotupdate(snapshot);
 	return 0;
@@ -591,7 +595,7 @@ se_metasnapshot_get(srmeta *c, srmetastmt *s)
 		return -1;
 	}
 	assert(c->ptr != NULL);
-	s->result = c->ptr;
+	*(void**)s->value = c->ptr;
 	return 0;
 }
 
@@ -604,8 +608,8 @@ se_metasnapshot(se *e, semetart *rt ssunused, srmeta **pc)
 	ss_listforeach(&e->snapshot.list, i)
 	{
 		sesnapshot *s = (sesnapshot*)sscast(i, so, link);
-		sr_M(NULL, pc, se_metasnapshot_setlsn, "lsn", SS_U64, &s->vlsn, 0, s);
-		sr_M(&prev, pc, se_metasnapshot_get, s->name, SS_OBJECT, NULL, 0, s);
+		srmeta *p = sr_M(NULL, pc, se_metasnapshot_lsn, "lsn", SS_U64, &s->vlsn, 0, s);
+		sr_M(&prev, pc, se_metasnapshot_get, s->name, SS_STRING, p, SR_NS, s);
 		if (snapshot == NULL)
 			snapshot = prev;
 	}
@@ -627,7 +631,7 @@ se_metabackup(se *e, semetart *rt, srmeta **pc)
 {
 	srmeta *backup = *pc;
 	srmeta *p = NULL;
-	sr_m(&p, pc, se_metav_offline, "path", SS_STRING, &e->meta.backup_path);
+	sr_m(&p, pc, se_metav_offline, "path", SS_STRINGPTR, &e->meta.backup_path);
 	sr_m(&p, pc, se_metabackup_run, "run", SS_FUNCTION, NULL);
 	sr_M(&p, pc, se_metav, "active", SS_U32, &rt->backup_active, SR_RO, NULL);
 	sr_m(&p, pc, se_metav, "last", SS_U32, &rt->backup_last);
@@ -741,27 +745,22 @@ int se_metaserialize(semeta *c, ssbuf *buf)
 	srmeta *root;
 	root = se_metaprepare(e, &rt, meta, 1);
 	srmetastmt stmt = {
-		.op         = SR_SERIALIZE,
-		.path       = NULL,
-		.value      = NULL,
-		.valuesize  = 0,
-		.valuetype  = SS_UNDEF,
-		.serialize  = buf,
-		.result     = NULL,
-		.resultsize = 0,
-		.ptr        = e,
-		.r          = &e->r
+		.op        = SR_SERIALIZE,
+		.path      = NULL,
+		.value     = NULL,
+		.valuesize = 0,
+		.valuetype = SS_UNDEF,
+		.serialize = buf,
+		.ptr       = e,
+		.r         = &e->r
 	};
 	return sr_metaexec(root, &stmt);
 }
 
 static int
 se_metaquery(se *e, int op, char *path,
-             sstype valuetype,
-             void *value,
-             int valuesize,
-             void **result,
-             int *resultsize)
+             sstype valuetype, void *value, int valuesize,
+             int *size)
 {
 	semetart rt;
 	se_metart(e, &rt);
@@ -769,59 +768,52 @@ se_metaquery(se *e, int op, char *path,
 	srmeta *root;
 	root = se_metaprepare(e, &rt, meta, 0);
 	srmetastmt stmt = {
-		.op         = op,
-		.path       = path,
-		.value      = value,
-		.valuesize  = valuesize,
-		.valuetype  = valuetype,
-		.serialize  = NULL,
-		.result     = NULL,
-		.resultsize = 0,
-		.ptr        = e,
-		.r          = &e->r
+		.op        = op,
+		.path      = path,
+		.value     = value,
+		.valuesize = valuesize,
+		.valuetype = valuetype,
+		.serialize = NULL,
+		.ptr       = e,
+		.r         = &e->r
 	};
-	*result = stmt.result;
-	*resultsize = stmt.resultsize;
-	return sr_metaexec(root, &stmt);
+	int rc = sr_metaexec(root, &stmt);
+	if (size)
+		*size = stmt.valuesize;
+	return rc;
 }
 
 int se_metaset_object(so *o, char *path, void *object)
 {
 	se *e = se_of(o);
-	int resultsize;
-	void *result;
-	return se_metaquery(e, SR_WRITE, path,
-	                    SS_OBJECT, object, sizeof(so*),
-	                    &result, &resultsize);
+	return se_metaquery(e, SR_WRITE, path, SS_OBJECT,
+	                    object, sizeof(so*), NULL);
 }
 
 int se_metaset_string(so *o, char *path, void *string, int size)
 {
 	se *e = se_of(o);
-	int resultsize;
-	void *result;
-	return se_metaquery(e, SR_WRITE, path,
-	                    SS_STRING, string, size,
-	                    &result, &resultsize);
+	if (string && size == 0)
+		size = strlen(string) + 1;
+	return se_metaquery(e, SR_WRITE, path, SS_STRING,
+	                   string, size, NULL);
 }
 
 int se_metaset_int(so *o, char *path, int64_t v)
 {
 	se *e = se_of(o);
-	int resultsize;
-	void *result;
-	return se_metaquery(e, SR_WRITE, path, SS_U64,
-	                    &v, sizeof(v),
-	                    &result, &resultsize);
+	return se_metaquery(e, SR_WRITE, path, SS_I64,
+	                    &v, sizeof(v), NULL);
 }
 
 void *se_metaget_object(so *o, char *path)
 {
 	se *e = se_of(o);
-	int resultsize = 0;
 	void *result = NULL;
-	se_metaquery(e, SR_READ, path, SS_OBJECT, NULL, 0,
-	             &result, &resultsize);
+	int rc = se_metaquery(e, SR_READ, path, SS_OBJECT,
+	                      &result, sizeof(void*), NULL);
+	if (ssunlikely(rc == -1))
+		return NULL;
 	return result;
 }
 
@@ -829,21 +821,22 @@ void *se_metaget_string(so *o, char *path, int *size)
 {
 	se *e = se_of(o);
 	void *result = NULL;
-	se_metaquery(e, SR_READ, path, SS_STRING, NULL, 0,
-	             &result, size);
+	int rc = se_metaquery(e, SR_READ, path, SS_STRING,
+	                      &result, sizeof(void*), size);
+	if (ssunlikely(rc == -1))
+		return NULL;
 	return result;
 }
 
 int64_t se_metaget_int(so *o, char *path)
 {
 	se *e = se_of(o);
-	int resultsize = 0;
-	void *result = NULL;
-	se_metaquery(e, SR_READ, path, SS_U64, NULL, 0,
-	             &result, &resultsize);
-	if (result == NULL)
+	int64_t result = 0;
+	int rc = se_metaquery(e, SR_READ, path, SS_I64,
+	                      &result, sizeof(void*), NULL);
+	if (ssunlikely(rc == -1))
 		return -1;
-	return *(int64_t*)result;
+	return result;
 }
 
 void *se_metacursor(so *o, so *v ssunused)

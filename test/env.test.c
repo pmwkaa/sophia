@@ -7,28 +7,29 @@
  * BSD License
 */
 
+#include <sophia.h>
 #include <libss.h>
 #include <libsf.h>
 #include <libsr.h>
+#include <libsv.h>
+#include <libsd.h>
 #include <libst.h>
-#include <sophia.h>
 
 static void
-env_dbid_forge(stc *cx)
+env_dbid_forge(void)
 {
 	/* based on gh-76 */
 
 	/* X */
 	void *env = sp_env();
 	t( env != NULL );
-	void *ctl = sp_ctl(env);
 
-	t( sp_set(ctl, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(ctl, "scheduler.threads", "0") == 0 );
-	t( sp_set(ctl, "log.rotate_sync", "0") == 0 );
-	sp_set(ctl, "db", "x");
-	sp_set(ctl, "db.x.sync", "0");
-	void *dbx = sp_get(ctl, "db.x");
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
+	sp_setstring(env, "db", "x", 0);
+	sp_setint(env, "db.x.sync", 0);
+	void *dbx = sp_getobject(env, "db.x");
 	t( dbx != NULL );
 	t( sp_open(env) == 0);
 
@@ -37,56 +38,51 @@ env_dbid_forge(stc *cx)
 	char val[] = "bar";
 
 	o = sp_object(dbx);
-	sp_set(o, "key",   key, sizeof(key));
-	sp_set(o, "value", val, sizeof(val));
+	sp_setstring(o, "key",   key, sizeof(key));
+	sp_setstring(o, "value", val, sizeof(val));
 	sp_set(dbx, o);
 	t( sp_destroy(env) == 0 );
 
 	/* Y */
 	env = sp_env();
 	t( env != NULL );
-	ctl = sp_ctl(env);
 
-	t( sp_set(ctl, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(ctl, "scheduler.threads", "0") == 0 );
-	t( sp_set(ctl, "log.rotate_sync", "0") == 0 );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 
 	/* xxx: act as db.x, without schema storage */
-	sp_set(ctl, "db", "y");
-	sp_set(ctl, "db.y.sync", "0");
-	void *dby = sp_get(ctl, "db.y");
+	sp_setstring(env, "db", "y", 0);
+	sp_setint(env, "db.y.sync", 0);
+	void *dby = sp_getobject(env, "db.y");
 
 	t( sp_open(env) == 0 );
 
 	o = sp_object(dby);
-	sp_set(o, "key", key, sizeof(key));
+	sp_setstring(o, "key", key, sizeof(key));
 	void *result = sp_get(dby, o);
-	if (result) {
-		char *value = sp_get(result, "value", NULL);
-		printf("%s\n", value);
-		sp_destroy(result);
-	}
+	t( result != NULL );
+	sp_destroy(result);
 
 	t( sp_destroy(env) == 0 );
 }
 
 static void
-env_dbid_resolve(stc *cx)
+env_dbid_resolve(void)
 {
 	/* based on gh-76 */
 
 	/* X */
 	void *env = sp_env();
 	t( env != NULL );
-	void *ctl = sp_ctl(env);
 
-	t( sp_set(ctl, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(ctl, "scheduler.threads", "0") == 0 );
-	t( sp_set(ctl, "log.rotate_sync", "0") == 0 );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 
-	sp_set(ctl, "db", "x");
-	sp_set(ctl, "db.x.sync", "0");
-	void *dbx = sp_get(ctl, "db.x");
+	sp_setstring(env, "db", "x", 0);
+	sp_setint(env, "db.x.sync", 0);
+	void *dbx = sp_getobject(env, "db.x");
 	t( dbx != NULL );
 	t( sp_open(env) == 0);
 
@@ -95,30 +91,29 @@ env_dbid_resolve(stc *cx)
 	char val[] = "bar";
 
 	o = sp_object(dbx);
-	sp_set(o, "key",   key, sizeof(key));
-	sp_set(o, "value", val, sizeof(val));
+	sp_setstring(o, "key",   key, sizeof(key));
+	sp_setstring(o, "value", val, sizeof(val));
 	sp_set(dbx, o);
 	t( sp_destroy(env) == 0 );
 
 	/* Y */
 	env = sp_env();
 	t( env != NULL );
-	ctl = sp_ctl(env);
 
-	t( sp_set(ctl, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(ctl, "scheduler.threads", "0") == 0 );
-	t( sp_set(ctl, "log.rotate_sync", "0") == 0 );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 
-	t( sp_set(ctl, "db", "x") == 0 );
-	t( sp_set(ctl, "db", "y") == 0 ); /* db.id == 2 */
-	sp_set(ctl, "db.x.sync", "0");
-	sp_set(ctl, "db.y.sync", "0");
-	void *dby = sp_get(ctl, "db.y");
+	t( sp_setstring(env, "db", "x", 0) == 0 );
+	t( sp_setstring(env, "db", "y", 0) == 0 ); /* db.id == 2 */
+	sp_setint(env, "db.x.sync", 0);
+	sp_setint(env, "db.y.sync", 0);
+	void *dby = sp_getobject(env, "db.y");
 
 	t( sp_open(env) == 0 );
 
 	o = sp_object(dby);
-	sp_set(o, "key", key, sizeof(key));
+	sp_setstring(o, "key", key, sizeof(key));
 	void *result = sp_get(dby, o);
 	t( result == NULL );
 

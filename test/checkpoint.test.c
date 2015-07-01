@@ -7,147 +7,109 @@
  * BSD License
 */
 
+#include <sophia.h>
 #include <libss.h>
 #include <libsf.h>
-#include <libss.h>
+#include <libsr.h>
+#include <libsv.h>
+#include <libsd.h>
 #include <libst.h>
-#include <sophia.h>
 
 static void
-checkpoint_test0(stc *cx ssunused)
+checkpoint_test0(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
-	void *db = sp_get(c, "db.test");
-	t( db != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_open(env) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(db) == 0 );
 
 	int key = 0;
 	while (key < 10) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-		t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 		t( sp_set(db, o) == 0 );
 		key++;
 	}
 
-	void *o = sp_get(c, "scheduler.checkpoint_active");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "0") == 0 );
-	sp_destroy(o);
-	o = sp_get(c, "scheduler.checkpoint_lsn");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "0") == 0 );
-	sp_destroy(o);
-	o = sp_get(c, "scheduler.checkpoint_lsn_last");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "0") == 0 );
-	sp_destroy(o);
+	t( sp_getint(env, "scheduler.checkpoint_active") == 0 );
+	t( sp_getint(env, "scheduler.checkpoint_lsn") == 0 );
+	t( sp_getint(env, "scheduler.checkpoint_lsn_last") == 0 );
 
-	t( sp_set(c, "scheduler.checkpoint") == 0 );
+	t( sp_setint(env, "scheduler.checkpoint", 0) == 0 );
 
-	o = sp_get(c, "scheduler.checkpoint_active");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "1") == 0 );
-	sp_destroy(o);
-	o = sp_get(c, "scheduler.checkpoint_lsn");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "10") == 0 );
-	sp_destroy(o);
-	o = sp_get(c, "scheduler.checkpoint_lsn_last");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "0") == 0 );
-	sp_destroy(o);
+	t( sp_getint(env, "scheduler.checkpoint_active") == 1 );
+	t( sp_getint(env, "scheduler.checkpoint_lsn") == 10 );
+	t( sp_getint(env, "scheduler.checkpoint_lsn_last") == 0 );
 
-	t( sp_set(c, "scheduler.run") == 1 );
-	t( sp_set(c, "scheduler.run") == 1 );
+	t( sp_setint(env, "scheduler.run", 0) == 1 );
+	t( sp_setint(env, "scheduler.run", 0) == 1 );
 
-	o = sp_get(c, "scheduler.checkpoint_active");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "0") == 0 );
-	sp_destroy(o);
-	o = sp_get(c, "scheduler.checkpoint_lsn");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "0") == 0 );
-	sp_destroy(o);
-	o = sp_get(c, "scheduler.checkpoint_lsn_last");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "10") == 0 );
-	sp_destroy(o);
+	t( sp_getint(env, "scheduler.checkpoint_active") == 0 );
+	t( sp_getint(env, "scheduler.checkpoint_lsn") == 0 );
+	t( sp_getint(env, "scheduler.checkpoint_lsn_last") == 10 );
 
 	t( sp_destroy(env) == 0 );
 }
 
 static void
-checkpoint_test1(stc *cx ssunused)
+checkpoint_test1(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "log.sync", "0") == 0 );
-	t( sp_set(c, "log.rotate_sync", "0") == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
-	void *db = sp_get(c, "db.test");
-	t( db != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_open(env) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(db) == 0 );
 
 	int key = 0;
 	while (key < 20) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-		t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 		t( sp_set(db, o) == 0 );
 		key++;
 	}
 
-	t( sp_set(c, "log.rotate") == 0 );
-	void *o = sp_get(c, "log.files");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "2") == 0 );
-	sp_destroy(o);
+	t( sp_setint(env, "log.rotate", 0) == 0 );
+	t( sp_getint(env, "log.files") == 2 );
 
 	key = 40;
 	while (key < 80) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-		t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 		t( sp_set(db, o) == 0 );
 		key++;
 	}
 
-	t( sp_set(c, "log.rotate") == 0 );
-	o = sp_get(c, "log.files");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "3") == 0 );
-	sp_destroy(o);
+	t( sp_setint(env, "log.rotate", 0) == 0 );
+	t( sp_getint(env, "log.files") == 3 );
 
-	t( sp_set(c, "scheduler.checkpoint") == 0 );
-	t( sp_set(c, "scheduler.run") == 1 );
-	t( sp_set(c, "scheduler.run") == 1 );
+	t( sp_setint(env, "scheduler.checkpoint", 0) == 0 );
+	t( sp_setint(env, "scheduler.run", 0) == 1 );
+	t( sp_setint(env, "scheduler.run", 0) == 1 );
 
-	o = sp_get(c, "log.files");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "1") == 0 );
-	sp_destroy(o);
+	t( sp_getint(env, "log.files") == 1 );
 
 	t( sp_destroy(env) == 0 );
 }

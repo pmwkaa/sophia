@@ -121,7 +121,7 @@ se_querydb_get(serequest *r)
 	se *e = se_of(r->object);
 	/* register transaction statement */
 	sx_getstmt(&e->xm, &db->coindex);
-	/* switch to curser iteration to support
+	/* switch to cursor iteration to support
 	 * update operations */
 	if (sf_updatehas(&db->scheme.fmt_update)) {
 		arg->order    = SS_LTE;
@@ -177,7 +177,7 @@ se_querytx_get(serequest *r)
 }
 
 static inline int
-se_querycurser_get(serequest *r)
+se_querycursor_get(serequest *r)
 {
 	secursor *c = (secursor*)r->object;
 	se *e = se_of(r->object);
@@ -227,13 +227,13 @@ se_querycurser_get(serequest *r)
 }
 
 static inline int
-se_querycurser_open(serequest *r)
+se_querycursor_open(serequest *r)
 {
 	serequestarg *arg = &r->arg;
 	secursor *c = (secursor*)r->object;
 	se *e = se_of(r->object);
 
-	/* start curser transaction */
+	/* start cursor transaction */
 	sx_begin(&e->xm, &c->t, arg->vlsn);
 
 	/* read */
@@ -270,7 +270,7 @@ se_querycurser_open(serequest *r)
 }
 
 static inline int
-se_querycurser_destroy(serequest *r)
+se_querycursor_destroy(serequest *r)
 {
 	secursor *c = (secursor*)r->object;
 	sx_rollback(&c->t);
@@ -375,9 +375,9 @@ int se_query(serequest *r)
 	case SE_REQDBGET:         return se_querydb_get(r);
 	case SE_REQTXSET:         return se_querytx_set(r);
 	case SE_REQTXGET:         return se_querytx_get(r);
-	case SE_REQCURSOROPEN:    return se_querycurser_open(r);
-	case SE_REQCURSORGET:     return se_querycurser_get(r);
-	case SE_REQCURSORDESTROY: return se_querycurser_destroy(r);
+	case SE_REQCURSOROPEN:    return se_querycursor_open(r);
+	case SE_REQCURSORGET:     return se_querycursor_get(r);
+	case SE_REQCURSORDESTROY: return se_querycursor_destroy(r);
 	case SE_REQBEGIN:         return se_querybegin(r);
 	case SE_REQPREPARE:       return se_queryprepare(r);
 	case SE_REQCOMMIT:        return se_querycommit(r);

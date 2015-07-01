@@ -7,30 +7,28 @@
  * BSD License
 */
 
+#include <sophia.h>
 #include <libss.h>
 #include <libsf.h>
-#include <libss.h>
+#include <libsr.h>
+#include <libsv.h>
+#include <libsd.h>
 #include <libst.h>
-#include <sophia.h>
 
 static void
-branch_loggc(stc *cx ssunused)
+branch_loggc(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "log.sync", "0") == 0 );
-	t( sp_set(c, "log.rotate_sync", "0") == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
-	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
-	void *db = sp_get(c, "db.test");
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
@@ -38,41 +36,30 @@ branch_loggc(stc *cx ssunused)
 	while (key < 20) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-		t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 		t( sp_set(db, o) == 0 );
 		key++;
 	}
 
-	t( sp_set(c, "log.rotate") == 0 );
-	void *o = sp_get(c, "log.files");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "2") == 0 );
-	sp_destroy(o);
+	t( sp_setint(env, "log.rotate",0 ) == 0 );
+	t( sp_getint(env, "log.files") == 2 );
 
 	key = 40;
 	while (key < 80) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-		t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 		t( sp_set(db, o) == 0 );
 		key++;
 	}
 
-	t( sp_set(c, "log.rotate") == 0 );
-	o = sp_get(c, "log.files");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "3") == 0 );
-	sp_destroy(o);
-
-	t( sp_set(c, "db.test.branch") == 0 );
-	t( sp_set(c, "log.gc") == 0 );
-
-	o = sp_get(c, "log.files");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "1") == 0 );
-	sp_destroy(o);
+	t( sp_setint(env, "log.rotate", 0) == 0 );
+	t( sp_getint(env, "log.files") == 3 );
+	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "log.gc", 0) == 0 );
+	t( sp_getint(env, "log.files") == 1 );
 
 	t( sp_destroy(env) == 0 );
 }

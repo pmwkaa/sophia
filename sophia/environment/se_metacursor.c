@@ -20,6 +20,88 @@
 #include <libse.h>
 
 static int
+se_metav_destroy(so *o)
+{
+	semetav *v = se_cast(o, semetav*, SEMETAV);
+	se *e = se_of(o);
+	ss_free(&e->a, v->key);
+	if (v->value)
+		ss_free(&e->a, v->value);
+	ss_free(&e->a_metav, v);
+	return 0;
+}
+
+void *se_metav_string(so *o, char *path, int *size)
+{
+	semetav *v = se_cast(o, semetav*, SEMETAV);
+	if (strcmp(path, "key") == 0) {
+		if (size)
+			*size = v->keysize;
+		return v->key;
+	} else
+	if (strcmp(path, "value") == 0) {
+		if (size)
+			*size = v->valuesize;
+		return v->value;
+	}
+	return NULL;
+}
+
+static soif semetavif =
+{
+	.open         = NULL,
+	.destroy      = se_metav_destroy,
+	.error        = NULL,
+	.object       = NULL,
+	.asynchronous = NULL,
+	.poll         = NULL,
+	.drop         = NULL,
+	.setobject    = NULL,
+	.setstring    = NULL,
+	.setint       = NULL,
+	.getobject    = NULL,
+	.getstring    = se_metav_string,
+	.getint       = NULL,
+	.set          = NULL,
+	.update       = NULL,
+	.del          = NULL,
+	.get          = NULL,
+	.begin        = NULL,
+	.prepare      = NULL,
+	.commit       = NULL,
+	.cursor       = NULL,
+};
+
+static inline so *se_metav_new(se *e, srmetadump *vp)
+{
+	semetav *v = ss_malloc(&e->a_metav, sizeof(semetav));
+	if (ssunlikely(v == NULL)) {
+		sr_oom(&e->error);
+		return NULL;
+	}
+	so_init(&v->o, &se_o[SEMETAV], &semetavif, &e->o, &e->o);
+	v->keysize = vp->keysize;
+	v->key = ss_malloc(&e->a, v->keysize);
+	if (ssunlikely(v->key == NULL)) {
+		ss_free(&e->a_metav, v);
+		return NULL;
+	}
+	memcpy(v->key, sr_metakey(vp), v->keysize);
+	v->valuesize = vp->valuesize;
+	v->value = NULL;
+	if (v->valuesize > 0) {
+		v->value = ss_malloc(&e->a, v->valuesize);
+		if (ssunlikely(v->key == NULL)) {
+			ss_free(&e->a, v->key);
+			ss_free(&e->a_metav, v);
+			return NULL;
+		}
+	}
+	memcpy(v->value, sr_metavalue(vp), v->valuesize);
+	return &v->o;
+}
+
+static int
 se_metacursor_destroy(so *o)
 {
 	semetacursor *c = se_cast(o, semetacursor*, SEMETACURSOR);
@@ -34,27 +116,7 @@ static inline so*
 se_metacursor_object(semetacursor *c)
 {
 	se *e = se_of(&c->o);
-	sfv key;
-	key.key      = sr_metaname(c->pos);
-	key.r.size   = c->pos->namesize;
-	key.r.offset = 0;
-	void *value = NULL;
-	if (c->pos->valuesize > 0)
-		value = sr_metavalue(c->pos);
-	svv *v = sv_vbuild(&e->r, &key, 1, value, c->pos->valuesize);
-	if (ssunlikely(v == NULL)) {
-		sr_oom(&e->error);
-		return NULL;
-	}
-	sv vp;
-	sv_init(&vp, &sv_vif, v, NULL);
-	so *result = se_vnew(e, &e->o, &vp);
-	if (ssunlikely(result == NULL)) {
-		sr_oom(&e->error);
-		sv_vfree(&e->a, v);
-		return NULL;
-	}
-	return result;
+	return se_metav_new(e, c->pos);
 }
 
 static void*
@@ -66,7 +128,7 @@ se_metacursor_get(so *o, so *v ssunused)
 		c->first = 0;
 		c->pos = (srmetadump*)c->dump.s;
 	} else {
-		int size = sizeof(srmetadump) + c->pos->namesize + c->pos->valuesize;
+		int size = sizeof(srmetadump) + c->pos->keysize + c->pos->valuesize;
 		c->pos = (srmetadump*)((char*)c->pos + size);
 		if ((char*)c->pos >= c->dump.p)
 			c->pos = NULL;

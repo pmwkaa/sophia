@@ -7,2462 +7,2464 @@
  * BSD License
 */
 
+#include <sophia.h>
 #include <libss.h>
 #include <libsf.h>
 #include <libsr.h>
+#include <libsv.h>
+#include <libsd.h>
 #include <libst.h>
-#include <sophia.h>
 
 static void
-cursor_empty_gte(stc *cx)
+cursor_empty_gte(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(db, o);
 	t( c != NULL );
-	t( sp_get(c) == NULL );
+	t( sp_get(c, NULL) == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_empty_gt(stc *cx)
+cursor_empty_gt(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">") == 0 );
+	t( sp_setstring(o, "order", ">", 0) == 0 );
 	void *c = sp_cursor(db, o);
 	t( c != NULL );
-	t( sp_get(c) == NULL );
+	t( sp_get(c, NULL) == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_empty_lte(stc *cx)
+cursor_empty_lte(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", "<=") == 0 );
+	t( sp_setstring(o, "order", "<=", 0) == 0 );
 	void *c = sp_cursor(db, o);
 	t( c != NULL );
-	t( sp_get(c) == NULL );
+	t( sp_get(c, NULL) == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_empty_lt(stc *cx)
+cursor_empty_lt(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", "<") == 0 );
+	t( sp_setstring(o, "order", "<", 0) == 0 );
 	void *c = sp_cursor(db, o);
 	t( c != NULL );
-	t( sp_get(c) == NULL );
+	t( sp_get(c, NULL) == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_gte(stc *cx)
+cursor_gte(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(db, o);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 7 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 8 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 9 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_gt(stc *cx)
+cursor_gt(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">") == 0 );
+	t( sp_setstring(o, "order", ">", 0) == 0 );
 	void *c = sp_cursor(db, o);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 7 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 8 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 9 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_lte(stc *cx)
+cursor_lte(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", "<=") == 0 );
+	t( sp_setstring(o, "order", "<=", 0) == 0 );
 	void *c = sp_cursor(db, o);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 9 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 8 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 7 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_lt(stc *cx)
+cursor_lt(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", "<") == 0 );
+	t( sp_setstring(o, "order", "<", 0) == 0 );
 	void *c = sp_cursor(db, o);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 9 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 8 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 7 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_pos_gte0(stc *cx)
+cursor_pos_gte0(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	key = 7;
 	void *pos = sp_object(db);
 	t( pos != NULL );
-	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(pos, "order", ">=") == 0 );
+	t( sp_setstring(pos, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(pos, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(db, pos);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 7 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 8 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 9 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_pos_gte1(stc *cx)
+cursor_pos_gte1(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	key = 8;
 	void *pos = sp_object(db);
 	t( pos != NULL );
-	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(pos, "order", ">=") == 0 );
+	t( sp_setstring(pos, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(pos, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(db, pos);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 8 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 9 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_pos_gte2(stc *cx)
+cursor_pos_gte2(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	key = 9;
 	void *pos = sp_object(db);
 	t( pos != NULL );
-	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(pos, "order", ">=") == 0 );
+	t( sp_setstring(pos, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(pos, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(db, pos);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 9 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_pos_gte3(stc *cx)
+cursor_pos_gte3(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	key = 15;
 	void *pos = sp_object(db);
 	t( pos != NULL );
-	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(pos, "order", ">=") == 0 );
+	t( sp_setstring(pos, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(pos, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(db, pos);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_pos_gte4(stc *cx)
+cursor_pos_gte4(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int key = 73;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 80;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 90;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	key = 79;
 	void *pos = sp_object(db);
 	t( pos != NULL );
-	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(pos, "order", ">=") == 0 );
+	t( sp_setstring(pos, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(pos, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(db, pos);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 80 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 80 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 90 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 90 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_pos_gte5(stc *cx)
+cursor_pos_gte5(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	key = 0;
 	void *pos = sp_object(db);
 	t( pos != NULL );
-	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(pos, "order", ">=") == 0 );
+	t( sp_setstring(pos, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(pos, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(db, pos);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 7 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 8 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 9 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_pos_gt0(stc *cx)
+cursor_pos_gt0(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	key = 7;
 	void *pos = sp_object(db);
 	t( pos != NULL );
-	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(pos, "order", ">") == 0 );
+	t( sp_setstring(pos, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(pos, "order", ">", 0) == 0 );
 	void *c = sp_cursor(db, pos);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 8 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 9 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_pos_gt1(stc *cx)
+cursor_pos_gt1(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	key = 8;
 	void *pos = sp_object(db);
 	t( pos != NULL );
-	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(pos, "order", ">") == 0 );
+	t( sp_setstring(pos, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(pos, "order", ">", 0) == 0 );
 	void *c = sp_cursor(db, pos);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 9 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_pos_gt2(stc *cx)
+cursor_pos_gt2(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	key = 9;
 	void *pos = sp_object(db);
 	t( pos != NULL );
-	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(pos, "order", ">") == 0 );
+	t( sp_setstring(pos, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(pos, "order", ">", 0) == 0 );
 	void *c = sp_cursor(db, pos);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_pos_lte0(stc *cx)
+cursor_pos_lte0(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	key = 9;
 	void *pos = sp_object(db);
 	t( pos != NULL );
-	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(pos, "order", "<=") == 0 );
+	t( sp_setstring(pos, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(pos, "order", "<=", 0) == 0 );
 	void *c = sp_cursor(db, pos);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 9 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 8 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 7 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_pos_lte1(stc *cx)
+cursor_pos_lte1(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	key = 8;
 	void *pos = sp_object(db);
 	t( pos != NULL );
-	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(pos, "order", "<=") == 0 );
+	t( sp_setstring(pos, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(pos, "order", "<=", 0) == 0 );
 	void *c = sp_cursor(db, pos);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 8 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 7 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_pos_lte2(stc *cx)
+cursor_pos_lte2(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	key = 7;
 	void *pos = sp_object(db);
 	t( pos != NULL );
-	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(pos, "order", "<=") == 0 );
+	t( sp_setstring(pos, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(pos, "order", "<=", 0) == 0 );
 	void *c = sp_cursor(db, pos);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 7 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_pos_lte3(stc *cx)
+cursor_pos_lte3(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	key = 5;
 	void *pos = sp_object(db);
 	t( pos != NULL );
-	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(pos, "order", "<=") == 0 );
+	t( sp_setstring(pos, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(pos, "order", "<=", 0) == 0 );
 	void *c = sp_cursor(db, pos);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_pos_lte4(stc *cx)
+cursor_pos_lte4(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	key = 20;
 	void *pos = sp_object(db);
 	t( pos != NULL );
-	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(pos, "order", "<=") == 0 );
+	t( sp_setstring(pos, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(pos, "order", "<=", 0) == 0 );
 	void *c = sp_cursor(db, pos);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 9 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 8 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 7 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_pos_lt0(stc *cx)
+cursor_pos_lt0(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	key = 9;
 	void *pos = sp_object(db);
 	t( pos != NULL );
-	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(pos, "order", "<") == 0 );
+	t( sp_setstring(pos, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(pos, "order", "<", 0) == 0 );
 	void *c = sp_cursor(db, pos);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 8 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 7 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_pos_lt1(stc *cx)
+cursor_pos_lt1(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	key = 8;
 	void *pos = sp_object(db);
 	t( pos != NULL );
-	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(pos, "order", "<") == 0 );
+	t( sp_setstring(pos, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(pos, "order", "<", 0) == 0 );
 	void *c = sp_cursor(db, pos);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 7 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_pos_lt2(stc *cx)
+cursor_pos_lt2(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	key = 7;
 	void *pos = sp_object(db);
 	t( pos != NULL );
-	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(pos, "order", "<") == 0 );
+	t( sp_setstring(pos, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(pos, "order", "<", 0) == 0 );
 	void *c = sp_cursor(db, pos);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_pos_lt3(stc *cx)
+cursor_pos_lt3(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	key = 2;
 	void *pos = sp_object(db);
 	t( pos != NULL );
-	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(pos, "order", "<") == 0 );
+	t( sp_setstring(pos, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(pos, "order", "<", 0) == 0 );
 	void *c = sp_cursor(db, pos);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_pos_lt4(stc *cx)
+cursor_pos_lt4(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	key = 20;
 	void *pos = sp_object(db);
 	t( pos != NULL );
-	t( sp_set(pos, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(pos, "order", "<") == 0 );
+	t( sp_setstring(pos, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(pos, "order", "<", 0) == 0 );
 	void *c = sp_cursor(db, pos);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 9 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 9 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 8 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 8 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key", NULL) == 7 );
+	t( *(int*)sp_getstring(o, "key", NULL) == 7 );
 	sp_destroy(o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_pos_gte_range(stc *cx)
+cursor_pos_gte_range(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	int i = 0;
 	while (i < 385) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "value", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	i = 0;
 	while (i < 385) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "order", ">=") == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "order", ">=", 0) == 0 );
 		void *c = sp_cursor(db, o);
 		t( c != NULL );
-		void *v = sp_get(c);
+		void *v = sp_get(c, NULL);
 		t( v != NULL );
-		t( *(int*)sp_get(v, "key", NULL) == i );
-		t( *(int*)sp_get(v, "value", NULL) == i );
+		t( *(int*)sp_getstring(v, "key", NULL) == i );
+		t( *(int*)sp_getstring(v, "value", NULL) == i );
 		t( sp_destroy(v) == 0 );
 		t( sp_destroy(c) == 0 );
 		i++;
 	}
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_pos_gt_range(stc *cx)
+cursor_pos_gt_range(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	int i = 0;
 	while (i < 385) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "value", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	i = 0;
 	while (i < (385 - 1)) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "order", ">") == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "order", ">", 0) == 0 );
 		void *c = sp_cursor(db, o);
 		t( c != NULL );
-		void *v = sp_get(c);
+		void *v = sp_get(c, NULL);
 		t( v != NULL );
-		t( *(int*)sp_get(v, "key", NULL) == i + 1);
-		t( *(int*)sp_get(v, "value", NULL) == i + 1);
+		t( *(int*)sp_getstring(v, "key", NULL) == i + 1);
+		t( *(int*)sp_getstring(v, "value", NULL) == i + 1);
 		t( sp_destroy(v) == 0 );
 		t( sp_destroy(c) == 0 );
 		i++;
 	}
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_pos_lte_range(stc *cx)
+cursor_pos_lte_range(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	int i = 0;
 	while (i < 385) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "value", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	i = 0;
 	while (i < 385) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "order", "<=") == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "order", "<=", 0) == 0 );
 		void *c = sp_cursor(db, o);
 		t( c != NULL );
-		void *v = sp_get(c);
+		void *v = sp_get(c, NULL);
 		t( v != NULL );
-		t( *(int*)sp_get(v, "key", NULL) == i);
-		t( *(int*)sp_get(v, "value", NULL) == i);
+		t( *(int*)sp_getstring(v, "key", NULL) == i);
+		t( *(int*)sp_getstring(v, "value", NULL) == i);
 		t( sp_destroy(v) == 0 );
 		t( sp_destroy(c) == 0 );
 		i++;
 	}
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_pos_lt_range(stc *cx)
+cursor_pos_lt_range(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	int i = 0;
 	while (i < 385) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "value", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	i = 1;
 	while (i < 385) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "order", "<") == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "order", "<", 0) == 0 );
 		void *c = sp_cursor(db, o);
 		t( c != NULL );
-		void *v = sp_get(c);
+		void *v = sp_get(c, NULL);
 		t( v != NULL );
-		t( *(int*)sp_get(v, "key", NULL) == i - 1);
-		t( *(int*)sp_get(v, "value", NULL) == i - 1);
+		t( *(int*)sp_getstring(v, "key", NULL) == i - 1);
+		t( *(int*)sp_getstring(v, "value", NULL) == i - 1);
 		t( sp_destroy(v) == 0 );
 		t( sp_destroy(c) == 0 );
 		i++;
 	}
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_pos_gte_random(stc *cx)
+cursor_pos_gte_random(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
 	unsigned int seed = time(NULL);
 	srand(seed);
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	int i = 0;
 	while (i < 270) {
 		int key = rand();
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-		t( sp_set(o, "value", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	srand(seed);
 	i = 0;
 	while (i < 270) {
 		int key = rand();
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-		t( sp_set(o, "order", ">=") == 0 );
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "order", ">=", 0) == 0 );
 		void *c = sp_cursor(db, o);
 		t( c != NULL );
-		void *v = sp_get(c);
+		void *v = sp_get(c, NULL);
 		t( v != NULL );
-		t( *(int*)sp_get(v, "key", NULL) == key);
-		t( *(int*)sp_get(v, "value", NULL) == i);
+		t( *(int*)sp_getstring(v, "key", NULL) == key);
+		t( *(int*)sp_getstring(v, "value", NULL) == i);
 		t( sp_destroy(v) == 0 );
 		t( sp_destroy(c) == 0 );
 		i++;
 	}
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_pos_lte_random(stc *cx)
+cursor_pos_lte_random(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
 	unsigned int seed = time(NULL);
 	srand(seed);
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	int i = 0;
 	while (i < 403) {
 		int key = rand();
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-		t( sp_set(o, "value", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 	srand(seed);
 	i = 0;
 	while (i < 403) {
 		int key = rand();
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-		t( sp_set(o, "order", "<=") == 0 );
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "order", "<=", 0) == 0 );
 		void *c = sp_cursor(db, o);
 		t( c != NULL );
-		void *v = sp_get(c);
+		void *v = sp_get(c, NULL);
 		t( v != NULL );
-		t( *(int*)sp_get(v, "key", NULL) == key);
-		t( *(int*)sp_get(v, "value", NULL) == i);
+		t( *(int*)sp_getstring(v, "key", NULL) == key);
+		t( *(int*)sp_getstring(v, "value", NULL) == i);
 		t( sp_destroy(v) == 0 );
 		t( sp_destroy(c) == 0 );
 		i++;
 	}
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_consistency0(stc *cx)
+cursor_consistency0(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(db, o);
 	t( c != NULL );
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int key = 7;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
-	st_transaction(cx);
+	st_phase();
 	t( rc == 0 );
-	t( sp_get(c) == NULL );
+	t( sp_get(c, NULL) == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_consistency1(stc *cx)
+cursor_consistency1(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int key = 7;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(db, o);
 	t( c != NULL );
-	st_transaction(cx);
+	st_phase();
 
-	tx = sp_begin(cx->env);
+	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	key = 0;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 19;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 7 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 7 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 8 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 8 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 9 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 9 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_consistency2(stc *cx)
+cursor_consistency2(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int k = 1;
 	int v = 2;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 2;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(db, o);
 	t( c != NULL );
 
-	tx = sp_begin(cx->env);
+	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 1;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 1 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 1 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 2 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 3 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 3 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_consistency3(stc *cx)
+cursor_consistency3(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int k = 1;
 	int v = 2;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 2;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(db, o);
 	t( c != NULL );
 
-	tx = sp_begin(cx->env);
+	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 1;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 2;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 1 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 1 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 2 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 3 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 3 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_consistency4(stc *cx)
+cursor_consistency4(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int k = 1;
 	int v = 2;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 2;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(db, o);
 	t( c != NULL );
 
-	tx = sp_begin(cx->env);
+	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 1;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 2;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 
-	tx = sp_begin(cx->env);
+	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 3;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 4;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 1 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 1 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 2 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 3 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 3 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_consistency5(stc *cx)
+cursor_consistency5(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int v = 2;
 	int k;
 	k = 1;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 4;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 6;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(db, o);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 1 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 1 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
 
-	tx = sp_begin(cx->env);
+	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 2;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 4 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 4 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 6 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 6 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_consistency6(stc *cx)
+cursor_consistency6(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int v = 2;
 	int k;
 	k = 1;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 4;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 6;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(db, o);
 	t( c != NULL );
 
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 1 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 1 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
 
-	tx = sp_begin(cx->env);
+	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 2;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 3;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 4;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 4 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 4 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 6 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 6 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_consistency7(stc *cx)
+cursor_consistency7(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int v = 2;
 	int k;
 	k = 1;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 4;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 6;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(db, o);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 1 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 1 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
 
-	tx = sp_begin(cx->env);
+	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 0;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 4;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 5;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 6;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 7;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 4 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 4 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 6 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 6 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_consistency8(stc *cx)
+cursor_consistency8(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int v = 2;
 	int k;
 	k = 1;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 4;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 6;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(db, o);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 1 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 1 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
 
-	tx = sp_begin(cx->env);
+	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 0;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 4;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 4 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 4 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
 
-	tx = sp_begin(cx->env);
+	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 0;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 5;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 6;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 6 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 6 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
 
-	tx = sp_begin(cx->env);
+	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 7;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
-	t( sp_get(c) == NULL );
+	st_phase();
+	t( sp_get(c, NULL) == NULL );
 	t( sp_destroy(c) == 0 );
 }
 
 static void
-cursor_consistency9(stc *cx)
+cursor_consistency9(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int v = 2;
 	int k;
 	k = 1;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 4;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 6;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(db, o);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 1 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 1 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
 
-	tx = sp_begin(cx->env);
+	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 0;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 4;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 
-	tx = sp_begin(cx->env);
+	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 4;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 4 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 4 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
 
-	tx = sp_begin(cx->env);
+	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 5;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 6;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 6 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 6 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
 
-	tx = sp_begin(cx->env);
+	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 7;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 8;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
-	t( sp_get(c) == NULL );
+	st_phase();
+	t( sp_get(c, NULL) == NULL );
 	t( sp_destroy(c) == 0 );
 
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	c = sp_cursor(db, o);
 	t( c != NULL );
 
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 0 );
-	t( *(int*)sp_get(o, "value",  NULL) == 3 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 0 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 3 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 1 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 1 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 4 );
-	t( *(int*)sp_get(o, "value",  NULL) == 3 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 4 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 3 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 5 );
-	t( *(int*)sp_get(o, "value",  NULL) == 3 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 5 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 3 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 6 );
-	t( *(int*)sp_get(o, "value",  NULL) == 3 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 6 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 3 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 7 );
-	t( *(int*)sp_get(o, "value",  NULL) == 3 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 7 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 3 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 8 );
-	t( *(int*)sp_get(o, "value",  NULL) == 3 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 8 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 3 );
 	t( sp_destroy(o) == 0 );
-	t( sp_get(c) == NULL );
+	t( sp_get(c, NULL) == NULL );
 	t( sp_destroy(c) == 0 );
-	st_transaction(cx);
+	st_phase();
 }
 
 static void
-cursor_consistencyN(stc *cx)
+cursor_consistencyN(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	int rc;
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int k;
 	int v = 2;
 	k = 1;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 2;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(db, o);
 	t( c != NULL );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 1 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 1 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
 
-	tx = sp_begin(cx->env);
+	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 0;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	k = 4;
 	v = 3;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 
-	tx = sp_begin(cx->env);
+	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 4;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &k, sizeof(k)) == 0 );
-	t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+	t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+	t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
-	st_transaction(cx);
+	st_phase();
 
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c2 = sp_cursor(db, o);
 	t( c2 != NULL );
 
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 2 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 3 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 3 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o == NULL );
 	sp_destroy(c);
 
-	o = sp_get(c2);
+	o = sp_get(c2, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 0 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 0 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
 
-	o = sp_get(c2);
+	o = sp_get(c2, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 1 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 1 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
 
-	o = sp_get(c2);
+	o = sp_get(c2, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 2 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
-	st_transaction(cx);
+	st_phase();
 
-	o = sp_get(c2);
+	o = sp_get(c2, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 3 );
-	t( *(int*)sp_get(o, "value",  NULL) == 2 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 3 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 2 );
 	t( sp_destroy(o) == 0 );
 
-	o = sp_get(c2);
+	o = sp_get(c2, NULL);
 	t( o != NULL );
-	t( *(int*)sp_get(o, "key",  NULL) == 4 );
-	t( *(int*)sp_get(o, "value",  NULL) == 3 );
+	t( *(int*)sp_getstring(o, "key",  NULL) == 4 );
+	t( *(int*)sp_getstring(o, "value",  NULL) == 3 );
 	t( sp_destroy(o) == 0 );
-	t( sp_get(c2) == NULL );
+	t( sp_get(c2, NULL) == NULL );
 	t( sp_destroy(c2) == 0 );
 }
 
 static void
-cursor_consistency_rewrite0(stc *cx)
+cursor_consistency_rewrite0(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c0 = sp_cursor(db, o);
 
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	int v = 15;
 	int i = 0;
 	while (i < 385) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
 	t( sp_commit(tx) == 0);
-	st_transaction(cx);
+	st_phase();
 
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c1 = sp_cursor(db, o);
 
-	tx = sp_begin(cx->env);
+	tx = sp_begin(st_r.env);
 	v = 20;
 	i = 0;
 	while (i < 385) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
 	t( sp_commit(tx) == 0);
-	st_transaction(cx);
+	st_phase();
 
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c2 = sp_cursor(db, o);
 
-	t( sp_get(c0) == NULL );
+	t( sp_get(c0, NULL) == NULL );
 
 	i = 0;
-	while ((o = sp_get(c1))) {
-		t( *(int*)sp_get(o, "key", NULL) == i );
-		t( *(int*)sp_get(o, "value", NULL) == 15 );
+	while ((o = sp_get(c1, NULL))) {
+		t( *(int*)sp_getstring(o, "key", NULL) == i );
+		t( *(int*)sp_getstring(o, "value", NULL) == 15 );
 		t( sp_destroy(o) == 0 );
 		i++;
 	}
 	t(i == 385);
-	st_transaction(cx);
+	st_phase();
 
 	i = 0;
-	while ((o = sp_get(c2))) {
-		t( *(int*)sp_get(o, "key", NULL) == i );
-		t( *(int*)sp_get(o, "value", NULL) == 20 );
+	while ((o = sp_get(c2, NULL))) {
+		t( *(int*)sp_getstring(o, "key", NULL) == i );
+		t( *(int*)sp_getstring(o, "value", NULL) == 20 );
 		t( sp_destroy(o) == 0 );
 		i++;
 	}
@@ -2474,54 +2476,54 @@ cursor_consistency_rewrite0(stc *cx)
 }
 
 static void
-cursor_consistency_rewrite1(stc *cx)
+cursor_consistency_rewrite1(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c0 = sp_cursor(db, o);
 
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	int v = 15;
 	int i = 0;
 	while (i < 385) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
 	t( sp_commit(tx) == 0 );
-	st_transaction(cx);
+	st_phase();
 
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c1 = sp_cursor(db, o);
 
-	tx = sp_begin(cx->env);
+	tx = sp_begin(st_r.env);
 	v = 20;
 	i = 0;
 	while (i < 385) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
 	t( sp_commit(tx) == 0 );
-	st_transaction(cx);
+	st_phase();
 
-	t( sp_get(c0) == NULL );
+	t( sp_get(c0, NULL) == NULL );
 
 	i = 0;
-	while ((o = sp_get(c1))) {
-		t( *(int*)sp_get(o, "key", NULL) == i );
-		t( *(int*)sp_get(o, "value", NULL) == 15 );
+	while ((o = sp_get(c1, NULL))) {
+		t( *(int*)sp_getstring(o, "key", NULL) == i );
+		t( *(int*)sp_getstring(o, "value", NULL) == 15 );
 		t( sp_destroy(o) == 0 );
 		i++;
 	}
@@ -2530,14 +2532,14 @@ cursor_consistency_rewrite1(stc *cx)
 	i = 0;
 	while (i < 385) {
 		void *ckey = sp_object(db);
-		t( sp_set(ckey, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(ckey, "order", ">=") == 0 );
+		t( sp_setstring(ckey, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(ckey, "order", ">=", 0) == 0 );
 
 		void *c2 = sp_cursor(db, ckey);
 		t( c2 != NULL );
-		void *o = sp_get(c2);
-		t( *(int*)sp_get(o, "key", NULL) == i );
-		t( *(int*)sp_get(o, "value", NULL) == 20 );
+		void *o = sp_get(c2, NULL);
+		t( *(int*)sp_getstring(o, "key", NULL) == i );
+		t( *(int*)sp_getstring(o, "value", NULL) == 20 );
 		t( sp_destroy(o) == 0 );
 		t( sp_destroy(c2) == 0 );
 		i++;
@@ -2549,67 +2551,67 @@ cursor_consistency_rewrite1(stc *cx)
 }
 
 static void
-cursor_consistency_rewrite2(stc *cx)
+cursor_consistency_rewrite2(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c0 = sp_cursor(db, o);
 
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	int v = 15;
 	int i = 0;
 	while (i < 385) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
 	t( sp_commit(tx) == 0 );
-	st_transaction(cx);
+	st_phase();
 
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c1 = sp_cursor(db, o);
 	v = 20;
 	i = 0;
-	while ((o = sp_get(c1))) {
-		t( *(int*)sp_get(o, "key", NULL) == i );
-		t( *(int*)sp_get(o, "value", NULL) == 15 );
+	while ((o = sp_get(c1, NULL))) {
+		t( *(int*)sp_getstring(o, "key", NULL) == i );
+		t( *(int*)sp_getstring(o, "value", NULL) == 15 );
 		t( sp_destroy(o) == 0 );
 
-		tx = sp_begin(cx->env);
+		tx = sp_begin(st_r.env);
 		o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "value", &v, sizeof(v)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "value", &v, sizeof(v)) == 0 );
 		t( sp_set(tx, o) == 0 );
 		t( sp_commit(tx) == 0 );
 		i++;
 	}
 	t(i == 385);
-	st_transaction(cx);
+	st_phase();
 
-	t( sp_get(c0) == 0 );
+	t( sp_get(c0, NULL) == 0 );
 
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c2 = sp_cursor(db, o);
 	i = 0;
-	while ((o = sp_get(c2))) {
-		t( *(int*)sp_get(o, "key", NULL) == i );
-		t( *(int*)sp_get(o, "value", NULL) == 20 );
+	while ((o = sp_get(c2, NULL))) {
+		t( *(int*)sp_getstring(o, "key", NULL) == i );
+		t( *(int*)sp_getstring(o, "value", NULL) == 20 );
 		t( sp_destroy(o) == 0 );
 		i++;
 	}
 	t(i == 385);
-	st_transaction(cx);
+	st_phase();
 
 	t( sp_destroy(c0) == 0 );
 	t( sp_destroy(c2) == 0 );
@@ -2617,78 +2619,78 @@ cursor_consistency_rewrite2(stc *cx)
 }
 
 static void
-cursor_consistency_delete0(stc *cx)
+cursor_consistency_delete0(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c0 = sp_cursor(db, o);
 
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int i = 0;
 	while (i < 385) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
 	t( sp_commit(tx) == 0 );
-	st_transaction(cx);
+	st_phase();
 
-	tx = sp_begin(cx->env);
+	tx = sp_begin(st_r.env);
 	i = 0;
 	while (i < 385) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_delete(tx, o) == 0 );
 		i++;
 	}
 	t( sp_commit(tx) == 0 );
-	st_transaction(cx);
+	st_phase();
 
-	t( sp_get(c0) == NULL );
+	t( sp_get(c0, NULL) == NULL );
 
 	t( sp_destroy(c0) == 0 );
 }
 
 static void
-cursor_consistency_delete1(stc *cx)
+cursor_consistency_delete1(void)
 {
-	void *db = cx->db;
+	void *db = st_r.db;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c0 = sp_cursor(db, o);
 
-	void *tx = sp_begin(cx->env);
+	void *tx = sp_begin(st_r.env);
 	int i = 0;
 	while (i < 385) {
 		o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
 	t( sp_commit(tx) == 0 );
-	st_transaction(cx);
+	st_phase();
 
-	tx = sp_begin(cx->env);
+	tx = sp_begin(st_r.env);
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c1 = sp_cursor(db, o);
-	while ((o = sp_get(c1))) {
+	while ((o = sp_get(c1, NULL))) {
 		t( sp_delete(tx, o) == 0 );
 		t( sp_destroy(o) == 0 );
 	}
 	t( sp_commit(tx) == 0 );
 	t( sp_destroy(c1) == 0 );
-	st_transaction(cx);
+	st_phase();
 
-	t( sp_get(c0) == NULL );
+	t( sp_get(c0, NULL) == NULL );
 	t( sp_destroy(c0) == 0 );
 }
 

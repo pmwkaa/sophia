@@ -7,28 +7,28 @@
  * BSD License
 */
 
+#include <sophia.h>
 #include <libss.h>
 #include <libsf.h>
-#include <libss.h>
+#include <libsr.h>
+#include <libsv.h>
+#include <libsd.h>
 #include <libst.h>
-#include <sophia.h>
 
 static void
-compact_delete_node0(stc *cx ssunused)
+compact_delete_node0(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
-	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
-	void *db = sp_get(c, "db.test");
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
@@ -36,45 +36,43 @@ compact_delete_node0(stc *cx ssunused)
 	while (key < 20) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-		t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 		t( sp_set(db, o) == 0 );
 		key++;
 	}
-	t( sp_set(c, "db.test.branch") == 0 );
-	t( sp_set(c, "db.test.compact") == 0 );
+	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compact", 0) == 0 );
 
 	key = 0;
 	while (key < 20) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 		t( sp_delete(db, o) == 0 );
 		key++;
 	}
-	t( sp_set(c, "db.test.branch") == 0 );
-	t( sp_set(c, "db.test.compact") == 0 );
+	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compact", 0) == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
 
 static void
-compact_delete_node1(stc *cx ssunused)
+compact_delete_node1(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
-	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
-	t( sp_set(c, "compaction.node_size", "524288" /* 512K */) == 0 );
-	void *db = sp_get(c, "db.test");
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+	t( sp_setint(env, "compaction.node_size", 524288 /* 512K */) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
@@ -84,39 +82,33 @@ compact_delete_node1(stc *cx ssunused)
 	while (key < 13000) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-		t( sp_set(o, "value", value, sizeof(value)) == 0 );
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "value", value, sizeof(value)) == 0 );
 		t( sp_set(db, o) == 0 );
 		key++;
 	}
-	t( sp_set(c, "db.test.branch") == 0 );
-	t( sp_set(c, "db.test.compact") == 0 );
+	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compact", 0) == 0 );
 
-	void *o = sp_get(c, "db.test.index.node_count");
-	t( o != NULL );
-	t( strcmp( sp_get(o, "value", NULL), "2") == 0 );
-	sp_destroy(o);
+	t( sp_getint(env, "db.test.index.node_count") == 2 );
 
 	key = 0;
 	while (key < 5511 ) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 		t( sp_delete(db, o) == 0 );
 		key++;
 	}
 
-	t( sp_set(c, "db.test.branch") == 0 );
-	t( sp_set(c, "db.test.compact") == 0 );
+	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compact", 0) == 0 );
 
-	o = sp_get(c, "db.test.index.node_count");
-	t( o != NULL );
-	t( strcmp( sp_get(o, "value", NULL), "1") == 0 );
-	sp_destroy(o);
+	t( sp_getint(env, "db.test.index.node_count") == 1 );
 
-	o = sp_object(db);
+	void *o = sp_object(db);
 	void *cur = sp_cursor(db, o);
-	while ((o = sp_get(cur))) {
+	while ((o = sp_get(cur, NULL))) {
 		t( sp_delete(db, o) == 0 );
 		key++;
 		sp_destroy(o);
@@ -124,33 +116,27 @@ compact_delete_node1(stc *cx ssunused)
 	sp_destroy(cur);
 	t( key == 13000 );
 
-	t( sp_set(c, "db.test.branch") == 0 );
-	t( sp_set(c, "db.test.compact") == 0 );
+	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compact", 0) == 0 );
 
-	o = sp_get(c, "db.test.index.node_count");
-	t( o != NULL );
-	t( strcmp( sp_get(o, "value", NULL), "1") == 0 );
-	sp_destroy(o);
-
+	t( sp_getint(env, "db.test.index.node_count") == 1 );
 	t( sp_destroy(env) == 0 );
 }
 
 static void
-compact_delete0(stc *cx ssunused)
+compact_delete0(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
-	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
-	void *db = sp_get(c, "db.test");
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
@@ -158,31 +144,32 @@ compact_delete0(stc *cx ssunused)
 	while (key < 20) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-		t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 		t( sp_set(db, o) == 0 );
 		key++;
 	}
-	t( sp_set(c, "db.test.branch") == 0 );
-	t( sp_set(c, "db.test.compact") == 0 );
+
+	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compact", 0) == 0 );
 
 	key = 0;
 	while (key < 20) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 		t( sp_delete(db, o) == 0 );
 		key++;
 	}
-	t( sp_set(c, "db.test.branch") == 0 );
+	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
 	void *o = sp_object(db);
 	t( o != NULL );
 	void *cur = sp_cursor(db, o);
 	t( o != NULL );
 	int i = 0;
-	while ((o = sp_get(cur))) {
-		t( *(int*)sp_get(o, "key", NULL) == i );
+	while ((o = sp_get(cur, NULL))) {
+		t( *(int*)sp_getstring(o, "key", NULL) == i );
 		i++;
 		sp_destroy(o);
 	}
@@ -192,21 +179,19 @@ compact_delete0(stc *cx ssunused)
 }
 
 static void
-compact_delete1(stc *cx ssunused)
+compact_delete1(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
-	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
-	void *db = sp_get(c, "db.test");
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
@@ -214,32 +199,34 @@ compact_delete1(stc *cx ssunused)
 	while (key < 20) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-		t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 		t( sp_set(db, o) == 0 );
 		key++;
 	}
-	t( sp_set(c, "db.test.branch") == 0 );
-	t( sp_set(c, "db.test.compact") == 0 );
+
+	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compact", 0) == 0 );
 
 	key = 0;
 	while (key < 20) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 		t( sp_delete(db, o) == 0 );
 		key++;
 	}
-	t( sp_set(c, "db.test.branch") == 0 );
-	t( sp_set(c, "db.test.compact") == 0 );
+
+	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compact", 0) == 0 );
 
 	void *o = sp_object(db);
 	t( o != NULL );
 	void *cur = sp_cursor(db, o);
 	t( o != NULL );
 	int i = 0;
-	while ((o = sp_get(cur))) {
-		t( *(int*)sp_get(o, "key", NULL) == i );
+	while ((o = sp_get(cur, NULL))) {
+		t( *(int*)sp_getstring(o, "key", NULL) == i );
 		i++;
 		sp_destroy(o);
 	}
@@ -249,21 +236,19 @@ compact_delete1(stc *cx ssunused)
 }
 
 static void
-compact_delete_cursor(stc *cx ssunused)
+compact_delete_cursor(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
-	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
-	void *db = sp_get(c, "db.test");
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
@@ -271,31 +256,32 @@ compact_delete_cursor(stc *cx ssunused)
 	while (key < 25) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-		t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 		t( sp_set(db, o) == 0 );
 		key++;
 	}
-	t( sp_set(c, "db.test.branch") == 0 );
-	t( sp_set(c, "db.test.compact") == 0 );
+
+	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compact", 0) == 0 );
 
 	key = 0;
 	while (key < 20) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 		t( sp_delete(db, o) == 0 );
 		key++;
 	}
-	t( sp_set(c, "db.test.branch") == 0 );
+	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
 	void *o = sp_object(db);
 	t( o != NULL );
 	void *cur = sp_cursor(db, o);
 	t( o != NULL );
 	int i = 0;
-	while ((o = sp_get(cur))) {
-		t( *(int*)sp_get(o, "key", NULL) == 20 + i );
+	while ((o = sp_get(cur, NULL))) {
+		t( *(int*)sp_getstring(o, "key", NULL) == 20 + i );
 		i++;
 		sp_destroy(o);
 	}

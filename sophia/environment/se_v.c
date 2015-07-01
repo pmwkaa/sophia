@@ -39,7 +39,7 @@ se_vsetstring(so *o, char *path, void *pointer, int size)
 	if (ssunlikely(v->v.v))
 		return sr_error(&e->error, "%s", "object is read-only");
 
-	if (strcmp(path, "path") == 0) {
+	if (strcmp(path, "value") == 0) {
 		const int valuesize_max = 1 << 21;
 		if (ssunlikely(size > valuesize_max)) {
 			sr_error(&e->error, "%s", "value is too big (%d limit)",
@@ -86,6 +86,8 @@ se_vsetstring(so *o, char *path, void *pointer, int size)
 		         pointer, keysize_max);
 		return -1;
 	}
+	if (size == 0)
+		size = strlen(pointer) + 1;
 	sfv *fv = &v->keyv[part->pos];
 	fv->r.offset = 0;
 	fv->key = pointer;

@@ -7,115 +7,107 @@
  * BSD License
 */
 
+#include <sophia.h>
 #include <libss.h>
 #include <libsf.h>
-#include <libss.h>
+#include <libsr.h>
+#include <libsv.h>
+#include <libsd.h>
 #include <libst.h>
-#include <sophia.h>
 
 static void
-multipart_cmp_eq_key(stc *cx ssunused)
+multipart_cmp_eq_key(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
 
-	void *o = sp_get(c, "db.test.index.key");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "u32") == 0 );
-	sp_destroy(o);
+	char *v = sp_getstring(env, "db.test.index.key", 0);
+	t( strcmp(v, "u32") == 0 );
+	free(v);
 
 	t( sp_open(env) == 0 );
 	t( sp_destroy(env) == 0 );
 }
 
 static void
-multipart_schema(stc *cx ssunused)
+multipart_schema(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.key", "string") == 0 );
-	t( sp_set(c, "db.test.index", "key_b") == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
 
-	void *o = sp_get(c, "db.test.index.key");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "string") == 0 );
-	sp_destroy(o);
+	char *v = sp_getstring(env, "db.test.index.key", 0);
+	t( strcmp(v, "string") == 0 );
+	free(v);
 
-	o = sp_get(c, "db.test.index.key_b");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "string") == 0 );
-	sp_destroy(o);
+	v = sp_getstring(env, "db.test.index.key_b", 0);
+	t( strcmp(v, "string") == 0 );
+	free(v);
 
-	t( sp_set(c, "db.test.index.key_b", "u32") == 0 );
+	t( sp_setstring(env, "db.test.index.key_b", "u32", 0) == 0 );
 
-	o = sp_get(c, "db.test.index.key_b");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "u32") == 0 );
-	sp_destroy(o);
+	v = sp_getstring(env, "db.test.index.key_b", 0);
+	t( strcmp(v, "u32") == 0 );
+	free(v);
 
 	t( sp_open(env) == 0 );
-	t( sp_set(c, "db.test.index.key_b", "string") == -1 );
+
+	t( sp_setstring(env, "db.test.index.key_b", "string", 0) == -1 );
 	t( sp_destroy(env) == 0 );
 }
 
 static void
-multipart_set_get0(stc *cx ssunused)
+multipart_set_get0(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.key", "string") == 0 );
-	t( sp_set(c, "db.test.index", "key_b") == 0 );
-	t( sp_set(c, "db.test.index.key_b", "u32") == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key_b", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "string", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 
-	void *db = sp_get(c, "db.test");
+	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
 	char key_a[] = "hello";
 	uint32_t key_b = 7;
 
 	void *o = sp_object(db);
-	sp_set(o, "key", key_a, sizeof(key_a));
+	sp_setstring(o, "key", key_a, sizeof(key_a));
 	t( sp_set(db, o) == -1 );
 
 	o = sp_object(db);
-	sp_set(o, "key", key_a, sizeof(key_a));
-	sp_set(o, "key_b", &key_b, sizeof(key_b));
+	sp_setstring(o, "key", key_a, sizeof(key_a));
+	sp_setstring(o, "key_b", &key_b, sizeof(key_b));
 	t( sp_set(db, o) == 0);
 
 	o = sp_object(db);
-	sp_set(o, "key", key_a, sizeof(key_a));
+	sp_setstring(o, "key", key_a, sizeof(key_a));
 	o = sp_get(db, o);
 	t( o == NULL );
 
 	o = sp_object(db);
-	sp_set(o, "key", key_a, sizeof(key_a));
-	sp_set(o, "key_b", &key_b, sizeof(key_b));
+	sp_setstring(o, "key", key_a, sizeof(key_a));
+	sp_setstring(o, "key_b", &key_b, sizeof(key_b));
 	o = sp_get(db, o);
 	t( o != NULL );
 	sp_destroy(o);
@@ -124,33 +116,31 @@ multipart_set_get0(stc *cx ssunused)
 }
 
 static void
-multipart_set_get1(stc *cx ssunused)
+multipart_set_get1(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.key", "string") == 0 );
-	t( sp_set(c, "db.test.index", "key_b") == 0 );
-	t( sp_set(c, "db.test.index.key_b", "u32") == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key_b", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "string", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 
-	void *db = sp_get(c, "db.test");
+	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
 	char key_a[] = "hello";
 	uint32_t i = 0;
 	while (i < 546) {
 		void *o = sp_object(db);
-		sp_set(o, "key", key_a, sizeof(key_a));
-		sp_set(o, "key_b", &i, sizeof(i));
-		sp_set(o, "value", &i, sizeof(i));
+		sp_setstring(o, "key", key_a, sizeof(key_a));
+		sp_setstring(o, "key_b", &i, sizeof(i));
+		sp_setstring(o, "value", &i, sizeof(i));
 		t( sp_set(db, o) == 0);
 		i++;
 	}
@@ -158,16 +148,16 @@ multipart_set_get1(stc *cx ssunused)
 	i = 0;
 	while (i < 546) {
 		void *o = sp_object(db);
-		sp_set(o, "key", key_a, sizeof(key_a));
-		sp_set(o, "key_b", &i, sizeof(i));
+		sp_setstring(o, "key", key_a, sizeof(key_a));
+		sp_setstring(o, "key_b", &i, sizeof(i));
 		o = sp_get(db, o);
 		t( o != NULL );
-		uint32_t asize;
-		t( strcmp(key_a, sp_get(o, "key", &asize)) == 0 );
-		uint32_t bsize;
-		t( *(uint32_t*)sp_get(o, "key_b", &bsize) == i );
-		uint32_t vsize;
-		t( *(uint32_t*)sp_get(o, "value", &vsize) == i );
+		int asize;
+		t( strcmp(key_a, sp_getstring(o, "key", &asize)) == 0 );
+		int bsize;
+		t( *(uint32_t*)sp_getstring(o, "key_b", &bsize) == i );
+		int vsize;
+		t( *(uint32_t*)sp_getstring(o, "value", &vsize) == i );
 		t( asize == sizeof(key_a) );
 		t( bsize == sizeof(i) );
 		t( vsize == sizeof(i) );
@@ -179,33 +169,31 @@ multipart_set_get1(stc *cx ssunused)
 }
 
 static void
-multipart_cursor0(stc *cx ssunused)
+multipart_cursor0(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.key", "string") == 0 );
-	t( sp_set(c, "db.test.index", "key_b") == 0 );
-	t( sp_set(c, "db.test.index.key_b", "u32") == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key_b", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "string", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 
-	void *db = sp_get(c, "db.test");
+	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
 	char key_a[] = "hello";
 	uint32_t i = 0;
 	while (i < 546) {
 		void *o = sp_object(db);
-		sp_set(o, "key", key_a, sizeof(key_a));
-		sp_set(o, "key_b", &i, sizeof(i));
-		sp_set(o, "value", &i, sizeof(i));
+		sp_setstring(o, "key", key_a, sizeof(key_a));
+		sp_setstring(o, "key_b", &i, sizeof(i));
+		sp_setstring(o, "value", &i, sizeof(i));
 		t( sp_set(db, o) == 0);
 		i++;
 	}
@@ -214,13 +202,13 @@ multipart_cursor0(stc *cx ssunused)
 	void *o = sp_object(db);
 	void *cur = sp_cursor(db, o);
 	t( cur != NULL );
-	while ((o = sp_get(cur))) {
-		uint32_t asize;
-		t( strcmp(key_a, sp_get(o, "key", &asize)) == 0 );
-		uint32_t bsize;
-		t( *(uint32_t*)sp_get(o, "key_b", &bsize) == i );
-		uint32_t vsize;
-		t( *(uint32_t*)sp_get(o, "value", &vsize) == i );
+	while ((o = sp_get(cur, NULL))) {
+		int asize;
+		t( strcmp(key_a, sp_getstring(o, "key", &asize)) == 0 );
+		int bsize;
+		t( *(uint32_t*)sp_getstring(o, "key_b", &bsize) == i );
+		int vsize;
+		t( *(uint32_t*)sp_getstring(o, "value", &vsize) == i );
 		t( asize == sizeof(key_a) );
 		t( bsize == sizeof(i) );
 		t( vsize == sizeof(i) );
@@ -233,51 +221,49 @@ multipart_cursor0(stc *cx ssunused)
 }
 
 static void
-multipart_cursor1(stc *cx ssunused)
+multipart_cursor1(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.key", "string") == 0 );
-	t( sp_set(c, "db.test.index", "key_b") == 0 );
-	t( sp_set(c, "db.test.index.key_b", "u32") == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key_b", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "string", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 
-	void *db = sp_get(c, "db.test");
+	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
 	char key_a[] = "hello";
 	uint32_t i = 0;
 	while (i < 546) {
 		void *o = sp_object(db);
-		sp_set(o, "key", key_a, sizeof(key_a));
-		sp_set(o, "key_b", &i, sizeof(i));
-		sp_set(o, "value", &i, sizeof(i));
+		sp_setstring(o, "key", key_a, sizeof(key_a));
+		sp_setstring(o, "key_b", &i, sizeof(i));
+		sp_setstring(o, "value", &i, sizeof(i));
 		t( sp_set(db, o) == 0);
 		i++;
 	}
 
 	i = 322;
 	void *o = sp_object(db);
-	sp_set(o, "key", key_a, sizeof(key_a));
-	sp_set(o, "key_b", &i, sizeof(i));
-	sp_set(o, "value", &i, sizeof(i));
+	sp_setstring(o, "key", key_a, sizeof(key_a));
+	sp_setstring(o, "key_b", &i, sizeof(i));
+	sp_setstring(o, "value", &i, sizeof(i));
 	void *cur = sp_cursor(db, o);
 	t( cur != NULL );
-	while ((o = sp_get(cur))) {
-		uint32_t asize;
-		t( strcmp(key_a, sp_get(o, "key", &asize)) == 0 );
-		uint32_t bsize;
-		t( *(uint32_t*)sp_get(o, "key_b", &bsize) == i );
-		uint32_t vsize;
-		t( *(uint32_t*)sp_get(o, "value", &vsize) == i );
+	while ((o = sp_get(cur, NULL))) {
+		int asize;
+		t( strcmp(key_a, sp_getstring(o, "key", &asize)) == 0 );
+		int bsize;
+		t( *(uint32_t*)sp_getstring(o, "key_b", &bsize) == i );
+		int vsize;
+		t( *(uint32_t*)sp_getstring(o, "value", &vsize) == i );
 		t( asize == sizeof(key_a) );
 		t( bsize == sizeof(i) );
 		t( vsize == sizeof(i) );

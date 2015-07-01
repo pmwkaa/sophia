@@ -15,6 +15,7 @@ enum {
 	SEASYNC,
 	SEMETA,
 	SEMETACURSOR,
+	SEMETAV,
 	SEREQUEST,
 	SEV,
 	SEDB,
@@ -32,8 +33,9 @@ extern sotype se_o[];
 static inline so*
 se_cast_validate(void *ptr)
 {
-	if ((char*)ptr >= (char*)&se_o[0] &&
-	    (char*)ptr <= (char*)&se_o[SESNAPSHOT])
+	so *o = ptr;
+	if ((char*)o->type >= (char*)&se_o[0] &&
+	    (char*)o->type <= (char*)&se_o[SESNAPSHOT])
 		return ptr;
 	return NULL;
 }

@@ -26,6 +26,7 @@ sotype se_o[] =
 	{ 0x38970021L, "env_async"       },
 	{ 0x20490B34L, "env_meta"        },
 	{ 0x6AB65429L, "env_meta_cursor" },
+	{ 0x00FCDE12L, "env_meta_object" },
 	{ 0x48991422L, "request"         },
 	{ 0x2FABCDE2L, "object"          },
 	{ 0x34591111L, "database"        },

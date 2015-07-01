@@ -11,103 +11,33 @@
 #include <libsf.h>
 #include <libsr.h>
 
-static inline int
-sr_metaexec_serialize(srmeta *c, srmetastmt *stmt, char *root)
-{
-	char path[256];
-	while (c) {
-		if (root)
-			snprintf(path, sizeof(path), "%s.%s", root, c->name);
-		else
-			snprintf(path, sizeof(path), "%s", c->name);
-		int rc;
-		if (c->flags & SR_NS) {
-			rc = sr_metaexec_serialize(c->value, stmt, path);
-			if (ssunlikely(rc == -1))
-				return -1;
-		} else {
-			stmt->path = path;
-			rc = c->function(c, stmt);
-			if (ssunlikely(rc == -1))
-				return -1;
-			stmt->path = NULL;
-		}
-		c = c->next;
-	}
-	return 0;
-}
-
-int sr_metaexec(srmeta *start, srmetastmt *s)
-{
-	if (s->op == SR_SERIALIZE)
-		return sr_metaexec_serialize(start, s, NULL);
-	char path[256];
-	snprintf(path, sizeof(path), "%s", s->path);
-	char *ptr = NULL;
-	char *token;
-	token = strtok_r(path, ".", &ptr);
-	if (ssunlikely(token == NULL))
-		return -1;
-	srmeta *c = start;
-	while (c) {
-		if (strcmp(token, c->name) != 0) {
-			c = c->next;
-			continue;
-		}
-		if (c->flags & SR_NS) {
-			token = strtok_r(NULL, ".", &ptr);
-			if (ssunlikely(token == NULL))
-			{
-				if (s->op == SR_WRITE && c->type != SS_UNDEF) {
-					if (c->type != s->valuetype)
-						goto bad_type;
-				}
-				if (c->function)
-					return c->function(c, s);
-				/* not supported */
-				goto bad_path;
-			}
-			c = (srmeta*)c->value;
-			continue;
-		}
-		token = strtok_r(NULL, ".", &ptr);
-		if (ssunlikely(token != NULL))
-			goto bad_path;
-		return c->function(c, s);
-	}
-
-bad_path:
-	return sr_error(s->r->e, "bad metadata path: %s", s->path);
-
-bad_type:
-	return sr_error(s->r->e, "incompatible type (%s) for (%s) %s",
-	                ss_typeof(s->valuetype),
-	                ss_typeof(c->type), s->path);
-}
-
 int sr_meta_read(srmeta *m, srmetastmt *s)
 {
 	switch (m->type) {
 	case SS_U32:
-		s->result = m->value;
-		s->resultsize = sizeof(uint32_t);
+		s->valuesize = sizeof(uint32_t);
 		if (s->valuetype == SS_I64) {
+			*(int64_t*)s->value = *(uint32_t*)m->value;
 		} else
 		if (s->valuetype == SS_U32) {
+			*(uint32_t*)s->value = *(uint32_t*)m->value;
 		} else
 		if (s->valuetype == SS_U64) {
+			*(uint64_t*)s->value = *(uint32_t*)m->value;
 		} else {
 			goto bad_type;
 		}
 		break;
 	case SS_U64:
-		s->result = m->value;
-		s->resultsize = sizeof(uint64_t);
+		s->valuesize = sizeof(uint64_t);
 		if (s->valuetype == SS_I64) {
+			*(int64_t*)s->value = *(uint64_t*)m->value;
 		} else
 		if (s->valuetype == SS_U32) {
+			*(uint32_t*)s->value = *(uint64_t*)m->value;
 		} else
 		if (s->valuetype == SS_U64) {
+			*(uint64_t*)s->value = *(uint64_t*)m->value;
 		} else {
 			goto bad_type;
 		}
@@ -115,24 +45,42 @@ int sr_meta_read(srmeta *m, srmetastmt *s)
 	case SS_STRING: {
 		if (s->valuetype != SS_STRING)
 			goto bad_type;
-		s->result = NULL;
-		s->resultsize = 0;
+		char **result = s->value;
+		*result = NULL;
+		s->valuesize = 0;
+		char *string = m->value;
+		if (string == NULL)
+			break;
+		int size = strlen(string) + 1; 
+		s->valuesize = size;
+		*result = malloc(size);
+		if (ssunlikely(*result == NULL))
+			return sr_oom(s->r->e);
+		memcpy(*result, string, size);
+		break;
+	}
+	case SS_STRINGPTR: {
+		if (s->valuetype != SS_STRING)
+			goto bad_type;
+		char **result = s->value;
+		*result = NULL;
+		s->valuesize = 0;
 		char **string = m->value;
 		if (*string == NULL)
 			break;
-		int size = strlen(*string) + 1; 
-		s->resultsize = size;
-		s->result = malloc(size);
-		if (ssunlikely(s->result == NULL))
+		int size = strlen(*string) + 1;
+		s->valuesize = size;
+		*result = malloc(size);
+		if (ssunlikely(*result == NULL))
 			return sr_oom(s->r->e);
-		memcpy(s->result, *string, size);
+		memcpy(*result, *string, size);
 		break;
 	}
 	case SS_OBJECT:
 		if (s->valuetype != SS_STRING)
 			goto bad_type;
-		s->result = m->value;
-		s->resultsize = sizeof(void*);
+		*(void**)s->value = m->value;
+		s->valuesize = sizeof(void*);
 		break;
 	default:
 		assert(0);
@@ -144,6 +92,7 @@ bad_type:
 	return sr_error(s->r->e, "bad meta read type (%s) -> (%s) %s",
 	                ss_typeof(s->valuetype),
 	                ss_typeof(m->type), s->path);
+	return 0;
 }
 
 int sr_meta_write(srmeta *m, srmetastmt *s)
@@ -179,7 +128,7 @@ int sr_meta_write(srmeta *m, srmetastmt *s)
 			goto bad_type;
 		}
 		break;
-	case SS_STRING: {
+	case SS_STRINGPTR: {
 		char **string = m->value;
 		if (s->valuetype == SS_STRING) {
 			char *sz = s->value;
@@ -209,55 +158,48 @@ bad_type:
 	                ss_typeof(m->type), s->path);
 }
 
-#if 0
-int sr_meta_serialize(srmeta *m, srmetastmt *s)
+static inline int
+sr_meta_write_cast(sstype a, sstype b)
 {
-	void *value = NULL;
-	srmetadump v;
-	v.type = m->type;
-	switch (m->type) {
+	switch (a) {
 	case SS_U32:
-		v.valuesize = sizeof(uint32_t);
-		value = m->value;
+		if (b == SS_I64) {
+		} else
+		if (b == SS_U32) {
+		} else
+		if (b == SS_U64) {
+		} else {
+			return -1;
+		}
 		break;
 	case SS_U64:
-		v.valuesize = sizeof(uint64_t);
-		value = m->value;
+		if (b == SS_I64) {
+		} else
+		if (b == SS_U32) {
+		} else
+		if (b == SS_U64) {
+		} else {
+			return -1;
+		}
 		break;
-	case SS_STRING: {
-		char **string = (char**)m->value;
-		if (*string)
-			v.valuesize = strlen(*string) + 1;
-		value = *string;
+	case SS_STRING:
+	case SS_STRINGPTR:
+		if (b == SS_STRING) {
+		} else {
+			return -1;
+		}
 		break;
+	default:
+		return -1;
 	}
-	case SS_OBJECT:
-	case SS_FUNCTION:
-		v.valuesize = 0;
-		break;
-	default: assert(0);
-	}
-	char name[128];
-	v.namesize  = snprintf(name, sizeof(name), "%s", s->path);
-	v.namesize += 1;
-	ssbuf *buf = s->serialize;
-	int size = sizeof(v) + v.namesize + v.valuesize;
-	int rc = ss_bufensure(buf, s->r->a, size);
-	if (ssunlikely(rc == -1))
-		return sr_oom(s->r->e);
-	memcpy(buf->p, &v, sizeof(v));
-	memcpy(buf->p + sizeof(v), name, v.namesize);
-	memcpy(buf->p + sizeof(v) + v.namesize, value, v.valuesize);
-	ss_bufadvance(buf, size);
 	return 0;
 }
-#endif
 
 int sr_meta_serialize(srmeta *m, srmetastmt *s)
 {
 	char buf[128];
+	char name_function[] = "function";
 	char name_object[] = "object";
-	char name_function[] = "object";
 	void *value = NULL;
 	srmetadump v = {
 		.type = m->type
@@ -279,34 +221,126 @@ int sr_meta_serialize(srmeta *m, srmetastmt *s)
 		value = buf;
 		break;
 	case SS_STRING: {
+		char *string = m->value;
+		if (string) {
+			v.valuesize = strlen(string) + 1;
+			value = string;
+		} else {
+			v.valuesize = 0;
+		}
+		break;
+	}
+	case SS_STRINGPTR: {
 		char **string = (char**)m->value;
 		if (*string) {
 			v.valuesize = strlen(*string) + 1;
 			value = *string;
+		} else {
+			v.valuesize = 0;
 		}
+		v.type = SS_STRING;
 		break;
 	}
 	case SS_OBJECT:
+		v.type = SS_STRING;
 		v.valuesize = sizeof(name_object);
 		value = name_object;
 		break;
 	case SS_FUNCTION:
+		v.type = SS_STRING;
 		v.valuesize = sizeof(name_function);
 		value = name_function;
 		break;
 	default: assert(0);
 	}
 	char name[128];
-	v.namesize  = snprintf(name, sizeof(name), "%s", s->path);
-	v.namesize += 1;
+	v.keysize  = snprintf(name, sizeof(name), "%s", s->path);
+	v.keysize += 1;
 	ssbuf *p = s->serialize;
-	int size = sizeof(v) + v.namesize + v.valuesize;
+	int size = sizeof(v) + v.keysize + v.valuesize;
 	int rc = ss_bufensure(p, s->r->a, size);
 	if (ssunlikely(rc == -1))
 		return sr_oom(s->r->e);
 	memcpy(p->p, &v, sizeof(v));
-	memcpy(p->p + sizeof(v), name, v.namesize);
-	memcpy(p->p + sizeof(v) + v.namesize, value, v.valuesize);
+	memcpy(p->p + sizeof(v), name, v.keysize);
+	memcpy(p->p + sizeof(v) + v.keysize, value, v.valuesize);
 	ss_bufadvance(p, size);
 	return 0;
+}
+
+static inline int
+sr_metaexec_serialize(srmeta *c, srmetastmt *stmt, char *root)
+{
+	char path[256];
+	while (c) {
+		if (root)
+			snprintf(path, sizeof(path), "%s.%s", root, c->key);
+		else
+			snprintf(path, sizeof(path), "%s", c->key);
+		int rc;
+		if (c->flags & SR_NS) {
+			rc = sr_metaexec_serialize(c->value, stmt, path);
+			if (ssunlikely(rc == -1))
+				return -1;
+		} else {
+			stmt->path = path;
+			rc = c->function(c, stmt);
+			if (ssunlikely(rc == -1))
+				return -1;
+			stmt->path = NULL;
+		}
+		c = c->next;
+	}
+	return 0;
+}
+
+int sr_metaexec(srmeta *start, srmetastmt *s)
+{
+	if (s->op == SR_SERIALIZE)
+		return sr_metaexec_serialize(start, s, NULL);
+	char path[256];
+	snprintf(path, sizeof(path), "%s", s->path);
+	char *ptr = NULL;
+	char *token;
+	token = strtok_r(path, ".", &ptr);
+	if (ssunlikely(token == NULL))
+		return -1;
+	srmeta *c = start;
+	while (c) {
+		if (strcmp(token, c->key) != 0) {
+			c = c->next;
+			continue;
+		}
+		if (c->flags & SR_NS) {
+			token = strtok_r(NULL, ".", &ptr);
+			if (ssunlikely(token == NULL))
+			{
+				if (s->op == SR_WRITE && c->type != SS_UNDEF) {
+					int rc = sr_meta_write_cast(c->type, s->valuetype);
+					if (ssunlikely(rc == -1))
+						goto bad_type;
+				}
+				s->match = c;
+				if (c->function)
+					return c->function(c, s);
+				/* not supported */
+				goto bad_path;
+			}
+			c = (srmeta*)c->value;
+			continue;
+		}
+		s->match = c;
+		token = strtok_r(NULL, ".", &ptr);
+		if (ssunlikely(token != NULL))
+			goto bad_path;
+		return c->function(c, s);
+	}
+
+bad_path:
+	return sr_error(s->r->e, "bad metadata path: %s", s->path);
+
+bad_type:
+	return sr_error(s->r->e, "incompatible type (%s) for (%s) %s",
+	                ss_typeof(s->valuetype),
+	                ss_typeof(c->type), s->path);
 }

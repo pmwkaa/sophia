@@ -7,183 +7,166 @@
  * BSD License
 */
 
+#include <sophia.h>
 #include <libss.h>
 #include <libsf.h>
 #include <libsr.h>
+#include <libsv.h>
+#include <libsd.h>
 #include <libst.h>
-#include <sophia.h>
 
 static void
-cache_test0(stc *cx)
+cache_test0(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32",0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_open(env) == 0 );
 
-	void *db = sp_get(c, "db.test");
+	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
 	int i = 0;
 	while (i < 185) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "value", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
-	t( sp_set(c, "db.test.branch") == 0 );
+	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
 	void *o = sp_object(db);
 	void *cur = sp_cursor(db, o);
 	i = 0;
 	t( cur != NULL );
-	while ((o = sp_get(cur))) {
-		t( *(int*)sp_get(o, "key", NULL) == i );
+	while ((o = sp_get(cur, NULL))) {
+		t( *(int*)sp_getstring(o, "key", 0) == i );
 		i++;
 		sp_destroy(o);
 	}
 	t( i == 185 );
 	t( sp_destroy(cur) == 0 );
 
-	o = sp_get(c, "db.test.index.read_disk");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "1") == 0 );
-	sp_destroy(o);
-	o = sp_get(c, "db.test.index.read_cache");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "184") == 0 );
-	sp_destroy(o);
+	t( sp_getint(env, "db.test.index.read_disk") == 1 );
+	t( sp_getint(env, "db.test.index.read_cache") == 184 );
 
 	t( sp_destroy(env) == 0 );
 }
 
 static void
-cache_test1(stc *cx)
+cache_test1(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32",0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_open(env) == 0 );
 
-	void *db = sp_get(c, "db.test");
+	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
 	int i = 0;
 	while (i < 185) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "value", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
-	t( sp_set(c, "db.test.branch") == 0 );
+	t( sp_setint(env, "db.test.branch", 0) == 0 );
 	i = 185;
 	while (i < 370) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "value", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
 	t( i == 370 );
-	t( sp_set(c, "db.test.branch") == 0 );
+	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
 	void *o = sp_object(db);
 	void *cur = sp_cursor(db, o);
 	i = 0;
 	t( cur != NULL );
-	while ((o = sp_get(cur))) {
-		t( *(int*)sp_get(o, "key", NULL) == i );
+	while ((o = sp_get(cur, NULL))) {
+		t( *(int*)sp_getstring(o, "key", NULL) == i );
 		i++;
 		sp_destroy(o);
 	}
 	t( sp_destroy(cur) == 0 );
 
-	o = sp_get(c, "db.test.index.read_disk");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "2") == 0 );
-	sp_destroy(o);
-	o = sp_get(c, "db.test.index.read_cache");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "553") == 0 );
-	sp_destroy(o);
-
+	t( sp_getint(env, "db.test.index.read_disk") == 2 );
+	t( sp_getint(env, "db.test.index.read_cache") == 553 );
 	t( sp_destroy(env) == 0 );
 }
 
 static void
-cache_invalidate(stc *cx)
+cache_invalidate(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "compaction.0.branch_wm", "1") == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32",0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_open(env) == 0 );
 
-	void *db = sp_get(c, "db.test");
+	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
 	int i = 0;
 	while (i < 185) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "value", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
-	t( sp_set(c, "db.test.branch") == 0 );
+	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
 	i = 185;
 	while (i < 370) {
 		void *o = sp_object(db);
 		t( o != NULL );
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "value", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
 	t( i == 370 );
-	t( sp_set(c, "db.test.branch") == 0 );
+	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_set(o, "value", &i, sizeof(i)) == 0 );
+	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
 
 	o = sp_object(db);
 	void *cur = sp_cursor(db, o);
 	i = 0;
 	t( cur != NULL );
-	while ((o = sp_get(cur))) {
-		t( *(int*)sp_get(o, "key", NULL) == i );
+	while ((o = sp_get(cur, NULL))) {
+		t( *(int*)sp_getstring(o, "key", NULL) == i );
 		if (i == 200) {
-			t( sp_set(c, "db.test.branch") == 0 );
+			t( sp_setint(env, "db.test.branch", 0) == 0 );
 		}
 		i++;
 		sp_destroy(o);
@@ -191,14 +174,8 @@ cache_invalidate(stc *cx)
 	t( i == 371 );
 	t( sp_destroy(cur) == 0 );
 
-	o = sp_get(c, "db.test.index.read_disk");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "3") == 0 );
-	sp_destroy(o);
-	o = sp_get(c, "db.test.index.read_cache");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "722") == 0 );
-	sp_destroy(o);
+	t( sp_getint(env, "db.test.index.read_disk") == 3 );
+	t( sp_getint(env, "db.test.index.read_cache") == 722 );
 
 	t( sp_destroy(env) == 0 );
 }

@@ -27,7 +27,7 @@ enum {
 };
 
 struct srmeta {
-	char    *name;
+	char    *key;
 	int      flags;
 	sstype   type;
 	srmetaf  function;
@@ -38,7 +38,7 @@ struct srmeta {
 
 struct srmetadump {
 	uint8_t  type;
-	uint16_t namesize;
+	uint16_t keysize;
 	uint32_t valuesize;
 } sspacked;
 
@@ -48,8 +48,7 @@ struct srmetastmt {
 	sstype    valuetype;
 	int       valuesize;
 	void     *value;
-	void     *result;
-	int       resultsize;
+	srmeta   *match;
 	ssbuf    *serialize;
 	void     *ptr;
 	sr       *r;
@@ -62,11 +61,11 @@ int sr_meta_serialize(srmeta*, srmetastmt*);
 
 static inline srmeta*
 sr_m(srmeta **link, srmeta **cp, srmetaf func,
-     char *name, int type, 
+     char *key, int type,
      void *value)
 {
 	srmeta *c = *cp;
-	c->name     = name;
+	c->key      = key;
 	c->function = func;
 	c->flags    = 0;
 	c->type     = type;
@@ -84,23 +83,23 @@ sr_m(srmeta **link, srmeta **cp, srmetaf func,
 
 static inline srmeta*
 sr_M(srmeta **link, srmeta **cp, srmetaf func,
-      char *name, int type,
+      char *key, int type,
       void *value, int flags, void *ptr)
 {
-	srmeta *c = sr_m(link, cp, func, name, type, value);
+	srmeta *c = sr_m(link, cp, func, key, type, value);
 	c->flags = flags;
 	c->ptr = ptr;
 	return c;
 }
 
 static inline char*
-sr_metaname(srmetadump *v) {
+sr_metakey(srmetadump *v) {
 	return (char*)v + sizeof(srmetadump);
 }
 
 static inline char*
 sr_metavalue(srmetadump *v) {
-	return sr_metaname(v) + v->namesize;
+	return sr_metakey(v) + v->keysize;
 }
 
 static inline void*

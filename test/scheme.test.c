@@ -7,135 +7,122 @@
  * BSD License
 */
 
+#include <sophia.h>
 #include <libss.h>
 #include <libsf.h>
-#include <libss.h>
+#include <libsr.h>
+#include <libsv.h>
+#include <libsd.h>
 #include <libst.h>
-#include <sophia.h>
 
 static void
-schema_test0(stc *cx ssunused)
+schema_test0(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "log.sync", "0") == 0 );
-	t( sp_set(c, "log.rotate_sync", "0") == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.compression", "zstd") == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
-	t( sp_set(c, "db.test.index", "key_b") == 0 );
-	t( sp_set(c, "db.test.index.key_b", "string") == 0 );
-	void *db = sp_get(c, "db.test");
-	t( db != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_open(env) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.compression", "zstd", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key_b", "string", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(db) == 0 );
 	t( sp_destroy(env) == 0 );
 
 	env = sp_env();
 	t( env != NULL );
-	c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "log.sync", "0") == 0 );
-	t( sp_set(c, "log.rotate_sync", "0") == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
-	db = sp_get(c, "db.test");
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.sync", 0) == 0 );
+	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	void *o = sp_get(c, "db.test.compression");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "zstd") == 0 );
-	sp_destroy(o);
-	o = sp_get(c, "db.test.index.key");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "u32") == 0 );
-	sp_destroy(o);
-	o = sp_get(c, "db.test.index.key_b");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "string") == 0 );
-	sp_destroy(o);
+	char *v = sp_getstring(env, "db.test.compression", 0);
+	t( v != NULL );
+	t( strcmp(v, "zstd") == 0 );
+	free(v);
+
+	v = sp_getstring(env, "db.test.index.key", 0);
+	t( v != NULL );
+	t( strcmp(v, "u32") == 0 );
+	free(v);
+
+	v = sp_getstring(env, "db.test.index.key_b", 0);
+	t( v != NULL );
+	t( strcmp(v, "string") == 0 );
+	free(v);
 
 	t( sp_destroy(env) == 0 );
 }
 
 static void
-schema_test1(stc *cx ssunused)
+schema_test1(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "log.sync", "0") == 0 );
-	t( sp_set(c, "log.rotate_sync", "0") == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.compression_key", "1") == 0 );
-	t( sp_set(c, "db.test.compression", "none") == 0 );
-	t( sp_set(c, "db.test.index.key", "u32") == 0 );
-	t( sp_set(c, "db.test.index.key", "u32") == 0 );
-	t( sp_set(c, "db.test.index", "key_b") == 0 );
-	t( sp_set(c, "db.test.index.key_b", "string") == 0 );
-	void *db = sp_get(c, "db.test");
-	t( db != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_open(env) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.compression", "none", 0) == 0 );
+	t( sp_setint(env, "db.test.compression_key", 1) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key_b", "string", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(db) == 0 );
 	t( sp_destroy(env) == 0 );
 
 	env = sp_env();
 	t( env != NULL );
-	c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "log.sync", "0") == 0 );
-	t( sp_set(c, "log.rotate_sync", "0") == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.compression", "zstd") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_set(c, "db.test.index.key", "string", NULL) == 0 );
-	t( sp_set(c, "db.test.index", "key_b") == 0 );
-	t( sp_set(c, "db.test.index.key_b", "u64") == 0 );
-	db = sp_get(c, "db.test");
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.compression", "zstd", 0) == 0 );
+	t( sp_setint(env, "db.test.compression_key", 1) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "string", 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key_b", "u64", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	void *o = sp_get(c, "db.test.compression");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "none") == 0 );
-	sp_destroy(o);
-	o = sp_get(c, "db.test.compression_key");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "1") == 0 );
-	sp_destroy(o);
-	o = sp_get(c, "db.test.index.key");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "u32") == 0 );
-	sp_destroy(o);
-	o = sp_get(c, "db.test.index.key");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "u32") == 0 );
-	sp_destroy(o);
+	char *v = sp_getstring(env, "db.test.compression", 0);
+	t( v != NULL );
+	t( strcmp(v, "none") == 0 );
+	free(v);
 
-	o = sp_get(c, "db.test.index.key_b");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "string") == 0 );
-	sp_destroy(o);
+	t( sp_getint(env, "db.test.compression_key") == 1 );
+
+	v = sp_getstring(env, "db.test.index.key", 0);
+	t( v != NULL );
+	t( strcmp(v, "u32") == 0 );
+	free(v);
+
+	v = sp_getstring(env, "db.test.index.key_b", 0);
+	t( v != NULL );
+	t( strcmp(v, "string") == 0 );
+	free(v);
 
 	t( sp_destroy(env) == 0 );
 }

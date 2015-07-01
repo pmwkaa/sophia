@@ -9,7 +9,16 @@
  * BSD License
 */
 
+typedef struct semetav semetav;
 typedef struct semetacursor semetacursor;
+
+struct semetav {
+	so o;
+	char *key;
+	char *value;
+	int keysize;
+	int valuesize;
+};
 
 struct semetacursor {
 	so o;

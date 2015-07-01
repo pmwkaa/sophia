@@ -73,9 +73,9 @@ se_requestof(serequestop op)
 	case SE_REQTXSET:         return "set";
 	case SE_REQDBGET:
 	case SE_REQTXGET:         return "get";
-	case SE_REQCURSOROPEN:    return "curser";
-	case SE_REQCURSORGET:     return "curser_get";
-	case SE_REQCURSORDESTROY: return "curser_destroy";
+	case SE_REQCURSOROPEN:    return "cursor";
+	case SE_REQCURSORGET:     return "cursor_get";
+	case SE_REQCURSORDESTROY: return "cursor_destroy";
 	case SE_REQBEGIN:         return "begin";
 	case SE_REQPREPARE:       return "prepare";
 	case SE_REQCOMMIT:        return "commit";
@@ -86,15 +86,20 @@ se_requestof(serequestop op)
 }
 
 static void*
-se_requestget_string(so *o, char *path, int *size)
+se_requestget_object(so *o, char *path)
 {
 	serequest *r = se_cast(o, serequest*, SEREQUEST);
 	if (strcmp(path, "result") == 0) {
-		if (size)
-			*size = 0;
 		// lock?
 		return r->result;
 	} 
+	return NULL;
+}
+
+static void*
+se_requestget_string(so *o, char *path, int *size)
+{
+	serequest *r = se_cast(o, serequest*, SEREQUEST);
 	if (strcmp(path, "type") == 0) {
 		char *type = se_requestof(r->op);
 		if (size)
@@ -130,7 +135,7 @@ static soif serequestif =
 	.setobject    = NULL,
 	.setstring    = NULL,
 	.setint       = NULL,
-	.getobject    = NULL,
+	.getobject    = se_requestget_object,
 	.getstring    = se_requestget_string,
 	.getint       = se_requestget_int,
 	.set          = NULL,

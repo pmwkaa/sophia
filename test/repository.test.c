@@ -7,14 +7,16 @@
  * BSD License
 */
 
+#include <sophia.h>
 #include <libss.h>
 #include <libsf.h>
 #include <libsr.h>
+#include <libsv.h>
+#include <libsd.h>
 #include <libst.h>
-#include <sophia.h>
 
 static void
-repository_empty(stc *cx ssunused)
+repository_empty(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -23,35 +25,31 @@ repository_empty(stc *cx ssunused)
 }
 
 static void
-repository_test0(stc *cx ssunused)
+repository_test0(void)
 {
 	rmrf("./sophia");
 	rmrf("./logdir");
 	rmrf("./dir");
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", "sophia") == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
+	t( sp_setstring(env, "sophia.path", "sophia", 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_open(env) == 0 );
 	t( exists("sophia", "log") == 1 );
 	t( sp_destroy(env) == 0 );
 }
 
 static void
-repository_test1(stc *cx ssunused)
+repository_test1(void)
 {
 	rmrf("./sophia");
 	rmrf("./logdir");
 	rmrf("./dir");
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", "sophia") == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", "logdir") == 0 );
+	t( sp_setstring(env, "sophia.path", "sophia", 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", "logdir", 0) == 0 );
 	t( sp_open(env) == 0 );
 	t( exists("sophia", "log") == 0 );
 	t( exists("logdir", "") == 1 );
@@ -59,19 +57,17 @@ repository_test1(stc *cx ssunused)
 }
 
 static void
-repository_test2(stc *cx ssunused)
+repository_test2(void)
 {
 	rmrf("./sophia");
 	rmrf("./logdir");
 	rmrf("./dir");
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", "sophia") == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
+	t( sp_setstring(env, "sophia.path", "sophia", 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 	t( exists("sophia", "log") == 1 );
 	t( exists("sophia", "test") == 1 );
@@ -80,20 +76,18 @@ repository_test2(stc *cx ssunused)
 }
 
 static void
-repository_test3(stc *cx ssunused)
+repository_test3(void)
 {
 	rmrf("./sophia");
 	rmrf("./logdir");
 	rmrf("./dir");
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", "sophia") == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", "dir") == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
+	t( sp_setstring(env, "sophia.path", "sophia", 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", "dir", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 	t( exists("sophia", "log") == 1 );
 	t( exists("sophia", "test") == 0 );
@@ -102,19 +96,17 @@ repository_test3(stc *cx ssunused)
 }
 
 static void
-repository_test4(stc *cx ssunused)
+repository_test4(void)
 {
 	rmrf("./sophia");
 	rmrf("./logdir");
 	rmrf("./dir");
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", "sophia") == 0 );
-	t( sp_set(c, "sophia.path_create", "0") == 0 );
-	t( sp_set(c, "log.enable", "0") == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
+	t( sp_setstring(env, "sophia.path", "sophia", 0) == 0 );
+	t( sp_setint(env, "sophia.path_create", 0) == 0 );
+	t( sp_setint(env, "log.enable", 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_open(env) == -1 );
 	t( sp_destroy(env) == 0 );
 
@@ -123,13 +115,13 @@ repository_test4(stc *cx ssunused)
 	mkdir("sophia", 0755);
 	env = sp_env();
 	t( env != NULL );
-	c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", "sophia") == 0 );
-	t( sp_set(c, "sophia.path_create", "0") == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
+
+	t( sp_setstring(env, "sophia.path", "sophia", 0) == 0 );
+	t( sp_setint(env, "sophia.path_create", 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "log.enable", 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 	t( exists("sophia", "test") == 1 );
 	t( sp_destroy(env) == 0 );

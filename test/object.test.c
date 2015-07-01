@@ -7,108 +7,183 @@
  * BSD License
 */
 
+#include <sophia.h>
 #include <libss.h>
 #include <libsf.h>
 #include <libsr.h>
+#include <libsv.h>
+#include <libsd.h>
 #include <libst.h>
-#include <sophia.h>
 
 static void
-object_db(stc *cx)
+object_db(void)
 {
-	void *db = cx->db;
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_open(env) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(db) == 0 );
+
 	void *o = sp_object(db);
 	t(o != NULL);
 	sp_destroy(o);
-	o = sp_object(cx->env);
-	t(o == NULL);
+
+	sp_destroy(env);
 }
 
 static void
-object_set_get(stc *cx)
+object_set_get(void)
 {
-	void *db = cx->db;
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_open(env) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(db) == 0 );
+
 	int key = 7;
 	void *o = sp_object(db);
 	t(o != NULL);
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	int size = 0;
-	t( *(int*)sp_get(o, "key", &size) == key );
+	t( *(int*)sp_getstring(o, "key", &size) == key );
 	t( size == sizeof(key) );
-	t( *(int*)sp_get(o, "value", &size) == key );
+	t( *(int*)sp_getstring(o, "value", &size) == key );
 	t( size == sizeof(key) );
 	sp_destroy(o);
+
+	sp_destroy(env);
 }
 
 static void
-object_lsn0(stc *cx)
+object_lsn0(void)
 {
-	void *db = cx->db;
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_open(env) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(db) == 0 );
+
 	int key = 7;
 	void *o = sp_object(db);
 	t(o != NULL);
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
-	t( sp_get(o, "lsn") == NULL );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_getint(o, "lsn") == -1 );
 	t( sp_set(db, o) == 0 );
 	o = sp_object(db);
 	t(o != NULL);
-	t( sp_set(o, "order", ">") == 0 );
+	t( sp_setstring(o, "order", ">", 0) == 0 );
 	void *c = sp_cursor(db, o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
 	int size = 0;
-	t( *(int*)sp_get(o, "key", &size) == key );
+	t( *(int*)sp_getstring(o, "key", &size) == key );
 	t( size == sizeof(key) );
-	t( *(int*)sp_get(o, "value", &size) == key );
+	t( *(int*)sp_getstring(o, "value", &size) == key );
 	t( size == sizeof(key) );
-	t( *(uint64_t*)sp_get(o, "lsn") > 0 );
+	t( sp_getint(o, "lsn") > 0 );
 	t( sp_destroy(o) == 0 );
-	o = sp_get(c);
-	t( o ==  NULL );
+	o = sp_get(c, NULL);
+	t( o == NULL );
+
 	sp_destroy(c);
+	sp_destroy(env);
 }
 
 static void
-object_readonly0(stc *cx)
+object_readonly0(void)
 {
-	void *db = cx->db;
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_open(env) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(db) == 0 );
+
 	int key = 7;
 	void *o = sp_object(db);
 	t(o != NULL);
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 	o = sp_object(db);
 	t(o != NULL);
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(db, o);
 	t( o!= NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == -1 );
-	t( *(int*)sp_get(o, "key", NULL) == key );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == -1 );
+	t( *(int*)sp_getstring(o, "key", NULL) == key );
 	sp_destroy(o);
+
+	sp_destroy(env);
 }
 
 static void
-object_readonly1(stc *cx)
+object_readonly1(void)
 {
-	void *db = cx->db;
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_open(env) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(db) == 0 );
+
 	int key = 7;
 	void *o = sp_object(db);
 	t(o != NULL);
-	t( sp_set(o, "key", &key, sizeof(key)) == 0 );
-	t( sp_set(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">") == 0 );
+	t( sp_setstring(o, "order", ">", 0) == 0 );
 	void *c = sp_cursor(db, o);
-	o = sp_get(c);
+	o = sp_get(c, NULL);
 	t( o != NULL );
-	t( sp_set(o, "key", &key, sizeof(key)) == -1 );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == -1 );
 	sp_destroy(o);
 	sp_destroy(c);
+
+	sp_destroy(env);
 }
 
 stgroup *object_group(void)

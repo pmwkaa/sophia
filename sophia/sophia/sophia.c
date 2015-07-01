@@ -23,7 +23,7 @@
 static inline void
 sp_unsupported(so *o, const char *method)
 {
-	fprintf(stderr, "%s(%s): unsupported operation",
+	fprintf(stderr, "\n%s(%s): unsupported operation\n",
 	        (char*)method, o->type->name);
 	abort();
 }
@@ -33,7 +33,7 @@ sp_cast(void *ptr, const char *method)
 {
 	so *o = se_cast_validate(ptr);
 	if (ssunlikely(o == NULL)) {
-		fprintf(stderr, "%s(x%p): bad object", method, ptr);
+		fprintf(stderr, "\n%s(x%p): bad object\n", method, ptr);
 		abort();
 	}
 	return o;
@@ -86,7 +86,7 @@ SP_API int sp_drop(void *ptr)
 SP_API int sp_destroy(void *ptr)
 {
 	so *o = sp_cast(ptr, __FUNCTION__);
-	if (ssunlikely(o->i->drop == NULL)) {
+	if (ssunlikely(o->i->destroy == NULL)) {
 		sp_unsupported(o, __FUNCTION__);
 		return -1;
 	}

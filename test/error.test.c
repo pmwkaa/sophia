@@ -7,26 +7,20 @@
  * BSD License
 */
 
+#include <sophia.h>
 #include <libss.h>
 #include <libsf.h>
 #include <libsr.h>
+#include <libsv.h>
+#include <libsd.h>
 #include <libst.h>
-#include <sophia.h>
 
 static void
-error_test0(stc *cx ssunused)
+error_test0(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-
-	void *o = sp_get(c, "sophia.error");
-	t( o != NULL );
-	char *value = sp_get(o, "value", NULL);
-	t( value == NULL );
-	sp_destroy(o);
-
+	t( sp_getstring(env, "sophia.error", 0) == NULL );
 	t( sp_destroy(env) == 0 );
 }
 

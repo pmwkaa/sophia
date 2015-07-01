@@ -7,77 +7,75 @@
  * BSD License
 */
 
+#include <sophia.h>
 #include <libss.h>
 #include <libsf.h>
-#include <libss.h>
+#include <libsr.h>
+#include <libsv.h>
+#include <libsd.h>
 #include <libst.h>
-#include <sophia.h>
 
 static void
-snapshot_create_delete(stc *cx ssunused)
+snapshot_create_delete(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_open(env) == 0 );
-	void *db = sp_get(c, "db.test");
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
+	t( sp_open(env) == 0 );
 
-	t( sp_set(c, "snapshot", "test_snapshot") == 0 );
-	void *snapshot = sp_get(c, "snapshot.test_snapshot");
+	t( sp_setstring(env, "snapshot", "test_snapshot", 0) == 0 );
+	void *snapshot = sp_getobject(env, "snapshot.test_snapshot");
 	t( snapshot != NULL );
-	t( sp_drop(snapshot) == 0 );
-	snapshot = sp_get(c, "snapshot.test_snapshot");
+	t( sp_destroy(snapshot) == 0 );
+	snapshot = sp_getobject(env, "snapshot.test_snapshot");
 	t( snapshot == NULL );
 
 	t( sp_destroy(env) == 0 );
 }
 
 static void
-snapshot_cursor(stc *cx ssunused)
+snapshot_cursor(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_open(env) == 0 );
-	void *db = sp_get(c, "db.test");
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
+	t( sp_open(env) == 0 );
 
 	int i = 0;
 	while ( i < 100 ) {
 		void *o = sp_object(db);
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "value", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
 
-	t( sp_set(c, "snapshot", "test_snapshot") == 0 );
-	void *snapshot = sp_get(c, "snapshot.test_snapshot");
+	t( sp_setstring(env, "snapshot", "test_snapshot", 0) == 0 );
+	void *snapshot = sp_getobject(env, "snapshot.test_snapshot");
 	t( snapshot != NULL );
 
 	i = 0;
 	while ( i < 100 ) {
 		void *o = sp_object(db);
 		int value = i + 1;
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "value", &value, sizeof(value)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
@@ -85,11 +83,11 @@ snapshot_cursor(stc *cx ssunused)
 	i = 0;
 	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *cur = sp_cursor(db, o);
-	while ((o = sp_get(cur))) {
-		t( *(int*)sp_get(o, "key", NULL) == i );
-		t( *(int*)sp_get(o, "value", NULL) == i + 1);
+	while ((o = sp_get(cur, NULL))) {
+		t( *(int*)sp_getstring(o, "key", NULL) == i );
+		t( *(int*)sp_getstring(o, "value", NULL) == i + 1);
 		i++;
 		t( sp_destroy(o) == 0 );
 	}
@@ -98,11 +96,11 @@ snapshot_cursor(stc *cx ssunused)
 	i = 0;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	cur = sp_cursor(snapshot, o);
-	while ((o = sp_get(cur))) {
-		t( *(int*)sp_get(o, "key", NULL) == i );
-		t( *(int*)sp_get(o, "value", NULL) == i );
+	while ((o = sp_get(cur, NULL))) {
+		t( *(int*)sp_getstring(o, "key", NULL) == i );
+		t( *(int*)sp_getstring(o, "value", NULL) == i );
 		i++;
 		t( sp_destroy(o) == 0 );
 	}
@@ -112,42 +110,40 @@ snapshot_cursor(stc *cx ssunused)
 }
 
 static void
-snapshot_get(stc *cx ssunused)
+snapshot_get(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_open(env) == 0 );
-	void *db = sp_get(c, "db.test");
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
+	t( sp_open(env) == 0 );
 
 	int i = 0;
 	while ( i < 100 ) {
 		void *o = sp_object(db);
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "value", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
 
-	t( sp_set(c, "snapshot", "test_snapshot") == 0 );
-	void *snapshot = sp_get(c, "snapshot.test_snapshot");
+	t( sp_setstring(env, "snapshot", "test_snapshot", 0) == 0 );
+	void *snapshot = sp_getobject(env, "snapshot.test_snapshot");
 	t( snapshot != NULL );
 
 	i = 0;
 	while ( i < 100 ) {
 		void *o = sp_object(db);
 		int value = i + 1;
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "value", &value, sizeof(value)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
@@ -155,9 +151,9 @@ snapshot_get(stc *cx ssunused)
 	i = 0;
 	while ( i < 100 ) {
 		void *o = sp_object(db);
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		o = sp_get(snapshot, o);
-		t( *(int*)sp_get(o, "value", NULL) == i );
+		t( *(int*)sp_getstring(o, "value", NULL) == i );
 		t( sp_destroy(o) == 0 );
 		i++;
 	}
@@ -166,92 +162,81 @@ snapshot_get(stc *cx ssunused)
 }
 
 static void
-snapshot_recover_cursor(stc *cx ssunused)
+snapshot_recover_cursor(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "log.rotate_sync", "0") == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_open(env) == 0 );
-	void *db = sp_get(c, "db.test");
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
+	t( sp_open(env) == 0 );
 
 	int i = 0;
 	while ( i < 100 ) {
 		void *o = sp_object(db);
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "value", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
 
-	t( sp_set(c, "snapshot", "test_snapshot") == 0 );
-	void *snapshot = sp_get(c, "snapshot.test_snapshot");
+	t( sp_setstring(env, "snapshot", "test_snapshot", 0) == 0 );
+	void *snapshot = sp_getobject(env, "snapshot.test_snapshot");
 	t( snapshot != NULL );
 
-	t( sp_set(c, "snapshot", "test_snapshot") == -1 );
+	t( sp_setstring(env, "snapshot", "test_snapshot", 0) == -1 );
 
 	i = 0;
 	while ( i < 100 ) {
 		void *o = sp_object(db);
 		int value = i + 1;
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "value", &value, sizeof(value)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
 
-	void *o = sp_get(c, "snapshot.test_snapshot.lsn");
-	t( o != NULL );
-	char *lsn = strdup(sp_get(o, "value", NULL));
-	sp_destroy(o);
+	int64_t lsn = sp_getint(env, "snapshot.test_snapshot.lsn");
 
 	t( sp_destroy(env) == 0 );
 
 	env = sp_env();
 	t( env != NULL );
-	c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "log.rotate_sync", "0") == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	db = sp_getobject(env, "db.test");
+	t( db != NULL );
 
 	/* recover snapshot */
-	t( sp_set(c, "snapshot", "test_snapshot") == 0 );
-	snapshot = sp_get(c, "snapshot.test_snapshot");
+	t( sp_setstring(env, "snapshot", "test_snapshot", 0) == 0 );
+	snapshot = sp_getobject(env, "snapshot.test_snapshot");
 	t( snapshot != NULL );
-	t( sp_set(c, "snapshot.test_snapshot.lsn", lsn) == 0 );
-	o = sp_get(c, "snapshot.test_snapshot.lsn");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), lsn) == 0 );
-	sp_destroy(o);
-	free(lsn);
+	t( sp_setint(env, "snapshot.test_snapshot.lsn", lsn) == 0 );
+	t( sp_getint(env, "snapshot.test_snapshot.lsn") == lsn );
 
 	t( sp_open(env) == 0 );
-	db = sp_get(c, "db.test");
+	db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
 	i = 0;
-	o = sp_object(db);
+	void *o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *cur = sp_cursor(db, o);
-	while ((o = sp_get(cur))) {
-		t( *(int*)sp_get(o, "key", NULL) == i );
-		t( *(int*)sp_get(o, "value", NULL) == i + 1);
+	while ((o = sp_get(cur, NULL))) {
+		t( *(int*)sp_getstring(o, "key", NULL) == i );
+		t( *(int*)sp_getstring(o, "value", NULL) == i + 1);
 		i++;
 		t( sp_destroy(o) == 0 );
 	}
@@ -260,11 +245,11 @@ snapshot_recover_cursor(stc *cx ssunused)
 	i = 0;
 	o = sp_object(db);
 	t( o != NULL );
-	t( sp_set(o, "order", ">=") == 0 );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	cur = sp_cursor(snapshot, o);
-	while ((o = sp_get(cur))) {
-		t( *(int*)sp_get(o, "key", NULL) == i );
-		t( *(int*)sp_get(o, "value", NULL) == i );
+	while ((o = sp_get(cur, NULL))) {
+		t( *(int*)sp_getstring(o, "key", NULL) == i );
+		t( *(int*)sp_getstring(o, "value", NULL) == i );
 		i++;
 		t( sp_destroy(o) == 0 );
 	}
@@ -274,88 +259,74 @@ snapshot_recover_cursor(stc *cx ssunused)
 }
 
 static void
-snapshot_recover_get(stc *cx ssunused)
+snapshot_recover_get(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "log.rotate_sync", "0") == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
-	t( sp_open(env) == 0 );
-	void *db = sp_get(c, "db.test");
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
+	t( sp_open(env) == 0 );
 
 	int i = 0;
 	while ( i < 100 ) {
 		void *o = sp_object(db);
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "value", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
 
-	t( sp_set(c, "snapshot", "test_snapshot") == 0 );
-	void *snapshot = sp_get(c, "snapshot.test_snapshot");
+	t( sp_setstring(env, "snapshot", "test_snapshot", 0) == 0 );
+	void *snapshot = sp_getobject(env, "snapshot.test_snapshot");
 	t( snapshot != NULL );
 
 	i = 0;
 	while ( i < 100 ) {
 		void *o = sp_object(db);
 		int value = i + 1;
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_set(o, "value", &value, sizeof(value)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
 
-	void *o = sp_get(c, "snapshot.test_snapshot.lsn");
-	t( o != NULL );
-	char *lsn = strdup(sp_get(o, "value", NULL));
-	sp_destroy(o);
+	int64_t lsn = sp_getint(env, "snapshot.test_snapshot.lsn");
 
 	t( sp_destroy(env) == 0 );
 
 	env = sp_env();
 	t( env != NULL );
-	c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "log.path", cx->suite->logdir) == 0 );
-	t( sp_set(c, "log.rotate_sync", "0") == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.path", cx->suite->dir) == 0 );
-	t( sp_set(c, "db.test.index.key", "u32", NULL) == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
 
 	/* recover snapshot */
-	t( sp_set(c, "snapshot", "test_snapshot") == 0 );
-	snapshot = sp_get(c, "snapshot.test_snapshot");
+	t( sp_setstring(env, "snapshot", "test_snapshot", 0) == 0 );
+	snapshot = sp_getobject(env, "snapshot.test_snapshot");
 	t( snapshot != NULL );
-	t( sp_set(c, "snapshot.test_snapshot.lsn", lsn) == 0 );
-	o = sp_get(c, "snapshot.test_snapshot.lsn");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), lsn) == 0 );
-	sp_destroy(o);
-	free(lsn);
+	t( sp_setint(env, "snapshot.test_snapshot.lsn", lsn) == 0 );
 
 	t( sp_open(env) == 0 );
-	db = sp_get(c, "db.test");
+	db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
 	i = 0;
 	while ( i < 100 ) {
 		void *o = sp_object(db);
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		o = sp_get(db, o);
-		t( *(int*)sp_get(o, "value", NULL) == i + 1 );
+		t( *(int*)sp_getstring(o, "value", NULL) == i + 1 );
 		t( sp_destroy(o) == 0 );
 		i++;
 	}
@@ -363,9 +334,9 @@ snapshot_recover_get(stc *cx ssunused)
 	i = 0;
 	while ( i < 100 ) {
 		void *o = sp_object(db);
-		t( sp_set(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		o = sp_get(snapshot, o);
-		t( *(int*)sp_get(o, "value", NULL) == i );
+		t( *(int*)sp_getstring(o, "value", NULL) == i );
 		t( sp_destroy(o) == 0 );
 		i++;
 	}
