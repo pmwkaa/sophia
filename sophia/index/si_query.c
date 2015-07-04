@@ -334,7 +334,7 @@ next_node:
 	/* merge and filter data stream */
 	ssiter j;
 	ss_iterinit(sv_mergeiter, &j);
-	ss_iteropen(sv_mergeiter, &j, q->r, m, q->order);
+	ss_iteropen(sv_mergeiter, &j, q->r, m, q->order, 0);
 	ssiter k;
 	ss_iterinit(sv_readiter, &k);
 	ss_iteropen(sv_readiter, &k, &j, q->vlsn);

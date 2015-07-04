@@ -46,7 +46,7 @@ sv_writeiter_iter(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -103,7 +103,7 @@ sv_writeiter_limit(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -198,7 +198,7 @@ sv_writeiter_limit_small(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -300,7 +300,7 @@ sv_writeiter_dup_lsn_gt(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -361,7 +361,7 @@ sv_writeiter_dup_lsn_lt0(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -422,7 +422,7 @@ sv_writeiter_dup_lsn_lt1(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -483,7 +483,7 @@ sv_writeiter_dup_lsn_lt2(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -551,7 +551,7 @@ sv_writeiter_dup_lsn_gt_chain(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -613,7 +613,7 @@ sv_writeiter_dup_lsn_lt0_chain(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -677,7 +677,7 @@ sv_writeiter_dup_lsn_lt1_chain(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -743,7 +743,7 @@ sv_writeiter_dup_lsn_lt2_chain(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -804,7 +804,7 @@ sv_writeiter_dup_lsn_limit0(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -854,7 +854,7 @@ sv_writeiter_dup_lsn_limit1(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -905,7 +905,7 @@ sv_writeiter_dup_lsn_limit2(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -960,7 +960,7 @@ sv_writeiter_dup_lsn_limit3(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -1012,7 +1012,7 @@ sv_writeiter_dup_lsn_limit4(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -1071,7 +1071,7 @@ sv_writeiter_dup_lsn_limit5(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -1129,7 +1129,7 @@ sv_writeiter_delete0(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -1190,7 +1190,7 @@ sv_writeiter_delete1(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -1251,7 +1251,7 @@ sv_writeiter_delete2(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -1312,7 +1312,7 @@ sv_writeiter_delete3(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -1373,7 +1373,7 @@ sv_writeiter_delete4(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -1434,7 +1434,7 @@ sv_writeiter_delete5(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -1498,7 +1498,7 @@ sv_writeiter_delete6(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -1564,7 +1564,7 @@ sv_writeiter_delete7(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -1631,7 +1631,7 @@ sv_writeiter_delete8(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -1709,7 +1709,7 @@ sv_writeiter_duprange0(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
@@ -1766,7 +1766,7 @@ sv_writeiter_duprange1(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
 	ssiter iter;
 	ss_iterinit(sv_writeiter, &iter);
 	uint64_t limit = UINT64_MAX;

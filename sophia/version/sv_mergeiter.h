@@ -22,6 +22,7 @@ typedef struct svmergeiter svmergeiter;
 
 struct svmergeiter {
 	ssorder order;
+	int save_update;
 	svmerge *merge;
 	svmergesrc *src, *end;
 	svmergesrc *v;
@@ -41,6 +42,7 @@ sv_mergeiter_dupreset(svmergeiter *i, svmergesrc *pos)
 static inline void
 sv_mergeiter_gt(svmergeiter *i)
 {
+	int rc;
 	if (i->v) {
 		if (ssunlikely(i->v->update.v)) {
 			sv_vfree(i->r->a, i->v->update.v);
@@ -70,7 +72,7 @@ sv_mergeiter_gt(svmergeiter *i)
 			min = src;
 			continue;
 		}
-		int rc = sv_compare(minv, v, i->r->scheme);
+		rc = sv_compare(minv, v, i->r->scheme);
 		switch (rc) {
 		case 0:
 			/*
@@ -97,11 +99,22 @@ sv_mergeiter_gt(svmergeiter *i)
 	if (ssunlikely(min == NULL))
 		return;
 	i->v = min;
+	/* orphan UPDATE case */
+	if (i->save_update)
+		return;
+	if (sv_is(minv, SVUPDATE) && (min->update.v == NULL)) {
+		rc = sv_update(i->r, NULL, minv, &min->update);
+		if (ssunlikely(rc == -1)) {
+			sr_oom(i->r->e);
+			return;
+		}
+	}
 }
 
 static inline void
 sv_mergeiter_lt(svmergeiter *i)
 {
+	int rc;
 	if (i->v) {
 		if (ssunlikely(i->v->update.v)) {
 			sv_vfree(i->r->a, i->v->update.v);
@@ -158,6 +171,16 @@ sv_mergeiter_lt(svmergeiter *i)
 	if (ssunlikely(max == NULL))
 		return;
 	i->v = max;
+	/* orphan UPDATE case */
+	if (i->save_update)
+		return;
+	if (sv_is(maxv, SVUPDATE) && (max->update.v == NULL)) {
+		rc = sv_update(i->r, NULL, maxv, &max->update);
+		if (ssunlikely(rc == -1)) {
+			sr_oom(i->r->e);
+			return;
+		}
+	}
 }
 
 static inline void
@@ -178,7 +201,7 @@ sv_mergeiter_next(ssiter *it)
 }
 
 static inline int
-sv_mergeiter_open(ssiter *i, sr *r, svmerge *m, ssorder o)
+sv_mergeiter_open(ssiter *i, sr *r, svmerge *m, ssorder o, int save_update)
 {
 	svmergeiter *im = (svmergeiter*)i->priv;
 	im->merge = m;
@@ -187,6 +210,7 @@ sv_mergeiter_open(ssiter *i, sr *r, svmerge *m, ssorder o)
 	im->src   = (svmergesrc*)(im->merge->buf.s);
 	im->end   = (svmergesrc*)(im->merge->buf.p);
 	im->v     = NULL;
+	im->save_update = save_update;
 	sv_mergeiter_next(i);
 	return 0;
 }

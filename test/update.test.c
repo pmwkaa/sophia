@@ -58,6 +58,21 @@ update_no_operator(void)
 static int update_ops = 0;
 
 static int
+update_operator_orphan(void *src, int srcsize, void *update, int update_size, void *arg,
+                       void **result, int *resultsize)
+{
+	assert(src == NULL);
+	assert(srcsize == 0);
+	(void)arg;
+	char *s = malloc(update_size);
+	memcpy(s, update, update_size);
+	*result = s;
+	*resultsize = update_size;
+	update_ops++;
+	return 0;
+}
+
+static int
 update_operator(void *src, int srcsize, void *update, int update_size, void *arg,
                 void **result, int *resultsize)
 {
@@ -69,6 +84,128 @@ update_operator(void *src, int srcsize, void *update, int update_size, void *arg
 	*resultsize = srcsize;
 	update_ops++;
 	return 0;
+}
+
+static void
+update_update_get_index(void)
+{
+	update_ops = 0;
+
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.update", update_operator_orphan, 0) == 0 );
+	t( sp_open(env) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+
+	void *o = sp_object(db);
+	int up = 777;
+	int i = 0;
+	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
+	t( sp_update(db, o) == 0 );
+
+	o = sp_object(db);
+	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+	o = sp_get(db, o);
+	t( o != NULL );
+	t( *(int*)sp_getstring(o, "value", NULL) == up );
+	sp_destroy(o);
+
+	t( update_ops == 1 );
+
+	t( sp_destroy(env) == 0 );
+}
+
+static void
+update_update_get_branch0(void)
+{
+	update_ops = 0;
+
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.update", update_operator_orphan, 0) == 0 );
+	t( sp_open(env) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+
+	void *o = sp_object(db);
+	int up = 777;
+	int i = 0;
+	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
+	t( sp_update(db, o) == 0 );
+
+	t( sp_setint(env, "db.test.branch", 0) == 0 );
+
+	o = sp_object(db);
+	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+	o = sp_get(db, o);
+	t( o != NULL );
+	t( *(int*)sp_getstring(o, "value", NULL) == up );
+	sp_destroy(o);
+
+	t( update_ops == 1 );
+
+	t( sp_destroy(env) == 0 );
+}
+
+static void
+update_update_get_compact(void)
+{
+	update_ops = 0;
+
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.update", update_operator_orphan, 0) == 0 );
+	t( sp_open(env) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+
+	void *o = sp_object(db);
+	int up = 777;
+	int i = 0;
+	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
+	t( sp_update(db, o) == 0 );
+
+	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compact", 0) == 0 );
+
+	o = sp_object(db);
+	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+	o = sp_get(db, o);
+	t( o != NULL );
+	t( *(int*)sp_getstring(o, "value", NULL) == up );
+	sp_destroy(o);
+
+	t( update_ops == 1 );
+
+	t( sp_destroy(env) == 0 );
 }
 
 static void
@@ -740,6 +877,9 @@ stgroup *update_group(void)
 {
 	stgroup *group = st_group("update");
 	st_groupadd(group, st_test("no_operator", update_no_operator));
+	st_groupadd(group, st_test("update_get_index", update_update_get_index));
+	st_groupadd(group, st_test("update_get_branch0", update_update_get_branch0));
+	st_groupadd(group, st_test("update_get_compact", update_update_get_compact));
 	st_groupadd(group, st_test("set_update_get_index", update_set_update_get_index));
 	st_groupadd(group, st_test("set_update_get_branch0", update_set_update_get_branch0));
 	st_groupadd(group, st_test("set_update_get_branch1", update_set_update_get_branch1));

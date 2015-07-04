@@ -28,7 +28,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 	ss_iteropen(sv_indexiterraw, &s->src, vindex);
 	ssiter i;
 	ss_iterinit(sv_mergeiter, &i);
-	ss_iteropen(sv_mergeiter, &i, r, &vmerge, SS_GTE);
+	ss_iteropen(sv_mergeiter, &i, r, &vmerge, SS_GTE, 1);
 
 	/* merge iter is not used */
 	sdmergeconf mergeconf = {
@@ -184,7 +184,7 @@ int si_compact(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 	}
 	ssiter i;
 	ss_iterinit(sv_mergeiter, &i);
-	ss_iteropen(sv_mergeiter, &i, r, &merge, SS_GTE);
+	ss_iteropen(sv_mergeiter, &i, r, &merge, SS_GTE, 0);
 	rc = si_compaction(index, c, vlsn, node, &i, size_stream);
 	sv_mergefree(&merge, r->a);
 	return rc;
