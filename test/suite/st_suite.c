@@ -21,6 +21,10 @@ void st_suiteinit(stsuite *s)
 	ss_listinit(&s->scene);
 	s->plan_count  = 0;
 	s->scene_count = 0;
+	s->current = 0;
+	s->stop_plan = 0;
+	s->stop_group = 0;
+	s->stop_test = 0;
 }
 
 void st_suitefree(stsuite *s)
@@ -59,12 +63,20 @@ void st_suiteadd_scene(stsuite *s, stscene *scene)
 	s->scene_count++;
 }
 
-static void
+static int
 st_suiterun_group(stsuite *s, stplan *plan, stgroup *group)
 {
 	sslist *i;
 	ss_listforeach(&group->test, i)
 	{
+		int j = 0;
+		if (s->current < s->position) {
+			while (j < plan->scene_count) {
+				s->current++;
+				j++;
+			}
+			continue;
+		}
 		sttest *test = sscast(i, sttest, link);
 		st_r.env         = NULL;
 		st_r.db          = NULL;
@@ -73,48 +85,57 @@ st_suiterun_group(stsuite *s, stplan *plan, stgroup *group)
 		st_r.test        = test;
 		st_r.group       = group;
 		st_r.plan        = plan;
-
-		int i = 0;
-		if (! st_r.verbose) {
-			printf("(");
-			while (i < plan->scene_count) {
-				stscene *scene = &plan->scene[i];
-				printf("%s%d", (i > 0 ? "." : ""), scene->state);
-				i++;
-			}
-			printf(") ");
-			fflush(NULL);
-		}
+		printf("[%08d] ", s->current);
 		printf("%s.%s.%s", plan->name, group->name, test->name);
 		fflush(NULL);
-		i = 0;
-		while (i < plan->scene_count) {
-			stscene *scene = &plan->scene[i];
+		j = 0;
+		while (j < plan->scene_count) {
+			stscene *scene = &plan->scene[j];
 			scene->function(scene);
-			i++;
+			s->current++;
+			j++;
 		}
+		if (s->stop_test)
+			return 1;
 	}
+	return 0;
 }
 
-static inline void
-st_suiterun_plan(stsuite *s, stplan *plan)
+void st_suiteset(stsuite *s, int position,
+                 int stop_plan,
+                 int stop_group,
+                 int stop_test)
 {
-	printf("\n");
-	sslist *i;
-	ss_listforeach(&plan->group, i) {
-		stgroup *group = sscast(i, stgroup, link);
-		do {
-			st_suiterun_group(s, plan, group);
-		} while (st_plannext(plan));
-		st_planreset(plan);
-	}
+	s->position   = position;
+	s->stop_plan  = stop_plan;
+	s->stop_group = stop_group;
+	s->stop_test  = stop_test;
 }
 
 void st_suiterun(stsuite *s)
 {
+	s->current = 0;
+
 	sslist *i;
 	ss_listforeach(&s->plan, i) {
 		stplan *plan = sscast(i, stplan, link);
-		st_suiterun_plan(s, plan);
+		sslist *j;
+		ss_listforeach(&plan->group, j) {
+			stgroup *group = sscast(j, stgroup, link);
+			do {
+				int stop = st_suiterun_group(s, plan, group);
+				if (s->stop_group && (s->current >= s->position))
+					stop = 1;
+				if (stop) {
+					return;
+				}
+			} while (st_plannext(plan));
+			st_planreset(plan);
+		}
+		if (s->current >= s->position) {
+			if (s->stop_plan)
+				return;
+			printf("\n");
+		}
 	}
 }

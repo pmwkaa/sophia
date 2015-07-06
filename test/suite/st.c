@@ -37,7 +37,13 @@ void st_run(void)
 {
 	printf("\n");
 	printf("sophia test-suite.\n");
+	printf("\n");
 
+	st_suiteset(&st_r.suite,
+	            st_r.conf->position,
+	            st_r.conf->stop_plan,
+	            st_r.conf->stop_group,
+	            st_r.conf->stop_test);
 	st_suiterun(&st_r.suite);
 
 	printf("\n");

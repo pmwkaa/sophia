@@ -84,6 +84,20 @@ extern stgroup *multithread_group(void);
 extern stgroup *multithread_be_group(void);
 extern stgroup *multithread_be_multipass_group(void);
 
+static void
+usage(char *path, int error) {
+	printf("sophia test-suite.\n");
+	printf("\n");
+	printf("usage: %s [-vhPGTt] [options]\n", path);
+	printf("  -t <id>    test id to execute\n");
+	printf("  -T         stop after test\n");
+	printf("  -G         stop after group\n");
+	printf("  -P         stop after plan\n");
+	printf("  -v         verbose\n");
+	printf("  -h         help\n");
+	exit(error);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -92,8 +106,30 @@ main(int argc, char *argv[])
 		.backup_dir = "backup",
 		.log_dir    = "log",
 		.db_dir     = "test",
-		.verbose    = 1
+		.verbose    = 0,
+		.position   = 0,
+		.stop_plan  = 0,
+		.stop_group = 0,
+		.stop_test  = 0
 	};
+	int opt;
+	while ((opt = getopt(argc, argv, "t:PGTvh")) != -1) {
+		switch (opt) {
+		case 'P': conf.stop_plan = 1;
+			break;
+		case 'G': conf.stop_group = 1;
+			break;
+		case 'T': conf.stop_test = 1;
+			break;
+		case 't': conf.position = atoi(optarg);
+			break;
+		case 'v': conf.verbose = 1;
+			break;
+		case 'h': usage(argv[0], 0);
+			break;
+		default:  usage(argv[0], 1);
+		}
+	}
 	st_init(&conf);
 
 	st_suiteadd_scene(&st_r.suite, st_scene("rmrf", st_scene_rmrf, 1));
