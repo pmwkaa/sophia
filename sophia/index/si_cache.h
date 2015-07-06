@@ -16,6 +16,7 @@ typedef struct sicachepool sicachepool;
 struct sicachebranch {
 	sibranch *branch;
 	sdindexpage *ref;
+	sdpage page;
 	ssiter i;
 	ssbuf buf_a;
 	ssbuf buf_b;

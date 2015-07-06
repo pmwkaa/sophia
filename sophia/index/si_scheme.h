@@ -17,6 +17,7 @@ struct sischeme {
 	char       *path;
 	int         path_fail_on_exists;
 	char       *path_backup;
+	uint32_t    mmap;
 	uint32_t    sync;
 	uint64_t    node_size;
 	uint32_t    node_page_size;
@@ -34,7 +35,7 @@ struct sischeme {
 
 void si_schemeinit(sischeme*);
 void si_schemefree(sischeme*, sr*);
-int si_schemedeploy(sischeme*, sr*);
-int si_schemerecover(sischeme*, sr*);
+int  si_schemedeploy(sischeme*, sr*);
+int  si_schemerecover(sischeme*, sr*);
 
 #endif

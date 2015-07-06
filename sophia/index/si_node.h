@@ -32,6 +32,7 @@ struct sinode {
 	uint32_t  branch_count;
 	svindex   i0, i1;
 	ssfile    file;
+	ssmmap    map, map_swap;
 	ssrbnode  node;
 	ssrqnode  nodecompact;
 	ssrqnode  nodebranch;
@@ -39,11 +40,11 @@ struct sinode {
 } sspacked;
 
 sinode *si_nodenew(sr*);
-int si_nodeopen(sinode*, sr*, sspath*);
+int si_nodeopen(sinode*, sr*, sischeme*, sspath*);
 int si_nodecreate(sinode*, sr*, sischeme*, sdid*, sdindex*, sdbuild*);
 int si_nodefree(sinode*, sr*, int);
 int si_nodegc_index(sr*, svindex*);
-
+int si_nodemap(sinode*, sr*);
 int si_nodesync(sinode*, sr*);
 int si_nodecmp(sinode*, void*, int, srscheme*);
 int si_nodeseal(sinode*, sr*, sischeme*);

@@ -101,46 +101,49 @@ si_qmatchindex(siquery *q, sinode *node)
 	return 0;
 }
 
-static inline sdpage*
-si_qread(ssbuf *buf, ssbuf *bufxf, sr *r, si *i, sinode *n, sibranch *b,
-         sdindexpage *ref)
+static inline int
+si_qread(sdpage *page, sr *r, si *i, sinode *n,
+         ssbuf *buf, ssbuf *bufxf,
+         sibranch *b,
+         sdindexpage *ref, int mmap_copy)
 {
+	i->read_disk++;
 	ss_bufreset(bufxf);
 	int rc = ss_bufensure(bufxf, r->a, b->index.h->sizevmax);
-	if (ssunlikely(rc == -1)) {
-		sr_oom(r->e);
-		return NULL;
-	}
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
 	ss_bufreset(buf);
-	rc = ss_bufensure(buf, r->a, sizeof(sdpage) + ref->sizeorigin);
-	if (ssunlikely(rc == -1)) {
-		sr_oom(r->e);
-		return NULL;
-	}
-	ss_bufadvance(buf, sizeof(sdpage));
+	rc = ss_bufensure(buf, r->a, ref->sizeorigin);
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
 
 	uint64_t offset =
 		b->index.h->offset + sd_indexsize(b->index.h) +
 		ref->offset;
+
+	/* compression */
 	if (i->scheme->compression)
 	{
-		/* read compressed page */
-		ss_bufreset(&i->readbuf);
-		rc = ss_bufensure(&i->readbuf, r->a, ref->size);
-		if (ssunlikely(rc == -1)) {
-			sr_oom(r->e);
-			return NULL;
+		char *page_pointer;
+		if (! i->scheme->mmap) {
+			ss_bufreset(&i->readbuf);
+			rc = ss_bufensure(&i->readbuf, r->a, ref->size);
+			if (ssunlikely(rc == -1))
+				return sr_oom(r->e);
+			rc = ss_filepread(&n->file, offset, i->readbuf.s, ref->size);
+			if (ssunlikely(rc == -1)) {
+				sr_error(r->e, "db file '%s' read error: %s",
+						 n->file.file, strerror(errno));
+				return -1;
+			}
+			ss_bufadvance(&i->readbuf, ref->size);
+			page_pointer = i->readbuf.s;
+		} else {
+			page_pointer = n->map.p + offset;
 		}
-		rc = ss_filepread(&n->file, offset, i->readbuf.s, ref->size);
-		if (ssunlikely(rc == -1)) {
-			sr_error(r->e, "db file '%s' read error: %s",
-			         n->file.file, strerror(errno));
-			return NULL;
-		}
-		ss_bufadvance(&i->readbuf, ref->size);
 
 		/* copy header */
-		memcpy(buf->p, i->readbuf.s, sizeof(sdpageheader));
+		memcpy(buf->p, page_pointer, sizeof(sdpageheader));
 		ss_bufadvance(buf, sizeof(sdpageheader));
 
 		/* decompression */
@@ -148,30 +151,40 @@ si_qread(ssbuf *buf, ssbuf *bufxf, sr *r, si *i, sinode *n, sibranch *b,
 		rc = ss_filterinit(&f, (ssfilterif*)r->compression, r->a, SS_FOUTPUT);
 		if (ssunlikely(rc == -1)) {
 			sr_error(r->e, "db file '%s' decompression error", n->file.file);
-			return NULL;
+			return -1;
 		}
 		int size = ref->size - sizeof(sdpageheader);
-		rc = ss_filternext(&f, buf, i->readbuf.s + sizeof(sdpageheader), size);
+		rc = ss_filternext(&f, buf, page_pointer + sizeof(sdpageheader), size);
 		if (ssunlikely(rc == -1)) {
 			sr_error(r->e, "db file '%s' decompression error", n->file.file);
-			return NULL;
+			return -1;
 		}
 		ss_filterfree(&f);
-	} else {
-		rc = ss_filepread(&n->file, offset, buf->s + sizeof(sdpage), ref->sizeorigin);
-		if (ssunlikely(rc == -1)) {
-			sr_error(r->e, "db file '%s' read error: %s",
-			         n->file.file, strerror(errno));
-			return NULL;
-		}
-		ss_bufadvance(buf, ref->sizeorigin);
+		sd_pageinit(page, (sdpageheader*)buf->s);
+		return 0;
 	}
 
-	i->read_disk++;
-	sdpageheader *h = (sdpageheader*)(buf->s + sizeof(sdpage));
-	sdpage *page = (sdpage*)(buf->s);
-	sd_pageinit(page, h);
-	return page;
+	/* mmap */
+	if (i->scheme->mmap) {
+		if (mmap_copy) {
+			memcpy(buf->s, n->map.p + offset, ref->sizeorigin);
+			sd_pageinit(page, (sdpageheader*)(buf->s));
+		} else {
+			sd_pageinit(page, (sdpageheader*)(n->map.p + offset));
+		}
+		return 0;
+	}
+
+	/* default */
+	rc = ss_filepread(&n->file, offset, buf->s, ref->sizeorigin);
+	if (ssunlikely(rc == -1)) {
+		sr_error(r->e, "db file '%s' read error: %s",
+				 n->file.file, strerror(errno));
+		return -1;
+	}
+	ss_bufadvance(buf, ref->sizeorigin);
+	sd_pageinit(page, (sdpageheader*)(buf->s));
+	return 0;
 }
 
 static inline int
@@ -181,18 +194,22 @@ si_qmatchbranch(siquery *q, sinode *n, sibranch *b)
 	assert(cb->branch == b);
 	ssiter i;
 	ss_iterinit(sd_indexiter, &i);
-	ss_iteropen(sd_indexiter, &i, q->r, &b->index, SS_LTE, q->key, q->keysize);
+	ss_iteropen(sd_indexiter, &i, q->r, &b->index, SS_LTE,
+	            q->key, q->keysize);
 	cb->ref = ss_iterof(sd_indexiter, &i);
 	if (cb->ref == NULL)
 		return 0;
-	sdpage *page = si_qread(&cb->buf_a, &cb->buf_b, q->r, q->index, n, b, cb->ref);
-	if (ssunlikely(page == NULL)) {
+	int rc;
+	rc = si_qread(&cb->page, q->r, q->index, n,
+	              &cb->buf_a, &cb->buf_b, b,
+	               cb->ref, 0);
+	if (ssunlikely(rc == -1)) {
 		cb->ref = NULL;
 		return -1;
 	}
 	ss_iterinit(sd_pageiter, &cb->i);
-	int rc;
-	rc = ss_iteropen(sd_pageiter, &cb->i, q->r, &cb->buf_b, page, q->order,
+	rc = ss_iteropen(sd_pageiter, &cb->i, q->r, &cb->buf_b,
+	                 &cb->page, q->order,
 	                 q->key, q->keysize, q->vlsn);
 	if (rc == 0) {
 		cb->ref = NULL;
@@ -260,15 +277,17 @@ si_qfetchbranch(siquery *q, sinode *n, sibranch *b, svmerge *m)
 	cb->ref = ss_iterof(sd_indexiter, &i);
 	if (cb->ref == NULL || cb->ref == prev)
 		return;
-	sdpage *page = si_qread(&cb->buf_a, &cb->buf_b, q->r, q->index, n, b, cb->ref);
-	if (ssunlikely(page == NULL)) {
+	int rc = si_qread(&cb->page, q->r, q->index, n,
+	                  &cb->buf_a,
+	                  &cb->buf_b, b, cb->ref, 1);
+	if (ssunlikely(rc == -1)) {
 		cb->ref = NULL;
 		return;
 	}
 	svmergesrc *s = sv_mergeadd(m, &cb->i);
 	s->ptr = cb;
 	ss_iterinit(sd_pageiter, &cb->i);
-	ss_iteropen(sd_pageiter, &cb->i, q->r, &cb->buf_b, page, q->order,
+	ss_iteropen(sd_pageiter, &cb->i, q->r, &cb->buf_b, &cb->page, q->order,
 	            q->key, q->keysize, q->vlsn);
 }
 

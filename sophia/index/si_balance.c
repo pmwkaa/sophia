@@ -84,6 +84,16 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 			return NULL;
 		}
 	}
+	if (index->scheme->mmap) {
+		ss_mmapinit(&parent->map_swap);
+		rc = ss_mmap(&parent->map_swap, parent->file.fd,
+		              parent->file.size, 1);
+		if (ssunlikely(rc == -1)) {
+			sr_malfunction(r->e, "db file '%s' mmap error: %s",
+			               parent->file.file, strerror(errno));
+			return NULL;
+		}
+	}
 	return branch;
 error:
 	sd_mergefree(&merge);
@@ -123,27 +133,44 @@ int si_branch(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 	si_nodeunrotate(n);
 	si_nodeunlock(n);
 	si_plannerupdate(&index->p, SI_BRANCH|SI_COMPACT, n);
+	ssmmap swap_map = n->map;
+	n->map = n->map_swap;
+	memset(&n->map_swap, 0, sizeof(n->map_swap));
 	si_unlock(index);
 
 	/* gc */
+	if (index->scheme->mmap) {
+		int rc = ss_munmap(&swap_map);
+		if (ssunlikely(rc == -1)) {
+			sr_malfunction(r->e, "db file '%s' munmap error: %s",
+			               n->file.file, strerror(errno));
+			return -1;
+		}
+	}
 	si_nodegc_index(r, &swap);
 	return 1;
 }
 
-static inline int
-si_noderead(sr *r, ssbuf *dest, sinode *node)
+static inline char*
+si_noderead(si *index, ssbuf *dest, sinode *node)
 {
+	sr *r = index->r;
+	if (index->scheme->mmap) {
+		return node->map.p;
+	}
 	int rc = ss_bufensure(dest, r->a, node->file.size);
-	if (ssunlikely(rc == -1))
-		return sr_oom_malfunction(r->e);
+	if (ssunlikely(rc == -1)) {
+		sr_oom_malfunction(r->e);
+		return NULL;
+	}
 	rc = ss_filepread(&node->file, 0, dest->s, node->file.size);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' read error: %s",
 		               node->file.file, strerror(errno));
-		return -1;
+		return NULL;
 	}
 	ss_bufadvance(dest, node->file.size);
-	return 0;
+	return dest->s;
 }
 
 int si_compact(si *index, sdc *c, siplan *plan, uint64_t vlsn)
@@ -154,11 +181,12 @@ int si_compact(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 
 	/* read node file */
 	sd_creset(c);
-	int rc = si_noderead(r, &c->c, node);
-	if (ssunlikely(rc == -1))
+	char *node_file = si_noderead(index, &c->c, node);
+	if (ssunlikely(node_file == NULL))
 		return -1;
 
 	/* prepare for compaction */
+	int rc;
 	rc = sd_censure(c, r, node->branch_count);
 	if (ssunlikely(rc == -1))
 		return sr_oom_malfunction(r->e);
@@ -177,7 +205,7 @@ int si_compact(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 			return sr_oom_malfunction(r->e);
 		size_stream += sd_indextotal(&b->index);
 		ss_iterinit(sd_iter, &s->src);
-		ss_iteropen(sd_iter, &s->src, r, &b->index, c->c.s, 0,
+		ss_iteropen(sd_iter, &s->src, r, &b->index, node_file, 0,
 		            index->scheme->compression, &cbuf->a, &cbuf->b);
 		cbuf = cbuf->next;
 		b = b->next;

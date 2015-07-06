@@ -220,7 +220,7 @@ si_trackdir(sitrack *track, sr *r, si *i)
 				goto error;
 			node->recover = SI_RDB_DBSEAL;
 			ss_pathAB(&path, i->scheme->path, id_parent, id, ".db.seal");
-			rc = si_nodeopen(node, r, &path);
+			rc = si_nodeopen(node, r, i->scheme, &path);
 			if (ssunlikely(rc == -1)) {
 				si_nodefree(node, r, 0);
 				goto error;
@@ -238,7 +238,7 @@ si_trackdir(sitrack *track, sr *r, si *i)
 			goto error;
 		node->recover = SI_RDB;
 		ss_pathA(&path, i->scheme->path, id, ".db");
-		rc = si_nodeopen(node, r, &path);
+		rc = si_nodeopen(node, r, i->scheme, &path);
 		if (ssunlikely(rc == -1)) {
 			si_nodefree(node, r, 0);
 			goto error;

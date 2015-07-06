@@ -31,6 +31,8 @@ sinode *si_nodenew(sr *r)
 	n->branch = NULL;
 	n->branch_count = 0;
 	ss_fileinit(&n->file, r->a);
+	ss_mmapinit(&n->map);
+	ss_mmapinit(&n->map_swap);
 	sv_indexinit(&n->i0);
 	sv_indexinit(&n->i1);
 	ss_rbinitnode(&n->node);
@@ -44,7 +46,13 @@ static inline int
 si_nodeclose(sinode *n, sr *r)
 {
 	int rcret = 0;
-	int rc = ss_fileclose(&n->file);
+	int rc = ss_munmap(&n->map);
+	if (ssunlikely(rc == -1)) {
+		sr_malfunction(r->e, "db file '%s' munmap error: %s",
+		               n->file.file, strerror(errno));
+		rcret = -1;
+	}
+	rc = ss_fileclose(&n->file);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' close error: %s",
 		               n->file.file, strerror(errno));
@@ -99,7 +107,7 @@ error:
 	return -1;
 }
 
-int si_nodeopen(sinode *n, sr *r, sspath *path)
+int si_nodeopen(sinode *n, sr *r, sischeme *scheme, sspath *path)
 {
 	int rc = ss_fileopen(&n->file, path->path);
 	if (ssunlikely(rc == -1)) {
@@ -117,6 +125,11 @@ int si_nodeopen(sinode *n, sr *r, sspath *path)
 	rc = si_noderecover(n, r);
 	if (ssunlikely(rc == -1))
 		si_nodeclose(n, r);
+	if (scheme->mmap) {
+		rc = si_nodemap(n, r);
+		if (ssunlikely(rc == -1))
+			si_nodeclose(n, r);
+	}
 	return rc;
 }
 
@@ -136,8 +149,24 @@ int si_nodecreate(sinode *n, sr *r, sischeme *scheme, sdid *id,
 	rc = sd_commit(build, r, &n->self.index, &n->file);
 	if (ssunlikely(rc == -1))
 		return -1;
+	if (scheme->mmap) {
+		rc = si_nodemap(n, r);
+		if (ssunlikely(rc == -1))
+			return -1;
+	}
 	n->branch = &n->self;
 	n->branch_count++;
+	return 0;
+}
+
+int si_nodemap(sinode *n, sr *r)
+{
+	int rc = ss_mmap(&n->map, n->file.fd, n->file.size, 1);
+	if (ssunlikely(rc == -1)) {
+		sr_malfunction(r->e, "db file '%s' mmap error: %s",
+		               n->file.file, strerror(errno));
+		return -1;
+	}
 	return 0;
 }
 
