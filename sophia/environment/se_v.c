@@ -31,6 +31,35 @@ se_vdestroy(so *o)
 	return 0;
 }
 
+static sfv*
+se_vsetpart(sev *v, char *path, void *pointer, int size)
+{
+	se *e = se_of(&v->o);
+	sedb *db = (sedb*)v->o.parent;
+	srkey *part = sr_schemefind(&db->scheme.scheme, path);
+	if (ssunlikely(part == NULL))
+		return NULL;
+	assert(part->pos < (int)(sizeof(v->keyv) / sizeof(sfv)));
+	const int keysize_max = 1 << 15;
+	if (size == 0)
+		size = strlen(pointer) + 1;
+	if (ssunlikely(size > keysize_max)) {
+		sr_error(&e->error, "%s", "key '%s' is too big (%d limit)",
+		         pointer, keysize_max);
+		return NULL;
+	}
+	sfv *fv = &v->keyv[part->pos];
+	fv->r.offset = 0;
+	fv->key = pointer;
+	fv->r.size = size;
+	if (fv->part == NULL)
+		v->keyc++;
+	fv->part = part;
+	/* update key sum */
+	v->keysize = sf_size(db->r.fmt, v->keyv, v->keyc, 0);
+	return fv;
+}
+
 static int
 se_vsetstring(so *o, char *path, void *pointer, int size)
 {
@@ -73,31 +102,10 @@ se_vsetstring(so *o, char *path, void *pointer, int size)
 		v->rawsize = size;
 		return 0;
 	}
-
 	/* object keypart */
-	sedb *db = (sedb*)o->parent;
-	srkey *part = sr_schemefind(&db->scheme.scheme, path);
-	if (ssunlikely(part == NULL))
+	sfv *fv = se_vsetpart(v, path, pointer, size);
+	if (ssunlikely(fv == NULL))
 		return -1;
-	assert(part->pos < (int)(sizeof(v->keyv) / sizeof(sfv)));
-	const int keysize_max = 1 << 15;
-	if (ssunlikely(size > keysize_max)) {
-		sr_error(&e->error, "%s", "key '%s' is too big (%d limit)",
-		         pointer, keysize_max);
-		return -1;
-	}
-	if (size == 0)
-		size = strlen(pointer) + 1;
-	sfv *fv = &v->keyv[part->pos];
-	fv->r.offset = 0;
-	fv->key = pointer;
-	fv->r.size = size;
-	if (fv->part == NULL)
-		v->keyc++;
-	fv->part = part;
-
-	/* update key sum */
-	v->keysize = sf_size(db->r.fmt, v->keyv, v->keyc, 0);
 	return 0;
 }
 

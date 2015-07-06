@@ -19,8 +19,8 @@ struct sfref {
 
 struct sfv {
 	void *part;
-	sfref r;
 	char *key;
+	sfref r;
 };
 
 typedef enum {
