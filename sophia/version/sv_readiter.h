@@ -45,9 +45,7 @@ sv_readiter_next(ssiter *i)
 		im->nextdup = 1;
 		if (ssunlikely(sv_is(v, SVDELETE)))
 			continue;
-		/* ignore stray updates */
-		if (ssunlikely(sv_is(v, SVUPDATE)))
-			continue;
+		assert(! sv_is(v, SVUPDATE));
 		im->v = v;
 		im->next = 1;
 		break;

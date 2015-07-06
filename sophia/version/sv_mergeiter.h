@@ -42,7 +42,6 @@ sv_mergeiter_dupreset(svmergeiter *i, svmergesrc *pos)
 static inline void
 sv_mergeiter_gt(svmergeiter *i)
 {
-	int rc;
 	if (i->v) {
 		if (ssunlikely(i->v->update.v)) {
 			sv_vfree(i->r->a, i->v->update.v);
@@ -72,21 +71,19 @@ sv_mergeiter_gt(svmergeiter *i)
 			min = src;
 			continue;
 		}
-		rc = sv_compare(minv, v, i->r->scheme);
+		int rc = sv_compare(minv, v, i->r->scheme);
 		switch (rc) {
 		case 0:
 			/*
 			assert(sv_lsn(v) < sv_lsn(minv));
 			*/
 			src->dup = 1;
-			if (sv_is(minv, SVUPDATE) && !sv_is(v, SVUPDATE))
-			{
+			if ( sv_is(minv, SVUPDATE) &&
+			    !sv_is(v, SVUPDATE)) {
 				assert(min->update.v == NULL);
 				rc = sv_update(i->r, v, minv, &min->update);
-				if (ssunlikely(rc == -1)) {
-					sr_oom(i->r->e);
+				if (ssunlikely(rc == -1))
 					return;
-				}
 			}
 			break;
 		case 1:
@@ -102,19 +99,13 @@ sv_mergeiter_gt(svmergeiter *i)
 	/* orphan UPDATE case */
 	if (i->save_update)
 		return;
-	if (sv_is(minv, SVUPDATE) && (min->update.v == NULL)) {
-		rc = sv_update(i->r, NULL, minv, &min->update);
-		if (ssunlikely(rc == -1)) {
-			sr_oom(i->r->e);
-			return;
-		}
-	}
+	if (sv_is(minv, SVUPDATE) && (min->update.v == NULL))
+		sv_update(i->r, NULL, minv, &min->update);
 }
 
 static inline void
 sv_mergeiter_lt(svmergeiter *i)
 {
-	int rc;
 	if (i->v) {
 		if (ssunlikely(i->v->update.v)) {
 			sv_vfree(i->r->a, i->v->update.v);
@@ -151,14 +142,12 @@ sv_mergeiter_lt(svmergeiter *i)
 			assert(sv_lsn(v) < sv_lsn(maxv));
 			*/
 			src->dup = 1;
-			if (sv_is(maxv, SVUPDATE) && !sv_is(v, SVUPDATE))
-			{
+			if ( sv_is(maxv, SVUPDATE) &&
+			    !sv_is(v, SVUPDATE)) {
 				assert(max->update.v == NULL);
 				rc = sv_update(i->r, v, maxv, &max->update);
-				if (ssunlikely(rc == -1)) {
-					sr_oom(i->r->e);
+				if (ssunlikely(rc == -1))
 					return;
-				}
 			}
 			break;
 		case -1:
@@ -174,13 +163,8 @@ sv_mergeiter_lt(svmergeiter *i)
 	/* orphan UPDATE case */
 	if (i->save_update)
 		return;
-	if (sv_is(maxv, SVUPDATE) && (max->update.v == NULL)) {
-		rc = sv_update(i->r, NULL, maxv, &max->update);
-		if (ssunlikely(rc == -1)) {
-			sr_oom(i->r->e);
-			return;
-		}
-	}
+	if (sv_is(maxv, SVUPDATE) && (max->update.v == NULL))
+		sv_update(i->r, NULL, maxv, &max->update);
 }
 
 static inline void

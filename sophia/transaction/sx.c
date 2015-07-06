@@ -339,7 +339,7 @@ int sx_set(sx *t, sxindex *index, svv *version)
 			if (ssunlikely(rc == -1)) {
 				ss_spinunlock(&m->lockupd);
 				sx_vfree(m->a, m->asxv, v);
-				return sr_oom(index->r->e);
+				return -1;
 			}
 			/* gc */
 			uint32_t grow = sv_vsize(c.v);

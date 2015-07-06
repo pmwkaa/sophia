@@ -9,7 +9,7 @@
  * BSD License
 */
 
-typedef int (*sfupdatef)(char*, int, char*, int, void*, void**, int*);
+typedef int (*sfupdatef)(int, char*, int, int, char*, int, void*, void**, int*);
 
 typedef struct {
 	sfupdatef function;

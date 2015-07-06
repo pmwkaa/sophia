@@ -10,34 +10,40 @@
 */
 
 static inline int
-sv_update(sr *r, sv *src, sv *update, sv *result)
+sv_update(sr *r, sv *a, sv *b, sv *result)
 {
-	assert(sv_is(update, SVUPDATE));
-	void *pointer_src;
-	int size_src;
-	if (sslikely(src)) {
-		assert(! sv_is(src, SVUPDATE));
-		pointer_src = sv_pointer(src);
-		size_src = sv_size(src);
+	assert(sv_is(b, SVUPDATE));
+	int   b_flags = sv_flags(b) & SVUPDATE;
+	void *b_pointer = sv_pointer(b);
+	int   b_size = sv_size(b);
+	int   a_flags;
+	void *a_pointer;
+	int   a_size;
+	/* convert delete to orphan update case */
+	if (sslikely(a) && !sv_is(a, SVDELETE)) {
+		a_flags = sv_flags(a) & SVUPDATE;
+		a_pointer = sv_pointer(a);
+		a_size = sv_size(a);
 	} else {
-		pointer_src = NULL;
-		size_src = 0;
+		a_flags = 0;
+		a_pointer = NULL;
+		a_size = 0;
 	}
-	void *pointer;
-	int size;
-	int rc = r->fmt_update->function(pointer_src, size_src,
-	                                 sv_pointer(update), sv_size(update),
+	void *c_pointer;
+	int c_size;
+	int rc = r->fmt_update->function(a_flags, a_pointer, a_size,
+	                                 b_flags, b_pointer, b_size,
 	                                 r->fmt_update->arg,
-	                                 &pointer, &size);
+	                                 &c_pointer, &c_size);
 	if (ssunlikely(rc == -1))
 		return -1;
-	svv *v = sv_vbuildraw(r->a, pointer, size);
-	free(pointer);
-	if (ssunlikely(v == NULL))
-		return -1;
-	v->flags = sv_flags(update) & ~SVUPDATE;
-	v->lsn   = sv_lsn(update);
-	sv_init(result, &sv_vif, v, NULL);
+	svv *c = sv_vbuildraw(r->a, c_pointer, c_size);
+	free(c_pointer);
+	if (ssunlikely(c == NULL))
+		return sr_oom(r->e);
+	c->flags = sv_flags(b) & ~SVUPDATE;
+	c->lsn   = sv_lsn(b);
+	sv_init(result, &sv_vif, c, NULL);
 	return 0;
 }
 

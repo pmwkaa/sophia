@@ -54,10 +54,8 @@ si_update(sitx *t, svv *head, svv *v)
 	sv_init(&a, &sv_vif, head, NULL);
 	sv_init(&b, &sv_vif, v, NULL);
 	int rc = sv_update(r, &a, &b, &c);
-	if (ssunlikely(rc == -1)) {
-		sr_oom(r->e);
+	if (ssunlikely(rc == -1))
 		return NULL;
-	}
 	((svv*)c.v)->log = v->log;
 	/* gc */
 	uint32_t grow = sv_vsize(c.v);
