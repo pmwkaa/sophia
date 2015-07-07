@@ -537,8 +537,8 @@ se_metadb(se *e, semetart *rt ssunused, srmeta **pc)
 		srmeta *database = *pc;
 		p = NULL;
 		sr_M(&p, pc, se_metav, "name", SS_STRINGPTR, &o->scheme.name, SR_RO, NULL);
-		sr_M(&p, pc, se_metav, "id", SS_U32, &o->scheme.id, SR_RO, NULL);
-		sr_M(&p, pc, se_metadb_status, "status", SS_STRING, o, SR_RO, NULL);
+		sr_M(&p, pc, se_metav_dboffline, "id", SS_U32, &o->scheme.id, 0, o);
+		sr_M(&p, pc, se_metadb_status,   "status", SS_STRING, o, SR_RO, NULL);
 		sr_M(&p, pc, se_metav_dboffline, "format", SS_STRINGPTR, &o->scheme.fmt_sz, 0, o);
 		sr_M(&p, pc, se_metav_dboffline, "path", SS_STRINGPTR, &o->scheme.path, 0, o);
 		sr_M(&p, pc, se_metav_dboffline, "sync", SS_U32, &o->scheme.sync, 0, o);

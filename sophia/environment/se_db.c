@@ -370,6 +370,32 @@ se_dbobject(so *o)
 	return se_vnew(e, &db->o, NULL);
 }
 
+static void*
+se_dbget_string(so *o, char *path, int *size)
+{
+	sedb *db = se_cast(o, sedb*, SEDB);
+	if (strcmp(path, "name") == 0) {
+		int namesize = strlen(db->scheme.name) + 1;
+		if (size)
+			*size = namesize;
+		char *name = malloc(namesize);
+		if (name == NULL)
+			return NULL;
+		memcpy(name, db->scheme.name, namesize);
+		return name;
+	}
+	return NULL;
+}
+
+static int64_t
+se_dbget_int(so *o, char *path)
+{
+	sedb *db = se_cast(o, sedb*, SEDB);
+	if (strcmp(path, "id") == 0)
+		return db->scheme.id;
+	return 0;
+}
+
 static soif sedbif =
 {
 	.open         = se_dbopen,
@@ -383,8 +409,8 @@ static soif sedbif =
 	.setstring    = NULL,
 	.setint       = NULL,
 	.getobject    = NULL,
-	.getstring    = NULL,
-	.getint       = NULL,
+	.getstring    = se_dbget_string,
+	.getint       = se_dbget_int,
 	.set          = se_dbset,
 	.update       = se_dbupdate,
 	.del          = se_dbdel,

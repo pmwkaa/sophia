@@ -137,7 +137,7 @@ se_vgetstring(so *o, char *path, int *size)
 	if (strcmp(path, "order") == 0) {
 		char *order = ss_ordername(v->order);
 		if (*size)
-			*size = strlen(order);
+			*size = strlen(order) + 1;
 		return order;
 	}
 	if (strcmp(path, "raw") == 0) {

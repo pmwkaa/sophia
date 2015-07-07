@@ -134,39 +134,25 @@ meta_validation(void)
 	t( sp_destroy(env) == 0 );
 }
 
-#if 0
 static void
 meta_db(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *c = sp_ctl(env);
-	t( c != NULL );
-	t( sp_set(c, "sophia.path", cx->suite->sophiadir) == 0 );
-	t( sp_set(c, "scheduler.threads", "0") == 0 );
-	t( sp_set(c, "db", "test") == 0 );
-	t( sp_set(c, "db.test.sync", "0") == 0 );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.id", 777) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
-
-	void *db = sp_get(c, "db.test");
+	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
-
-	void *dbctl = sp_ctl(db);
-	t( dbctl != NULL );
-
-	void *o = sp_get(dbctl, "name");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "test") == 0 );
-	sp_destroy(o);
-
-	o = sp_get(dbctl, "id");
-	t( o != NULL );
-	t( strcmp(sp_get(o, "value", NULL), "1") == 0 );
-	sp_destroy(o);
-
+	char *s = sp_getstring(db, "name",  NULL);
+	t( strcmp(s, "test") == 0 );
+	free(s);
+	t( sp_getint(db, "id") == 777 );
 	t( sp_destroy(env) == 0 );
 }
-#endif
 
 static void
 meta_cursor(void)
@@ -210,9 +196,7 @@ stgroup *meta_group(void)
 	st_groupadd(group, st_test("scheduler", meta_scheduler));
 	st_groupadd(group, st_test("compaction", meta_compaction));
 	st_groupadd(group, st_test("validation", meta_validation));
-#if 0
 	st_groupadd(group, st_test("db", meta_db));
-#endif
 	st_groupadd(group, st_test("cursor", meta_cursor));
 	return group;
 }

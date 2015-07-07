@@ -124,15 +124,14 @@ void st_suiterun(stsuite *s)
 			stgroup *group = sscast(j, stgroup, link);
 			do {
 				int stop = st_suiterun_group(s, plan, group);
-				if (s->stop_group && (s->current >= s->position))
-					stop = 1;
-				if (stop) {
+				if (stop)
 					return;
-				}
 			} while (st_plannext(plan));
 			st_planreset(plan);
+			if (s->stop_group && (s->current > s->position))
+				return;
 		}
-		if (s->current >= s->position) {
+		if (s->current > s->position) {
 			if (s->stop_plan)
 				return;
 			printf("\n");
