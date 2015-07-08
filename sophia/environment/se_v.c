@@ -55,8 +55,6 @@ se_vsetpart(sev *v, char *path, void *pointer, int size)
 	if (fv->part == NULL)
 		v->keyc++;
 	fv->part = part;
-	/* update key sum */
-	v->keysize = sf_size(db->r.fmt, v->keyv, v->keyc, 0);
 	return fv;
 }
 

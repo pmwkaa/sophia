@@ -222,6 +222,7 @@ main(int argc, char *argv[])
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rt"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "env"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "branch_wm_1"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "scheme_u32"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "open"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
@@ -238,6 +239,7 @@ main(int argc, char *argv[])
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rt"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "env"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "branch_wm_1"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "scheme_u32"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "open"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
@@ -258,6 +260,7 @@ main(int argc, char *argv[])
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rt"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "env"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "branch_wm_1"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "scheme_u32"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "open"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
@@ -265,6 +268,7 @@ main(int argc, char *argv[])
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "destroy"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "env"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "branch_wm_1"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "scheme_u32"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "open"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "destroy"));

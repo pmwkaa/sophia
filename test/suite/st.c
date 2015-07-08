@@ -52,3 +52,13 @@ void st_run(void)
 	printf("\n");
 	printf("complete.\n");
 }
+
+void st_seedset(int seed)
+{
+	srand(seed);
+}
+
+int st_seed(void)
+{
+	return rand();
+}

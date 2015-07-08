@@ -54,9 +54,8 @@ void st_scene_init(stscene *s ssunused)
 	memset(&st_r.r, 0, sizeof(st_r.r));
 	st_r.key_start = 8;
 	st_r.key_end = 32;
-	st_r.value_start = 0;
-	st_r.value_end = 0;
-	st_r.is_random = 0;
+	st_r.value_start = 4;
+	st_r.value_end = 4;
 }
 
 void st_scene_scheme_u32(stscene *s ssunused)
@@ -80,7 +79,6 @@ void st_scene_rt(stscene *s ssunused)
 	         st_r.compression);
 
 	st_generator_init(&st_r.g, &st_r.r,
-	                  st_r.is_random,
 	                  st_r.key_start,
 	                  st_r.key_end,
 	                  st_r.value_start,

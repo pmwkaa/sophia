@@ -20,7 +20,6 @@ struct str {
 	int          key_end;
 	int          value_start;
 	int          value_end;
-	int          is_random;
 	stgenerator  g;
 	stlist       gc;
 

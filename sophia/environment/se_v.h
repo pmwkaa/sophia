@@ -17,7 +17,6 @@ struct sev {
 	ssorder   order;
 	sfv       keyv[8];
 	int       keyc;
-	uint16_t  keysize;
 	void     *value;
 	uint32_t  valuesize;
 	void     *raw;

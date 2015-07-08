@@ -18,9 +18,9 @@
 #include <st_suite.h>
 #include <st.h>
 #include <st_r.h>
+#include <st_object.h>
 #include <st_tools.h>
 #include <st_assert.h>
-#include <st_api.h>
 #include <st_scenes.h>
 #include <st_phase.h>
 

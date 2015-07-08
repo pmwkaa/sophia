@@ -27,5 +27,7 @@ void st_init(stconf*);
 void st_free(void);
 void st_phase(void);
 void st_run(void);
+void st_seedset(int);
+int  st_seed(void);
 
 #endif
