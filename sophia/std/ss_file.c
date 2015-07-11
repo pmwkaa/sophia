@@ -114,9 +114,10 @@ int ss_filesync(ssfile *f)
 {
 #if defined(__APPLE__)
 	return fcntl(f->fd, F_FULLFSYNC);
-#elif defined(__FreeBSD__)
+#elif defined(__FreeBSD__) || defined(__DragonFly__)
 	return fsync(f->fd);
 #else
+    // at least Linux, OpenBSD and NetBSD have fdatasync().
 	return fdatasync(f->fd);
 #endif
 }
