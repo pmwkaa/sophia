@@ -142,6 +142,7 @@ so *se_cursornew(sedb *db, sev *o, uint64_t vlsn, int async)
 	c->cache      = NULL;
 	memset(&c->v, 0, sizeof(c->v));
 	sx_init(&e->xm, &c->t);
+	c->t.s = SXUNDEF;
 
 	/* allocate cursor cache */
 	c->cache = si_cachepool_pop(&e->cachepool);
