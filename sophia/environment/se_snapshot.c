@@ -81,6 +81,7 @@ static soif sesnapshotif =
 	.update       = NULL,
 	.del          = NULL,
 	.get          = se_snapshotget,
+	.batch        = NULL,
 	.begin        = NULL,
 	.prepare      = NULL,
 	.commit       = NULL,

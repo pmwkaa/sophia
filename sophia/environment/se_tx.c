@@ -458,6 +458,7 @@ static soif setxif =
 	.update       = se_txupdate,
 	.del          = se_txdelete,
 	.get          = se_txget,
+	.batch        = NULL,
 	.begin        = NULL,
 	.prepare      = se_txprepare,
 	.commit       = se_txcommit,

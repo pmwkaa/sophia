@@ -203,6 +203,7 @@ static soif sedbasyncif =
 	.update       = se_dbasync_update,
 	.del          = se_dbasync_del,
 	.get          = se_dbasync_get,
+	.batch        = NULL,
 	.begin        = NULL,
 	.prepare      = NULL,
 	.commit       = NULL,
@@ -291,6 +292,9 @@ se_dbdestroy(so *o)
 	}
 
 shutdown:;
+	rc = so_listdestroy(&db->batch);
+	if (ssunlikely(rc == -1))
+		rcret = -1;
 	rc = so_listdestroy(&db->cursor);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
@@ -355,6 +359,13 @@ se_dbget(so *o, so *v)
 }
 
 static void*
+se_dbbatch(so *o)
+{
+	sedb *db = se_cast(o, sedb*, SEDB);
+	return se_batchnew(db);
+}
+
+static void*
 se_dbcursor(so *o, so *v)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
@@ -415,6 +426,7 @@ static soif sedbif =
 	.update       = se_dbupdate,
 	.del          = se_dbdel,
 	.get          = se_dbget,
+	.batch        = se_dbbatch,
 	.begin        = NULL,
 	.prepare      = NULL,
 	.commit       = NULL,
@@ -432,6 +444,7 @@ so *se_dbnew(se *e, char *name)
 	so_init(&o->o, &se_o[SEDB], &sedbif, &e->o, &e->o);
 	so_init(&o->async, &se_o[SEDBASYNC], &sedbasyncif, &o->o, &e->o);
 	so_listinit(&o->cursor);
+	so_listinit(&o->batch);
 	se_statusinit(&o->status);
 	se_statusset(&o->status, SE_OFFLINE);
 	o->r         = e->r;

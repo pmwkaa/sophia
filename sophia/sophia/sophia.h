@@ -41,6 +41,7 @@ SP_API int      sp_update(void*, void*);
 SP_API int      sp_delete(void*, void*);
 SP_API void    *sp_get(void*, void*);
 SP_API void    *sp_cursor(void*, void*);
+SP_API void    *sp_batch(void*);
 SP_API void    *sp_begin(void*);
 SP_API int      sp_prepare(void*);
 SP_API int      sp_commit(void*);

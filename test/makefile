@@ -44,6 +44,7 @@ OBJECTS = ss_leb128.test.o \
           backup.test.o \
           checkpoint.test.o \
           snapshot.test.o \
+          batch.test.o \
           gc.test.o \
           prefix.test.o \
           transaction-md.test.o \

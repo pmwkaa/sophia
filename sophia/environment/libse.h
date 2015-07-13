@@ -20,6 +20,7 @@
 #include <se_query.h>
 #include <se_v.h>
 #include <se_db.h>
+#include <se_batch.h>
 #include <se_tx.h>
 #include <se_cursor.h>
 #include <se_snapshot.h>

@@ -284,6 +284,19 @@ SP_API void *sp_cursor(void *ptr, void *v)
 	return h;
 }
 
+SP_API void *sp_batch(void *ptr)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->batch == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return NULL;
+	}
+	se_apilock(o->env);
+	void *h = o->i->batch(o);
+	se_apiunlock(o->env);
+	return h;
+}
+
 SP_API void *sp_begin(void *ptr)
 {
 	so *o = sp_cast(ptr, __FUNCTION__);

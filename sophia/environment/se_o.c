@@ -31,6 +31,7 @@ sotype se_o[] =
 	{ 0x2FABCDE2L, "object"          },
 	{ 0x34591111L, "database"        },
 	{ 0x24242489L, "database_async"  },
+	{ 0x571DEF09L, "batch"           },
 	{ 0x13491FABL, "transaction"     },
 	{ 0x45ABCDFAL, "cursor"          },
 	{ 0x71230BAFL, "snapshot"        }

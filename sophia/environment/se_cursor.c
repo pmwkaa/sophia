@@ -111,6 +111,7 @@ static soif secursorif =
 	.update       = NULL,
 	.del          = NULL,
 	.get          = se_cursorget,
+	.batch        = NULL,
 	.begin        = NULL,
 	.prepare      = NULL,
 	.commit       = NULL,

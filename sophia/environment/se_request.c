@@ -142,6 +142,7 @@ static soif serequestif =
 	.update       = NULL,
 	.del          = NULL,
 	.get          = NULL,
+	.batch        = NULL,
 	.begin        = NULL,
 	.prepare      = NULL,
 	.commit       = NULL,

@@ -1,0 +1,187 @@
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+#include <libss.h>
+#include <libsf.h>
+#include <libsr.h>
+#include <libso.h>
+#include <libsv.h>
+#include <libsl.h>
+#include <libsd.h>
+#include <libsi.h>
+#include <libsx.h>
+#include <libsy.h>
+#include <libse.h>
+
+static int
+se_batchrollback(so *o)
+{
+	sebatch *b = se_cast(o, sebatch*, SEBATCH);
+	se *e = se_of(o);
+	ssiter i;
+	ss_iterinit(ss_bufiter, &i);
+	ss_iteropen(ss_bufiter, &i, &b->log.buf, sizeof(svlogv));
+	for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
+	{
+		svlogv *lv = ss_iterof(ss_bufiter, &i);
+		ss_free(&e->a, lv->v.v);
+	}
+	sv_logfree(&b->log, &e->a);
+	sedb *db = (sedb*)b->o.parent;
+	se_dbunref(db, 0);
+	return 0;
+}
+
+static inline int
+se_batchwrite(sebatch *b, sev *o, uint8_t flags)
+{
+	se *e = se_of(&b->o);
+	sedb *db = se_cast(o->o.parent, sedb*, SEDB);
+
+	/* xxx: validate database status */
+	if (flags == SVUPDATE && !sf_updatehas(&db->scheme.fmt_update))
+		flags = 0;
+
+	/* prepare object */
+	svv *v = se_dbv(db, o, 0);
+	if (ssunlikely(v == NULL))
+		goto error;
+	v->flags = flags;
+	v->log = o->log;
+	sv vp;
+	sv_init(&vp, &sv_vif, v, NULL);
+	o->o.i->destroy(&o->o);
+
+	/* ensure quota */
+	ss_quota(&e->quota, SS_QADD, sizeof(svv) + sv_size(&vp));
+
+	/* log add */
+	svlogv lv;
+	lv.id   = db->coindex.dsn;
+	lv.vgc  = NULL;
+	lv.next = UINT32_MAX;
+	sv_init(&lv.v, &sv_vif, v, NULL);
+	int rc = sv_logadd(&b->log, &e->a, &lv, db->coindex.ptr);
+	if (ssunlikely(rc == -1))
+		return sr_oom(&e->error);
+	return 0;
+error:
+	o->o.i->destroy(&o->o);
+	return -1;
+}
+
+static int
+se_batchset(so *o, so *v)
+{
+	sebatch *b = se_cast(o, sebatch*, SEBATCH);
+	sev *key = se_cast(v, sev*, SEV);
+	return se_batchwrite(b, key, 0);
+}
+
+static int
+se_batchupdate(so *o, so *v)
+{
+	sebatch *b = se_cast(o, sebatch*, SEBATCH);
+	sev *key = se_cast(v, sev*, SEV);
+	return se_batchwrite(b, key, SVUPDATE);
+}
+
+static int
+se_batchdelete(so *o, so *v)
+{
+	sebatch *b = se_cast(o, sebatch*, SEBATCH);
+	sev *key = se_cast(v, sev*, SEV);
+	return se_batchwrite(b, key, SVDELETE);
+}
+
+static int
+se_batchcommit(so *o)
+{
+	sebatch *b = se_cast(o, sebatch*, SEBATCH);
+	se *e = se_of(o);
+	uint64_t lsn = sr_seq(&e->seq, SR_LSN);
+	if (ssunlikely(lsn != b->lsn)) {
+		se_batchrollback(o);
+		return 1;
+	}
+	if (ssunlikely(! sv_logcount(&b->log))) {
+		se_batchrollback(o);
+		return 0;
+	}
+
+	/* log write */
+	sl_prepare(&e->lp, &b->log, 0);
+	sltx tl;
+	sl_begin(&e->lp, &tl);
+	int rc = sl_write(&tl, &b->log);
+	if (ssunlikely(rc == -1)) {
+		sl_rollback(&tl);
+		se_batchrollback(o);
+		return -1;
+	}
+	sl_commit(&tl);
+
+	/* commit */
+	uint64_t vlsn = sx_vlsn(&e->xm);
+	uint64_t now = ss_utime();
+	svlogindex *i   = (svlogindex*)b->log.index.s;
+	svlogindex *end = (svlogindex*)b->log.index.p;
+	while (i < end) {
+		sedb *db = i->ptr;
+		sitx ti;
+		si_begin(&ti, &db->index, vlsn, now, &b->log, i);
+		si_write(&ti, 0);
+		si_commit(&ti);
+		i++;
+	}
+	sv_logfree(&b->log, &e->a);
+	return 0;
+}
+
+static soif sebatchif =
+{
+	.open         = NULL,
+	.destroy      = se_batchrollback,
+	.error        = NULL,
+	.object       = NULL,
+	.asynchronous = NULL,
+	.poll         = NULL,
+	.drop         = NULL,
+	.setobject    = NULL,
+	.setstring    = NULL,
+	.setint       = NULL,
+	.getobject    = NULL,
+	.getstring    = NULL,
+	.getint       = NULL,
+	.set          = se_batchset,
+	.update       = se_batchupdate,
+	.del          = se_batchdelete,
+	.get          = NULL,
+	.batch        = NULL,
+	.begin        = NULL,
+	.prepare      = NULL,
+	.commit       = se_batchcommit,
+	.cursor       = NULL,
+};
+
+so *se_batchnew(sedb *db)
+{
+	se *e = se_of(&db->o);
+	sebatch *b = ss_malloc(&e->a_batch, sizeof(sebatch));
+	if (ssunlikely(b == NULL)) {
+		sr_oom(&e->error);
+		return NULL;
+	}
+	so_init(&b->o, &se_o[SEBATCH], &sebatchif, &db->o, &e->o);
+	b->lsn = sr_seq(&e->seq, SR_LSN);
+	sv_loginit(&b->log);
+	se_dbref(db, 0);
+	so_listadd(&db->batch, &b->o);
+	return &b->o;
+}

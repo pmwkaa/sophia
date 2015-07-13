@@ -65,6 +65,7 @@ extern stgroup *backup_group(void);
 extern stgroup *checkpoint_group(void);
 extern stgroup *gc_group(void);
 extern stgroup *snapshot_group(void);
+extern stgroup *batch_group(void);
 extern stgroup *prefix_group(void);
 extern stgroup *transaction_md_group(void);
 extern stgroup *tpc_group(void);
@@ -209,6 +210,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, checkpoint_group());
 	st_planadd(plan, gc_group());
 	st_planadd(plan, snapshot_group());
+	st_planadd(plan, batch_group());
 	st_planadd(plan, prefix_group());
 	st_planadd(plan, transaction_md_group());
 	st_planadd(plan, tpc_group());

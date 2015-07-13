@@ -20,6 +20,7 @@ struct sedb {
 	uint32_t   dropped;
 	siprofiler rtp;
 	solist     cursor;
+	solist     batch;
 	sdc        dc;
 	sischeme   scheme;
 	si         index;
