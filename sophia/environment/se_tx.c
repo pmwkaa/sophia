@@ -472,6 +472,7 @@ so *se_txnew(se *e, int async)
 		sr_oom(&e->error);
 		return NULL;
 	}
+	memset(t, 0, sizeof(*t));
 	so_init(&t->o, &se_o[SETX], &setxif, &e->o, &e->o);
 	sx_init(&e->xm, &t->t);
 	t->lsn   = 0;

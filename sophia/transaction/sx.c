@@ -117,12 +117,14 @@ sx *sx_find(sxmanager *m, uint32_t id)
 void sx_init(sxmanager *m, sx *t)
 {
 	t->manager = m;
+	t->s = SXUNDEF;
 	sv_loginit(&t->log);
 	ss_listinit(&t->deadlock);
 }
 
 sxstate sx_begin(sxmanager *m, sx *t, uint64_t vlsn)
 {
+	sx_init(m, t);
 	t->s = SXREADY; 
 	sr_seqlock(m->seq);
 	t->id = sr_seqdo(m->seq, SR_TSNNEXT);
@@ -131,7 +133,6 @@ sxstate sx_begin(sxmanager *m, sx *t, uint64_t vlsn)
 	else
 		t->vlsn = vlsn;
 	sr_sequnlock(m->seq);
-	sx_init(m, t);
 	ss_spinlock(&m->lock);
 	ssrbnode *n = NULL;
 	int rc = sx_matchtx(&m->i, NULL, (char*)&t->id, sizeof(t->id), &n);
