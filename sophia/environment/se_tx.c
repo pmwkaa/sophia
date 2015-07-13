@@ -311,7 +311,7 @@ se_txget(so *o, so *v)
 void se_txend(setx *t)
 {
 	se *e = se_of(&t->o);
-	sx_gc(&t->t);
+	sx_gc(&t->t, &e->r);
 	se_dbunbind(e, t->t.id);
 	so_listdel(&e->tx, &t->o);
 	ss_free(&e->a_tx, t);

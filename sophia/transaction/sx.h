@@ -61,7 +61,7 @@ int       sx_indexfree(sxindex*, sxmanager*);
 sx       *sx_find(sxmanager*, uint32_t);
 void      sx_init(sxmanager*, sx*);
 sxstate   sx_begin(sxmanager*, sx*, uint64_t);
-void      sx_gc(sx*);
+void      sx_gc(sx*, sr*);
 sxstate   sx_prepare(sx*, sxpreparef, void*);
 sxstate   sx_commit(sx*);
 sxstate   sx_rollback(sx*);

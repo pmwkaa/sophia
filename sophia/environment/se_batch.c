@@ -27,11 +27,14 @@ se_batchrollback(so *o)
 	ssiter i;
 	ss_iterinit(ss_bufiter, &i);
 	ss_iteropen(ss_bufiter, &i, &b->log.buf, sizeof(svlogv));
+	int gc = 0;
 	for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
 	{
 		svlogv *lv = ss_iterof(ss_bufiter, &i);
+		gc += sv_vsize((svv*)lv->v.v);
 		ss_free(&e->a, lv->v.v);
 	}
+	ss_quota(&e->quota, SS_QREMOVE, gc);
 	sv_logfree(&b->log, &e->a);
 	sedb *db = (sedb*)b->o.parent;
 	se_dbunref(db, 0);

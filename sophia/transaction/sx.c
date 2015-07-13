@@ -145,7 +145,7 @@ sxstate sx_begin(sxmanager *m, sx *t, uint64_t vlsn)
 	return SXREADY;
 }
 
-void sx_gc(sx *t)
+void sx_gc(sx *t, sr *r)
 {
 	sxmanager *m = t->manager;
 	ssiter i;
@@ -160,12 +160,15 @@ void sx_gc(sx *t)
 		}
 	} else
 	if (t->s == SXROLLBACK) {
+		int gc = 0;
 		for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
 		{
 			svlogv *lv = ss_iterof(ss_bufiter, &i);
 			sxv *v = lv->v.v;
+			gc += sv_vsize((svv*)v->v);
 			sx_vfree(m->a, m->asxv, v);
 		}
+		ss_quota(r->quota, SS_QREMOVE, gc);
 	}
 	sv_logfree(&t->log, m->a);
 	t->s = SXUNDEF;
