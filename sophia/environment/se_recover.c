@@ -88,6 +88,9 @@ se_recoverlog(se *e, sl *log)
 			int flags = sv_flags(v);
 			if (flags == SVDELETE) {
 				rc = so_delete(tx, o);
+			} else
+			if (flags == SVUPDATE) {
+				rc = so_update(tx, o);
 			} else {
 				assert(flags == 0);
 				rc = so_set(tx, o);
