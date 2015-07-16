@@ -82,7 +82,7 @@ se_dbscheme_set(sedb *db)
 	if (s->compression_key) {
 		if (s->fmt == SF_DOCUMENT) {
 			sr_error(&e->error, "%s", "incompatible options: format=document "
-			         "and comppression_key=1");
+			         "and compression_key=1");
 			return -1;
 		}
 		s->fmt_storage = SF_SKEYVALUE;
