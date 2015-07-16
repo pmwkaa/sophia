@@ -185,6 +185,35 @@ se_metascheduler_checkpoint(srmeta *c, srmetastmt *s)
 }
 
 static inline int
+se_metascheduler_on_recover(srmeta *c, srmetastmt *s)
+{
+	se *e = s->ptr;
+	if (s->op != SR_WRITE)
+		return se_metav(c, s);
+	if (ssunlikely(se_statusactive(&e->status))) {
+		sr_error(s->r->e, "write to %s is offline-only", s->path);
+		return -1;
+	}
+	e->meta.on_recover.function =
+		(serecovercbf)(uintptr_t)s->value;
+	return 0;
+}
+
+static inline int
+se_metascheduler_on_recover_arg(srmeta *c, srmetastmt *s)
+{
+	se *e = s->ptr;
+	if (s->op != SR_WRITE)
+		return se_metav(c, s);
+	if (ssunlikely(se_statusactive(&e->status))) {
+		sr_error(s->r->e, "write to %s is offline-only", s->path);
+		return -1;
+	}
+	e->meta.on_recover.arg = s->value;
+	return 0;
+}
+
+static inline int
 se_metascheduler_on_event(srmeta *c, srmetastmt *s)
 {
 	se *e = s->ptr;
@@ -242,6 +271,8 @@ se_metascheduler(se *e, semetart *rt, srmeta **pc)
 	sr_M(&p, pc, se_metav, "checkpoint_lsn", SS_U64, &rt->checkpoint_lsn, SR_RO, NULL);
 	sr_M(&p, pc, se_metav, "checkpoint_lsn_last", SS_U64, &rt->checkpoint_lsn_last, SR_RO, NULL);
 	sr_m(&p, pc, se_metascheduler_checkpoint, "checkpoint",  SS_FUNCTION, NULL);
+	sr_m(&p, pc, se_metascheduler_on_recover, "on_recover", SS_STRING, NULL);
+	sr_m(&p, pc, se_metascheduler_on_recover_arg, "on_recover_arg", SS_STRING, NULL);
 	sr_m(&p, pc, se_metascheduler_on_event, "on_event", SS_STRING, NULL);
 	sr_m(&p, pc, se_metascheduler_on_event_arg, "on_event_arg", SS_STRING, NULL);
 	sr_m(&p, pc, se_metav_offline, "event_on_backup", SS_U32, &e->meta.event_on_backup);
@@ -868,6 +899,8 @@ void se_metainit(semeta *c, so *e)
 	c->log_rotate_sync     = 1;
 	c->two_phase_recover   = 0;
 	c->commit_lsn          = 0;
+	c->on_recover.function = NULL;
+	c->on_recover.arg      = NULL;
 	ss_triggerinit(&c->on_event);
 	c->event_on_backup     = 0;
 	srzone def = {
