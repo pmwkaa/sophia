@@ -45,6 +45,8 @@ SP_API void    *sp_batch(void*);
 SP_API void    *sp_begin(void*);
 SP_API int      sp_prepare(void*);
 SP_API int      sp_commit(void*);
+SP_API int sp_set_kv(void *ptr, const void *key, int key_sz,
+					 const void *val, int val_sz);
 
 #ifdef __cplusplus
 }

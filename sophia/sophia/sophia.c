@@ -232,6 +232,64 @@ SP_API int sp_set(void *ptr, void *v)
 	return rc;
 }
 
+/*
+ * Setting a key/value pair is a common operation.
+ * Do it by only aquiring once the mutex instead of 5 times!
+ *
+ * Ideally, it would be implemented as an o->i function.
+ */
+SP_API int sp_set_kv(void *ptr,
+					 const void *key, int key_sz,
+					 const void *val, int val_sz)
+{
+	so *o = sp_cast(ptr, __FUNCTION__);
+	if (ssunlikely(o->i->object == NULL) ||
+		ssunlikely(o->i->set == NULL)) {
+		sp_unsupported(o, __FUNCTION__);
+		return -1;
+	}
+
+	int rc = -1;
+	so *env = o->env;
+	so *kvo = NULL;
+	void *kv = NULL;
+
+	se_apilock(env);
+
+	kv = o->i->object(o);
+	if (kv == NULL) {
+		goto err;
+	}
+
+	kvo = sp_cast(kv, __FUNCTION__);
+	if (ssunlikely(kvo->i->setstring == NULL) ||
+		ssunlikely(kvo->i->destroy == NULL)) {
+		sp_unsupported(kvo, __FUNCTION__);
+		goto err;
+	}
+
+	rc = kvo->i->setstring(kvo, "key", (void*)key, key_sz);
+	if (ssunlikely(rc != 0)) {
+		goto err;
+	}
+
+	rc = kvo->i->setstring(kvo, "value", (void*)val, val_sz);
+	if (ssunlikely(rc != 0)) {
+		goto err;
+	}
+
+	rc = o->i->set(o, kvo);
+	// XXX: Is kvo freed even if rc != 0?
+	kvo = NULL;
+
+err:
+	if (kvo != NULL && kvo->i->destroy != NULL) {
+		kvo->i->destroy(kvo);
+	}
+	se_apiunlock(env);
+	return rc;
+}
+
 SP_API int sp_update(void *ptr, void *v)
 {
 	so *o = sp_cast(ptr, __FUNCTION__);
