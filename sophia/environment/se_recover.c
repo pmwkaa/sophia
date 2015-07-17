@@ -89,8 +89,8 @@ se_recoverlog(se *e, sl *log)
 			if (db == NULL || db->scheme.id != dsn)
 				db = (sedb*)se_dbmatch_id(e, dsn);
 			if (ssunlikely(db == NULL)) {
-				sr_malfunction(&e->error, "%s",
-				               "database id %" PRIu32 "is not declared", dsn);
+				sr_malfunction(&e->error, "database id %" PRIu32
+				               " is not declared", dsn);
 				goto rlb;
 			}
 			so *o = so_object(&db->o);

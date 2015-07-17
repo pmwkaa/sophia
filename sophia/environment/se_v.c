@@ -44,7 +44,7 @@ se_vsetpart(sev *v, char *path, void *pointer, int size)
 	if (size == 0)
 		size = strlen(pointer) + 1;
 	if (ssunlikely(size > keysize_max)) {
-		sr_error(&e->error, "%s", "key '%s' is too big (%d limit)",
+		sr_error(&e->error, "key '%s' is too big (%d limit)",
 		         pointer, keysize_max);
 		return NULL;
 	}
@@ -69,7 +69,7 @@ se_vsetstring(so *o, char *path, void *pointer, int size)
 	if (strcmp(path, "value") == 0) {
 		const int valuesize_max = 1 << 21;
 		if (ssunlikely(size > valuesize_max)) {
-			sr_error(&e->error, "%s", "value is too big (%d limit)",
+			sr_error(&e->error, "value is too big (%d limit)",
 			         valuesize_max);
 			return -1;
 		}
@@ -183,7 +183,7 @@ se_vgetint(so *o, char *path)
 			lsn = ((svv*)(v->v.v))->lsn;
 		return lsn;
 	} else {
-		sr_error(&e->error, "%s", "unknown object field '%s'",
+		sr_error(&e->error, "unknown object field '%s'",
 		         path);
 	}
 	return -1;
