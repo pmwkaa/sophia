@@ -126,6 +126,7 @@ meta_validation(void)
 	t( o != NULL );
 
 	char key[65000];
+	memset(key, 0, sizeof(key));
 	t( sp_setstring(o, "key", key, sizeof(key)) == -1 );
 	t( sp_setstring(o, "key", key, (1 << 15)) == 0 );
 	t( sp_setstring(o, "value", key, (1 << 21) + 1 ) == -1 );

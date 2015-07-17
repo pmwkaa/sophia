@@ -21,19 +21,19 @@ typedef enum {
 } ssorder;
 
 static inline ssorder
-ss_orderof(char *order)
+ss_orderof(char *order, int size)
 {
 	ssorder cmp = SS_STOP;
-	if (strcmp(order, ">") == 0) {
+	if (strncmp(order, ">", size) == 0) {
 		cmp = SS_GT;
 	} else
-	if (strcmp(order, ">=") == 0) {
+	if (strncmp(order, ">=", size) == 0) {
 		cmp = SS_GTE;
 	} else
-	if (strcmp(order, "<") == 0) {
+	if (strncmp(order, "<", size) == 0) {
 		cmp = SS_LT;
 	} else
-	if (strcmp(order, "<=") == 0) {
+	if (strncmp(order, "<=", size) == 0) {
 		cmp = SS_LTE;
 	}
 	return cmp;

@@ -18,10 +18,10 @@
 static void
 ss_order_of(void)
 {
-	t( ss_orderof(">") == SS_GT );
-	t( ss_orderof(">=") == SS_GTE );
-	t( ss_orderof("<") == SS_LT );
-	t( ss_orderof("<=") == SS_LTE );
+	t( ss_orderof(">", 1) == SS_GT );
+	t( ss_orderof(">=", 2) == SS_GTE );
+	t( ss_orderof("<", 1) == SS_LT );
+	t( ss_orderof("<=", 2) == SS_LTE );
 }
 
 static void

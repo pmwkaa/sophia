@@ -87,7 +87,9 @@ se_vsetstring(so *o, char *path, void *pointer, int size)
 		return 0;
 	}
 	if (strcmp(path, "order") == 0) {
-		ssorder cmp = ss_orderof(pointer);
+		if (size == 0)
+			size = strlen(pointer);
+		ssorder cmp = ss_orderof(pointer, size);
 		if (ssunlikely(cmp == SS_STOP)) {
 			sr_error(&e->error, "%s", "bad order name");
 			return -1;
