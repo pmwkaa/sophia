@@ -108,7 +108,7 @@ cleanup: clean
 	        $(STS_BACKUP_DIR) \
 	        $(STS_DB_DIR) $(STS_LOG_DIR)
 test:
-	@gdb -q -return-child-result -batch -ex "run" -ex "bt" ./$(STS_BINARY)
+	@gdb -q -return-child-result -batch -ex "run" -ex "bt" --args ./$(STS_BINARY) -vF
 
 .PHONY: all clean validate banner suite test
 

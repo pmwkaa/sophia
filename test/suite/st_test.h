@@ -15,6 +15,7 @@ typedef void (*sttf)(void);
 
 struct sttest {
 	char *name;
+	int id;
 	sttf function;
 	sslist link;
 };
@@ -26,6 +27,7 @@ st_test(char *name, sttf function)
 	if (ssunlikely(test == NULL))
 		return NULL;
 	test->name = name;
+	test->id = 0;
 	test->function = function;
 	ss_listinit(&test->link);
 	return test;

@@ -38,14 +38,17 @@ struct str {
 	/* test runner */
 	stsuite      suite;
 
+
 	/* current */
 	void        *env;
 	void        *db;
-	int          phase_scene;
-	int          phase;
 	sttest      *test;
 	stgroup     *group;
 	stplan      *plan;
+
+	/* current phase */
+	int          phase_compaction_scene;
+	int          phase_compaction;
 
 	/* stats */
 	int          stat_stmt;

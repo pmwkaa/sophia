@@ -118,13 +118,18 @@ se_vgetstring(so *o, char *path, int *size)
 		if (v->value) {
 			if (size)
 				*size = v->valuesize;
+			if (v->valuesize == 0)
+				return NULL;
 			return v->value;
 		}
 		/* result object */
 		sedb *db = (sedb*)o->parent;
+		int vsize = sv_valuesize(&v->v, &db->r);
 		if (size) {
-			*size = sv_valuesize(&v->v, &db->r);
+			*size = vsize;
 		}
+		if (vsize == 0)
+			return NULL;
 		return sv_value(&v->v, &db->r);
 	}
 	if (strcmp(path, "prefix") == 0) {

@@ -82,6 +82,7 @@ st_svv_va(stgenerator *g, stlist *l, uint64_t lsn, uint8_t flags, va_list args)
 	case SF_KV: v = st_generator_kv(g, args);
 		break;
 	case SF_DOCUMENT:
+		assert(0);
 		break;
 	}
 	v->lsn = lsn;
@@ -154,6 +155,7 @@ static uint64_t u64parts[16];
 
 svv *st_svv_seed(stgenerator *g, uint32_t seed, uint32_t seed_value)
 {
+	assert(g->r->fmt == SF_KV);
 	srscheme *scheme = g->r->scheme;
 	sfv parts[16];
 	assert(scheme->count <= 16);
@@ -175,9 +177,9 @@ svv *st_svv_seed(stgenerator *g, uint32_t seed, uint32_t seed_value)
 			fv->r.size = sizeof(uint64_t);
 		} else
 		if (scheme->parts[i].type == SS_STRING) {
-			keysize = seed % g->value_end;
-			if (keysize < g->value_start)
-				keysize = g->value_start;
+			keysize = seed % g->key_end;
+			if (keysize < g->key_start)
+				keysize = g->key_start;
 			key = ss_malloc(g->r->a, keysize);
 			if (ssunlikely(key == NULL)) {
 				while (--i >= 0) {

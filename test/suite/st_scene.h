@@ -24,6 +24,7 @@ struct stscene {
 static inline stscene*
 st_scene(char *name, stscenef function, int statemax)
 {
+	assert(statemax < 11); /* single id char */
 	stscene *scene = malloc(sizeof(*scene));
 	if (ssunlikely(scene == NULL))
 		return NULL;

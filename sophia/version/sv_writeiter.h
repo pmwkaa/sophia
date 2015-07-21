@@ -40,7 +40,6 @@ sv_writeiter_next(ssiter *i)
 				break;
 		}
 		uint64_t lsn = sv_lsn(v);
-		int kv = sv_size(v);
 		if (ssunlikely(dup)) {
 			/* keep atleast one visible version for <= vlsn */
 			if (im->prevlsn <= im->vlsn)
@@ -54,7 +53,7 @@ sv_writeiter_next(ssiter *i)
 					continue;
 				}
 			}
-			im->size += im->sizev + kv;
+			im->size += im->sizev + sv_size(v);
 		}
 		im->prevlsn = lsn;
 		im->v = v;
@@ -110,6 +109,7 @@ sv_writeiter_resume(ssiter *i)
 	im->v    = ss_iterof(sv_mergeiter, im->merge);
 	if (ssunlikely(im->v == NULL))
 		return 0;
+	im->prevlsn = sv_lsn(im->v);
 	im->next = 1;
 	im->size = im->sizev + sv_size(im->v);
 	return 1;

@@ -13,6 +13,7 @@ typedef struct stgroup stgroup;
 
 struct stgroup {
 	char *name;
+	int id;
 	sslist test;
 	int count;
 	sslist link;
@@ -24,6 +25,7 @@ st_group(char *name)
 	stgroup *group = malloc(sizeof(*group));
 	assert( group != NULL );
 	group->name = name;
+	group->id = 0;
 	group->count = 0;
 	ss_listinit(&group->test);
 	ss_listinit(&group->link);
@@ -45,7 +47,7 @@ static inline void
 st_groupadd(stgroup *g, sttest *t)
 {
 	ss_listappend(&g->test, &t->link);
-	g->count++;
+	t->id = g->count++;
 }
 
 #endif

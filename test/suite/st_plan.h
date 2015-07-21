@@ -13,6 +13,7 @@ typedef struct stplan stplan;
 
 struct stplan {
 	char *name;
+	int id;
 	sslist group;
 	stscene scene[100];
 	int group_count;
@@ -26,6 +27,7 @@ st_plan(char *name)
 	stplan *plan = malloc(sizeof(*plan));
 	assert( plan != NULL );
 	plan->name = name;
+	plan->id = 0;
 	plan->scene_count = 0;
 	plan->group_count = 0;
 	ss_listinit(&plan->group);
@@ -61,7 +63,7 @@ st_plannext(stplan *plan)
 	while (i >= 0) {
 		stscene *scene = &plan->scene[i];
 		scene->state++;
-		if (scene->state == scene->statemax)
+		if (scene->state >= scene->statemax)
 			scene->state = 0;
 		else
 			return 1;
@@ -74,7 +76,7 @@ static inline void
 st_planadd(stplan *p, stgroup *g)
 {
 	ss_listappend(&p->group, &g->link);
-	p->group_count++;
+	g->id = p->group_count++;
 }
 
 static inline void

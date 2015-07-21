@@ -274,6 +274,7 @@ si_qfetchbranch(siquery *q, sinode *n, sibranch *b, svmerge *m)
 	ss_iterinit(sd_indexiter, &i);
 	ss_iteropen(sd_indexiter, &i, q->r, &b->index, q->order, q->key, q->keysize);
 	sdindexpage *prev = cb->ref;
+next_page:
 	cb->ref = ss_iterof(sd_indexiter, &i);
 	if (cb->ref == NULL || cb->ref == prev)
 		return;
@@ -284,11 +285,15 @@ si_qfetchbranch(siquery *q, sinode *n, sibranch *b, svmerge *m)
 		cb->ref = NULL;
 		return;
 	}
-	svmergesrc *s = sv_mergeadd(m, &cb->i);
-	s->ptr = cb;
 	ss_iterinit(sd_pageiter, &cb->i);
 	ss_iteropen(sd_pageiter, &cb->i, q->r, &cb->buf_b, &cb->page, q->order,
 	            q->key, q->keysize, q->vlsn);
+	if (ssunlikely(! ss_iterof(sd_pageiter, &cb->i))) {
+		ss_iternext(sd_indexiter, &i);
+		goto next_page;
+	}
+	svmergesrc *s = sv_mergeadd(m, &cb->i);
+	s->ptr = cb;
 }
 
 static inline int
