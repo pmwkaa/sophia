@@ -110,9 +110,11 @@ cleanup: clean
 	        $(STS_BACKUP_DIR) \
 	        $(STS_DB_DIR) $(STS_LOG_DIR)
 test:
-	@if ! sh ./run-gdb.sh $(STS_BINARY) $(STS_LOG); then \
+	sh ./run-gdb.sh $(STS_BINARY) $(STS_LOG)
+	#@if ! sh ./run-gdb.sh $(STS_BINARY) $(STS_LOG); then \
 		echo ""; \
 		tail -n 10 $(STS_LOG); \
+		exit 1; \
 	fi
 
 .PHONY: all clean validate banner suite test
