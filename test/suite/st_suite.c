@@ -24,6 +24,7 @@ void st_suiteinit(stsuite *s)
 	s->stop_plan = 0;
 	s->stop_group = 0;
 	s->stop_test = 0;
+	s->total = 0;
 }
 
 void st_suitefree(stsuite *s)
@@ -149,7 +150,7 @@ void st_suiterun(stsuite *s, char *id)
 	if (id) {
 		int rc = st_suiterun_set(s, id, &i, &j, &k);
 		if (rc == -1) {
-			printf("error: bad test id\n");
+			fprintf(st_r.output, "error: bad test id\n");
 			return;
 		}
 	}
@@ -178,17 +179,20 @@ void st_suiterun(stsuite *s, char *id)
 					st_r.group = group;
 					st_r.plan  = plan;
 
-					printf("[%02d:%02d:%02d:", plan->id, group->id, test->id);
+					int percent = (st_r.stat_test * 100.0) / st_r.suite.total;
+					fprintf(st_r.output, "[%02d%%] ", percent);
+
 					int g = 0;
+					fprintf(st_r.output, "(%02d:%02d:%02d:", plan->id, group->id, test->id);
 					while (g < plan->scene_count) {
 						stscene *scene = &plan->scene[g];
 						if (scene->statemax > 1)
-							printf("%d", scene->state);
+							fprintf(st_r.output, "%d", scene->state);
 						g++;
 					}
-					printf("] ");
-					printf("%s.%s.%s", plan->name, group->name, test->name);
-					fflush(NULL);
+					fprintf(st_r.output, ") %s.%s.%s", plan->name, group->name, test->name);
+					fflush(st_r.output);
+
 					g = 0;
 					while (g < plan->scene_count) {
 						stscene *scene = &plan->scene[g];
@@ -208,7 +212,6 @@ void st_suiterun(stsuite *s, char *id)
 		j = NULL;
 		if (s->stop_plan)
 			return;
-
-		printf("\n");
+		fprintf(st_r.output, "\n");
 	}
 }

@@ -15,6 +15,7 @@ struct stsuite {
 	sslist scene;
 	int scene_count;
 	sslist plan;
+	int total;
 	int plan_count;
 	int stop_plan;
 	int stop_group;

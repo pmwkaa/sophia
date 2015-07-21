@@ -13,7 +13,9 @@ typedef struct str str;
 
 struct str {
 	stconf      *conf;
+	FILE        *output;
 	int          verbose;
+	int          report;
 
 	/* generator */
 	int          key_start;

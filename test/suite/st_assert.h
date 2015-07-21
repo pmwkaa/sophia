@@ -11,8 +11,8 @@
 
 #define t(expr) ({ \
 	if (! (expr)) { \
-		printf(": fail (%s:%d) %s\n", __FILE__, __LINE__, #expr); \
-		fflush(NULL); \
+		fprintf(st_r.output, ": fail (%s:%d) %s\n", __FILE__, __LINE__, #expr); \
+		fflush(st_r.output); \
 		abort(); \
 	} \
 	st_r.stat_stmt++; \

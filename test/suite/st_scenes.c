@@ -26,17 +26,28 @@ void st_scene_rmrf(stscene *s ssunused)
 void st_scene_test(stscene *s ssunused)
 {
 	if (st_r.verbose) {
-		printf(".test");
-		fflush(NULL);
+		fprintf(st_r.output, ".test");
+		fflush(st_r.output);
 	}
 	st_r.test->function();
 	st_r.stat_test++;
+
+	if (st_r.conf->report) {
+		int percent = (st_r.stat_test * 100.0) / st_r.suite.total;
+		if (percent == st_r.report)
+			return;
+		st_r.report = percent;
+		fprintf(stdout, "complete %02d%% (%d tests out of %d)\n",
+		        percent,
+		        st_r.stat_test,
+		        st_r.suite.total);
+	}
 }
 
 void st_scene_pass(stscene *s ssunused)
 {
-	printf(": ok\n");
-	fflush(NULL);
+	fprintf(st_r.output,  ": ok\n");
+	fflush(st_r.output);
 }
 
 void st_scene_init(stscene *s ssunused)
@@ -97,8 +108,8 @@ void st_scene_gc(stscene *s ssunused)
 void st_scene_env(stscene *s ssunused)
 {
 	if (st_r.verbose) {
-		printf(".env");
-		fflush(NULL);
+		fprintf(st_r.output, ".env");
+		fflush(st_r.output);
 	}
 
 	t( st_r.env == NULL );
@@ -134,16 +145,18 @@ void st_scene_branch_wm_1(stscene *s ssunused)
 
 void st_scene_thread_5(stscene *s ssunused)
 {
-	printf(".thread_5");
-	fflush(NULL);
+	if (st_r.verbose) {
+		fprintf(st_r.output, ".thread_5");
+		fflush(st_r.output);
+	}
 	t( sp_setint(st_r.env, "scheduler.threads", 5) == 0 );
 }
 
 void st_scene_open(stscene *s ssunused)
 {
 	if (st_r.verbose) {
-		printf(".open");
-		fflush(NULL);
+		fprintf(st_r.output, ".open");
+		fflush(st_r.output);
 	}
 	t( sp_open(st_r.env) == 0 );
 }
@@ -151,8 +164,8 @@ void st_scene_open(stscene *s ssunused)
 void st_scene_destroy(stscene *s ssunused)
 {
 	if (st_r.verbose) {
-		printf(".destroy");
-		fflush(NULL);
+		fprintf(st_r.output, ".destroy");
+		fflush(st_r.output);
 	}
 	t( st_r.env != NULL );
 	t( sp_destroy(st_r.env) == 0 );
@@ -163,8 +176,8 @@ void st_scene_destroy(stscene *s ssunused)
 void st_scene_truncate(stscene *s ssunused)
 {
 	if (st_r.verbose) {
-		printf(".truncate");
-		fflush(NULL);
+		fprintf(st_r.output, ".truncate");
+		fflush(st_r.output);
 	}
 	void *o = sp_object(st_r.db);
 	t( o != NULL );
@@ -191,8 +204,8 @@ void st_scene_truncate(stscene *s ssunused)
 
 void st_scene_recover(stscene *s ssunused)
 {
-	printf("\n (recover) ");
-	fflush(NULL);
+	fprintf(st_r.output, "\n (recover) ");
+	fflush(st_r.output);
 }
 
 void st_scene_phase_compaction(stscene *s)
@@ -203,24 +216,24 @@ void st_scene_phase_compaction(stscene *s)
 		return;
 	switch (s->state) {
 	case 0:
-		printf(".in_memory");
-		fflush(NULL);
+		fprintf(st_r.output, ".in_memory");
+		fflush(st_r.output);
 		break;
 	case 1:
-		printf(".branch");
-		fflush(NULL);
+		fprintf(st_r.output, ".branch");
+		fflush(st_r.output);
 		break;
 	case 2:
-		printf(".compact");
-		fflush(NULL);
+		fprintf(st_r.output, ".compact");
+		fflush(st_r.output);
 		break;
 	case 3:
-		printf(".logrotate_gc");
-		fflush(NULL);
+		fprintf(st_r.output, ".logrotate_gc");
+		fflush(st_r.output);
 		break;
 	case 4:
-		printf(".branch_compact");
-		fflush(NULL);
+		fprintf(st_r.output, ".branch_compact");
+		fflush(st_r.output);
 		break;
 	default: assert(0);
 	}
@@ -232,8 +245,8 @@ void st_scene_phase_scheme_int(stscene *s)
 	switch (s->state) {
 	case 0:
 		if (st_r.verbose) {
-			printf(".scheme_u32");
-			fflush(NULL);
+			fprintf(st_r.output, ".scheme_u32");
+			fflush(st_r.output);
 		}
 		part = sr_schemeadd(&st_r.scheme, &st_r.a);
 		t( sr_keysetname(part, &st_r.a, "key") == 0 );
@@ -242,8 +255,8 @@ void st_scene_phase_scheme_int(stscene *s)
 		break;
 	case 1:
 		if (st_r.verbose) {
-			printf(".scheme_u64");
-			fflush(NULL);
+			fprintf(st_r.output, ".scheme_u64");
+			fflush(st_r.output);
 		}
 		part = sr_schemeadd(&st_r.scheme, &st_r.a);
 		t( sr_keysetname(part, &st_r.a, "key") == 0 );
@@ -252,8 +265,8 @@ void st_scene_phase_scheme_int(stscene *s)
 		break;
 	case 2:
 		if (st_r.verbose) {
-			printf(".scheme_u32_u32");
-			fflush(NULL);
+			fprintf(st_r.output, ".scheme_u32_u32");
+			fflush(st_r.output);
 		}
 		part = sr_schemeadd(&st_r.scheme, &st_r.a);
 		t( sr_keysetname(part, &st_r.a, "key") == 0 );
@@ -275,8 +288,8 @@ void st_scene_phase_scheme(stscene *s)
 	switch (s->state) {
 	case 0:
 		if (st_r.verbose) {
-			printf(".scheme_u32");
-			fflush(NULL);
+			fprintf(st_r.output, ".scheme_u32");
+			fflush(st_r.output);
 		}
 		part = sr_schemeadd(&st_r.scheme, &st_r.a);
 		t( sr_keysetname(part, &st_r.a, "key") == 0 );
@@ -285,8 +298,8 @@ void st_scene_phase_scheme(stscene *s)
 		break;
 	case 1:
 		if (st_r.verbose) {
-			printf(".scheme_u64");
-			fflush(NULL);
+			fprintf(st_r.output, ".scheme_u64");
+			fflush(st_r.output);
 		}
 		part = sr_schemeadd(&st_r.scheme, &st_r.a);
 		t( sr_keysetname(part, &st_r.a, "key") == 0 );
@@ -295,8 +308,8 @@ void st_scene_phase_scheme(stscene *s)
 		break;
 	case 2:
 		if (st_r.verbose) {
-			printf(".scheme_string");
-			fflush(NULL);
+			fprintf(st_r.output, ".scheme_string");
+			fflush(st_r.output);
 		}
 		part = sr_schemeadd(&st_r.scheme, &st_r.a);
 		t( sr_keysetname(part, &st_r.a, "key") == 0 );
@@ -305,8 +318,8 @@ void st_scene_phase_scheme(stscene *s)
 		break;
 	case 3:
 		if (st_r.verbose) {
-			printf(".scheme_u32_u32");
-			fflush(NULL);
+			fprintf(st_r.output, ".scheme_u32_u32");
+			fflush(st_r.output);
 		}
 		part = sr_schemeadd(&st_r.scheme, &st_r.a);
 		t( sr_keysetname(part, &st_r.a, "key") == 0 );
@@ -320,8 +333,8 @@ void st_scene_phase_scheme(stscene *s)
 		break;
 	case 4:
 		if (st_r.verbose) {
-			printf(".scheme_string_u32");
-			fflush(NULL);
+			fprintf(st_r.output, ".scheme_string_u32");
+			fflush(st_r.output);
 		}
 		part = sr_schemeadd(&st_r.scheme, &st_r.a);
 		t( sr_keysetname(part, &st_r.a, "key") == 0 );
@@ -342,16 +355,16 @@ void st_scene_phase_format(stscene *s)
 	switch (s->state) {
 	case 0:
 		if (st_r.verbose) {
-			printf(".fmt_kv");
-			fflush(NULL);
+			fprintf(st_r.output, ".fmt_kv");
+			fflush(st_r.output);
 		}
 		st_r.fmt = SF_KV;
 		t( sp_setstring(st_r.env, "db.test.format", "kv", 0) == 0 );
 		break;
 	case 1:
 		if (st_r.verbose) {
-			printf(".fmt_doc");
-			fflush(NULL);
+			fprintf(st_r.output, ".fmt_doc");
+			fflush(st_r.output);
 		}
 		st_r.fmt = SF_DOCUMENT;
 		t( sp_setstring(st_r.env, "db.test.format", "document", 0) == 0 );
@@ -367,53 +380,53 @@ void st_scene_phase_storage(stscene *s)
 	switch (s->state) {
 	case 0:
 		if (st_r.verbose) {
-			printf(".storage_compression");
-			fflush(NULL);
+			fprintf(st_r.output, ".storage_compression");
+			fflush(st_r.output);
 		}
 		t( sp_setstring(st_r.env, "db.test.compression", "lz4", 0) == 0 );
 		break;
 	case 1:
 		if (st_r.verbose) {
-			printf(".storage_mmap");
-			fflush(NULL);
+			fprintf(st_r.output, ".storage_mmap");
+			fflush(st_r.output);
 		}
 		t( sp_setint(st_r.env, "db.test.mmap", 1) == 0 );
 		break;
 	case 2:
 		if (st_r.verbose) {
-			printf(".storage_mmap_compression");
-			fflush(NULL);
+			fprintf(st_r.output, ".storage_mmap_compression");
+			fflush(st_r.output);
 		}
 		t( sp_setint(st_r.env, "db.test.mmap", 1) == 0 );
 		t( sp_setstring(st_r.env, "db.test.compression", "lz4", 0) == 0 );
 		break;
 	case 3:
 		if (st_r.verbose) {
-			printf(".storage_compression_key");
-			fflush(NULL);
+			fprintf(st_r.output, ".storage_compression_key");
+			fflush(st_r.output);
 		}
 		t( sp_setint(st_r.env, "db.test.compression_key", 1) == 0 );
 		break;
 	case 4:
 		if (st_r.verbose) {
-			printf(".storage_mmap_compression_key");
-			fflush(NULL);
+			fprintf(st_r.output, ".storage_mmap_compression_key");
+			fflush(st_r.output);
 		}
 		t( sp_setint(st_r.env, "db.test.mmap", 1) == 0 );
 		t( sp_setint(st_r.env, "db.test.compression_key", 1) == 0 );
 		break;
 	case 5:
 		if (st_r.verbose) {
-			printf(".storage_compression_compression_key");
-			fflush(NULL);
+			fprintf(st_r.output, ".storage_compression_compression_key");
+			fflush(st_r.output);
 		}
 		t( sp_setstring(st_r.env, "db.test.compression", "lz4", 0) == 0 );
 		t( sp_setint(st_r.env, "db.test.compression_key", 1) == 0 );
 		break;
 	case 6:
 		if (st_r.verbose) {
-			printf(".storage_mmap_compression_compression_key");
-			fflush(NULL);
+			fprintf(st_r.output, ".storage_mmap_compression_compression_key");
+			fflush(st_r.output);
 		}
 		t( sp_setint(st_r.env, "db.test.mmap", 1) == 0 );
 		t( sp_setstring(st_r.env, "db.test.compression", "lz4", 0) == 0 );
@@ -428,24 +441,24 @@ void st_scene_phase_size(stscene *s)
 	switch (s->state) {
 	case 0:
 		if (st_r.verbose) {
-			printf(".size_8byte");
-			fflush(NULL);
+			fprintf(st_r.output, ".size_8byte");
+			fflush(st_r.output);
 		}
 		st_r.value_start = 8;
 		st_r.value_end = 8;
 		break;
 	case 1:
 		if (st_r.verbose) {
-			printf(".size_1Kb");
-			fflush(NULL);
+			fprintf(st_r.output, ".size_1Kb");
+			fflush(st_r.output);
 		}
 		st_r.value_start = 1024;
 		st_r.value_end = 1024;
 		break;
 	case 2:
 		if (st_r.verbose) {
-			printf(".size_512Kb");
-			fflush(NULL);
+			fprintf(st_r.output, ".size_512Kb");
+			fflush(st_r.output);
 		}
 		st_r.value_start = 512 * 1024;
 		st_r.value_end = 512 * 1024;

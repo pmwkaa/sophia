@@ -22,8 +22,8 @@
 static inline void
 print_current(int i) {
 	if (i > 0 && (i % 100000) == 0) {
-		printf(" %.1fM", i / 1000000.0);
-		fflush(NULL);
+		fprintf(st_r.output, " %.1fM", i / 1000000.0);
+		fflush(st_r.output);
 	}
 }
 
@@ -61,13 +61,13 @@ mt_set_checkpoint_get(void)
 	}
 	t( sp_setint(env, "log.rotate", 0) == 0 );
 	t( sp_setint(env, "scheduler.checkpoint", 0) == 0 );
-	printf(" (checkpoint..");
+	fprintf(st_r.output, " (checkpoint..");
 	for (;;) {
 		int active = sp_getint(env, "scheduler.checkpoint_active");
 		if (!active)
 			break;
 	}
-	printf("done)");
+	fprintf(st_r.output, "done)");
 
 	/* This works only with thread = 1.
 	 *
@@ -378,7 +378,7 @@ mt_async(void)
 		print_current(i);
 		i++;
 	}
-	printf(" (done..gather)");
+	fprintf(st_r.output, " (done..gather)");
 	i = 0;
 	while (i < 500000) {
 		void *req = sp_poll(env);

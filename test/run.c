@@ -89,9 +89,10 @@ static void
 usage(char *path, int error) {
 	printf("sophia test-suite.\n");
 	printf("\n");
-	printf("usage: %s [-vhFPGTt] [options]\n", path);
+	printf("usage: %s [-vhrlFPGTt] [options]\n", path);
 	printf("  -F         run full tests (fast by default)\n");
 	printf("  -t <id>    test id to execute\n");
+	printf("  -l <file>  output file\n");
 	printf("  -T         stop after test\n");
 	printf("  -G         stop after group\n");
 	printf("  -P         stop after plan\n");
@@ -111,13 +112,15 @@ main(int argc, char *argv[])
 		.log_dir    = "log",
 		.db_dir     = "test",
 		.verbose    = 0,
+		.report     = 0,
 		.id         = NULL,
+		.logfile    = NULL,
 		.stop_plan  = 0,
 		.stop_group = 0,
 		.stop_test  = 0
 	};
 	int opt;
-	while ((opt = getopt(argc, argv, "t:FPGTvh")) != -1) {
+	while ((opt = getopt(argc, argv, "t:FPGTl:rvh")) != -1) {
 		switch (opt) {
 		case 'F': full = 1;
 			break;
@@ -128,6 +131,10 @@ main(int argc, char *argv[])
 		case 'T': conf.stop_test = 1;
 			break;
 		case 't': conf.id = optarg;
+			break;
+		case 'r': conf.report = 1;
+			break;
+		case 'l': conf.logfile = optarg;
 			break;
 		case 'v': conf.verbose = 1;
 			break;

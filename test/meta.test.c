@@ -169,20 +169,20 @@ meta_cursor(void)
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "snapshot", "test_snapshot0", 0) == 0 );
 
-	printf("\n");
+	fprintf(st_r.output, "\n");
 
 	void *o;
 	void *cur = sp_cursor(env, NULL);
 	t( cur != NULL );
-	printf("\n");
+	fprintf(st_r.output, "\n");
 	while ((o = sp_get(cur, NULL))) {
 		char *key = sp_getstring(o, "key", 0);
 		char *value = sp_getstring(o, "value", 0);
-		printf("%s", key);
+		fprintf(st_r.output, "%s", key);
 		if (value)
-			printf(" = %s\n", value);
+			fprintf(st_r.output, " = %s\n", value);
 		else
-			printf(" = \n");
+			fprintf(st_r.output, " = \n");
 		sp_destroy(o);
 	}
 	t( sp_destroy(cur) == 0 );

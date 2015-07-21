@@ -80,6 +80,7 @@ STS_SOPHIA_DIR  = sophia
 STS_BACKUP_DIR  = backup
 STS_LOG_DIR     = log
 STS_DB_DIR      = test
+STS_LOG         = test.log
 
 all: banner validate suite $(OBJECTS)
 	@echo "ld $(STS_BINARY)"
@@ -102,13 +103,17 @@ validate:
 clean:
 	@(cd suite; make --no-print-directory clean)
 	@rm -f $(STS_BINARY)
+	@rm -f $(STS_LOG)
 	@rm -f $(OBJECTS)
 cleanup: clean
 	@rm -fr $(STS_SOPHIA_DIR) \
 	        $(STS_BACKUP_DIR) \
 	        $(STS_DB_DIR) $(STS_LOG_DIR)
 test:
-	@gdb -q -return-child-result -batch -ex "run" -ex "bt" --args ./$(STS_BINARY) -vF
+	@if ! sh ./run-gdb.sh $(STS_BINARY) $(STS_LOG); then \
+		echo ""; \
+		tail -n 10 $(STS_LOG); \
+	fi
 
 .PHONY: all clean validate banner suite test
 

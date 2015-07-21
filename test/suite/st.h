@@ -17,9 +17,11 @@ struct stconf {
 	char *log_dir;
 	char *db_dir;
 	char *id;
+	char *logfile;
 	int   stop_plan;
 	int   stop_group;
 	int   stop_test;
+	int   report;
 	int   verbose;
 };
 
