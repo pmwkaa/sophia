@@ -39,6 +39,7 @@ OBJECTS = ss_leb128.test.o \
           env.test.o \
           deadlock.test.o \
           scheme.test.o \
+          rev.test.o \
           branch.test.o \
           compact.test.o \
           backup.test.o \

@@ -183,13 +183,18 @@ void st_suiterun(stsuite *s, char *id)
 					fprintf(st_r.output, "[%02d%%] ", percent);
 
 					int g = 0;
+					int scenes = 0;
 					fprintf(st_r.output, "(%02d:%02d:%02d:", plan->id, group->id, test->id);
 					while (g < plan->scene_count) {
 						stscene *scene = &plan->scene[g];
-						if (scene->statemax > 1)
+						if (scene->statemax > 1) {
 							fprintf(st_r.output, "%d", scene->state);
+							scenes++;
+						}
 						g++;
 					}
+					if (scenes == 0)
+						fprintf(st_r.output, "0");
 					fprintf(st_r.output, ") %s.%s.%s", plan->name, group->name, test->name);
 					fflush(st_r.output);
 

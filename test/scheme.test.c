@@ -16,7 +16,7 @@
 #include <libst.h>
 
 static void
-schema_test0(void)
+scheme_test0(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -69,7 +69,7 @@ schema_test0(void)
 }
 
 static void
-schema_test1(void)
+scheme_test1(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -127,10 +127,10 @@ schema_test1(void)
 	t( sp_destroy(env) == 0 );
 }
 
-stgroup *schema_group(void)
+stgroup *scheme_group(void)
 {
-	stgroup *group = st_group("schema");
-	st_groupadd(group, st_test("test0", schema_test0));
-	st_groupadd(group, st_test("test1", schema_test1));
+	stgroup *group = st_group("scheme");
+	st_groupadd(group, st_test("test0", scheme_test0));
+	st_groupadd(group, st_test("test1", scheme_test1));
 	return group;
 }

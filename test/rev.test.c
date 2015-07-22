@@ -1,0 +1,288 @@
+
+/*
+ * sophia database
+ * sphia.org
+ *
+ * Copyright (c) Dmitry Simonenko
+ * BSD License
+*/
+
+#include <sophia.h>
+#include <libss.h>
+#include <libsf.h>
+#include <libsr.h>
+#include <libsv.h>
+#include <libsd.h>
+#include <libst.h>
+
+static void
+rev_u32_test0(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_open(env) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32_rev", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(db) == 0 );
+
+	uint32_t key = 0;
+	while (key < 10) {
+		void *o = sp_object(db);
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_set(db, o) == 0 );
+		key++;
+	}
+
+	key = 4;
+	void *o = sp_object(db);
+	sp_setstring(o, "key", &key, sizeof(key));
+	o = sp_get(db, o);
+	t( o != NULL );
+	sp_destroy(o);
+
+	o = sp_object(db);
+	sp_setstring(o, "order", ">=", 0);
+	void *c = sp_cursor(db, o);
+	key = 9;
+	while ((o = sp_get(c, NULL))) {
+		t( *(uint32_t*)sp_getstring(o, "key", NULL) == key );
+		sp_destroy(o);
+		key--;
+	}
+	t(key == UINT32_MAX); /* overflow */
+	sp_destroy(c);
+
+	o = sp_object(db);
+	sp_setstring(o, "order", "<=", 0);
+	c = sp_cursor(db, o);
+	key = 0;
+	while ((o = sp_get(c, NULL))) {
+		t( *(uint32_t*)sp_getstring(o, "key", NULL) == key );
+		sp_destroy(o);
+		key++;
+	}
+	t(key == 10);
+	sp_destroy(c);
+
+	t( sp_destroy(env) == 0 );
+}
+
+static void
+rev_u32_test1(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_open(env) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32_rev", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(db) == 0 );
+
+	uint32_t key = 0;
+	while (key < 10) {
+		void *o = sp_object(db);
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_set(db, o) == 0 );
+		key++;
+	}
+
+	key = 15;
+	void *o = sp_object(db);
+	sp_setstring(o, "order", ">=", 0);
+	sp_setstring(o, "key", &key, sizeof(key));
+
+	void *c = sp_cursor(db, o);
+	uint32_t expect = 9;
+	while ((o = sp_get(c, NULL))) {
+		t( *(uint32_t*)sp_getstring(o, "key", NULL) == expect );
+		sp_destroy(o);
+		expect--;
+	}
+	t(expect == UINT32_MAX); /* overflow */
+	sp_destroy(c);
+
+	key = 5;
+	o = sp_object(db);
+	sp_setstring(o, "order", ">=", 0);
+	sp_setstring(o, "key", &key, sizeof(key));
+
+	c = sp_cursor(db, o);
+	expect = key;
+	while ((o = sp_get(c, NULL))) {
+		t( *(uint32_t*)sp_getstring(o, "key", NULL) == expect );
+		sp_destroy(o);
+		expect--;
+	}
+	t(expect == UINT32_MAX); /* overflow */
+	sp_destroy(c);
+
+	key = 5;
+	o = sp_object(db);
+	sp_setstring(o, "order", "<=", 0);
+	sp_setstring(o, "key", &key, sizeof(key));
+	c = sp_cursor(db, o);
+	expect = key;
+	while ((o = sp_get(c, NULL))) {
+		t( *(uint32_t*)sp_getstring(o, "key", NULL) == expect );
+		sp_destroy(o);
+		expect++;
+	}
+	t(expect == 10);
+	sp_destroy(c);
+
+	t( sp_destroy(env) == 0 );
+}
+
+static void
+rev_u64_test0(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_open(env) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u64_rev", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(db) == 0 );
+
+	uint64_t key = 0;
+	while (key < 10) {
+		void *o = sp_object(db);
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_set(db, o) == 0 );
+		key++;
+	}
+
+	key = 4;
+	void *o = sp_object(db);
+	sp_setstring(o, "key", &key, sizeof(key));
+	o = sp_get(db, o);
+	t( o != NULL );
+	sp_destroy(o);
+
+	o = sp_object(db);
+	sp_setstring(o, "order", ">=", 0);
+	void *c = sp_cursor(db, o);
+	key = 9;
+	while ((o = sp_get(c, NULL))) {
+		t( *(uint64_t*)sp_getstring(o, "key", NULL) == key );
+		sp_destroy(o);
+		key--;
+	}
+	t(key == UINT64_MAX); /* overflow */
+	sp_destroy(c);
+
+	o = sp_object(db);
+	sp_setstring(o, "order", "<=", 0);
+	c = sp_cursor(db, o);
+	key = 0;
+	while ((o = sp_get(c, NULL))) {
+		t( *(uint64_t*)sp_getstring(o, "key", NULL) == key );
+		sp_destroy(o);
+		key++;
+	}
+	t(key == 10);
+	sp_destroy(c);
+
+	t( sp_destroy(env) == 0 );
+}
+
+static void
+rev_u64_test1(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_open(env) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32_rev", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(db) == 0 );
+
+	uint64_t key = 0;
+	while (key < 10) {
+		void *o = sp_object(db);
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_set(db, o) == 0 );
+		key++;
+	}
+
+	key = 15;
+	void *o = sp_object(db);
+	sp_setstring(o, "order", ">=", 0);
+	sp_setstring(o, "key", &key, sizeof(key));
+
+	void *c = sp_cursor(db, o);
+	uint64_t expect = 9;
+	while ((o = sp_get(c, NULL))) {
+		t( *(uint64_t*)sp_getstring(o, "key", NULL) == expect );
+		sp_destroy(o);
+		expect--;
+	}
+	t(expect == UINT64_MAX); /* overflow */
+	sp_destroy(c);
+
+	key = 5;
+	o = sp_object(db);
+	sp_setstring(o, "order", ">=", 0);
+	sp_setstring(o, "key", &key, sizeof(key));
+
+	c = sp_cursor(db, o);
+	expect = key;
+	while ((o = sp_get(c, NULL))) {
+		t( *(uint64_t*)sp_getstring(o, "key", NULL) == expect );
+		sp_destroy(o);
+		expect--;
+	}
+	t(expect == UINT64_MAX); /* overflow */
+	sp_destroy(c);
+
+	key = 5;
+	o = sp_object(db);
+	sp_setstring(o, "order", "<=", 0);
+	sp_setstring(o, "key", &key, sizeof(key));
+	c = sp_cursor(db, o);
+	expect = key;
+	while ((o = sp_get(c, NULL))) {
+		t( *(uint64_t*)sp_getstring(o, "key", NULL) == expect );
+		sp_destroy(o);
+		expect++;
+	}
+	t(expect == 10);
+	sp_destroy(c);
+
+	t( sp_destroy(env) == 0 );
+}
+
+stgroup *rev_group(void)
+{
+	stgroup *group = st_group("rev");
+	st_groupadd(group, st_test("u32_test0", rev_u32_test0));
+	st_groupadd(group, st_test("u32_test1", rev_u32_test1));
+	st_groupadd(group, st_test("u64_test0", rev_u64_test0));
+	st_groupadd(group, st_test("u64_test1", rev_u64_test1));
+	return group;
+}

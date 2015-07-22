@@ -24,7 +24,8 @@ sr_cmpany(char *prefix, int prefixsz,
 	return 0;
 }
 
-static inline sshot int sr_compare_u32(const char *a, const char *b)
+static inline sshot int
+sr_compare_u32(const char *a, const char *b)
 {
 	uint32_t av = *(const uint32_t*)a;
 	uint32_t bv = *(const uint32_t*)b;
@@ -103,7 +104,6 @@ sr_cmpu64_reverse(char *a, int asz ssunused, char *b, int bsz ssunused, void *ar
 	b = sf_key(b, part);
 	return -sr_compare_u64(a, b);
 }
-
 
 static inline sshot int
 sr_cmpstring_prefix(char *prefix, int prefixsz, char *key, int keysz,
@@ -197,7 +197,7 @@ int sr_keyset(srkey *part, ssa *a, char *path)
 		cmp = sr_cmpu32;
 		cmpraw = sr_cmpu32_raw;
 	} else
-	if (strcmp(path, "-u32") == 0) {
+	if (strcmp(path, "u32_rev") == 0) {
 		type = SS_U32;
 		cmp = sr_cmpu32_reverse;
 		cmpraw = sr_cmpu32_raw_reverse;
@@ -207,7 +207,7 @@ int sr_keyset(srkey *part, ssa *a, char *path)
 		cmp = sr_cmpu64;
 		cmpraw = sr_cmpu64_raw;
 	} else
-	if (strcmp(path, "-u64") == 0) {
+	if (strcmp(path, "u64_rev") == 0) {
 		type = SS_U64;
 		cmp = sr_cmpu64_reverse;
 		cmpraw = sr_cmpu64_raw_reverse;
