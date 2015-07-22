@@ -27,6 +27,7 @@ se_metav_destroy(so *o)
 	ss_free(&e->a, v->key);
 	if (v->value)
 		ss_free(&e->a, v->value);
+	se_mark_destroyed(&v->o);
 	ss_free(&e->a_metav, v);
 	return 0;
 }
@@ -84,6 +85,7 @@ static inline so *se_metav_new(se *e, srmetadump *vp)
 	v->keysize = vp->keysize;
 	v->key = ss_malloc(&e->a, v->keysize);
 	if (ssunlikely(v->key == NULL)) {
+		se_mark_destroyed(&v->o);
 		ss_free(&e->a_metav, v);
 		return NULL;
 	}
@@ -94,6 +96,7 @@ static inline so *se_metav_new(se *e, srmetadump *vp)
 		v->value = ss_malloc(&e->a, v->valuesize);
 		if (ssunlikely(v->key == NULL)) {
 			ss_free(&e->a, v->key);
+			se_mark_destroyed(&v->o);
 			ss_free(&e->a_metav, v);
 			return NULL;
 		}
@@ -109,6 +112,7 @@ se_metacursor_destroy(so *o)
 	se *e = se_of(o);
 	ss_buffree(&c->dump, &e->a);
 	so_listdel(&e->metacursor, &c->o);
+	se_mark_destroyed(&c->o);
 	ss_free(&e->a_metacursor, c);
 	return 0;
 }

@@ -169,6 +169,7 @@ se_destroy(so *o)
 	ss_pagerfree(&e->pager);
 	ss_pagerfree(&e->pagersx);
 	se_statusfree(&e->status);
+	se_mark_destroyed(&e->o);
 	free(e);
 	return rcret;
 }

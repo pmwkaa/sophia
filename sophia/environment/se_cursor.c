@@ -31,6 +31,7 @@ void se_cursorend(secursor *c)
 		sv_vfree(c->db->r.a, c->v.v);
 	so_listdel(&c->db->cursor, &c->o);
 	se_dbunbind(e, id);
+	se_mark_destroyed(&c->o);
 	ss_free(&e->a_cursor, c);
 }
 
@@ -218,7 +219,8 @@ e0:
 e1:
 	if (c->cache)
 		si_cachepool_push(c->cache);
-	if (c)
+	if (c) {
 		ss_free(&e->a_cursor, c);
+	}
 	return NULL;
 }

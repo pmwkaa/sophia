@@ -2134,7 +2134,6 @@ cursor_consistency_delete1(void)
 	void *c1 = sp_cursor(db, o);
 	while ((o = sp_get(c1, NULL))) {
 		t( sp_delete(tx, o) == 0 );
-		t( sp_destroy(o) == 0 );
 	}
 	t( sp_commit(tx) == 0 );
 	t( sp_destroy(c1) == 0 );

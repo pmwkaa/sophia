@@ -111,7 +111,6 @@ compact_delete_node1(void)
 	while ((o = sp_get(cur, NULL))) {
 		t( sp_delete(db, o) == 0 );
 		key++;
-		sp_destroy(o);
 	}
 	sp_destroy(cur);
 	t( key == 13000 );

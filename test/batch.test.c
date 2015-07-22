@@ -78,7 +78,6 @@ batch_set(void)
 
 	void *batch = sp_batch(db);
 	t( batch != NULL );
-	sp_destroy(batch);
 
 	int key = 123;
 	void *o = sp_object(db);
@@ -107,7 +106,6 @@ batch_set_commit(void)
 
 	void *batch = sp_batch(db);
 	t( batch != NULL );
-	sp_destroy(batch);
 
 	int key = 123;
 	void *o = sp_object(db);
@@ -137,7 +135,6 @@ batch_set_commit_get(void)
 
 	void *batch = sp_batch(db);
 	t( batch != NULL );
-	sp_destroy(batch);
 
 	int key = 123;
 	void *o = sp_object(db);
@@ -174,7 +171,6 @@ batch_set_commit_n(void)
 
 	void *batch = sp_batch(db);
 	t( batch != NULL );
-	sp_destroy(batch);
 	
 	int key = 0;
 	while (key < 10) {
@@ -207,7 +203,6 @@ batch_set_rollback0(void)
 
 	void *batch = sp_batch(db);
 	t( batch != NULL );
-	sp_destroy(batch);
 	
 	int key = 0;
 	while (key < 10) {
@@ -240,7 +235,6 @@ batch_set_rollback1(void)
 
 	void *batch = sp_batch(db);
 	t( batch != NULL );
-	sp_destroy(batch);
 	
 	int key = 0;
 	while (key < 10) {
@@ -271,11 +265,5 @@ stgroup *batch_group(void)
 	st_groupadd(group, st_test("batch_set_commit_N", batch_set_commit_n));
 	st_groupadd(group, st_test("batch_set_rollback0", batch_set_rollback0));
 	st_groupadd(group, st_test("batch_set_rollback1", batch_set_rollback1));
-	/*
-	st_groupadd(group, st_test("cursor", snapshot_cursor));
-	st_groupadd(group, st_test("get", snapshot_get));
-	st_groupadd(group, st_test("recover_cursor", snapshot_recover_cursor));
-	st_groupadd(group, st_test("recover_get", snapshot_recover_get));
-	*/
 	return group;
 }

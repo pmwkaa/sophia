@@ -11,6 +11,7 @@
 
 enum {
 	SEUNDEF,
+	SEDESTROYED,
 	SE,
 	SEASYNC,
 	SEMETA,
@@ -39,6 +40,12 @@ se_cast_validate(void *ptr)
 	    (char*)o->type <= (char*)&se_o[SESNAPSHOT])
 		return ptr;
 	return NULL;
+}
+
+static inline void
+se_mark_destroyed(so *o)
+{
+	so_init(o, &se_o[SEDESTROYED], NULL, NULL, NULL);
 }
 
 #endif

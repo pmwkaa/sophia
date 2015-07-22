@@ -306,6 +306,7 @@ shutdown:;
 	sd_cfree(&db->dc, &db->r);
 	se_statusfree(&db->status);
 	ss_spinlockfree(&db->reflock);
+	se_mark_destroyed(&db->o);
 	ss_free(&e->a_db, db);
 	return rcret;
 }

@@ -22,6 +22,7 @@
 sotype se_o[] =
 {
 	{ 0L,          "undefined"       },
+	{ 0x9BA14568L, "destroyed"       },
 	{ 0x06154834L, "env"             },
 	{ 0x38970021L, "env_async"       },
 	{ 0x20490B34L, "env_meta"        },

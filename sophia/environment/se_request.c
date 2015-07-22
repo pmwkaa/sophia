@@ -61,6 +61,7 @@ se_requestdestroy(so *o)
 		break;
 	default: break;
 	}
+	se_mark_destroyed(&r->o);
 	ss_free(&e->a_req, r);
 	return 0;
 }

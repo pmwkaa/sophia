@@ -314,6 +314,7 @@ void se_txend(setx *t)
 	sx_gc(&t->t, &e->r);
 	se_dbunbind(e, t->t.id);
 	so_listdel(&e->tx, &t->o);
+	se_mark_destroyed(&t->o);
 	ss_free(&e->a_tx, t);
 }
 

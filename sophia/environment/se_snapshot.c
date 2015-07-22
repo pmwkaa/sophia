@@ -28,6 +28,7 @@ se_snapshotfree(sesnapshot *s)
 		ss_free(&e->a, s->name);
 		s->name = NULL;
 	}
+	se_mark_destroyed(&s->o);
 	ss_free(&e->a_snapshot, s);
 	return 0;
 }

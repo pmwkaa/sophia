@@ -38,6 +38,9 @@ se_batchrollback(so *o)
 	sv_logfree(&b->log, &e->a);
 	sedb *db = (sedb*)b->o.parent;
 	se_dbunref(db, 0);
+	so_listdel(&db->batch, &b->o);
+	se_mark_destroyed(&b->o);
+	ss_free(&e->a_batch, b);
 	return 0;
 }
 

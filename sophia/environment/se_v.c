@@ -27,6 +27,7 @@ se_vdestroy(so *o)
 	if (v->v.v)
 		sv_vfree(&e->a, (svv*)v->v.v);
 	v->v.v = NULL;
+	se_mark_destroyed(&v->o);
 	ss_free(&e->a_v, v);
 	return 0;
 }

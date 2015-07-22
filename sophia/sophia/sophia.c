@@ -33,7 +33,12 @@ sp_cast(void *ptr, const char *method)
 {
 	so *o = se_cast_validate(ptr);
 	if (ssunlikely(o == NULL)) {
-		fprintf(stderr, "\n%s(x%p): bad object\n", method, ptr);
+		fprintf(stderr, "\n%s(%p): bad object\n", method, ptr);
+		abort();
+	}
+	if (ssunlikely(o->type == &se_o[SEDESTROYED])) {
+		fprintf(stderr, "\n%s(%p): attempt to use destroyed object\n",
+		        method, ptr);
 		abort();
 	}
 	return o;
@@ -51,9 +56,10 @@ SP_API void *sp_object(void *ptr)
 		sp_unsupported(o, __FUNCTION__);
 		return NULL;
 	}
-	se_apilock(o->env);
+	so *e = o->env;
+	se_apilock(e);
 	void *h = o->i->object(o);
-	se_apiunlock(o->env);
+	se_apiunlock(e);
 	return h;
 }
 
@@ -64,9 +70,10 @@ SP_API int sp_open(void *ptr)
 		sp_unsupported(o, __FUNCTION__);
 		return -1;
 	}
-	se_apilock(o->env);
+	so *e = o->env;
+	se_apilock(e);
 	int rc = o->i->open(o);
-	se_apiunlock(o->env);
+	se_apiunlock(e);
 	return rc;
 }
 
@@ -77,9 +84,10 @@ SP_API int sp_drop(void *ptr)
 		sp_unsupported(o, __FUNCTION__);
 		return -1;
 	}
-	se_apilock(o->env);
+	so *e = o->env;
+	se_apilock(e);
 	int rc = o->i->drop(o);
-	se_apiunlock(o->env);
+	se_apiunlock(e);
 	return rc;
 }
 
@@ -90,15 +98,15 @@ SP_API int sp_destroy(void *ptr)
 		sp_unsupported(o, __FUNCTION__);
 		return -1;
 	}
-	so *env = o->env;
+	so *e = o->env;
 	int rc;
-	if (ssunlikely(env == o)) {
+	if (ssunlikely(e == o)) {
 		rc = o->i->destroy(o);
 		return rc;
 	}
-	se_apilock(env);
+	se_apilock(e);
 	rc = o->i->destroy(o);
-	se_apiunlock(env);
+	se_apiunlock(e);
 	return rc;
 }
 
@@ -109,9 +117,10 @@ SP_API int sp_error(void *ptr)
 		sp_unsupported(o, __FUNCTION__);
 		return -1;
 	}
-	se_apilock(o->env);
+	so *e = o->env;
+	se_apilock(e);
 	int rc = o->i->error(o);
-	se_apiunlock(o->env);
+	se_apiunlock(e);
 	return rc;
 }
 
@@ -122,9 +131,10 @@ SP_API void *sp_asynchronous(void *ptr)
 		sp_unsupported(o, __FUNCTION__);
 		return NULL;
 	}
-	se_apilock(o->env);
+	so *e = o->env;
+	se_apilock(e);
 	void *h = o->i->asynchronous(o);
-	se_apiunlock(o->env);
+	se_apiunlock(e);
 	return h;
 }
 
@@ -135,9 +145,10 @@ SP_API void *sp_poll(void *ptr)
 		sp_unsupported(o, __FUNCTION__);
 		return NULL;
 	}
-	se_apilock(o->env);
+	so *e = o->env;
+	se_apilock(e);
 	void *h = o->i->poll(o);
-	se_apiunlock(o->env);
+	se_apiunlock(e);
 	return h;
 }
 
@@ -148,9 +159,10 @@ SP_API int sp_setobject(void *ptr, char *path, void *object)
 		sp_unsupported(o, __FUNCTION__);
 		return -1;
 	}
-	se_apilock(o->env);
+	so *e = o->env;
+	se_apilock(e);
 	int rc = o->i->setobject(o, path, object);
-	se_apiunlock(o->env);
+	se_apiunlock(e);
 	return rc;
 }
 
@@ -161,9 +173,10 @@ SP_API int sp_setstring(void *ptr, char *path, void *pointer, int size)
 		sp_unsupported(o, __FUNCTION__);
 		return -1;
 	}
-	se_apilock(o->env);
+	so *e = o->env;
+	se_apilock(e);
 	int rc = o->i->setstring(o, path, pointer, size);
-	se_apiunlock(o->env);
+	se_apiunlock(e);
 	return rc;
 }
 
@@ -174,9 +187,10 @@ SP_API int sp_setint(void *ptr, char *path, int64_t v)
 		sp_unsupported(o, __FUNCTION__);
 		return -1;
 	}
-	se_apilock(o->env);
+	so *e = o->env;
+	se_apilock(e);
 	int rc = o->i->setint(o, path, v);
-	se_apiunlock(o->env);
+	se_apiunlock(e);
 	return rc;
 }
 
@@ -187,9 +201,10 @@ SP_API void *sp_getobject(void *ptr, char *path)
 		sp_unsupported(o, __FUNCTION__);
 		return NULL;
 	}
-	se_apilock(o->env);
+	so *e = o->env;
+	se_apilock(e);
 	void *h = o->i->getobject(o, path);
-	se_apiunlock(o->env);
+	se_apiunlock(e);
 	return h;
 }
 
@@ -200,9 +215,10 @@ SP_API void *sp_getstring(void *ptr, char *path, int *size)
 		sp_unsupported(o, __FUNCTION__);
 		return NULL;
 	}
-	se_apilock(o->env);
+	so *e = o->env;
+	se_apilock(e);
 	void *h = o->i->getstring(o, path, size);
-	se_apiunlock(o->env);
+	se_apiunlock(e);
 	return h;
 }
 
@@ -213,9 +229,10 @@ SP_API int64_t sp_getint(void *ptr, char *path)
 		sp_unsupported(o, __FUNCTION__);
 		return -1;
 	}
-	se_apilock(o->env);
+	so *e = o->env;
+	se_apilock(e);
 	int64_t rc = o->i->getint(o, path);
-	se_apiunlock(o->env);
+	se_apiunlock(e);
 	return rc;
 }
 
@@ -226,9 +243,10 @@ SP_API int sp_set(void *ptr, void *v)
 		sp_unsupported(o, __FUNCTION__);
 		return -1;
 	}
-	se_apilock(o->env);
+	so *e = o->env;
+	se_apilock(e);
 	int rc = o->i->set(o, v);
-	se_apiunlock(o->env);
+	se_apiunlock(e);
 	return rc;
 }
 
@@ -239,9 +257,10 @@ SP_API int sp_update(void *ptr, void *v)
 		sp_unsupported(o, __FUNCTION__);
 		return -1;
 	}
-	se_apilock(o->env);
+	so *e = o->env;
+	se_apilock(e);
 	int rc = o->i->update(o, v);
-	se_apiunlock(o->env);
+	se_apiunlock(e);
 	return rc;
 }
 
@@ -252,9 +271,10 @@ SP_API int sp_delete(void *ptr, void *v)
 		sp_unsupported(o, __FUNCTION__);
 		return -1;
 	}
-	se_apilock(o->env);
+	so *e = o->env;
+	se_apilock(e);
 	int rc = o->i->del(o, v);
-	se_apiunlock(o->env);
+	se_apiunlock(e);
 	return rc;
 }
 
@@ -265,9 +285,10 @@ SP_API void *sp_get(void *ptr, void *v)
 		sp_unsupported(o, __FUNCTION__);
 		return NULL;
 	}
-	se_apilock(o->env);
+	so *e = o->env;
+	se_apilock(e);
 	void *h = o->i->get(o, v);
-	se_apiunlock(o->env);
+	se_apiunlock(e);
 	return h;
 }
 
@@ -278,9 +299,10 @@ SP_API void *sp_cursor(void *ptr, void *v)
 		sp_unsupported(o, __FUNCTION__);
 		return NULL;
 	}
-	se_apilock(o->env);
+	so *e = o->env;
+	se_apilock(e);
 	void *h = o->i->cursor(o, v);
-	se_apiunlock(o->env);
+	se_apiunlock(e);
 	return h;
 }
 
@@ -291,9 +313,10 @@ SP_API void *sp_batch(void *ptr)
 		sp_unsupported(o, __FUNCTION__);
 		return NULL;
 	}
-	se_apilock(o->env);
+	so *e = o->env;
+	se_apilock(e);
 	void *h = o->i->batch(o);
-	se_apiunlock(o->env);
+	se_apiunlock(e);
 	return h;
 }
 
@@ -304,9 +327,10 @@ SP_API void *sp_begin(void *ptr)
 		sp_unsupported(o, __FUNCTION__);
 		return NULL;
 	}
-	se_apilock(o->env);
+	so *e = o->env;
+	se_apilock(e);
 	void *h = o->i->begin(o);
-	se_apiunlock(o->env);
+	se_apiunlock(e);
 	return h;
 }
 
@@ -317,9 +341,10 @@ SP_API int sp_prepare(void *ptr)
 		sp_unsupported(o, __FUNCTION__);
 		return -1;
 	}
-	se_apilock(o->env);
+	so *e = o->env;
+	se_apilock(e);
 	int rc = o->i->prepare(o);
-	se_apiunlock(o->env);
+	se_apiunlock(e);
 	return rc;
 }
 
@@ -330,8 +355,9 @@ SP_API int sp_commit(void *ptr)
 		sp_unsupported(o, __FUNCTION__);
 		return -1;
 	}
-	se_apilock(o->env);
+	so *e = o->env;
+	se_apilock(e);
 	int rc = o->i->commit(o);
-	se_apiunlock(o->env);
+	se_apiunlock(e);
 	return rc;
 }
