@@ -66,6 +66,7 @@ se_recoverlog(se *e, sl *log)
 	sedb *db = NULL;
 	ssiter i;
 	ss_iterinit(sl_iter, &i);
+	int processed = 0;
 	int rc = ss_iteropen(sl_iter, &i, &e->r, &log->file, 1);
 	if (ssunlikely(rc == -1))
 		return -1;
@@ -112,6 +113,9 @@ se_recoverlog(se *e, sl *log)
 			if (ssunlikely(rc == -1))
 				goto rlb;
 			ss_gcmark(&log->gc, 1);
+			processed++;
+			if ((processed % 100000) == 0)
+				se_recoverf(e, " %.1fM processed", processed / 1000000.0);
 			ss_iteratornext(&i);
 		}
 		if (ssunlikely(sl_iter_error(&i)))
