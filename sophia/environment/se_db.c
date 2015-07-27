@@ -130,58 +130,13 @@ se_dbscheme_set(sedb *db)
 	return 0;
 }
 
-static int
-se_dbasync_set(so *o, so *v)
-{
-	se_cast(o, so*, SEDBASYNC);
-	sedb *db = se_cast(o->parent, sedb*, SEDB);
-	sev *key = se_cast(v, sev*, SEV);
-	return se_txdbwrite(db, key, 1, 0);
-}
-
-static int
-se_dbasync_update(so *o, so *v)
-{
-	se_cast(o, so*, SEDBASYNC);
-	sedb *db = se_cast(o->parent, sedb*, SEDB);
-	sev *key = se_cast(v, sev*, SEV);
-	return se_txdbwrite(db, key, 1, SVUPDATE);
-}
-
-static int
-se_dbasync_del(so *o, so *v)
-{
-	se_cast(o, so*, SEDBASYNC);
-	sedb *db = se_cast(o->parent, sedb*, SEDB);
-	sev *key = se_cast(v, sev*, SEV);
-	return se_txdbwrite(db, key, 1, SVDELETE);
-}
-
-static void*
-se_dbasync_get(so *o, so *v)
-{
-	se_cast(o, so*, SEDBASYNC);
-	sedb *db = se_cast(o->parent, sedb*, SEDB);
-	sev *key = se_cast(v, sev*, SEV);
-	return se_txdbget(db, key, 1, 0, 1);
-}
-
-static void*
-se_dbasync_cursor(so *o, so *v)
-{
-	se_cast(o, so*, SEDBASYNC);
-	sedb *db = se_cast(o->parent, sedb*, SEDB);
-	sev *key = se_cast(v, sev*, SEV);
-	return se_cursornew(db, key, 0, 1);
-}
-
 static void*
 se_dbasync_object(so *o)
 {
 	se_cast(o, so*, SEDBASYNC);
 	sedb *db = se_cast(o->parent, sedb*, SEDB);
 	se *e = se_of(&db->o);
-	return se_vnew(e, &db->o, NULL);
+	return se_vnew(e, &db->o, NULL, 1);
 }
 
 static soif sedbasyncif =
@@ -199,15 +154,15 @@ static soif sedbasyncif =
 	.getobject    = NULL,
 	.getstring    = NULL,
 	.getint       = NULL,
-	.set          = se_dbasync_set,
-	.update       = se_dbasync_update,
-	.del          = se_dbasync_del,
-	.get          = se_dbasync_get,
+	.set          = NULL,
+	.update       = NULL,
+	.del          = NULL,
+	.get          = NULL,
 	.batch        = NULL,
 	.begin        = NULL,
 	.prepare      = NULL,
 	.commit       = NULL,
-	.cursor       = se_dbasync_cursor,
+	.cursor       = NULL,
 };
 
 static void*
@@ -295,9 +250,6 @@ shutdown:;
 	rc = so_listdestroy(&db->batch);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_listdestroy(&db->cursor);
-	if (ssunlikely(rc == -1))
-		rcret = -1;
 	sx_indexfree(&db->coindex, &e->xm);
 	rc = si_close(&db->index);
 	if (ssunlikely(rc == -1))
@@ -327,12 +279,195 @@ se_dbdrop(so *o)
 	return 0;
 }
 
+void *se_dbread(sedb *db, sev *o, sx *x, int x_search,
+                sicache *cache, ssorder order,
+                int async)
+{
+	se *e = se_of(&db->o);
+	/* validate req */
+	if (ssunlikely(o->o.parent != &db->o)) {
+		sr_error(&e->error, "%s", "bad object parent");
+		return NULL;
+	}
+	if (ssunlikely(! se_online(&db->status)))
+		goto e0;
+
+	/* set key */
+	svv *v;
+	int rc = se_dbv(db, o, 1, &v);
+	if (ssunlikely(rc == -1))
+		goto e0;
+	sv vp;
+	sv_init(&vp, &sv_vif, v, NULL);
+	/* set prefix */
+	svv *vprf;
+	rc = se_dbvprefix(db, o, &vprf);
+	if (ssunlikely(rc == -1))
+		goto e1;
+	sv vprefix;
+	sv_init(&vprefix, &sv_vif, vprf, NULL);
+	/* if key is not set: use prefix */
+	if (vprf && v == NULL) {
+		v = sv_vdup(db->r.a, &vprefix);
+		sv_init(&vp, &sv_vif, v, NULL);
+	}
+	sv vup;
+	memset(&vup, 0, sizeof(vup));
+	so_destroy(&o->o);
+	o = NULL;
+
+	/* concurrent */
+	if (x_search) {
+		/* note: prefix is ignored during concurrent
+		 * index search */
+		assert(v != NULL);
+		int rc = sx_get(x, &db->coindex, &vp, &vup);
+		if (rc == 2) /* delete */
+			goto e2;
+		if (rc == 1 && !sv_is(&vup, SVUPDATE)) {
+			so *ret = se_vnew(e, &db->o, &vup, async);
+			if (ssunlikely(ret == NULL))
+				sv_vfree(db->r.a, vup.v);
+			if (vprf)
+				sv_vfree(db->r.a, vprf);
+			sv_vfree(db->r.a, v);
+			return ret;
+		}
+	} else {
+		sx_getstmt(&e->xm, &db->coindex);
+	}
+
+	/* prepare read cache */
+	int cachegc = 0;
+	if (cache == NULL) {
+		cachegc = 1;
+		cache = si_cachepool_pop(&e->cachepool);
+		if (ssunlikely(cache == NULL)) {
+			sr_oom(&e->error);
+			goto e2;
+		}
+	}
+
+	/* prepare request */
+	sereq q;
+	se_reqinit(e, &q, SE_REQREAD, &db->o, &db->o);
+	sereqarg *arg = &q.arg;
+	arg->v       = vp;
+	arg->vup     = vup;
+	arg->vprefix = vprefix;
+	arg->cache   = cache;
+	arg->cachegc = cachegc;
+	arg->order   = order;
+	if (x) {
+		arg->vlsn = x->vlsn;
+		arg->vlsn_generate = 0;
+	} else {
+		arg->vlsn = 0;
+		arg->vlsn_generate = 1;
+	}
+	if (sf_updatehas(&db->scheme.fmt_update)) {
+		if (arg->order == SS_EQ)
+			arg->order = SS_LTE;
+		arg->update = 1;
+	}
+
+	/* asynchronous */
+	if (async) {
+		o = (sev*)se_reqresult(&q, 1);
+		if (ssunlikely(o == NULL)) {
+			se_reqend(&q);
+			return NULL;
+		}
+		sereq *req = se_reqnew(e, &q, 1);
+		if (ssunlikely(req == NULL)) {
+			so_destroy(&o->o);
+			se_reqend(&q);
+			return NULL;
+		}
+		return o;
+	}
+	/* synchronous */
+	rc = se_execute(&q);
+	if (rc == 1)
+		o = (sev*)se_reqresult(&q, async);
+	se_reqend(&q);
+	return o;
+e2: if (vprf)
+		sv_vfree(db->r.a, vprf);
+e1: if (v)
+		sv_vfree(db->r.a, v);
+e0: if (o)
+		so_destroy(&o->o);
+	return NULL;
+}
+
+static inline int
+se_dbwrite(sedb *db, sev *o, uint8_t flags)
+{
+	se *e = se_of(&db->o);
+	/* validate req */
+	if (ssunlikely(o->o.parent != &db->o)) {
+		sr_error(&e->error, "%s", "bad object parent");
+		return -1;
+	}
+	if (ssunlikely(! se_online(&db->status)))
+		goto error;
+	if (flags == SVUPDATE && !sf_updatehas(&db->scheme.fmt_update))
+		flags = 0;
+
+	/* prepare object */
+	svv *v;
+	int rc = se_dbv(db, o, 0, &v);
+	if (ssunlikely(rc == -1))
+		goto error;
+	so_destroy(&o->o);
+	v->flags = flags;
+	svlogv lv;
+	sv_logvinit(&lv, db->scheme.id);
+	sv_init(&lv.v, &sv_vif, v, NULL);
+	svlog log;
+	sv_loginit(&log);
+	sv_logadd(&log, db->r.a, &lv, db);
+
+	/* concurrency */
+	sxstate s = sx_setstmt(&e->xm, &db->coindex, &lv.v);
+	rc = 1; /* rollback */
+	switch (s) {
+	case SXLOCK: rc = 2;
+	case SXROLLBACK:
+		sv_vfree(db->r.a, v);
+		return rc;
+	default: break;
+	}
+
+	/* ensure quota */
+	int size = sizeof(svv) + sv_size(&lv.v);
+	ss_quota(&e->quota, SS_QADD, size);
+
+	/* execute req */
+	sereq q;
+	se_reqinit(e, &q, SE_REQWRITE, &db->o, &db->o);
+	sereqarg *arg = &q.arg;
+	arg->vlsn_generate = 1;
+	arg->lsn = 0;
+	arg->recover = 0;
+	arg->log = &log;
+	se_execute(&q);
+	if (ssunlikely(q.rc == -1))
+		ss_quota(&e->quota, SS_QREMOVE, size);
+	se_reqend(&q);
+	return q.rc;
+error:
+	so_destroy(&o->o);
+	return -1;
+}
+
 static int
 se_dbset(so *o, so *v)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
 	sev *key = se_cast(v, sev*, SEV);
-	return se_txdbwrite(db, key, 0, 0);
+	return se_dbwrite(db, key, 0);
 }
 
 static int
@@ -340,7 +475,7 @@ se_dbupdate(so *o, so *v)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
 	sev *key = se_cast(v, sev*, SEV);
-	return se_txdbwrite(db, key, 0, SVUPDATE);
+	return se_dbwrite(db, key, SVUPDATE);
 }
 
 static int
@@ -348,7 +483,7 @@ se_dbdel(so *o, so *v)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
 	sev *key = se_cast(v, sev*, SEV);
-	return se_txdbwrite(db, key, 0, SVDELETE);
+	return se_dbwrite(db, key, SVDELETE);
 }
 
 static void*
@@ -356,7 +491,7 @@ se_dbget(so *o, so *v)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
 	sev *key = se_cast(v, sev*, SEV);
-	return se_txdbget(db, key, 0, 0, 1);
+	return se_dbread(db, key, NULL, 0, NULL, key->order, key->async);
 }
 
 static void*
@@ -367,19 +502,11 @@ se_dbbatch(so *o)
 }
 
 static void*
-se_dbcursor(so *o, so *v)
-{
-	sedb *db = se_cast(o, sedb*, SEDB);
-	sev *key = se_cast(v, sev*, SEV);
-	return se_cursornew(db, key, 0, 0);
-}
-
-static void*
 se_dbobject(so *o)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
 	se *e = se_of(&db->o);
-	return se_vnew(e, &db->o, NULL);
+	return se_vnew(e, &db->o, NULL, 0);
 }
 
 static void*
@@ -431,7 +558,7 @@ static soif sedbif =
 	.begin        = NULL,
 	.prepare      = NULL,
 	.commit       = NULL,
-	.cursor       = se_dbcursor,
+	.cursor       = NULL,
 };
 
 so *se_dbnew(se *e, char *name)
@@ -444,7 +571,6 @@ so *se_dbnew(se *e, char *name)
 	memset(o, 0, sizeof(*o));
 	so_init(&o->o, &se_o[SEDB], &sedbif, &e->o, &e->o);
 	so_init(&o->async, &se_o[SEDBASYNC], &sedbasyncif, &o->o, &e->o);
-	so_listinit(&o->cursor);
 	so_listinit(&o->batch);
 	se_statusinit(&o->status);
 	se_statusset(&o->status, SE_OFFLINE);
@@ -586,42 +712,72 @@ int se_dbmalfunction(sedb *o)
 	return -1;
 }
 
-svv *se_dbv(sedb *db, sev *o, int search)
+int se_dbv(sedb *db, sev *o, int search, svv **v)
 {
 	se *e = se_of(&db->o);
-	svv *v;
+	*v = NULL;
 	/* reuse object */
 	if (o->v.v) {
-		v = sv_vdup(db->r.a, &o->v);
-		goto ret;
+		*v = o->v.v;
+		o->v.v = NULL;
+		return 0;
 	}
 	/* create object from raw data */
 	if (o->raw) {
-		v = sv_vbuildraw(db->r.a, o->raw, o->rawsize);
+		*v = sv_vbuildraw(db->r.a, o->raw, o->rawsize);
 		goto ret;
 	}
-	/* create object using current format, supplied
-	 * key-chain and value */
-	if (ssunlikely(o->keyc != db->scheme.scheme.count)) {
-		sr_error(&e->error, "%s", "bad object key");
-		return NULL;
-	}
-	/* switch to key-value format to avoid value
-	 * copy during search operations */
 	sr *runtime = &db->r;
 	sr  runtime_search;
-	if (search && db->r.fmt == SF_DOCUMENT) {
-		runtime_search = db->r;
-		runtime_search.fmt = SF_KV;
-		runtime = &runtime_search;
+	if (search) {
+		if (o->keyc == 0)
+			return 0;
+		/* switch to key-value format to avoid value
+		 * copy during search operations */
+		if (db->r.fmt == SF_DOCUMENT) {
+			runtime_search = db->r;
+			runtime_search.fmt = SF_KV;
+			runtime = &runtime_search;
+		}
 	}
-	v = sv_vbuild(runtime, o->keyv, o->keyc,
-	              o->value,
-	              o->valuesize);
+
+	/* create object using current format, supplied
+	 * key-chain and value */
+	if (ssunlikely(o->keyc != db->scheme.scheme.count))
+		return sr_error(&e->error, "%s", "bad object key");
+
+	*v = sv_vbuild(runtime, o->keyv, o->keyc,
+	               o->value,
+	               o->valuesize);
 ret:
-	if (ssunlikely(v == NULL)) {
-		sr_oom(&e->error);
-		return NULL;
+	if (ssunlikely(*v == NULL))
+		return sr_oom(&e->error);
+	return 0;
+}
+
+int se_dbvprefix(sedb *db, sev *o, svv **v)
+{
+	se *e = se_of(&db->o);
+	*v = NULL;
+	/* reuse prefix */
+	if (o->vprefix.v) {
+		*v = o->vprefix.v;
+		o->vprefix.v = NULL;
+		return 0;
 	}
-	return v;
+	if (o->prefix == NULL)
+		return 0;
+	/* validate index type */
+	if (sr_schemeof(&db->scheme.scheme, 0)->type != SS_STRING)
+		return sr_error(&e->error, "%s", "prefix search is only "
+		                "supported for a string key");
+	/* create prefix object */
+	sfv fv;
+	fv.key      = o->prefix;
+	fv.r.size   = o->prefixsize;
+	fv.r.offset = 0;
+	*v = sv_vbuild(&e->r, &fv, 1, NULL, 0);
+	if (ssunlikely(*v == NULL))
+		return -1;
+	return 0;
 }

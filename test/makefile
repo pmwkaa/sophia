@@ -49,6 +49,7 @@ OBJECTS = ss_leb128.test.o \
           gc.test.o \
           prefix.test.o \
           transaction-md.test.o \
+          cursor-md.test.o \
           tpc.test.o \
           update.test.o \
           async.test.o \
@@ -59,6 +60,7 @@ OBJECTS = ss_leb128.test.o \
           multithread.test.o \
           multithread_be.test.o \
           run.o
+
 
 # - - - - - - - - - - - - - 
 

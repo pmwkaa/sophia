@@ -328,9 +328,9 @@ mt_set_get_document_multipart_cursor(void)
 	i = 0;
 	void *o = sp_object(db);
 	t( o != NULL );
-	void *cursor = sp_cursor(db, o);
+	void *cursor = sp_cursor(env);
 	t( cursor != NULL );
-	while ((o = sp_get(cursor, NULL))) {
+	while ((o = sp_get(cursor, o))) {
 		int valuesize = 0;
 		struct document *ret =
 			(struct document*)sp_getstring(o, "value", &valuesize);
@@ -338,7 +338,6 @@ mt_set_get_document_multipart_cursor(void)
 		t( ret->key_a == i );
 		t( ret->key_b == i );
 		print_current(i);
-		t( sp_destroy(o) == 0 );
 		i++;
 	}
 	sp_destroy(cursor);
@@ -348,7 +347,7 @@ mt_set_get_document_multipart_cursor(void)
 }
 
 static void
-mt_async(void)
+mt_async_read(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -365,31 +364,44 @@ mt_async(void)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	void *async = sp_asynchronous(db);
-	t( async != NULL );
-
 	int i = 0;
-	while (i < 500000) {
-		void *o = sp_object(async);
+	while (i < 100000) {
+		void *o = sp_object(db);
 		assert(o != NULL);
 		sp_setstring(o, "key", &i, sizeof(i));
-		int rc = sp_set(async, o);
+		int rc = sp_set(db, o);
 		t( rc == 0 );
 		print_current(i);
 		i++;
 	}
-	fprintf(st_r.output, " (done..gather)");
+	fprintf(st_r.output, " (insert done..iterate) ");
+
+	void *async = sp_asynchronous(db);
+	t( async != NULL );
+
+	/* trigger iteration */
+	void *o = sp_object(async);
+	sp_setstring(o, "order", ">=", 0);
+	o = sp_get(db, o);
+	t( o != NULL );
+	sp_destroy(o);
+
 	i = 0;
-	while (i < 500000) {
-		void *req = sp_poll(env);
-		if (req == NULL)
+	while (i < 100000) {
+		o = sp_poll(env);
+		if (o == NULL)
 			continue;
-		t( strcmp(sp_getstring(req, "type", 0), "set") == 0 );
-		t( sp_getint(req, "status") == 0 );
-		sp_destroy(req);
+		t( strcmp(sp_getstring(o, "type", 0), "on_read") == 0 );
+		t( sp_getint(o, "status") == 1 );
+		t( *(int*)sp_getstring(o, "key", NULL) == i );
+		o = sp_get(db, o);
+		t( o != NULL );
+		sp_destroy(o);
 		print_current(i);
 		i++;
 	}
+	t( i == 100000 );
+	fprintf(st_r.output, "(complete)");
 	t( sp_destroy(env) == 0 );
 }
 
@@ -401,7 +413,7 @@ stgroup *multithread_be_group(void)
 	st_groupadd(group, st_test("set_get_kv_multipart", mt_set_get_kv_multipart));
 	st_groupadd(group, st_test("set_get_document_multipart", mt_set_get_document_multipart));
 	st_groupadd(group, st_test("set_get_document_multipart_cursor", mt_set_get_document_multipart_cursor));
-	st_groupadd(group, st_test("async", mt_async));
+	st_groupadd(group, st_test("async_read", mt_async_read));
 	return group;
 }
 

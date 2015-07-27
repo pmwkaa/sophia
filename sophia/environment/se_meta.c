@@ -748,7 +748,7 @@ se_metart(se *e, semetart *rt)
 	ss_mutexunlock(&e->sched.lock);
 
 	/* requests */
-	rt->reqs = se_requestcount(e);
+	rt->reqs = se_reqcount(e);
 
 	ss_mutexlock(&e->reqlock);
 	rt->reqs = e->req.n + e->reqactive.n + e->reqready.n;
@@ -841,6 +841,8 @@ int se_metaset_int(so *o, char *path, int64_t v)
 void *se_metaget_object(so *o, char *path)
 {
 	se *e = se_of(o);
+	if (path == NULL)
+		return se_metacursor_new(o);
 	void *result = NULL;
 	int rc = se_metaquery(e, SR_READ, path, SS_OBJECT,
 	                      &result, sizeof(void*), NULL);
@@ -869,12 +871,6 @@ int64_t se_metaget_int(so *o, char *path)
 	if (ssunlikely(rc == -1))
 		return -1;
 	return result;
-}
-
-void *se_metacursor(so *o, so *v ssunused)
-{
-	se *e = se_cast(o, se*, SE);
-	return se_metacursor_new(e);
 }
 
 void se_metainit(semeta *c, so *e)

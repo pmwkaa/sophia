@@ -83,13 +83,12 @@ backup_test0(void)
 
 	void *o = sp_object(db);
 	t( o != NULL );
-	void *cur = sp_cursor(db, o);
+	void *cur = sp_cursor(env);
 	t( cur != NULL );
 	i = 0;
-	while ((o = sp_get(cur, NULL))) {
+	while ((o = sp_get(cur, o))) {
 		t( *(int*)sp_getstring(o, "key", NULL) == i );
 		i++;
-		sp_destroy(o);
 	}
 	t( i == 100 );
 	t( sp_destroy(cur) == 0 );
@@ -184,13 +183,12 @@ backup_test1(void)
 
 	o = sp_object(db);
 	t( o != NULL );
-	void *cur = sp_cursor(db, o);
+	void *cur = sp_cursor(env);
 	t( cur != NULL );
 	i = 0;
-	while ((o = sp_get(cur, NULL))) {
+	while ((o = sp_get(cur, o))) {
 		t( *(int*)sp_getstring(o, "key", NULL) == i );
 		i++;
-		sp_destroy(o);
 	}
 	t( i == 100 );
 	t( sp_destroy(cur) == 0 );

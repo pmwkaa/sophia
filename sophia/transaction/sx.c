@@ -17,7 +17,6 @@ int sx_managerinit(sxmanager *m, srseq *seq, ssa *a, ssa *asxv)
 {
 	ss_rbinit(&m->i);
 	m->count = 0;
-	ss_spinlockinit(&m->lockupd);
 	ss_spinlockinit(&m->lock);
 	m->seq = seq;
 	m->asxv = asxv;
@@ -29,7 +28,6 @@ int sx_managerfree(sxmanager *m)
 {
 	assert(m->count == 0);
 	ss_spinlockfree(&m->lock);
-	ss_spinlockfree(&m->lockupd);
 	return 0;
 }
 
@@ -186,12 +184,10 @@ sx_end(sx *t)
 
 sxstate sx_prepare(sx *t, sxpreparef prepare, void *arg)
 {
-	sxmanager *m = t->manager;
 	ssiter i;
 	ss_iterinit(ss_bufiter, &i);
 	ss_iteropen(ss_bufiter, &i, &t->log.buf, sizeof(svlogv));
 	sxstate s = SXPREPARE;
-	ss_spinlock(&m->lockupd);
 	for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
 	{
 		svlogv *lv = ss_iterof(ss_bufiter, &i);
@@ -217,7 +213,6 @@ sxstate sx_prepare(sx *t, sxpreparef prepare, void *arg)
 		}
 	}
 done:
-	ss_spinunlock(&m->lockupd);
 	t->s = s;
 	return s;
 }
@@ -225,11 +220,9 @@ done:
 sxstate sx_commit(sx *t)
 {
 	assert(t->s == SXPREPARE);
-	sxmanager *m = t->manager;
 	ssiter i;
 	ss_iterinit(ss_bufiter, &i);
 	ss_iteropen(ss_bufiter, &i, &t->log.buf, sizeof(svlogv));
-	ss_spinlock(&m->lockupd);
 	for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
 	{
 		svlogv *lv = ss_iterof(ss_bufiter, &i);
@@ -249,7 +242,6 @@ sxstate sx_commit(sx *t)
 		sv_init(&lv->v, &sv_vif, v->v, NULL);
 		lv->vgc = v;
 	}
-	ss_spinunlock(&m->lockupd);
 	t->s = SXCOMMIT;
 	sx_end(t);
 	return SXCOMMIT;
@@ -257,11 +249,9 @@ sxstate sx_commit(sx *t)
 
 sxstate sx_rollback(sx *t)
 {
-	sxmanager *m = t->manager;
 	ssiter i;
 	ss_iterinit(ss_bufiter, &i);
 	ss_iteropen(ss_bufiter, &i, &t->log.buf, sizeof(svlogv));
-	ss_spinlock(&m->lockupd);
 	for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
 	{
 		svlogv *lv = ss_iterof(ss_bufiter, &i);
@@ -278,7 +268,6 @@ sxstate sx_rollback(sx *t)
 unlink:
 		sx_vunlink(v);
 	}
-	ss_spinunlock(&m->lockupd);
 	t->s = SXROLLBACK;
 	sx_end(t);
 	return SXROLLBACK;
@@ -304,7 +293,6 @@ int sx_set(sx *t, sxindex *index, svv *version)
 	lv.next = UINT32_MAX;
 	sv_init(&lv.v, &sx_vif, v, NULL);
 	/* update concurrent index */
-	ss_spinlock(&m->lockupd);
 	ssrbnode *n = NULL;
 	int rc = sx_match(&index->i, index->scheme, sv_vpointer(version),
 	                  version->size, &n);
@@ -319,7 +307,6 @@ int sx_set(sx *t, sxindex *index, svv *version)
 			ss_rbset(&index->i, n, rc, &v->node);
 			rc = 0;
 		}
-		ss_spinunlock(&m->lockupd);
 		return rc;
 	}
 	sxv *head = sscast(n, sxv, node);
@@ -330,17 +317,11 @@ int sx_set(sx *t, sxindex *index, svv *version)
 	{
 		if (ssunlikely(version->flags & SVUPDATE))
 		{
-			if (own->v->flags == SVDELETE) {
-				ss_spinunlock(&m->lockupd);
-				sx_vfree(m->a, m->asxv, v);
-				return -1;
-			}
 			sv a, b, c;
 			sv_init(&a, &sv_vif, own->v, NULL);
 			sv_init(&b, &sv_vif, v->v, NULL);
 			int rc = sv_update(index->r, &a, &b, &c);
 			if (ssunlikely(rc == -1)) {
-				ss_spinunlock(&m->lockupd);
 				sx_vfree(m->a, m->asxv, v);
 				return -1;
 			}
@@ -361,19 +342,16 @@ int sx_set(sx *t, sxindex *index, svv *version)
 		/* update log */
 		sv_logreplace(&t->log, v->lo, &lv);
 		sx_vfree(m->a, m->asxv, own);
-		ss_spinunlock(&m->lockupd);
 		return 0;
 	}
 	/* update log */
 	rc = sv_logadd(&t->log, m->a, &lv, index->ptr);
 	if (ssunlikely(rc == -1)) {
-		ss_spinunlock(&m->lockupd);
 		sx_vfree(m->a, m->asxv, v);
 		return sr_oom(index->r->e);
 	}
 	/* add version */
 	sx_vlink(head, v);
-	ss_spinunlock(&m->lockupd);
 	return 0;
 }
 
@@ -381,7 +359,6 @@ int sx_get(sx *t, sxindex *index, sv *key, sv *result)
 {
 	sxmanager *m = t->manager;
 	ssrbnode *n = NULL;
-	ss_spinlock(&m->lockupd);
 	int rc = sx_match(&index->i, index->scheme,
 	                  sv_pointer(key),
 	                  sv_size(key), &n);
@@ -409,7 +386,6 @@ int sx_get(sx *t, sxindex *index, sv *key, sv *result)
 		rc = 1;
 	}
 done:
-	ss_spinunlock(&m->lockupd);
 	return rc;
 }
 
@@ -417,9 +393,7 @@ sxstate sx_setstmt(sxmanager *m, sxindex *index, sv *v)
 {
 	sr_seq(m->seq, SR_TSNNEXT);
 	ssrbnode *n = NULL;
-	ss_spinlock(&m->lockupd);
 	int rc = sx_match(&index->i, index->scheme, sv_pointer(v), sv_size(v), &n);
-	ss_spinunlock(&m->lockupd);
 	if (rc == 0 && n)
 		return SXLOCK;
 	return SXCOMMIT;

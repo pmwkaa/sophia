@@ -125,9 +125,12 @@ se_metacursor_object(semetacursor *c)
 }
 
 static void*
-se_metacursor_get(so *o, so *v ssunused)
+se_metacursor_get(so *o, so *v)
 {
 	semetacursor *c = se_cast(o, semetacursor*, SEMETACURSOR);
+	if (v) {
+		so_destroy(v);
+	}
 	if (c->first) {
 		assert( ss_bufsize(&c->dump) >= (int)sizeof(srmetadump) );
 		c->first = 0;
@@ -183,7 +186,7 @@ so *se_metacursor_new(void *o)
 	ss_bufinit(&c->dump);
 	int rc = se_metaserialize(&e->meta, &c->dump);
 	if (ssunlikely(rc == -1)) {
-		c->o.i->destroy(&c->o);
+		so_destroy(&c->o);
 		return NULL;
 	}
 	so_listadd(&e->metacursor, &c->o);

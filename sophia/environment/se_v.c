@@ -96,6 +96,7 @@ se_vsetstring(so *o, char *path, void *pointer, int size)
 			return -1;
 		}
 		v->order = cmp;
+		v->orderset = 1;
 		return 0;
 	}
 	if (strcmp(path, "raw") == 0) {
@@ -134,7 +135,7 @@ se_vgetstring(so *o, char *path, int *size)
 		return sv_value(&v->v, &db->r);
 	}
 	if (strcmp(path, "prefix") == 0) {
-		if (ssunlikely(v->prefix == NULL))
+		if (v->prefix == NULL)
 			return NULL;
 		if (size)
 			*size = v->prefixsize;
@@ -145,6 +146,12 @@ se_vgetstring(so *o, char *path, int *size)
 		if (*size)
 			*size = strlen(order) + 1;
 		return order;
+	}
+	if (strcmp(path, "type") == 0) {
+		char *type = se_reqof(v->async_operation);
+		if (size)
+			*size = strlen(type);
+		return type;
 	}
 	if (strcmp(path, "raw") == 0) {
 		if (v->raw) {
@@ -190,6 +197,12 @@ se_vgetint(so *o, char *path)
 		if (v->v.v)
 			lsn = ((svv*)(v->v.v))->lsn;
 		return lsn;
+	} else
+	if (strcmp(path, "status") == 0) {
+		return v->async_status;
+	} else
+	if (strcmp(path, "seq") == 0) {
+		return v->async_seq;
 	} else {
 		sr_error(&e->error, "unknown object field '%s'",
 		         path);
@@ -223,7 +236,7 @@ static soif sevif =
 	.cursor       = NULL,
 };
 
-so *se_vnew(se *e, so *parent, sv *vp)
+so *se_vnew(se *e, so *parent, sv *vp, int async)
 {
 	sev *v = ss_malloc(&e->a_v, sizeof(sev));
 	if (ssunlikely(v == NULL)) {
@@ -232,7 +245,8 @@ so *se_vnew(se *e, so *parent, sv *vp)
 	}
 	memset(v, 0, sizeof(*v));
 	so_init(&v->o, &se_o[SEV], &sevif, parent, &e->o);
-	v->order = SS_GTE;
+	v->order = SS_EQ;
+	v->async = async;
 	if (vp) {
 		v->v = *vp;
 	}

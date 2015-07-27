@@ -284,7 +284,7 @@ int se_scheduler_init(sescheduler *s, so *env)
 int se_scheduler_shutdown(sescheduler *s)
 {
 	se *e = (se*)s->env;
-	se_requestwakeup(e);
+	se_reqwakeup(e);
 	int rcret = 0;
 	int rc = se_workerpool_shutdown(&s->workers, &e->r);
 	if (ssunlikely(rc == -1))
@@ -444,11 +444,11 @@ se_schedule(sescheduler *s, setask *task, seworker *w)
 
 	ss_mutexlock(&s->lock);
 
-	/* asynchronous requests dispatcher */
+	/* asynchronous reqs dispatcher */
 	if (s->req == 0) {
 		switch (zone->async) {
 		case 2:
-			if (se_requestqueue(e) == 0)
+			if (se_reqqueue(e) == 0)
 				break;
 		case 1:
 			s->req = 1;
@@ -741,7 +741,7 @@ se_rotate(sescheduler *s, seworker *w)
 }
 
 static int
-se_execute(setask *t, seworker *w)
+se_run(setask *t, seworker *w)
 {
 	si_plannertrace(&t->plan, &w->trace);
 	sedb *db = t->db;
@@ -760,10 +760,10 @@ se_dispatch(sescheduler *s, seworker *w, setask *t)
 		int rc = se_active(e);
 		if (ssunlikely(rc == 0))
 			break;
-		serequest *req = se_requestdispatch(e, block);
+		sereq *req = se_reqdispatch(e, block);
 		if (req) {
-			se_query(req);
-			se_requestready(req);
+			se_execute(req);
+			se_reqready(req);
 		}
 	} while (block);
 	return 0;
@@ -792,7 +792,7 @@ se_complete(sescheduler *s, setask *t)
 	case SI_SHUTDOWN:
 	case SI_DROP:
 		s->workers_gc_db--;
-		db->o.i->destroy(&db->o);
+		so_destroy(&db->o);
 		break;
 	}
 	if (t->rotate == 1)
@@ -821,9 +821,9 @@ int se_scheduler(sescheduler *s, seworker *w)
 	}
 	se *e = (se*)s->env;
 	if (task.backup_complete)
-		se_request_on_backup(e);
+		se_reqonbackup(e);
 	if (job) {
-		rc = se_execute(&task, w);
+		rc = se_run(&task, w);
 		if (ssunlikely(rc == -1)) {
 			if (task.plan.plan != SI_BACKUP &&
 			    task.plan.plan != SI_BACKUPEND) {

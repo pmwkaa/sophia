@@ -13,7 +13,6 @@ typedef struct se se;
 
 struct se {
 	so          o;
-	so          async;
 	sestatus    status;
 	ssmutex     apilock;
 	ssmutex     reqlock;
@@ -21,6 +20,7 @@ struct se {
 	ssspinlock  dblock;
 	solist      db;
 	solist      db_shutdown;
+	solist      cursor;
 	solist      tx;
 	solist      req;
 	solist      reqactive;

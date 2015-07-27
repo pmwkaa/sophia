@@ -55,30 +55,32 @@ se_batchwrite(sebatch *b, sev *o, uint8_t flags)
 		flags = 0;
 
 	/* prepare object */
-	svv *v = se_dbv(db, o, 0);
-	if (ssunlikely(v == NULL))
+	svv *v;
+	int rc = se_dbv(db, o, 0, &v);
+	if (ssunlikely(rc == -1))
 		goto error;
 	v->flags = flags;
 	v->log = o->log;
 	sv vp;
 	sv_init(&vp, &sv_vif, v, NULL);
-	o->o.i->destroy(&o->o);
+	so_destroy(&o->o);
 
 	/* ensure quota */
-	ss_quota(&e->quota, SS_QADD, sizeof(svv) + sv_size(&vp));
+	int size = sizeof(svv) + sv_size(&vp);
+	ss_quota(&e->quota, SS_QADD, size);
 
 	/* log add */
 	svlogv lv;
-	lv.id   = db->coindex.dsn;
-	lv.vgc  = NULL;
-	lv.next = UINT32_MAX;
+	sv_logvinit(&lv, db->coindex.dsn);
 	sv_init(&lv.v, &sv_vif, v, NULL);
-	int rc = sv_logadd(&b->log, &e->a, &lv, db->coindex.ptr);
-	if (ssunlikely(rc == -1))
+	rc = sv_logadd(&b->log, &e->a, &lv, db->coindex.ptr);
+	if (ssunlikely(rc == -1)) {
+		ss_quota(&e->quota, SS_QREMOVE, size);
 		return sr_oom(&e->error);
+	}
 	return 0;
 error:
-	o->o.i->destroy(&o->o);
+	so_destroy(&o->o);
 	return -1;
 }
 

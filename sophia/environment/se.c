@@ -19,46 +19,6 @@
 #include <libsy.h>
 #include <libse.h>
 
-static void*
-se_asyncbegin(so *o)
-{
-	se *e = se_of(o);
-	return se_txnew(e, 1);
-}
-
-static soif seasyncif =
-{
-	.open         = NULL,
-	.destroy      = NULL,
-	.error        = NULL,
-	.object       = NULL,
-	.asynchronous = NULL,
-	.poll         = NULL,
-	.drop         = NULL,
-	.setobject    = NULL,
-	.setstring    = NULL,
-	.setint       = NULL,
-	.getobject    = NULL,
-	.getstring    = NULL,
-	.getint       = NULL,
-	.set          = NULL,
-	.update       = NULL,
-	.del          = NULL,
-	.get          = NULL,
-	.batch        = NULL,
-	.begin        = se_asyncbegin,
-	.prepare      = NULL,
-	.commit       = NULL,
-	.cursor       = NULL,
-};
-
-static void*
-se_async(so *o)
-{
-	se *e = se_cast(o, se*, SE);
-	return &e->async;
-}
-
 static int
 se_open(so *o)
 {
@@ -136,6 +96,9 @@ se_destroy(so *o)
 	rc = so_listdestroy(&e->reqready);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
+	rc = so_listdestroy(&e->cursor);
+	if (ssunlikely(rc == -1))
+		rcret = -1;
 	rc = so_listdestroy(&e->tx);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
@@ -178,32 +141,32 @@ static void*
 se_begin(so *o)
 {
 	se *e = se_of(o);
-	return se_txnew(e, 0);
+	return se_txnew(e);
 }
 
 static void*
 se_poll(so *o)
 {
 	se *e = se_cast(o, se*, SE);
+	so *result;
 	if (e->meta.event_on_backup) {
 		ss_mutexlock(&e->sched.lock);
 		if (ssunlikely(e->sched.backup_events > 0)) {
 			e->sched.backup_events--;
-			serequest *req = se_requestnew(e, SE_REQON_BACKUP, &e->o, NULL);
-			if (ssunlikely(req == NULL)) {
-				ss_mutexunlock(&e->sched.lock);
-				return NULL;
-			}
+			sereq r;
+			se_reqinit(e, &r, SE_REQON_BACKUP, &e->o, NULL);
+			result = se_reqresult(&r, 1);
 			ss_mutexunlock(&e->sched.lock);
-			return &req->o;
+			return result;
 		}
 		ss_mutexunlock(&e->sched.lock);
 	}
-	serequest *req = se_requestdispatch_ready(e);
+	sereq *req = se_reqdispatch_ready(e);
 	if (req == NULL)
 		return NULL;
-	se_requestresult(req);
-	return &req->o;
+	result = se_reqresult(req, 1);
+	so_destroy(&req->o);
+	return result;
 }
 
 static int
@@ -219,13 +182,20 @@ se_error(so *o)
 	return 0;
 }
 
+static void*
+se_cursor(so *o)
+{
+	se *e = se_cast(o, se*, SE);
+	return se_cursornew(e, 0);
+}
+
 static soif seif =
 {
 	.open         = se_open,
 	.destroy      = se_destroy,
 	.error        = se_error,
 	.object       = NULL,
-	.asynchronous = se_async,
+	.asynchronous = NULL,
 	.poll         = se_poll,
 	.drop         = NULL,
 	.setobject    = se_metaset_object,
@@ -242,7 +212,7 @@ static soif seif =
 	.begin        = se_begin,
 	.prepare      = NULL,
 	.commit       = NULL,
-	.cursor       = se_metacursor,
+	.cursor       = se_cursor,
 };
 
 so *se_new(void)
@@ -252,7 +222,6 @@ so *se_new(void)
 		return NULL;
 	memset(e, 0, sizeof(*e));
 	so_init(&e->o, &se_o[SE], &seif, &e->o, &e->o /* self */);
-	so_init(&e->async, &se_o[SEASYNC], &seasyncif, &e->o, &e->o);
 	se_statusinit(&e->status);
 	se_statusset(&e->status, SE_OFFLINE);
 	ss_pagerinit(&e->pager, 10, 4096);
@@ -279,11 +248,12 @@ so *se_new(void)
 	ss_aopen(&e->a_snapshot, &ss_slaba, &e->pager, sizeof(sesnapshot));
 	ss_aopen(&e->a_batch, &ss_slaba, &e->pager, sizeof(sebatch));
 	ss_aopen(&e->a_tx, &ss_slaba, &e->pager, sizeof(setx));
-	ss_aopen(&e->a_req, &ss_slaba, &e->pager, sizeof(serequest));
+	ss_aopen(&e->a_req, &ss_slaba, &e->pager, sizeof(sereq));
 	ss_aopen(&e->a_sxv, &ss_slaba, &e->pagersx, sizeof(sxv));
 	se_metainit(&e->meta, &e->o);
 	so_listinit(&e->db);
 	so_listinit(&e->db_shutdown);
+	so_listinit(&e->cursor);
 	so_listinit(&e->tx);
 	so_listinit(&e->snapshot);
 	so_listinit(&e->metacursor);

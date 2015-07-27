@@ -49,11 +49,10 @@ rev_u32_test0(void)
 
 	o = sp_object(db);
 	sp_setstring(o, "order", ">=", 0);
-	void *c = sp_cursor(db, o);
+	void *c = sp_cursor(env);
 	key = 9;
-	while ((o = sp_get(c, NULL))) {
+	while ((o = sp_get(c, o))) {
 		t( *(uint32_t*)sp_getstring(o, "key", NULL) == key );
-		sp_destroy(o);
 		key--;
 	}
 	t(key == UINT32_MAX); /* overflow */
@@ -61,11 +60,10 @@ rev_u32_test0(void)
 
 	o = sp_object(db);
 	sp_setstring(o, "order", "<=", 0);
-	c = sp_cursor(db, o);
+	c = sp_cursor(env);
 	key = 0;
-	while ((o = sp_get(c, NULL))) {
+	while ((o = sp_get(c, o))) {
 		t( *(uint32_t*)sp_getstring(o, "key", NULL) == key );
-		sp_destroy(o);
 		key++;
 	}
 	t(key == 10);
@@ -104,11 +102,10 @@ rev_u32_test1(void)
 	sp_setstring(o, "order", ">=", 0);
 	sp_setstring(o, "key", &key, sizeof(key));
 
-	void *c = sp_cursor(db, o);
+	void *c = sp_cursor(env);
 	uint32_t expect = 9;
-	while ((o = sp_get(c, NULL))) {
+	while ((o = sp_get(c, o))) {
 		t( *(uint32_t*)sp_getstring(o, "key", NULL) == expect );
-		sp_destroy(o);
 		expect--;
 	}
 	t(expect == UINT32_MAX); /* overflow */
@@ -119,11 +116,10 @@ rev_u32_test1(void)
 	sp_setstring(o, "order", ">=", 0);
 	sp_setstring(o, "key", &key, sizeof(key));
 
-	c = sp_cursor(db, o);
+	c = sp_cursor(env);
 	expect = key;
-	while ((o = sp_get(c, NULL))) {
+	while ((o = sp_get(c, o))) {
 		t( *(uint32_t*)sp_getstring(o, "key", NULL) == expect );
-		sp_destroy(o);
 		expect--;
 	}
 	t(expect == UINT32_MAX); /* overflow */
@@ -133,11 +129,10 @@ rev_u32_test1(void)
 	o = sp_object(db);
 	sp_setstring(o, "order", "<=", 0);
 	sp_setstring(o, "key", &key, sizeof(key));
-	c = sp_cursor(db, o);
+	c = sp_cursor(env);
 	expect = key;
-	while ((o = sp_get(c, NULL))) {
+	while ((o = sp_get(c, o))) {
 		t( *(uint32_t*)sp_getstring(o, "key", NULL) == expect );
-		sp_destroy(o);
 		expect++;
 	}
 	t(expect == 10);
@@ -180,11 +175,10 @@ rev_u64_test0(void)
 
 	o = sp_object(db);
 	sp_setstring(o, "order", ">=", 0);
-	void *c = sp_cursor(db, o);
+	void *c = sp_cursor(env);
 	key = 9;
-	while ((o = sp_get(c, NULL))) {
+	while ((o = sp_get(c, o))) {
 		t( *(uint64_t*)sp_getstring(o, "key", NULL) == key );
-		sp_destroy(o);
 		key--;
 	}
 	t(key == UINT64_MAX); /* overflow */
@@ -192,11 +186,10 @@ rev_u64_test0(void)
 
 	o = sp_object(db);
 	sp_setstring(o, "order", "<=", 0);
-	c = sp_cursor(db, o);
+	c = sp_cursor(env);
 	key = 0;
-	while ((o = sp_get(c, NULL))) {
+	while ((o = sp_get(c, o))) {
 		t( *(uint64_t*)sp_getstring(o, "key", NULL) == key );
-		sp_destroy(o);
 		key++;
 	}
 	t(key == 10);
@@ -235,11 +228,10 @@ rev_u64_test1(void)
 	sp_setstring(o, "order", ">=", 0);
 	sp_setstring(o, "key", &key, sizeof(key));
 
-	void *c = sp_cursor(db, o);
+	void *c = sp_cursor(env);
 	uint64_t expect = 9;
-	while ((o = sp_get(c, NULL))) {
+	while ((o = sp_get(c, o))) {
 		t( *(uint64_t*)sp_getstring(o, "key", NULL) == expect );
-		sp_destroy(o);
 		expect--;
 	}
 	t(expect == UINT64_MAX); /* overflow */
@@ -250,11 +242,10 @@ rev_u64_test1(void)
 	sp_setstring(o, "order", ">=", 0);
 	sp_setstring(o, "key", &key, sizeof(key));
 
-	c = sp_cursor(db, o);
+	c = sp_cursor(env);
 	expect = key;
-	while ((o = sp_get(c, NULL))) {
+	while ((o = sp_get(c, o))) {
 		t( *(uint64_t*)sp_getstring(o, "key", NULL) == expect );
-		sp_destroy(o);
 		expect--;
 	}
 	t(expect == UINT64_MAX); /* overflow */
@@ -264,11 +255,10 @@ rev_u64_test1(void)
 	o = sp_object(db);
 	sp_setstring(o, "order", "<=", 0);
 	sp_setstring(o, "key", &key, sizeof(key));
-	c = sp_cursor(db, o);
+	c = sp_cursor(env);
 	expect = key;
-	while ((o = sp_get(c, NULL))) {
+	while ((o = sp_get(c, o))) {
 		t( *(uint64_t*)sp_getstring(o, "key", NULL) == expect );
-		sp_destroy(o);
 		expect++;
 	}
 	t(expect == 10);

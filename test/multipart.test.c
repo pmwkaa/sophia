@@ -199,10 +199,10 @@ multipart_cursor0(void)
 	}
 
 	i = 0;
-	void *o = sp_object(db);
-	void *cur = sp_cursor(db, o);
+	void *cur = sp_cursor(env);
 	t( cur != NULL );
-	while ((o = sp_get(cur, NULL))) {
+	void *o = sp_object(db);
+	while ((o = sp_get(cur, o))) {
 		int asize;
 		t( strcmp(key_a, sp_getstring(o, "key", &asize)) == 0 );
 		int bsize;
@@ -212,7 +212,6 @@ multipart_cursor0(void)
 		t( asize == sizeof(key_a) );
 		t( bsize == sizeof(i) );
 		t( vsize == sizeof(i) );
-		t( sp_destroy(o) == 0 );
 		i++;
 	}
 	sp_destroy(cur);
@@ -251,13 +250,13 @@ multipart_cursor1(void)
 	}
 
 	i = 322;
+	void *cur = sp_cursor(env);
+	t( cur != NULL );
 	void *o = sp_object(db);
 	sp_setstring(o, "key", key_a, sizeof(key_a));
 	sp_setstring(o, "key_b", &i, sizeof(i));
 	sp_setstring(o, "value", &i, sizeof(i));
-	void *cur = sp_cursor(db, o);
-	t( cur != NULL );
-	while ((o = sp_get(cur, NULL))) {
+	while ((o = sp_get(cur, o))) {
 		int asize;
 		t( strcmp(key_a, sp_getstring(o, "key", &asize)) == 0 );
 		int bsize;
@@ -267,7 +266,6 @@ multipart_cursor1(void)
 		t( asize == sizeof(key_a) );
 		t( bsize == sizeof(i) );
 		t( vsize == sizeof(i) );
-		t( sp_destroy(o) == 0 );
 		i++;
 	}
 	sp_destroy(cur);

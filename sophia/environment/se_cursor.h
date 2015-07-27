@@ -12,20 +12,11 @@
 typedef struct secursor secursor;
 
 struct secursor {
-	so       o;
-	int      async;
-	int      ready;
-	ssorder  order;
-	sx       t;
-	sv       seek;
-	sv       v;
-	void    *prefix;
-	int      prefixsize;
+	so o;
+	sx t;
 	sicache *cache;
-	sedb    *db;
 };
 
-so   *se_cursornew(sedb*, sev*, uint64_t, int);
-void  se_cursorend(secursor*);
+so *se_cursornew(se*, uint64_t);
 
 #endif

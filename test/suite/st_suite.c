@@ -180,11 +180,11 @@ void st_suiterun(stsuite *s, char *id)
 					st_r.plan  = plan;
 
 					int percent = (st_r.stat_test * 100.0) / st_r.suite.total;
-					fprintf(st_r.output, "[%02d%%] ", percent);
+					fprintf(st_r.output, "%02d%% ", percent);
 
 					int g = 0;
 					int scenes = 0;
-					fprintf(st_r.output, "(%02d:%02d:%02d:", plan->id, group->id, test->id);
+					fprintf(st_r.output, "[%02d:%02d:%02d:", plan->id, group->id, test->id);
 					while (g < plan->scene_count) {
 						stscene *scene = &plan->scene[g];
 						if (scene->statemax > 1) {
@@ -195,7 +195,7 @@ void st_suiterun(stsuite *s, char *id)
 					}
 					if (scenes == 0)
 						fprintf(st_r.output, "0");
-					fprintf(st_r.output, ") %s.%s.%s", plan->name, group->name, test->name);
+					fprintf(st_r.output, "] %s.%s.%s", plan->name, group->name, test->name);
 					fflush(st_r.output);
 
 					g = 0;

@@ -51,16 +51,15 @@ se_snapshotget(so *o, so *key)
 	sesnapshot *s = se_cast(o, sesnapshot*, SESNAPSHOT);
 	sev *v = se_cast(key, sev*, SEV);
 	sedb *db = se_cast(key->parent, sedb*, SEDB);
-	return se_txdbget(db, v, 0, s->vlsn, 0);
+	return se_dbread(db, v, &s->t, 0, NULL, SS_EQ, 0);
 }
 
 static void*
-se_snapshotcursor(so *o, so *key)
+se_snapshotcursor(so *o)
 {
 	sesnapshot *s = (sesnapshot*)o;
-	sev *v = se_cast(key, sev*, SEV);
-	sedb *db = se_cast(key->parent, sedb*, SEDB);
-	return se_cursornew(db, v, s->vlsn, 0);
+	se *e = se_of(o);
+	return se_cursornew(e, s->vlsn);
 }
 
 static soif sesnapshotif =

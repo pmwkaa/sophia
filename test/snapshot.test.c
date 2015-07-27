@@ -84,12 +84,11 @@ snapshot_cursor(void)
 	void *o = sp_object(db);
 	t( o != NULL );
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
-	void *cur = sp_cursor(db, o);
-	while ((o = sp_get(cur, NULL))) {
+	void *cur = sp_cursor(env);
+	while ((o = sp_get(cur, o))) {
 		t( *(int*)sp_getstring(o, "key", NULL) == i );
 		t( *(int*)sp_getstring(o, "value", NULL) == i + 1);
 		i++;
-		t( sp_destroy(o) == 0 );
 	}
 	sp_destroy(cur);
 
@@ -97,12 +96,11 @@ snapshot_cursor(void)
 	o = sp_object(db);
 	t( o != NULL );
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
-	cur = sp_cursor(snapshot, o);
-	while ((o = sp_get(cur, NULL))) {
+	cur = sp_cursor(snapshot);
+	while ((o = sp_get(cur, o))) {
 		t( *(int*)sp_getstring(o, "key", NULL) == i );
 		t( *(int*)sp_getstring(o, "value", NULL) == i );
 		i++;
-		t( sp_destroy(o) == 0 );
 	}
 	sp_destroy(cur);
 
@@ -233,12 +231,11 @@ snapshot_recover_cursor(void)
 	void *o = sp_object(db);
 	t( o != NULL );
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
-	void *cur = sp_cursor(db, o);
-	while ((o = sp_get(cur, NULL))) {
+	void *cur = sp_cursor(env);
+	while ((o = sp_get(cur, o))) {
 		t( *(int*)sp_getstring(o, "key", NULL) == i );
 		t( *(int*)sp_getstring(o, "value", NULL) == i + 1);
 		i++;
-		t( sp_destroy(o) == 0 );
 	}
 	sp_destroy(cur);
 
@@ -246,12 +243,11 @@ snapshot_recover_cursor(void)
 	o = sp_object(db);
 	t( o != NULL );
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
-	cur = sp_cursor(snapshot, o);
-	while ((o = sp_get(cur, NULL))) {
+	cur = sp_cursor(snapshot);
+	while ((o = sp_get(cur, o))) {
 		t( *(int*)sp_getstring(o, "key", NULL) == i );
 		t( *(int*)sp_getstring(o, "value", NULL) == i );
 		i++;
-		t( sp_destroy(o) == 0 );
 	}
 	sp_destroy(cur);
 

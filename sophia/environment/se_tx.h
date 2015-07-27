@@ -13,14 +13,11 @@ typedef struct setx setx;
 
 struct setx {
 	so o;
-	int async;
 	uint64_t lsn;
 	sx t;
 };
 
-int   se_txdbwrite(sedb*, sev*, int, uint8_t);
-void *se_txdbget(sedb*, sev*, int, uint64_t, int);
+so   *se_txnew(se*);
 void  se_txend(setx*);
-so   *se_txnew(se*, int);
 
 #endif

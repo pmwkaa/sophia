@@ -1,5 +1,5 @@
-#ifndef SE_QUERY_H_
-#define SE_QUERY_H_
+#ifndef SE_EXECUTE_H_
+#define SE_EXECUTE_H_
 
 /*
  * sophia database
@@ -9,6 +9,6 @@
  * BSD License
 */
 
-int se_query(serequest*);
+int se_execute(sereq*);
 
 #endif

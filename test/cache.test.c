@@ -42,14 +42,13 @@ cache_test0(void)
 	}
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	void *o = sp_object(db);
-	void *cur = sp_cursor(db, o);
+	void *cur = sp_cursor(env);
 	i = 0;
 	t( cur != NULL );
-	while ((o = sp_get(cur, NULL))) {
+	void *o = sp_object(db);
+	while ((o = sp_get(cur, o))) {
 		t( *(int*)sp_getstring(o, "key", 0) == i );
 		i++;
-		sp_destroy(o);
 	}
 	t( i == 185 );
 	t( sp_destroy(cur) == 0 );
@@ -98,14 +97,13 @@ cache_test1(void)
 	t( i == 370 );
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	void *o = sp_object(db);
-	void *cur = sp_cursor(db, o);
-	i = 0;
+	void *cur = sp_cursor(env);
 	t( cur != NULL );
-	while ((o = sp_get(cur, NULL))) {
+	void *o = sp_object(db);
+	i = 0;
+	while ((o = sp_get(cur, o))) {
 		t( *(int*)sp_getstring(o, "key", NULL) == i );
 		i++;
-		sp_destroy(o);
 	}
 	t( sp_destroy(cur) == 0 );
 
@@ -159,17 +157,16 @@ cache_invalidate(void)
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	o = sp_object(db);
-	void *cur = sp_cursor(db, o);
-	i = 0;
+	void *cur = sp_cursor(env);
 	t( cur != NULL );
-	while ((o = sp_get(cur, NULL))) {
+	o = sp_object(db);
+	i = 0;
+	while ((o = sp_get(cur, o))) {
 		t( *(int*)sp_getstring(o, "key", NULL) == i );
 		if (i == 200) {
 			t( sp_setint(env, "db.test.branch", 0) == 0 );
 		}
 		i++;
-		sp_destroy(o);
 	}
 	t( i == 371 );
 	t( sp_destroy(cur) == 0 );

@@ -292,7 +292,7 @@ SP_API void *sp_get(void *ptr, void *v)
 	return h;
 }
 
-SP_API void *sp_cursor(void *ptr, void *v)
+SP_API void *sp_cursor(void *ptr)
 {
 	so *o = sp_cast(ptr, __FUNCTION__);
 	if (ssunlikely(o->i->cursor == NULL)) {
@@ -301,7 +301,7 @@ SP_API void *sp_cursor(void *ptr, void *v)
 	}
 	so *e = o->env;
 	se_apilock(e);
-	void *h = o->i->cursor(o, v);
+	void *h = o->i->cursor(o);
 	se_apiunlock(e);
 	return h;
 }

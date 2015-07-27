@@ -14,18 +14,26 @@ typedef struct sev sev;
 struct sev {
 	so        o;
 	sv        v;
+	sv        vprefix;
 	ssorder   order;
+	int       orderset;
 	sfv       keyv[8];
 	int       keyc;
+	void     *prefix;
+	uint32_t  prefixsize;
 	void     *value;
 	uint32_t  valuesize;
+	/* recover */
 	void     *raw;
 	uint32_t  rawsize;
-	void     *prefix;
-	uint16_t  prefixsize;
 	void     *log;
+	/* async */
+	int       async;
+	int       async_status;
+	uint32_t  async_operation;
+	uint64_t  async_seq;
 };
 
-so *se_vnew(se*, so*, sv*);
+so *se_vnew(se*, so*, sv*, int);
 
 #endif

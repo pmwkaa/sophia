@@ -81,6 +81,5 @@ int      se_metaset_int(so*, char*, int64_t);
 void    *se_metaget_object(so*, char*);
 void    *se_metaget_string(so*, char*, int*);
 int64_t  se_metaget_int(so*, char*);
-void    *se_metacursor(so*, so*);
 
 #endif

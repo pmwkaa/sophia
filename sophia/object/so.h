@@ -35,7 +35,7 @@ struct soif {
 	void    *(*begin)(so*);
 	int      (*prepare)(so*);
 	int      (*commit)(so*);
-	void    *(*cursor)(so*, so*);
+	void    *(*cursor)(so*);
 };
 
 struct sotype {
@@ -62,21 +62,21 @@ so_init(so *o, sotype *type, soif *i, so *parent, so *env)
 }
 
 static inline void*
-so_castto(void *ptr, sotype *type,
+so_cast_dynamic(void *ptr, sotype *type,
           const char *file,
           const char *function, int line)
 {
-	int eq = ((so*)ptr)->type == type;
+	int eq = ptr != NULL && ((so*)ptr)->type == type;
 	if (sslikely(eq))
 		return ptr;
-	fprintf(stderr, "%s:%d %s() expected '%s' object",
-	        file, line, function, type->name);
+	fprintf(stderr, "%s:%d %s(%p) expected '%s' object\n",
+	        file, line, function, ptr, type->name);
 	abort();
 	return NULL;
 }
 
 #define so_cast(o, cast, type) \
-	((cast)so_castto(o, type, __FILE__, __FUNCTION__, __LINE__))
+	((cast)so_cast_dynamic(o, type, __FILE__, __FUNCTION__, __LINE__))
 
 #define so_open(o)         (o)->i->open(o)
 #define so_destroy(o)      (o)->i->destroy(o)
@@ -93,7 +93,7 @@ so_castto(void *ptr, sotype *type,
 #define so_begin(o)        (o)->i->begin(o)
 #define so_prepare(o)      (o)->i->prepare(o)
 #define so_commit(o)       (o)->i->commit(o)
-#define so_cursor(o, v)    (o)->i->cursor(o, v)
+#define so_cursor(o)       (o)->i->cursor(o)
 
 #define so_setobject(o, path, object) \
 	(o)->i->setobject(o, path, object)

@@ -35,6 +35,16 @@ struct svlog {
 };
 
 static inline void
+sv_logvinit(svlogv *v, uint32_t id)
+{
+	v->id   = id;
+	v->next = UINT32_MAX;
+	v->vgc  = NULL;
+	v->v.v  = NULL;
+	v->v.i  = NULL;
+}
+
+static inline void
 sv_loginit(svlog *l)
 {
 	ss_bufinit_reserve(&l->index, l->reserve_i, sizeof(l->reserve_i));

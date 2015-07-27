@@ -16,14 +16,14 @@
 #include <se_metacursor.h>
 #include <se_scheduler.h>
 #include <se.h>
-#include <se_request.h>
-#include <se_query.h>
+#include <se_req.h>
 #include <se_v.h>
 #include <se_db.h>
 #include <se_batch.h>
 #include <se_tx.h>
 #include <se_cursor.h>
 #include <se_snapshot.h>
+#include <se_execute.h>
 #include <se_recover.h>
 #include <se_scheduler.h>
 

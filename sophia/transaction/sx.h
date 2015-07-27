@@ -44,7 +44,6 @@ struct sx {
 };
 
 struct sxmanager {
-	ssspinlock lockupd;
 	ssspinlock lock;
 	ssrb i;
 	uint32_t count;

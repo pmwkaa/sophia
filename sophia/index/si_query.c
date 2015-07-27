@@ -321,7 +321,7 @@ next_node:
 	svmergesrc *s;
 	sv upbuf_reserve;
 	ssbuf upbuf;
-	if (ssunlikely(q->update_v)) {
+	if (ssunlikely(q->update_v && q->update_v->v)) {
 		ss_bufinit_reserve(&upbuf, &upbuf_reserve, sizeof(upbuf_reserve));
 		ss_bufadd(&upbuf, NULL, (void*)&q->update_v, sizeof(sv*));
 		s = sv_mergeadd(m, NULL);
@@ -370,12 +370,14 @@ next_node:
 	}
 
 	rc = 1;
+#if 0
 	/* do update validation */
 	if (q->update) {
 		rc = sr_compare(q->r->scheme, sv_pointer(v), sv_size(v),
 		                q->key, q->keysize);
 		rc = rc == 0;
 	}
+#endif
 	/* do prefix search */
 	if (q->prefix && rc) {
 		rc = sr_compareprefix(q->r->scheme, q->prefix, q->prefixsize,

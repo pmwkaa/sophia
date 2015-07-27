@@ -62,26 +62,27 @@ prefix_test0(void)
 
 	char prefix[] = "ab";
 
+	void *c = sp_cursor(env);
+	t( c != NULL );
+
 	o = sp_object(db);
 	t( o != NULL );
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	t( sp_setstring(o, "prefix", prefix, sizeof(prefix) - 1) == 0 );
-	void *c = sp_cursor(db, o);
-	t( c != NULL );
 
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o != NULL );
 	t( strcmp((char*)sp_getstring(o, "key", NULL), "ab") == 0 );
-	t( sp_destroy(o) == 0 );
-	o = sp_get(c, NULL);
+
+	o = sp_get(c, o);
 	t( o != NULL );
 	t( strcmp((char*)sp_getstring(o, "key", NULL), "aba") == 0 );
-	t( sp_destroy(o) == 0 );
-	o = sp_get(c, NULL);
+
+	o = sp_get(c, o);
 	t( o != NULL );
 	t( strcmp((char*)sp_getstring(o, "key", NULL), "abac") == 0 );
-	t( sp_destroy(o) == 0 );
-	o = sp_get(c, NULL);
+
+	o = sp_get(c, o);
 	t( o == NULL );
 
 	t( sp_destroy(env) == 0 );
@@ -134,16 +135,17 @@ prefix_test1(void)
 
 	char prefix[] = "ab";
 
+	void *c = sp_cursor(env);
+	t( c != NULL );
+
 	o = sp_object(db);
 	t( o != NULL );
 	t( sp_setstring(o, "order", "<=", 0) == 0 );
 	t( sp_setstring(o, "prefix", prefix, sizeof(prefix)) == 0 );
-	void *c = sp_cursor(db, o);
-	t( c != NULL );
-	o = sp_get(c, NULL);
+
+	o = sp_get(c, o);
 	t( strcmp((char*)sp_getstring(o, "key", NULL), "ab") == 0 );
-	t( sp_destroy(o) == 0 );
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o == NULL );
 
 	t( sp_destroy(env) == 0 );

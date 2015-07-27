@@ -179,11 +179,12 @@ void st_scene_truncate(stscene *s ssunused)
 		fprintf(st_r.output, ".truncate");
 		fflush(st_r.output);
 	}
+	void *c = sp_cursor(st_r.env);
+	t( c != NULL );
 	void *o = sp_object(st_r.db);
 	t( o != NULL );
-	void *c = sp_cursor(st_r.db, o);
-	t( c != NULL );
-	while ((o = sp_get(c, NULL))) {
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
+	while ((o = sp_get(c, o))) {
 		void *k = sp_object(st_r.db);
 		t( k != NULL );
 		int valuesize;
@@ -197,7 +198,6 @@ void st_scene_truncate(stscene *s ssunused)
 			i++;
 		}
 		t( sp_delete(st_r.db, k) == 0 );
-		t( sp_destroy(o) == 0 );
 	}
 	t( sp_destroy(c) == 0 );
 }

@@ -141,21 +141,18 @@ recover_crash_branch0(void)
 	o = sp_object(db);
 	t( o != NULL );
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
-	void *c = sp_cursor(db, o);
+	void *c = sp_cursor(env);
 	t( c != NULL );
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o != NULL );
 	t( *(int*)sp_getstring(o, "key", NULL) == 7 );
-	t( sp_destroy(o) == 0 );
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o != NULL );
 	t( *(int*)sp_getstring(o, "key", NULL) == 8 );
-	t( sp_destroy(o) == 0 );
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o != NULL );
 	t( *(int*)sp_getstring(o, "key", NULL) == 9 );
-	t( sp_destroy(o) == 0 );
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
 
@@ -223,21 +220,18 @@ recover_crash_build0(void)
 
 	o = sp_object(db);
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
-	void *c = sp_cursor(db, o);
+	void *c = sp_cursor(env);
 	t( c != NULL );
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o != NULL );
 	t( *(int*)sp_getstring(o, "key", NULL) == 7 );
-	t( sp_destroy(o) == 0 );
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o != NULL );
 	t( *(int*)sp_getstring(o, "key", NULL) == 8 );
-	t( sp_destroy(o) == 0 );
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o != NULL );
 	t( *(int*)sp_getstring(o, "key", NULL) == 9 );
-	t( sp_destroy(o) == 0 );
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
 
@@ -305,21 +299,18 @@ recover_crash_build1(void)
 
 	o = sp_object(db);
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
-	void *c = sp_cursor(db, o);
+	void *c = sp_cursor(env);
 	t( c != NULL );
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o != NULL );
 	t( *(int*)sp_getstring(o, "key", NULL) == 7 );
-	t( sp_destroy(o) == 0 );
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o != NULL );
 	t( *(int*)sp_getstring(o, "key", NULL) == 8 );
-	t( sp_destroy(o) == 0 );
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o != NULL );
 	t( *(int*)sp_getstring(o, "key", NULL) == 9 );
-	t( sp_destroy(o) == 0 );
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
 
@@ -389,21 +380,18 @@ recover_crash_compact0(void)
 
 	o = sp_object(db);
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
-	void *c = sp_cursor(db, o);
+	void *c = sp_cursor(env);
 	t( c != NULL );
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o != NULL );
 	t( *(int*)sp_getstring(o, "key", NULL) == 7 );
-	t( sp_destroy(o) == 0 );
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o != NULL );
 	t( *(int*)sp_getstring(o, "key", NULL) == 8 );
-	t( sp_destroy(o) == 0 );
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o != NULL );
 	t( *(int*)sp_getstring(o, "key", NULL) == 9 );
-	t( sp_destroy(o) == 0 );
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
 
@@ -475,21 +463,18 @@ recover_crash_compact1(void)
 
 	o = sp_object(db);
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
-	void *c = sp_cursor(db, o);
+	void *c = sp_cursor(env);
 	t( c != NULL );
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o != NULL );
 	t( *(int*)sp_getstring(o, "key", NULL) == 7 );
-	t( sp_destroy(o) == 0 );
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o != NULL );
 	t( *(int*)sp_getstring(o, "key", NULL) == 8 );
-	t( sp_destroy(o) == 0 );
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o != NULL );
 	t( *(int*)sp_getstring(o, "key", NULL) == 9 );
-	t( sp_destroy(o) == 0 );
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
 
@@ -563,21 +548,18 @@ recover_crash_compact2(void)
 
 	o = sp_object(db);
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
-	void *c = sp_cursor(db, o);
+	void *c = sp_cursor(env);
 	t( c != NULL );
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o != NULL );
 	t( *(int*)sp_getstring(o, "key", NULL) == 7 );
-	t( sp_destroy(o) == 0 );
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o != NULL );
 	t( *(int*)sp_getstring(o, "key", NULL) == 8 );
-	t( sp_destroy(o) == 0 );
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o != NULL );
 	t( *(int*)sp_getstring(o, "key", NULL) == 9 );
-	t( sp_destroy(o) == 0 );
-	o = sp_get(c, NULL);
+	o = sp_get(c, o);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
 
@@ -648,13 +630,12 @@ recover_crash_compact3(void)
 
 	void *o = sp_object(db);
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
-	void *c = sp_cursor(db, o);
+	void *c = sp_cursor(env);
 	t( c != NULL );
 	i = 0;
-	while ((o = sp_get(c, NULL))) {
+	while ((o = sp_get(c, o))) {
 		t( *(int*)sp_getstring(o, "key", NULL) == i );
 		i++;
-		t( sp_destroy(o) == 0 );
 	}
 	t( sp_destroy(c) == 0 );
 
@@ -726,13 +707,12 @@ recover_crash_compact4(void)
 
 	void *o = sp_object(db);
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
-	void *c = sp_cursor(db, o);
+	void *c = sp_cursor(env);
 	t( c != NULL );
 	i = 0;
-	while ((o = sp_get(c, NULL))) {
+	while ((o = sp_get(c, o))) {
 		t( *(int*)sp_getstring(o, "key", NULL) == i );
 		i++;
-		t( sp_destroy(o) == 0 );
 	}
 	t( sp_destroy(c) == 0 );
 
@@ -806,13 +786,12 @@ recover_crash_compact5(void)
 
 	void *o = sp_object(db);
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
-	void *c = sp_cursor(db, o);
+	void *c = sp_cursor(env);
 	t( c != NULL );
 	i = 0;
-	while ((o = sp_get(c, NULL))) {
+	while ((o = sp_get(c, o))) {
 		t( *(int*)sp_getstring(o, "key", NULL) == i );
 		i++;
-		t( sp_destroy(o) == 0 );
 	}
 	t( sp_destroy(c) == 0 );
 
@@ -886,13 +865,12 @@ recover_crash_compact6(void)
 
 	void *o = sp_object(db);
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
-	void *c = sp_cursor(db, o);
+	void *c = sp_cursor(env);
 	t( c != NULL );
 	i = 0;
-	while ((o = sp_get(c, NULL))) {
+	while ((o = sp_get(c, o))) {
 		t( *(int*)sp_getstring(o, "key", NULL) == i );
 		i++;
-		t( sp_destroy(o) == 0 );
 	}
 	t( sp_destroy(c) == 0 );
 
@@ -967,13 +945,12 @@ recover_crash_compact7(void)
 
 	void *o = sp_object(db);
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
-	void *c = sp_cursor(db, o);
+	void *c = sp_cursor(env);
 	t( c != NULL );
 	i = 0;
-	while ((o = sp_get(c, NULL))) {
+	while ((o = sp_get(c, o))) {
 		t( *(int*)sp_getstring(o, "key", NULL) == i );
 		i++;
-		t( sp_destroy(o) == 0 );
 	}
 	t( sp_destroy(c) == 0 );
 

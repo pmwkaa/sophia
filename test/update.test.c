@@ -43,11 +43,10 @@ update_no_operator(void)
 	i = 0;
 	void *o = sp_object(db);
 	t( o != NULL );
-	void *cur = sp_cursor(db, o);
-	while ((o = sp_get(cur, NULL))) {
+	void *cur = sp_cursor(env);
+	while ((o = sp_get(cur, o))) {
 		t( *(int*)sp_getstring(o, "key", NULL) == i );
 		t( *(int*)sp_getstring(o, "value", NULL) == i );
-		t( sp_destroy(o) == 0 );
 		i++;
 	}
 	sp_destroy(cur);
@@ -718,11 +717,10 @@ update_set_update_update_get_cursor(void)
 
 	o = sp_object(db);
 	t( o != NULL );
-	void *cur = sp_cursor(db, o);
-	o = sp_get(cur, NULL);
+	void *cur = sp_cursor(env);
+	o = sp_get(cur, o);
 	t( *(int*)sp_getstring(o, "value", NULL) == up1 );
-	sp_destroy(o);
-	o = sp_get(cur, NULL);
+	o = sp_get(cur, o);
 	t( o == NULL );
 	sp_destroy(cur);
 

@@ -171,11 +171,11 @@ meta_cursor(void)
 
 	fprintf(st_r.output, "\n");
 
-	void *o;
-	void *cur = sp_cursor(env, NULL);
+	void *cur = sp_getobject(env, NULL);
 	t( cur != NULL );
 	fprintf(st_r.output, "\n");
-	while ((o = sp_get(cur, NULL))) {
+	void *o = NULL;
+	while ((o = sp_get(cur, o))) {
 		char *key = sp_getstring(o, "key", 0);
 		char *value = sp_getstring(o, "value", 0);
 		fprintf(st_r.output, "%s", key);
@@ -183,8 +183,9 @@ meta_cursor(void)
 			fprintf(st_r.output, " = %s\n", value);
 		else
 			fprintf(st_r.output, " = \n");
-		sp_destroy(o);
 	}
+	fprintf(st_r.output, "\n");
+
 	t( sp_destroy(cur) == 0 );
 	t( sp_destroy(env) == 0 );
 }

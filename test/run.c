@@ -43,7 +43,7 @@ extern stgroup *sd_v_group(void);
 extern stgroup *sd_iter_group(void);
 extern stgroup *sd_pageiter_group(void);
 
-/* system */
+/* generic */
 extern stgroup *meta_group(void);
 extern stgroup *cache_group(void);
 extern stgroup *error_group(void);
@@ -69,6 +69,7 @@ extern stgroup *snapshot_group(void);
 extern stgroup *batch_group(void);
 extern stgroup *prefix_group(void);
 extern stgroup *transaction_md_group(void);
+extern stgroup *cursor_md_group(void);
 extern stgroup *tpc_group(void);
 extern stgroup *update_group(void);
 extern stgroup *async_group(void);
@@ -200,7 +201,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, sd_pageiter_group());
 	st_suiteadd(&st_r.suite, plan);
 
-	plan = st_plan("system");
+	plan = st_plan("generic");
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rmrf"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "init"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rt"));
@@ -232,6 +233,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, batch_group());
 	st_planadd(plan, prefix_group());
 	st_planadd(plan, transaction_md_group());
+	st_planadd(plan, cursor_md_group());
 	st_planadd(plan, tpc_group());
 	st_planadd(plan, update_group());
 	st_planadd(plan, async_group());
@@ -367,8 +369,8 @@ main(int argc, char *argv[])
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
-	st_planadd(plan, multithread_group());
 	st_planadd(plan, multithread_be_group());
+	st_planadd(plan, multithread_group());
 	st_suiteadd(&st_r.suite, plan);
 
 	plan = st_plan("multithread_3x_run");
