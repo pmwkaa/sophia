@@ -1006,7 +1006,7 @@ static void
 cursor_pos_lte_random(void)
 {
 	int rc;
-	unsigned int seed = time(NULL);
+	unsigned int seed = 901;
 	srand(seed);
 	void *tx = sp_begin(st_r.env);
 	t( tx != NULL );

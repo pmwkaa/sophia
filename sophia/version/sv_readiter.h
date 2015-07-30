@@ -16,6 +16,7 @@ struct svreaditer {
 	uint64_t vlsn;
 	int next;
 	int nextdup;
+	int save_delete;
 	sv *v;
 } sspacked;
 
@@ -30,20 +31,19 @@ sv_readiter_next(ssiter *i)
 	for (; ss_iterhas(sv_mergeiter, im->merge); ss_iternext(sv_mergeiter, im->merge))
 	{
 		sv *v = ss_iterof(sv_mergeiter, im->merge);
-		/* distinguish duplicates between merge
-		 * streams only */
-		int dup = sv_mergeisdup(im->merge);
+		int dup = sv_is(v, SVDUP) || sv_mergeisdup(im->merge);
 		if (im->nextdup) {
 			if (dup)
 				continue;
 			else
 				im->nextdup = 0;
 		}
-		/* assume that iteration sources are
-		 * version aware */
-		assert(sv_lsn(v) <= im->vlsn);
+		/* skip version out of visible range */
+		if (sv_lsn(v) > im->vlsn) {
+			continue;
+		}
 		im->nextdup = 1;
-		if (ssunlikely(sv_is(v, SVDELETE)))
+		if (ssunlikely(!im->save_delete && sv_is(v, SVDELETE)))
 			continue;
 		assert(! sv_is(v, SVUPDATE));
 		im->v = v;
@@ -53,7 +53,8 @@ sv_readiter_next(ssiter *i)
 }
 
 static inline int
-sv_readiter_open(ssiter *i, ssiter *iterator, uint64_t vlsn)
+sv_readiter_open(ssiter *i, ssiter *iterator, uint64_t vlsn,
+                 int save_delete)
 {
 	svreaditer *im = (svreaditer*)i->priv;
 	im->merge = iterator;
@@ -62,6 +63,7 @@ sv_readiter_open(ssiter *i, ssiter *iterator, uint64_t vlsn)
 	im->v = NULL;
 	im->next = 0;
 	im->nextdup = 0;
+	im->save_delete = save_delete;
 	/* iteration can start from duplicate */
 	sv_readiter_next(i);
 	return 0;

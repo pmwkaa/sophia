@@ -232,7 +232,7 @@ int si_nodecmp(sinode *n, void *key, int size, srscheme *s)
 	int l = sr_compare(s, sd_indexpage_min(&n->self.index, min),
 	                   min->sizemin, key, size);
 	int r = sr_compare(s, sd_indexpage_max(&n->self.index, max),
-	                   max->sizemin, key, size);
+	                   max->sizemax, key, size);
 	/* inside range */
 	if (l <= 0 && r >= 0)
 		return 0;

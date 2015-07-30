@@ -283,8 +283,10 @@ int sx_set(sx *t, sxindex *index, svv *version)
 	sxmanager *m = t->manager;
 	/* allocate mvcc container */
 	sxv *v = sx_valloc(m->asxv, version);
-	if (ssunlikely(v == NULL))
+	if (ssunlikely(v == NULL)) {
+		sv_vfree(m->a, version);
 		return -1;
+	}
 	v->id = t->id;
 	v->index = index;
 	svlogv lv;
@@ -317,6 +319,12 @@ int sx_set(sx *t, sxindex *index, svv *version)
 	{
 		if (ssunlikely(version->flags & SVUPDATE))
 		{
+			if (ssunlikely(own->v->flags & SVUPDATE)) {
+				sr_error(index->r->e, "%s", "only one update statement is "
+				         "allowed per a transaction key");
+				sx_vfree(m->a, m->asxv, v);
+				return -1;
+			}
 			sv a, b, c;
 			sv_init(&a, &sv_vif, own->v, NULL);
 			sv_init(&b, &sv_vif, v->v, NULL);

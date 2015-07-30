@@ -11,11 +11,13 @@
 #include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
+#include <libsd.h>
+#include <libsi.h>
 
-ssiterif sv_indexiter =
+ssiterif si_read =
 {
-	.close   = sv_indexiter_close,
-	.has     = sv_indexiter_has,
-	.of      = sv_indexiter_of,
-	.next    = sv_indexiter_next
+	.close = si_read_close,
+	.has   = si_read_has,
+	.of    = si_read_of,
+	.next  = si_read_next
 };

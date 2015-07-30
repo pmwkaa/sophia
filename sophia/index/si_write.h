@@ -1,5 +1,5 @@
-#ifndef SI_COMMIT_H_
-#define SI_COMMIT_H_
+#ifndef SI_WRITE_H_
+#define SI_WRITE_H_
 
 /*
  * sophia database

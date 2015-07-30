@@ -279,9 +279,10 @@ se_dbdrop(so *o)
 	return 0;
 }
 
-void *se_dbread(sedb *db, sev *o, sx *x, int x_search,
-                sicache *cache, ssorder order,
-                int async)
+void*
+se_dbread(sedb *db, sev *o, sx *x, int x_search,
+          sicache *cache, ssorder order,
+          int async)
 {
 	se *e = se_of(&db->o);
 	/* validate req */

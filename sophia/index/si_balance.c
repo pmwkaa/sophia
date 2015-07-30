@@ -24,8 +24,8 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 	if (ssunlikely(rc == -1))
 		return NULL;
 	svmergesrc *s = sv_mergeadd(&vmerge, NULL);
-	ss_iterinit(sv_indexiterraw, &s->src);
-	ss_iteropen(sv_indexiterraw, &s->src, vindex);
+	ss_iterinit(sv_indexiter, &s->src);
+	ss_iteropen(sv_indexiter, &s->src, r, vindex, SS_GTE, NULL, 0);
 	ssiter i;
 	ss_iterinit(sv_mergeiter, &i);
 	ss_iteropen(sv_mergeiter, &i, r, &vmerge, SS_GTE, 1);

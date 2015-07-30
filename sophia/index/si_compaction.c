@@ -20,15 +20,15 @@ si_redistribute(si *index, sr *r, sdc *c, sinode *node, ssbuf *result)
 	(void)index;
 	svindex *vindex = si_nodeindex(node);
 	ssiter i;
-	ss_iterinit(sv_indexiterraw, &i);
-	ss_iteropen(sv_indexiterraw, &i, vindex);
-	while (ss_iterhas(sv_indexiterraw, &i))
+	ss_iterinit(sv_indexiter, &i);
+	ss_iteropen(sv_indexiter, &i, r, vindex, SS_GTE, NULL, 0);
+	while (ss_iterhas(sv_indexiter, &i))
 	{
-		sv *v = ss_iterof(sv_indexiterraw, &i);
+		sv *v = ss_iterof(sv_indexiter, &i);
 		int rc = ss_bufadd(&c->b, r->a, &v->v, sizeof(svv**));
 		if (ssunlikely(rc == -1))
 			return sr_oom_malfunction(r->e);
-		ss_iternext(sv_indexiterraw, &i);
+		ss_iternext(sv_indexiter, &i);
 	}
 	if (ssunlikely(ss_bufused(&c->b) == 0))
 		return 0;
@@ -81,7 +81,7 @@ si_redistribute_set(si *index, sr *r, uint64_t now, svv *v)
 	/* match node */
 	ssiter i;
 	ss_iterinit(si_iter, &i);
-	ss_iteropen(si_iter, &i, r, index, SS_ROUTE, sv_vpointer(v), v->size);
+	ss_iteropen(si_iter, &i, r, index, SS_GTE, sv_vpointer(v), v->size);
 	sinode *node = ss_iterof(si_iter, &i);
 	assert(node != NULL);
 	/* update node */
@@ -98,14 +98,14 @@ si_redistribute_index(si *index, sr *r, sdc *c, sinode *node)
 {
 	svindex *vindex = si_nodeindex(node);
 	ssiter i;
-	ss_iterinit(sv_indexiterraw, &i);
-	ss_iteropen(sv_indexiterraw, &i, vindex);
-	while (ss_iterhas(sv_indexiterraw, &i)) {
-		sv *v = ss_iterof(sv_indexiterraw, &i);
+	ss_iterinit(sv_indexiter, &i);
+	ss_iteropen(sv_indexiter, &i, r, vindex, SS_GTE, NULL, 0);
+	while (ss_iterhas(sv_indexiter, &i)) {
+		sv *v = ss_iterof(sv_indexiter, &i);
 		int rc = ss_bufadd(&c->b, r->a, &v->v, sizeof(svv**));
 		if (ssunlikely(rc == -1))
 			return sr_oom_malfunction(r->e);
-		ss_iternext(sv_indexiterraw, &i);
+		ss_iternext(sv_indexiter, &i);
 	}
 	if (ssunlikely(ss_bufused(&c->b) == 0))
 		return 0;

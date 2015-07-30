@@ -499,7 +499,7 @@ update_set_update_update_get_branch0(void)
 	t( *(int*)sp_getstring(o, "value", NULL) == up1 );
 	sp_destroy(o);
 
-	t( update_ops == 1 );
+	t( update_ops == 2 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -1287,6 +1287,50 @@ update_sx_set_update_get_branch(void)
 	t( sp_destroy(env) == 0 );
 }
 
+static void
+update_sx_update_update(void)
+{
+	update_ops = 0;
+
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.update", update_operator, 0) == 0 );
+	t( sp_open(env) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+
+	void *tx = sp_begin(env);
+
+	void *o;
+	int i = 0;
+
+	o = sp_object(db);
+	int up = 777;
+	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
+	t( sp_update(tx, o) == 0 );
+
+	o = sp_object(db);
+	up = 778;
+	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
+	t( sp_update(tx, o) == -1 );
+
+	t( sp_commit(tx) == 0 );
+
+	t( update_ops == 0 );
+
+	t( sp_destroy(env) == 0 );
+}
+
 stgroup *update_group(void)
 {
 	stgroup *group = st_group("update");
@@ -1316,5 +1360,6 @@ stgroup *update_group(void)
 	st_groupadd(group, st_test("sx_set_update_get", update_sx_set_update_get));
 	st_groupadd(group, st_test("sx_set_update_update_get", update_sx_set_update_update_get));
 	st_groupadd(group, st_test("sx_set_update_get_branch", update_sx_set_update_get_branch));
+	st_groupadd(group, st_test("sx_update_update", update_sx_update_update));
 	return group;
 }

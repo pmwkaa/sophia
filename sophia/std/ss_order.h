@@ -15,8 +15,6 @@ typedef enum {
 	SS_GT,
 	SS_GTE,
 	SS_EQ,
-	SS_HAS,
-	SS_ROUTE,
 	SS_STOP
 } ssorder;
 

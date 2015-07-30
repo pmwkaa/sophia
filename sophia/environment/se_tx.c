@@ -65,7 +65,6 @@ se_txwrite(setx *t, sev *o, uint8_t flags)
 	rc = sx_set(&t->t, &db->coindex, v);
 	if (ssunlikely(rc == -1)) {
 		ss_quota(&e->quota, SS_QREMOVE, size);
-		sv_vfree(db->r.a, v);
 		return -1;
 	}
 	return 0;
@@ -155,13 +154,13 @@ se_txprepare_trigger(sx *t, sv *v, void *arg0, void *arg1)
 		return SXPREPARE;
 	siquery q;
 	si_queryopen(&q, cache, &db->index,
-	             SS_HAS, t->vlsn,
+	             SS_EQ, t->vlsn,
 	             NULL, 0,
 	             sv_pointer(v), sv_size(v));
+	si_queryhas(&q);
 	int rc;
 	rc = si_query(&q);
-	if (rc == 1)
-		sv_vfree(&e->a, (svv*)q.result.v);
+	assert(q.result.v == NULL);
 	si_queryclose(&q);
 	if (ssunlikely(rc))
 		return SXROLLBACK;
@@ -238,7 +237,6 @@ se_txcommit(so *o)
 		arg->vlsn_generate = 1;
 		arg->vlsn = 0;
 	}
-
 	/* log write and commit */
 	se_execute(&q);
 

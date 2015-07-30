@@ -56,12 +56,14 @@ sd_v_test(void)
 
 	ssiter it;
 	ss_iterinit(sd_pageiter, &it);
-	ss_iteropen(sd_pageiter, &it, &st_r.r, &xfbuf, &page, SS_GTE, NULL, 0, UINT64_MAX);
+	ss_iteropen(sd_pageiter, &it, &st_r.r, &xfbuf, &page, SS_GTE, NULL, 0);
 	t( ss_iteratorhas(&it) != 0 );
 	sv *v = ss_iteratorof(&it);
 	t( v != NULL );
 
 	t( *(int*)sv_key(v, &st_r.r, 0) == i );
+	t( sv_lsn(v) == 3 );
+	t( sv_flags(v) == 0 );
 	ss_iteratornext(&it);
 	t( ss_iteratorhas(&it) != 0 );
 
@@ -71,6 +73,10 @@ sd_v_test(void)
 	t( *(int*)sv_key(v, &st_r.r, 0) == j );
 	t( sv_lsn(v) == 4 );
 	t( sv_flags(v) == 0 );
+
+	ss_iteratornext(&it);
+	v = ss_iteratorof(&it);
+	t( v == NULL );
 
 	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);

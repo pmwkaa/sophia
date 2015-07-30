@@ -73,15 +73,11 @@ sd_indexiter_open(ssiter *i, sr *r, sdindex *index, ssorder o, void *key, int ke
 	ii->keysize = keysize;
 	ii->v       = NULL;
 	ii->pos     = 0;
-	if (ii->index->h->count == 1) {
-		ii->pos = 0;
+	if (ssunlikely(ii->index->h->count == 1)) {
+		/* skip bootstrap node  */
 		if (ii->index->h->lsnmin == UINT64_MAX &&
-		    ii->index->h->lsnmax == 0) {
-			/* skip bootstrap node  */
+		    ii->index->h->lsnmax == 0)
 			return 0;
-		}
-		ii->v = sd_indexpage(ii->index, ii->pos);
-		return 0;
 	}
 	if (ii->key == NULL) {
 		switch (ii->cmp) {
@@ -94,28 +90,30 @@ sd_indexiter_open(ssiter *i, sr *r, sdindex *index, ssorder o, void *key, int ke
 		default:
 			assert(0);
 		}
-	} else {
+		ii->v = sd_indexpage(ii->index, ii->pos);
+		return 0;
+	}
+	if (sslikely(ii->index->h->count > 1))
 		ii->pos = sd_indexiter_route(ii);
-		sdindexpage *p = sd_indexpage(ii->index, ii->pos);
-		switch (ii->cmp) {
-		case SS_LTE: break;
-		case SS_LT: {
-			int l = sr_compare(ii->r->scheme, sd_indexpage_min(ii->index, p), p->sizemin,
-			                   ii->key, ii->keysize);
-			if (ssunlikely(l == 0))
-				ii->pos--;
-			break;
-		}
-		case SS_GTE: break;
-		case SS_GT: {
-			int r = sr_compare(ii->r->scheme, sd_indexpage_max(ii->index, p), p->sizemax,
-			                   ii->key, ii->keysize);
-			if (ssunlikely(r == 0))
-				ii->pos++;
-			break;
-		}
-		default: assert(0);
-		}
+
+	sdindexpage *p = sd_indexpage(ii->index, ii->pos);
+	int rc;
+	switch (ii->cmp) {
+	case SS_LTE:
+	case SS_LT:
+		rc = sr_compare(ii->r->scheme, sd_indexpage_min(ii->index, p),
+		                p->sizemin, ii->key, ii->keysize);
+		if (rc ==  1 || (rc == 0 && ii->cmp == SS_LT))
+			ii->pos--;
+		break;
+	case SS_GTE:
+	case SS_GT:
+		rc = sr_compare(ii->r->scheme, sd_indexpage_max(ii->index, p),
+		                p->sizemax, ii->key, ii->keysize);
+		if (rc == -1 || (rc == 0 && ii->cmp == SS_GT))
+			ii->pos++;
+		break;
+	default: assert(0);
 	}
 	if (ssunlikely(ii->pos == -1 ||
 	               ii->pos >= (int)ii->index->h->count))
@@ -148,12 +146,10 @@ sd_indexiter_next(ssiter *i)
 	sdindexiter *ii = (sdindexiter*)i->priv;
 	switch (ii->cmp) {
 	case SS_LT:
-	case SS_LTE:
-		ii->pos--;
+	case SS_LTE: ii->pos--;
 		break;
 	case SS_GT:
-	case SS_GTE:
-		ii->pos++;
+	case SS_GTE: ii->pos++;
 		break;
 	default:
 		assert(0);

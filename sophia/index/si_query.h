@@ -19,6 +19,7 @@ struct siquery {
 	uint32_t prefixsize;
 	uint64_t vlsn;
 	svmerge merge;
+	int has;
 	int update;
 	sv *update_v;
 	sv result;
@@ -27,10 +28,12 @@ struct siquery {
 	si *index;
 };
 
-int  si_queryopen(siquery*, sicache*, si*, ssorder, uint64_t,
+int  si_queryopen(siquery*, sicache*, si*, ssorder,
+                  uint64_t,
                   void*, uint32_t,
                   void*, uint32_t);
 int  si_queryclose(siquery*);
+void si_queryhas(siquery*);
 void si_queryupdate(siquery*, sv*);
 int  si_query(siquery*);
 int  si_querycommited(si*, sr*, sv*);

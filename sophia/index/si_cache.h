@@ -18,9 +18,11 @@ struct sicachebranch {
 	sdindexpage *ref;
 	sdpage page;
 	ssiter i;
+	ssiter page_iter;
+	ssiter index_iter;
 	ssbuf buf_a;
 	ssbuf buf_b;
-	int iterate;
+	int open;
 	sicachebranch *next;
 } sspacked;
 
@@ -76,7 +78,8 @@ si_cachereset(sicache *c)
 		ss_bufreset(&cb->buf_b);
 		cb->branch = NULL;
 		cb->ref = NULL;
-		cb->iterate = 0;
+		ss_iterclose(si_read, &cb->i);
+		cb->open = 0;
 		cb = cb->next;
 	}
 	c->branch = NULL;
@@ -93,7 +96,9 @@ si_cacheadd(sicache *c, sibranch *b)
 		return NULL;
 	nb->branch  = b;
 	nb->ref     = NULL;
-	nb->iterate = 0;
+	memset(&nb->i, 0, sizeof(nb->i));
+	ss_iterinit(si_read, &nb->i);
+	nb->open    = 0;
 	nb->next    = NULL;
 	ss_bufinit(&nb->buf_a);
 	ss_bufinit(&nb->buf_b);
@@ -143,6 +148,8 @@ si_cachevalidate(sicache *c, sinode *n)
 	while (cb && b) {
 		cb->branch = b;
 		cb->ref = NULL;
+		cb->open = 0;
+		ss_iterclose(si_read, &cb->i);
 		ss_bufreset(&cb->buf_a);
 		ss_bufreset(&cb->buf_b);
 		last = cb;

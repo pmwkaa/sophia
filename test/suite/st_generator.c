@@ -60,7 +60,7 @@ st_generator_kv(stgenerator *g, va_list args)
 	int valuesize = 0;
 	void *value = NULL;
 	if ((g->value_start + g->value_end) > 0) {
-		valuesize = random() % g->value_end;
+		valuesize = rand() % g->value_end;
 		if (valuesize < g->value_start)
 			valuesize = g->value_start;
 		value = ss_malloc(g->r->a, valuesize);
