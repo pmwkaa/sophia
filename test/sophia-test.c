@@ -106,13 +106,11 @@ usage(char *path, int error) {
 int
 main(int argc, char *argv[])
 {
-	int full = 0;
-
 	stconf conf = {
-		.sophia_dir = "sophia",
-		.backup_dir = "backup",
-		.log_dir    = "log",
-		.db_dir     = "test",
+		.sophia_dir = "_test_sophia",
+		.backup_dir = "_test_backup",
+		.log_dir    = "_test_log",
+		.db_dir     = "_test_db",
 		.verbose    = 0,
 		.report     = 0,
 		.id         = NULL,
@@ -121,6 +119,7 @@ main(int argc, char *argv[])
 		.stop_group = 0,
 		.stop_test  = 0
 	};
+	int full = 0;
 	int opt;
 	while ((opt = getopt(argc, argv, "t:FPGTl:rvh")) != -1) {
 		switch (opt) {

@@ -1,93 +1,92 @@
 
 # sophia test-suite
-#
 
-OBJECTS = ss_leb128.test.o \
-          ss_pager.test.o \
-          ss_a.test.o \
-          ss_aslab.test.o \
-          ss_order.test.o \
-          ss_rq.test.o \
-          ss_ht.test.o \
-          ss_zstdfilter.test.o \
-          ss_lz4filter.test.o \
-          sr_meta.test.o \
-          sr_scheme.test.o \
-          sv_v.test.o \
-          sv_index.test.o \
-          sv_indexiter.test.o \
-          sv_mergeiter.test.o \
-		  sv_writeiter.test.o \
-          sl.test.o \
-          sl_iter.test.o \
-          sd_build.test.o \
-          sd_v.test.o \
-          sd_iter.test.o \
-          sd_pageiter.test.o \
-          meta.test.o \
-          cache.test.o \
-          error.test.o \
-          method.test.o \
-          profiler.test.o \
-          repository.test.o \
-          shutdown.test.o \
-          drop.test.o \
-          ddl.test.o \
-          multipart.test.o \
-          tpr.test.o \
-          object.test.o \
-          env.test.o \
-          deadlock.test.o \
-          scheme.test.o \
-          rev.test.o \
-          branch.test.o \
-          compact.test.o \
-          backup.test.o \
-          checkpoint.test.o \
-          snapshot.test.o \
-          batch.test.o \
-          gc.test.o \
-          prefix.test.o \
-          transaction-md.test.o \
-          cursor-md.test.o \
-          tpc.test.o \
-          update.test.o \
-          async.test.o \
-          transaction.test.o \
-          cursor.test.o \
-          recover_crash.test.o \
-          recover_loop.test.o \
-          multithread.test.o \
-          multithread_be.test.o \
-          run.o
+STS_TESTS = unit/ss_leb128.test.o \
+            unit/ss_pager.test.o \
+            unit/ss_a.test.o \
+            unit/ss_aslab.test.o \
+            unit/ss_order.test.o \
+            unit/ss_rq.test.o \
+            unit/ss_ht.test.o \
+            unit/ss_zstdfilter.test.o \
+            unit/ss_lz4filter.test.o \
+            unit/sr_meta.test.o \
+            unit/sr_scheme.test.o \
+            unit/sv_v.test.o \
+            unit/sv_index.test.o \
+            unit/sv_indexiter.test.o \
+            unit/sv_mergeiter.test.o \
+            unit/sv_writeiter.test.o \
+            unit/sl.test.o \
+            unit/sl_iter.test.o \
+            unit/sd_build.test.o \
+            unit/sd_v.test.o \
+            unit/sd_iter.test.o \
+            unit/sd_pageiter.test.o \
+            generic/meta.test.o \
+            generic/cache.test.o \
+            generic/error.test.o \
+            generic/method.test.o \
+            generic/profiler.test.o \
+            generic/repository.test.o \
+            generic/shutdown.test.o \
+            generic/drop.test.o \
+            generic/ddl.test.o \
+            generic/multipart.test.o \
+            generic/tpr.test.o \
+            generic/object.test.o \
+            generic/env.test.o \
+            generic/deadlock.test.o \
+            generic/scheme.test.o \
+            generic/rev.test.o \
+            generic/branch.test.o \
+            generic/compact.test.o \
+            generic/backup.test.o \
+            generic/checkpoint.test.o \
+            generic/snapshot.test.o \
+            generic/batch.test.o \
+            generic/gc.test.o \
+            generic/prefix.test.o \
+            generic/transaction-md.test.o \
+            generic/cursor-md.test.o \
+            generic/tpc.test.o \
+            generic/update.test.o \
+            generic/async.test.o \
+            functional/transaction.test.o \
+            functional/cursor.test.o \
+            recover/recover_crash.test.o \
+            recover/recover_loop.test.o \
+            multithread/multithread.test.o \
+            multithread/multithread_be.test.o
 
-
-# - - - - - - - - - - - - - 
-
-SOPHIA_DIRS     = std format runtime object version log database \
-                  index \
-                  transaction \
-                  repository \
-                  environment \
-                  sophia
-SOPHIA_INCLUDE  = $(addprefix -I../sophia/, $(SOPHIA_DIRS))
+SOPHIA_DIRS    = std format runtime object version log database \
+                 index \
+                 transaction \
+                 repository \
+                 environment \
+                 sophia
+SOPHIA_INCLUDE = $(addprefix -I../sophia/, $(SOPHIA_DIRS))
 ifdef ENABLE_COVERAGE
-STS_COVERAGE    = --coverage
+STS_COVERAGE   = --coverage
 else
-STS_COVERAGE    =
+STS_COVERAGE   =
 endif
-STS_CFLAGS      = $(SOPHIA_INCLUDE) -g -O0 -Wall -I. -I../sophia -Isuite/ -pthread
-STS_LDFLAGS     = ../sophia.o suite/libst.a -pthread -lm $(STS_COVERAGE)
-STS_BINARY      = run
-STS_SOPHIA_DIR  = sophia
-STS_BACKUP_DIR  = backup
-STS_LOG_DIR     = log
-STS_DB_DIR      = test
-STS_LOG         = test.log
+STS_CFLAGS     = $(SOPHIA_INCLUDE) -g -O0 -Wall -I. -I../sophia -Isuite/ -pthread
+STS_LDFLAGS    = ../sophia.o suite/libst.a -pthread -lm $(STS_COVERAGE)
+STS_BINARY     = sophia-test
+STS_BENCHMARK  = sophia-benchmark
+STS_SOPHIA_DIR = _test_sophia
+STS_BACKUP_DIR = _test_backup
+STS_LOG_DIR    = _test_log
+STS_DB_DIR     = _test_db
 
-all: banner validate suite $(OBJECTS)
+all: banner validate sophia-test sophia-benchmark
+sophia-test: suite $(STS_TESTS) $(STS_OBJECT)
 	@echo "ld $(STS_BINARY)"
-	@$(CC) $(OBJECTS) $(STS_LDFLAGS) -o $(STS_BINARY)
+	@$(CC) $(STS_TESTS) sophia-test.c $(STS_CFLAGS) $(STS_LDFLAGS) -o $(STS_BINARY)
+sophia-benchmark: $(STS_BENCHMARK_OBJECT)
+	@echo "ld $(STS_BENCHMARK)"
+	@$(CC) sophia-benchmark.c $(STS_CFLAGS) $(STS_LDFLAGS) -o $(STS_BENCHMARK)
 suite:
 	@(cd suite; make --silent --no-print-directory)
 banner:
@@ -106,15 +105,18 @@ validate:
 clean:
 	@(cd suite; make --no-print-directory clean)
 	@rm -f $(STS_BINARY)
-	@rm -f $(STS_LOG)
-	@rm -f $(OBJECTS)
-cleanup: clean
+	@rm -f $(STS_BENCHMARK)
+	@rm -f $(STS_TESTS)
+	@rm -f $(STS_OBJECT)
+	@rm -f $(STS_BENCHMARK_OBJECT)
 	@rm -fr $(STS_SOPHIA_DIR) \
 	        $(STS_BACKUP_DIR) \
 	        $(STS_DB_DIR) $(STS_LOG_DIR)
 test:
-	@sh ./run-gdb.sh $(STS_BINARY) $(STS_LOG)
+	@gdb -q -return-child-result -batch -ex "run" -ex "bt" --args $(STS_BINARY) -v
 
 .PHONY: all clean validate banner suite test
+.PHONY: sophia-test
+.PHONY: sophia-benchmark
 
 # vim: syntax=make

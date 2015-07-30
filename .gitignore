@@ -8,10 +8,11 @@ out
 gyp-mac-tool
 sophia.Makefile
 .*.sw[op]
-test/sophia
-test/backup
-test/test
-test/log
-test/run
+test/_test_sophia
+test/_test_backup
+test/_test_log
+test/_test_db
+test/sophia-test
+test/sophia-benchmark
 sophia.h
 sophia.c
