@@ -65,9 +65,16 @@ st_suitetotal(stsuite *s)
 static inline void
 st_banner(FILE *f)
 {
+	struct tm *tm = localtime(&st_r.start);
+	char timesz[200];
+	if (tm) {
+		if (strftime(timesz, sizeof(timesz), "%a, %d %b %y %T %z", tm) == 0)
+			return;
+	}
 	fprintf(f,  "\n");
 	fprintf(f, "sophia test-suite.\n\n");
-	fprintf(f, "expected tests: %d\n", st_r.suite.total);
+	fprintf(f, "%s\n\n", timesz);
+	fprintf(f, "test combinations: %d\n", st_r.suite.total);
 	fprintf(f, "\n");
 }
 
@@ -77,6 +84,8 @@ st_complete(FILE *f)
 	fprintf(f, "\n");
 	fprintf(f, "tests passed: %d\n", st_r.stat_test);
 	fprintf(f, "statements passed: %d\n", st_r.stat_stmt);
+	time_t now = time(NULL);
+	fprintf(f, "time took: %d seconds\n", (int)(now - st_r.start));
 	fprintf(f, "\n");
 	fprintf(f, "complete.\n");
 }
@@ -93,6 +102,8 @@ void st_run(void)
 		st_r.output = f;
 	}
 	st_suitetotal(&st_r.suite);
+
+	st_r.start = time(NULL);
 
 	st_banner(st_r.output);
 	if (st_r.output != stdout && st_r.conf->report)

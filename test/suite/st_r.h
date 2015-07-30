@@ -40,7 +40,6 @@ struct str {
 	/* test runner */
 	stsuite      suite;
 
-
 	/* current */
 	void        *env;
 	void        *db;
@@ -55,6 +54,7 @@ struct str {
 	/* stats */
 	int          stat_stmt;
 	int          stat_test;
+	time_t       start;
 };
 
 extern str st_r;
