@@ -24,9 +24,20 @@ error_test0(void)
 	t( sp_destroy(env) == 0 );
 }
 
+static void
+error_test1(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	int rc = sp_error(env);
+	t( rc == 0 );
+	t( sp_destroy(env) == 0 );
+}
+
 stgroup *error_group(void)
 {
 	stgroup *group = st_group("error");
 	st_groupadd(group, st_test("test0", error_test0));
+	st_groupadd(group, st_test("test1", error_test1));
 	return group;
 }

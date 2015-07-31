@@ -246,6 +246,8 @@ main(int argc, char *argv[])
 		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rt"));
 		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "env"));
 		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "branch_wm_1"));
+		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_format"));
+		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_storage"));
 		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_compaction"));
 		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "open"));
 		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));

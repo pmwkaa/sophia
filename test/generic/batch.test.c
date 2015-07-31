@@ -254,6 +254,62 @@ batch_set_rollback1(void)
 	t( sp_destroy(env) == 0 );
 }
 
+static void
+batch_delete_commit(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(env) == 0 );
+
+	void *batch = sp_batch(db);
+	t( batch != NULL );
+
+	int key = 123;
+	void *o = sp_object(db);
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_delete(batch, o) == 0 );
+	t( sp_commit(batch) == 0 );
+
+	t( sp_destroy(env) == 0 );
+}
+
+static void
+batch_update_commit(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(env) == 0 );
+
+	void *batch = sp_batch(db);
+	t( batch != NULL );
+
+	int key = 123;
+	void *o = sp_object(db);
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_update(batch, o) == 0 );
+	t( sp_commit(batch) == 0 );
+
+	t( sp_destroy(env) == 0 );
+}
+
 stgroup *batch_group(void)
 {
 	stgroup *group = st_group("batch");
@@ -265,5 +321,7 @@ stgroup *batch_group(void)
 	st_groupadd(group, st_test("batch_set_commit_N", batch_set_commit_n));
 	st_groupadd(group, st_test("batch_set_rollback0", batch_set_rollback0));
 	st_groupadd(group, st_test("batch_set_rollback1", batch_set_rollback1));
+	st_groupadd(group, st_test("batch_delete_commit", batch_delete_commit));
+	st_groupadd(group, st_test("batch_update_commit", batch_update_commit));
 	return group;
 }

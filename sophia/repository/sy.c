@@ -33,14 +33,6 @@ sy_deploy(sy *e, sr *r)
 	return 0;
 }
 
-static inline int
-sy_recover(sy *e, sr *r)
-{
-	(void)e;
-	(void)r;
-	return 0;
-}
-
 static inline ssize_t
 sy_processid(char **str) {
 	char *s = *str;
@@ -128,7 +120,7 @@ int sy_open(sy *e, sr *r, syconf *conf)
 		}
 		return sy_deploy(e, r);
 	}
-	return sy_recover(e, r);
+	return 0;
 }
 
 int sy_close(sy *e, sr *r)
