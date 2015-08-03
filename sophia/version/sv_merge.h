@@ -20,13 +20,14 @@ struct svmergesrc {
 } sspacked;
 
 struct svmerge {
+	svmergesrc reserve[16];
 	ssbuf buf;
 };
 
 static inline void
 sv_mergeinit(svmerge *m)
 {
-	ss_bufinit(&m->buf);
+	ss_bufinit_reserve(&m->buf, m->reserve, sizeof(m->reserve));
 }
 
 static inline int

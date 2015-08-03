@@ -21,6 +21,23 @@ struct sdindexiter {
 	sr *r;
 } sspacked;
 
+#if 0
+static inline int
+sd_indexpage_cmp(sdindex *i, sdindexpage *p, void *key, int size, srscheme *s)
+{
+	int l = sr_compare(s, sd_indexpage_min(i, p), p->sizemin, key, size);
+	int r = sr_compare(s, sd_indexpage_max(i, p), p->sizemax, key, size);
+	/* inside page range */
+	if (l <= 0 && r >= 0)
+		return 0;
+	/* key > page */
+	if (l == -1)
+		return -1;
+	/* key < page */
+	assert(r == 1);
+	return 1;
+}
+
 static inline int
 sd_indexiter_seek(sdindexiter *i, void *key, int size, int *minp, int *midp, int *maxp)
 {
@@ -60,6 +77,32 @@ sd_indexiter_route(sdindexiter *i)
 	if (ssunlikely(min >= (int)i->index->h->count))
 		min = i->index->h->count - 1;
 	return min;
+}
+#endif
+
+static inline int
+sd_indexiter_route(sdindexiter *i)
+{
+	int begin = 0;
+	int end = i->index->h->count - 1;
+	while (begin != end) {
+		int mid = begin + (end - begin) / 2;
+		sdindexpage *page = sd_indexpage(i->index, mid);
+		int rc = sr_compare(i->r->scheme,
+		                    sd_indexpage_max(i->index, page),
+		                    page->sizemax,
+		                    i->key,
+		                    i->keysize);
+		if (rc < 0) {
+			begin = mid + 1;
+		} else {
+			/* rc >= 0 */
+			end = mid;
+		}
+	}
+	if (ssunlikely(end >= (int)i->index->h->count))
+		end = i->index->h->count - 1;
+	return end;
 }
 
 static inline int

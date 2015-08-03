@@ -102,12 +102,14 @@ si_qgetindex(siquery *q, sinode *node)
 	ssiter i;
 	ss_iterinit(sv_indexiter, &i);
 	int rc;
-	rc = ss_iteropen(sv_indexiter, &i, q->r, first,
-	                 SS_GTE, q->key, q->keysize);
-	if (rc) {
-		goto result;
+	if (first->count > 0) {
+		rc = ss_iteropen(sv_indexiter, &i, q->r, first,
+		                 SS_GTE, q->key, q->keysize);
+		if (rc) {
+			goto result;
+		}
 	}
-	if (sslikely(second == NULL))
+	if (sslikely(second == NULL || !second->count))
 		return 0;
 	rc = ss_iteropen(sv_indexiter, &i, q->r, second,
 	                 SS_GTE, q->key, q->keysize);

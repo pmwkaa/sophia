@@ -46,7 +46,6 @@ int si_nodefree(sinode*, sr*, int);
 int si_nodegc_index(sr*, svindex*);
 int si_nodemap(sinode*, sr*);
 int si_nodesync(sinode*, sr*);
-int si_nodecmp(sinode*, void*, int, srscheme*);
 int si_nodeseal(sinode*, sr*, sischeme*);
 int si_nodecomplete(sinode*, sr*, sischeme*);
 
@@ -97,6 +96,26 @@ si_nodeindex_priority(sinode *node, svindex **second)
 static inline sinode*
 si_nodeof(ssrbnode *node) {
 	return sscast(node, sinode, node);
+}
+
+static inline int
+si_nodecmp(sinode *n, void *key, int size, srscheme *s)
+{
+	sdindexpage *min = sd_indexmin(&n->self.index);
+	sdindexpage *max = sd_indexmax(&n->self.index);
+	int l = sr_compare(s, sd_indexpage_min(&n->self.index, min),
+	                   min->sizemin, key, size);
+	int r = sr_compare(s, sd_indexpage_max(&n->self.index, max),
+	                   max->sizemax, key, size);
+	/* inside range */
+	if (l <= 0 && r >= 0)
+		return 0;
+	/* key > range */
+	if (l == -1)
+		return -1;
+	/* key < range */
+	assert(r == 1);
+	return 1;
 }
 
 #endif

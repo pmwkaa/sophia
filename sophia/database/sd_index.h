@@ -119,22 +119,6 @@ sd_indexsize(sdindexheader *h)
 	return sizeof(sdindexheader) + h->size;
 }
 
-static inline int
-sd_indexpage_cmp(sdindex *i, sdindexpage *p, void *key, int size, srscheme *s)
-{
-	int l = sr_compare(s, sd_indexpage_min(i, p), p->sizemin, key, size);
-	int r = sr_compare(s, sd_indexpage_max(i, p), p->sizemax, key, size);
-	/* inside page range */
-	if (l <= 0 && r >= 0)
-		return 0;
-	/* key > page */
-	if (l == -1)
-		return -1;
-	/* key < page */
-	assert(r == 1);
-	return 1;
-}
-
 int sd_indexbegin(sdindex*, sr*, uint64_t);
 int sd_indexcommit(sdindex*, sr*, sdid*);
 int sd_indexadd(sdindex*, sr*, sdbuild*);
