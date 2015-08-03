@@ -533,7 +533,10 @@ se_dbget_int(so *o, const char *path)
 	sedb *db = se_cast(o, sedb*, SEDB);
 	if (strcmp(path, "id") == 0)
 		return db->scheme.id;
-	return 0;
+	else
+	if (strcmp(path, "key-count") == 0)
+		return db->scheme.scheme.count;
+	return -1;
 }
 
 static soif sedbif =
