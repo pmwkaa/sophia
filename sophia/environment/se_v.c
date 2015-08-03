@@ -33,11 +33,11 @@ se_vdestroy(so *o)
 }
 
 static sfv*
-se_vsetpart(sev *v, char *path, void *pointer, int size)
+se_vsetpart(sev *v, const char *path, void *pointer, int size)
 {
 	se *e = se_of(&v->o);
 	sedb *db = (sedb*)v->o.parent;
-	srkey *part = sr_schemefind(&db->scheme.scheme, path);
+	srkey *part = sr_schemefind(&db->scheme.scheme, (char*)path);
 	if (ssunlikely(part == NULL))
 		return NULL;
 	assert(part->pos < (int)(sizeof(v->keyv) / sizeof(sfv)));
@@ -60,7 +60,7 @@ se_vsetpart(sev *v, char *path, void *pointer, int size)
 }
 
 static int
-se_vsetstring(so *o, char *path, void *pointer, int size)
+se_vsetstring(so *o, const char *path, void *pointer, int size)
 {
 	sev *v = se_cast(o, sev*, SEV);
 	se *e = se_of(o);
@@ -112,7 +112,7 @@ se_vsetstring(so *o, char *path, void *pointer, int size)
 }
 
 static void*
-se_vgetstring(so *o, char *path, int *size)
+se_vgetstring(so *o, const char *path, int *size)
 {
 	sev *v = se_cast(o, sev*, SEV);
 	if (strcmp(path, "value") == 0) {
@@ -168,7 +168,7 @@ se_vgetstring(so *o, char *path, int *size)
 
 	/* match key-part */
 	sedb *db = (sedb*)o->parent;
-	srkey *part = sr_schemefind(&db->scheme.scheme, path);
+	srkey *part = sr_schemefind(&db->scheme.scheme, (char*)path);
 	if (ssunlikely(part == NULL))
 		return NULL;
 	/* database result object */
@@ -188,7 +188,7 @@ se_vgetstring(so *o, char *path, int *size)
 }
 
 static int64_t
-se_vgetint(so *o, char *path)
+se_vgetint(so *o, const char *path)
 {
 	sev *v = se_cast(o, sev*, SEV);
 	se *e = se_of(o);

@@ -75,11 +75,11 @@ void     se_metainit(semeta*, so*);
 void     se_metafree(semeta*);
 int      se_metavalidate(semeta*);
 int      se_metaserialize(semeta*, ssbuf*);
-int      se_metaset_object(so*, char*, void*);
-int      se_metaset_string(so*, char*, void*, int);
-int      se_metaset_int(so*, char*, int64_t);
-void    *se_metaget_object(so*, char*);
-void    *se_metaget_string(so*, char*, int*);
-int64_t  se_metaget_int(so*, char*);
+int      se_metaset_object(so*, const char*, void*);
+int      se_metaset_string(so*, const char*, void*, int);
+int      se_metaset_int(so*, const char*, int64_t);
+void    *se_metaget_object(so*, const char*);
+void    *se_metaget_string(so*, const char*, int*);
+int64_t  se_metaget_int(so*, const char*);
 
 #endif

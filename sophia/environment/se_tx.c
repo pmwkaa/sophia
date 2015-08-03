@@ -245,7 +245,7 @@ se_txcommit(so *o)
 }
 
 static int
-se_txset_int(so *o, char *path, int64_t v)
+se_txset_int(so *o, const char *path, int64_t v)
 {
 	setx *t = se_cast(o, setx*, SETX);
 	if (strcmp(path, "lsn") == 0) {

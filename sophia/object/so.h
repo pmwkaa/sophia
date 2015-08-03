@@ -21,12 +21,12 @@ struct soif {
 	void    *(*asynchronous)(so*);
 	void    *(*poll)(so*);
 	int      (*drop)(so*);
-	int      (*setobject)(so*, char*, void*);
-	int      (*setstring)(so*, char*, void*, int);
-	int      (*setint)(so*, char*, int64_t);
-	void    *(*getobject)(so*, char*);
-	void    *(*getstring)(so*, char*, int*);
-	int64_t  (*getint)(so*, char*);
+	int      (*setobject)(so*, const char*, void*);
+	int      (*setstring)(so*, const char*, void*, int);
+	int      (*setint)(so*, const char*, int64_t);
+	void    *(*getobject)(so*, const char*);
+	void    *(*getstring)(so*, const char*, int*);
+	int64_t  (*getint)(so*, const char*);
 	int      (*set)(so*, so*);
 	int      (*update)(so*, so*);
 	int      (*del)(so*, so*);

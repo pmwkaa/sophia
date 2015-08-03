@@ -32,7 +32,7 @@ se_metav_destroy(so *o)
 	return 0;
 }
 
-void *se_metav_string(so *o, char *path, int *size)
+void *se_metav_string(so *o, const char *path, int *size)
 {
 	semetav *v = se_cast(o, semetav*, SEMETAV);
 	if (strcmp(path, "key") == 0) {

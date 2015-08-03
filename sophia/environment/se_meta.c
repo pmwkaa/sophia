@@ -790,7 +790,7 @@ int se_metaserialize(semeta *c, ssbuf *buf)
 }
 
 static int
-se_metaquery(se *e, int op, char *path,
+se_metaquery(se *e, int op, const char *path,
              sstype valuetype, void *value, int valuesize,
              int *size)
 {
@@ -815,14 +815,14 @@ se_metaquery(se *e, int op, char *path,
 	return rc;
 }
 
-int se_metaset_object(so *o, char *path, void *object)
+int se_metaset_object(so *o, const char *path, void *object)
 {
 	se *e = se_of(o);
 	return se_metaquery(e, SR_WRITE, path, SS_OBJECT,
 	                    object, sizeof(so*), NULL);
 }
 
-int se_metaset_string(so *o, char *path, void *string, int size)
+int se_metaset_string(so *o, const char *path, void *string, int size)
 {
 	se *e = se_of(o);
 	if (string && size == 0)
@@ -831,14 +831,14 @@ int se_metaset_string(so *o, char *path, void *string, int size)
 	                   string, size, NULL);
 }
 
-int se_metaset_int(so *o, char *path, int64_t v)
+int se_metaset_int(so *o, const char *path, int64_t v)
 {
 	se *e = se_of(o);
 	return se_metaquery(e, SR_WRITE, path, SS_I64,
 	                    &v, sizeof(v), NULL);
 }
 
-void *se_metaget_object(so *o, char *path)
+void *se_metaget_object(so *o, const char *path)
 {
 	se *e = se_of(o);
 	if (path == NULL)
@@ -851,7 +851,7 @@ void *se_metaget_object(so *o, char *path)
 	return result;
 }
 
-void *se_metaget_string(so *o, char *path, int *size)
+void *se_metaget_string(so *o, const char *path, int *size)
 {
 	se *e = se_of(o);
 	void *result = NULL;
@@ -862,7 +862,7 @@ void *se_metaget_string(so *o, char *path, int *size)
 	return result;
 }
 
-int64_t se_metaget_int(so *o, char *path)
+int64_t se_metaget_int(so *o, const char *path)
 {
 	se *e = se_of(o);
 	int64_t result = 0;

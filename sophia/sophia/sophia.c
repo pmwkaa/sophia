@@ -152,7 +152,7 @@ SP_API void *sp_poll(void *ptr)
 	return h;
 }
 
-SP_API int sp_setobject(void *ptr, char *path, void *object)
+SP_API int sp_setobject(void *ptr, const char *path, const void *object)
 {
 	so *o = sp_cast(ptr, __FUNCTION__);
 	if (ssunlikely(o->i->setobject == NULL)) {
@@ -161,12 +161,12 @@ SP_API int sp_setobject(void *ptr, char *path, void *object)
 	}
 	so *e = o->env;
 	se_apilock(e);
-	int rc = o->i->setobject(o, path, object);
+	int rc = o->i->setobject(o, path, (void*)object);
 	se_apiunlock(e);
 	return rc;
 }
 
-SP_API int sp_setstring(void *ptr, char *path, void *pointer, int size)
+SP_API int sp_setstring(void *ptr, const char *path, const void *pointer, int size)
 {
 	so *o = sp_cast(ptr, __FUNCTION__);
 	if (ssunlikely(o->i->setstring == NULL)) {
@@ -175,12 +175,12 @@ SP_API int sp_setstring(void *ptr, char *path, void *pointer, int size)
 	}
 	so *e = o->env;
 	se_apilock(e);
-	int rc = o->i->setstring(o, path, pointer, size);
+	int rc = o->i->setstring(o, path, (void*)pointer, size);
 	se_apiunlock(e);
 	return rc;
 }
 
-SP_API int sp_setint(void *ptr, char *path, int64_t v)
+SP_API int sp_setint(void *ptr, const char *path, int64_t v)
 {
 	so *o = sp_cast(ptr, __FUNCTION__);
 	if (ssunlikely(o->i->setint == NULL)) {
@@ -194,7 +194,7 @@ SP_API int sp_setint(void *ptr, char *path, int64_t v)
 	return rc;
 }
 
-SP_API void *sp_getobject(void *ptr, char *path)
+SP_API void *sp_getobject(void *ptr, const char *path)
 {
 	so *o = sp_cast(ptr, __FUNCTION__);
 	if (ssunlikely(o->i->getobject == NULL)) {
@@ -208,7 +208,7 @@ SP_API void *sp_getobject(void *ptr, char *path)
 	return h;
 }
 
-SP_API void *sp_getstring(void *ptr, char *path, int *size)
+SP_API void *sp_getstring(void *ptr, const char *path, int *size)
 {
 	so *o = sp_cast(ptr, __FUNCTION__);
 	if (ssunlikely(o->i->getstring == NULL)) {
@@ -222,7 +222,7 @@ SP_API void *sp_getstring(void *ptr, char *path, int *size)
 	return h;
 }
 
-SP_API int64_t sp_getint(void *ptr, char *path)
+SP_API int64_t sp_getint(void *ptr, const char *path)
 {
 	so *o = sp_cast(ptr, __FUNCTION__);
 	if (ssunlikely(o->i->getint == NULL)) {

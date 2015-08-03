@@ -511,7 +511,7 @@ se_dbobject(so *o)
 }
 
 static void*
-se_dbget_string(so *o, char *path, int *size)
+se_dbget_string(so *o, const char *path, int *size)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
 	if (strcmp(path, "name") == 0) {
@@ -528,7 +528,7 @@ se_dbget_string(so *o, char *path, int *size)
 }
 
 static int64_t
-se_dbget_int(so *o, char *path)
+se_dbget_int(so *o, const char *path)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
 	if (strcmp(path, "id") == 0)
