@@ -143,6 +143,7 @@ meta_db(void)
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
 	t( sp_setint(env, "db.test.id", 777) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
@@ -152,6 +153,15 @@ meta_db(void)
 	t( strcmp(s, "test") == 0 );
 	free(s);
 	t( sp_getint(db, "id") == 777 );
+	t( sp_getint(db, "key-count") == 2 );
+	s = sp_getstring(env, "db.test.index.key", 0);
+	t( s != NULL );
+	t( strcmp(s, "string") == 0 );
+	free(s);
+	s = sp_getstring(env, "db.test.index.key_b", 0);
+	t( s != NULL );
+	t( strcmp(s, "string") == 0 );
+	free(s);
 	t( sp_destroy(env) == 0 );
 }
 

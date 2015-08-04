@@ -43,15 +43,15 @@ struct srmetadump {
 } sspacked;
 
 struct srmetastmt {
-	srmetaop  op;
-	char     *path;
-	sstype    valuetype;
-	int       valuesize;
-	void     *value;
-	srmeta   *match;
-	ssbuf    *serialize;
-	void     *ptr;
-	sr       *r;
+	srmetaop    op;
+	const char *path;
+	void       *value;
+	sstype      valuetype;
+	int         valuesize;
+	srmeta     *match;
+	ssbuf      *serialize;
+	void       *ptr;
+	sr         *r;
 };
 
 int sr_metaexec(srmeta*, srmetastmt*);
