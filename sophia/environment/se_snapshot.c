@@ -46,7 +46,7 @@ se_snapshotdestroy(so *o)
 	return 0;
 }
 
-void *se_snapshotget_object(so *o, char *path)
+void *se_snapshotget_object(so *o, const char *path)
 {
 	sesnapshot *s = se_cast(o, sesnapshot*, SESNAPSHOT);
 	if (strcmp(path, "db-cursor") == 0)
