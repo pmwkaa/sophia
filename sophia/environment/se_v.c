@@ -104,6 +104,10 @@ se_vsetstring(so *o, const char *path, void *pointer, int size)
 		v->rawsize = size;
 		return 0;
 	}
+	if (strcmp(path, "arg") == 0) {
+		v->async_arg = pointer;
+		return 0;
+	}
 	/* object keypart */
 	sfv *fv = se_vsetpart(v, path, pointer, size);
 	if (ssunlikely(fv == NULL))
@@ -152,6 +156,11 @@ se_vgetstring(so *o, const char *path, int *size)
 		if (size)
 			*size = strlen(type);
 		return type;
+	}
+	if (strcmp(path, "arg") == 0) {
+		if (size)
+			*size = 0;
+		return v->async_arg;
 	}
 	if (strcmp(path, "raw") == 0) {
 		if (v->raw) {

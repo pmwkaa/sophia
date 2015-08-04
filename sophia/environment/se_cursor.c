@@ -44,8 +44,7 @@ se_cursorget(so *o, so *v)
 	ssorder order = key->order;
 	if (ssunlikely(! key->orderset))
 		order = SS_GTE;
-	return se_dbread(db, key, &c->t, 0, c->cache, order,
-	                 key->async);
+	return se_dbread(db, key, &c->t, 0, c->cache, order);
 }
 
 static soif secursorif =

@@ -32,6 +32,7 @@ struct sev {
 	int       async_status;
 	uint32_t  async_operation;
 	uint64_t  async_seq;
+	void     *async_arg;
 };
 
 so *se_vnew(se*, so*, sv*, int);

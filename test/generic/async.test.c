@@ -54,6 +54,7 @@ async_get(void)
 
 	o = sp_object(async);
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "arg", "arg_test", 0) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
 	t( strcmp(sp_getstring(o, "type", 0), "on_read") == 0 );
@@ -67,6 +68,7 @@ async_get(void)
 	t( o != NULL );
 	t( strcmp(sp_getstring(o, "type", 0), "on_read") == 0 );
 	t( sp_getint(o, "status") == 1 );
+	t( strcmp(sp_getstring(o, "arg", NULL), "arg_test") == 0 );
 	t( *(int*)sp_getstring(o, "value", NULL) == key );
 	t( sp_destroy(o) == 0 );
 

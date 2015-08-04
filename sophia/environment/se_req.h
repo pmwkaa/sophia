@@ -29,6 +29,7 @@ struct sereqarg {
 	int       vlsn_generate;
 	uint64_t  vlsn;
 	svlog    *log;
+	void     *arg;
 	int       recover;
 	uint64_t  lsn;
 };

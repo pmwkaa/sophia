@@ -40,7 +40,7 @@ se_dbactive(sedb *o) {
 so       *se_dbnew(se*, char*);
 so       *se_dbmatch(se*, char*);
 so       *se_dbmatch_id(se*, uint32_t);
-void     *se_dbread(sedb*, sev*, sx*, int, sicache*, ssorder, int);
+void     *se_dbread(sedb*, sev*, sx*, int, sicache*, ssorder);
 void      se_dbref(sedb*, int);
 uint32_t  se_dbunref(sedb*, int);
 uint32_t  se_dbrefof(sedb*, int);

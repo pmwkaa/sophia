@@ -210,9 +210,10 @@ so *se_reqresult(sereq *r, int async)
 	if (ssunlikely(v == NULL))
 		return NULL;
 	r->v = NULL;
-	v->async_seq       = r->id;
 	v->async_operation = r->op;
 	v->async_status    = r->rc;
+	v->async_seq       = r->id;
+	v->async_arg       = r->arg.arg;
 	/* propagate current object settings to
 	 * the result one */
 	v->orderset = 1;

@@ -281,8 +281,7 @@ se_dbdrop(so *o)
 
 void*
 se_dbread(sedb *db, sev *o, sx *x, int x_search,
-          sicache *cache, ssorder order,
-          int async)
+          sicache *cache, ssorder order)
 {
 	se *e = se_of(&db->o);
 	/* validate req */
@@ -292,6 +291,8 @@ se_dbread(sedb *db, sev *o, sx *x, int x_search,
 	}
 	if (ssunlikely(! se_online(&db->status)))
 		goto e0;
+	int async = o->async;
+	void *async_arg = o->async_arg;
 
 	/* set key */
 	svv *v;
@@ -359,6 +360,7 @@ se_dbread(sedb *db, sev *o, sx *x, int x_search,
 	arg->cache   = cache;
 	arg->cachegc = cachegc;
 	arg->order   = order;
+	arg->arg     = async_arg;
 	if (x) {
 		arg->vlsn = x->vlsn;
 		arg->vlsn_generate = 0;
@@ -492,7 +494,7 @@ se_dbget(so *o, so *v)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
 	sev *key = se_cast(v, sev*, SEV);
-	return se_dbread(db, key, NULL, 0, NULL, key->order, key->async);
+	return se_dbread(db, key, NULL, 0, NULL, key->order);
 }
 
 static void*

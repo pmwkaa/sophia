@@ -60,7 +60,7 @@ se_snapshotget(so *o, so *key)
 	sesnapshot *s = se_cast(o, sesnapshot*, SESNAPSHOT);
 	sev *v = se_cast(key, sev*, SEV);
 	sedb *db = se_cast(key->parent, sedb*, SEDB);
-	return se_dbread(db, v, &s->t, 0, NULL, SS_EQ, 0);
+	return se_dbread(db, v, &s->t, 0, NULL, SS_EQ);
 }
 
 static void*
