@@ -34,6 +34,6 @@ sotype se_o[] =
 	{ 0x571DEF09L, "batch"           },
 	{ 0x13491FABL, "transaction"     },
 	{ 0x45ABCDFAL, "cursor"          },
-	{ 0x2221F0BDL, "cursor_async"    },
-	{ 0x71230BAFL, "snapshot"        }
+	{ 0x71230BAFL, "snapshot"        },
+	{ 0x63102654L, "snapshot_cursor" }
 };

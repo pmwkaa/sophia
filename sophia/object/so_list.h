@@ -31,7 +31,7 @@ so_listdestroy(solist *i)
 	sslist *p, *n;
 	ss_listforeach_safe(&i->list, p, n) {
 		so *o = sscast(p, so, link);
-		rc = o->i->destroy(o);
+		rc = so_destroy(o);
 		if (ssunlikely(rc == -1))
 			rcret = -1;
 	}

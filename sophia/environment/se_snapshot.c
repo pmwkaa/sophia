@@ -38,11 +38,20 @@ se_snapshotdestroy(so *o)
 {
 	sesnapshot *s = se_cast(o, sesnapshot*, SESNAPSHOT);
 	se *e = se_of(o);
+	so_listdestroy(&s->cursor);
 	uint32_t id = s->t.id;
 	so_listdel(&e->snapshot, &s->o);
 	se_dbunbind(e, id);
 	se_snapshotfree(s);
 	return 0;
+}
+
+void *se_snapshotget_object(so *o, char *path)
+{
+	sesnapshot *s = se_cast(o, sesnapshot*, SESNAPSHOT);
+	if (strcmp(path, "db-cursor") == 0)
+		return se_snapshotcursor_new(s);
+	return NULL;
 }
 
 static void*
@@ -74,7 +83,7 @@ static soif sesnapshotif =
 	.setobject    = NULL,
 	.setstring    = NULL,
 	.setint       = NULL,
-	.getobject    = NULL,
+	.getobject    = se_snapshotget_object,
 	.getstring    = NULL,
 	.getint       = NULL,
 	.set          = NULL,
@@ -104,6 +113,7 @@ so *se_snapshotnew(se *e, uint64_t vlsn, char *name)
 		return NULL;
 	}
 	so_init(&s->o, &se_o[SESNAPSHOT], &sesnapshotif, &e->o, &e->o);
+	so_listinit(&s->cursor);
 	s->vlsn = vlsn;
 	s->name = ss_strdup(&e->a, name);
 	if (ssunlikely(s->name == NULL)) {

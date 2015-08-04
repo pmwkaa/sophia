@@ -23,8 +23,8 @@ enum {
 	SEBATCH,
 	SETX,
 	SECURSOR,
-	SECURSORASYNC,
-	SESNAPSHOT
+	SESNAPSHOT,
+	SESNAPSHOTCURSOR
 };
 
 extern sotype se_o[];
@@ -37,7 +37,7 @@ se_cast_validate(void *ptr)
 {
 	so *o = ptr;
 	if ((char*)o->type >= (char*)&se_o[0] &&
-	    (char*)o->type <= (char*)&se_o[SESNAPSHOT])
+	    (char*)o->type <= (char*)&se_o[SESNAPSHOTCURSOR])
 		return ptr;
 	return NULL;
 }

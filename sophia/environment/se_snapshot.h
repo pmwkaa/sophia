@@ -13,9 +13,10 @@ typedef struct sesnapshot sesnapshot;
 
 struct sesnapshot {
 	so o;
-	sx t;
 	uint64_t vlsn;
 	char *name;
+	sx t;
+	solist cursor;
 } sspacked;
 
 so  *se_snapshotnew(se*, uint64_t, char*);

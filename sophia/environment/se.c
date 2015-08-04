@@ -246,6 +246,7 @@ so *se_new(void)
 	ss_aopen(&e->a_metacursor, &ss_slaba, &e->pager, sizeof(semetacursor));
 	ss_aopen(&e->a_metav, &ss_slaba, &e->pager, sizeof(semetav));
 	ss_aopen(&e->a_snapshot, &ss_slaba, &e->pager, sizeof(sesnapshot));
+	ss_aopen(&e->a_snapshotcursor, &ss_slaba, &e->pager, sizeof(sesnapshotcursor));
 	ss_aopen(&e->a_batch, &ss_slaba, &e->pager, sizeof(sebatch));
 	ss_aopen(&e->a_tx, &ss_slaba, &e->pager, sizeof(setx));
 	ss_aopen(&e->a_req, &ss_slaba, &e->pager, sizeof(sereq));

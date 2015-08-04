@@ -23,6 +23,7 @@
 #include <se_tx.h>
 #include <se_cursor.h>
 #include <se_snapshot.h>
+#include <se_snapshotcursor.h>
 #include <se_execute.h>
 #include <se_recover.h>
 #include <se_scheduler.h>
