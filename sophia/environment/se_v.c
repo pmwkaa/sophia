@@ -128,12 +128,16 @@ se_vgetstring(so *o, const char *path, int *size)
 				return NULL;
 			return v->value;
 		}
+		if (v->v.v == NULL) {
+			if (size)
+				*size = 0;
+			return NULL;
+		}
 		/* result object */
 		sedb *db = (sedb*)o->parent;
 		int vsize = sv_valuesize(&v->v, &db->r);
-		if (size) {
+		if (size)
 			*size = vsize;
-		}
 		if (vsize == 0)
 			return NULL;
 		return sv_value(&v->v, &db->r);

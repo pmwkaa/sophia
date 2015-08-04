@@ -133,7 +133,7 @@ se_dbscheme_set(sedb *db)
 static void*
 se_dbasync_object(so *o)
 {
-	se_cast(o, so*, SEDBASYNC);
+	(void)se_cast(o, so*, SEDBASYNC);
 	sedb *db = se_cast(o->parent, sedb*, SEDB);
 	se *e = se_of(&db->o);
 	return se_vnew(e, &db->o, NULL, 1);
