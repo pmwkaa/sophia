@@ -332,6 +332,13 @@ se_dbread(sedb *db, sev *o, sx *x, int x_search,
 			so *ret = se_vnew(e, &db->o, &vup, async);
 			if (ssunlikely(ret == NULL))
 				sv_vfree(db->r.a, vup.v);
+			if (async) {
+				sev *match = (sev*)ret;
+				match->async_operation = SE_REQREAD;
+				match->async_status    = 1;
+				match->async_arg       = async_arg;
+				match->async_seq       = 0;
+			}
 			if (vprf)
 				sv_vfree(db->r.a, vprf);
 			sv_vfree(db->r.a, v);
