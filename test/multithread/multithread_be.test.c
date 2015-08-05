@@ -422,7 +422,7 @@ mt_setget(void)
 {
 	char value[100];
 	memset(value, 0, sizeof(value));
-	uint32_t n = 1000000;
+	uint32_t n = 300000;
 	uint32_t i, k;
 	srand(82351);
 	for (i = 0; i < n; i++) {

@@ -94,8 +94,7 @@ st_histogram_print(sthistogram *h)
 	printf("--------------------------------------------------\n");
 
 	int i = 0;
-	for (; i < ST_HISTOGRAM_COUNT; i++)
-	{
+	for (; i < ST_HISTOGRAM_COUNT; i++) {
 		if (h->buckets[i] == 0.0)
 			continue;
 		double percents = (double) h->buckets[i] / h->size;
@@ -103,11 +102,6 @@ st_histogram_print(sthistogram *h)
 		       (i > 0) ? st_histogram_buckets[i - 1] : 0.0,
 		       st_histogram_buckets[i],
 		       h->buckets[i], percents * 1e2);
-
-		unsigned int count = (unsigned int) percents * 1e2 / 5.0;
-		int j = 0;
-		for (; j < count; j++)
-			putchar('#');
 		putchar('\n');
 	}
 	double avg_latency = h->sum / h->size;
