@@ -9,7 +9,8 @@
  * BSD License
 */
 
-int si_dropmark(si*);
 int si_drop(si*);
+int si_dropmark(si*);
+int si_droprepository(sischeme*, sr*, int);
 
 #endif

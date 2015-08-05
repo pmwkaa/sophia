@@ -14,8 +14,7 @@
 #include <libsd.h>
 #include <libsi.h>
 
-static inline int
-si_dropof(sischeme *scheme, sr *r)
+int si_droprepository(sischeme *scheme, sr *r, int drop_directory)
 {
 	DIR *dir = opendir(scheme->path);
 	if (dir == NULL) {
@@ -50,11 +49,13 @@ si_dropof(sischeme *scheme, sr *r)
 		               path, strerror(errno));
 		return -1;
 	}
-	rc = rmdir(scheme->path);
-	if (ssunlikely(rc == -1)) {
-		sr_malfunction(r->e, "directory '%s' unlink error: %s",
-		               scheme->path, strerror(errno));
-		return -1;
+	if (drop_directory) {
+		rc = rmdir(scheme->path);
+		if (ssunlikely(rc == -1)) {
+			sr_malfunction(r->e, "directory '%s' unlink error: %s",
+			               scheme->path, strerror(errno));
+			return -1;
+		}
 	}
 	return 0;
 }
@@ -86,6 +87,6 @@ int si_drop(si *i)
 	if (ssunlikely(rc == -1))
 		return -1;
 	/* remove directory */
-	rc = si_dropof(scheme, r);
+	rc = si_droprepository(scheme, r, 1);
 	return rc;
 }

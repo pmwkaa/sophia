@@ -28,14 +28,16 @@ se_dbscheme_init(sedb *db, char *name)
 	scheme->name = ss_strdup(&e->a, name);
 	if (ssunlikely(scheme->name == NULL))
 		goto e0;
-	scheme->id              = sr_seq(&e->seq, SR_DSNNEXT);
-	scheme->sync            = 1;
-	scheme->mmap            = 0;
-	scheme->compression     = 0;
-	scheme->compression_key = 0;
-	scheme->compression_if  = &ss_nonefilter;
-	scheme->fmt             = SF_KV;
-	scheme->fmt_storage     = SF_SRAW;
+	scheme->id                  = sr_seq(&e->seq, SR_DSNNEXT);
+	scheme->sync                = 1;
+	scheme->mmap                = 0;
+	scheme->compression         = 0;
+	scheme->compression_key     = 0;
+	scheme->compression_if      = &ss_nonefilter;
+	scheme->fmt                 = SF_KV;
+	scheme->fmt_storage         = SF_SRAW;
+	scheme->path_fail_on_exists = 0;
+	scheme->path_fail_on_drop   = 1;
 	sf_updateinit(&scheme->fmt_update);
 	scheme->compression_sz = ss_strdup(&e->a, scheme->compression_if->name);
 	if (ssunlikely(scheme->compression_sz == NULL))

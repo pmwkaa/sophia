@@ -357,28 +357,13 @@ si_recovercomplete(sitrack *track, sr *r, si *index, ssbuf *buf)
 }
 
 static inline int
-si_recoverdrop(si *i, sr *r)
-{
-	char path[1024];
-	snprintf(path, sizeof(path), "%s/drop", i->scheme->path);
-	if (ss_fileexists(path)) {
-		sr_malfunction(r->e, "attempt to recover a dropped database: %s:",
-		               i->scheme->path);
-		return -1;
-	}
-	return 0;
-}
-
-static inline int
 si_recoverindex(si *i, sr *r)
 {
 	sitrack track;
 	si_trackinit(&track);
 	ssbuf buf;
 	ss_bufinit(&buf);
-	int rc = si_recoverdrop(i, r);
-	if (ssunlikely(rc == -1))
-		return -1;
+	int rc;
 	rc = si_trackdir(&track, r, i);
 	if (ssunlikely(rc == -1))
 		goto error;
@@ -403,6 +388,25 @@ error:
 	return -1;
 }
 
+static inline int
+si_recoverdrop(si *i, sr *r)
+{
+	char path[1024];
+	snprintf(path, sizeof(path), "%s/drop", i->scheme->path);
+	int rc = ss_fileexists(path);
+	if (sslikely(! rc))
+		return 0;
+	if (i->scheme->path_fail_on_drop) {
+		sr_malfunction(r->e, "attempt to recover a dropped database: %s:",
+		               i->scheme->path);
+		return -1;
+	}
+	rc = si_droprepository(i->scheme, r, 0);
+	if (ssunlikely(rc == -1))
+		return -1;
+	return 1;
+}
+
 int si_recover(si *i)
 {
 	sr *r = i->r;
@@ -413,7 +417,12 @@ int si_recover(si *i)
 		sr_error(r->e, "directory '%s' already exists", i->scheme->path);
 		return -1;
 	}
-	int rc = si_schemerecover(i->scheme, r);
+	int rc = si_recoverdrop(i, r);
+	switch (rc) {
+	case -1: return -1;
+	case  1: goto deploy;
+	}
+	rc = si_schemerecover(i->scheme, r);
 	if (ssunlikely(rc == -1))
 		return -1;
 	r->scheme = &i->scheme->scheme;

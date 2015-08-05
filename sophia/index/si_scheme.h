@@ -15,7 +15,8 @@ struct sischeme {
 	uint32_t    id;
 	char       *name;
 	char       *path;
-	int         path_fail_on_exists;
+	uint32_t    path_fail_on_exists;
+	uint32_t    path_fail_on_drop;
 	char       *path_backup;
 	uint32_t    mmap;
 	uint32_t    sync;

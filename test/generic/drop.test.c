@@ -53,7 +53,7 @@ drop_test(void)
 }
 
 static void
-drop_test_reopen(void)
+drop_test_fail_on_drop0(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -79,14 +79,52 @@ drop_test_reopen(void)
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_setint(env, "db.test.path_fail_on_drop", 0) == 0 );
+	db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(env) == 0 ); /* remove files and create new database */
+	t( sp_destroy(env) == 0 );
+}
+
+static void
+drop_test_fail_on_drop1(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(db) == 0 );
+
+	sp_destroy(db); /* unref */
+	t( sp_drop(db) == 0); /* scheduler drop */
+	t( exists(st_r.conf->db_dir, "") == 1 );
+	t( sp_destroy(env) == 0 );
+
+	env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_setint(env, "db.test.path_fail_on_drop", 1) == 0 );
 	db = sp_getobject(env, "db.test");
 	t( db != NULL );
-	t( sp_open(env) == -1 ); /* database dropped */
+	t( sp_open(env) == -1 ); /* fail on database dropped */
 	t( sp_destroy(env) == 0 );
 }
 
@@ -94,6 +132,7 @@ stgroup *drop_group(void)
 {
 	stgroup *group = st_group("drop");
 	st_groupadd(group, st_test("test", drop_test));
-	st_groupadd(group, st_test("test_reopen", drop_test_reopen));
+	st_groupadd(group, st_test("test_fail_on_drop0", drop_test_fail_on_drop0));
+	st_groupadd(group, st_test("test_fail_on_drop1", drop_test_fail_on_drop1));
 	return group;
 }
