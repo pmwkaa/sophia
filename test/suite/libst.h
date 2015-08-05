@@ -23,5 +23,6 @@
 #include <st_assert.h>
 #include <st_scenes.h>
 #include <st_phase.h>
+#include <st_histogram.h>
 
 #endif

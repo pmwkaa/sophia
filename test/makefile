@@ -75,19 +75,15 @@ endif
 STS_CFLAGS     = $(SOPHIA_INCLUDE) -g -O0 -Wall -I. -I../sophia -Isuite/ -pthread
 STS_LDFLAGS    = ../sophia.o suite/libst.a -pthread -lm $(STS_COVERAGE)
 STS_BINARY     = sophia-test
-STS_BENCHMARK  = sophia-benchmark
 STS_SOPHIA_DIR = _test_sophia
 STS_BACKUP_DIR = _test_backup
 STS_LOG_DIR    = _test_log
 STS_DB_DIR     = _test_db
 
-all: banner validate sophia-test sophia-benchmark
-sophia-test: suite $(STS_TESTS) $(STS_OBJECT)
+all: banner validate sophia-test
+sophia-test: suite $(STS_TESTS)
 	@echo "ld $(STS_BINARY)"
 	@$(CC) $(STS_TESTS) sophia-test.c $(STS_CFLAGS) $(STS_LDFLAGS) -o $(STS_BINARY)
-sophia-benchmark: $(STS_BENCHMARK_OBJECT)
-	@echo "ld $(STS_BENCHMARK)"
-	@$(CC) sophia-benchmark.c $(STS_CFLAGS) $(STS_LDFLAGS) -o $(STS_BENCHMARK)
 suite:
 	@(cd suite; make --silent --no-print-directory)
 banner:
@@ -106,10 +102,7 @@ validate:
 clean:
 	@(cd suite; make --no-print-directory clean)
 	@rm -f $(STS_BINARY)
-	@rm -f $(STS_BENCHMARK)
 	@rm -f $(STS_TESTS)
-	@rm -f $(STS_OBJECT)
-	@rm -f $(STS_BENCHMARK_OBJECT)
 	@rm -fr $(STS_SOPHIA_DIR) \
 	        $(STS_BACKUP_DIR) \
 	        $(STS_DB_DIR) $(STS_LOG_DIR)
@@ -118,6 +111,5 @@ test:
 
 .PHONY: all clean validate banner suite test
 .PHONY: sophia-test
-.PHONY: sophia-benchmark
 
 # vim: syntax=make
