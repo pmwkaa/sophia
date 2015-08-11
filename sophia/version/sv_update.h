@@ -64,6 +64,8 @@ sv_updatereset(svupdate *u)
 		ss_bufreset(&n[i].buf);
 		i++;
 	}
+	u->count = 0;
+	ss_bufreset(&u->stack);
 	memset(&u->result, 0, sizeof(u->result));
 }
 

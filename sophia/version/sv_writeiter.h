@@ -20,6 +20,7 @@ struct svwriteiter {
 	int save_delete;
 	int save_update;
 	int next;
+	int update;
 	uint64_t prevlsn;
 	sv *v;
 	int vdup;
@@ -83,6 +84,7 @@ sv_writeiter_next(ssiter *i)
 	im->next = 0;
 	im->v = NULL;
 	im->vdup = 0;
+
 	for (; ss_iterhas(sv_mergeiter, im->merge); ss_iternext(sv_mergeiter, im->merge))
 	{
 		sv *v = ss_iterof(sv_mergeiter, im->merge);
@@ -95,8 +97,15 @@ sv_writeiter_next(ssiter *i)
 		if (ssunlikely(dup)) {
 			/* keep atleast one visible version for <= vlsn */
 			if (im->prevlsn <= im->vlsn)
-				continue;
+			{
+				if (im->update) {
+					im->update = (sv_flags(v) & SVUPDATE) > 0;
+				} else {
+					continue;
+				}
+			}
 		} else {
+			im->update = 0;
 			/* delete (stray or on branch) */
 			if (!im->save_delete) {
 				int del = sv_is(v, SVDELETE);
@@ -107,15 +116,24 @@ sv_writeiter_next(ssiter *i)
 			}
 			im->size += im->sizev + sv_size(v);
 			/* update */
-			if (!im->save_update && sv_is(v, SVUPDATE)) {
-				int rc = sv_writeiter_update(im);
-				if (ssunlikely(rc == -1))
-					return;
-				im->prevlsn = lsn;
-				im->v = &im->u->result;
-				im->vdup = dup;
-				im->next = 0;
-				break;
+			if (sv_is(v, SVUPDATE)) {
+				int rc;
+				/* compaction */
+				if (! im->save_update) {
+					rc = sv_writeiter_update(im);
+					if (ssunlikely(rc == -1))
+						return;
+					im->prevlsn = lsn;
+					im->v = &im->u->result;
+					im->vdup = dup;
+					im->next = 0;
+					break;
+				}
+				/* branch
+				 * keep next ready-to-gc statements to
+				 * apply update.
+				 */
+				im->update = 1;
 			}
 		}
 		im->prevlsn = lsn;
@@ -148,6 +166,7 @@ sv_writeiter_open(ssiter *i, sr *r, ssiter *merge, svupdate *u,
 	im->prevlsn  = 0;
 	im->v = NULL;
 	im->vdup = 0;
+	im->update = 0;
 	sv_writeiter_next(i);
 	return 0;
 }
@@ -182,6 +201,7 @@ sv_writeiter_resume(ssiter *i)
 	im->vdup    = sv_is(im->v, SVDUP) || sv_mergeisdup(im->merge);
 	im->prevlsn = sv_lsn(im->v);
 	im->next    = 1;
+	im->update  = 0;
 	im->size    = im->sizev + sv_size(im->v);
 	return 1;
 }
