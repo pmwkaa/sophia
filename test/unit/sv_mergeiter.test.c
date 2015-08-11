@@ -45,7 +45,7 @@ sv_mergeiter_merge_a(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
 
 	i = 0;
 	while (ss_iteratorhas(&merge)) {
@@ -96,7 +96,7 @@ sv_mergeiter_merge_b(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
 
 	i = 0;
 	while (ss_iteratorhas(&merge)) {
@@ -153,7 +153,7 @@ sv_mergeiter_merge_ab(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
 
 	i = 0;
 	while (ss_iteratorhas(&merge)) {
@@ -223,7 +223,7 @@ sv_mergeiter_merge_abc(void)
 	s->src = itc;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
 
 	i = 0;
 	while (ss_iteratorhas(&merge)) {
@@ -281,7 +281,7 @@ sv_mergeiter_merge_ba(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
 
 	i = 0;
 	while (ss_iteratorhas(&merge)) {
@@ -342,7 +342,7 @@ sv_mergeiter_merge_dup_ab(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
 
 	int key = 0;
 	i = 0;
@@ -403,7 +403,7 @@ sv_mergeiter_merge_dup_a_chain(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
 
 	i = 0;
 	while (ss_iteratorhas(&merge)) {
@@ -468,7 +468,7 @@ sv_mergeiter_merge_dup_ab_chain(void)
 	s->src = itb;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
 
 	i = 0;
 	while (ss_iteratorhas(&merge)) {
@@ -548,7 +548,7 @@ sv_mergeiter_merge_dup_abc_chain(void)
 	s->src = itc;
 	ssiter merge;
 	ss_iterinit(sv_mergeiter, &merge);
-	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE, 1);
+	ss_iteropen(sv_mergeiter, &merge, &st_r.r, &m, SS_GTE);
 
 	i = 0;
 	while (ss_iteratorhas(&merge)) {

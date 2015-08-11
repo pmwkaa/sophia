@@ -155,10 +155,11 @@ si_split(si *index, sdc *c, ssbuf *result,
 		.compression_key = index->scheme->compression_key,
 		.offset          = 0,
 		.vlsn            = vlsn,
-		.save_delete     = 0
+		.save_delete     = 0,
+		.save_update     = 0
 	};
 	sdmerge merge;
-	sd_mergeinit(&merge, r, i, &c->build, &mergeconf);
+	sd_mergeinit(&merge, r, i, &c->build, &c->update, &mergeconf);
 	while ((rc = sd_merge(&merge)) > 0)
 	{
 		sinode *n = si_nodenew(r);

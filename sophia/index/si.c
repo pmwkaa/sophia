@@ -20,6 +20,7 @@ int si_init(si *i, sr *r)
 	if (ssunlikely(rc == -1))
 		return -1;
 	ss_bufinit(&i->readbuf);
+	sv_updateinit(&i->u);
 	ss_rbinit(&i->i);
 	ss_mutexinit(&i->lock);
 	i->scheme      = NULL;
@@ -49,6 +50,7 @@ int si_close(si *i)
 	if (i->i.root)
 		si_truncate(i->i.root, i->r);
 	i->i.root = NULL;
+	sv_updatefree(&i->u, i->r);
 	ss_buffree(&i->readbuf, i->r->a);
 	si_plannerfree(&i->p, i->r->a);
 	ss_mutexfree(&i->lock);

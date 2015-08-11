@@ -20,6 +20,7 @@ struct sdcbuf {
 
 struct sdc {
 	sdbuild build;
+	svupdate update;
 	ssbuf a;        /* result */
 	ssbuf b;        /* redistribute buffer */
 	ssbuf c;        /* file buffer */
@@ -30,6 +31,7 @@ struct sdc {
 static inline void
 sd_cinit(sdc *sc)
 {
+	sv_updateinit(&sc->update);
 	sd_buildinit(&sc->build);
 	ss_bufinit(&sc->a);
 	ss_bufinit(&sc->b);
@@ -42,6 +44,7 @@ static inline void
 sd_cfree(sdc *sc, sr *r)
 {
 	sd_buildfree(&sc->build, r);
+	sv_updatefree(&sc->update, r);
 	ss_buffree(&sc->a, r->a);
 	ss_buffree(&sc->b, r->a);
 	ss_buffree(&sc->c, r->a);
@@ -60,6 +63,7 @@ static inline void
 sd_creset(sdc *sc)
 {
 	sd_buildreset(&sc->build);
+	sv_updatereset(&sc->update);
 	ss_bufreset(&sc->a);
 	ss_bufreset(&sc->b);
 	ss_bufreset(&sc->c);

@@ -22,7 +22,6 @@ typedef struct svmergeiter svmergeiter;
 
 struct svmergeiter {
 	ssorder order;
-	int save_update;
 	svmerge *merge;
 	svmergesrc *src, *end;
 	svmergesrc *v;
@@ -43,10 +42,6 @@ static inline void
 sv_mergeiter_gt(svmergeiter *i)
 {
 	if (i->v) {
-		if (ssunlikely(i->v->update.v)) {
-			sv_vfree(i->r->a, i->v->update.v);
-			i->v->update.v = NULL;
-		}
 		i->v->dup = 0;
 		ss_iteratornext(i->v->i);
 	}
@@ -58,14 +53,9 @@ sv_mergeiter_gt(svmergeiter *i)
 	src  = i->src;
 	for (; src < i->end; src = sv_mergenextof(src))
 	{
-		sv *v;
-		if (sslikely(src->update.v == NULL)) {
-			v = ss_iteratorof(src->i);
-			if (v == NULL)
-				continue;
-		} else {
-			v = src->update.v;
-		}
+		sv *v = ss_iteratorof(src->i);
+		if (v == NULL)
+			continue;
 		if (min == NULL) {
 			minv = v;
 			min = src;
@@ -78,13 +68,6 @@ sv_mergeiter_gt(svmergeiter *i)
 			assert(sv_lsn(v) < sv_lsn(minv));
 			*/
 			src->dup = 1;
-			if ( sv_is(minv, SVUPDATE) &&
-			    !sv_is(v, SVUPDATE)) {
-				assert(min->update.v == NULL);
-				rc = sv_update(i->r, v, minv, &min->update);
-				if (ssunlikely(rc == -1))
-					return;
-			}
 			break;
 		case 1:
 			sv_mergeiter_dupreset(i, src);
@@ -96,21 +79,12 @@ sv_mergeiter_gt(svmergeiter *i)
 	if (ssunlikely(min == NULL))
 		return;
 	i->v = min;
-	/* orphan UPDATE case */
-	if (i->save_update)
-		return;
-	if (sv_is(minv, SVUPDATE) && (min->update.v == NULL))
-		sv_update(i->r, NULL, minv, &min->update);
 }
 
 static inline void
 sv_mergeiter_lt(svmergeiter *i)
 {
 	if (i->v) {
-		if (ssunlikely(i->v->update.v)) {
-			sv_vfree(i->r->a, i->v->update.v);
-			i->v->update.v = NULL;
-		}
 		i->v->dup = 0;
 		ss_iteratornext(i->v->i);
 	}
@@ -122,14 +96,9 @@ sv_mergeiter_lt(svmergeiter *i)
 	src  = i->src;
 	for (; src < i->end; src = sv_mergenextof(src))
 	{
-		sv *v;
-		if (sslikely(src->update.v == NULL)) {
-			v = ss_iteratorof(src->i);
-			if (v == NULL)
-				continue;
-		} else {
-			v = src->update.v;
-		}
+		sv *v = ss_iteratorof(src->i);
+		if (v == NULL)
+			continue;
 		if (max == NULL) {
 			maxv = v;
 			max = src;
@@ -142,13 +111,6 @@ sv_mergeiter_lt(svmergeiter *i)
 			assert(sv_lsn(v) < sv_lsn(maxv));
 			*/
 			src->dup = 1;
-			if ( sv_is(maxv, SVUPDATE) &&
-			    !sv_is(v, SVUPDATE)) {
-				assert(max->update.v == NULL);
-				rc = sv_update(i->r, v, maxv, &max->update);
-				if (ssunlikely(rc == -1))
-					return;
-			}
 			break;
 		case -1:
 			sv_mergeiter_dupreset(i, src);
@@ -160,11 +122,6 @@ sv_mergeiter_lt(svmergeiter *i)
 	if (ssunlikely(max == NULL))
 		return;
 	i->v = max;
-	/* orphan UPDATE case */
-	if (i->save_update)
-		return;
-	if (sv_is(maxv, SVUPDATE) && (max->update.v == NULL))
-		sv_update(i->r, NULL, maxv, &max->update);
 }
 
 static inline void
@@ -185,7 +142,7 @@ sv_mergeiter_next(ssiter *it)
 }
 
 static inline int
-sv_mergeiter_open(ssiter *i, sr *r, svmerge *m, ssorder o, int save_update)
+sv_mergeiter_open(ssiter *i, sr *r, svmerge *m, ssorder o)
 {
 	svmergeiter *im = (svmergeiter*)i->priv;
 	im->merge = m;
@@ -194,7 +151,6 @@ sv_mergeiter_open(ssiter *i, sr *r, svmerge *m, ssorder o, int save_update)
 	im->src   = (svmergesrc*)(im->merge->buf.s);
 	im->end   = (svmergesrc*)(im->merge->buf.p);
 	im->v     = NULL;
-	im->save_update = save_update;
 	sv_mergeiter_next(i);
 	return 0;
 }
@@ -216,8 +172,6 @@ sv_mergeiter_of(ssiter *i)
 	svmergeiter *im = (svmergeiter*)i->priv;
 	if (ssunlikely(im->v == NULL))
 		return NULL;
-	if (im->v->update.v)
-		return &im->v->update;
 	return ss_iteratorof(im->v->i);
 }
 

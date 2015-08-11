@@ -13,7 +13,9 @@
 #include <libsv.h>
 #include <libsd.h>
 
-int sd_mergeinit(sdmerge *m, sr *r, ssiter *i, sdbuild *build, sdmergeconf *conf)
+int sd_mergeinit(sdmerge *m, sr *r, ssiter *i, sdbuild *build,
+                 svupdate *update,
+                 sdmergeconf *conf)
 {
 	m->conf      = conf;
 	m->build     = build;
@@ -22,9 +24,11 @@ int sd_mergeinit(sdmerge *m, sr *r, ssiter *i, sdbuild *build, sdmergeconf *conf
 	m->processed = 0;
 	sd_indexinit(&m->index);
 	ss_iterinit(sv_writeiter, &m->i);
-	ss_iteropen(sv_writeiter, &m->i, i, (uint64_t)conf->size_page, sizeof(sdv),
+	ss_iteropen(sv_writeiter, &m->i, r, i, update,
+	            (uint64_t)conf->size_page, sizeof(sdv),
 	            conf->vlsn,
-	            conf->save_delete);
+	            conf->save_delete,
+	            conf->save_update);
 	return 0;
 }
 
@@ -66,9 +70,12 @@ int sd_merge(sdmerge *m)
 		                   conf->compression_key);
 		if (ssunlikely(rc == -1))
 			return -1;
-		while (ss_iterhas(sv_writeiter, &m->i)) {
+		while (ss_iterhas(sv_writeiter, &m->i))
+		{
 			sv *v = ss_iterof(sv_writeiter, &m->i);
-			uint8_t flags = sv_mergeisdup(m->merge);
+			uint8_t flags = 0;
+			if (sv_writeiter_is_duplicate(&m->i))
+				flags = SVDUP;
 			rc = sd_buildadd(m->build, m->r, v, flags);
 			if (ssunlikely(rc == -1))
 				return -1;

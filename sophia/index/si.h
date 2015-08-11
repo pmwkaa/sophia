@@ -22,6 +22,7 @@ struct si {
 	uint64_t read_disk;
 	uint64_t read_cache;
 	ssbuf readbuf;
+	svupdate u;
 	sischeme *scheme;
 	sr *r;
 };

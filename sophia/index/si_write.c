@@ -40,32 +40,6 @@ void si_commit(sitx *t)
 	si_unlock(t->index);
 }
 
-static inline svv*
-si_update(sitx *t, svv *head, svv *v)
-{
-	if (sslikely((v->flags & SVUPDATE) == 0))
-		return v;
-	if (sslikely(head == NULL))
-		return v;
-	if ((head->flags & SVUPDATE) > 0)
-		return v;
-	sr *r = t->index->r;
-	sv a, b, c;
-	sv_init(&a, &sv_vif, head, NULL);
-	sv_init(&b, &sv_vif, v, NULL);
-	int rc = sv_update(r, &a, &b, &c);
-	if (ssunlikely(rc == -1))
-		return NULL;
-	((svv*)c.v)->log = v->log;
-	/* gc */
-	uint32_t grow = sv_vsize(c.v);
-	uint32_t gc = sv_vsize(v);
-	ss_free(r->a, v);
-	ss_quota(r->quota, SS_QGROW, grow);
-	ss_quota(r->quota, SS_QREMOVE, gc);
-	return c.v;
-}
-
 static inline int
 si_set(sitx *t, svv *v)
 {
@@ -81,11 +55,7 @@ si_set(sitx *t, svv *v)
 	/* insert into node index */
 	svindex *vindex = si_nodeindex(node);
 	svindexpos pos;
-	svv *head = sv_indexget(vindex, t->index->r, &pos, v);
-	/* apply update */
-	v = si_update(t, head, v);
-	if (ssunlikely(v == NULL))
-		return -1;
+	sv_indexget(vindex, t->index->r, &pos, v);
 	sv_indexupdate(vindex, &pos, v);
 	/* update node */
 	node->update_time = index->update_time;

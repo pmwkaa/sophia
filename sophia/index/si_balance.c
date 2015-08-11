@@ -28,7 +28,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 	ss_iteropen(sv_indexiter, &s->src, r, vindex, SS_GTE, NULL, 0);
 	ssiter i;
 	ss_iterinit(sv_mergeiter, &i);
-	ss_iteropen(sv_mergeiter, &i, r, &vmerge, SS_GTE, 1);
+	ss_iteropen(sv_mergeiter, &i, r, &vmerge, SS_GTE);
 
 	/* merge iter is not used */
 	sdmergeconf mergeconf = {
@@ -40,10 +40,11 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		.compression_key = index->scheme->compression_key,
 		.offset          = parent->file.size,
 		.vlsn            = vlsn,
-		.save_delete     = 1
+		.save_delete     = 1,
+		.save_update     = 1
 	};
 	sdmerge merge;
-	sd_mergeinit(&merge, r, &i, &c->build, &mergeconf);
+	sd_mergeinit(&merge, r, &i, &c->build, &c->update, &mergeconf);
 	rc = sd_merge(&merge);
 	if (ssunlikely(rc == -1)) {
 		sv_mergefree(&vmerge, r->a);
@@ -212,7 +213,7 @@ int si_compact(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 	}
 	ssiter i;
 	ss_iterinit(sv_mergeiter, &i);
-	ss_iteropen(sv_mergeiter, &i, r, &merge, SS_GTE, 0);
+	ss_iteropen(sv_mergeiter, &i, r, &merge, SS_GTE);
 	rc = si_compaction(index, c, vlsn, node, &i, size_stream);
 	sv_mergefree(&merge, r->a);
 	return rc;

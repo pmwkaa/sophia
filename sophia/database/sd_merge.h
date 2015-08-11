@@ -22,6 +22,7 @@ struct sdmergeconf {
 	uint64_t offset;
 	uint64_t vlsn;
 	uint32_t save_delete;
+	uint32_t save_update;
 };
 
 struct sdmerge {
@@ -34,7 +35,7 @@ struct sdmerge {
 	sdbuild *build;
 };
 
-int sd_mergeinit(sdmerge*, sr*, ssiter*, sdbuild*, sdmergeconf*);
+int sd_mergeinit(sdmerge*, sr*, ssiter*, sdbuild*, svupdate*, sdmergeconf*);
 int sd_mergefree(sdmerge*);
 int sd_merge(sdmerge*);
 int sd_mergecommit(sdmerge*, sdid*);

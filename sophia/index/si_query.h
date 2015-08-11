@@ -20,7 +20,6 @@ struct siquery {
 	uint64_t vlsn;
 	svmerge merge;
 	int has;
-	int update;
 	sv *update_v;
 	sv result;
 	sicache *cache;

@@ -9,25 +9,134 @@
  * BSD License
 */
 
-static inline int
-sv_update(sr *r, sv *a, sv *b, sv *result)
+typedef struct svupdatenode svupdatenode;
+typedef struct svupdate svupdate;
+
+struct svupdatenode {
+	uint64_t lsn;
+	uint8_t flags;
+	ssbuf buf;
+};
+
+#define SV_UPDATERESRV 16
+
+struct svupdate {
+	svupdatenode reserve[SV_UPDATERESRV];
+	ssbuf stack;
+	int max;
+	int count;
+	sv result;
+};
+
+static inline void
+sv_updateinit(svupdate *u)
 {
-	assert(sv_is(b, SVUPDATE));
-	int   b_flags = sv_flags(b) & SVUPDATE;
-	void *b_pointer = sv_pointer(b);
-	int   b_size = sv_size(b);
-	int   a_flags;
-	void *a_pointer;
-	int   a_size;
-	/* convert delete to orphan update case */
-	if (sslikely(a) && !sv_is(a, SVDELETE)) {
-		a_flags = sv_flags(a) & SVUPDATE;
-		a_pointer = sv_pointer(a);
-		a_size = sv_size(a);
+	const int reserve = SV_UPDATERESRV;
+	int i = 0;
+	while (i < reserve) {
+		ss_bufinit(&u->reserve[i].buf);
+		i++;
+	}
+	memset(&u->result, 0, sizeof(u->result));
+	u->max = reserve;
+	u->count = 0;
+	ss_bufinit_reserve(&u->stack, u->reserve, sizeof(u->reserve));
+}
+
+static inline void
+sv_updatefree(svupdate *u, sr *r)
+{
+	svupdatenode *n = (svupdatenode*)u->stack.s;
+	int i = 0;
+	while (i < u->max) {
+		ss_buffree(&n[i].buf, r->a);
+		i++;
+	}
+	ss_buffree(&u->stack, r->a);
+}
+
+static inline void
+sv_updatereset(svupdate *u)
+{
+	svupdatenode *n = (svupdatenode*)u->stack.s;
+	int i = 0;
+	while (i < u->count) {
+		ss_bufreset(&n[i].buf);
+		i++;
+	}
+	memset(&u->result, 0, sizeof(u->result));
+}
+
+static inline int
+sv_updatepush_raw(svupdate *u, sr *r, char *pointer, int size,
+                  uint8_t flags, uint64_t lsn)
+{
+	svupdatenode *n;
+	int rc;
+	if (sslikely(u->max > u->count)) {
+		n = (svupdatenode*)u->stack.p;
+		ss_bufreset(&n->buf);
 	} else {
-		a_flags = 0;
+		rc = ss_bufensure(&u->stack, r->a, sizeof(svupdatenode));
+		if (ssunlikely(rc == -1))
+			return -1;
+		n = (svupdatenode*)u->stack.p;
+		ss_bufinit(&n->buf);
+		u->max++;
+	}
+	rc = ss_bufensure(&n->buf, r->a, size);
+	if (ssunlikely(rc == -1))
+		return -1;
+	memcpy(n->buf.p, pointer, size);
+	n->flags = flags;
+	n->lsn = lsn;
+	ss_bufadvance(&n->buf, size);
+	ss_bufadvance(&u->stack, sizeof(svupdatenode));
+	u->count++;
+	return 0;
+}
+
+static inline int
+sv_updatepush(svupdate *u, sr *r, sv *v)
+{
+	return sv_updatepush_raw(u, r, sv_pointer(v),
+	                         sv_size(v),
+	                         sv_flags(v), sv_lsn(v));
+}
+
+static inline svupdatenode*
+sv_updatepop(svupdate *u)
+{
+	if (u->count == 0)
+		return NULL;
+	int pos = u->count - 1;
+	u->count--;
+	u->stack.p -= sizeof(svupdatenode);
+	return ss_bufat(&u->stack, sizeof(svupdatenode), pos);
+}
+
+static inline int
+sv_updatedo(svupdate *u, sr *r, svupdatenode *a, svupdatenode *b)
+{
+	assert(b->flags & SVUPDATE);
+	int       b_flagsraw = b->flags;
+	int       b_flags = b->flags & SVUPDATE;
+	uint64_t  b_lsn = b->lsn;
+	void     *b_pointer = b->buf.s;
+	int       b_size = ss_bufused(&b->buf);
+	int       a_flags;
+	void     *a_pointer;
+	int       a_size;
+	if (sslikely(a && !(a->flags & SVDELETE)))
+	{
+		a_flags   = a->flags & SVUPDATE;
+		a_pointer = a->buf.s;
+		a_size    = ss_bufused(&a->buf);
+	} else {
+		/* convert delete to orphan update case */
+		a_flags   = 0;
 		a_pointer = NULL;
-		a_size = 0;
+		a_size    = 0;
 	}
 	void *c_pointer;
 	int c_size;
@@ -37,13 +146,39 @@ sv_update(sr *r, sv *a, sv *b, sv *result)
 	                                 &c_pointer, &c_size);
 	if (ssunlikely(rc == -1))
 		return -1;
-	svv *c = sv_vbuildraw(r->a, c_pointer, c_size);
+	assert(c_pointer != NULL);
+	rc = sv_updatepush_raw(u, r, c_pointer, c_size,
+	                       b_flagsraw & ~SVUPDATE,
+	                       b_lsn);
 	free(c_pointer);
-	if (ssunlikely(c == NULL))
-		return sr_oom(r->e);
-	c->flags = sv_flags(b) & ~SVUPDATE;
-	c->lsn   = sv_lsn(b);
-	sv_init(result, &sv_vif, c, NULL);
+	return rc;
+}
+
+static inline int
+sv_update(svupdate *u, sr *r)
+{
+	assert(u->count >= 1 );
+	svupdatenode *f = ss_bufat(&u->stack, sizeof(svupdatenode), u->count - 1);
+	int rc;
+	if (f->flags & SVUPDATE) {
+		f = sv_updatepop(u);
+		rc = sv_updatedo(u, r, NULL, f);
+		if (ssunlikely(rc == -1))
+			return -1;
+	}
+	if (u->count == 1)
+		goto done;
+	while (u->count > 1) {
+		svupdatenode *f = sv_updatepop(u);
+		svupdatenode *s = sv_updatepop(u);
+		assert(f != NULL);
+		assert(s != NULL);
+		rc = sv_updatedo(u, r, f, s);
+		if (ssunlikely(rc == -1))
+			return -1;
+	}
+done:
+	sv_init(&u->result, &sv_updatevif, u->stack.s, NULL);
 	return 0;
 }
 

@@ -29,7 +29,6 @@ int si_queryopen(siquery *q, sicache *c, si *i, ssorder o,
 	q->prefix     = prefix;
 	q->prefixsize = prefixsize;
 	q->has        = 0;
-	q->update     = 0;
 	q->update_v   = NULL;
 	memset(&q->result, 0, sizeof(q->result));
 	sv_mergeinit(&q->merge);
@@ -44,7 +43,6 @@ void si_queryhas(siquery *q)
 
 void si_queryupdate(siquery *q, sv *v)
 {
-	q->update = 1;
 	q->update_v = v;
 }
 
@@ -160,14 +158,14 @@ si_qgetbranch(siquery *q, sinode *n, sibranch *b)
 		vlsn = UINT64_MAX;
 	}
 	/* prepare sources */
-	sv_mergereset(&q->merge, q->r->a);
+	sv_mergereset(&q->merge);
 	sv_mergeadd(&q->merge, &cb->i);
 	ssiter i;
 	ss_iterinit(sv_mergeiter, &i);
-	ss_iteropen(sv_mergeiter, &i, q->r, &q->merge, SS_GTE, 0);
+	ss_iteropen(sv_mergeiter, &i, q->r, &q->merge, SS_GTE);
 	ssiter j;
 	ss_iterinit(sv_readiter, &j);
-	ss_iteropen(sv_readiter, &j, &i, vlsn, 1);
+	ss_iteropen(sv_readiter, &j, q->r, &i, &q->index->u, vlsn, 1);
 	sv *v = ss_iterof(sv_readiter, &j);
 	if (ssunlikely(v == NULL))
 		return 0;
@@ -290,7 +288,7 @@ next_node:
 		s = sv_mergeadd(m, NULL);
 		ss_iterinit(sv_indexiter, &s->src);
 		ss_iteropen(sv_indexiter, &s->src, q->r, first, q->order,
-					q->key, q->keysize);
+		            q->key, q->keysize);
 	}
 	if (ssunlikely(second && second->count)) {
 		s = sv_mergeadd(m, NULL);
@@ -314,13 +312,13 @@ next_node:
 	/* merge and filter data stream */
 	ssiter j;
 	ss_iterinit(sv_mergeiter, &j);
-	ss_iteropen(sv_mergeiter, &j, q->r, m, q->order, 0);
+	ss_iteropen(sv_mergeiter, &j, q->r, m, q->order);
 	ssiter k;
 	ss_iterinit(sv_readiter, &k);
-	ss_iteropen(sv_readiter, &k, &j, q->vlsn, 0);
+	ss_iteropen(sv_readiter, &k, q->r, &j, &q->index->u, q->vlsn, 0);
 	sv *v = ss_iterof(sv_readiter, &k);
 	if (ssunlikely(v == NULL)) {
-		sv_mergereset(&q->merge, q->r->a);
+		sv_mergereset(&q->merge);
 		ss_iternext(si_iter, &i);
 		goto next_node;
 	}

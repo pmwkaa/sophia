@@ -317,29 +317,11 @@ int sx_set(sx *t, sxindex *index, svv *version)
 	sxv *own = sx_vmatch(head, t->id);
 	if (ssunlikely(own))
 	{
-		if (ssunlikely(version->flags & SVUPDATE))
-		{
-			if (ssunlikely(own->v->flags & SVUPDATE)) {
-				sr_error(index->r->e, "%s", "only one update statement is "
-				         "allowed per a transaction key");
-				sx_vfree(m->a, m->asxv, v);
-				return -1;
-			}
-			sv a, b, c;
-			sv_init(&a, &sv_vif, own->v, NULL);
-			sv_init(&b, &sv_vif, v->v, NULL);
-			int rc = sv_update(index->r, &a, &b, &c);
-			if (ssunlikely(rc == -1)) {
-				sx_vfree(m->a, m->asxv, v);
-				return -1;
-			}
-			/* gc */
-			uint32_t grow = sv_vsize(c.v);
-			uint32_t gc = sv_vsize(v->v);
-			ss_free(m->a, v->v);
-			ss_quota(index->r->quota, SS_QGROW, grow);
-			ss_quota(index->r->quota, SS_QREMOVE, gc);
-			v->v = c.v;
+		if (ssunlikely(version->flags & SVUPDATE)) {
+			sr_error(index->r->e, "%s", "only one update statement is "
+			         "allowed per a transaction key");
+			sx_vfree(m->a, m->asxv, v);
+			return -1;
 		}
 		/* replace old object with the new one */
 		lv.next = sv_logat(&t->log, own->lo)->next;
