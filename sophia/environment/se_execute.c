@@ -51,7 +51,7 @@ int se_reqread(sereq *r)
 	             prefix,
 	             prefixsize, key, keysize);
 	if (arg->update)
-		si_queryupdate(&q, &arg->vup);
+		si_queryupdate(&q, &arg->vup, arg->update_eq);
 	r->rc = si_query(&q);
 	r->v = q.result.v;
 	si_queryclose(&q);

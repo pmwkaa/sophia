@@ -21,6 +21,7 @@ struct siquery {
 	svmerge merge;
 	int has;
 	sv *update_v;
+	int update_eq;
 	sv result;
 	sicache *cache;
 	sr *r;
@@ -33,7 +34,7 @@ int  si_queryopen(siquery*, sicache*, si*, ssorder,
                   void*, uint32_t);
 int  si_queryclose(siquery*);
 void si_queryhas(siquery*);
-void si_queryupdate(siquery*, sv*);
+void si_queryupdate(siquery*, sv*, int);
 int  si_query(siquery*);
 int  si_querycommited(si*, sr*, sv*);
 

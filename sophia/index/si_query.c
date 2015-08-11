@@ -30,6 +30,7 @@ int si_queryopen(siquery *q, sicache *c, si *i, ssorder o,
 	q->prefixsize = prefixsize;
 	q->has        = 0;
 	q->update_v   = NULL;
+	q->update_eq  = 0;
 	memset(&q->result, 0, sizeof(q->result));
 	sv_mergeinit(&q->merge);
 	si_lock(q->index);
@@ -41,9 +42,10 @@ void si_queryhas(siquery *q)
 	q->has = 1;
 }
 
-void si_queryupdate(siquery *q, sv *v)
+void si_queryupdate(siquery *q, sv *v, int eq)
 {
-	q->update_v = v;
+	q->update_v  = v;
+	q->update_eq = eq;
 }
 
 int si_queryclose(siquery *q)
@@ -324,6 +326,12 @@ next_node:
 	}
 
 	rc = 1;
+	/* convert update search to SS_EQ */
+	if (q->update_eq) {
+		rc = sr_compare(q->r->scheme, sv_pointer(v), sv_size(v),
+		                q->key, q->keysize);
+		rc = rc == 0;
+	}
 	/* do prefix search */
 	if (q->prefix && rc) {
 		rc = sr_compareprefix(q->r->scheme, q->prefix, q->prefixsize,

@@ -378,9 +378,11 @@ se_dbread(sedb *db, sev *o, sx *x, int x_search,
 		arg->vlsn_generate = 1;
 	}
 	if (sf_updatehas(&db->scheme.fmt_update)) {
-		if (arg->order == SS_EQ)
-			arg->order = SS_LTE;
 		arg->update = 1;
+		if (arg->order == SS_EQ) {
+			arg->order = SS_LTE;
+			arg->update_eq = 1;
+		}
 	}
 
 	/* asynchronous */

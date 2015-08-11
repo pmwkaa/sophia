@@ -26,6 +26,7 @@ struct sereqarg {
 	int       cachegc;
 	ssorder   order;
 	int       update;
+	int       update_eq;
 	int       vlsn_generate;
 	uint64_t  vlsn;
 	svlog    *log;
