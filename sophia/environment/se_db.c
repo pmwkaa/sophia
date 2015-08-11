@@ -380,7 +380,7 @@ se_dbread(sedb *db, sev *o, sx *x, int x_search,
 	if (sf_updatehas(&db->scheme.fmt_update)) {
 		arg->update = 1;
 		if (arg->order == SS_EQ) {
-			arg->order = SS_LTE;
+			arg->order = SS_GTE;
 			arg->update_eq = 1;
 		}
 	}
