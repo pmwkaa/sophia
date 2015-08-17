@@ -2,8 +2,8 @@
 # sophia build configuration
 #
 
-SOPHIA_VMAJOR   = 1
-SOPHIA_VMINOR   = 2
+SOPHIA_VMAJOR   = 2
+SOPHIA_VMINOR   = 1
 SOPHIA_BUILD   := $(shell git rev-parse --short HEAD)
 SOPHIA_DIRS     = std \
                   format \

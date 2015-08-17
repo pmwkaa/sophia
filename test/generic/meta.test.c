@@ -22,7 +22,7 @@ meta_version(void)
 	t( env != NULL );
 	char *s = sp_getstring(env, "sophia.version", NULL);
 	t( s != NULL );
-	t( strcmp(s, "1.2.3") == 0 );
+	t( strcmp(s, "2.1.1") == 0 );
 	free(s);
 	t( sp_destroy(env) == 0 );
 }

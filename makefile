@@ -24,7 +24,7 @@ SOPHIA_LDFLAGS = -shared $(LDFLAGS)
 
 all: static dynamic
 banner:
-	@echo SOPHIA v1.2.3
+	@echo SOPHIA v2.1.1
 	@echo "cc: $(CC)"
 	@echo "cflags: $(CFLAGS_DEBUG) $(CFLAGS_COVERAGE)$(CFLAGS_OPT) $(CFLAGS_STRICT)"
 	@echo
@@ -41,14 +41,14 @@ libsophia.a: sophia.o
 	@ar crs libsophia.a sophia.o
 libsophia.so: sophia.o
 	@echo "ld libsophia.so"
-	@$(CC) sophia.o $(SOPHIA_LDFLAGS) -o libsophia.so.1.2.3
-	@ln -sf libsophia.so.1.2.3 libsophia.so.1.2
-	@ln -sf libsophia.so.1.2.3 libsophia.so
+	@$(CC) sophia.o $(SOPHIA_LDFLAGS) -o libsophia.so.2.1.1
+	@ln -sf libsophia.so.2.1.1 libsophia.so.2.1
+	@ln -sf libsophia.so.2.1.1 libsophia.so
 ifeq ($(shell uname), Linux)
-	@strip --strip-unneeded libsophia.so.1.2.3
+	@strip --strip-unneeded libsophia.so.2.1.1
 endif
 ifeq ($(shell uname), Darwin)
-	@strip -u -r -x libsophia.so.1.2.3
+	@strip -u -r -x libsophia.so.2.1.1
 endif
 static: libsophia.a
 dynamic: libsophia.so
@@ -56,7 +56,7 @@ clean:
 	@rm -f sophia.c sophia.h sophia.o
 	@rm -f libsophia.a
 	@rm -f libsophia.so
-	@rm -f libsophia.so.1.2
-	@rm -f libsophia.so.1.2.3
+	@rm -f libsophia.so.2.1
+	@rm -f libsophia.so.2.1.1
 
 .PHONY: all banner static dynamic clean

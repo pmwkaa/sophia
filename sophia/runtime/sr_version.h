@@ -10,9 +10,9 @@
 */
 
 #define SR_VERSION_MAGIC  8529643324614668147ULL
-#define SR_VERSION_A '1'
-#define SR_VERSION_B '2'
-#define SR_VERSION_C '3'
+#define SR_VERSION_A '2'
+#define SR_VERSION_B '1'
+#define SR_VERSION_C '1'
 
 #if defined(SOPHIA_BUILD)
 # define SR_VERSION_COMMIT SOPHIA_BUILD
