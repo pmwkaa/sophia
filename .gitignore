@@ -16,3 +16,8 @@ test/sophia-test
 test/sophia-benchmark
 sophia.h
 sophia.c
+example/crud
+example/transaction
+example/batch
+example/cursor
+example/snapshot
