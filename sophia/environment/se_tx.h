@@ -14,6 +14,7 @@ typedef struct setx setx;
 struct setx {
 	so o;
 	uint64_t lsn;
+	uint32_t half_commit;
 	sx t;
 };
 

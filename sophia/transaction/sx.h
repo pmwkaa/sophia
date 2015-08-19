@@ -35,6 +35,7 @@ struct sxindex {
 
 struct sx {
 	uint32_t id;
+	int complete;
 	sxstate s;
 	uint64_t vlsn;
 	svlog log;
@@ -62,6 +63,7 @@ void      sx_init(sxmanager*, sx*);
 sxstate   sx_begin(sxmanager*, sx*, uint64_t);
 void      sx_gc(sx*, sr*);
 sxstate   sx_prepare(sx*, sxpreparef, void*);
+sxstate   sx_complete(sx*);
 sxstate   sx_commit(sx*);
 sxstate   sx_rollback(sx*);
 int       sx_set(sx*, sxindex*, svv*);

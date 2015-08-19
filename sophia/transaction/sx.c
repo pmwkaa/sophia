@@ -122,6 +122,7 @@ void sx_init(sxmanager *m, sx *t)
 sxstate sx_begin(sxmanager *m, sx *t, uint64_t vlsn)
 {
 	t->s = SXREADY; 
+	t->complete = 0;
 	sr_seqlock(m->seq);
 	t->id = sr_seqdo(m->seq, SR_TSNNEXT);
 	if (sslikely(vlsn == 0))
@@ -220,6 +221,8 @@ done:
 sxstate sx_commit(sx *t)
 {
 	assert(t->s == SXPREPARE);
+	if (t->complete)
+		goto complete;
 	ssiter i;
 	ss_iterinit(ss_bufiter, &i);
 	ss_iteropen(ss_bufiter, &i, &t->log.buf, sizeof(svlogv));
@@ -242,12 +245,14 @@ sxstate sx_commit(sx *t)
 		sv_init(&lv->v, &sv_vif, v->v, NULL);
 		lv->vgc = v;
 	}
+complete:
 	t->s = SXCOMMIT;
 	sx_end(t);
 	return SXCOMMIT;
 }
 
-sxstate sx_rollback(sx *t)
+static inline void
+sx_rollback_index(sx *t, int translate)
 {
 	ssiter i;
 	ss_iterinit(ss_bufiter, &i);
@@ -267,10 +272,30 @@ sxstate sx_rollback(sx *t)
 			ss_rbreplace(&i->i, &v->node, &v->next->node);
 unlink:
 		sx_vunlink(v);
+		/* translate log version from sxv to svv */
+		if (translate) {
+			sv_init(&lv->v, &sv_vif, v->v, NULL);
+			lv->vgc = v;
+		}
 	}
+}
+
+sxstate sx_rollback(sx *t)
+{
+	if (! t->complete)
+		sx_rollback_index(t, 0);
 	t->s = SXROLLBACK;
 	sx_end(t);
 	return SXROLLBACK;
+}
+
+sxstate sx_complete(sx *t)
+{
+	assert(t->complete == 0);
+	assert(t->s == SXPREPARE);
+	sx_rollback_index(t, 1);
+	t->complete = 1;
+	return SXPREPARE;
 }
 
 ss_rbget(sx_match,

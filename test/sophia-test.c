@@ -72,6 +72,7 @@ extern stgroup *prefix_group(void);
 extern stgroup *transaction_md_group(void);
 extern stgroup *cursor_md_group(void);
 extern stgroup *tpc_group(void);
+extern stgroup *half_commit_group(void);
 extern stgroup *update_group(void);
 extern stgroup *async_group(void);
 
@@ -239,6 +240,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, transaction_md_group());
 	st_planadd(plan, cursor_md_group());
 	st_planadd(plan, tpc_group());
+	st_planadd(plan, half_commit_group());
 	st_planadd(plan, update_group());
 	st_planadd(plan, async_group());
 	st_suiteadd(&st_r.suite, plan);
