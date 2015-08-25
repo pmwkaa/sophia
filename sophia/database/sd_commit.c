@@ -87,18 +87,20 @@ int sd_commit(sdbuild *b, sr *r, sdindex *index, ssfile *file)
 	             return -1);
 
 	/* compression enabled */
+	uint64_t start = file->size;
 	uint32_t size = ss_bufused(&b->c);
 	int rc;
 	if (size > 0) {
 		ss_iovadd(&iov, b->c.s, size);
 		ss_iovadd(&iov, &seal, sizeof(seal));
 		rc = ss_filewritev(file, &iov);
-		if (ssunlikely(rc == -1))
+		if (ssunlikely(rc == -1)) {
 			sr_malfunction(r->e, "file '%s' write error: %s",
 			               file->file, strerror(errno));
-		return rc;
+			return -1;
+		}
+		goto done;
 	}
-
 	/* uncompressed */
 	sdcommitiov iter;
 	sd_commitiov_init(&iter, b, 1020);
@@ -117,5 +119,39 @@ int sd_commit(sdbuild *b, sr *r, sdindex *index, ssfile *file)
 		}
 		ss_iovreset(&iov);
 	}
-	return 0;
+done:
+	return file->size - start;
+}
+
+int sd_committo(sdbuild *b, sr *r, sdindex *index, char *dest, int size)
+{
+	sdseal seal;
+	sd_seal(&seal, r, index->h);
+	struct iovec iovv[1024];
+	ssiov iov;
+	ss_iovinit(&iov, iovv, 1024);
+	ss_iovadd(&iov, index->i.s, ss_bufused(&index->i));
+	char *p = dest;
+	/* compression enabled */
+	uint32_t csize = ss_bufused(&b->c);
+	if (csize > 0) {
+		ss_iovadd(&iov, b->c.s, csize);
+		ss_iovadd(&iov, &seal, sizeof(seal));
+		p = ss_iovwrite(&iov, p);
+		assert(p <= (dest + size));
+		return p - dest;
+	}
+	/* uncompressed */
+	sdcommitiov iter;
+	sd_commitiov_init(&iter, b, 1020);
+	int more = 1;
+	while (more) {
+		more = sd_commitiov(&iter, &iov);
+		if (sslikely(! more))
+			ss_iovadd(&iov, &seal, sizeof(seal));
+		p = ss_iovwrite(&iov, p);
+		ss_iovreset(&iov);
+	}
+	assert(p <= (dest + size));
+	return p - dest;
 }

@@ -23,6 +23,18 @@ int ss_mmap(ssmmap *m, int fd, uint64_t size, int ro)
 	return 0;
 }
 
+int ss_mmap_allocate(ssmmap *m, uint64_t size)
+{
+	int flags = PROT_READ|PROT_WRITE;
+	m->p = mmap(NULL, size, flags, MAP_PRIVATE|MAP_ANON, -1, 0);
+	if (m->p == MAP_FAILED) {
+		m->p = NULL;
+		return -1;
+	}
+	m->size = size;
+	return 0;
+}
+
 int ss_munmap(ssmmap *m)
 {
 	if (ssunlikely(m->p == NULL))

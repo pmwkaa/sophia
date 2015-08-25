@@ -576,6 +576,7 @@ se_metadb(se *e, semetart *rt ssunused, srmeta **pc)
 		sr_M(&p, pc, se_metav_dboffline, "path_fail_on_drop", SS_U32, &o->scheme.path_fail_on_drop, 0, o);
 		sr_M(&p, pc, se_metav_dboffline, "sync", SS_U32, &o->scheme.sync, 0, o);
 		sr_M(&p, pc, se_metav_dboffline, "mmap", SS_U32, &o->scheme.mmap, 0, o);
+		sr_M(&p, pc, se_metav_dboffline, "in_memory", SS_U32, &o->scheme.in_memory, 0, o);
 		sr_M(&p, pc, se_metav_dboffline, "compression_key", SS_U32, &o->scheme.compression_key, 0, o);
 		sr_M(&p, pc, se_metav_dboffline, "compression", SS_STRINGPTR, &o->scheme.compression_sz, 0, o);
 		sr_m(&p, pc, se_metadb_branch, "branch", SS_FUNCTION, o);

@@ -1,5 +1,5 @@
-#ifndef SD_IOV_H_
-#define SD_IOV_H_
+#ifndef SS_IOV_H_
+#define SS_IOV_H_
 
 /*
  * sophia database
@@ -47,6 +47,20 @@ ss_iovadd(ssiov *v, void *ptr, size_t size)
 	v->v[v->iovc].iov_base = ptr;
 	v->v[v->iovc].iov_len = size;
 	v->iovc++;
+}
+
+static inline char*
+ss_iovwrite(ssiov *v, char *dest)
+{
+	char *p = dest;
+	int i = 0;
+	while (i < v->iovc) {
+		struct iovec *c = &v->v[i];
+		memcpy(p, c->iov_base, c->iov_len);
+		p += c->iov_len;
+		i++;
+	}
+	return p;
 }
 
 #endif

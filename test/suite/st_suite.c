@@ -71,6 +71,19 @@ void st_suiteset(stsuite *s, int stop_plan, int stop_group,
 	s->stop_test  = stop_test;
 }
 
+
+static inline int
+st_suite_hexcnv(char c)
+{
+	if (c >= '0' && c <= '9')
+		return (int)c - '0';
+	if (c >= 'a' && c <= 'z')
+		c -= 32;
+	if (c >= 'A' && c <= 'F')
+		return (int)(10 + c - 'A');
+	return 0;
+}
+
 static int
 st_suiterun_set(stsuite *s, char *id,
                 sslist **pos_plan,
@@ -132,9 +145,9 @@ st_suiterun_set(stsuite *s, char *id,
 		if (scene->statemax > 1) {
 			if (*p == 0)
 				return -1;
-			if (! isdigit(*p))
+			if (! isxdigit(*p))
 				return -1;
-			scene->state = *p - '0';
+			scene->state = st_suite_hexcnv(*p);
 			p++;
 		}
 		j++;
@@ -188,7 +201,7 @@ void st_suiterun(stsuite *s, char *id)
 					while (g < plan->scene_count) {
 						stscene *scene = &plan->scene[g];
 						if (scene->statemax > 1) {
-							fprintf(st_r.output, "%d", scene->state);
+							fprintf(st_r.output, "%x", scene->state);
 							scenes++;
 						}
 						g++;

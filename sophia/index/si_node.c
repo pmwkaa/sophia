@@ -64,7 +64,7 @@ si_nodeclose(sinode *n, sr *r)
 }
 
 static inline int
-si_noderecover(sinode *n, sr *r)
+si_noderecover(sinode *n, sr *r, int in_memory)
 {
 	/* recover branches */
 	ssiter i;
@@ -89,6 +89,20 @@ si_noderecover(sinode *n, sr *r)
 		if (ssunlikely(rc == -1))
 			goto error;
 		si_branchset(b, &index);
+
+		if (in_memory) {
+			char *start = (char*)h;
+			char *end = start + sizeof(sdindexheader) +h->size +
+			            h->total +
+			            h->extension + sizeof(sdseal);
+			int branch_size = end - start;
+			rc = ss_mmap_allocate(&b->copy, branch_size);
+			if (ssunlikely(rc == -1)) {
+				sr_oom_malfunction(r->e);
+				goto error;
+			}
+			memcpy(b->copy.p, start, branch_size);
+		}
 
 		b->next   = n->branch;
 		n->branch = b;
@@ -117,20 +131,22 @@ int si_nodeopen(sinode *n, sr *r, sischeme *scheme, sspath *path)
 	}
 	rc = ss_fileseek(&n->file, n->file.size);
 	if (ssunlikely(rc == -1)) {
-		si_nodeclose(n, r);
 		sr_malfunction(r->e, "db file '%s' seek error: %s",
 		               n->file.file, strerror(errno));
-		return -1;
+		goto error;
 	}
-	rc = si_noderecover(n, r);
+	rc = si_noderecover(n, r, scheme->in_memory);
 	if (ssunlikely(rc == -1))
-		si_nodeclose(n, r);
+		goto error;
 	if (scheme->mmap) {
 		rc = si_nodemap(n, r);
 		if (ssunlikely(rc == -1))
-			si_nodeclose(n, r);
+			goto error;
 	}
-	return rc;
+	return 0;
+error:
+	si_nodeclose(n, r);
+	return -1;
 }
 
 int si_nodecreate(sinode *n, sr *r, sischeme *scheme, sdid *id,
@@ -149,6 +165,17 @@ int si_nodecreate(sinode *n, sr *r, sischeme *scheme, sdid *id,
 	rc = sd_commit(build, r, &n->self.index, &n->file);
 	if (ssunlikely(rc == -1))
 		return -1;
+	int branch_size = rc;
+	if (scheme->in_memory) {
+		rc = ss_mmap_allocate(&n->self.copy, branch_size);
+		if (ssunlikely(rc == -1)) {
+			sr_oom_malfunction(r->e);
+			return -1;
+		}
+		sd_committo(build, r, &n->self.index,
+		            n->self.copy.p,
+		            n->self.copy.size);
+	}
 	if (scheme->mmap) {
 		rc = si_nodemap(n, r);
 		if (ssunlikely(rc == -1))

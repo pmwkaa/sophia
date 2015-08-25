@@ -197,32 +197,6 @@ int ss_fileseek(ssfile *f, uint64_t off)
 	return lseek(f->fd, off, SEEK_SET);
 }
 
-#if 0
-int ss_filelock(ssfile *f)
-{
-	struct flock l;
-	memset(&l, 0, sizeof(l));
-	l.l_whence = SEEK_SET;
-	l.l_start = 0;
-	l.l_len = 0;
-	l.l_type = F_WRLCK;
-	return fcntl(f->fd, F_SETLK, &l);
-}
-
-int ss_fileunlock(ssfile *f)
-{
-	if (ssunlikely(f->fd == -1))
-		return 0;
-	struct flock l;
-	memset(&l, 0, sizeof(l));
-	l.l_whence = SEEK_SET;
-	l.l_start = 0;
-	l.l_len = 0;
-	l.l_type = F_UNLCK;
-	return fcntl(f->fd, F_SETLK, &l);
-}
-#endif
-
 int ss_filerlb(ssfile *f, uint64_t svp)
 {
 	if (ssunlikely(f->size == svp))

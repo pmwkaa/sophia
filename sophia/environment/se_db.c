@@ -31,6 +31,7 @@ se_dbscheme_init(sedb *db, char *name)
 	scheme->id                  = sr_seq(&e->seq, SR_DSNNEXT);
 	scheme->sync                = 1;
 	scheme->mmap                = 0;
+	scheme->in_memory           = 0;
 	scheme->compression         = 0;
 	scheme->compression_key     = 0;
 	scheme->compression_if      = &ss_nonefilter;

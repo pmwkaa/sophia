@@ -63,7 +63,7 @@ sd_iter_gt0(void)
 	ssfile f;
 	ss_fileinit(&f, &st_r.a);
 	t( ss_filenew(&f, "./0000.db") == 0 );
-	t( sd_commit(&b, &st_r.r, &index, &f) == 0 );
+	t( sd_commit(&b, &st_r.r, &index, &f) > 0 );
 	ssmmap map;
 	t( ss_mmap(&map, f.fd, f.size, 1) == 0 );
 
@@ -158,7 +158,7 @@ sd_iter_gt1(void)
 	ssfile f;
 	ss_fileinit(&f, &st_r.a);
 	t( ss_filenew(&f, "./0000.db") == 0 );
-	t( sd_commit(&b, &st_r.r, &index, &f) == 0 );
+	t( sd_commit(&b, &st_r.r, &index, &f) > 0 );
 	ssmmap map;
 	t( ss_mmap(&map, f.fd, f.size, 1) == 0 );
 
@@ -268,7 +268,7 @@ sd_iter_gt0_compression_zstd(void)
 	ssfile f;
 	ss_fileinit(&f, &a);
 	t( ss_filenew(&f, "./0000.db") == 0 );
-	t( sd_commit(&b, &r, &index, &f) == 0 );
+	t( sd_commit(&b, &r, &index, &f) > 0 );
 	ssmmap map;
 	t( ss_mmap(&map, f.fd, f.size, 1) == 0 );
 
@@ -360,7 +360,7 @@ sd_iter_gt0_compression_lz4(void)
 	ssfile f;
 	ss_fileinit(&f, &a);
 	t( ss_filenew(&f, "./0000.db") == 0 );
-	t( sd_commit(&b, &r, &index, &f) == 0 );
+	t( sd_commit(&b, &r, &index, &f) > 0 );
 	ssmmap map;
 	t( ss_mmap(&map, f.fd, f.fd, 1) == 0 );
 
@@ -477,7 +477,7 @@ sd_iter_gt1_compression_zstd(void)
 	ssfile f;
 	ss_fileinit(&f, &a);
 	t( ss_filenew(&f, "./0000.db") == 0 );
-	t( sd_commit(&b, &r, &index, &f) == 0 );
+	t( sd_commit(&b, &r, &index, &f) > 0 );
 	ssmmap map;
 	t( ss_mmap(&map, f.fd, f.size, 1) == 0 );
 
@@ -616,7 +616,7 @@ sd_iter_gt1_compression_lz4(void)
 	ssfile f;
 	ss_fileinit(&f, &a);
 	t( ss_filenew(&f, "./0000.db") == 0 );
-	t( sd_commit(&b, &r, &index, &f) == 0 );
+	t( sd_commit(&b, &r, &index, &f) > 0 );
 	ssmmap map;
 	t( ss_mmap(&map, f.fd, f.size, 1) == 0 );
 

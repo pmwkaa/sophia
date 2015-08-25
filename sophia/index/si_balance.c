@@ -47,16 +47,15 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 	sd_mergeinit(&merge, r, &i, &c->build, &c->update, &mergeconf);
 	rc = sd_merge(&merge);
 	if (ssunlikely(rc == -1)) {
-		sv_mergefree(&vmerge, r->a);
 		sr_oom_malfunction(r->e);
-		goto error;
+		goto e0;
 	}
 	assert(rc == 1);
 	sv_mergefree(&vmerge, r->a);
 
 	sibranch *branch = si_branchnew(r);
 	if (ssunlikely(branch == NULL))
-		goto error;
+		goto e0;
 	sdid id = {
 		.parent = parent->self.id.id,
 		.flags  = SD_IDBRANCH,
@@ -64,7 +63,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 	};
 	rc = sd_mergecommit(&merge, &id);
 	if (ssunlikely(rc == -1))
-		goto error;
+		goto e0;
 
 	si_branchset(branch, &merge.index);
 	rc = sd_commit(&c->build, r, &branch->index, &parent->file);
@@ -72,6 +71,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		si_branchfree(branch, r);
 		return NULL;
 	}
+	int branch_size = rc;
 
 	SS_INJECTION(r->i, SS_INJECTION_SI_BRANCH_0,
 	             sr_malfunction(r->e, "%s", "error injection");
@@ -80,10 +80,18 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 
 	if (index->scheme->sync) {
 		rc = si_nodesync(parent, r);
+		if (ssunlikely(rc == -1))
+			goto e1;
+	}
+	if (index->scheme->in_memory) {
+		rc = ss_mmap_allocate(&branch->copy, branch_size);
 		if (ssunlikely(rc == -1)) {
-			si_branchfree(branch, r);
-			return NULL;
+			sr_oom_malfunction(r->e);
+			goto e1;
 		}
+		sd_committo(&c->build, r, &branch->index,
+		            branch->copy.p,
+		            branch->copy.size);
 	}
 	if (index->scheme->mmap) {
 		ss_mmapinit(&parent->map_swap);
@@ -92,12 +100,15 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		if (ssunlikely(rc == -1)) {
 			sr_malfunction(r->e, "db file '%s' mmap error: %s",
 			               parent->file.file, strerror(errno));
-			return NULL;
+			goto e1;
 		}
 	}
 	return branch;
-error:
+e0:
 	sd_mergefree(&merge);
+	return NULL;
+e1:
+	si_branchfree(branch, r);
 	return NULL;
 }
 

@@ -60,7 +60,13 @@ si_read_page(siread *i, sdindexpage *ref)
 	if (i->ra.scheme->compression)
 	{
 		char *page_pointer;
-		if (! i->ra.scheme->mmap) {
+		if (i->ra.scheme->in_memory) {
+			offset -= arg->b->index.h->offset;
+			page_pointer = arg->b->copy.p + offset;
+		} else
+		if (i->ra.scheme->mmap) {
+			page_pointer = arg->n->map.p + offset;
+		} else {
 			ss_bufreset(arg->buf_read);
 			rc = ss_bufensure(arg->buf_read, r->a, ref->size);
 			if (ssunlikely(rc == -1))
@@ -73,8 +79,6 @@ si_read_page(siread *i, sdindexpage *ref)
 			}
 			ss_bufadvance(arg->buf_read, ref->size);
 			page_pointer = arg->buf_read->s;
-		} else {
-			page_pointer = arg->n->map.p + offset;
 		}
 
 		/* copy header */
@@ -96,6 +100,13 @@ si_read_page(siread *i, sdindexpage *ref)
 		}
 		ss_filterfree(&f);
 		sd_pageinit(&i->page, (sdpageheader*)arg->buf->s);
+		return 0;
+	}
+
+	/* in-memory mode */
+	if (i->ra.scheme->in_memory) {
+		offset -= arg->b->index.h->offset;
+		sd_pageinit(&i->page, (sdpageheader*)(arg->b->copy.p + offset));
 		return 0;
 	}
 
