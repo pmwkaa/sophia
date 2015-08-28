@@ -21,7 +21,7 @@ STS_TESTS = unit/ss_leb128.test.o \
             unit/sl_iter.test.o \
             unit/sd_build.test.o \
             unit/sd_v.test.o \
-            unit/sd_iter.test.o \
+            unit/sd_read.test.o \
             unit/sd_pageiter.test.o \
             generic/meta.test.o \
             generic/cache.test.o \

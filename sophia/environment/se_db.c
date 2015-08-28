@@ -29,7 +29,7 @@ se_dbscheme_init(sedb *db, char *name)
 	if (ssunlikely(scheme->name == NULL))
 		goto e0;
 	scheme->id                  = sr_seq(&e->seq, SR_DSNNEXT);
-	scheme->sync                = 1;
+	scheme->sync                = 2;
 	scheme->mmap                = 0;
 	scheme->in_memory           = 0;
 	scheme->compression         = 0;
@@ -124,6 +124,7 @@ se_dbscheme_set(sedb *db)
 	s->node_size          = e->meta.node_size;
 	s->node_page_size     = e->meta.page_size;
 	s->node_page_checksum = e->meta.page_checksum;
+	s->node_compact_load  = e->meta.node_preload;
 
 	db->r.scheme = &s->scheme;
 	db->r.fmt = s->fmt;

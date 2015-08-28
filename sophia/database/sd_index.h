@@ -119,9 +119,9 @@ sd_indexsize(sdindexheader *h)
 	return sizeof(sdindexheader) + h->size;
 }
 
-int sd_indexbegin(sdindex*, sr*, uint64_t);
-int sd_indexcommit(sdindex*, sr*, sdid*);
-int sd_indexadd(sdindex*, sr*, sdbuild*);
+int sd_indexbegin(sdindex*, sr*);
+int sd_indexcommit(sdindex*, sr*, sdid*, uint64_t);
+int sd_indexadd(sdindex*, sr*, sdbuild*, uint64_t);
 int sd_indexcopy(sdindex*, sr*, sdindexheader*);
 
 #endif

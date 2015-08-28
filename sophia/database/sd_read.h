@@ -1,5 +1,5 @@
-#ifndef SI_READ_H_
-#define SI_READ_H_
+#ifndef SD_READ_H_
+#define SD_READ_H_
 
 /*
  * sophia database
@@ -9,72 +9,77 @@
  * BSD License
 */
 
-typedef struct siread siread;
-typedef struct sireadarg sireadarg;
+typedef struct sdread sdread;
+typedef struct sdreadarg sdreadarg;
 
-struct sireadarg {
-	sischeme *scheme;
-	si       *index;
-	sinode   *n;
-	sibranch *b;
+struct sdreadarg {
+	sdindex  *index;
 	ssbuf    *buf;
 	ssbuf    *buf_xf;
 	ssbuf    *buf_read;
 	ssiter   *index_iter;
 	ssiter   *page_iter;
 	uint64_t  vlsn;
-	int       has;
-	int       mmap_copy;
+	ssmmap   *mmap;
+	ssblob   *memory;
+	ssfile   *file;
 	ssorder   o;
+	int       has;
+	int       use_compression;
+	int       use_memory;
+	int       use_mmap;
+	int       use_mmap_copy;
 	sr       *r;
 };
 
-struct siread {
-	sireadarg ra;
+struct sdread {
+	sdreadarg ra;
 	sdindexpage *ref;
 	sdpage page;
+	int reads;
 } sspacked;
 
 static inline int
-si_read_page(siread *i, sdindexpage *ref)
+sd_read_page(sdread *i, sdindexpage *ref)
 {
-	sireadarg *arg = &i->ra;
+	sdreadarg *arg = &i->ra;
 	sr *r = arg->r;
 
-	arg->index->read_disk++;
-
-	ss_bufreset(arg->buf_xf);
-	int rc = ss_bufensure(arg->buf_xf, r->a, arg->b->index.h->sizevmax);
-	if (ssunlikely(rc == -1))
-		return sr_oom(r->e);
 	ss_bufreset(arg->buf);
-	rc = ss_bufensure(arg->buf, r->a, ref->sizeorigin);
+	int rc = ss_bufensure(arg->buf, r->a, ref->sizeorigin);
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
+	ss_bufreset(arg->buf_xf);
+	rc = ss_bufensure(arg->buf_xf, r->a, arg->index->h->sizevmax);
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
 
-	uint64_t offset =
-		arg->b->index.h->offset + sd_indexsize(arg->b->index.h) +
-		ref->offset;
+	i->reads++;
+
+	/* in-memory mode only offsets */
+	uint64_t branch_start_offset =
+		arg->index->h->offset - arg->index->h->total - sizeof(sdseal);
+	uint64_t branch_ref_offset =
+		ref->offset - branch_start_offset;
 
 	/* compression */
-	if (i->ra.scheme->compression)
+	if (arg->use_compression)
 	{
 		char *page_pointer;
-		if (i->ra.scheme->in_memory) {
-			offset -= arg->b->index.h->offset;
-			page_pointer = arg->b->copy.p + offset;
+		if (arg->use_memory) {
+			page_pointer = arg->memory->map.p + branch_ref_offset;
 		} else
-		if (i->ra.scheme->mmap) {
-			page_pointer = arg->n->map.p + offset;
+		if (arg->use_mmap) {
+			page_pointer = arg->mmap->p + ref->offset;
 		} else {
 			ss_bufreset(arg->buf_read);
 			rc = ss_bufensure(arg->buf_read, r->a, ref->size);
 			if (ssunlikely(rc == -1))
 				return sr_oom(r->e);
-			rc = ss_filepread(&arg->n->file, offset, arg->buf_read->s, ref->size);
+			rc = ss_filepread(arg->file, ref->offset, arg->buf_read->s, ref->size);
 			if (ssunlikely(rc == -1)) {
 				sr_error(r->e, "db file '%s' read error: %s",
-				         arg->n->file.file, strerror(errno));
+				         arg->file->file, strerror(errno));
 				return -1;
 			}
 			ss_bufadvance(arg->buf_read, ref->size);
@@ -89,13 +94,13 @@ si_read_page(siread *i, sdindexpage *ref)
 		ssfilter f;
 		rc = ss_filterinit(&f, (ssfilterif*)r->compression, r->a, SS_FOUTPUT);
 		if (ssunlikely(rc == -1)) {
-			sr_error(r->e, "db file '%s' decompression error", arg->n->file.file);
+			sr_error(r->e, "db file '%s' decompression error", arg->file->file);
 			return -1;
 		}
 		int size = ref->size - sizeof(sdpageheader);
 		rc = ss_filternext(&f, arg->buf, page_pointer + sizeof(sdpageheader), size);
 		if (ssunlikely(rc == -1)) {
-			sr_error(r->e, "db file '%s' decompression error", arg->n->file.file);
+			sr_error(r->e, "db file '%s' decompression error", arg->file->file);
 			return -1;
 		}
 		ss_filterfree(&f);
@@ -104,28 +109,27 @@ si_read_page(siread *i, sdindexpage *ref)
 	}
 
 	/* in-memory mode */
-	if (i->ra.scheme->in_memory) {
-		offset -= arg->b->index.h->offset;
-		sd_pageinit(&i->page, (sdpageheader*)(arg->b->copy.p + offset));
+	if (arg->use_memory) {
+		sd_pageinit(&i->page, (sdpageheader*)(arg->memory->map.p + branch_ref_offset));
 		return 0;
 	}
 
 	/* mmap */
-	if (i->ra.scheme->mmap) {
-		if (i->ra.mmap_copy) {
-			memcpy(arg->buf->s, arg->n->map.p + offset, ref->sizeorigin);
+	if (arg->use_mmap) {
+		if (arg->use_mmap_copy) {
+			memcpy(arg->buf->s, arg->mmap->p + ref->offset, ref->sizeorigin);
 			sd_pageinit(&i->page, (sdpageheader*)(arg->buf->s));
 		} else {
-			sd_pageinit(&i->page, (sdpageheader*)(arg->n->map.p + offset));
+			sd_pageinit(&i->page, (sdpageheader*)(arg->mmap->p + ref->offset));
 		}
 		return 0;
 	}
 
 	/* default */
-	rc = ss_filepread(&arg->n->file, offset, arg->buf->s, ref->sizeorigin);
+	rc = ss_filepread(arg->file, ref->offset, arg->buf->s, ref->sizeorigin);
 	if (ssunlikely(rc == -1)) {
 		sr_error(r->e, "db file '%s' read error: %s",
-		         arg->n->file.file, strerror(errno));
+		         arg->file->file, strerror(errno));
 		return -1;
 	}
 	ss_bufadvance(arg->buf, ref->sizeorigin);
@@ -134,11 +138,11 @@ si_read_page(siread *i, sdindexpage *ref)
 }
 
 static inline int
-si_read_openpage(siread *i, void *key, int keysize)
+sd_read_openpage(sdread *i, void *key, int keysize)
 {
-	sireadarg *arg = &i->ra;
+	sdreadarg *arg = &i->ra;
 	assert(i->ref != NULL);
-	int rc = si_read_page(i, i->ref);
+	int rc = sd_read_page(i, i->ref);
 	if (ssunlikely(rc == -1))
 		return -1;
 	ss_iterinit(sd_pageiter, arg->page_iter);
@@ -148,15 +152,16 @@ si_read_openpage(siread *i, void *key, int keysize)
 }
 
 static inline void
-si_read_next(ssiter*);
+sd_read_next(ssiter*);
 
 static inline int
-si_read_open(ssiter *iptr, sireadarg *arg, void *key, int keysize)
+sd_read_open(ssiter *iptr, sdreadarg *arg, void *key, int keysize)
 {
-	siread *i = (siread*)iptr->priv;
+	sdread *i = (sdread*)iptr->priv;
+	i->reads = 0;
 	i->ra = *arg;
 	ss_iterinit(sd_indexiter, arg->index_iter);
-	ss_iteropen(sd_indexiter, arg->index_iter, arg->r, &arg->b->index,
+	ss_iteropen(sd_indexiter, arg->index_iter, arg->r, arg->index,
 	            arg->o, key, keysize);
 	i->ref = ss_iterof(sd_indexiter, arg->index_iter);
 	if (i->ref == NULL)
@@ -168,47 +173,47 @@ si_read_open(ssiter *iptr, sireadarg *arg, void *key, int keysize)
 			return 0;
 		}
 	}
-	int rc = si_read_openpage(i, key, keysize);
+	int rc = sd_read_openpage(i, key, keysize);
 	if (ssunlikely(rc == -1)) {
 		i->ref = NULL;
 		return -1;
 	}
 	if (ssunlikely(! ss_iterhas(sd_pageiter, i->ra.page_iter))) {
-		si_read_next(iptr);
+		sd_read_next(iptr);
 		rc = 0;
 	}
 	return rc;
 }
 
 static inline void
-si_read_close(ssiter *iptr)
+sd_read_close(ssiter *iptr)
 {
-	siread *i = (siread*)iptr->priv;
+	sdread *i = (sdread*)iptr->priv;
 	i->ref = NULL;
 }
 
 static inline int
-si_read_has(ssiter *iptr)
+sd_read_has(ssiter *iptr)
 {
-	siread *i = (siread*)iptr->priv;
+	sdread *i = (sdread*)iptr->priv;
 	if (ssunlikely(i->ref == NULL))
 		return 0;
 	return ss_iterhas(sd_pageiter, i->ra.page_iter);
 }
 
 static inline void*
-si_read_of(ssiter *iptr)
+sd_read_of(ssiter *iptr)
 {
-	siread *i = (siread*)iptr->priv;
+	sdread *i = (sdread*)iptr->priv;
 	if (ssunlikely(i->ref == NULL))
 		return NULL;
 	return ss_iterof(sd_pageiter, i->ra.page_iter);
 }
 
 static inline void
-si_read_next(ssiter *iptr)
+sd_read_next(ssiter *iptr)
 {
-	siread *i = (siread*)iptr->priv;
+	sdread *i = (sdread*)iptr->priv;
 	if (ssunlikely(i->ref == NULL))
 		return;
 	ss_iternext(sd_pageiter, i->ra.page_iter);
@@ -219,7 +224,7 @@ retry:
 	i->ref = ss_iterof(sd_indexiter, i->ra.index_iter);
 	if (i->ref == NULL)
 		return;
-	int rc = si_read_openpage(i, NULL, 0);
+	int rc = sd_read_openpage(i, NULL, 0);
 	if (ssunlikely(rc == -1)) {
 		i->ref = NULL;
 		return;
@@ -227,6 +232,13 @@ retry:
 	goto retry;
 }
 
-extern ssiterif si_read;
+static inline int
+sd_read_stat(ssiter *iptr)
+{
+	sdread *i = (sdread*)iptr->priv;
+	return i->reads;
+}
+
+extern ssiterif sd_read;
 
 #endif

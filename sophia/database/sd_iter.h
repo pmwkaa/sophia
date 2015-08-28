@@ -46,7 +46,7 @@ sd_iternextpage(sditer *i)
 	if (ssunlikely(i->page == NULL))
 	{
 		sdindexheader *h = i->index->h;
-		page = i->start + h->offset + sd_indexsize(i->index->h);
+		page = i->start + (i->index->h->offset - i->index->h->total);
 		i->end = page + h->total;
 	} else {
 		page = i->pagesrc + sizeof(sdpageheader) + i->pagev.h->size;

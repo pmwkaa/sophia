@@ -12,12 +12,11 @@
 #include <libsr.h>
 #include <libsv.h>
 #include <libsd.h>
-#include <libsi.h>
 
-ssiterif si_read =
+ssiterif sd_read =
 {
-	.close = si_read_close,
-	.has   = si_read_has,
-	.of    = si_read_of,
-	.next  = si_read_next
+	.close = sd_read_close,
+	.has   = sd_read_has,
+	.of    = sd_read_of,
+	.next  = sd_read_next
 };

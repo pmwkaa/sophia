@@ -133,26 +133,30 @@ result:;
 static inline int
 si_qgetbranch(siquery *q, sinode *n, sibranch *b)
 {
-	sicachebranch *cb = si_cachefollow(q->cache);
-	assert(cb->branch == b);
-	sireadarg arg = {
-		.scheme     = q->index->scheme,
-		.index      = q->index,
-		.n          = n,
-		.b          = b,
-		.buf        = &cb->buf_a,
-		.buf_xf     = &cb->buf_b,
-		.buf_read   = &q->index->readbuf,
-		.index_iter = &cb->index_iter,
-		.page_iter  = &cb->page_iter,
-		.vlsn       = q->vlsn,
-		.has        = q->has,
-		.mmap_copy  = 0,
-		.o          = SS_GTE,
-		.r          = q->r
+	sicachebranch *c = si_cachefollow(q->cache);
+	assert(c->branch == b);
+	sdreadarg arg = {
+		.index           = &b->index,
+		.buf             = &c->buf_a,
+		.buf_xf          = &c->buf_b,
+		.buf_read        = &q->index->readbuf,
+		.index_iter      = &c->index_iter,
+		.page_iter       = &c->page_iter,
+		.vlsn            = q->vlsn,
+		.has             = q->has,
+		.use_compression = q->index->scheme->compression,
+		.use_memory      = q->index->scheme->in_memory,
+		.use_mmap        = q->index->scheme->mmap,
+		.use_mmap_copy   = 0,
+		.o               = SS_GTE,
+		.mmap            = &n->map,
+		.memory          = &b->copy,
+		.file            = &n->file,
+		.r               = q->r
 	};
-	ss_iterinit(si_read, &cb->i);
-	int rc = ss_iteropen(si_read, &cb->i, &arg, q->key, q->keysize);
+	ss_iterinit(sd_read, &c->i);
+	int rc = ss_iteropen(sd_read, &c->i, &arg, q->key, q->keysize);
+	q->index->read_disk += sd_read_stat(&c->i);
 	if (ssunlikely(rc <= 0))
 		return rc;
 	uint64_t vlsn = q->vlsn;
@@ -161,7 +165,7 @@ si_qgetbranch(siquery *q, sinode *n, sibranch *b)
 	}
 	/* prepare sources */
 	sv_mergereset(&q->merge);
-	sv_mergeadd(&q->merge, &cb->i);
+	sv_mergeadd(&q->merge, &c->i);
 	ssiter i;
 	ss_iterinit(sv_mergeiter, &i);
 	ss_iteropen(sv_mergeiter, &i, q->r, &q->merge, SS_GTE);
@@ -211,43 +215,47 @@ si_qget(siquery *q)
 static inline void
 si_qrangebranch(siquery *q, sinode *n, sibranch *b, svmerge *m)
 {
-	sicachebranch *cb = si_cachefollow(q->cache);
-	assert(cb->branch == b);
+	sicachebranch *c = si_cachefollow(q->cache);
+	assert(c->branch == b);
 	/* iterate cache */
-	if (ss_iterhas(si_read, &cb->i)) {
-		svmergesrc *s = sv_mergeadd(m, &cb->i);
+	if (ss_iterhas(sd_read, &c->i)) {
+		svmergesrc *s = sv_mergeadd(m, &c->i);
 		q->index->read_cache++;
-		s->ptr = cb;
+		s->ptr = c;
 		return;
 	}
-	if (cb->open) {
+	if (c->open) {
 		return;
 	}
-	cb->open = 1;
-	sireadarg arg = {
-		.scheme     = q->index->scheme,
-		.index      = q->index,
-		.n          = n,
-		.b          = b,
-		.buf        = &cb->buf_a,
-		.buf_xf     = &cb->buf_b,
-		.buf_read   = &q->index->readbuf,
-		.index_iter = &cb->index_iter,
-		.page_iter  = &cb->page_iter,
-		.vlsn       = q->vlsn,
-		.has        = 0,
-		.mmap_copy  = 1,
-		.o          = q->order,
-		.r          = q->r
+	c->open = 1;
+	sdreadarg arg = {
+		.index           = &b->index,
+		.buf             = &c->buf_a,
+		.buf_xf          = &c->buf_b,
+		.buf_read        = &q->index->readbuf,
+		.index_iter      = &c->index_iter,
+		.page_iter       = &c->page_iter,
+		.vlsn            = q->vlsn,
+		.has             = 0,
+		.use_compression = q->index->scheme->compression,
+		.use_memory      = q->index->scheme->in_memory,
+		.use_mmap        = q->index->scheme->mmap,
+		.use_mmap_copy   = 1,
+		.o               = q->order,
+		.memory          = &b->copy,
+		.mmap            = &n->map,
+		.file            = &n->file,
+		.r               = q->r
 	};
-	ss_iterinit(si_read, &cb->i);
-	int rc = ss_iteropen(si_read, &cb->i, &arg, q->key, q->keysize);
+	ss_iterinit(sd_read, &c->i);
+	int rc = ss_iteropen(sd_read, &c->i, &arg, q->key, q->keysize);
+	q->index->read_disk += sd_read_stat(&c->i);
 	if (ssunlikely(rc == -1))
 		return;
-	if (ssunlikely(! ss_iterhas(si_read, &cb->i)))
+	if (ssunlikely(! ss_iterhas(sd_read, &c->i)))
 		return;
-	svmergesrc *s = sv_mergeadd(m, &cb->i);
-	s->ptr = cb;
+	svmergesrc *s = sv_mergeadd(m, &c->i);
+	s->ptr = c;
 }
 
 static inline int

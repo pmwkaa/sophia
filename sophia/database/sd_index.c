@@ -13,7 +13,7 @@
 #include <libsv.h>
 #include <libsd.h>
 
-int sd_indexbegin(sdindex *i, sr *r, uint64_t offset)
+int sd_indexbegin(sdindex *i, sr *r)
 {
 	int rc = ss_bufensure(&i->i, r->a, sizeof(sdindexheader));
 	if (ssunlikely(rc == -1))
@@ -31,7 +31,7 @@ int sd_indexbegin(sdindex *i, sr *r, uint64_t offset)
 	h->lsnmin      = UINT64_MAX;
 	h->lsnmax      = 0;
 	h->tsmin       = 0;
-	h->offset      = offset;
+	h->offset      = 0;
 	h->dupkeys     = 0;
 	h->dupmin      = UINT64_MAX;
 	memset(h->reserve, 0, sizeof(h->reserve));
@@ -41,7 +41,7 @@ int sd_indexbegin(sdindex *i, sr *r, uint64_t offset)
 	return 0;
 }
 
-int sd_indexcommit(sdindex *i, sr *r, sdid *id)
+int sd_indexcommit(sdindex *i, sr *r, sdid *id, uint64_t offset)
 {
 	int size = ss_bufused(&i->v);
 	int rc = ss_bufensure(&i->i, r->a, size);
@@ -50,9 +50,10 @@ int sd_indexcommit(sdindex *i, sr *r, sdid *id)
 	memcpy(i->i.p, i->v.s, size);
 	ss_bufadvance(&i->i, size);
 	ss_buffree(&i->v, r->a);
-	i->h      = sd_indexheader(i);
-	i->h->id  = *id;
-	i->h->crc = ss_crcs(r->crc, i->h, sizeof(sdindexheader), 0);
+	i->h = sd_indexheader(i);
+	i->h->offset = offset;
+	i->h->id     = *id;
+	i->h->crc    = ss_crcs(r->crc, i->h, sizeof(sdindexheader), 0);
 	return 0;
 }
 
@@ -135,7 +136,7 @@ sd_indexadd_keyvalue(sdindex *i, sr *r, sdbuild *build, sdindexpage *p, char *mi
 	return 0;
 }
 
-int sd_indexadd(sdindex *i, sr *r, sdbuild *build)
+int sd_indexadd(sdindex *i, sr *r, sdbuild *build, uint64_t offset)
 {
 	int rc = ss_bufensure(&i->i, r->a, sizeof(sdindexpage));
 	if (ssunlikely(rc == -1))
@@ -145,13 +146,9 @@ int sd_indexadd(sdindex *i, sr *r, sdbuild *build)
 	int size = ph->size + sizeof(sdpageheader);
 	int sizeorigin = ph->sizeorigin + sizeof(sdpageheader);
 
-	/* prepare page header.
-	 *
-	 * offset is relative to index:
-	 * m->offset + (index_size) + page->offset
-	*/
+	/* prepare page header */
 	sdindexpage *p = (sdindexpage*)i->i.p;
-	p->offset      = sd_buildoffset(build);
+	p->offset      = offset;
 	p->offsetindex = ss_bufused(&i->v);
 	p->lsnmin      = ph->lsnmin;
 	p->lsnmax      = ph->lsnmax;

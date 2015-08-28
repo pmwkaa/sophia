@@ -41,11 +41,11 @@ struct sinode {
 
 sinode *si_nodenew(sr*);
 int si_nodeopen(sinode*, sr*, sischeme*, sspath*);
-int si_nodecreate(sinode*, sr*, sischeme*, sdid*, sdindex*, sdbuild*);
+int si_nodecreate(sinode*, sr*, sischeme*, sdid*);
 int si_nodefree(sinode*, sr*, int);
 int si_nodegc_index(sr*, svindex*);
 int si_nodemap(sinode*, sr*);
-int si_nodesync(sinode*, sr*);
+int si_noderead(sinode*, sr*, ssbuf*);
 int si_nodeseal(sinode*, sr*, sischeme*);
 int si_nodecomplete(sinode*, sr*, sischeme*);
 

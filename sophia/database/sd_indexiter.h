@@ -21,65 +21,6 @@ struct sdindexiter {
 	sr *r;
 } sspacked;
 
-#if 0
-static inline int
-sd_indexpage_cmp(sdindex *i, sdindexpage *p, void *key, int size, srscheme *s)
-{
-	int l = sr_compare(s, sd_indexpage_min(i, p), p->sizemin, key, size);
-	int r = sr_compare(s, sd_indexpage_max(i, p), p->sizemax, key, size);
-	/* inside page range */
-	if (l <= 0 && r >= 0)
-		return 0;
-	/* key > page */
-	if (l == -1)
-		return -1;
-	/* key < page */
-	assert(r == 1);
-	return 1;
-}
-
-static inline int
-sd_indexiter_seek(sdindexiter *i, void *key, int size, int *minp, int *midp, int *maxp)
-{
-	int match = 0;
-	int min = 0;
-	int max = i->index->h->count - 1;
-	int mid = 0;
-	while (max >= min)
-	{
-		mid = min + ((max - min) >> 1);
-		sdindexpage *page = sd_indexpage(i->index, mid);
-
-		int rc = sd_indexpage_cmp(i->index, page, key, size, i->r->scheme);
-		switch (rc) {
-		case -1: min = mid + 1;
-			continue;
-		case  1: max = mid - 1;
-			continue;
-		default: match = 1;
-			goto done;
-		}
-	}
-done:
-	*minp = min;
-	*midp = mid;
-	*maxp = max;
-	return match;
-}
-
-static inline int
-sd_indexiter_route(sdindexiter *i)
-{
-	int mid, min, max;
-	int rc = sd_indexiter_seek(i, i->key, i->keysize, &min, &mid, &max);
-	if (sslikely(rc))
-		return mid;
-	if (ssunlikely(min >= (int)i->index->h->count))
-		min = i->index->h->count - 1;
-	return min;
-}
-#endif
-
 static inline int
 sd_indexiter_route(sdindexiter *i)
 {

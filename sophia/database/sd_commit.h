@@ -9,9 +9,11 @@
  * BSD License
 */
 
-int sd_commit(sdbuild*, sr*, sdindex*, ssfile*);
-int sd_committo(sdbuild*, sr*, sdindex*, char*, int);
-
 int sd_commitpage(sdbuild*, sr*, ssbuf*);
+
+int sd_writeseal(sr*, ssfile*, ssblob*);
+int sd_writepage(sr*, ssfile*, ssblob*, sdbuild*);
+int sd_writeindex(sr*, ssfile*, ssblob*, sdindex*);
+int sd_seal(sr*, ssfile*, ssblob*, sdindex*, uint64_t);
 
 #endif

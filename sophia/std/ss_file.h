@@ -46,6 +46,7 @@ int ss_fileclose(ssfile*);
 int ss_filesync(ssfile*);
 int ss_fileresize(ssfile*, uint64_t);
 int ss_filepread(ssfile*, uint64_t, void*, size_t);
+int ss_filepwrite(ssfile*, uint64_t, void*, size_t);
 int ss_filewrite(ssfile*, void*, size_t);
 int ss_filewritev(ssfile*, ssiov*);
 int ss_fileseek(ssfile*, uint64_t);

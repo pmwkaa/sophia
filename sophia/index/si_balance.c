@@ -18,9 +18,24 @@ static inline sibranch*
 si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vlsn)
 {
 	sr *r = index->r;
+	sibranch *branch = NULL;
+
+	/* in-memory mode blob */
+	int rc;
+	ssblob copy, *blob = NULL;
+	if (index->scheme->in_memory) {
+		ss_blobinit(&copy);
+		rc = ss_blobensure(&copy, 10ULL * 1024 * 1024);
+		if (ssunlikely(rc == -1)) {
+			sr_oom_malfunction(r->e);
+			return NULL;
+		}
+		blob = &copy;
+	}
+
 	svmerge vmerge;
 	sv_mergeinit(&vmerge);
-	int rc = sv_mergeprepare(&vmerge, r, 1);
+	rc = sv_mergeprepare(&vmerge, r, 1);
 	if (ssunlikely(rc == -1))
 		return NULL;
 	svmergesrc *s = sv_mergeadd(&vmerge, NULL);
@@ -38,61 +53,95 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		.checksum        = index->scheme->node_page_checksum,
 		.compression     = index->scheme->compression,
 		.compression_key = index->scheme->compression_key,
-		.offset          = parent->file.size,
 		.vlsn            = vlsn,
 		.save_delete     = 1,
 		.save_update     = 1
 	};
 	sdmerge merge;
 	sd_mergeinit(&merge, r, &i, &c->build, &c->update, &mergeconf);
-	rc = sd_merge(&merge);
+
+	while ((rc = sd_merge(&merge)) > 0)
+	{
+		/* write open seal */
+		uint64_t seal = parent->file.size;
+		rc = sd_writeseal(r, &parent->file, blob);
+		if (ssunlikely(rc == -1))
+			goto e0;
+
+		/* write pages */
+		uint64_t offset = parent->file.size;
+		while ((rc = sd_mergepage(&merge, offset)) == 1)
+		{
+			rc = sd_writepage(r, &parent->file, blob, merge.build);
+			if (ssunlikely(rc == -1))
+				goto e0;
+			offset = parent->file.size;
+		}
+		if (ssunlikely(rc == -1))
+			goto e0;
+		sdid id = {
+			.parent = parent->self.id.id,
+			.flags  = SD_IDBRANCH,
+			.id     = sr_seq(r->seq, SR_NSNNEXT)
+		};
+		rc = sd_mergecommit(&merge, &id, parent->file.size);
+		if (ssunlikely(rc == -1))
+			goto e0;
+
+		/* write index */
+		rc = sd_writeindex(r, &parent->file, blob, &merge.index);
+		if (ssunlikely(rc == -1))
+			goto e0;
+		if (index->scheme->sync) {
+			rc = ss_filesync(&parent->file);
+			if (ssunlikely(rc == -1)) {
+				sr_malfunction(r->e, "file '%s' sync error: %s",
+				               parent->file.file, strerror(errno));
+				goto e0;
+			}
+		}
+
+		SS_INJECTION(r->i, SS_INJECTION_SI_BRANCH_0,
+		             sr_malfunction(r->e, "%s", "error injection");
+		             return NULL);
+
+		/* seal the branch */
+		rc = sd_seal(r, &parent->file, blob, &merge.index, seal);
+		if (ssunlikely(rc == -1))
+			goto e0;
+		if (index->scheme->sync == 2) {
+			rc = ss_filesync(&parent->file);
+			if (ssunlikely(rc == -1)) {
+				sr_malfunction(r->e, "file '%s' sync error: %s",
+				               parent->file.file, strerror(errno));
+				goto e0;
+			}
+		}
+
+		/* create new branch object */
+		branch = si_branchnew(r);
+		if (ssunlikely(branch == NULL))
+			goto e0;
+		si_branchset(branch, &merge.index);
+	}
+	sv_mergefree(&vmerge, r->a);
+
 	if (ssunlikely(rc == -1)) {
 		sr_oom_malfunction(r->e);
 		goto e0;
 	}
-	assert(rc == 1);
-	sv_mergefree(&vmerge, r->a);
+	assert(branch != NULL);
 
-	sibranch *branch = si_branchnew(r);
-	if (ssunlikely(branch == NULL))
-		goto e0;
-	sdid id = {
-		.parent = parent->self.id.id,
-		.flags  = SD_IDBRANCH,
-		.id     = sr_seq(r->seq, SR_NSNNEXT)
-	};
-	rc = sd_mergecommit(&merge, &id);
-	if (ssunlikely(rc == -1))
-		goto e0;
-
-	si_branchset(branch, &merge.index);
-	rc = sd_commit(&c->build, r, &branch->index, &parent->file);
-	if (ssunlikely(rc == -1)) {
-		si_branchfree(branch, r);
-		return NULL;
-	}
-	int branch_size = rc;
-
-	SS_INJECTION(r->i, SS_INJECTION_SI_BRANCH_0,
-	             sr_malfunction(r->e, "%s", "error injection");
-	             si_branchfree(branch, r);
-	             return NULL);
-
-	if (index->scheme->sync) {
-		rc = si_nodesync(parent, r);
-		if (ssunlikely(rc == -1))
-			goto e1;
-	}
-	if (index->scheme->in_memory) {
-		rc = ss_mmap_allocate(&branch->copy, branch_size);
+	/* in-memory mode support */
+	if (blob) {
+		rc = ss_blobfit(blob);
 		if (ssunlikely(rc == -1)) {
-			sr_oom_malfunction(r->e);
+			ss_blobfree(blob);
 			goto e1;
 		}
-		sd_committo(&c->build, r, &branch->index,
-		            branch->copy.p,
-		            branch->copy.size);
+		branch->copy = copy;
 	}
+	/* mmap support */
 	if (index->scheme->mmap) {
 		ss_mmapinit(&parent->map_swap);
 		rc = ss_mmap(&parent->map_swap, parent->file.fd,
@@ -106,6 +155,8 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 	return branch;
 e0:
 	sd_mergefree(&merge);
+	if (blob)
+		ss_blobfree(blob);
 	return NULL;
 e1:
 	si_branchfree(branch, r);
@@ -163,40 +214,13 @@ int si_branch(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 	return 1;
 }
 
-static inline char*
-si_noderead(si *index, ssbuf *dest, sinode *node)
-{
-	sr *r = index->r;
-	if (index->scheme->mmap) {
-		return node->map.p;
-	}
-	int rc = ss_bufensure(dest, r->a, node->file.size);
-	if (ssunlikely(rc == -1)) {
-		sr_oom_malfunction(r->e);
-		return NULL;
-	}
-	rc = ss_filepread(&node->file, 0, dest->s, node->file.size);
-	if (ssunlikely(rc == -1)) {
-		sr_malfunction(r->e, "db file '%s' read error: %s",
-		               node->file.file, strerror(errno));
-		return NULL;
-	}
-	ss_bufadvance(dest, node->file.size);
-	return dest->s;
-}
-
 int si_compact(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 {
 	sr *r = index->r;
 	sinode *node = plan->node;
 	assert(node->flags & SI_LOCK);
 
-	/* read node file */
 	sd_creset(c);
-	char *node_file = si_noderead(index, &c->c, node);
-	if (ssunlikely(node_file == NULL))
-		return -1;
-
 	/* prepare for compaction */
 	int rc;
 	rc = sd_censure(c, r, node->branch_count);
@@ -207,18 +231,50 @@ int si_compact(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 	rc = sv_mergeprepare(&merge, r, node->branch_count);
 	if (ssunlikely(rc == -1))
 		return -1;
+
+	/* read node file into memory */
+	int use_mmap = index->scheme->mmap;
+	ssmmap *map = &node->map;
+	ssmmap  preload;
+	if (index->scheme->node_compact_load) {
+		rc = si_noderead(node, r, &c->c);
+		if (ssunlikely(rc == -1))
+			return -1;
+		preload.p = c->c.s;
+		preload.size = ss_bufused(&c->c);
+		map = &preload;
+		use_mmap = 1;
+	}
+
 	uint32_t size_stream = 0;
 	sdcbuf *cbuf = c->head;
 	sibranch *b = node->branch;
 	while (b) {
 		svmergesrc *s = sv_mergeadd(&merge, NULL);
-		rc = ss_bufensure(&cbuf->b, r->a, b->index.h->sizevmax);
+		sdreadarg arg = {
+			.index           = &b->index,
+			.buf             = &cbuf->a,
+			.buf_xf          = &cbuf->b,
+			.buf_read        = &c->d,
+			.index_iter      = &cbuf->index_iter,
+			.page_iter       = &cbuf->page_iter,
+			.vlsn            = 0,
+			.has             = 0,
+			.use_compression = index->scheme->compression,
+			.use_memory      = index->scheme->in_memory,
+			.use_mmap        = use_mmap,
+			.use_mmap_copy   = 0,
+			.o               = SS_GTE,
+			.memory          = &b->copy,
+			.mmap            = map,
+			.file            = &node->file,
+			.r               = r
+		};
+		ss_iterinit(sd_read, &s->src);
+		int rc = ss_iteropen(sd_read, &s->src, &arg, NULL, 0);
 		if (ssunlikely(rc == -1))
 			return sr_oom_malfunction(r->e);
 		size_stream += sd_indextotal(&b->index);
-		ss_iterinit(sd_iter, &s->src);
-		ss_iteropen(sd_iter, &s->src, r, &b->index, node_file, 0,
-		            index->scheme->compression, &cbuf->a, &cbuf->b);
 		cbuf = cbuf->next;
 		b = b->next;
 	}

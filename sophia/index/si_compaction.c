@@ -144,7 +144,6 @@ si_split(si *index, sdc *c, ssbuf *result,
          uint64_t  vlsn)
 {
 	sr *r = index->r;
-	int count = 0;
 	int rc;
 	sdmergeconf mergeconf = {
 		.size_stream     = size_stream,
@@ -153,16 +152,17 @@ si_split(si *index, sdc *c, ssbuf *result,
 		.checksum        = index->scheme->node_page_checksum,
 		.compression     = index->scheme->compression,
 		.compression_key = index->scheme->compression_key,
-		.offset          = 0,
 		.vlsn            = vlsn,
 		.save_delete     = 0,
 		.save_update     = 0
 	};
+	sinode *n;
 	sdmerge merge;
 	sd_mergeinit(&merge, r, i, &c->build, &c->update, &mergeconf);
 	while ((rc = sd_merge(&merge)) > 0)
 	{
-		sinode *n = si_nodenew(r);
+		/* create new node */
+		n = si_nodenew(r);
 		if (ssunlikely(n == NULL))
 			goto error;
 		sdid id = {
@@ -170,27 +170,81 @@ si_split(si *index, sdc *c, ssbuf *result,
 			.flags  = 0,
 			.id     = sr_seq(index->r->seq, SR_NSNNEXT)
 		};
-		rc = sd_mergecommit(&merge, &id);
+		rc = si_nodecreate(n, r, index->scheme, &id);
 		if (ssunlikely(rc == -1))
 			goto error;
-		rc = si_nodecreate(n, r, index->scheme, &id, &merge.index, &c->build);
+		n->branch = &n->self;
+		n->branch_count++;
+
+		ssblob *blob = NULL;
+		if (index->scheme->in_memory) {
+			blob = &n->self.copy;
+			rc = ss_blobensure(blob, index->scheme->node_size);
+			if (ssunlikely(rc == -1))
+				goto error;
+		}
+
+		/* write open seal */
+		uint64_t seal = n->file.size;
+		rc = sd_writeseal(r, &n->file, blob);
 		if (ssunlikely(rc == -1))
 			goto error;
+
+		/* write pages */
+		uint64_t offset = n->file.size;
+		while ((rc = sd_mergepage(&merge, offset)) == 1) {
+			rc = sd_writepage(r, &n->file, blob, merge.build);
+			if (ssunlikely(rc == -1))
+				goto error;
+			offset = n->file.size;
+		}
+		if (ssunlikely(rc == -1))
+			goto error;
+
+		rc = sd_mergecommit(&merge, &id, n->file.size);
+		if (ssunlikely(rc == -1))
+			goto error;
+
+		/* write index */
+		rc = sd_writeindex(r, &n->file, blob, &merge.index);
+		if (ssunlikely(rc == -1))
+			goto error;
+
+		/* update seal */
+		rc = sd_seal(r, &n->file, blob, &merge.index, seal);
+		if (ssunlikely(rc == -1))
+			goto error;
+
+		/* in-memory mode */
+		if (blob) {
+			rc = ss_blobfit(blob);
+			if (ssunlikely(rc == -1))
+				goto error;
+		}
+		/* mmap mode */
+		if (index->scheme->mmap) {
+			rc = si_nodemap(n, r);
+			if (ssunlikely(rc == -1))
+				goto error;
+		}
+
+		/* add node to the list */
 		rc = ss_bufadd(result, index->r->a, &n, sizeof(sinode*));
 		if (ssunlikely(rc == -1)) {
 			sr_oom_malfunction(index->r->e);
 			si_nodefree(n, r, 1);
 			goto error;
 		}
-		sd_buildreset(&c->build);
-		count++;
+
+		si_branchset(&n->self, &merge.index);
 	}
 	if (ssunlikely(rc == -1))
 		goto error;
 	return 0;
 error:
-	si_splitfree(result, r);
+	si_nodefree(n, r, 0);
 	sd_mergefree(&merge);
+	si_splitfree(result, r);
 	return -1;
 }
 
@@ -300,12 +354,7 @@ int si_compaction(si *index, sdc *c, uint64_t vlsn,
 	ss_iteropen(ss_bufiterref, &i, result, sizeof(sinode*));
 	while (ss_iterhas(ss_bufiterref, &i))
 	{
-		n = ss_iterof(ss_bufiterref, &i);
-		if (index->scheme->sync) {
-			rc = si_nodesync(n, r);
-			if (ssunlikely(rc == -1))
-				return -1;
-		}
+		n  = ss_iterof(ss_bufiterref, &i);
 		rc = si_nodeseal(n, r, index->scheme);
 		if (ssunlikely(rc == -1))
 			return -1;

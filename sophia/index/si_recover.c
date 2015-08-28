@@ -42,6 +42,7 @@
 sinode *si_bootstrap(si *i, uint32_t parent)
 {
 	sr *r = i->r;
+	/* create node */
 	sinode *n = si_nodenew(r);
 	if (ssunlikely(n == NULL))
 		return NULL;
@@ -50,41 +51,80 @@ sinode *si_bootstrap(si *i, uint32_t parent)
 		.flags  = 0,
 		.id     = sr_seq(r->seq, SR_NSNNEXT)
 	};
+	int rc;
+	rc = si_nodecreate(n, r, i->scheme, &id);
+	if (ssunlikely(rc == -1))
+		goto e0;
+	n->branch = &n->self;
+	n->branch_count++;
+
+	/* in-memory mode support */
+	ssblob *blob = NULL;
+	if (i->scheme->in_memory) {
+		blob = &n->self.copy;
+		rc = ss_blobensure(blob, 4096);
+		if (ssunlikely(rc == -1))
+			goto e0;
+	}
+
+	/* create index with one empty page */
 	sdindex index;
 	sd_indexinit(&index);
-	int rc = sd_indexbegin(&index, r, 0);
-	if (ssunlikely(rc == -1)) {
-		si_nodefree(n, r, 0);
-		return NULL;
-	}
+	rc = sd_indexbegin(&index, r);
+	if (ssunlikely(rc == -1))
+		goto e0;
 	sdbuild build;
 	sd_buildinit(&build);
 	rc = sd_buildbegin(&build, r,
 	                   i->scheme->node_page_checksum,
 	                   i->scheme->compression,
 	                   i->scheme->compression_key);
-	if (ssunlikely(rc == -1)) {
-		sd_indexfree(&index, r);
-		sd_buildfree(&build, r);
-		si_nodefree(n, r, 0);
-		return NULL;
-	}
+	if (ssunlikely(rc == -1))
+		goto e1;
 	sd_buildend(&build, r);
-	rc = sd_indexadd(&index, r, &build);
-	if (ssunlikely(rc == -1)) {
-		sd_indexfree(&index, r);
-		si_nodefree(n, r, 0);
-		return NULL;
+	rc = sd_indexadd(&index, r, &build, sizeof(sdseal));
+	if (ssunlikely(rc == -1))
+		goto e1;
+
+	/* write seal */
+	uint64_t seal = n->file.size;
+	rc = sd_writeseal(r, &n->file, blob);
+	if (ssunlikely(rc == -1))
+		goto e1;
+	/* write page */
+	rc = sd_writepage(r, &n->file, blob, &build);
+	if (ssunlikely(rc == -1))
+		goto e1;
+	sd_indexcommit(&index, r, &id, n->file.size);
+	/* write index */
+	rc = sd_writeindex(r, &n->file, blob, &index);
+	if (ssunlikely(rc == -1))
+		goto e1;
+	/* close seal */
+	rc = sd_seal(r, &n->file, blob, &index, seal);
+	if (ssunlikely(rc == -1))
+		goto e1;
+	if (blob) {
+		rc = ss_blobfit(blob);
+		if (ssunlikely(rc == -1))
+			goto e1;
 	}
+	if (i->scheme->mmap) {
+		rc = si_nodemap(n, r);
+		if (ssunlikely(rc == -1))
+			goto e1;
+	}
+	si_branchset(&n->self, &index);
+
 	sd_buildcommit(&build, r);
-	sd_indexcommit(&index, r, &id);
-	rc = si_nodecreate(n, r, i->scheme, &id, &index, &build);
 	sd_buildfree(&build, r);
-	if (ssunlikely(rc == -1)) {
-		si_nodefree(n, r, 1);
-		return NULL;
-	}
 	return n;
+e1:
+	sd_indexfree(&index, r);
+	sd_buildfree(&build, r);
+e0:
+	si_nodefree(n, r, 0);
+	return NULL;
 }
 
 static inline int
@@ -113,8 +153,6 @@ si_deploy(si *i, sr *r, int create_directory)
 	             return -1);
 	rc = si_nodecomplete(n, r, i->scheme);
 	if (ssunlikely(rc == -1)) {
-		si_nodefree(n, r, 1);
-		return -1;
 	}
 	si_insert(i, n);
 	si_plannerupdate(&i->p, SI_COMPACT|SI_BRANCH, n);

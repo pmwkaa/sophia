@@ -147,6 +147,22 @@ int ss_filepread(ssfile *f, uint64_t off, void *buf, size_t size)
 	return 0;
 }
 
+int ss_filepwrite(ssfile *f, uint64_t off, void *buf, size_t size)
+{
+	size_t n = 0;
+	do {
+		ssize_t r;
+		do {
+			r = pwrite(f->fd, (char*)buf + n, size - n, off + n);
+		} while (r == -1 && errno == EINTR);
+		if (r <= 0)
+			return -1;
+		n += r;
+	} while (n != size);
+
+	return 0;
+}
+
 int ss_filewrite(ssfile *f, void *buf, size_t size)
 {
 	size_t n = 0;

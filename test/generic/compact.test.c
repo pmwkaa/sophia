@@ -111,6 +111,7 @@ compact_delete_node1(void)
 	while ((o = sp_get(cur, o))) {
 		int keysize;
 		void *keyptr = sp_getstring(o, "key", &keysize);
+		t( *(uint32_t*)keyptr == key );
 		void *ko = sp_object(db);
 		t( ko != NULL );
 		t( sp_setstring(ko, "key", keyptr, keysize) == 0 );

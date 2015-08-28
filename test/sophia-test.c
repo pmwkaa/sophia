@@ -40,7 +40,7 @@ extern stgroup *sl_group(void);
 extern stgroup *sl_iter_group(void);
 extern stgroup *sd_build_group(void);
 extern stgroup *sd_v_group(void);
-extern stgroup *sd_iter_group(void);
+extern stgroup *sd_read_group(void);
 extern stgroup *sd_pageiter_group(void);
 
 /* generic */
@@ -201,7 +201,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, sl_iter_group());
 	st_planadd(plan, sd_build_group());
 	st_planadd(plan, sd_v_group());
-	st_planadd(plan, sd_iter_group());
+	st_planadd(plan, sd_read_group());
 	st_planadd(plan, sd_pageiter_group());
 	st_suiteadd(&st_r.suite, plan);
 

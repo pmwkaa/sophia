@@ -21,7 +21,7 @@ struct ssiterif {
 
 struct ssiter {
 	ssiterif *vif;
-	char priv[120];
+	char priv[150];
 };
 
 #define ss_iterinit(iterator_if, i) \

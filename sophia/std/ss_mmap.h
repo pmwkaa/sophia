@@ -24,6 +24,7 @@ ss_mmapinit(ssmmap *m) {
 
 int ss_mmap(ssmmap*, int, uint64_t, int);
 int ss_mmap_allocate(ssmmap*, uint64_t);
+int ss_mremap(ssmmap*, uint64_t);
 int ss_munmap(ssmmap*);
 
 #endif

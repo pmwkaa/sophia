@@ -21,6 +21,7 @@
 #include <sd_c.h>
 #include <sd_merge.h>
 #include <sd_commit.h>
+#include <sd_read.h>
 #include <sd_iter.h>
 #include <sd_recover.h>
 #include <sd_scheme.h>

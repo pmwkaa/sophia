@@ -122,6 +122,7 @@ se_metacompaction(se *e, semetart *rt ssunused, srmeta **pc)
 	srmeta *compaction = *pc;
 	srmeta *prev;
 	srmeta *p = NULL;
+	sr_m(&p, pc, se_metav_offline, "node_preload", SS_U32, &e->meta.node_preload);
 	sr_m(&p, pc, se_metav_offline, "node_size", SS_U32, &e->meta.node_size);
 	sr_m(&p, pc, se_metav_offline, "page_size", SS_U32, &e->meta.page_size);
 	sr_m(&p, pc, se_metav_offline, "page_checksum", SS_U32, &e->meta.page_checksum);
@@ -888,6 +889,7 @@ void se_metainit(semeta *c, so *e)
 	c->path_create         = 1;
 	c->memory_limit        = 0;
 	c->node_size           = 64 * 1024 * 1024;
+	c->node_preload        = 0;
 	c->page_size           = 64 * 1024;
 	c->page_checksum       = 1;
 	c->threads             = 6;

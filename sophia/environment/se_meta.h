@@ -49,6 +49,7 @@ struct semeta {
 	char         *backup_path;
 	/* compaction */
 	uint32_t      node_size;
+	uint32_t      node_preload;
 	uint32_t      page_size;
 	uint32_t      page_checksum;
 	srzonemap     zones;

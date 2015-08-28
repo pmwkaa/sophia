@@ -45,5 +45,6 @@
 #include <ss_zstdfilter.h>
 #include <ss_iter.h>
 #include <ss_bufiter.h>
+#include <ss_blob.h>
 
 #endif

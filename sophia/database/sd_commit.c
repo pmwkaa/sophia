@@ -42,116 +42,96 @@ int sd_commitpage(sdbuild *b, sr *r, ssbuf *buf)
 	return 0;
 }
 
-typedef struct {
-	sdbuild *b;
-	uint32_t i;
-	uint32_t iovmax;
-} sdcommitiov;
-
-static inline void
-sd_commitiov_init(sdcommitiov *i, sdbuild *b, int iovmax)
-{
-	i->b = b;
-	i->iovmax = iovmax;
-	i->i = 0;
-}
-
-static inline int
-sd_commitiov(sdcommitiov *i, ssiov *iov)
-{
-	uint32_t n = 0;
-	while (i->i < i->b->n && n < (i->iovmax - 3)) {
-		sdbuildref *ref =
-			(sdbuildref*)ss_bufat(&i->b->list, sizeof(sdbuildref), i->i);
-		ss_iovadd(iov, i->b->m.s + ref->m, ref->msize);
-		ss_iovadd(iov, i->b->v.s + ref->v, ref->vsize);
-		ss_iovadd(iov, i->b->k.s + ref->k, ref->ksize);
-		i->i++;
-		n += 3;
-	}
-	return i->i < i->b->n;
-}
-
-int sd_commit(sdbuild *b, sr *r, sdindex *index, ssfile *file)
+int sd_writeseal(sr *r, ssfile *file, ssblob *blob)
 {
 	sdseal seal;
-	sd_seal(&seal, r, index->h);
-	struct iovec iovv[1024];
-	ssiov iov;
-	ss_iovinit(&iov, iovv, 1024);
-	ss_iovadd(&iov, index->i.s, ss_bufused(&index->i));
+	sd_sealset_open(&seal, r);
+	SS_INJECTION(r->i, SS_INJECTION_SD_BUILD_1,
+	             seal.crc++); /* corrupt seal */
+	int rc;
+	rc = ss_filewrite(file, &seal, sizeof(seal));
+	if (ssunlikely(rc == -1)) {
+		sr_malfunction(r->e, "file '%s' write error: %s",
+		               file->file, strerror(errno));
+		return -1;
+	}
+	if (blob) {
+		rc = ss_blobadd(blob, &seal, sizeof(seal));
+		if (ssunlikely(rc == -1))
+			return sr_oom_malfunction(r->e);
+	}
+	return 0;
+}
 
+int sd_writepage(sr *r, ssfile *file, ssblob *blob, sdbuild *b)
+{
 	SS_INJECTION(r->i, SS_INJECTION_SD_BUILD_0,
 	             sr_malfunction(r->e, "%s", "error injection");
-	             assert( ss_filewritev(file, &iov) == 0 );
 	             return -1);
-
-	/* compression enabled */
-	uint64_t start = file->size;
-	uint32_t size = ss_bufused(&b->c);
+	sdbuildref *ref = sd_buildref(b);
+	struct iovec iovv[3];
+	ssiov iov;
+	ss_iovinit(&iov, iovv, 3);
+	if (ss_bufused(&b->c) > 0) {
+		/* compressed */
+		ss_iovadd(&iov, b->c.s, ref->csize);
+	} else {
+		/* uncompressed */
+		ss_iovadd(&iov, b->m.s + ref->m, ref->msize);
+		ss_iovadd(&iov, b->v.s + ref->v, ref->vsize);
+		ss_iovadd(&iov, b->k.s + ref->k, ref->ksize);
+	}
 	int rc;
-	if (size > 0) {
-		ss_iovadd(&iov, b->c.s, size);
-		ss_iovadd(&iov, &seal, sizeof(seal));
-		rc = ss_filewritev(file, &iov);
-		if (ssunlikely(rc == -1)) {
-			sr_malfunction(r->e, "file '%s' write error: %s",
-			               file->file, strerror(errno));
-			return -1;
-		}
-		goto done;
+	rc = ss_filewritev(file, &iov);
+	if (ssunlikely(rc == -1)) {
+		sr_malfunction(r->e, "file '%s' write error: %s",
+		               file->file, strerror(errno));
+		return -1;
 	}
-	/* uncompressed */
-	sdcommitiov iter;
-	sd_commitiov_init(&iter, b, 1020);
-	int more = 1;
-	while (more) {
-		more = sd_commitiov(&iter, &iov);
-		if (sslikely(! more)) {
-			SS_INJECTION(r->i, SS_INJECTION_SD_BUILD_1,
-			             seal.crc++); /* corrupt seal */
-			ss_iovadd(&iov, &seal, sizeof(seal));
+	if (blob) {
+		int i = 0;
+		while (i < iov.iovc) {
+			struct iovec *v = &iovv[i];
+			rc = ss_blobadd(blob, v->iov_base, v->iov_len);
+			if (ssunlikely(rc == -1))
+				return sr_oom_malfunction(r->e);
+			i++;
 		}
-		rc = ss_filewritev(file, &iov);
-		if (ssunlikely(rc == -1)) {
-			return sr_malfunction(r->e, "file '%s' write error: %s",
-			                      file->file, strerror(errno));
-		}
-		ss_iovreset(&iov);
 	}
-done:
-	return file->size - start;
+	return 0;
 }
 
-int sd_committo(sdbuild *b, sr *r, sdindex *index, char *dest, int size)
+int sd_writeindex(sr *r, ssfile *file, ssblob *blob, sdindex *index)
+{
+	int rc;
+	rc = ss_filewrite(file, index->i.s, ss_bufused(&index->i));
+	if (ssunlikely(rc == -1)) {
+		sr_malfunction(r->e, "file '%s' write error: %s",
+		               file->file, strerror(errno));
+		return -1;
+	}
+	if (blob) {
+		rc = ss_blobadd(blob, index->i.s, ss_bufused(&index->i));
+		if (ssunlikely(rc == -1))
+			return sr_oom_malfunction(r->e);
+	}
+	return 0;
+}
+
+int sd_seal(sr *r, ssfile *file, ssblob *blob, sdindex *index, uint64_t offset)
 {
 	sdseal seal;
-	sd_seal(&seal, r, index->h);
-	struct iovec iovv[1024];
-	ssiov iov;
-	ss_iovinit(&iov, iovv, 1024);
-	ss_iovadd(&iov, index->i.s, ss_bufused(&index->i));
-	char *p = dest;
-	/* compression enabled */
-	uint32_t csize = ss_bufused(&b->c);
-	if (csize > 0) {
-		ss_iovadd(&iov, b->c.s, csize);
-		ss_iovadd(&iov, &seal, sizeof(seal));
-		p = ss_iovwrite(&iov, p);
-		assert(p <= (dest + size));
-		return p - dest;
+	sd_sealset_close(&seal, r, index->h);
+	int rc;
+	rc = ss_filepwrite(file, offset, &seal, sizeof(seal));
+	if (ssunlikely(rc == -1)) {
+		sr_malfunction(r->e, "file '%s' write error: %s",
+		               file->file, strerror(errno));
+		return -1;
 	}
-	/* uncompressed */
-	sdcommitiov iter;
-	sd_commitiov_init(&iter, b, 1020);
-	int more = 1;
-	while (more) {
-		more = sd_commitiov(&iter, &iov);
-		if (sslikely(! more))
-			ss_iovadd(&iov, &seal, sizeof(seal));
-		p = ss_iovwrite(&iov, p);
-		ss_iovreset(&iov);
+	if (blob) {
+		assert(blob->map.size >= sizeof(seal));
+		memcpy(blob->map.p, &seal, sizeof(seal));
 	}
-	assert(p <= (dest + size));
-	return p - dest;
+	return 0;
 }
