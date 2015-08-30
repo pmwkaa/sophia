@@ -14,7 +14,7 @@
 #include <libsv.h>
 
 ss_rbtruncate(sv_indextruncate,
-              sv_vfree((ssa*)arg, sscast(n, svv, node)))
+              sv_vfree_all((ssa*)arg, sscast(n, svv, node)))
 
 int sv_indexinit(svindex *i)
 {

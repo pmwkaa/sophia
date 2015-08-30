@@ -13,7 +13,7 @@
 #include <libsv.h>
 #include <libsd.h>
 
-void sd_buildinit(sdbuild *b)
+void sd_buildinit(sdbuild *b, sr *r)
 {
 	memset(&b->tracker, 0, sizeof(b->tracker));
 	ss_bufinit(&b->list);
@@ -25,10 +25,11 @@ void sd_buildinit(sdbuild *b)
 	b->compress = 0;
 	b->crc = 0;
 	b->vmax = 0;
+	b->r = r;
 }
 
 static inline void
-sd_buildfree_tracker(sdbuild *b, sr *r)
+sd_buildfree_tracker(sdbuild *b)
 {
 	if (b->tracker.count == 0)
 		return;
@@ -36,15 +37,16 @@ sd_buildfree_tracker(sdbuild *b, sr *r)
 	for (; i < b->tracker.size; i++) {
 		if (b->tracker.i[i] == NULL)
 			continue;
-		ss_free(r->a, b->tracker.i[i]);
+		ss_free(b->r->a, b->tracker.i[i]);
 		b->tracker.i[i] = NULL;
 	}
 	b->tracker.count = 0;
 }
 
-void sd_buildfree(sdbuild *b, sr *r)
+void sd_buildfree(sdbuild *b)
 {
-	sd_buildfree_tracker(b, r);
+	sr *r = b->r;
+	sd_buildfree_tracker(b);
 	ss_htfree(&b->tracker, r->a);
 	ss_buffree(&b->list, r->a);
 	ss_buffree(&b->m, r->a);
@@ -55,6 +57,7 @@ void sd_buildfree(sdbuild *b, sr *r)
 
 void sd_buildreset(sdbuild *b)
 {
+	sd_buildfree_tracker(b);
 	ss_htreset(&b->tracker);
 	ss_bufreset(&b->list);
 	ss_bufreset(&b->m);
@@ -65,8 +68,9 @@ void sd_buildreset(sdbuild *b)
 	b->vmax = 0;
 }
 
-int sd_buildbegin(sdbuild *b, sr *r, int crc, int compress, int compress_dup)
+int sd_buildbegin(sdbuild *b, int crc, int compress, int compress_dup)
 {
+	sr *r = b->r;
 	b->crc = crc;
 	b->compress = compress;
 	b->compress_dup = compress_dup;
@@ -116,8 +120,9 @@ ss_htsearch(sd_buildsearch,
                     sscast(t->i[pos], sdbuildkey, node)->offsetstart, key, size) == 0))
 
 static inline int
-sd_buildadd_keyvalue(sdbuild *b, sr *r, sv *v)
+sd_buildadd_keyvalue(sdbuild *b, sv *v)
 {
+	sr *r = b->r;
 	/* calculate key size */
 	uint32_t keysize = 0;
 	int i = 0;
@@ -208,8 +213,9 @@ sd_buildadd_keyvalue(sdbuild *b, sr *r, sv *v)
 }
 
 static inline int
-sd_buildadd_raw(sdbuild *b, sr *r, sv *v)
+sd_buildadd_raw(sdbuild *b, sv *v)
 {
+	sr *r = b->r;
 	uint64_t lsn = sv_lsn(v);
 	uint32_t size = sv_size(v);
 	uint32_t sizemeta = ss_leb128size(size) + ss_leb128size(lsn);
@@ -223,8 +229,9 @@ sd_buildadd_raw(sdbuild *b, sr *r, sv *v)
 	return 0;
 }
 
-int sd_buildadd(sdbuild *b, sr *r, sv *v, uint32_t flags)
+int sd_buildadd(sdbuild *b, sv *v, uint32_t flags)
 {
+	sr *r = b->r;
 	/* prepare object metadata */
 	int rc = ss_bufensure(&b->m, r->a, sizeof(sdv));
 	if (ssunlikely(rc == -1))
@@ -237,10 +244,10 @@ int sd_buildadd(sdbuild *b, sr *r, sv *v, uint32_t flags)
 	/* copy object */
 	switch (r->fmt_storage) {
 	case SF_SKEYVALUE:
-		rc = sd_buildadd_keyvalue(b, r, v);
+		rc = sd_buildadd_keyvalue(b, v);
 		break;
 	case SF_SRAW:
-		rc = sd_buildadd_raw(b, r, v);
+		rc = sd_buildadd_raw(b, v);
 		break;
 	}
 	if (ssunlikely(rc == -1))
@@ -265,8 +272,9 @@ int sd_buildadd(sdbuild *b, sr *r, sv *v, uint32_t flags)
 }
 
 static inline int
-sd_buildcompress(sdbuild *b, sr *r)
+sd_buildcompress(sdbuild *b)
 {
+	sr *r = b->r;
 	/* reserve header */
 	int rc = ss_bufensure(&b->c, r->a, sizeof(sdpageheader));
 	if (ssunlikely(rc == -1))
@@ -301,8 +309,9 @@ error:
 	return -1;
 }
 
-int sd_buildend(sdbuild *b, sr *r)
+int sd_buildend(sdbuild *b)
 {
+	sr *r = b->r;
 	/* update sizes */
 	sdbuildref *ref = sd_buildref(b);
 	ref->msize = ss_bufused(&b->m) - ref->m;
@@ -320,7 +329,7 @@ int sd_buildend(sdbuild *b, sr *r)
 	h->crcdata = crc;
 	/* compression */
 	if (b->compress) {
-		int rc = sd_buildcompress(b, r);
+		int rc = sd_buildcompress(b);
 		if (ssunlikely(rc == -1))
 			return -1;
 		ref->csize = ss_bufused(&b->c) - ref->c;
@@ -340,10 +349,10 @@ int sd_buildend(sdbuild *b, sr *r)
 	return 0;
 }
 
-int sd_buildcommit(sdbuild *b, sr *r)
+int sd_buildcommit(sdbuild *b)
 {
 	if (b->compress_dup)
-		sd_buildfree_tracker(b, r);
+		sd_buildfree_tracker(b);
 	if (b->compress) {
 		ss_bufreset(&b->m);
 		ss_bufreset(&b->v);

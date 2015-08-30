@@ -14,6 +14,7 @@ typedef struct svv svv;
 struct svv {
 	uint64_t  lsn;
 	uint32_t  size;
+	uint16_t  ref;
 	uint8_t   flags;
 	void     *log;
 	svv      *next;
@@ -40,6 +41,7 @@ sv_vbuild(sr *r, sfv *keys, int count, char *data, int size)
 	svv *v = ss_malloc(r->a, sizeof(svv) + total);
 	if (ssunlikely(v == NULL))
 		return NULL;
+	v->ref   = 1;
 	v->size  = total;
 	v->lsn   = 0;
 	v->flags = 0;
@@ -57,6 +59,7 @@ sv_vbuildraw(ssa *a, char *src, int size)
 	svv *v = ss_malloc(a, sizeof(svv) + size);
 	if (ssunlikely(v == NULL))
 		return NULL;
+	v->ref   = 1;
 	v->size  = size;
 	v->flags = 0;
 	v->lsn   = 0;
@@ -79,11 +82,24 @@ sv_vdup(ssa *a, sv *src)
 }
 
 static inline void
+sv_vref(svv *v)
+{
+	v->ref++;
+}
+
+static inline void
 sv_vfree(ssa *a, svv *v)
+{
+	if (sslikely(--v->ref == 0))
+		ss_free(a, v);
+}
+
+static inline void
+sv_vfree_all(ssa *a, svv *v)
 {
 	while (v) {
 		svv *n = v->next;
-		ss_free(a, v);
+		sv_vfree(a, v);
 		v = n;
 	}
 }

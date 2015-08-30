@@ -27,7 +27,7 @@ addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 	v->flags = flags;
 	sv vv;
 	sv_init(&vv, &sv_vif, v, NULL);
-	sd_buildadd(b, r, &vv, flags & SVDUP);
+	sd_buildadd(b, &vv, flags & SVDUP);
 	sv_vfree(r->a, v);
 }
 
@@ -35,47 +35,47 @@ static void
 sd_build_empty(void)
 {
 	sdbuild b;
-	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
-	sd_buildend(&b, &st_r.r);
+	sd_buildinit(&b, &st_r.r);
+	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildend(&b);
 	sdpageheader *h = sd_buildheader(&b);
 	t( h->count == 0 );
-	sd_buildfree(&b, &st_r.r);
+	sd_buildfree(&b);
 }
 
 static void
 sd_build_page0(void)
 {
 	sdbuild b;
-	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
+	sd_buildinit(&b, &st_r.r);
+	t( sd_buildbegin(&b, 1, 0, 0) == 0);
 	int i = 7;
 	int j = 8;
 	int k = 15;
 	addv(&b, &st_r.r, 3, 0, &i);
 	addv(&b, &st_r.r, 2, 0, &j);
 	addv(&b, &st_r.r, 1, 0, &k);
-	sd_buildend(&b, &st_r.r);
+	sd_buildend(&b);
 	sdpageheader *h = sd_buildheader(&b);
 	t( h->count == 3 );
 	t( h->lsnmin == 1 );
 	t( h->lsnmax == 3 );
-	sd_buildfree(&b, &st_r.r);
+	sd_buildfree(&b);
 }
 
 static void
 sd_build_page1(void)
 {
 	sdbuild b;
-	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
+	sd_buildinit(&b, &st_r.r);
+	t( sd_buildbegin(&b, 1, 0, 0) == 0);
 	int i = 7;
 	int j = 8;
 	int k = 15;
 	addv(&b, &st_r.r, 3, 0, &i);
 	addv(&b, &st_r.r, 2, 0, &j);
 	addv(&b, &st_r.r, 1, 0, &k);
-	sd_buildend(&b, &st_r.r);
+	sd_buildend(&b);
 	sdpageheader *h = sd_buildheader(&b);
 	t( h->count == 3 );
 	t( h->lsnmin == 1 );
@@ -93,14 +93,14 @@ sd_build_page1(void)
 	t( *(int*)sf_key( sd_pagemetaof(&page, min, &size, &lsn), 0) == i );
 	sdv *max = sd_pagemax(&page);
 	t( *(int*)sf_key( sd_pagemetaof(&page, max, &size, &lsn), 0) == k );
-	sd_buildcommit(&b, &st_r.r);
+	sd_buildcommit(&b);
 
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
+	t( sd_buildbegin(&b, 1, 0, 0) == 0);
 	j = 19; 
 	k = 20;
 	addv(&b, &st_r.r, 4, 0, &j);
 	addv(&b, &st_r.r, 5, 0, &k);
-	sd_buildend(&b, &st_r.r);
+	sd_buildend(&b);
 	h = sd_buildheader(&b);
 	t( h->count == 2 );
 	t( h->lsnmin == 4 );
@@ -113,9 +113,9 @@ sd_build_page1(void)
 	t( *(int*)sf_key( sd_pagemetaof(&page, min, &size, &lsn), 0) == j );
 	max = sd_pagemax(&page);
 	t( *(int*)sf_key( sd_pagemetaof(&page, max, &size, &lsn), 0) == k );
-	sd_buildcommit(&b, &st_r.r);
+	sd_buildcommit(&b);
 
-	sd_buildfree(&b, &st_r.r);
+	sd_buildfree(&b);
 	ss_buffree(&buf, &st_r.a);
 }
 
@@ -140,33 +140,33 @@ sd_build_compression_zstd(void)
 	sr_init(&r, &error, &a, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, &ss_zstdfilter);
 
 	sdbuild b;
-	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &r, 1, 1, 0) == 0);
+	sd_buildinit(&b, &r);
+	t( sd_buildbegin(&b,1, 1, 0) == 0);
 	int i = 7;
 	int j = 8;
 	int k = 15;
 	addv(&b, &r, 3, 0, &i);
 	addv(&b, &r, 2, 0, &j);
 	addv(&b, &r, 1, 0, &k);
-	sd_buildend(&b, &r);
+	sd_buildend(&b);
 	sdpageheader *h = sd_buildheader(&b);
 	t( h->count == 3 );
 	t( h->lsnmin == 1 );
 	t( h->lsnmax == 3 );
-	sd_buildcommit(&b, &r);
+	sd_buildcommit(&b);
 
-	t( sd_buildbegin(&b, &r, 1, 1, 0) == 0);
+	t( sd_buildbegin(&b, 1, 1, 0) == 0);
 	addv(&b, &r, 3, 0, &i);
 	addv(&b, &r, 2, 0, &j);
 	addv(&b, &r, 1, 0, &k);
-	sd_buildend(&b, &r);
+	sd_buildend(&b);
 	h = sd_buildheader(&b);
 	t( h->count == 3 );
 	t( h->lsnmin == 1 );
 	t( h->lsnmax == 3 );
-	sd_buildcommit(&b, &r);
+	sd_buildcommit(&b);
 
-	sd_buildfree(&b, &r);
+	sd_buildfree(&b);
 	sr_schemefree(&cmp, &a);
 }
 
@@ -191,33 +191,33 @@ sd_build_compression_lz4(void)
 	sr_init(&r, &error, &a, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, &ss_lz4filter);
 
 	sdbuild b;
-	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &r, 1, 1, 0) == 0);
+	sd_buildinit(&b, &r);
+	t( sd_buildbegin(&b, 1, 1, 0) == 0);
 	int i = 7;
 	int j = 8;
 	int k = 15;
 	addv(&b, &r, 3, 0, &i);
 	addv(&b, &r, 2, 0, &j);
 	addv(&b, &r, 1, 0, &k);
-	sd_buildend(&b, &r);
+	sd_buildend(&b);
 	sdpageheader *h = sd_buildheader(&b);
 	t( h->count == 3 );
 	t( h->lsnmin == 1 );
 	t( h->lsnmax == 3 );
-	sd_buildcommit(&b, &r);
+	sd_buildcommit(&b);
 
-	t( sd_buildbegin(&b, &r, 1, 1, 0) == 0);
+	t( sd_buildbegin(&b, 1, 1, 0) == 0);
 	addv(&b, &r, 3, 0, &i);
 	addv(&b, &r, 2, 0, &j);
 	addv(&b, &r, 1, 0, &k);
-	sd_buildend(&b, &r);
+	sd_buildend(&b);
 	h = sd_buildheader(&b);
 	t( h->count == 3 );
 	t( h->lsnmin == 1 );
 	t( h->lsnmax == 3 );
-	sd_buildcommit(&b, &r);
+	sd_buildcommit(&b);
 
-	sd_buildfree(&b, &r);
+	sd_buildfree(&b);
 	sr_schemefree(&cmp, &a);
 }
 

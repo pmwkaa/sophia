@@ -616,7 +616,7 @@ so *se_dbnew(se *e, char *name)
 	o->ref = 0;
 	o->txn_min = sx_min(&e->xm);
 	o->txn_max = o->txn_min;
-	sd_cinit(&o->dc);
+	sd_cinit(&o->dc, &o->r);
 	return &o->o;
 }
 

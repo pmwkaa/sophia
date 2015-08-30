@@ -32,10 +32,10 @@ struct sdc {
 };
 
 static inline void
-sd_cinit(sdc *sc)
+sd_cinit(sdc *sc, sr *r)
 {
 	sv_updateinit(&sc->update);
-	sd_buildinit(&sc->build);
+	sd_buildinit(&sc->build, r);
 	ss_bufinit(&sc->a);
 	ss_bufinit(&sc->b);
 	ss_bufinit(&sc->c);
@@ -47,7 +47,7 @@ sd_cinit(sdc *sc)
 static inline void
 sd_cfree(sdc *sc, sr *r)
 {
-	sd_buildfree(&sc->build, r);
+	sd_buildfree(&sc->build);
 	sv_updatefree(&sc->update, r);
 	ss_buffree(&sc->a, r->a);
 	ss_buffree(&sc->b, r->a);

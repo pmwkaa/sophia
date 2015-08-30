@@ -74,14 +74,14 @@ sinode *si_bootstrap(si *i, uint32_t parent)
 	if (ssunlikely(rc == -1))
 		goto e0;
 	sdbuild build;
-	sd_buildinit(&build);
-	rc = sd_buildbegin(&build, r,
+	sd_buildinit(&build, r);
+	rc = sd_buildbegin(&build,
 	                   i->scheme->node_page_checksum,
 	                   i->scheme->compression,
 	                   i->scheme->compression_key);
 	if (ssunlikely(rc == -1))
 		goto e1;
-	sd_buildend(&build, r);
+	sd_buildend(&build);
 	rc = sd_indexadd(&index, r, &build, sizeof(sdseal));
 	if (ssunlikely(rc == -1))
 		goto e1;
@@ -116,12 +116,12 @@ sinode *si_bootstrap(si *i, uint32_t parent)
 	}
 	si_branchset(&n->self, &index);
 
-	sd_buildcommit(&build, r);
-	sd_buildfree(&build, r);
+	sd_buildcommit(&build);
+	sd_buildfree(&build);
 	return n;
 e1:
 	sd_indexfree(&index, r);
-	sd_buildfree(&build, r);
+	sd_buildfree(&build);
 e0:
 	si_nodefree(n, r, 0);
 	return NULL;
