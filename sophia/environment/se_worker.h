@@ -31,9 +31,9 @@ int se_workerpool_shutdown(seworkerpool*, sr*);
 int se_workerpool_new(seworkerpool*, sr*, int, ssthreadf, void*);
 
 static inline void
-se_workerstub_init(seworker *w, sr *r)
+se_workerstub_init(seworker *w)
 {
-	sd_cinit(&w->dc, r);
+	sd_cinit(&w->dc);
 	ss_listinit(&w->link);
 	ss_traceinit(&w->trace);
 	ss_trace(&w->trace, "%s", "init");

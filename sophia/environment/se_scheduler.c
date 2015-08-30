@@ -32,7 +32,7 @@ int se_scheduler_branch(void *arg)
 	se *e = se_of(&db->o);
 	srzone *z = se_zoneof(e);
 	seworker stub;
-	se_workerstub_init(&stub, &db->r);
+	se_workerstub_init(&stub);
 	int rc;
 	while (1) {
 		uint64_t vlsn = sx_vlsn(&e->xm);
@@ -61,7 +61,7 @@ int se_scheduler_compact(void *arg)
 	se *e = se_of(&db->o);
 	srzone *z = se_zoneof(e);
 	seworker stub;
-	se_workerstub_init(&stub, &db->r);
+	se_workerstub_init(&stub);
 	int rc;
 	while (1) {
 		uint64_t vlsn = sx_vlsn(&e->xm);
@@ -246,7 +246,7 @@ int se_scheduler_call(void *arg)
 	se *e = arg;
 	sescheduler *s = &e->sched;
 	seworker stub;
-	se_workerstub_init(&stub, &e->r);
+	se_workerstub_init(&stub);
 	int rc = se_scheduler(s, &stub);
 	se_workerstub_free(&stub, &e->r);
 	return rc;

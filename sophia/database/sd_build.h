@@ -27,11 +27,10 @@ struct sdbuild {
 	uint32_t vmax;
 	uint32_t n;
 	ssht tracker;
-	sr *r;
 };
 
-void sd_buildinit(sdbuild*, sr*);
-void sd_buildfree(sdbuild*);
+void sd_buildinit(sdbuild*);
+void sd_buildfree(sdbuild*, sr*);
 void sd_buildreset(sdbuild*);
 
 static inline sdbuildref*
@@ -77,9 +76,9 @@ sd_buildmaxkey(sdbuild *b) {
 	return b->v.s + r->v + sd_buildmax(b)->offset;
 }
 
-int sd_buildbegin(sdbuild*, int, int, int);
-int sd_buildend(sdbuild*);
-int sd_buildcommit(sdbuild*);
-int sd_buildadd(sdbuild*, sv*, uint32_t);
+int sd_buildbegin(sdbuild*, sr*, int, int, int);
+int sd_buildend(sdbuild*, sr*);
+int sd_buildcommit(sdbuild*, sr*);
+int sd_buildadd(sdbuild*, sr*, sv*, uint32_t);
 
 #endif

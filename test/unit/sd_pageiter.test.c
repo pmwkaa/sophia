@@ -27,7 +27,7 @@ addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 	v->flags = flags;
 	sv vv;
 	sv_init(&vv, &sv_vif, v, NULL);
-	sd_buildadd(b,&vv, flags & SVDUP);
+	sd_buildadd(b, r, &vv, flags & SVDUP);
 	sv_vfree(r->a, v);
 }
 
@@ -35,9 +35,9 @@ static void
 sd_pageiter_lte_empty(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
-	sd_buildend(&b);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -57,7 +57,7 @@ sd_pageiter_lte_empty(void)
 	t( v == NULL );
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -66,8 +66,8 @@ static void
 sd_pageiter_lte_eq0(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -75,7 +75,7 @@ sd_pageiter_lte_eq0(void)
 	addv(&b, &st_r.r, 3, 0, &i);
 	addv(&b, &st_r.r, 2, 0, &j);
 	addv(&b, &st_r.r, 1, 0, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -110,7 +110,7 @@ sd_pageiter_lte_eq0(void)
 	t( *(int*)sv_key(v, &st_r.r, 0) == k);
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -119,8 +119,8 @@ static void
 sd_pageiter_lte_minmax0(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -128,7 +128,7 @@ sd_pageiter_lte_minmax0(void)
 	addv(&b, &st_r.r, 3, 0, &i);
 	addv(&b, &st_r.r, 2, 0, &j);
 	addv(&b, &st_r.r, 1, 0, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -155,7 +155,7 @@ sd_pageiter_lte_minmax0(void)
 	t( *(int*)sv_key(v, &st_r.r, 0) == k);
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -164,8 +164,8 @@ static void
 sd_pageiter_lte_mid0(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -173,7 +173,7 @@ sd_pageiter_lte_mid0(void)
 	addv(&b, &st_r.r, 3, 0, &i);
 	addv(&b, &st_r.r, 2, 0, &j);
 	addv(&b, &st_r.r, 1, 0, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -208,7 +208,7 @@ sd_pageiter_lte_mid0(void)
 	t( *(int*)sv_key(v, &st_r.r, 0) == k);
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -217,8 +217,8 @@ static void
 sd_pageiter_lte_iterate0(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -226,7 +226,7 @@ sd_pageiter_lte_iterate0(void)
 	addv(&b, &st_r.r, 3, 0, &i);
 	addv(&b, &st_r.r, 2, 0, &j);
 	addv(&b, &st_r.r, 1, 0, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -261,7 +261,7 @@ sd_pageiter_lte_iterate0(void)
 	t( v == NULL );
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -270,8 +270,8 @@ static void
 sd_pageiter_lte_iterate1(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -279,7 +279,7 @@ sd_pageiter_lte_iterate1(void)
 	addv(&b, &st_r.r, 3, 0, &i);
 	addv(&b, &st_r.r, 2, 0, &j);
 	addv(&b, &st_r.r, 1, 0, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -315,7 +315,7 @@ sd_pageiter_lte_iterate1(void)
 	t( v == NULL );
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -324,8 +324,8 @@ static void
 sd_pageiter_lte_dup_iterate0(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -337,7 +337,7 @@ sd_pageiter_lte_dup_iterate0(void)
 	addv(&b, &st_r.r, 50, 0, &k);
 	addv(&b, &st_r.r, 40, 0|SVDUP, &k);
 	addv(&b, &st_r.r, 30, 0|SVDUP, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -408,7 +408,7 @@ sd_pageiter_lte_dup_iterate0(void)
 	t( v == NULL );
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -417,8 +417,8 @@ static void
 sd_pageiter_lte_dup_mid(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -430,7 +430,7 @@ sd_pageiter_lte_dup_mid(void)
 	addv(&b, &st_r.r, 50, 0, &k);
 	addv(&b, &st_r.r, 40, 0|SVDUP, &k);
 	addv(&b, &st_r.r, 30, 0|SVDUP, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -479,7 +479,7 @@ sd_pageiter_lte_dup_mid(void)
 	t( sv_lsn(v) == 50);
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -488,8 +488,8 @@ static void
 sd_pageiter_lt_eq(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -497,7 +497,7 @@ sd_pageiter_lt_eq(void)
 	addv(&b, &st_r.r, 3, 0, &i);
 	addv(&b, &st_r.r, 2, 0, &j);
 	addv(&b, &st_r.r, 1, 0, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -532,7 +532,7 @@ sd_pageiter_lt_eq(void)
 	t( *(int*)sv_key(v, &st_r.r, 0) == j);
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -541,8 +541,8 @@ static void
 sd_pageiter_lt_minmax(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -550,7 +550,7 @@ sd_pageiter_lt_minmax(void)
 	addv(&b, &st_r.r, 3, 0, &i);
 	addv(&b, &st_r.r, 2, 0, &j);
 	addv(&b, &st_r.r, 1, 0, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -577,7 +577,7 @@ sd_pageiter_lt_minmax(void)
 	t( *(int*)sv_key(v, &st_r.r, 0) == k);
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -586,8 +586,8 @@ static void
 sd_pageiter_lt_mid(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -595,7 +595,7 @@ sd_pageiter_lt_mid(void)
 	addv(&b, &st_r.r, 3, 0, &i);
 	addv(&b, &st_r.r, 2, 0, &j);
 	addv(&b, &st_r.r, 1, 0, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -630,7 +630,7 @@ sd_pageiter_lt_mid(void)
 	t( *(int*)sv_key(v, &st_r.r, 0) == k);
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -639,8 +639,8 @@ static void
 sd_pageiter_lt_iterate0(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -648,7 +648,7 @@ sd_pageiter_lt_iterate0(void)
 	addv(&b, &st_r.r, 3, 0, &i);
 	addv(&b, &st_r.r, 2, 0, &j);
 	addv(&b, &st_r.r, 1, 0, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -683,7 +683,7 @@ sd_pageiter_lt_iterate0(void)
 	t( v == NULL );
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -692,8 +692,8 @@ static void
 sd_pageiter_lt_iterate1(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -701,7 +701,7 @@ sd_pageiter_lt_iterate1(void)
 	addv(&b, &st_r.r, 3, 0, &i);
 	addv(&b, &st_r.r, 2, 0, &j);
 	addv(&b, &st_r.r, 1, 0, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -732,7 +732,7 @@ sd_pageiter_lt_iterate1(void)
 	t( v == NULL );
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -741,8 +741,8 @@ static void
 sd_pageiter_lt_dup_mid(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -754,7 +754,7 @@ sd_pageiter_lt_dup_mid(void)
 	addv(&b, &st_r.r, 50, 0, &k);
 	addv(&b, &st_r.r, 40, 0|SVDUP, &k);
 	addv(&b, &st_r.r, 30, 0|SVDUP, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -801,7 +801,7 @@ sd_pageiter_lt_dup_mid(void)
 	t( sv_lsn(v) == 80);
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -810,8 +810,8 @@ static void
 sd_pageiter_gte_eq0(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -819,7 +819,7 @@ sd_pageiter_gte_eq0(void)
 	addv(&b, &st_r.r, 3, 0, &i);
 	addv(&b, &st_r.r, 2, 0, &j);
 	addv(&b, &st_r.r, 1, 0, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -854,7 +854,7 @@ sd_pageiter_gte_eq0(void)
 	t( *(int*)sv_key(v, &st_r.r, 0) == k);
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -863,8 +863,8 @@ static void
 sd_pageiter_gte_minmax0(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -872,7 +872,7 @@ sd_pageiter_gte_minmax0(void)
 	addv(&b, &st_r.r, 3, 0, &i);
 	addv(&b, &st_r.r, 2, 0, &j);
 	addv(&b, &st_r.r, 1, 0, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -900,7 +900,7 @@ sd_pageiter_gte_minmax0(void)
 	t( v == NULL );
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -909,8 +909,8 @@ static void
 sd_pageiter_gte_mid0(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -918,7 +918,7 @@ sd_pageiter_gte_mid0(void)
 	addv(&b, &st_r.r, 3, 0, &i);
 	addv(&b, &st_r.r, 2, 0, &j);
 	addv(&b, &st_r.r, 1, 0, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -960,7 +960,7 @@ sd_pageiter_gte_mid0(void)
 	t( v == NULL );
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -969,8 +969,8 @@ static void
 sd_pageiter_gte_mid1(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -978,7 +978,7 @@ sd_pageiter_gte_mid1(void)
 	addv(&b, &st_r.r, 3, 0, &i);
 	addv(&b, &st_r.r, 2, 0, &j);
 	addv(&b, &st_r.r, 1, 0, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -1013,7 +1013,7 @@ sd_pageiter_gte_mid1(void)
 	t( v == NULL );
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -1022,8 +1022,8 @@ static void
 sd_pageiter_gte_iterate0(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -1031,7 +1031,7 @@ sd_pageiter_gte_iterate0(void)
 	addv(&b, &st_r.r, 3, 0, &i);
 	addv(&b, &st_r.r, 2, 0, &j);
 	addv(&b, &st_r.r, 1, 0, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -1066,7 +1066,7 @@ sd_pageiter_gte_iterate0(void)
 	t( v == NULL );
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -1075,8 +1075,8 @@ static void
 sd_pageiter_gte_iterate1(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -1084,7 +1084,7 @@ sd_pageiter_gte_iterate1(void)
 	addv(&b, &st_r.r, 3, 0, &i);
 	addv(&b, &st_r.r, 2, 0, &j);
 	addv(&b, &st_r.r, 1, 0, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -1120,7 +1120,7 @@ sd_pageiter_gte_iterate1(void)
 	t( v == NULL );
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -1129,8 +1129,8 @@ static void
 sd_pageiter_gte_dup_iterate0(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -1142,7 +1142,7 @@ sd_pageiter_gte_dup_iterate0(void)
 	addv(&b, &st_r.r, 50, 0, &k);
 	addv(&b, &st_r.r, 40, 0|SVDUP, &k);
 	addv(&b, &st_r.r, 30, 0|SVDUP, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -1206,7 +1206,7 @@ sd_pageiter_gte_dup_iterate0(void)
 	t( v == NULL );
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -1215,8 +1215,8 @@ static void
 sd_pageiter_gte_dup_mid(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -1228,7 +1228,7 @@ sd_pageiter_gte_dup_mid(void)
 	addv(&b, &st_r.r, 50, 0, &k);
 	addv(&b, &st_r.r, 40, 0|SVDUP, &k);
 	addv(&b, &st_r.r, 30, 0|SVDUP, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -1277,7 +1277,7 @@ sd_pageiter_gte_dup_mid(void)
 	t( sv_lsn(v) == 50);
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -1286,8 +1286,8 @@ static void
 sd_pageiter_gt_eq(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -1295,7 +1295,7 @@ sd_pageiter_gt_eq(void)
 	addv(&b, &st_r.r, 3, 0, &i);
 	addv(&b, &st_r.r, 2, 0, &j);
 	addv(&b, &st_r.r, 1, 0, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -1331,7 +1331,7 @@ sd_pageiter_gt_eq(void)
 	t( v == NULL );
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -1340,8 +1340,8 @@ static void
 sd_pageiter_gt_minmax(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -1349,7 +1349,7 @@ sd_pageiter_gt_minmax(void)
 	addv(&b, &st_r.r, 3, 0, &i);
 	addv(&b, &st_r.r, 2, 0, &j);
 	addv(&b, &st_r.r, 1, 0, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -1377,7 +1377,7 @@ sd_pageiter_gt_minmax(void)
 	t( v == NULL );
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -1386,8 +1386,8 @@ static void
 sd_pageiter_gt_mid(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -1395,7 +1395,7 @@ sd_pageiter_gt_mid(void)
 	addv(&b, &st_r.r, 3, 0, &i);
 	addv(&b, &st_r.r, 2, 0, &j);
 	addv(&b, &st_r.r, 1, 0, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -1430,7 +1430,7 @@ sd_pageiter_gt_mid(void)
 	t( v == NULL );
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -1439,8 +1439,8 @@ static void
 sd_pageiter_gt_iterate0(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -1448,7 +1448,7 @@ sd_pageiter_gt_iterate0(void)
 	addv(&b, &st_r.r, 3, 0, &i);
 	addv(&b, &st_r.r, 2, 0, &j);
 	addv(&b, &st_r.r, 1, 0, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -1483,7 +1483,7 @@ sd_pageiter_gt_iterate0(void)
 	t( v == NULL );
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -1492,8 +1492,8 @@ static void
 sd_pageiter_gt_iterate1(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -1501,7 +1501,7 @@ sd_pageiter_gt_iterate1(void)
 	addv(&b, &st_r.r, 3, 0, &i);
 	addv(&b, &st_r.r, 2, 0, &j);
 	addv(&b, &st_r.r, 1, 0, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -1532,7 +1532,7 @@ sd_pageiter_gt_iterate1(void)
 	t( v == NULL );
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }
@@ -1541,8 +1541,8 @@ static void
 sd_pageiter_gt_dup_mid(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -1554,7 +1554,7 @@ sd_pageiter_gt_dup_mid(void)
 	addv(&b, &st_r.r, 50, 0, &k);
 	addv(&b, &st_r.r, 40, 0|SVDUP, &k);
 	addv(&b, &st_r.r, 30, 0|SVDUP, &k);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -1601,7 +1601,7 @@ sd_pageiter_gt_dup_mid(void)
 	t( v == NULL );
 	ss_iteratorclose(&it);
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }

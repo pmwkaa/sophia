@@ -27,7 +27,7 @@ addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 	v->flags = flags;
 	sv vv;
 	sv_init(&vv, &sv_vif, v, NULL);
-	sd_buildadd(b, &vv, flags & SVDUP);
+	sd_buildadd(b, r, &vv, flags & SVDUP);
 	sv_vfree(r->a, v);
 }
 
@@ -35,13 +35,13 @@ static void
 sd_v_test(void)
 {
 	sdbuild b;
-	sd_buildinit(&b, &st_r.r);
-	t( sd_buildbegin(&b, 1, 0, 0) == 0);
+	sd_buildinit(&b);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0) == 0);
 	int i = 7;
 	int j = 8;
 	addv(&b, &st_r.r, 3, 0, &i);
 	addv(&b, &st_r.r, 4, 0, &j);
-	sd_buildend(&b);
+	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -78,7 +78,7 @@ sd_v_test(void)
 	v = ss_iteratorof(&it);
 	t( v == NULL );
 
-	sd_buildfree(&b);
+	sd_buildfree(&b, &st_r.r);
 	ss_buffree(&buf, &st_r.a);
 	ss_buffree(&xfbuf, &st_r.a);
 }

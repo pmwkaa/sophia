@@ -47,31 +47,9 @@ sv_v_kv(void)
 	sv_vfree(&st_r.a, vv);
 }
 
-static void
-sv_v_ref(void)
-{
-	uint32_t key = 123;
-	uint32_t value = 321;
-
-	sfv pv;
-	pv.key = (char*)&key;
-	pv.r.size = sizeof(key);
-	pv.r.offset = 0;
-
-	svv *vv = sv_vbuild(&st_r.r, &pv, 1, (char*)&value, sizeof(value));
-	t( vv != NULL );
-	t( vv->ref == 1 );
-	sv_vref(vv);
-	t( vv->ref == 2 );
-	sv_vfree(&st_r.a, vv);
-	t( vv->ref == 1 );
-	sv_vfree(&st_r.a, vv);
-}
-
 stgroup *sv_v_group(void)
 {
 	stgroup *group = st_group("svv");
 	st_groupadd(group, st_test("kv", sv_v_kv));
-	st_groupadd(group, st_test("ref", sv_v_ref));
 	return group;
 }

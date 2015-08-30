@@ -87,7 +87,7 @@ int sd_mergepage(sdmerge *m, uint64_t offset)
 	if (! sd_mergehas(m))
 		return 0;
 	int rc;
-	rc = sd_buildbegin(m->build, conf->checksum,
+	rc = sd_buildbegin(m->build, m->r, conf->checksum,
 	                   conf->compression,
 	                   conf->compression_key);
 	if (ssunlikely(rc == -1))
@@ -98,12 +98,12 @@ int sd_mergepage(sdmerge *m, uint64_t offset)
 		uint8_t flags = 0;
 		if (sv_writeiter_is_duplicate(&m->i))
 			flags = SVDUP;
-		rc = sd_buildadd(m->build, v, flags);
+		rc = sd_buildadd(m->build, m->r, v, flags);
 		if (ssunlikely(rc == -1))
 			return -1;
 		ss_iternext(sv_writeiter, &m->i);
 	}
-	rc = sd_buildend(m->build);
+	rc = sd_buildend(m->build, m->r);
 	if (ssunlikely(rc == -1))
 		return -1;
 	rc = sd_indexadd(&m->index, m->r, m->build, offset);

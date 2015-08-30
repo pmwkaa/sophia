@@ -25,7 +25,7 @@ uint32_t si_gcv(ssa *a, svv *gc)
 		sl *log = (sl*)v->log;
 		if (log)
 			ss_gcsweep(&log->gc, 1);
-		sv_vfree(a, v);
+		ss_free(a, v);
 		v = n;
 	}
 	return used;

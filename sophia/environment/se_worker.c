@@ -29,7 +29,7 @@ se_workernew(sr *r, int id, ssthreadf f, void *arg)
 	}
 	snprintf(w->name, sizeof(w->name), "%d", id);
 	w->arg = arg;
-	sd_cinit(&w->dc, r);
+	sd_cinit(&w->dc);
 	ss_listinit(&w->link);
 	ss_traceinit(&w->trace);
 	ss_trace(&w->trace, "%s", "init");
