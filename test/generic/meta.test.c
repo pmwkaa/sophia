@@ -136,6 +136,37 @@ meta_validation(void)
 }
 
 static void
+meta_empty_key(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "log.enable", 0) == 0 );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(env) == 0 );
+
+	void *o = sp_object(db);
+	t( sp_setstring(o, "key", "", 0) == 0 );
+	t( sp_set(db, o) == 0 );
+
+	o = sp_object(db);
+	t( sp_setstring(o, "key", "", 0) == 0 );
+	o = sp_get(db, o);
+	t( o != NULL );
+
+	int key_size;
+	void *key = sp_getstring(o, "key", &key_size);
+	t( key_size == 0 );
+	t( key != NULL );
+	sp_destroy(o);
+
+	t( sp_destroy(env) == 0 );
+}
+
+static void
 meta_db(void)
 {
 	void *env = sp_env();
@@ -208,6 +239,7 @@ stgroup *meta_group(void)
 	st_groupadd(group, st_test("scheduler", meta_scheduler));
 	st_groupadd(group, st_test("compaction", meta_compaction));
 	st_groupadd(group, st_test("validation", meta_validation));
+	st_groupadd(group, st_test("empty_key", meta_empty_key));
 	st_groupadd(group, st_test("db", meta_db));
 	st_groupadd(group, st_test("cursor", meta_cursor));
 	return group;

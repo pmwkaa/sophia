@@ -43,7 +43,7 @@ se_vsetpart(sev *v, const char *path, void *pointer, int size)
 	assert(part->pos < (int)(sizeof(v->keyv) / sizeof(sfv)));
 	const int keysize_max = 1 << 15;
 	if (size == 0)
-		size = strlen(pointer) + 1;
+		size = strlen(pointer);
 	if (ssunlikely(size > keysize_max)) {
 		sr_error(&e->error, "key '%s' is too big (%d limit)",
 		         pointer, keysize_max);
