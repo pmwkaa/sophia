@@ -121,7 +121,7 @@ so *se_snapshotnew(se *e, uint64_t vlsn, char *name)
 		sr_oom(&e->error);
 		return NULL;
 	}
-	sx_begin(&e->xm, &s->t, vlsn);
+	sx_begin(&e->xm, &s->t, SXRO, vlsn);
 	se_dbbind(e);
 	return &s->o;
 }
@@ -131,7 +131,7 @@ int se_snapshotupdate(sesnapshot *s)
 	se *e = se_of(&s->o);
 	uint32_t id = s->t.id;
 	sx_rollback(&s->t, &e->r);
-	sx_begin(&e->xm, &s->t, s->vlsn);
+	sx_begin(&e->xm, &s->t, SXRO, s->vlsn);
 	s->t.id = id;
 	return 0;
 }

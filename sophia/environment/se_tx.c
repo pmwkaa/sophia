@@ -281,7 +281,7 @@ so *se_txnew(se *e)
 	so_init(&t->o, &se_o[SETX], &setxif, &e->o, &e->o);
 	sx_init(&e->xm, &t->t);
 	t->lsn = 0;
-	sx_begin(&e->xm, &t->t, 0);
+	sx_begin(&e->xm, &t->t, SXRW, 0);
 	se_dbbind(e);
 	so_listadd(&e->tx, &t->o);
 	return &t->o;

@@ -22,36 +22,43 @@ typedef enum {
 	SXLOCK
 } sxstate;
 
+typedef enum {
+	SXRO,
+	SXRW
+} sxtype;
+
 struct sxindex {
-	ssrb i;
-	uint32_t dsn;
+	ssrb      i;
+	uint32_t  dsn;
 	srscheme *scheme;
-	void *ptr;
-	sr *r;
-	sslist link;
+	void     *ptr;
+	sr       *r;
+	sslist    link;
 };
 
 struct sx {
-	uint32_t id;
-	uint64_t csn;
-	uint64_t vlsn;
-	int complete;
-	sxstate s;
-	svlog log;
-	sslist deadlock;
+	sxtype     type;
+	sxstate    s;
+	int        complete;
+	uint32_t   id;
+	uint64_t   csn;
+	uint64_t   vlsn;
+	svlog      log;
+	sslist     deadlock;
 	sxmanager *manager;
-	ssrbnode node;
+	ssrbnode   node;
 };
 
 struct sxmanager {
-	ssspinlock lock;
-	sslist indexes;
-	ssrb i;
-	uint64_t csn;
-	uint32_t count;
-	ssa *asxv;
-	ssa *a;
-	srseq *seq;
+	ssspinlock  lock;
+	sslist      indexes;
+	ssrb        i;
+	uint32_t    count_rd;
+	uint32_t    count_rw;
+	uint64_t    csn;
+	ssa        *asxv;
+	ssa        *a;
+	srseq      *seq;
 };
 
 int       sx_managerinit(sxmanager*, srseq*, ssa*, ssa*);
@@ -61,7 +68,7 @@ int       sx_indexset(sxindex*, uint32_t, srscheme*);
 int       sx_indexfree(sxindex*, sxmanager*);
 sx       *sx_find(sxmanager*, uint32_t);
 void      sx_init(sxmanager*, sx*);
-sxstate   sx_begin(sxmanager*, sx*, uint64_t);
+sxstate   sx_begin(sxmanager*, sx*, sxtype, uint64_t);
 void      sx_gc(sx*);
 sxstate   sx_prepare(sx*);
 sxstate   sx_complete(sx*);

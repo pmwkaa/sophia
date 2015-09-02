@@ -13,13 +13,19 @@
 #include <libsv.h>
 #include <libsx.h>
 
+static inline int
+sx_count(sxmanager *m) {
+	return m->count_rd + m->count_rw;
+}
+
 int sx_managerinit(sxmanager *m, srseq *seq, ssa *a, ssa *asxv)
 {
 	ss_rbinit(&m->i);
-	m->count = 0;
+	m->count_rd = 0;
+	m->count_rw = 0;
+	m->csn = 0;
 	ss_spinlockinit(&m->lock);
 	ss_listinit(&m->indexes);
-	m->csn = 0;
 	m->seq = seq;
 	m->asxv = asxv;
 	m->a = a;
@@ -28,7 +34,7 @@ int sx_managerinit(sxmanager *m, srseq *seq, ssa *a, ssa *asxv)
 
 int sx_managerfree(sxmanager *m)
 {
-	assert(m->count == 0);
+	assert(sx_count(m) == 0);
 	ss_spinlockfree(&m->lock);
 	return 0;
 }
@@ -76,7 +82,7 @@ uint32_t sx_min(sxmanager *m)
 {
 	ss_spinlock(&m->lock);
 	uint32_t id = 0;
-	if (m->count) {
+	if (sx_count(m) > 0) {
 		ssrbnode *node = ss_rbmin(&m->i);
 		sx *min = sscast(node, sx, node);
 		id = min->id;
@@ -89,7 +95,7 @@ uint32_t sx_max(sxmanager *m)
 {
 	ss_spinlock(&m->lock);
 	uint32_t id = 0;
-	if (m->count) {
+	if (sx_count(m) > 0) {
 		ssrbnode *node = ss_rbmax(&m->i);
 		sx *max = sscast(node, sx, node);
 		id = max->id;
@@ -102,7 +108,7 @@ uint64_t sx_vlsn(sxmanager *m)
 {
 	ss_spinlock(&m->lock);
 	uint64_t vlsn;
-	if (m->count) {
+	if (sx_count(m) > 0) {
 		ssrbnode *node = ss_rbmin(&m->i);
 		sx *min = sscast(node, sx, node);
 		vlsn = min->vlsn;
@@ -131,8 +137,9 @@ void sx_init(sxmanager *m, sx *t)
 	ss_listinit(&t->deadlock);
 }
 
-sxstate sx_begin(sxmanager *m, sx *t, uint64_t vlsn)
+sxstate sx_begin(sxmanager *m, sx *t, sxtype type, uint64_t vlsn)
 {
+	t->type = type;
 	t->s = SXREADY; 
 	t->complete = 0;
 	sr_seqlock(m->seq);
@@ -152,7 +159,10 @@ sxstate sx_begin(sxmanager *m, sx *t, uint64_t vlsn)
 	} else {
 		ss_rbset(&m->i, n, rc, &t->node);
 	}
-	m->count++;
+	if (type == SXRO)
+		m->count_rd++;
+	else
+		m->count_rw++;
 	ss_spinunlock(&m->lock);
 	return SXREADY;
 }
@@ -162,7 +172,7 @@ void sx_gc(sx *t)
 	sxmanager *m = t->manager;
 	t->s = SXUNDEF;
 	sv_logfree(&t->log, m->a);
-	if (m->count > 0)
+	if (m->count_rw > 0)
 		return;
 	sslist *p;
 	ss_listforeach(&m->indexes, p) {
@@ -178,7 +188,10 @@ sx_end(sx *t)
 	sxmanager *m = t->manager;
 	ss_spinlock(&m->lock);
 	ss_rbremove(&m->i, &t->node);
-	m->count--;
+	if (t->type == SXRO)
+		m->count_rd--;
+	else
+		m->count_rw--;
 	ss_spinunlock(&m->lock);
 }
 

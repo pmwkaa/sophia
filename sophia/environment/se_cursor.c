@@ -88,7 +88,7 @@ so *se_cursornew(se *e, uint64_t vlsn)
 		ss_free(&e->a_cursor, c);
 		return NULL;
 	}
-	sx_begin(&e->xm, &c->t, vlsn);
+	sx_begin(&e->xm, &c->t, SXRO, vlsn);
 	se_dbbind(e);
 	so_listadd(&e->cursor, &c->o);
 	return &c->o;
