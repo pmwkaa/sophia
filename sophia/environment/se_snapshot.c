@@ -23,7 +23,7 @@ static int
 se_snapshotfree(sesnapshot *s)
 {
 	se *e = se_of(&s->o);
-	sx_rollback(&s->t);
+	sx_rollback(&s->t, &e->r);
 	if (sslikely(s->name)) {
 		ss_free(&e->a, s->name);
 		s->name = NULL;
@@ -130,7 +130,7 @@ int se_snapshotupdate(sesnapshot *s)
 {
 	se *e = se_of(&s->o);
 	uint32_t id = s->t.id;
-	sx_rollback(&s->t);
+	sx_rollback(&s->t, &e->r);
 	sx_begin(&e->xm, &s->t, s->vlsn);
 	s->t.id = id;
 	return 0;

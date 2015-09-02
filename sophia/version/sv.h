@@ -13,8 +13,7 @@
 #define SVDELETE 1
 #define SVUPDATE 2
 #define SVDUP    4
-#define SVABORT  8
-#define SVBEGIN  16
+#define SVBEGIN  8
 
 typedef struct svif svif;
 typedef struct sv sv;

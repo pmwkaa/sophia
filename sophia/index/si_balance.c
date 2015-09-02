@@ -258,8 +258,6 @@ int si_compact(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 			.buf_read        = &c->d,
 			.index_iter      = &cbuf->index_iter,
 			.page_iter       = &cbuf->page_iter,
-			.vlsn            = 0,
-			.has             = 0,
 			.use_compression = index->scheme->compression,
 			.use_memory      = index->scheme->in_memory,
 			.use_mmap        = use_mmap,

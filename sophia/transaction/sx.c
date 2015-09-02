@@ -18,6 +18,8 @@ int sx_managerinit(sxmanager *m, srseq *seq, ssa *a, ssa *asxv)
 	ss_rbinit(&m->i);
 	m->count = 0;
 	ss_spinlockinit(&m->lock);
+	ss_listinit(&m->indexes);
+	m->csn = 0;
 	m->seq = seq;
 	m->asxv = asxv;
 	m->a = a;
@@ -31,13 +33,14 @@ int sx_managerfree(sxmanager *m)
 	return 0;
 }
 
-int sx_indexinit(sxindex *i, sr *r, void *ptr)
+int sx_indexinit(sxindex *i, sxmanager *m, sr *r, void *ptr)
 {
 	ss_rbinit(&i->i);
-	i->count = 0;
+	ss_listinit(&i->link);
 	i->scheme = NULL;
 	i->ptr = ptr;
 	i->r = r;
+	ss_listappend(&m->indexes, &i->link);
 	return 0;
 }
 
@@ -49,14 +52,23 @@ int sx_indexset(sxindex *i, uint32_t dsn, srscheme *scheme)
 }
 
 ss_rbtruncate(sx_truncate,
-              sx_vfree(((ssa**)arg)[0],
-                       ((ssa**)arg)[1], sscast(n, sxv, node)))
+              sx_vfreeall(((ssa**)arg)[0],
+                          ((ssa**)arg)[1], sscast(n, sxv, node)))
+
+static inline void
+sx_indextruncate(sxindex *i, sxmanager *m)
+{
+	if (i->i.root == NULL)
+		return;
+	ssa *allocators[2] = { m->a, m->asxv };
+	sx_truncate(i->i.root, allocators);
+	ss_rbinit(&i->i);
+}
 
 int sx_indexfree(sxindex *i, sxmanager *m)
 {
-	ssa *allocators[2] = { m->a, m->asxv };
-	if (i->i.root)
-		sx_truncate(i->i.root, allocators);
+	sx_indextruncate(i, m);
+	ss_listunlink(&i->link);
 	return 0;
 }
 
@@ -124,6 +136,7 @@ sxstate sx_begin(sxmanager *m, sx *t, uint64_t vlsn)
 	t->s = SXREADY; 
 	t->complete = 0;
 	sr_seqlock(m->seq);
+	t->csn = m->csn;
 	t->id = sr_seqdo(m->seq, SR_TSNNEXT);
 	if (sslikely(vlsn == 0))
 		t->vlsn = sr_seqdo(m->seq, SR_LSN);
@@ -144,33 +157,19 @@ sxstate sx_begin(sxmanager *m, sx *t, uint64_t vlsn)
 	return SXREADY;
 }
 
-void sx_gc(sx *t, sr *r)
+void sx_gc(sx *t)
 {
 	sxmanager *m = t->manager;
-	ssiter i;
-	ss_iterinit(ss_bufiter, &i);
-	ss_iteropen(ss_bufiter, &i, &t->log.buf, sizeof(svlogv));
-	if (sslikely(t->s == SXCOMMIT)) {
-		for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
-		{
-			svlogv *lv = ss_iterof(ss_bufiter, &i);
-			sxv *v = lv->vgc;
-			ss_free(m->asxv, v);
-		}
-	} else
-	if (t->s == SXROLLBACK) {
-		int gc = 0;
-		for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
-		{
-			svlogv *lv = ss_iterof(ss_bufiter, &i);
-			sxv *v = lv->v.v;
-			gc += sv_vsize((svv*)v->v);
-			sx_vfree(m->a, m->asxv, v);
-		}
-		ss_quota(r->quota, SS_QREMOVE, gc);
-	}
-	sv_logfree(&t->log, m->a);
 	t->s = SXUNDEF;
+	sv_logfree(&t->log, m->a);
+	if (m->count > 0)
+		return;
+	sslist *p;
+	ss_listforeach(&m->indexes, p) {
+		sxindex *i = sscast(p, sxindex, link);
+		if (i->i.root)
+			sx_indextruncate(i, m);
+	}
 }
 
 static inline void
@@ -183,39 +182,29 @@ sx_end(sx *t)
 	ss_spinunlock(&m->lock);
 }
 
-sxstate sx_prepare(sx *t, sxpreparef prepare, void *arg)
+sxstate sx_prepare(sx *t)
 {
 	ssiter i;
 	ss_iterinit(ss_bufiter, &i);
 	ss_iteropen(ss_bufiter, &i, &t->log.buf, sizeof(svlogv));
-	sxstate s = SXPREPARE;
 	for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
 	{
 		svlogv *lv = ss_iterof(ss_bufiter, &i);
 		sxv *v = lv->v.v;
-		/* cancelled by a concurrent commited
-		 * transaction */
-		if (v->v->flags & SVABORT) {
-			s = SXROLLBACK;
-			goto done;
+		if (v->prev == NULL)
+			continue;
+		if (sx_vcommitted(v->prev)) {
+			if (v->prev->csn > t->csn) {
+				t->s = SXROLLBACK;
+				return t->s;
+			}
+			continue;
 		}
-		/* concurrent update in progress */
-		if (v->prev != NULL) {
-			s = SXLOCK;
-			goto done;
-		}
-		/* check that new key has not been committed by
-		 * a concurrent transaction */
-		if (prepare) {
-			sxindex *i = v->index;
-			s = prepare(t, &lv->v, arg, i->ptr);
-			if (ssunlikely(s != SXPREPARE))
-				goto done;
-		}
+		t->s = SXLOCK;
+		return t->s;
 	}
-done:
-	t->s = s;
-	return s;
+	t->s = SXPREPARE;
+	return t->s;
 }
 
 sxstate sx_commit(sx *t)
@@ -223,6 +212,8 @@ sxstate sx_commit(sx *t)
 	assert(t->s == SXPREPARE);
 	if (t->complete)
 		goto complete;
+	sxmanager *m = t->manager;
+	uint32_t csn = ++m->csn;
 	ssiter i;
 	ss_iterinit(ss_bufiter, &i);
 	ss_iteropen(ss_bufiter, &i, &t->log.buf, sizeof(svlogv));
@@ -230,20 +221,12 @@ sxstate sx_commit(sx *t)
 	{
 		svlogv *lv = ss_iterof(ss_bufiter, &i);
 		sxv *v = lv->v.v;
-		/* mark waiters as aborted */
-		sx_vabortwaiters(v);
-		/* remove from concurrent index and replace
-		 * head with a first waiter */
-		sxindex *i = v->index;
-		if (v->next == NULL)
-			ss_rbremove(&i->i, &v->node);
-		else
-			ss_rbreplace(&i->i, &v->node, &v->next->node);
-		/* unlink version */
-		sx_vunlink(v);
 		/* translate log version from sxv to svv */
 		sv_init(&lv->v, &sv_vif, v->v, NULL);
-		lv->vgc = v;
+		/* mark stmt as commited */
+		sx_vcommit(v, csn);
+		sv_vref(v->v);
+		/* stmt automatically scheduled for gc */
 	}
 complete:
 	t->s = SXCOMMIT;
@@ -252,11 +235,13 @@ complete:
 }
 
 static inline void
-sx_rollback_index(sx *t, int translate)
+sx_rollback_index(sx *t, sr *r, int translate)
 {
+	sxmanager *m = t->manager;
 	ssiter i;
 	ss_iterinit(ss_bufiter, &i);
 	ss_iteropen(ss_bufiter, &i, &t->log.buf, sizeof(svlogv));
+	int gc = 0;
 	for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
 	{
 		svlogv *lv = ss_iterof(ss_bufiter, &i);
@@ -272,18 +257,23 @@ sx_rollback_index(sx *t, int translate)
 			ss_rbreplace(&i->i, &v->node, &v->next->node);
 unlink:
 		sx_vunlink(v);
+
 		/* translate log version from sxv to svv */
 		if (translate) {
 			sv_init(&lv->v, &sv_vif, v->v, NULL);
-			lv->vgc = v;
+			continue;
 		}
+		gc += sv_vsize((svv*)v->v);
+		sx_vfree(m->a, m->asxv, v);
 	}
+	if (gc > 0)
+		ss_quota(r->quota, SS_QREMOVE, gc);
 }
 
-sxstate sx_rollback(sx *t)
+sxstate sx_rollback(sx *t, sr *r)
 {
 	if (! t->complete)
-		sx_rollback_index(t, 0);
+		sx_rollback_index(t, r, 0);
 	t->s = SXROLLBACK;
 	sx_end(t);
 	return SXROLLBACK;
@@ -293,7 +283,7 @@ sxstate sx_complete(sx *t)
 {
 	assert(t->complete == 0);
 	assert(t->s == SXPREPARE);
-	sx_rollback_index(t, 1);
+	sx_rollback_index(t, NULL, 1);
 	t->complete = 1;
 	return SXPREPARE;
 }
@@ -316,7 +306,6 @@ int sx_set(sx *t, sxindex *index, svv *version)
 	v->index = index;
 	svlogv lv;
 	lv.id   = index->dsn;
-	lv.vgc  = NULL;
 	lv.next = UINT32_MAX;
 	sv_init(&lv.v, &sx_vif, v, NULL);
 	/* update concurrent index */
@@ -402,16 +391,6 @@ int sx_get(sx *t, sxindex *index, sv *key, sv *result)
 	}
 done:
 	return rc;
-}
-
-sxstate sx_setstmt(sxmanager *m, sxindex *index, sv *v)
-{
-	sr_seq(m->seq, SR_TSNNEXT);
-	ssrbnode *n = NULL;
-	int rc = sx_match(&index->i, index->scheme, sv_pointer(v), sv_size(v), &n);
-	if (rc == 0 && n)
-		return SXLOCK;
-	return SXCOMMIT;
 }
 
 sxstate sx_getstmt(sxmanager *m, sxindex *index ssunused)

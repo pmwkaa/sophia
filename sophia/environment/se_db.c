@@ -438,27 +438,28 @@ se_dbwrite(sedb *db, sev *o, uint8_t flags)
 		goto error;
 	so_destroy(&o->o);
 	v->flags = flags;
-	svlogv lv;
-	sv_logvinit(&lv, db->scheme.id);
-	sv_init(&lv.v, &sv_vif, v, NULL);
-	svlog log;
-	sv_loginit(&log);
-	sv_logadd(&log, db->r.a, &lv, db);
-
-	/* concurrency */
-	sxstate s = sx_setstmt(&e->xm, &db->coindex, &lv.v);
-	rc = 1; /* rollback */
-	switch (s) {
-	case SXLOCK: rc = 2;
-	case SXROLLBACK:
-		sv_vfree(db->r.a, v);
-		return rc;
-	default: break;
-	}
 
 	/* ensure quota */
-	int size = sizeof(svv) + sv_size(&lv.v);
-	ss_quota(&e->quota, SS_QADD, size);
+	ss_quota(&e->quota, SS_QADD, sv_vsize(v));
+
+	/* single-statement transaction */
+	sx t;
+	sx_begin(&e->xm, &t, 0);
+	rc = sx_set(&t, &db->coindex, v);
+	if (ssunlikely(rc == -1)) {
+		ss_quota(&e->quota, SS_QREMOVE, sv_vsize(v));
+		return -1;
+	}
+	sxstate s = sx_prepare(&t);
+	switch (s) {
+	case SXLOCK:
+		sx_rollback(&t, &db->r);
+		return 2;
+	case SXROLLBACK:
+		return 1;
+	default: break;
+	}
+	sx_commit(&t);
 
 	/* execute req */
 	sereq q;
@@ -467,11 +468,13 @@ se_dbwrite(sedb *db, sev *o, uint8_t flags)
 	arg->vlsn_generate = 1;
 	arg->lsn = 0;
 	arg->recover = 0;
-	arg->log = &log;
+	arg->log = &t.log;
 	se_execute(&q);
 	if (ssunlikely(q.rc == -1))
-		ss_quota(&e->quota, SS_QREMOVE, size);
+		ss_quota(&e->quota, SS_QREMOVE, sv_vsize(v));
 	se_reqend(&q);
+
+	sx_gc(&t);
 	return q.rc;
 error:
 	so_destroy(&o->o);
@@ -610,7 +613,7 @@ so *se_dbnew(se *e, char *name)
 		si_schemefree(&o->scheme, &o->r);
 		return NULL;
 	}
-	sx_indexinit(&o->coindex, &o->r, o);
+	sx_indexinit(&o->coindex, &e->xm, &o->r, o);
 	ss_spinlockinit(&o->reflock);
 	o->ref_be = 0;
 	o->ref = 0;

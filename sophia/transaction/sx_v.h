@@ -13,6 +13,7 @@ typedef struct sxv sxv;
 
 struct sxv {
 	uint32_t id, lo;
+	uint64_t csn;
 	void *index;
 	svv *v;
 	sxv *next;
@@ -31,6 +32,7 @@ sx_valloc(ssa *asxv, svv *v)
 	vv->index = NULL;
 	vv->id    = 0;
 	vv->lo    = 0;
+	vv->csn   = 0;
 	vv->v     = v;
 	vv->next  = NULL;
 	vv->prev  = NULL;
@@ -41,8 +43,19 @@ sx_valloc(ssa *asxv, svv *v)
 static inline void
 sx_vfree(ssa *a, ssa *asxv, sxv *v)
 {
-	ss_free(a, v->v);
+	sv_vfree(a, v->v);
 	ss_free(asxv, v);
+}
+
+static inline void
+sx_vfreeall(ssa *a, ssa *asxv, sxv *v)
+{
+	while (v) {
+		sxv *next = v->next;
+		sv_vfree(a, v->v);
+		ss_free(asxv, v);
+		v = next;
+	}
 }
 
 static inline sxv*
@@ -87,12 +100,17 @@ sx_vunlink(sxv *v) {
 }
 
 static inline void
-sx_vabortwaiters(sxv *v) {
-	sxv *c = v->next;
-	while (c) {
-		c->v->flags |= SVABORT;
-		c = c->next;
-	}
+sx_vcommit(sxv *v, uint32_t csn)
+{
+	v->id  = UINT32_MAX;
+	v->lo  = UINT32_MAX;
+	v->csn = csn;
+}
+
+static inline int
+sx_vcommitted(sxv *v)
+{
+	return v->id == UINT32_MAX && v->lo == UINT32_MAX;
 }
 
 #endif

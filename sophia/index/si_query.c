@@ -28,18 +28,12 @@ int si_queryopen(siquery *q, sicache *c, si *i, ssorder o,
 	q->cache      = c;
 	q->prefix     = prefix;
 	q->prefixsize = prefixsize;
-	q->has        = 0;
 	q->update_v   = NULL;
 	q->update_eq  = 0;
 	memset(&q->result, 0, sizeof(q->result));
 	sv_mergeinit(&q->merge);
 	si_lock(q->index);
 	return 0;
-}
-
-void si_queryhas(siquery *q)
-{
-	q->has = 1;
 }
 
 void si_queryupdate(siquery *q, sv *v, int eq)
@@ -83,9 +77,6 @@ si_qgetresult(siquery *q, sv *v, int compare)
 		if (ssunlikely(! rc))
 			return 0;
 	}
-	if (ssunlikely(q->has)) {
-		return sv_lsn(v) > q->vlsn;
-	}
 	if (ssunlikely(sv_is(v, SVDELETE)))
 		return 2;
 	rc = si_querydup(q, v);
@@ -119,12 +110,9 @@ si_qgetindex(siquery *q, sinode *node)
 result:;
 	sv *v = ss_iterof(sv_indexiter, &i);
 	assert(v != NULL);
-	svv *visible = v->v;
-	if (sslikely(! q->has)) {
-		visible = sv_visible((svv*)v->v, q->vlsn);
-		if (visible == NULL)
-			return 0;
-	}
+	svv *visible = sv_visible((svv*)v->v, q->vlsn);
+	if (visible == NULL)
+		return 0;
 	sv vret;
 	sv_init(&vret, &sv_vif, visible, NULL);
 	return si_qgetresult(q, &vret, 0);
@@ -142,8 +130,6 @@ si_qgetbranch(siquery *q, sinode *n, sibranch *b)
 		.buf_read        = &q->index->readbuf,
 		.index_iter      = &c->index_iter,
 		.page_iter       = &c->page_iter,
-		.vlsn            = q->vlsn,
-		.has             = q->has,
 		.use_compression = q->index->scheme->compression,
 		.use_memory      = q->index->scheme->in_memory,
 		.use_mmap        = q->index->scheme->mmap,
@@ -159,10 +145,6 @@ si_qgetbranch(siquery *q, sinode *n, sibranch *b)
 	q->index->read_disk += sd_read_stat(&c->i);
 	if (ssunlikely(rc <= 0))
 		return rc;
-	uint64_t vlsn = q->vlsn;
-	if (q->has) {
-		vlsn = UINT64_MAX;
-	}
 	/* prepare sources */
 	sv_mergereset(&q->merge);
 	sv_mergeadd(&q->merge, &c->i);
@@ -171,7 +153,7 @@ si_qgetbranch(siquery *q, sinode *n, sibranch *b)
 	ss_iteropen(sv_mergeiter, &i, q->r, &q->merge, SS_GTE);
 	ssiter j;
 	ss_iterinit(sv_readiter, &j);
-	ss_iteropen(sv_readiter, &j, q->r, &i, &q->index->u, vlsn, 1);
+	ss_iteropen(sv_readiter, &j, q->r, &i, &q->index->u, q->vlsn, 1);
 	sv *v = ss_iterof(sv_readiter, &j);
 	if (ssunlikely(v == NULL))
 		return 0;
@@ -235,8 +217,6 @@ si_qrangebranch(siquery *q, sinode *n, sibranch *b, svmerge *m)
 		.buf_read        = &q->index->readbuf,
 		.index_iter      = &c->index_iter,
 		.page_iter       = &c->page_iter,
-		.vlsn            = q->vlsn,
-		.has             = 0,
 		.use_compression = q->index->scheme->compression,
 		.use_memory      = q->index->scheme->in_memory,
 		.use_mmap        = q->index->scheme->mmap,

@@ -127,7 +127,7 @@ error:
 void se_txend(setx *t)
 {
 	se *e = se_of(&t->o);
-	sx_gc(&t->t, &e->r);
+	sx_gc(&t->t);
 	se_dbunbind(e, t->t.id);
 	so_listdel(&e->tx, &t->o);
 	se_mark_destroyed(&t->o);
@@ -138,33 +138,10 @@ static int
 se_txrollback(so *o)
 {
 	setx *t = se_cast(o, setx*, SETX);
-	sx_rollback(&t->t);
+	se *e = se_of(&t->o);
+	sx_rollback(&t->t, &e->r);
 	se_txend(t);
 	return 0;
-}
-
-static sxstate
-se_txprepare_trigger(sx *t, sv *v, void *arg0, void *arg1)
-{
-	sicache *cache = arg0;
-	sedb *db = arg1;
-	se *e = se_of(&db->o);
-	uint64_t lsn = sr_seq(e->r.seq, SR_LSN);
-	if (t->vlsn == lsn)
-		return SXPREPARE;
-	siquery q;
-	si_queryopen(&q, cache, &db->index,
-	             SS_EQ, t->vlsn,
-	             NULL, 0,
-	             sv_pointer(v), sv_size(v));
-	si_queryhas(&q);
-	int rc;
-	rc = si_query(&q);
-	assert(q.result.v == NULL);
-	si_queryclose(&q);
-	if (ssunlikely(rc))
-		return SXROLLBACK;
-	return SXPREPARE;
 }
 
 static int
@@ -179,15 +156,12 @@ se_txprepare(so *o)
 	if (ssunlikely(cache == NULL))
 		return sr_oom(&e->error);
 	/* resolve conflicts */
-	sxpreparef prepare_trigger = se_txprepare_trigger;
-	if (status == SE_RECOVER)
-		prepare_trigger = NULL;
-	sxstate s = sx_prepare(&t->t, prepare_trigger, cache);
+	sxstate s = sx_prepare(&t->t);
 	si_cachepool_push(cache);
 	if (s == SXLOCK)
 		return 2;
 	if (s == SXROLLBACK) {
-		sx_rollback(&t->t);
+		sx_rollback(&t->t, &e->r);
 		se_txend(t);
 		return 1;
 	}
@@ -218,7 +192,7 @@ se_txcommit(so *o)
 
 	/* prepare transaction */
 	if (ssunlikely(! sv_logcount(&t->t.log))) {
-		sx_prepare(&t->t, NULL, NULL);
+		sx_prepare(&t->t);
 		sx_commit(&t->t);
 		se_txend(t);
 		return 0;

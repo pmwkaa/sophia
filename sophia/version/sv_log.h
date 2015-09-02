@@ -22,7 +22,6 @@ struct svlogindex {
 
 struct svlogv {
 	sv v;
-	void *vgc;
 	uint32_t id;
 	uint32_t next;
 } sspacked;
@@ -39,7 +38,6 @@ sv_logvinit(svlogv *v, uint32_t id)
 {
 	v->id   = id;
 	v->next = UINT32_MAX;
-	v->vgc  = NULL;
 	v->v.v  = NULL;
 	v->v.i  = NULL;
 }
