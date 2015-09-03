@@ -190,6 +190,34 @@ ddl_open_online0(void)
 	rmrf("./dir1");
 }
 
+static void
+ddl_constraint(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_open(env) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key-2", 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key-3", 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key-4", 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key-5", 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key-6", 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key-7", 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key-8", 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key-9", 0) == -1 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(db) == 0 );
+
+	t( sp_destroy(env) == 0 );
+}
+
 stgroup *ddl_group(void)
 {
 	stgroup *group = st_group("ddl");
@@ -198,5 +226,6 @@ stgroup *ddl_group(void)
 	st_groupadd(group, st_test("create_online1", ddl_create_online1));
 	st_groupadd(group, st_test("create_online2", ddl_create_online2));
 	st_groupadd(group, st_test("open_online0", ddl_open_online0));
+	st_groupadd(group, st_test("constraint", ddl_constraint));
 	return group;
 }

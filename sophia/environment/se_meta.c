@@ -493,6 +493,12 @@ se_metadb_index(srmeta *c ssunused, srmetastmt *s)
 		sr_error(&e->error, "keypart '%s' already exists", name);
 		return -1;
 	}
+	const int part_max = 8;
+	if (ssunlikely(db->scheme.scheme.count == part_max)) {
+		sr_error(&e->error, "number of index parts reached limit (%d limit)",
+		         part_max);
+		return -1;
+	}
 	/* create new key-part */
 	part = sr_schemeadd(&db->scheme.scheme, &e->a);
 	if (ssunlikely(part == NULL))
