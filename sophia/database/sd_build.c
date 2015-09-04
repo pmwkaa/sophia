@@ -53,8 +53,9 @@ void sd_buildfree(sdbuild *b, sr *r)
 	ss_buffree(&b->k, r->a);
 }
 
-void sd_buildreset(sdbuild *b)
+void sd_buildreset(sdbuild *b, sr *r)
 {
+	sd_buildfree_tracker(b, r);
 	ss_htreset(&b->tracker);
 	ss_bufreset(&b->list);
 	ss_bufreset(&b->m);

@@ -89,7 +89,7 @@ si_backupend(si *index, sdc *c, siplan *plan)
 int si_backup(si *index, sdc *c, siplan *plan)
 {
 	sr *r = index->r;
-	sd_creset(c);
+	sd_creset(c, r);
 	if (ssunlikely(plan->plan == SI_BACKUPEND))
 		return si_backupend(index, c, plan);
 

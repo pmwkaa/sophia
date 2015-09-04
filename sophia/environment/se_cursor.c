@@ -24,7 +24,7 @@ se_cursordestroy(so *o)
 {
 	secursor *c = se_cast(o, secursor*, SECURSOR);
 	se *e = se_of(&c->o);
-	sx_rollback(&c->t, &e->r);
+	sx_rollback(&c->t);
 	uint32_t id = c->t.id;
 	if (c->cache)
 		si_cachepool_push(c->cache);
@@ -82,7 +82,7 @@ so *se_cursornew(se *e, uint64_t vlsn)
 	}
 	so_init(&c->o, &se_o[SECURSOR], &secursorif, &e->o, &e->o);
 	sx_init(&e->xm, &c->t);
-	c->t.s = SXUNDEF;
+	c->t.state = SXUNDEF;
 	c->cache = si_cachepool_pop(&e->cachepool);
 	if (ssunlikely(c->cache == NULL)) {
 		ss_free(&e->a_cursor, c);

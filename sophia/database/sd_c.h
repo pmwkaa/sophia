@@ -65,9 +65,9 @@ sd_cfree(sdc *sc, sr *r)
 }
 
 static inline void
-sd_creset(sdc *sc)
+sd_creset(sdc *sc, sr *r)
 {
-	sd_buildreset(&sc->build);
+	sd_buildreset(&sc->build, r);
 	sv_updatereset(&sc->update);
 	ss_bufreset(&sc->a);
 	ss_bufreset(&sc->b);

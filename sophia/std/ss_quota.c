@@ -41,6 +41,8 @@ int ss_quotafree(ssquota *q)
 
 int ss_quota(ssquota *q, ssquotaop op, uint64_t v)
 {
+	if (sslikely(v == 0))
+		return 0;
 	ss_mutexlock(&q->lock);
 	switch (op) {
 	case SS_QADD:

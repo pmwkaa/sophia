@@ -77,7 +77,7 @@ int sd_merge(sdmerge *m)
 int sd_mergepage(sdmerge *m, uint64_t offset)
 {
 	sdmergeconf *conf = m->conf;
-	sd_buildreset(m->build);
+	sd_buildreset(m->build, m->r);
 
 	if (m->resume) {
 		m->resume = 0;

@@ -48,7 +48,7 @@ hc_prepare_commit(void)
 	sp_destroy(o);
 
 	t( sp_setint(tx, "half_commit", 1) == 0 );
-	rc = sp_prepare(tx);
+	rc = sp_commit(tx);
 	t( rc == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
@@ -82,7 +82,7 @@ hc_prepare_commit_conflict(void)
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(a, o) == 0 );
 	t( sp_setint(a, "half_commit", 1) == 0 );
-	rc = sp_prepare(a);
+	rc = sp_commit(a);
 	t( rc == 0 );
 
 	void *b = sp_begin(env);
@@ -92,7 +92,7 @@ hc_prepare_commit_conflict(void)
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(b, o) == 0 );
 	t( sp_setint(b, "half_commit", 1) == 0 );
-	rc = sp_prepare(b); /* this should fail in default conditions */
+	rc = sp_commit(b); /* this should fail in default conditions */
 	t( rc == 0 );
 
 	rc = sp_commit(a);

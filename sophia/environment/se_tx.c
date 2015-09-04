@@ -25,7 +25,7 @@ se_txwrite(setx *t, sev *o, uint8_t flags)
 	se *e = se_of(&t->o);
 	sedb *db = se_cast(o->o.parent, sedb*, SEDB);
 	/* validate req */
-	if (ssunlikely(t->t.s == SXPREPARE)) {
+	if (ssunlikely(t->t.state == SXPREPARE)) {
 		sr_error(&e->error, "%s", "transaction is in 'prepare' state (read-only)");
 		goto error;
 	}
@@ -138,45 +138,8 @@ static int
 se_txrollback(so *o)
 {
 	setx *t = se_cast(o, setx*, SETX);
-	se *e = se_of(&t->o);
-	sx_rollback(&t->t, &e->r);
+	sx_rollback(&t->t);
 	se_txend(t);
-	return 0;
-}
-
-static int
-se_txprepare(so *o)
-{
-	setx *t = se_cast(o, setx*, SETX);
-	se *e = se_of(o);
-	int status = se_status(&e->status);
-	if (ssunlikely(! se_statusactive_is(status)))
-		return -1;
-	sicache *cache = si_cachepool_pop(&e->cachepool);
-	if (ssunlikely(cache == NULL))
-		return sr_oom(&e->error);
-	/* resolve conflicts */
-	sxstate s = sx_prepare(&t->t);
-	si_cachepool_push(cache);
-	if (s == SXLOCK)
-		return 2;
-	if (s == SXROLLBACK) {
-		sx_rollback(&t->t, &e->r);
-		se_txend(t);
-		return 1;
-	}
-	assert(s == SXPREPARE);
-	if (t->half_commit) {
-		/* Half commit mode.
-		 *
-		 * A half committed transaction is no longer
-		 * being part of concurrent index, but still can be
-		 * commited or rolled back.
-		 * Yet, it is important to maintain external
-		 * serial commit order.
-		*/
-		sx_complete(&t->t);
-	}
 	return 0;
 }
 
@@ -189,7 +152,6 @@ se_txcommit(so *o)
 	if (ssunlikely(! se_statusactive_is(status)))
 		return -1;
 	int recover = (status == SE_RECOVER);
-
 	/* prepare transaction */
 	if (ssunlikely(! sv_logcount(&t->t.log))) {
 		sx_prepare(&t->t);
@@ -197,16 +159,35 @@ se_txcommit(so *o)
 		se_txend(t);
 		return 0;
 	}
-	int rc;
-	if (sslikely(t->t.s == SXREADY || t->t.s == SXLOCK)) {
-		rc = se_txprepare(&t->o);
-		if (ssunlikely(rc != 0))
-			return rc;
-	}
-	assert(t->t.s == SXPREPARE);
-	sx_commit(&t->t);
+	if (t->t.state == SXREADY || t->t.state == SXLOCK)
+	{
+		sxstate s = sx_prepare(&t->t);
+		if (s == SXLOCK)
+			return 2;
+		if (s == SXROLLBACK) {
+			sx_rollback(&t->t);
+			se_txend(t);
+			return 1;
+		}
+		assert(s == SXPREPARE);
 
-	/* prepare for commit */
+		if (t->half_commit) {
+			/* Half commit mode.
+			 *
+			 * A half committed transaction is no longer
+			 * being part of concurrent index, but still can be
+			 * commited or rolled back.
+			 * Yet, it is important to maintain external
+			 * serial commit order.
+			*/
+			sx_complete(&t->t);
+			return 0;
+		}
+		sx_commit(&t->t);
+	}
+	assert(t->t.state == SXCOMMIT);
+
+	/* prepare for wal and index write */
 	sereq q;
 	se_reqinit(e, &q, SE_REQWRITE, &t->o, NULL);
 	sereqarg *arg = &q.arg;
@@ -265,7 +246,7 @@ static soif setxif =
 	.get          = se_txget,
 	.batch        = NULL,
 	.begin        = NULL,
-	.prepare      = se_txprepare,
+	.prepare      = NULL,
 	.commit       = se_txcommit,
 	.cursor       = NULL,
 };

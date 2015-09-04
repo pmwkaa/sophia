@@ -274,7 +274,7 @@ so *se_new(void)
 	        &e->meta.scheme, &e->ei, crc, NULL);
 	sy_init(&e->rep);
 	sl_poolinit(&e->lp, &e->r);
-	sx_managerinit(&e->xm, &e->seq, &e->a, &e->a_sxv);
+	sx_managerinit(&e->xm, &e->r, &e->a_sxv);
 	si_cachepool_init(&e->cachepool, &e->a_cache, &e->a_cachebranch);
 	se_scheduler_init(&e->sched, &e->o);
 	return &e->o;

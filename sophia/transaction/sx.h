@@ -27,10 +27,14 @@ typedef enum {
 	SXRW
 } sxtype;
 
+enum {
+	SXCOMPLETE = 1,
+	SXCONFLICT = 2
+};
+
 struct sxindex {
 	ssrb      i;
 	uint32_t  dsn;
-	srscheme *scheme;
 	void     *ptr;
 	sr       *r;
 	sslist    link;
@@ -38,15 +42,16 @@ struct sxindex {
 
 struct sx {
 	sxtype     type;
-	sxstate    s;
-	int        complete;
+	sxstate    state;
+	int        flags;
 	uint32_t   id;
-	uint64_t   csn;
 	uint64_t   vlsn;
+	uint64_t   csn;
+	int        log_read;
 	svlog      log;
 	sslist     deadlock;
-	sxmanager *manager;
 	ssrbnode   node;
+	sxmanager *manager;
 };
 
 struct sxmanager {
@@ -57,14 +62,13 @@ struct sxmanager {
 	uint32_t    count_rw;
 	uint64_t    csn;
 	ssa        *asxv;
-	ssa        *a;
-	srseq      *seq;
+	sr         *r;
 };
 
-int       sx_managerinit(sxmanager*, srseq*, ssa*, ssa*);
+int       sx_managerinit(sxmanager*, sr*, ssa*);
 int       sx_managerfree(sxmanager*);
 int       sx_indexinit(sxindex*, sxmanager*, sr*, void*);
-int       sx_indexset(sxindex*, uint32_t, srscheme*);
+int       sx_indexset(sxindex*, uint32_t);
 int       sx_indexfree(sxindex*, sxmanager*);
 sx       *sx_find(sxmanager*, uint32_t);
 void      sx_init(sxmanager*, sx*);
@@ -73,7 +77,7 @@ void      sx_gc(sx*);
 sxstate   sx_prepare(sx*);
 sxstate   sx_complete(sx*);
 sxstate   sx_commit(sx*);
-sxstate   sx_rollback(sx*, sr*);
+sxstate   sx_rollback(sx*);
 int       sx_set(sx*, sxindex*, svv*);
 int       sx_get(sx*, sxindex*, sv*, sv*);
 uint32_t  sx_min(sxmanager*);

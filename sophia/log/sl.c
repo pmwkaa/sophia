@@ -411,6 +411,8 @@ sl_follow(slpool *p, uint64_t lsn)
 
 int sl_prepare(slpool *p, svlog *vlog, uint64_t lsn)
 {
+	if (ssunlikely(sv_logcount_write(vlog) == 0))
+		return 0;
 	if (sslikely(lsn == 0))
 		lsn = sr_seq(p->r->seq, SR_LSNNEXT);
 	else
@@ -445,8 +447,19 @@ static inline int
 sl_write_stmt(sltx *t, svlog *vlog)
 {
 	slpool *p = t->p;
+	svlogv *logv;
+	ssiter i;
+	ss_iterinit(ss_bufiter, &i);
+	ss_iteropen(ss_bufiter, &i, &vlog->buf, sizeof(svlogv));
+	for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i)) {
+		logv = ss_iterof(ss_bufiter, &i);
+		sv *v = &logv->v;
+		if (! (sv_flags(v) & SVGET))
+			break;
+	}
+	logv = ss_iterof(ss_bufiter, &i);
+	assert(logv != NULL);
 	slv lv;
-	svlogv *logv = (svlogv*)vlog->buf.s;
 	sl_write_prepare(t->p, t, &lv, logv);
 	int rc = ss_filewritev(&t->l->file, &p->iov);
 	if (ssunlikely(rc == -1)) {
@@ -473,7 +486,7 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 	lv->lsn   = lsn;
 	lv->dsn   = 0;
 	lv->flags = SVBEGIN;
-	lv->size  = sv_logcount(vlog);
+	lv->size  = sv_logcount_write(vlog);
 	lv->crc   = ss_crcs(p->r->crc, lv, sizeof(slv), 0);
 	ss_iovadd(&p->iov, lv, sizeof(slv));
 	lvp++;
@@ -495,6 +508,8 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 		}
 		svlogv *logv = ss_iterof(ss_bufiter, &i);
 		assert(logv->v.i == &sv_vif);
+		if (sv_flags(&logv->v) & SVGET)
+			continue;
 		lv = &lvbuf[lvp];
 		sl_write_prepare(p, t, lv, logv);
 		lvp++;
@@ -508,7 +523,7 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 		}
 		ss_iovreset(&p->iov);
 	}
-	ss_gcmark(&l->gc, sv_logcount(vlog));
+	ss_gcmark(&l->gc, sv_logcount_write(vlog));
 	return 0;
 }
 
@@ -516,9 +531,11 @@ int sl_write(sltx *t, svlog *vlog)
 {
 	/* assume transaction log is prepared
 	 * (lsn set) */
+	if (ssunlikely(sv_logcount_write(vlog) == 0))
+		return 0;
 	if (ssunlikely(! t->p->conf->enable))
 		return 0;
-	int count = sv_logcount(vlog);
+	int count = sv_logcount_write(vlog);
 	int rc;
 	if (sslikely(count == 1)) {
 		rc = sl_write_stmt(t, vlog);
@@ -527,8 +544,6 @@ int sl_write(sltx *t, svlog *vlog)
 		uint64_t lsn = sv_lsn(&lv->v);
 		rc = sl_write_multi_stmt(t, vlog, lsn);
 	}
-	if (ssunlikely(rc == -1))
-		return -1;
 	/* sync */
 	if (t->p->conf->enable && t->p->conf->sync_on_write) {
 		rc = ss_filesync(&t->l->file);

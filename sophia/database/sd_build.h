@@ -31,7 +31,7 @@ struct sdbuild {
 
 void sd_buildinit(sdbuild*);
 void sd_buildfree(sdbuild*, sr*);
-void sd_buildreset(sdbuild*);
+void sd_buildreset(sdbuild*, sr*);
 
 static inline sdbuildref*
 sd_buildref(sdbuild *b) {

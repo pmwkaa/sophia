@@ -188,7 +188,7 @@ se_dbopen(so *o)
 	int rc = se_dbscheme_set(db);
 	if (ssunlikely(rc == -1))
 		return -1;
-	sx_indexset(&db->coindex, db->scheme.id, db->r.scheme);
+	sx_indexset(&db->coindex, db->scheme.id);
 	rc = se_recoverbegin(db);
 	if (ssunlikely(rc == -1))
 		return -1;
@@ -304,6 +304,9 @@ se_dbread(sedb *db, sev *o, sx *x, int x_search,
 	int rc = se_dbv(db, o, 1, &v);
 	if (ssunlikely(rc == -1))
 		goto e0;
+	if (v) {
+		v->flags = SVGET;
+	}
 	sv vp;
 	sv_init(&vp, &sv_vif, v, NULL);
 	/* set prefix */
@@ -456,8 +459,7 @@ se_dbwrite(sedb *db, sev *o, uint8_t flags)
 	}
 	sxstate s = sx_prepare(&t);
 	switch (s) {
-	case SXLOCK:
-		sx_rollback(&t, &db->r);
+	case SXLOCK: sx_rollback(&t);
 		return 2;
 	case SXROLLBACK:
 		return 1;

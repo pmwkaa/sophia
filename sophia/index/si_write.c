@@ -67,13 +67,18 @@ si_set(sitx *t, svv *v)
 
 void si_write(sitx *t, int check)
 {
+	sr *r = t->index->r;
 	svlogv *cv = sv_logat(t->l, t->li->head);
 	int c = t->li->count;
 	while (c) {
 		svv *v = cv->v.v;
-		if (check && si_querycommited(t->index, t->index->r, &cv->v)) {
-			uint32_t gc = si_gcv(t->index->r->a, v);
-			ss_quota(t->index->r->quota, SS_QREMOVE, gc);
+		if (check && si_querycommited(t->index, r, &cv->v)) {
+			uint32_t gc = si_gcv(r->a, v);
+			ss_quota(r->quota, SS_QREMOVE, gc);
+			goto next;
+		}
+		if (v->flags & SVGET) {
+			sv_vfree(r->a, v);
 			goto next;
 		}
 		si_set(t, v);
