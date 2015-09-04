@@ -295,6 +295,7 @@ se_dbread(sedb *db, sev *o, sx *x, int x_search,
 	}
 	if (ssunlikely(! se_online(&db->status)))
 		goto e0;
+	int cache_only = o->cache_only;
 	int async = o->async;
 	void *async_arg = o->async_arg;
 
@@ -340,6 +341,7 @@ se_dbread(sedb *db, sev *o, sx *x, int x_search,
 				match->async_status    = 1;
 				match->async_arg       = async_arg;
 				match->async_seq       = 0;
+				match->cache_only      = cache_only;
 			}
 			if (vprf)
 				sv_vfree(db->r.a, vprf);
@@ -365,13 +367,14 @@ se_dbread(sedb *db, sev *o, sx *x, int x_search,
 	sereq q;
 	se_reqinit(e, &q, SE_REQREAD, &db->o, &db->o);
 	sereqarg *arg = &q.arg;
-	arg->v       = vp;
-	arg->vup     = vup;
-	arg->vprefix = vprefix;
-	arg->cache   = cache;
-	arg->cachegc = cachegc;
-	arg->order   = order;
-	arg->arg     = async_arg;
+	arg->v          = vp;
+	arg->vup        = vup;
+	arg->vprefix    = vprefix;
+	arg->cache      = cache;
+	arg->cachegc    = cachegc;
+	arg->order      = order;
+	arg->arg        = async_arg;
+	arg->cache_only = cache_only;
 	if (x) {
 		arg->vlsn = x->vlsn;
 		arg->vlsn_generate = 0;
@@ -402,6 +405,7 @@ se_dbread(sedb *db, sev *o, sx *x, int x_search,
 		}
 		return o;
 	}
+
 	/* synchronous */
 	rc = se_execute(&q);
 	if (rc == 1)

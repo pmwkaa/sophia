@@ -200,6 +200,21 @@ se_vgetstring(so *o, const char *path, int *size)
 	return fv->key;
 }
 
+static int
+se_vsetint(so *o, const char *path, int64_t num)
+{
+	sev *v = se_cast(o, sev*, SEV);
+	if (strcmp(path, "cache_only") == 0) {
+		v->cache_only = num;
+		return 0;
+	} else
+	if (strcmp(path, "async") == 0) {
+		v->async = num;
+		return 0;
+	}
+	return -1;
+}
+
 static int64_t
 se_vgetint(so *o, const char *path)
 {
@@ -216,6 +231,9 @@ se_vgetint(so *o, const char *path)
 	} else
 	if (strcmp(path, "seq") == 0) {
 		return v->async_seq;
+	} else
+	if (strcmp(path, "cache_only") == 0) {
+		return v->cache_only;
 	} else {
 		sr_error(&e->error, "unknown object field '%s'",
 		         path);
@@ -234,7 +252,7 @@ static soif sevif =
 	.drop         = NULL,
 	.setobject    = NULL,
 	.setstring    = se_vsetstring,
-	.setint       = NULL,
+	.setint       = se_vsetint,
 	.getobject    = NULL,
 	.getstring    = se_vgetstring,
 	.getint       = se_vgetint,

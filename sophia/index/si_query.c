@@ -30,10 +30,16 @@ int si_queryopen(siquery *q, sicache *c, si *i, ssorder o,
 	q->prefixsize = prefixsize;
 	q->update_v   = NULL;
 	q->update_eq  = 0;
+	q->cache_only = 0;
 	memset(&q->result, 0, sizeof(q->result));
 	sv_mergeinit(&q->merge);
 	si_lock(q->index);
 	return 0;
+}
+
+void si_querycache_only(siquery *q)
+{
+	q->cache_only = 1;
 }
 
 void si_queryupdate(siquery *q, sv *v, int eq)
@@ -174,6 +180,8 @@ si_qget(siquery *q)
 	rc = si_qgetindex(q, node);
 	if (rc != 0)
 		return rc;
+	if (q->cache_only)
+		return 2;
 	/* */
 	rc = si_cachevalidate(q->cache, node);
 	if (ssunlikely(rc == -1)) {
@@ -194,7 +202,7 @@ si_qget(siquery *q)
 	return 0;
 }
 
-static inline void
+static inline int
 si_qrangebranch(siquery *q, sinode *n, sibranch *b, svmerge *m)
 {
 	sicachebranch *c = si_cachefollow(q->cache);
@@ -204,10 +212,13 @@ si_qrangebranch(siquery *q, sinode *n, sibranch *b, svmerge *m)
 		svmergesrc *s = sv_mergeadd(m, &c->i);
 		q->index->read_cache++;
 		s->ptr = c;
-		return;
+		return 1;
 	}
 	if (c->open) {
-		return;
+		return 1;
+	}
+	if (q->cache_only) {
+		return 2;
 	}
 	c->open = 1;
 	sdreadarg arg = {
@@ -231,11 +242,12 @@ si_qrangebranch(siquery *q, sinode *n, sibranch *b, svmerge *m)
 	int rc = ss_iteropen(sd_read, &c->i, &arg, q->key, q->keysize);
 	q->index->read_disk += sd_read_stat(&c->i);
 	if (ssunlikely(rc == -1))
-		return;
+		return -1;
 	if (ssunlikely(! ss_iterhas(sd_read, &c->i)))
-		return;
+		return 0;
 	svmergesrc *s = sv_mergeadd(m, &c->i);
 	s->ptr = c;
+	return 1;
 }
 
 static inline int
@@ -295,7 +307,9 @@ next_node:
 	}
 	sibranch *b = node->branch;
 	while (b) {
-		si_qrangebranch(q, node, b, m);
+		rc = si_qrangebranch(q, node, b, m);
+		if (ssunlikely(rc == -1 || rc == 2))
+			return rc;
 		b = b->next;
 	}
 

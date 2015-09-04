@@ -19,6 +19,7 @@ struct siquery {
 	uint32_t prefixsize;
 	uint64_t vlsn;
 	svmerge merge;
+	int cache_only;
 	sv *update_v;
 	int update_eq;
 	sv result;
@@ -32,6 +33,7 @@ int  si_queryopen(siquery*, sicache*, si*, ssorder,
                   void*, uint32_t,
                   void*, uint32_t);
 int  si_queryclose(siquery*);
+void si_querycache_only(siquery*);
 void si_queryupdate(siquery*, sv*, int);
 int  si_query(siquery*);
 int  si_querycommited(si*, sr*, sv*);
