@@ -214,6 +214,7 @@ so *se_reqresult(sereq *r, int async)
 	v->async_status    = r->rc;
 	v->async_seq       = r->id;
 	v->async_arg       = r->arg.arg;
+	v->cache_only      = r->arg.cache_only;
 	/* propagate current object settings to
 	 * the result one */
 	v->orderset = 1;
