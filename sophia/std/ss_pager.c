@@ -54,7 +54,7 @@ int ss_pageradd(sspager *p)
 	sspagepool *pp =
 		mmap(NULL, p->pool_size, PROT_READ|PROT_WRITE|PROT_EXEC,
 	         MAP_PRIVATE|MAP_ANON, -1, 0);
-	if (ssunlikely(p == MAP_FAILED))
+	if (ssunlikely(pp == MAP_FAILED))
 		return -1;
 	pp->used = 0;
 	pp->next = p->pp;
