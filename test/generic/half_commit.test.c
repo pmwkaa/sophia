@@ -57,6 +57,101 @@ hc_prepare_commit(void)
 }
 
 static void
+hc_prepare_rollback0(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_open(env) == 0 );
+	void *db = sp_getobject(env, "db.test");
+
+	int rc;
+	void *tx = sp_begin(env);
+	t( tx != NULL );
+
+	int key = 7;
+	void *o = sp_object(db);
+	t( o != NULL );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_set(tx, o) == 0 );
+	o = sp_object(db);
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	o = sp_get(tx, o);
+	t( o != NULL );
+	t( *(int*)sp_getstring(o, "value", NULL) == key );
+	sp_destroy(o);
+
+	t( sp_setint(tx, "half_commit", 1) == 0 );
+	rc = sp_commit(tx);
+	t( rc == 0 );
+	rc = sp_destroy(tx);
+	t( rc == 0 );
+
+	t( sp_destroy(env) == 0 );
+}
+
+static void
+hc_prepare_rollback1(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_open(env) == 0 );
+	void *db = sp_getobject(env, "db.test");
+
+	int rc;
+	void *tx = sp_begin(env);
+	t( tx != NULL );
+
+	int key = 7;
+	void *o = sp_object(db);
+	t( o != NULL );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_set(tx, o) == 0 );
+	o = sp_object(db);
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	o = sp_get(tx, o);
+	t( o != NULL );
+	t( *(int*)sp_getstring(o, "value", NULL) == key );
+	sp_destroy(o);
+
+	t( sp_setint(tx, "half_commit", 1) == 0 );
+	rc = sp_commit(tx);
+	t( rc == 0 );
+	rc = sp_destroy(tx);
+	t( rc == 0 );
+
+	tx = sp_begin(env);
+	t( tx != NULL );
+	o = sp_object(db);
+	t( o != NULL );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
+	t( sp_set(tx, o) == 0 );
+	t( sp_setint(tx, "half_commit", 1) == 0 );
+	rc = sp_commit(tx);
+	t( rc == 0 );
+	rc = sp_commit(tx);
+	t( rc == 0 );
+
+	t( sp_destroy(env) == 0 );
+}
+
+static void
 hc_prepare_commit_conflict(void)
 {
 	void *env = sp_env();
@@ -107,6 +202,8 @@ stgroup *half_commit_group(void)
 {
 	stgroup *group = st_group("half_commit");
 	st_groupadd(group, st_test("prepare_commit", hc_prepare_commit));
+	st_groupadd(group, st_test("prepare_rollback0", hc_prepare_rollback0));
+	st_groupadd(group, st_test("prepare_rollback1", hc_prepare_rollback1));
 	st_groupadd(group, st_test("prepare_commit_conflict", hc_prepare_commit_conflict));
 	return group;
 }

@@ -156,7 +156,7 @@ si_split(si *index, sdc *c, ssbuf *result,
 		.save_delete     = 0,
 		.save_update     = 0
 	};
-	sinode *n;
+	sinode *n = NULL;
 	sdmerge merge;
 	sd_mergeinit(&merge, r, i, &c->build, &c->update, &mergeconf);
 	while ((rc = sd_merge(&merge)) > 0)
@@ -242,7 +242,8 @@ si_split(si *index, sdc *c, ssbuf *result,
 		goto error;
 	return 0;
 error:
-	si_nodefree(n, r, 0);
+	if (n)
+		si_nodefree(n, r, 0);
 	sd_mergefree(&merge);
 	si_splitfree(result, r);
 	return -1;

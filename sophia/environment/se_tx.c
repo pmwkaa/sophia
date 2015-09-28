@@ -171,6 +171,8 @@ se_txcommit(so *o)
 		}
 		assert(s == SXPREPARE);
 
+		sx_commit(&t->t);
+
 		if (t->half_commit) {
 			/* Half commit mode.
 			 *
@@ -180,10 +182,8 @@ se_txcommit(so *o)
 			 * Yet, it is important to maintain external
 			 * serial commit order.
 			*/
-			sx_complete(&t->t);
 			return 0;
 		}
-		sx_commit(&t->t);
 	}
 	assert(t->t.state == SXCOMMIT);
 

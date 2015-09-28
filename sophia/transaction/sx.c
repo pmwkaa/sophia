@@ -233,13 +233,15 @@ sx_rollback_svp(sx *x, ssiter *i, int free)
 
 sxstate sx_rollback(sx *x)
 {
-	if (x->flags & SXCOMPLETE)
-		goto end;
+	/* support half-commit mode */
+	if (x->state == SXCOMMIT) {
+		sx_promote(x, SXROLLBACK);
+		return SXROLLBACK;
+	}
 	ssiter i;
 	ss_iterinit(ss_bufiter, &i);
 	ss_iteropen(ss_bufiter, &i, &x->log.buf, sizeof(svlogv));
 	sx_rollback_svp(x, &i, 1);
-end:
 	sx_promote(x, SXROLLBACK);
 	sx_end(x);
 	return SXROLLBACK;
@@ -309,20 +311,6 @@ sxstate sx_commit(sx *x)
 	/* rollback latest reads */
 	sx_rollback_svp(x, &i, 0);
 
-	sx_promote(x, SXCOMMIT);
-	sx_end(x);
-	return SXCOMMIT;
-}
-
-sxstate sx_complete(sx *x)
-{
-	assert((x->flags & SXCOMPLETE) == 0);
-	assert(x->state == SXPREPARE);
-	ssiter i;
-	ss_iterinit(ss_bufiter, &i);
-	ss_iteropen(ss_bufiter, &i, &x->log.buf, sizeof(svlogv));
-	sx_rollback_svp(x, &i, 0);
-	x->flags |= SXCOMPLETE;
 	sx_promote(x, SXCOMMIT);
 	sx_end(x);
 	return SXCOMMIT;

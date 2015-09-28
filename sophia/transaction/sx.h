@@ -28,8 +28,7 @@ typedef enum {
 } sxtype;
 
 enum {
-	SXCOMPLETE = 1,
-	SXCONFLICT = 2
+	SXCONFLICT = 1
 };
 
 struct sxindex {
@@ -75,7 +74,6 @@ void      sx_init(sxmanager*, sx*);
 sxstate   sx_begin(sxmanager*, sx*, sxtype, uint64_t);
 void      sx_gc(sx*);
 sxstate   sx_prepare(sx*);
-sxstate   sx_complete(sx*);
 sxstate   sx_commit(sx*);
 sxstate   sx_rollback(sx*);
 int       sx_set(sx*, sxindex*, svv*);
