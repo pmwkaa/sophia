@@ -28,6 +28,7 @@ struct sev {
 	uint32_t  rawsize;
 	void     *log;
 	/* async */
+	int       immutable;
 	int       cache_only;
 	int       async;
 	int       async_status;

@@ -746,9 +746,13 @@ int se_dbv(sedb *db, sev *o, int search, svv **v)
 	*v = NULL;
 	/* reuse object */
 	if (o->v.v) {
-		*v = o->v.v;
-		o->v.v = NULL;
-		return 0;
+		if (sslikely(! o->immutable)) {
+			*v = o->v.v;
+			o->v.v = NULL;
+			return 0;
+		}
+		*v = sv_vbuildraw(db->r.a, sv_pointer(&o->v), sv_size(&o->v));
+		goto ret;
 	}
 	/* create object from raw data */
 	if (o->raw) {

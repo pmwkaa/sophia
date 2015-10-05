@@ -233,14 +233,22 @@ sx_rollback_svp(sx *x, ssiter *i, int free)
 
 sxstate sx_rollback(sx *x)
 {
-	/* support half-commit mode */
-	if (x->state == SXCOMMIT) {
-		sx_promote(x, SXROLLBACK);
-		return SXROLLBACK;
-	}
+	sxmanager *m = x->manager;
 	ssiter i;
 	ss_iterinit(ss_bufiter, &i);
 	ss_iteropen(ss_bufiter, &i, &x->log.buf, sizeof(svlogv));
+	/* support half-commit mode */
+	if (x->state == SXCOMMIT) {
+		for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
+		{
+			svlogv *lv = ss_iterof(ss_bufiter, &i);
+			svv *v = lv->v.v;
+			assert(v->refs >= 2);
+			sv_vfree(m->r->a, v);
+		}
+		sx_promote(x, SXROLLBACK);
+		return SXROLLBACK;
+	}
 	sx_rollback_svp(x, &i, 1);
 	sx_promote(x, SXROLLBACK);
 	sx_end(x);

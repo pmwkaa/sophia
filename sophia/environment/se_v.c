@@ -23,6 +23,8 @@ static int
 se_vdestroy(so *o)
 {
 	sev *v = se_cast(o, sev*, SEV);
+	if (ssunlikely(v->immutable))
+		return 0;
 	se *e = se_of(o);
 	if (v->v.v)
 		sv_vfree(&e->a, (svv*)v->v.v);
@@ -208,6 +210,10 @@ se_vsetint(so *o, const char *path, int64_t num)
 		v->cache_only = num;
 		return 0;
 	} else
+	if (strcmp(path, "immutable") == 0) {
+		v->immutable = num;
+		return 0;
+	} else
 	if (strcmp(path, "async") == 0) {
 		v->async = num;
 		return 0;
@@ -234,6 +240,9 @@ se_vgetint(so *o, const char *path)
 	} else
 	if (strcmp(path, "cache_only") == 0) {
 		return v->cache_only;
+	} else
+	if (strcmp(path, "immutable") == 0) {
+		return v->immutable;
 	} else {
 		sr_error(&e->error, "unknown object field '%s'",
 		         path);
