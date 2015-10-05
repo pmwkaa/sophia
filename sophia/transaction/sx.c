@@ -23,7 +23,9 @@ int sx_managerinit(sxmanager *m, sr *r, ssa *asxv)
 	ss_rbinit(&m->i);
 	m->count_rd = 0;
 	m->count_rw = 0;
+	m->count_gc = 0;
 	m->csn = 0;
+	m->gc  = NULL;
 	ss_spinlockinit(&m->lock);
 	ss_listinit(&m->indexes);
 	m->r = r;
@@ -173,19 +175,64 @@ sxstate sx_begin(sxmanager *m, sx *x, sxtype type, uint64_t vlsn)
 	return SXREADY;
 }
 
+static inline uint64_t
+sx_csn(sxmanager *m)
+{
+	ss_spinlock(&m->lock);
+	uint64_t csn;
+	if (sx_count(m) > 0) {
+		ssrbnode *node = ss_rbmin(&m->i);
+		sx *min = sscast(node, sx, node);
+		csn = min->csn;
+	} else {
+		csn = UINT64_MAX;
+	}
+	ss_spinunlock(&m->lock);
+	return csn;
+}
+
+static inline void
+sx_garbage_collect(sxmanager *m)
+{
+	uint64_t min_csn = sx_csn(m);
+
+	sxv *gc = NULL;
+	uint32_t count = 0;
+
+	sxv *next;
+	sxv *v = m->gc;
+	for (; v; v = next)
+	{
+		next = v->gc;
+		if (! sx_vcommitted(v) || v->csn > min_csn) {
+			v->gc = gc;
+			gc = v;
+			count++;
+			continue;
+		}
+		if (v->prev == NULL) {
+			sxindex *i = v->index;
+			if (v->next == NULL)
+				ss_rbremove(&i->i, &v->node);
+			else
+				ss_rbreplace(&i->i, &v->node, &v->next->node);
+		}
+		sx_vunlink(v);
+		sx_vfree(m->r->a, m->asxv, v);
+	}
+
+	m->count_gc = count;
+	m->gc = gc;
+}
+
 void sx_gc(sx *x)
 {
 	sxmanager *m = x->manager;
 	sx_promote(x, SXUNDEF);
 	sv_logfree(&x->log, m->r->a);
-	if (m->count_rw > 0)
+	if (m->count_gc == 0)
 		return;
-	sslist *p;
-	ss_listforeach(&m->indexes, p) {
-		sxindex *i = sscast(p, sxindex, link);
-		if (i->i.root)
-			sx_indextruncate(i, m);
-	}
+	sx_garbage_collect(m);
 }
 
 static inline void
@@ -308,12 +355,15 @@ sxstate sx_commit(sx *x)
 			assert(conflict != NULL);
 			conflict->flags |= SXCONFLICT;
 		}
-		/* translate log version from sxv to svv */
-		sv_init(&lv->v, &sv_vif, v->v, NULL);
 		/* mark stmt as commited */
 		sx_vcommit(v, csn);
 		sv_vref(v->v);
-		/* stmt automatically scheduled for gc */
+		/* schedule stmt for gc */
+		v->gc = m->gc;
+		m->gc = v;
+		m->count_gc++;
+		/* translate log version from sxv to svv */
+		sv_init(&lv->v, &sv_vif, v->v, NULL);
 	}
 
 	/* rollback latest reads */

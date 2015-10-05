@@ -88,6 +88,8 @@ se_metamemory(se *e, semetart *rt, srmeta **pc)
 	srmeta *p = NULL;
 	sr_m(&p, pc, se_metav_offline, "limit", SS_U64, &e->meta.memory_limit);
 	sr_M(&p, pc, se_metav, "used", SS_U64, &rt->memory_used, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "pager_pools", SS_U32, &rt->pager_pools, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "pager_pool_size", SS_U32, &rt->pager_pool_size, SR_RO, NULL);
 	return sr_M(NULL, pc, NULL, "memory", SS_UNDEF, memory, SR_NS, NULL);
 }
 
@@ -340,6 +342,9 @@ se_metametric(se *e ssunused, semetart *rt, srmeta **pc)
 	sr_M(&p, pc, se_metav, "lsn",  SS_U64, &rt->seq.lsn, SR_RO, NULL);
 	sr_M(&p, pc, se_metav, "lfsn", SS_U32, &rt->seq.lfsn, SR_RO, NULL);
 	sr_M(&p, pc, se_metav, "tsn",  SS_U32, &rt->seq.tsn, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "tx_rw",  SS_U32, &rt->tx_rw, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "tx_ro",  SS_U32, &rt->tx_ro, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "tx_gc",  SS_U32, &rt->tx_gc, SR_RO, NULL);
 	return sr_M(NULL, pc, NULL, "metric", SS_UNDEF, metric, SR_NS, NULL);
 }
 
@@ -744,7 +749,9 @@ se_metart(se *e, semetart *rt)
 	         SR_VERSION_COMMIT);
 
 	/* memory */
-	rt->memory_used = ss_quotaused(&e->quota);
+	rt->memory_used     = ss_quotaused(&e->quota);
+	rt->pager_pools     = e->pager.pools;
+	rt->pager_pool_size = e->pager.pool_size;
 
 	/* scheduler */
 	ss_mutexlock(&e->sched.lock);
@@ -775,6 +782,9 @@ se_metart(se *e, semetart *rt)
 	sr_seqlock(&e->seq);
 	rt->seq = e->seq;
 	sr_sequnlock(&e->seq);
+	rt->tx_rw = e->xm.count_rw;
+	rt->tx_ro = e->xm.count_rd;
+	rt->tx_gc = e->xm.count_gc;
 	return 0;
 }
 

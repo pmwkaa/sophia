@@ -25,6 +25,8 @@ struct semetart {
 	char      build[32];
 	/* memory */
 	uint64_t  memory_used;
+	uint32_t  pager_pools;
+	uint32_t  pager_pool_size;
 	/* scheduler */
 	char      zone[4];
 	uint32_t  checkpoint_active;
@@ -39,6 +41,9 @@ struct semetart {
 	uint32_t  log_files;
 	/* metric */
 	srseq     seq;
+	uint32_t  tx_rw;
+	uint32_t  tx_ro;
+	uint32_t  tx_gc;
 };
 
 struct semeta {

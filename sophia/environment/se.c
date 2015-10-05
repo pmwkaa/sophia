@@ -130,7 +130,6 @@ se_destroy(so *o)
 	ss_spinlockfree(&e->dblock);
 	sr_seqfree(&e->seq);
 	ss_pagerfree(&e->pager);
-	ss_pagerfree(&e->pagersx);
 	se_statusfree(&e->status);
 	se_mark_destroyed(&e->o);
 	free(e);
@@ -230,13 +229,6 @@ so *se_new(void)
 		free(e);
 		return NULL;
 	}
-	ss_pagerinit(&e->pagersx, 10, 4096);
-	rc = ss_pageradd(&e->pagersx);
-	if (ssunlikely(rc == -1)) {
-		ss_pagerfree(&e->pager);
-		free(e);
-		return NULL;
-	}
 	ss_aopen(&e->a, &ss_stda);
 	ss_aopen(&e->a_db, &ss_slaba, &e->pager, sizeof(sedb));
 	ss_aopen(&e->a_v, &ss_slaba, &e->pager, sizeof(sev));
@@ -250,7 +242,7 @@ so *se_new(void)
 	ss_aopen(&e->a_batch, &ss_slaba, &e->pager, sizeof(sebatch));
 	ss_aopen(&e->a_tx, &ss_slaba, &e->pager, sizeof(setx));
 	ss_aopen(&e->a_req, &ss_slaba, &e->pager, sizeof(sereq));
-	ss_aopen(&e->a_sxv, &ss_slaba, &e->pagersx, sizeof(sxv));
+	ss_aopen(&e->a_sxv, &ss_slaba, &e->pager, sizeof(sxv));
 	se_metainit(&e->meta, &e->o);
 	so_listinit(&e->db);
 	so_listinit(&e->db_shutdown);

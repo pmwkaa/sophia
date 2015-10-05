@@ -30,7 +30,6 @@ struct se {
 	srseq       seq;
 	semeta      meta;
 	ssquota     quota;
-	sspager     pagersx;
 	sspager     pager;
 	ssa         a;
 	ssa         a_db;

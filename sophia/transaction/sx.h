@@ -59,7 +59,9 @@ struct sxmanager {
 	ssrb        i;
 	uint32_t    count_rd;
 	uint32_t    count_rw;
+	uint32_t    count_gc;
 	uint64_t    csn;
+	sxv        *gc;
 	ssa        *asxv;
 	sr         *r;
 };

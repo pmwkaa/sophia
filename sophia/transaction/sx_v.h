@@ -18,6 +18,7 @@ struct sxv {
 	svv *v;
 	sxv *next;
 	sxv *prev;
+	sxv *gc;
 	ssrbnode node;
 } sspacked;
 
@@ -36,6 +37,7 @@ sx_valloc(ssa *asxv, svv *v)
 	vv->v     = v;
 	vv->next  = NULL;
 	vv->prev  = NULL;
+	vv->gc    = NULL;
 	memset(&vv->node, 0, sizeof(vv->node));
 	return vv;
 }
