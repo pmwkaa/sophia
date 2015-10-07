@@ -178,17 +178,21 @@ sxstate sx_begin(sxmanager *m, sx *x, sxtype type, uint64_t vlsn)
 static inline uint64_t
 sx_csn(sxmanager *m)
 {
-	ss_spinlock(&m->lock);
-	uint64_t csn;
-	if (sx_count(m) > 0) {
-		ssrbnode *node = ss_rbmin(&m->i);
-		sx *min = sscast(node, sx, node);
-		csn = min->csn;
-	} else {
-		csn = UINT64_MAX;
+	uint64_t csn = UINT64_MAX;
+	if (m->count_rw == 0)
+		return csn;
+	ssrbnode *p = ss_rbmin(&m->i);
+	sx *min = NULL;
+	while (p) {
+		min = sscast(p, sx, node);
+		if (min->type == SXRO) {
+			p = ss_rbnext(&m->i, p);
+			continue;
+		}
+		break;
 	}
-	ss_spinunlock(&m->lock);
-	return csn;
+	assert(min != NULL);
+	return min->csn;
 }
 
 static inline void
@@ -204,7 +208,7 @@ sx_garbage_collect(sxmanager *m)
 	for (; v; v = next)
 	{
 		next = v->gc;
-		if (! sx_vcommitted(v) || v->csn > min_csn) {
+		if (!sx_vcommitted(v) || v->csn > min_csn) {
 			v->gc = gc;
 			gc = v;
 			count++;
