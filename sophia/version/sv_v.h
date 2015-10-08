@@ -50,13 +50,18 @@ sv_vbuild(sr *r, sfv *keys, int count, char *data, int size)
 	memset(&v->node, 0, sizeof(v->node));
 	char *ptr = sv_vpointer(v);
 	sf_write(r->fmt, ptr, keys, count, data, size);
+	/* update runtime statistics */
+	ss_spinlock(&r->stat->lock);
+	r->stat->v_count++;
+	r->stat->v_allocated += sizeof(svv) + total;
+	ss_spinunlock(&r->stat->lock);
 	return v;
 }
 
 static inline svv*
-sv_vbuildraw(ssa *a, char *src, int size)
+sv_vbuildraw(sr *r, char *src, int size)
 {
-	svv *v = ss_malloc(a, sizeof(svv) + size);
+	svv *v = ss_malloc(r->a, sizeof(svv) + size);
 	if (ssunlikely(v == NULL))
 		return NULL;
 	v->size  = size;
@@ -67,13 +72,18 @@ sv_vbuildraw(ssa *a, char *src, int size)
 	v->log   = NULL;
 	memset(&v->node, 0, sizeof(v->node));
 	memcpy(sv_vpointer(v), src, size);
+	/* update runtime statistics */
+	ss_spinlock(&r->stat->lock);
+	r->stat->v_count++;
+	r->stat->v_allocated += sizeof(svv) + size;
+	ss_spinunlock(&r->stat->lock);
 	return v;
 }
 
 static inline svv*
-sv_vdup(ssa *a, sv *src)
+sv_vdup(sr *r, sv *src)
 {
-	svv *v = sv_vbuildraw(a, sv_pointer(src), sv_size(src));
+	svv *v = sv_vbuildraw(r, sv_pointer(src), sv_size(src));
 	if (ssunlikely(v == NULL))
 		return NULL;
 	v->flags = sv_flags(src);
@@ -87,19 +97,28 @@ sv_vref(svv *v) {
 }
 
 static inline void
-sv_vfree(ssa *a, svv *v)
+sv_vfree(sr *r, svv *v)
 {
-	if (sslikely(--v->refs == 0))
-		ss_free(a, v);
+	if (sslikely(--v->refs == 0)) {
+		uint32_t size = sv_vsize(v);
+		/* update runtime statistics */
+		ss_spinlock(&r->stat->lock);
+		assert(r->stat->v_count > 0);
+		assert(r->stat->v_allocated >= size);
+		r->stat->v_count--;
+		r->stat->v_allocated -= size;
+		ss_spinunlock(&r->stat->lock);
+		ss_free(r->a, v);
+	}
 }
 
 static inline void
-sv_vfreelist(ssa *a, svv *v)
+sv_vfreelist(sr *r, svv *v)
 {
 	while (v) {
 		svv *n = v->next;
 		v->next = NULL;
-		sv_vfree(a, v);
+		sv_vfree(r, v);
 		v = n;
 	}
 }

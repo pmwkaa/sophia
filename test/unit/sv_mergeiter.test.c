@@ -61,8 +61,8 @@ sv_mergeiter_merge_a(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 }
 
 static void
@@ -112,8 +112,8 @@ sv_mergeiter_merge_b(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 }
 
 static void
@@ -169,8 +169,8 @@ sv_mergeiter_merge_ab(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 }
 
 static void
@@ -237,9 +237,9 @@ sv_mergeiter_merge_abc(void)
 	t( i == 15 );
 	ss_iteratorclose(&merge);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
-	st_listfree(&vlistc, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
+	st_listfree(&vlistc, &st_r.r);
 
 	sv_mergefree(&m, &st_r.a);
 }
@@ -297,8 +297,8 @@ sv_mergeiter_merge_ba(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 }
 
 static void
@@ -364,8 +364,8 @@ sv_mergeiter_merge_dup_ab(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 }
 
 static void
@@ -422,8 +422,8 @@ sv_mergeiter_merge_dup_a_chain(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 }
 
 static void
@@ -487,8 +487,8 @@ sv_mergeiter_merge_dup_ab_chain(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 }
 
 static void
@@ -567,9 +567,9 @@ sv_mergeiter_merge_dup_abc_chain(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
-	st_listfree(&vlistc, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
+	st_listfree(&vlistc, &st_r.r);
 }
 
 stgroup *sv_mergeiter_group(void)

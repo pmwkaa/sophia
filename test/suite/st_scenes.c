@@ -56,6 +56,7 @@ void st_scene_init(stscene *s ssunused)
 	ss_aopen(&st_r.a, &ss_stda);
 	sr_schemeinit(&st_r.scheme);
 	memset(&st_r.injection, 0, sizeof(st_r.injection));
+	memset(&st_r.stat, 0, sizeof(st_r.stat));
 	sr_errorinit(&st_r.error);
 	sr_seqinit(&st_r.seq);
 	st_r.crc = ss_crc32c_function();
@@ -86,6 +87,7 @@ void st_scene_rt(stscene *s ssunused)
 	         NULL, /* update */
 	        &st_r.scheme,
 	        &st_r.injection,
+	        &st_r.stat,
 	         st_r.crc,
 	         st_r.compression);
 
@@ -98,7 +100,7 @@ void st_scene_rt(stscene *s ssunused)
 
 void st_scene_gc(stscene *s ssunused)
 {
-	st_listfree(&st_r.gc, &st_r.a);
+	st_listfree(&st_r.gc, &st_r.r);
 	ss_aclose(&st_r.a);
 	sr_errorfree(&st_r.error);
 	sr_seqfree(&st_r.seq);

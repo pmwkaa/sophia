@@ -28,6 +28,7 @@ struct str {
 	/* runtime */
 	ssa          a;
 	ssinjection  injection;
+	srstat       stat;
 	srscheme     scheme;
 	srerror      error;
 	srseq        seq;

@@ -9,6 +9,6 @@
  * BSD License
 */
 
-uint32_t si_gcv(ssa*, svv*);
+uint32_t si_gcv(sr*, svv*);
 
 #endif

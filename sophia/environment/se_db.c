@@ -318,7 +318,7 @@ se_dbread(sedb *db, sev *o, sx *x, int x_search,
 	sv_init(&vprefix, &sv_vif, vprf, NULL);
 	/* if key is not set: use prefix */
 	if (vprf && v == NULL) {
-		v = sv_vdup(db->r.a, &vprefix);
+		v = sv_vdup(&db->r, &vprefix);
 		sv_init(&vp, &sv_vif, v, NULL);
 	}
 	sv vup;
@@ -337,7 +337,7 @@ se_dbread(sedb *db, sev *o, sx *x, int x_search,
 		if (rc == 1 && !sv_is(&vup, SVUPDATE)) {
 			so *ret = se_vnew(e, &db->o, &vup, async);
 			if (ssunlikely(ret == NULL))
-				sv_vfree(db->r.a, vup.v);
+				sv_vfree(&db->r, vup.v);
 			if (async) {
 				sev *match = (sev*)ret;
 				match->async_operation = SE_REQREAD;
@@ -347,8 +347,8 @@ se_dbread(sedb *db, sev *o, sx *x, int x_search,
 				match->cache_only      = cache_only;
 			}
 			if (vprf)
-				sv_vfree(db->r.a, vprf);
-			sv_vfree(db->r.a, v);
+				sv_vfree(&db->r, vprf);
+			sv_vfree(&db->r, v);
 			return ret;
 		}
 	} else {
@@ -416,9 +416,9 @@ se_dbread(sedb *db, sev *o, sx *x, int x_search,
 	se_reqend(&q);
 	return o;
 e2: if (vprf)
-		sv_vfree(db->r.a, vprf);
+		sv_vfree(&db->r, vprf);
 e1: if (v)
-		sv_vfree(db->r.a, v);
+		sv_vfree(&db->r, v);
 e0: if (o)
 		so_destroy(&o->o);
 	return NULL;
@@ -751,12 +751,12 @@ int se_dbv(sedb *db, sev *o, int search, svv **v)
 			o->v.v = NULL;
 			return 0;
 		}
-		*v = sv_vbuildraw(db->r.a, sv_pointer(&o->v), sv_size(&o->v));
+		*v = sv_vbuildraw(&db->r, sv_pointer(&o->v), sv_size(&o->v));
 		goto ret;
 	}
 	/* create object from raw data */
 	if (o->raw) {
-		*v = sv_vbuildraw(db->r.a, o->raw, o->rawsize);
+		*v = sv_vbuildraw(&db->r, o->raw, o->rawsize);
 		goto ret;
 	}
 	sr *runtime = &db->r;

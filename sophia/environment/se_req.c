@@ -25,13 +25,13 @@ se_reqend(sereq *r)
 	se *e = se_of(r->object);
 	/* free key, prefix, update and a pending result */
 	if (r->arg.v.v)
-		sv_vfree(&e->a, r->arg.v.v);
+		sv_vfree(&e->r, r->arg.v.v);
 	if (r->arg.vprefix.v)
-		sv_vfree(&e->a, r->arg.vprefix.v);
+		sv_vfree(&e->r, r->arg.vprefix.v);
 	if (r->arg.vup.v)
-		sv_vfree(&e->a, r->arg.vup.v);
+		sv_vfree(&e->r, r->arg.vup.v);
 	if (ssunlikely(r->v))
-		sv_vfree(&e->a, (svv*)r->v);
+		sv_vfree(&e->r, (svv*)r->v);
 	/* free read cache */
 	if (sslikely(r->arg.cachegc && r->arg.cache))
 		si_cachepool_push(r->arg.cache);

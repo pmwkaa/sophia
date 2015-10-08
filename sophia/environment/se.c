@@ -128,6 +128,7 @@ se_destroy(so *o)
 	ss_mutexfree(&e->reqlock);
 	ss_condfree(&e->reqcond);
 	ss_spinlockfree(&e->dblock);
+	sr_statfree(&e->stat);
 	sr_seqfree(&e->seq);
 	ss_pagerfree(&e->pager);
 	se_statusfree(&e->status);
@@ -260,10 +261,11 @@ so *se_new(void)
 	ss_quotainit(&e->quota);
 	sr_seqinit(&e->seq);
 	sr_errorinit(&e->error);
+	sr_statinit(&e->stat);
 	sscrcf crc = ss_crc32c_function();
 	sr_init(&e->r, &e->error, &e->a, &e->quota, &e->seq,
 	        SF_KV, SF_SRAW, NULL,
-	        &e->meta.scheme, &e->ei, crc, NULL);
+	        &e->meta.scheme, &e->ei, &e->stat, crc, NULL);
 	sy_init(&e->rep);
 	sl_poolinit(&e->lp, &e->r);
 	sx_managerinit(&e->xm, &e->r, &e->a_sxv);

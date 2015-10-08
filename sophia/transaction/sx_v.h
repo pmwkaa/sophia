@@ -43,18 +43,18 @@ sx_valloc(ssa *asxv, svv *v)
 }
 
 static inline void
-sx_vfree(ssa *a, ssa *asxv, sxv *v)
+sx_vfree(sr *r, ssa *asxv, sxv *v)
 {
-	sv_vfree(a, v->v);
+	sv_vfree(r, v->v);
 	ss_free(asxv, v);
 }
 
 static inline void
-sx_vfreeall(ssa *a, ssa *asxv, sxv *v)
+sx_vfreeall(sr *r, ssa *asxv, sxv *v)
 {
 	while (v) {
 		sxv *next = v->next;
-		sv_vfree(a, v->v);
+		sv_vfree(r, v->v);
 		ss_free(asxv, v);
 		v = next;
 	}

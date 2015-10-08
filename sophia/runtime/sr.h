@@ -21,6 +21,7 @@ struct sr {
 	ssa *a;
 	ssquota *quota;
 	ssinjection *i;
+	srstat *stat;
 	void *compression;
 	sscrcf crc;
 };
@@ -36,6 +37,7 @@ sr_init(sr *r,
         sfupdate *fmt_update,
         srscheme *scheme,
         ssinjection *i,
+		srstat *stat,
         sscrcf crc,
         void *compression)
 {
@@ -48,6 +50,7 @@ sr_init(sr *r,
 	r->fmt_storage = fmt_storage;
 	r->fmt_update  = fmt_update;
 	r->i           = i;
+	r->stat        = stat;
 	r->compression = compression;
 	r->crc         = crc;
 }

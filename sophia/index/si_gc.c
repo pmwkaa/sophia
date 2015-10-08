@@ -15,7 +15,7 @@
 #include <libsd.h>
 #include <libsi.h>
 
-uint32_t si_gcv(ssa *a, svv *gc)
+uint32_t si_gcv(sr *r, svv *gc)
 {
 	uint32_t used = 0;
 	svv *v = gc;
@@ -25,7 +25,7 @@ uint32_t si_gcv(ssa *a, svv *gc)
 		sl *log = (sl*)v->log;
 		if (log)
 			ss_gcsweep(&log->gc, 1);
-		sv_vfree(a, v);
+		sv_vfree(r, v);
 		v = n;
 	}
 	return used;

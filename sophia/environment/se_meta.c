@@ -90,6 +90,8 @@ se_metamemory(se *e, semetart *rt, srmeta **pc)
 	sr_M(&p, pc, se_metav, "used", SS_U64, &rt->memory_used, SR_RO, NULL);
 	sr_M(&p, pc, se_metav, "pager_pools", SS_U32, &rt->pager_pools, SR_RO, NULL);
 	sr_M(&p, pc, se_metav, "pager_pool_size", SS_U32, &rt->pager_pool_size, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "v_count", SS_U64, &rt->v_count, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "v_allocated", SS_U64, &rt->v_allocated, SR_RO, NULL);
 	return sr_M(NULL, pc, NULL, "memory", SS_UNDEF, memory, SR_NS, NULL);
 }
 
@@ -752,6 +754,11 @@ se_metart(se *e, semetart *rt)
 	rt->memory_used     = ss_quotaused(&e->quota);
 	rt->pager_pools     = e->pager.pools;
 	rt->pager_pool_size = e->pager.pool_size;
+
+	ss_spinlock(&e->stat.lock);
+	rt->v_count = e->stat.v_count;
+	rt->v_allocated = e->stat.v_allocated;
+	ss_spinunlock(&e->stat.lock);
 
 	/* scheduler */
 	ss_mutexlock(&e->sched.lock);

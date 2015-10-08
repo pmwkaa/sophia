@@ -58,7 +58,7 @@ int si_queryclose(siquery *q)
 static inline int
 si_querydup(siquery *q, sv *result)
 {
-	svv *v = sv_vdup(q->r->a, result);
+	svv *v = sv_vdup(q->r, result);
 	if (ssunlikely(v == NULL))
 		return sr_oom(q->r->e);
 	sv_init(&q->result, &sv_vif, v, NULL);

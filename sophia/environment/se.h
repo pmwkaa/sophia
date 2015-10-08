@@ -53,6 +53,7 @@ struct se {
 	sxmanager   xm;
 	sescheduler sched;
 	srerror     error;
+	srstat      stat;
 	ssinjection ei;
 	sr          r;
 };

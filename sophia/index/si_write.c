@@ -73,12 +73,12 @@ void si_write(sitx *t, int check)
 	while (c) {
 		svv *v = cv->v.v;
 		if (check && si_querycommited(t->index, r, &cv->v)) {
-			uint32_t gc = si_gcv(r->a, v);
+			uint32_t gc = si_gcv(r, v);
 			ss_quota(r->quota, SS_QREMOVE, gc);
 			goto next;
 		}
 		if (v->flags & SVGET) {
-			sv_vfree(r->a, v);
+			sv_vfree(r, v);
 			goto next;
 		}
 		si_set(t, v);

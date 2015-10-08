@@ -208,12 +208,12 @@ int si_nodefree(sinode *n, sr *r, int gc)
 }
 
 ss_rbtruncate(si_nodegc_indexgc,
-              si_gcv((ssa*)arg, sscast(n, svv, node)))
+              si_gcv((sr*)arg, sscast(n, svv, node)))
 
 int si_nodegc_index(sr *r, svindex *i)
 {
 	if (i->i.root)
-		si_nodegc_indexgc(i->i.root, r->a);
+		si_nodegc_indexgc(i->i.root, r);
 	sv_indexinit(i);
 	return 0;
 }

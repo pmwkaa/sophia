@@ -69,8 +69,8 @@ sv_writeiter_iter(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -166,8 +166,8 @@ sv_writeiter_limit(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -264,8 +264,8 @@ sv_writeiter_limit_small(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -336,8 +336,8 @@ sv_writeiter_dup_lsn_gt(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -400,8 +400,8 @@ sv_writeiter_dup_lsn_lt0(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -464,8 +464,8 @@ sv_writeiter_dup_lsn_lt1(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -528,8 +528,8 @@ sv_writeiter_dup_lsn_lt2(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -593,8 +593,8 @@ sv_writeiter_dup_lsn_gt_chain(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -660,8 +660,8 @@ sv_writeiter_dup_lsn_lt0_chain(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -729,8 +729,8 @@ sv_writeiter_dup_lsn_lt1_chain(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -800,8 +800,8 @@ sv_writeiter_dup_lsn_lt2_chain(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -853,8 +853,8 @@ sv_writeiter_dup_lsn_limit0(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -908,8 +908,8 @@ sv_writeiter_dup_lsn_limit1(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -964,8 +964,8 @@ sv_writeiter_dup_lsn_limit2(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -1019,8 +1019,8 @@ sv_writeiter_dup_lsn_limit3(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -1081,8 +1081,8 @@ sv_writeiter_dup_lsn_limit4(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -1143,8 +1143,8 @@ sv_writeiter_dup_lsn_limit5(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -1207,8 +1207,8 @@ sv_writeiter_delete0(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -1271,8 +1271,8 @@ sv_writeiter_delete1(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -1335,8 +1335,8 @@ sv_writeiter_delete2(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -1399,8 +1399,8 @@ sv_writeiter_delete3(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -1463,8 +1463,8 @@ sv_writeiter_delete4(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -1527,8 +1527,8 @@ sv_writeiter_delete5(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -1596,8 +1596,8 @@ sv_writeiter_delete6(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -1666,8 +1666,8 @@ sv_writeiter_delete7(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -1746,8 +1746,8 @@ sv_writeiter_delete8(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -1806,8 +1806,8 @@ sv_writeiter_duprange0(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 
@@ -1866,8 +1866,8 @@ sv_writeiter_duprange1(void)
 
 	sv_mergefree(&m, &st_r.a);
 
-	st_listfree(&vlista, &st_r.a);
-	st_listfree(&vlistb, &st_r.a);
+	st_listfree(&vlista, &st_r.r);
+	st_listfree(&vlistb, &st_r.r);
 	sv_updatefree(&u, &st_r.r);
 }
 

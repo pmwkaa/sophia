@@ -28,7 +28,7 @@ addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 	sv vv;
 	sv_init(&vv, &sv_vif, v, NULL);
 	sd_buildadd(b, r, &vv, flags & SVDUP);
-	sv_vfree(r->a, v);
+	sv_vfree(r, v);
 }
 
 static void

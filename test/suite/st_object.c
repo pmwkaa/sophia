@@ -25,7 +25,7 @@ void *st_object_generate(stgenerator *g, sf fmt, stlist *l, void *db,
 	assert(l->svv == 1);
 	int rc = ss_bufadd(&l->list, g->r->a, &v, sizeof(svv**));
 	if (ssunlikely(rc == -1)) {
-		sv_vfree(g->r->a, v);
+		sv_vfree(g->r, v);
 		return NULL;
 	}
 	void *o = sp_object(db);
@@ -122,5 +122,5 @@ void st_object_eq(stgenerator *g, sf fmt, void *o,
 		break;
 	}
 	}
-	sv_vfree(g->r->a, v);
+	sv_vfree(g->r, v);
 }

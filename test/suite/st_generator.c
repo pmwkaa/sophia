@@ -92,7 +92,7 @@ st_svv_va(stgenerator *g, stlist *l, uint64_t lsn, uint8_t flags, va_list args)
 	assert(l->svv == 1);
 	int rc = ss_bufadd(&l->list, g->r->a, &v, sizeof(svv**));
 	if (ssunlikely(rc == -1)) {
-		sv_vfree(g->r->a, v);
+		sv_vfree(g->r, v);
 		return NULL;
 	}
 	return v;
@@ -117,7 +117,7 @@ sv *st_sv(stgenerator *g, stlist *l, uint64_t lsn, uint8_t flags, ...)
 		return NULL;
 	sv *vp = ss_malloc(g->r->a, sizeof(sv));
 	if (vp == NULL) {
-		sv_vfree(g->r->a, v);
+		sv_vfree(g->r, v);
 		return NULL;
 	}
 	sv_init(vp, &sv_vif, v, NULL);
@@ -127,7 +127,7 @@ sv *st_sv(stgenerator *g, stlist *l, uint64_t lsn, uint8_t flags, ...)
 	int rc = ss_bufadd(&l->list, g->r->a, &vp, sizeof(sv**));
 	if (ssunlikely(rc == -1)) {
 		ss_free(g->r->a, vp);
-		sv_vfree(g->r->a, v);
+		sv_vfree(g->r, v);
 		return NULL;
 	}
 	return vp;

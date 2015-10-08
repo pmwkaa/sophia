@@ -11,6 +11,7 @@
 
 #include <sr_version.h>
 #include <sr_error.h>
+#include <sr_stat.h>
 #include <sr_seq.h>
 #include <sr_scheme.h>
 #include <sr.h>

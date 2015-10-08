@@ -27,6 +27,8 @@ struct semetart {
 	uint64_t  memory_used;
 	uint32_t  pager_pools;
 	uint32_t  pager_pool_size;
+	uint64_t  v_count;
+	uint64_t  v_allocated;
 	/* scheduler */
 	char      zone[4];
 	uint32_t  checkpoint_active;

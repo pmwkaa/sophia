@@ -32,7 +32,7 @@ se_batchrollback(so *o)
 	{
 		svlogv *lv = ss_iterof(ss_bufiter, &i);
 		gc += sv_vsize((svv*)lv->v.v);
-		sv_vfree(&e->a, lv->v.v);
+		sv_vfree(&e->r, lv->v.v);
 	}
 	ss_quota(&e->quota, SS_QREMOVE, gc);
 	sv_logfree(&b->log, &e->a);

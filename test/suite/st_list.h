@@ -24,7 +24,7 @@ st_listinit(stlist *l, int svv)
 }
 
 static inline void
-st_listfree(stlist *l, ssa *a)
+st_listfree(stlist *l, sr *r)
 {
 	ssiter i;
 	ss_iterinit(ss_bufiterref, &i);
@@ -32,19 +32,19 @@ st_listfree(stlist *l, ssa *a)
 		ss_iteropen(ss_bufiterref, &i, &l->list, sizeof(svv*));
 		while (ss_iteratorhas(&i)) {
 			svv *v = (svv*)ss_iteratorof(&i);
-			sv_vfree(a, v);
+			sv_vfree(r, v);
 			ss_iteratornext(&i);
 		}
 	} else {
 		ss_iteropen(ss_bufiterref, &i, &l->list, sizeof(sv*));
 		while (ss_iteratorhas(&i)) {
 			sv *v = (sv*)ss_iteratorof(&i);
-			sv_vfree(a, v->v);
-			ss_free(a, v);
+			sv_vfree(r, v->v);
+			ss_free(r->a, v);
 			ss_iteratornext(&i);
 		}
 	}
-	ss_buffree(&l->list, a);
+	ss_buffree(&l->list, r->a);
 }
 
 #endif

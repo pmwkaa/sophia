@@ -58,7 +58,7 @@ int sx_indexset(sxindex *i, uint32_t dsn)
 }
 
 ss_rbtruncate(sx_truncate,
-              sx_vfreeall(((ssa**)arg)[0],
+              sx_vfreeall(((sr** )arg)[0],
                           ((ssa**)arg)[1], sscast(n, sxv, node)))
 
 static inline void
@@ -66,8 +66,8 @@ sx_indextruncate(sxindex *i, sxmanager *m)
 {
 	if (i->i.root == NULL)
 		return;
-	ssa *allocators[2] = { m->r->a, m->asxv };
-	sx_truncate(i->i.root, allocators);
+	void *argv[2] = { m->r, m->asxv };
+	sx_truncate(i->i.root, argv);
 	ss_rbinit(&i->i);
 }
 
@@ -222,7 +222,7 @@ sx_garbage_collect(sxmanager *m)
 				ss_rbreplace(&i->i, &v->node, &v->next->node);
 		}
 		sx_vunlink(v);
-		sx_vfree(m->r->a, m->asxv, v);
+		sx_vfree(m->r, m->asxv, v);
 	}
 
 	m->count_gc = count;
@@ -276,7 +276,7 @@ sx_rollback_svp(sx *x, ssiter *i, int free)
 		if (free) {
 			if (sslikely(! (v->v->flags & SVGET)))
 				gc += sv_vsize((svv*)v->v);
-			sx_vfree(m->r->a, m->asxv, v);
+			sx_vfree(m->r, m->asxv, v);
 		}
 	}
 	ss_quota(m->r->quota, SS_QREMOVE, gc);
@@ -295,7 +295,7 @@ sxstate sx_rollback(sx *x)
 			svlogv *lv = ss_iterof(ss_bufiter, &i);
 			svv *v = lv->v.v;
 			assert(v->refs >= 2);
-			sv_vfree(m->r->a, v);
+			sv_vfree(m->r, v);
 		}
 		sx_promote(x, SXROLLBACK);
 		return SXROLLBACK;
@@ -393,7 +393,7 @@ int sx_set(sx *x, sxindex *index, svv *version)
 	/* allocate mvcc container */
 	sxv *v = sx_valloc(m->asxv, version);
 	if (ssunlikely(v == NULL)) {
-		sv_vfree(r->a, version);
+		sv_vfree(r, version);
 		return -1;
 	}
 	v->id = x->id;
@@ -431,7 +431,7 @@ int sx_set(sx *x, sxindex *index, svv *version)
 		if (ssunlikely(version->flags & SVUPDATE)) {
 			sr_error(r->e, "%s", "only one update statement is "
 			         "allowed per a transaction key");
-			sx_vfree(r->a, m->asxv, v);
+			sx_vfree(r, m->asxv, v);
 			return -1;
 		}
 		/* replace old object with the new one */
@@ -443,14 +443,14 @@ int sx_set(sx *x, sxindex *index, svv *version)
 		/* update log */
 		sv_logreplace(&x->log, v->lo, &lv);
 		ss_quota(r->quota, SS_QREMOVE, sv_vsize(own->v));
-		sx_vfree(r->a, m->asxv, own);
+		sx_vfree(r, m->asxv, own);
 		return 0;
 	}
 	/* update log */
 	v->lo = sv_logcount(&x->log);
 	rc = sv_logadd(&x->log, r->a, &lv, index->ptr);
 	if (ssunlikely(rc == -1)) {
-		sx_vfree(r->a, m->asxv, v);
+		sx_vfree(r, m->asxv, v);
 		return sr_oom(r->e);
 	}
 	/* add version */
@@ -479,7 +479,7 @@ int sx_get(sx *x, sxindex *index, sv *key, sv *result)
 		return 2;
 	sv vv;
 	sv_init(&vv, &sv_vif, v->v, NULL);
-	svv *ret = sv_vdup(m->r->a, &vv);
+	svv *ret = sv_vdup(m->r, &vv);
 	if (ssunlikely(ret == NULL)) {
 		rc = sr_oom(m->r->e);
 	} else {

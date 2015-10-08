@@ -28,7 +28,7 @@ addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 	sv vv;
 	sv_init(&vv, &sv_vif, v, NULL);
 	sd_buildadd(b, r, &vv, flags & SVDUP);
-	sv_vfree(r->a, v);
+	sv_vfree(r, v);
 }
 
 static void
@@ -131,13 +131,16 @@ sd_build_compression_zstd(void)
 	t( sr_keyset(part, &a, "u32") == 0 );
 	ssinjection ij;
 	memset(&ij, 0, sizeof(ij));
+	srstat stat;
+	memset(&stat, 0, sizeof(stat));
 	srerror error;
 	sr_errorinit(&error);
 	srseq seq;
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, &ss_zstdfilter);
+	sr_init(&r, &error, &a, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp,
+	        &ij, &stat, crc, &ss_zstdfilter);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -182,13 +185,16 @@ sd_build_compression_lz4(void)
 	t( sr_keyset(part, &a, "u32") == 0 );
 	ssinjection ij;
 	memset(&ij, 0, sizeof(ij));
+	srstat stat;
+	memset(&stat, 0, sizeof(stat));
 	srerror error;
 	sr_errorinit(&error);
 	srseq seq;
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij, crc, &ss_lz4filter);
+	sr_init(&r, &error, &a, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp,
+	        &ij, &stat, crc, &ss_lz4filter);
 
 	sdbuild b;
 	sd_buildinit(&b);
