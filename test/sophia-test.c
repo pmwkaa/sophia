@@ -90,8 +90,8 @@ extern stgroup *multithread_group(void);
 extern stgroup *multithread_be_group(void);
 extern stgroup *multithread_be_multipass_group(void);
 
-/* profile */
-extern stgroup *profile_group(void);
+/* leak */
+extern stgroup *leak_group(void);
 
 static void
 usage(char *path, int error) {
@@ -351,6 +351,16 @@ main(int argc, char *argv[])
 	st_suiteadd(&st_r.suite, plan);
 #endif
 
+	plan = st_plan("memory");
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rmrf"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "init"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rt"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
+	st_planadd(plan, leak_group());
+	st_suiteadd(&st_r.suite, plan);
+
 	plan = st_plan("recover_crash");
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rmrf"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "init"));
@@ -407,37 +417,6 @@ main(int argc, char *argv[])
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
 	st_planadd(plan, multithread_be_multipass_group());
 	st_suiteadd(&st_r.suite, plan);
-
-	if ( !full) {
-		plan = st_plan("profile");
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rmrf"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "init"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rt"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "env"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "thread_5"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "open"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "destroy"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
-		st_planadd(plan, profile_group());
-		st_suiteadd(&st_r.suite, plan);
-	} else {
-		plan = st_plan("profile");
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rmrf"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "init"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rt"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "env"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "thread_5"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_storage"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "open"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "destroy"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
-		st_planadd(plan, profile_group());
-		st_suiteadd(&st_r.suite, plan);
-	}
 
 	st_run();
 	st_free();
