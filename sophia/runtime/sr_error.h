@@ -118,7 +118,7 @@ sr_errorset(srerror *e, int type,
 }
 
 #define sr_e(e, type, fmt, ...) \
-	sr_errorset(e, type, __FILE__, __FUNCTION__, __LINE__, fmt, __VA_ARGS__)
+	sr_errorset(e, type, __FILE__, __func__, __LINE__, fmt, __VA_ARGS__)
 
 #define sr_error(e, fmt, ...) \
 	sr_e(e, SR_ERROR, fmt, __VA_ARGS__)

@@ -51,9 +51,9 @@ SP_API void *sp_env(void)
 
 SP_API void *sp_object(void *ptr)
 {
-	so *o = sp_cast(ptr, __FUNCTION__);
+	so *o = sp_cast(ptr, __func__);
 	if (ssunlikely(o->i->object == NULL)) {
-		sp_unsupported(o, __FUNCTION__);
+		sp_unsupported(o, __func__);
 		return NULL;
 	}
 	so *e = o->env;
@@ -65,9 +65,9 @@ SP_API void *sp_object(void *ptr)
 
 SP_API int sp_open(void *ptr)
 {
-	so *o = sp_cast(ptr, __FUNCTION__);
+	so *o = sp_cast(ptr, __func__);
 	if (ssunlikely(o->i->open == NULL)) {
-		sp_unsupported(o, __FUNCTION__);
+		sp_unsupported(o, __func__);
 		return -1;
 	}
 	so *e = o->env;
@@ -79,9 +79,9 @@ SP_API int sp_open(void *ptr)
 
 SP_API int sp_drop(void *ptr)
 {
-	so *o = sp_cast(ptr, __FUNCTION__);
+	so *o = sp_cast(ptr, __func__);
 	if (ssunlikely(o->i->drop == NULL)) {
-		sp_unsupported(o, __FUNCTION__);
+		sp_unsupported(o, __func__);
 		return -1;
 	}
 	so *e = o->env;
@@ -93,9 +93,9 @@ SP_API int sp_drop(void *ptr)
 
 SP_API int sp_destroy(void *ptr)
 {
-	so *o = sp_cast(ptr, __FUNCTION__);
+	so *o = sp_cast(ptr, __func__);
 	if (ssunlikely(o->i->destroy == NULL)) {
-		sp_unsupported(o, __FUNCTION__);
+		sp_unsupported(o, __func__);
 		return -1;
 	}
 	so *e = o->env;
@@ -112,9 +112,9 @@ SP_API int sp_destroy(void *ptr)
 
 SP_API int sp_error(void *ptr)
 {
-	so *o = sp_cast(ptr, __FUNCTION__);
+	so *o = sp_cast(ptr, __func__);
 	if (ssunlikely(o->i->error == NULL)) {
-		sp_unsupported(o, __FUNCTION__);
+		sp_unsupported(o, __func__);
 		return -1;
 	}
 	so *e = o->env;
@@ -126,9 +126,9 @@ SP_API int sp_error(void *ptr)
 
 SP_API void *sp_asynchronous(void *ptr)
 {
-	so *o = sp_cast(ptr, __FUNCTION__);
+	so *o = sp_cast(ptr, __func__);
 	if (ssunlikely(o->i->asynchronous == NULL)) {
-		sp_unsupported(o, __FUNCTION__);
+		sp_unsupported(o, __func__);
 		return NULL;
 	}
 	so *e = o->env;
@@ -140,9 +140,9 @@ SP_API void *sp_asynchronous(void *ptr)
 
 SP_API void *sp_poll(void *ptr)
 {
-	so *o = sp_cast(ptr, __FUNCTION__);
+	so *o = sp_cast(ptr, __func__);
 	if (ssunlikely(o->i->poll == NULL)) {
-		sp_unsupported(o, __FUNCTION__);
+		sp_unsupported(o, __func__);
 		return NULL;
 	}
 	so *e = o->env;
@@ -154,9 +154,9 @@ SP_API void *sp_poll(void *ptr)
 
 SP_API int sp_setobject(void *ptr, const char *path, const void *object)
 {
-	so *o = sp_cast(ptr, __FUNCTION__);
+	so *o = sp_cast(ptr, __func__);
 	if (ssunlikely(o->i->setobject == NULL)) {
-		sp_unsupported(o, __FUNCTION__);
+		sp_unsupported(o, __func__);
 		return -1;
 	}
 	so *e = o->env;
@@ -168,9 +168,9 @@ SP_API int sp_setobject(void *ptr, const char *path, const void *object)
 
 SP_API int sp_setstring(void *ptr, const char *path, const void *pointer, int size)
 {
-	so *o = sp_cast(ptr, __FUNCTION__);
+	so *o = sp_cast(ptr, __func__);
 	if (ssunlikely(o->i->setstring == NULL)) {
-		sp_unsupported(o, __FUNCTION__);
+		sp_unsupported(o, __func__);
 		return -1;
 	}
 	so *e = o->env;
@@ -182,9 +182,9 @@ SP_API int sp_setstring(void *ptr, const char *path, const void *pointer, int si
 
 SP_API int sp_setint(void *ptr, const char *path, int64_t v)
 {
-	so *o = sp_cast(ptr, __FUNCTION__);
+	so *o = sp_cast(ptr, __func__);
 	if (ssunlikely(o->i->setint == NULL)) {
-		sp_unsupported(o, __FUNCTION__);
+		sp_unsupported(o, __func__);
 		return -1;
 	}
 	so *e = o->env;
@@ -196,9 +196,9 @@ SP_API int sp_setint(void *ptr, const char *path, int64_t v)
 
 SP_API void *sp_getobject(void *ptr, const char *path)
 {
-	so *o = sp_cast(ptr, __FUNCTION__);
+	so *o = sp_cast(ptr, __func__);
 	if (ssunlikely(o->i->getobject == NULL)) {
-		sp_unsupported(o, __FUNCTION__);
+		sp_unsupported(o, __func__);
 		return NULL;
 	}
 	so *e = o->env;
@@ -210,9 +210,9 @@ SP_API void *sp_getobject(void *ptr, const char *path)
 
 SP_API void *sp_getstring(void *ptr, const char *path, int *size)
 {
-	so *o = sp_cast(ptr, __FUNCTION__);
+	so *o = sp_cast(ptr, __func__);
 	if (ssunlikely(o->i->getstring == NULL)) {
-		sp_unsupported(o, __FUNCTION__);
+		sp_unsupported(o, __func__);
 		return NULL;
 	}
 	so *e = o->env;
@@ -224,9 +224,9 @@ SP_API void *sp_getstring(void *ptr, const char *path, int *size)
 
 SP_API int64_t sp_getint(void *ptr, const char *path)
 {
-	so *o = sp_cast(ptr, __FUNCTION__);
+	so *o = sp_cast(ptr, __func__);
 	if (ssunlikely(o->i->getint == NULL)) {
-		sp_unsupported(o, __FUNCTION__);
+		sp_unsupported(o, __func__);
 		return -1;
 	}
 	so *e = o->env;
@@ -238,9 +238,9 @@ SP_API int64_t sp_getint(void *ptr, const char *path)
 
 SP_API int sp_set(void *ptr, void *v)
 {
-	so *o = sp_cast(ptr, __FUNCTION__);
+	so *o = sp_cast(ptr, __func__);
 	if (ssunlikely(o->i->set == NULL)) {
-		sp_unsupported(o, __FUNCTION__);
+		sp_unsupported(o, __func__);
 		return -1;
 	}
 	so *e = o->env;
@@ -252,9 +252,9 @@ SP_API int sp_set(void *ptr, void *v)
 
 SP_API int sp_update(void *ptr, void *v)
 {
-	so *o = sp_cast(ptr, __FUNCTION__);
+	so *o = sp_cast(ptr, __func__);
 	if (ssunlikely(o->i->update == NULL)) {
-		sp_unsupported(o, __FUNCTION__);
+		sp_unsupported(o, __func__);
 		return -1;
 	}
 	so *e = o->env;
@@ -266,9 +266,9 @@ SP_API int sp_update(void *ptr, void *v)
 
 SP_API int sp_delete(void *ptr, void *v)
 {
-	so *o = sp_cast(ptr, __FUNCTION__);
+	so *o = sp_cast(ptr, __func__);
 	if (ssunlikely(o->i->del == NULL)) {
-		sp_unsupported(o, __FUNCTION__);
+		sp_unsupported(o, __func__);
 		return -1;
 	}
 	so *e = o->env;
@@ -280,9 +280,9 @@ SP_API int sp_delete(void *ptr, void *v)
 
 SP_API void *sp_get(void *ptr, void *v)
 {
-	so *o = sp_cast(ptr, __FUNCTION__);
+	so *o = sp_cast(ptr, __func__);
 	if (ssunlikely(o->i->get == NULL)) {
-		sp_unsupported(o, __FUNCTION__);
+		sp_unsupported(o, __func__);
 		return NULL;
 	}
 	so *e = o->env;
@@ -294,9 +294,9 @@ SP_API void *sp_get(void *ptr, void *v)
 
 SP_API void *sp_cursor(void *ptr)
 {
-	so *o = sp_cast(ptr, __FUNCTION__);
+	so *o = sp_cast(ptr, __func__);
 	if (ssunlikely(o->i->cursor == NULL)) {
-		sp_unsupported(o, __FUNCTION__);
+		sp_unsupported(o, __func__);
 		return NULL;
 	}
 	so *e = o->env;
@@ -308,9 +308,9 @@ SP_API void *sp_cursor(void *ptr)
 
 SP_API void *sp_batch(void *ptr)
 {
-	so *o = sp_cast(ptr, __FUNCTION__);
+	so *o = sp_cast(ptr, __func__);
 	if (ssunlikely(o->i->batch == NULL)) {
-		sp_unsupported(o, __FUNCTION__);
+		sp_unsupported(o, __func__);
 		return NULL;
 	}
 	so *e = o->env;
@@ -322,9 +322,9 @@ SP_API void *sp_batch(void *ptr)
 
 SP_API void *sp_begin(void *ptr)
 {
-	so *o = sp_cast(ptr, __FUNCTION__);
+	so *o = sp_cast(ptr, __func__);
 	if (ssunlikely(o->i->begin == NULL)) {
-		sp_unsupported(o, __FUNCTION__);
+		sp_unsupported(o, __func__);
 		return NULL;
 	}
 	so *e = o->env;
@@ -336,9 +336,9 @@ SP_API void *sp_begin(void *ptr)
 
 SP_API int sp_prepare(void *ptr)
 {
-	so *o = sp_cast(ptr, __FUNCTION__);
+	so *o = sp_cast(ptr, __func__);
 	if (ssunlikely(o->i->prepare == NULL)) {
-		sp_unsupported(o, __FUNCTION__);
+		sp_unsupported(o, __func__);
 		return -1;
 	}
 	so *e = o->env;
@@ -350,9 +350,9 @@ SP_API int sp_prepare(void *ptr)
 
 SP_API int sp_commit(void *ptr)
 {
-	so *o = sp_cast(ptr, __FUNCTION__);
+	so *o = sp_cast(ptr, __func__);
 	if (ssunlikely(o->i->commit == NULL)) {
-		sp_unsupported(o, __FUNCTION__);
+		sp_unsupported(o, __func__);
 		return -1;
 	}
 	so *e = o->env;

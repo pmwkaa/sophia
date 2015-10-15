@@ -76,7 +76,7 @@ so_cast_dynamic(void *ptr, sotype *type,
 }
 
 #define so_cast(o, cast, type) \
-	((cast)so_cast_dynamic(o, type, __FILE__, __FUNCTION__, __LINE__))
+	((cast)so_cast_dynamic(o, type, __FILE__, __func__, __LINE__))
 
 #define so_open(o)         (o)->i->open(o)
 #define so_destroy(o)      (o)->i->destroy(o)

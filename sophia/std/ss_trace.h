@@ -69,6 +69,6 @@ ss_traceset(sstrace *t,
 }
 
 #define ss_trace(t, fmt, ...) \
-	ss_traceset(t, __FILE__, __FUNCTION__, __LINE__, fmt, __VA_ARGS__)
+	ss_traceset(t, __FILE__, __func__, __LINE__, fmt, __VA_ARGS__)
 
 #endif
