@@ -354,19 +354,17 @@ sxstate sx_commit(sx *x)
 		sxv *v = lv->v.v;
 		if ((int)v->lo == x->log_read)
 			break;
-
-		/* mark stmt as commited */
-		sx_vcommit(v, csn);
-
 		/* abort conflict reader */
 		if (v->prev && !sx_vcommitted(v->prev)) {
 			assert(v->prev->v->flags & SVGET);
 			sx_vabort(v->prev);
 		}
-
 		/* abort waiters */
 		sx_vabort_all(v->next);
-
+		/* mark stmt as commited */
+		sx_vcommit(v, csn);
+		/* translate log version from sxv to svv */
+		sv_init(&lv->v, &sv_vif, v->v, NULL);
 		/* schedule read stmt for gc */
 		if (v->v->flags & SVGET) {
 			sv_vref(v->v);
@@ -375,10 +373,8 @@ sxstate sx_commit(sx *x)
 			m->count_gc++;
 		} else {
 			sx_untrack(v);
+			ss_free(m->asxv, v);
 		}
-
-		/* translate log version from sxv to svv */
-		sv_init(&lv->v, &sv_vif, v->v, NULL);
 	}
 
 	/* rollback latest reads */
