@@ -23,6 +23,8 @@ struct sdreadarg {
 	ssblob   *memory;
 	ssfile   *file;
 	ssorder   o;
+	int       has;
+	uint64_t  has_vlsn;
 	int       use_compression;
 	int       use_memory;
 	int       use_mmap;
@@ -168,6 +170,13 @@ sd_read_open(ssiter *iptr, sdreadarg *arg, void *key, int keysize)
 	if (ssunlikely(rc == -1)) {
 		i->ref = NULL;
 		return -1;
+	}
+	if (ssunlikely(arg->has)) {
+		assert(arg->o == SS_GTE);
+		if (i->ref->lsnmax <= arg->has_vlsn) {
+			i->ref = NULL;
+			return 0;
+		}
 	}
 	if (ssunlikely(! ss_iterhas(sd_pageiter, i->ra.page_iter))) {
 		sd_read_next(iptr);

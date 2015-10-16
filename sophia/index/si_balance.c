@@ -263,6 +263,8 @@ int si_compact(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 			.use_memory      = index->scheme->in_memory,
 			.use_mmap        = use_mmap,
 			.use_mmap_copy   = 0,
+			.has             = 0,
+			.has_vlsn        = 0,
 			.o               = SS_GTE,
 			.memory          = &b->copy,
 			.mmap            = map,

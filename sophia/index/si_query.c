@@ -28,6 +28,7 @@ int si_queryopen(siquery *q, sicache *c, si *i, ssorder o,
 	q->cache      = c;
 	q->prefix     = prefix;
 	q->prefixsize = prefixsize;
+	q->has        = 0;
 	q->update_v   = NULL;
 	q->update_eq  = 0;
 	q->cache_only = 0;
@@ -40,6 +41,11 @@ int si_queryopen(siquery *q, sicache *c, si *i, ssorder o,
 void si_querycache_only(siquery *q)
 {
 	q->cache_only = 1;
+}
+
+void si_queryhas(siquery *q)
+{
+	q->has = 1;
 }
 
 void si_queryupdate(siquery *q, sv *v, int eq)
@@ -83,6 +89,8 @@ si_qgetresult(siquery *q, sv *v, int compare)
 		if (ssunlikely(! rc))
 			return 0;
 	}
+	if (ssunlikely(q->has))
+		return sv_lsn(v) < q->vlsn;
 	if (ssunlikely(sv_is(v, SVDELETE)))
 		return 2;
 	rc = si_querydup(q, v);
@@ -116,9 +124,12 @@ si_qgetindex(siquery *q, sinode *node)
 result:;
 	sv *v = ss_iterof(sv_indexiter, &i);
 	assert(v != NULL);
-	svv *visible = sv_visible((svv*)v->v, q->vlsn);
-	if (visible == NULL)
-		return 0;
+	svv *visible = v->v;
+	if (sslikely(! q->has)) {
+		visible = sv_visible(visible, q->vlsn);
+		if (visible == NULL)
+			return 0;
+	}
 	sv vret;
 	sv_init(&vret, &sv_vif, visible, NULL);
 	return si_qgetresult(q, &vret, 0);
@@ -140,6 +151,8 @@ si_qgetbranch(siquery *q, sinode *n, sibranch *b)
 		.use_memory      = q->index->scheme->in_memory,
 		.use_mmap        = q->index->scheme->mmap,
 		.use_mmap_copy   = 0,
+		.has             = q->has,
+		.has_vlsn        = q->vlsn,
 		.o               = SS_GTE,
 		.mmap            = &n->map,
 		.memory          = &b->copy,
@@ -157,9 +170,12 @@ si_qgetbranch(siquery *q, sinode *n, sibranch *b)
 	ssiter i;
 	ss_iterinit(sv_mergeiter, &i);
 	ss_iteropen(sv_mergeiter, &i, q->r, &q->merge, SS_GTE);
+	uint64_t vlsn = q->vlsn;
+	if (ssunlikely(q->has))
+		vlsn = UINT64_MAX;
 	ssiter j;
 	ss_iterinit(sv_readiter, &j);
-	ss_iteropen(sv_readiter, &j, q->r, &i, &q->index->u, q->vlsn, 1);
+	ss_iteropen(sv_readiter, &j, q->r, &i, &q->index->u, vlsn, 1);
 	sv *v = ss_iterof(sv_readiter, &j);
 	if (ssunlikely(v == NULL))
 		return 0;
@@ -232,6 +248,8 @@ si_qrangebranch(siquery *q, sinode *n, sibranch *b, svmerge *m)
 		.use_memory      = q->index->scheme->in_memory,
 		.use_mmap        = q->index->scheme->mmap,
 		.use_mmap_copy   = 1,
+		.has             = 0,
+		.has_vlsn        = 0,
 		.o               = q->order,
 		.memory          = &b->copy,
 		.mmap            = &n->map,
@@ -253,6 +271,8 @@ si_qrangebranch(siquery *q, sinode *n, sibranch *b, svmerge *m)
 static inline int
 si_qrange(siquery *q)
 {
+	assert(q->has == 0);
+
 	ssiter i;
 	ss_iterinit(si_iter, &i);
 	ss_iteropen(si_iter, &i, q->r, q->index, q->order, q->key, q->keysize);

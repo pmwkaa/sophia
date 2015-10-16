@@ -93,6 +93,8 @@ sd_read_gt0(void)
 		.use_memory      = 0,
 		.use_mmap        = 1,
 		.use_mmap_copy   = 0,
+		.has             = 0,
+		.has_vlsn        = 0,
 		.r               = &st_r.r
 	};
 
@@ -218,6 +220,8 @@ sd_read_gt1(void)
 		.use_memory      = 0,
 		.use_mmap        = 1,
 		.use_mmap_copy   = 0,
+		.has             = 0,
+		.has_vlsn        = 0,
 		.r               = &st_r.r
 	};
 
@@ -356,6 +360,8 @@ sd_read_gt0_compression_zstd(void)
 		.use_memory      = 0,
 		.use_mmap        = 1,
 		.use_mmap_copy   = 0,
+		.has             = 0,
+		.has_vlsn        = 0,
 		.r               = &r
 	};
 
@@ -474,6 +480,8 @@ sd_read_gt0_compression_lz4(void)
 		.use_memory      = 0,
 		.use_mmap        = 1,
 		.use_mmap_copy   = 0,
+		.has             = 0,
+		.has_vlsn        = 0,
 		.r               = &r
 	};
 
@@ -623,6 +631,8 @@ sd_read_gt1_compression_zstd(void)
 		.use_memory      = 0,
 		.use_mmap        = 1,
 		.use_mmap_copy   = 0,
+		.has             = 0,
+		.has_vlsn        = 0,
 		.r               = &r
 	};
 
@@ -795,6 +805,8 @@ sd_read_gt1_compression_lz4(void)
 		.use_memory      = 0,
 		.use_mmap        = 1,
 		.use_mmap_copy   = 0,
+		.has             = 0,
+		.has_vlsn        = 0,
 		.r               = &r
 	};
 
