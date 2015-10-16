@@ -25,6 +25,7 @@ struct sereqarg {
 	sicache  *cache;
 	int       cachegc;
 	ssorder   order;
+	int       has;
 	int       update;
 	int       update_eq;
 	int       cache_only;

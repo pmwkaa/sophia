@@ -325,7 +325,7 @@ leak_tx_tx_set_commit(void)
 
 	t( sp_getint(env, "memory.v_count") == 2 );
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_getint(env, "memory.v_count") == 2 );
+	t( sp_getint(env, "memory.v_count") == 0 );
 
 	t( sp_commit(a) == 0 );
 	t( sp_getint(env, "memory.v_count") == 0 );

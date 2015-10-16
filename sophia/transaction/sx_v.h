@@ -61,7 +61,8 @@ sx_vfreeall(sr *r, ssa *asxv, sxv *v)
 }
 
 static inline sxv*
-sx_vmatch(sxv *head, uint32_t id) {
+sx_vmatch(sxv *head, uint32_t id)
+{
 	sxv *c = head;
 	while (c) {
 		if (c->id == id)
@@ -72,7 +73,8 @@ sx_vmatch(sxv *head, uint32_t id) {
 }
 
 static inline void
-sx_vreplace(sxv *v, sxv *n) {
+sx_vreplace(sxv *v, sxv *n)
+{
 	if (v->prev)
 		v->prev->next = n;
 	if (v->next)
@@ -82,7 +84,8 @@ sx_vreplace(sxv *v, sxv *n) {
 }
 
 static inline void
-sx_vlink(sxv *head, sxv *v) {
+sx_vlink(sxv *head, sxv *v)
+{
 	sxv *c = head;
 	while (c->next)
 		c = c->next;
@@ -92,7 +95,8 @@ sx_vlink(sxv *head, sxv *v) {
 }
 
 static inline void
-sx_vunlink(sxv *v) {
+sx_vunlink(sxv *v)
+{
 	if (v->prev)
 		v->prev->next = v->next;
 	if (v->next)
@@ -113,6 +117,27 @@ static inline int
 sx_vcommitted(sxv *v)
 {
 	return v->id == UINT32_MAX && v->lo == UINT32_MAX;
+}
+
+static inline void
+sx_vabort(sxv *v)
+{
+	v->v->flags |= SVCONFLICT;
+}
+
+static inline void
+sx_vabort_all(sxv *v)
+{
+	while (v) {
+		sx_vabort(v);
+		v = v->next;
+	}
+}
+
+static inline int
+sx_vaborted(sxv *v)
+{
+	return v->v->flags & SVCONFLICT;
 }
 
 #endif

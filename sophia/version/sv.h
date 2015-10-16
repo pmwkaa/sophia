@@ -9,12 +9,13 @@
  * BSD License
 */
 
-#define SVNONE   0
-#define SVDELETE 1
-#define SVUPDATE 2
-#define SVGET    4
-#define SVDUP    8
-#define SVBEGIN  16
+#define SVNONE     0
+#define SVDELETE   1
+#define SVUPDATE   2
+#define SVGET      4
+#define SVDUP      8
+#define SVBEGIN    16
+#define SVCONFLICT 32
 
 typedef struct svif svif;
 typedef struct sv sv;

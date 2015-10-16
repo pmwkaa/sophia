@@ -54,6 +54,8 @@ int se_reqread(sereq *r)
 		si_queryupdate(&q, &arg->vup, arg->update_eq);
 	if (arg->cache_only)
 		si_querycache_only(&q);
+	if (arg->has)
+		si_queryhas(&q);
 	r->rc = si_query(&q);
 	r->v = q.result.v;
 	si_queryclose(&q);

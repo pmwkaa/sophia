@@ -457,7 +457,7 @@ se_dbwrite(sedb *db, sev *o, uint8_t flags)
 		ss_quota(&e->quota, SS_QREMOVE, sv_vsize(v));
 		return -1;
 	}
-	sxstate s = sx_prepare(&t);
+	sxstate s = sx_prepare(&t, NULL, NULL);
 	switch (s) {
 	case SXLOCK: sx_rollback(&t);
 		return 2;

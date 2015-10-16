@@ -90,7 +90,7 @@ si_qgetresult(siquery *q, sv *v, int compare)
 			return 0;
 	}
 	if (ssunlikely(q->has))
-		return sv_lsn(v) < q->vlsn;
+		return sv_lsn(v) > q->vlsn;
 	if (ssunlikely(sv_is(v, SVDELETE)))
 		return 2;
 	rc = si_querydup(q, v);

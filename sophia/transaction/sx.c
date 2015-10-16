@@ -148,7 +148,6 @@ sxstate sx_begin(sxmanager *m, sx *x, sxtype type, uint64_t vlsn)
 {
 	sx_promote(x, SXREADY);
 	x->type = type;
-	x->flags = 0;
 	x->log_read = -1;
 	sr_seqlock(m->r->seq);
 	x->csn = m->csn;
@@ -175,6 +174,19 @@ sxstate sx_begin(sxmanager *m, sx *x, sxtype type, uint64_t vlsn)
 	return SXREADY;
 }
 
+static inline void
+sx_untrack(sxv *v)
+{
+	if (v->prev == NULL) {
+		sxindex *i = v->index;
+		if (v->next == NULL)
+			ss_rbremove(&i->i, &v->node);
+		else
+			ss_rbreplace(&i->i, &v->node, &v->next->node);
+	}
+	sx_vunlink(v);
+}
+
 static inline uint64_t
 sx_csn(sxmanager *m)
 {
@@ -199,32 +211,24 @@ static inline void
 sx_garbage_collect(sxmanager *m)
 {
 	uint64_t min_csn = sx_csn(m);
-
 	sxv *gc = NULL;
 	uint32_t count = 0;
-
 	sxv *next;
 	sxv *v = m->gc;
 	for (; v; v = next)
 	{
 		next = v->gc;
-		if (!sx_vcommitted(v) || v->csn > min_csn) {
+		assert(v->v->flags & SVGET);
+		assert(sx_vcommitted(v));
+		if (v->csn > min_csn) {
 			v->gc = gc;
 			gc = v;
 			count++;
 			continue;
 		}
-		if (v->prev == NULL) {
-			sxindex *i = v->index;
-			if (v->next == NULL)
-				ss_rbremove(&i->i, &v->node);
-			else
-				ss_rbreplace(&i->i, &v->node, &v->next->node);
-		}
-		sx_vunlink(v);
+		sx_untrack(v);
 		sx_vfree(m->r, m->asxv, v);
 	}
-
 	m->count_gc = count;
 	m->gc = gc;
 }
@@ -263,14 +267,7 @@ sx_rollback_svp(sx *x, ssiter *i, int free)
 		sxv *v = lv->v.v;
 		/* remove from index and replace head with
 		 * a first waiter */
-		if (v->prev == NULL) {
-			sxindex *i = v->index;
-			if (v->next == NULL)
-				ss_rbremove(&i->i, &v->node);
-			else
-				ss_rbreplace(&i->i, &v->node, &v->next->node);
-		}
-		sx_vunlink(v);
+		sx_untrack(v);
 		/* translate log version from sxv to svv */
 		sv_init(&lv->v, &sv_vif, v->v, NULL);
 		if (free) {
@@ -294,7 +291,6 @@ sxstate sx_rollback(sx *x)
 		{
 			svlogv *lv = ss_iterof(ss_bufiter, &i);
 			svv *v = lv->v.v;
-			assert(v->refs >= 2);
 			sv_vfree(m->r, v);
 		}
 		sx_promote(x, SXROLLBACK);
@@ -306,13 +302,11 @@ sxstate sx_rollback(sx *x)
 	return SXROLLBACK;
 }
 
-sxstate sx_prepare(sx *x)
+sxstate sx_prepare(sx *x, sxpreparef prepare, void *arg)
 {
 	/* proceed read-only transactions */
 	if (x->type == SXRO || sv_logcount_write(&x->log) == 0)
 		return sx_promote(x, SXPREPARE);
-	if (x->flags & SXCONFLICT)
-		return sx_promote(x, SXROLLBACK);
 	ssiter i;
 	ss_iterinit(ss_bufiter, &i);
 	ss_iteropen(ss_bufiter, &i, &x->log.buf, sizeof(svlogv));
@@ -322,8 +316,16 @@ sxstate sx_prepare(sx *x)
 		sxv *v = lv->v.v;
 		if ((int)v->lo == x->log_read)
 			break;
-		if (v->prev == NULL)
+		if (sx_vaborted(v))
+			return sx_promote(x, SXROLLBACK);
+		if (sslikely(v->prev == NULL)) {
+			if (prepare) {
+				sxindex *i = v->index;
+				if (prepare(x, &lv->v, arg, i->ptr))
+					return sx_promote(x, SXROLLBACK);
+			}
 			continue;
+		}
 		if (sx_vcommitted(v->prev)) {
 			if (v->prev->csn > x->csn)
 				return sx_promote(x, SXROLLBACK);
@@ -352,20 +354,29 @@ sxstate sx_commit(sx *x)
 		sxv *v = lv->v.v;
 		if ((int)v->lo == x->log_read)
 			break;
+
+		/* mark stmt as commited */
+		sx_vcommit(v, csn);
+
 		/* abort conflict reader */
 		if (v->prev && !sx_vcommitted(v->prev)) {
 			assert(v->prev->v->flags & SVGET);
-			sx *conflict = sx_find(m, v->prev->id);
-			assert(conflict != NULL);
-			conflict->flags |= SXCONFLICT;
+			sx_vabort(v->prev);
 		}
-		/* mark stmt as commited */
-		sx_vcommit(v, csn);
-		sv_vref(v->v);
-		/* schedule stmt for gc */
-		v->gc = m->gc;
-		m->gc = v;
-		m->count_gc++;
+
+		/* abort waiters */
+		sx_vabort_all(v->next);
+
+		/* schedule read stmt for gc */
+		if (v->v->flags & SVGET) {
+			sv_vref(v->v);
+			v->gc = m->gc;
+			m->gc = v;
+			m->count_gc++;
+		} else {
+			sx_untrack(v);
+		}
+
 		/* translate log version from sxv to svv */
 		sv_init(&lv->v, &sv_vif, v->v, NULL);
 	}
@@ -437,6 +448,8 @@ int sx_set(sx *x, sxindex *index, svv *version)
 		/* replace old object with the new one */
 		lv.next = sv_logat(&x->log, own->lo)->next;
 		v->lo = own->lo;
+		if (ssunlikely(sx_vaborted(own)))
+			sx_vabort(v);
 		sx_vreplace(own, v);
 		if (sslikely(head == own))
 			ss_rbreplace(&index->i, &own->node, &v->node);

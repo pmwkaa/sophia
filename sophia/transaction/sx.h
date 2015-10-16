@@ -27,10 +27,6 @@ typedef enum {
 	SXRW
 } sxtype;
 
-enum {
-	SXCONFLICT = 1
-};
-
 struct sxindex {
 	ssrb      i;
 	uint32_t  dsn;
@@ -39,10 +35,11 @@ struct sxindex {
 	sslist    link;
 };
 
+typedef int (*sxpreparef)(sx*, sv*, void*, void*);
+
 struct sx {
 	sxtype     type;
 	sxstate    state;
-	int        flags;
 	uint32_t   id;
 	uint64_t   vlsn;
 	uint64_t   csn;
@@ -75,7 +72,7 @@ sx       *sx_find(sxmanager*, uint32_t);
 void      sx_init(sxmanager*, sx*);
 sxstate   sx_begin(sxmanager*, sx*, sxtype, uint64_t);
 void      sx_gc(sx*);
-sxstate   sx_prepare(sx*);
+sxstate   sx_prepare(sx*, sxpreparef, void*);
 sxstate   sx_commit(sx*);
 sxstate   sx_rollback(sx*);
 int       sx_set(sx*, sxindex*, svv*);

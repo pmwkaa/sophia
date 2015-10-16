@@ -144,6 +144,31 @@ se_txrollback(so *o)
 }
 
 static int
+se_txprepare(sx *x, sv *v, void *arg0, void *arg1)
+{
+	sicache *cache = arg0;
+	sedb *db = arg1;
+	se *e = se_of(&db->o);
+	uint64_t lsn = sr_seq(e->r.seq, SR_LSN);
+	if (x->vlsn == lsn)
+		return 0;
+	/* prepare request */
+	sereq q;
+	se_reqinit(e, &q, SE_REQREAD, &db->o, &db->o);
+	sereqarg *arg = &q.arg;
+	arg->v             = *v;
+	arg->cache         = cache;
+	arg->cachegc       = 0;
+	arg->order         = SS_EQ;
+	arg->has           = 1;
+	arg->vlsn          = x->vlsn;
+	arg->vlsn_generate = 0;
+	se_execute(&q);
+	se_reqend(&q);
+	return q.rc;
+}
+
+static int
 se_txcommit(so *o)
 {
 	setx *t = se_cast(o, setx*, SETX);
@@ -154,14 +179,24 @@ se_txcommit(so *o)
 	int recover = (status == SE_RECOVER);
 	/* prepare transaction */
 	if (ssunlikely(! sv_logcount(&t->t.log))) {
-		sx_prepare(&t->t);
+		sx_prepare(&t->t, NULL, NULL);
 		sx_commit(&t->t);
 		se_txend(t);
 		return 0;
 	}
 	if (t->t.state == SXREADY || t->t.state == SXLOCK)
 	{
-		sxstate s = sx_prepare(&t->t);
+		sicache *cache = NULL;
+		sxpreparef prepare = NULL;
+		if (! recover) {
+			prepare = se_txprepare;
+			cache = si_cachepool_pop(&e->cachepool);
+			if (ssunlikely(cache == NULL))
+				return sr_oom(&e->error);
+		}
+		sxstate s = sx_prepare(&t->t, prepare, cache);
+		if (cache)
+			si_cachepool_push(cache);
 		if (s == SXLOCK)
 			return 2;
 		if (s == SXROLLBACK) {
