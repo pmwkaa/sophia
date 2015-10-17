@@ -42,9 +42,9 @@ leak_set(void)
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	t( sp_getint(env, "memory.v_count") == 2 );
+	t( sp_getint(env, "performance.objects") == 2 );
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_getint(env, "memory.v_count") == 0 );
+	t( sp_getint(env, "performance.objects") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -71,18 +71,18 @@ leak_set_get(void)
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	t( sp_getint(env, "memory.v_count") == 1 );
+	t( sp_getint(env, "performance.objects") == 1 );
 
 	o = sp_object(db);
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
-	t( sp_getint(env, "memory.v_count") == 2 );
+	t( sp_getint(env, "performance.objects") == 2 );
 	sp_destroy(o);
-	t( sp_getint(env, "memory.v_count") == 1 );
+	t( sp_getint(env, "performance.objects") == 1 );
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_getint(env, "memory.v_count") == 0 );
+	t( sp_getint(env, "performance.objects") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -117,13 +117,13 @@ leak_batch_commit(void)
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(b, o) == 0 );
 
-	t( sp_getint(env, "memory.v_count") == 2 );
+	t( sp_getint(env, "performance.objects") == 2 );
 
 	t( sp_commit(b) == 0 );
 
-	t( sp_getint(env, "memory.v_count") == 2 );
+	t( sp_getint(env, "performance.objects") == 2 );
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_getint(env, "memory.v_count") == 0 );
+	t( sp_getint(env, "performance.objects") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -158,9 +158,9 @@ leak_batch_rollback(void)
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(b, o) == 0 );
 
-	t( sp_getint(env, "memory.v_count") == 2 );
+	t( sp_getint(env, "performance.objects") == 2 );
 	t( sp_destroy(b) == 0 );
-	t( sp_getint(env, "memory.v_count") == 0 );
+	t( sp_getint(env, "performance.objects") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -195,13 +195,13 @@ leak_tx_set_commit(void)
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(b, o) == 0 );
 
-	t( sp_getint(env, "memory.v_count") == 2 );
+	t( sp_getint(env, "performance.objects") == 2 );
 
 	t( sp_commit(b) == 0 );
 
-	t( sp_getint(env, "memory.v_count") == 2 );
+	t( sp_getint(env, "performance.objects") == 2 );
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_getint(env, "memory.v_count") == 0 );
+	t( sp_getint(env, "performance.objects") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -237,13 +237,13 @@ leak_tx_set_get_commit(void)
 	o = sp_get(b, o);
 	t( o == NULL );
 
-	t( sp_getint(env, "memory.v_count") == 2 );
+	t( sp_getint(env, "performance.objects") == 2 );
 
 	t( sp_commit(b) == 0 );
 
-	t( sp_getint(env, "memory.v_count") == 1 );
+	t( sp_getint(env, "performance.objects") == 1 );
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_getint(env, "memory.v_count") == 0 );
+	t( sp_getint(env, "performance.objects") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -279,9 +279,9 @@ leak_tx_set_get_rollback(void)
 	o = sp_get(b, o);
 	t( o == NULL );
 
-	t( sp_getint(env, "memory.v_count") == 2 );
+	t( sp_getint(env, "performance.objects") == 2 );
 	t( sp_destroy(b) == 0 );
-	t( sp_getint(env, "memory.v_count") == 0 );
+	t( sp_getint(env, "performance.objects") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -319,16 +319,16 @@ leak_tx_tx_set_commit(void)
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(b, o) == 0 );
 
-	t( sp_getint(env, "memory.v_count") == 2 );
+	t( sp_getint(env, "performance.objects") == 2 );
 
 	t( sp_commit(b) == 0 );
 
-	t( sp_getint(env, "memory.v_count") == 2 );
+	t( sp_getint(env, "performance.objects") == 2 );
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_getint(env, "memory.v_count") == 0 );
+	t( sp_getint(env, "performance.objects") == 0 );
 
 	t( sp_commit(a) == 0 );
-	t( sp_getint(env, "memory.v_count") == 0 );
+	t( sp_getint(env, "performance.objects") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -366,13 +366,13 @@ leak_tx_tx_set_rollback(void)
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(b, o) == 0 );
 
-	t( sp_getint(env, "memory.v_count") == 2 );
+	t( sp_getint(env, "performance.objects") == 2 );
 
 	t( sp_destroy(b) == 0 );
 
-	t( sp_getint(env, "memory.v_count") == 0 );
+	t( sp_getint(env, "performance.objects") == 0 );
 	t( sp_commit(a) == 0 );
-	t( sp_getint(env, "memory.v_count") == 0 );
+	t( sp_getint(env, "performance.objects") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -411,14 +411,14 @@ leak_tx_tx_set_get_commit0(void)
 	o = sp_get(b, o);
 	t( o == NULL );
 
-	t( sp_getint(env, "memory.v_count") == 2 );
+	t( sp_getint(env, "performance.objects") == 2 );
 	t( sp_commit(b) == 0 );
-	t( sp_getint(env, "memory.v_count") == 1 ); /* last read freed */
+	t( sp_getint(env, "performance.objects") == 1 ); /* last read freed */
 
 	t( sp_commit(a) == 0 );
-	t( sp_getint(env, "memory.v_count") == 1 );
+	t( sp_getint(env, "performance.objects") == 1 );
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_getint(env, "memory.v_count") == 0 );
+	t( sp_getint(env, "performance.objects") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -457,14 +457,14 @@ leak_tx_tx_set_get_commit1(void)
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(b, o) == 0 );
 
-	t( sp_getint(env, "memory.v_count") == 2 );
+	t( sp_getint(env, "performance.objects") == 2 );
 	t( sp_commit(b) == 0 );
-	t( sp_getint(env, "memory.v_count") == 2 );
+	t( sp_getint(env, "performance.objects") == 2 );
 
 	t( sp_commit(a) == 0 );
-	t( sp_getint(env, "memory.v_count") == 1 );
+	t( sp_getint(env, "performance.objects") == 1 );
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_getint(env, "memory.v_count") == 0 );
+	t( sp_getint(env, "performance.objects") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -500,30 +500,30 @@ leak_tx_tx_tx_set_get_commit0(void)
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(a, o) == 0 );
 
-	t( sp_getint(env, "memory.v_count") == 1 );
+	t( sp_getint(env, "performance.objects") == 1 );
 	t( sp_commit(a) == 0 );
-	t( sp_getint(env, "memory.v_count") == 1 );
+	t( sp_getint(env, "performance.objects") == 1 );
 
 	key = 124;
 	o = sp_object(db);
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(b, o) == 0 );
 
-	t( sp_getint(env, "memory.v_count") == 2 );
+	t( sp_getint(env, "performance.objects") == 2 );
 	t( sp_commit(b) == 0 );
-	t( sp_getint(env, "memory.v_count") == 2 );
+	t( sp_getint(env, "performance.objects") == 2 );
 
 	key = 125;
 	o = sp_object(db);
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(c, o) == 0 );
 
-	t( sp_getint(env, "memory.v_count") == 3 );
+	t( sp_getint(env, "performance.objects") == 3 );
 	t( sp_commit(c) == 0 );
-	t( sp_getint(env, "memory.v_count") == 3 );
+	t( sp_getint(env, "performance.objects") == 3 );
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_getint(env, "memory.v_count") == 0 );
+	t( sp_getint(env, "performance.objects") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -559,30 +559,30 @@ leak_tx_tx_tx_set_get_commit1(void)
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(c, o) == 0 );
 
-	t( sp_getint(env, "memory.v_count") == 1 );
+	t( sp_getint(env, "performance.objects") == 1 );
 	t( sp_commit(c) == 0 );
-	t( sp_getint(env, "memory.v_count") == 1 );
+	t( sp_getint(env, "performance.objects") == 1 );
 
 	key = 124;
 	o = sp_object(db);
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(b, o) == 0 );
 
-	t( sp_getint(env, "memory.v_count") == 2 );
+	t( sp_getint(env, "performance.objects") == 2 );
 	t( sp_commit(b) == 0 );
-	t( sp_getint(env, "memory.v_count") == 2 );
+	t( sp_getint(env, "performance.objects") == 2 );
 
 	key = 125;
 	o = sp_object(db);
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(a, o) == 0 );
 
-	t( sp_getint(env, "memory.v_count") == 3 );
+	t( sp_getint(env, "performance.objects") == 3 );
 	t( sp_commit(a) == 0 );
-	t( sp_getint(env, "memory.v_count") == 3 );
+	t( sp_getint(env, "performance.objects") == 3 );
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_getint(env, "memory.v_count") == 0 );
+	t( sp_getint(env, "performance.objects") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }

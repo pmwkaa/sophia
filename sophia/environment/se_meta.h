@@ -27,8 +27,6 @@ struct semetart {
 	uint64_t  memory_used;
 	uint32_t  pager_pools;
 	uint32_t  pager_pool_size;
-	uint64_t  v_count;
-	uint64_t  v_allocated;
 	/* scheduler */
 	char      zone[4];
 	uint32_t  checkpoint_active;
@@ -38,14 +36,20 @@ struct semetart {
 	uint32_t  backup_last;
 	uint32_t  backup_last_complete;
 	uint32_t  gc_active;
-	uint32_t  reqs;
 	/* log */
 	uint32_t  log_files;
 	/* metric */
 	srseq     seq;
+	/* performance */
+	uint32_t  reqs;
+	uint32_t  req_queue;
+	uint32_t  req_ready;
+	uint32_t  req_active;
 	uint32_t  tx_rw;
 	uint32_t  tx_ro;
-	uint32_t  tx_gc;
+	uint32_t  tx_gc_queue;
+	uint64_t  objects;
+	uint64_t  objects_used;
 };
 
 struct semeta {

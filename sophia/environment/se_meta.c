@@ -90,8 +90,6 @@ se_metamemory(se *e, semetart *rt, srmeta **pc)
 	sr_M(&p, pc, se_metav, "used", SS_U64, &rt->memory_used, SR_RO, NULL);
 	sr_M(&p, pc, se_metav, "pager_pools", SS_U32, &rt->pager_pools, SR_RO, NULL);
 	sr_M(&p, pc, se_metav, "pager_pool_size", SS_U32, &rt->pager_pool_size, SR_RO, NULL);
-	sr_M(&p, pc, se_metav, "v_count", SS_U64, &rt->v_count, SR_RO, NULL);
-	sr_M(&p, pc, se_metav, "v_allocated", SS_U64, &rt->v_allocated, SR_RO, NULL);
 	return sr_M(NULL, pc, NULL, "memory", SS_UNDEF, memory, SR_NS, NULL);
 }
 
@@ -283,7 +281,6 @@ se_metascheduler(se *e, semetart *rt, srmeta **pc)
 	sr_m(&p, pc, se_metav_offline, "event_on_backup", SS_U32, &e->meta.event_on_backup);
 	sr_M(&p, pc, se_metav, "gc_active", SS_U32, &rt->gc_active, SR_RO, NULL);
 	sr_m(&p, pc, se_metascheduler_gc, "gc", SS_FUNCTION, NULL);
-	sr_M(&p, pc, se_metav, "reqs", SS_U32, &rt->reqs, SR_RO, NULL);
 	sr_m(&p, pc, se_metascheduler_run, "run", SS_FUNCTION, NULL);
 	prev = p;
 	sslist *i;
@@ -334,6 +331,23 @@ se_metalog(se *e, semetart *rt, srmeta **pc)
 }
 
 static inline srmeta*
+se_metaperformance(se *e ssunused, semetart *rt, srmeta **pc)
+{
+	srmeta *perf = *pc;
+	srmeta *p = NULL;
+	sr_M(&p, pc, se_metav, "req_queue", SS_U32, &rt->req_queue, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "req_ready", SS_U32, &rt->req_ready, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "req_active", SS_U32, &rt->req_active, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "reqs", SS_U32, &rt->reqs, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "tx_rw", SS_U32, &rt->tx_rw, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "tx_ro", SS_U32, &rt->tx_ro, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "tx_gc_queue", SS_U32, &rt->tx_gc_queue, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "objects", SS_U64, &rt->objects, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "objects_used", SS_U64, &rt->objects_used, SR_RO, NULL);
+	return sr_M(NULL, pc, NULL, "performance", SS_UNDEF, perf, SR_NS, NULL);
+}
+
+static inline srmeta*
 se_metametric(se *e ssunused, semetart *rt, srmeta **pc)
 {
 	srmeta *metric = *pc;
@@ -344,9 +358,6 @@ se_metametric(se *e ssunused, semetart *rt, srmeta **pc)
 	sr_M(&p, pc, se_metav, "lsn",  SS_U64, &rt->seq.lsn, SR_RO, NULL);
 	sr_M(&p, pc, se_metav, "lfsn", SS_U32, &rt->seq.lfsn, SR_RO, NULL);
 	sr_M(&p, pc, se_metav, "tsn",  SS_U32, &rt->seq.tsn, SR_RO, NULL);
-	sr_M(&p, pc, se_metav, "tx_rw",  SS_U32, &rt->tx_rw, SR_RO, NULL);
-	sr_M(&p, pc, se_metav, "tx_ro",  SS_U32, &rt->tx_ro, SR_RO, NULL);
-	sr_M(&p, pc, se_metav, "tx_gc",  SS_U32, &rt->tx_gc, SR_RO, NULL);
 	return sr_M(NULL, pc, NULL, "metric", SS_UNDEF, metric, SR_NS, NULL);
 }
 
@@ -718,6 +729,7 @@ se_metaprepare(se *e, semetart *rt, srmeta *c, int serialize)
 	srmeta *memory     = se_metamemory(e, rt, &pc);
 	srmeta *compaction = se_metacompaction(e, rt, &pc);
 	srmeta *scheduler  = se_metascheduler(e, rt, &pc);
+	srmeta *perf       = se_metaperformance(e, rt, &pc);
 	srmeta *metric     = se_metametric(e, rt, &pc);
 	srmeta *log        = se_metalog(e, rt, &pc);
 	srmeta *snapshot   = se_metasnapshot(e, rt, &pc);
@@ -728,7 +740,8 @@ se_metaprepare(se *e, semetart *rt, srmeta *c, int serialize)
 	sophia->next     = memory;
 	memory->next     = compaction;
 	compaction->next = scheduler;
-	scheduler->next  = metric;
+	scheduler->next  = perf;
+	perf->next       = metric;
 	metric->next     = log;
 	log->next        = snapshot;
 	snapshot->next   = backup;
@@ -755,11 +768,6 @@ se_metart(se *e, semetart *rt)
 	rt->pager_pools     = e->pager.pools;
 	rt->pager_pool_size = e->pager.pool_size;
 
-	ss_spinlock(&e->stat.lock);
-	rt->v_count = e->stat.v_count;
-	rt->v_allocated = e->stat.v_allocated;
-	ss_spinunlock(&e->stat.lock);
-
 	/* scheduler */
 	ss_mutexlock(&e->sched.lock);
 	rt->checkpoint_active    = e->sched.checkpoint;
@@ -770,13 +778,6 @@ se_metart(se *e, semetart *rt)
 	rt->backup_last_complete = e->sched.backup_last_complete;
 	rt->gc_active            = e->sched.gc;
 	ss_mutexunlock(&e->sched.lock);
-
-	/* requests */
-	rt->reqs = se_reqcount(e);
-
-	ss_mutexlock(&e->reqlock);
-	rt->reqs = e->req.n + e->reqactive.n + e->reqready.n;
-	ss_mutexunlock(&e->reqlock);
 
 	int v = ss_quotaused_percent(&e->quota);
 	srzone *z = sr_zonemap(&e->meta.zones, v);
@@ -789,9 +790,23 @@ se_metart(se *e, semetart *rt)
 	sr_seqlock(&e->seq);
 	rt->seq = e->seq;
 	sr_sequnlock(&e->seq);
+
+	/* performance */
 	rt->tx_rw = e->xm.count_rw;
 	rt->tx_ro = e->xm.count_rd;
-	rt->tx_gc = e->xm.count_gc;
+	rt->tx_gc_queue = e->xm.count_gc;
+
+	ss_mutexlock(&e->reqlock);
+	rt->req_queue  = e->req.n;
+	rt->req_ready  = e->reqready.n;
+	rt->req_active = e->reqactive.n;
+	rt->reqs = rt->req_queue + rt->req_ready + rt->req_active;
+	ss_mutexunlock(&e->reqlock);
+
+	ss_spinlock(&e->stat.lock);
+	rt->objects = e->stat.v_count;
+	rt->objects_used = e->stat.v_allocated;
+	ss_spinunlock(&e->stat.lock);
 	return 0;
 }
 
