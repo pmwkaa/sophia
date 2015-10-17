@@ -1838,6 +1838,32 @@ transaction_c_set_get3(void)
 }
 
 static void
+transaction_c_set_conflict_derive(void)
+{
+	void *a = sp_begin(st_r.env);
+	t( a != NULL );
+
+	void *b = sp_begin(st_r.env);
+	t( b != NULL );
+
+	int key = st_seed();
+
+	void *o = st_object(key, key);
+	t( sp_set(a, o) == 0 );
+
+	o = st_object(key, key);
+	t( sp_set(b, o) == 0 );
+
+	t( sp_commit(a) == 0 );
+	st_phase();
+
+	o = st_object(key, key);
+	t( sp_set(b, o) == 0 ); /* should not reset conflict flag */
+
+	t( sp_commit(b) == 1 ); /* rlb */
+}
+
+static void
 transaction_sc_set_wait(void)
 {
 	void *db = st_r.db;
@@ -2033,6 +2059,7 @@ stgroup *transaction_group(void)
 	st_groupadd(group, st_test("c_set_get1", transaction_c_set_get1));
 	st_groupadd(group, st_test("c_set_get2", transaction_c_set_get2));
 	st_groupadd(group, st_test("c_set_get3", transaction_c_set_get3));
+	st_groupadd(group, st_test("c_set_conflict_derive", transaction_c_set_conflict_derive));
 	st_groupadd(group, st_test("sc_set_wait", transaction_sc_set_wait));
 	st_groupadd(group, st_test("sc_get", transaction_sc_get));
 	st_groupadd(group, st_test("s_set", transaction_s_set));
