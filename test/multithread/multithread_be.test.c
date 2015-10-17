@@ -376,11 +376,9 @@ mt_async_read(void)
 	}
 	fprintf(st_r.output, " (insert done..iterate) ");
 
-	void *async = sp_asynchronous(db);
-	t( async != NULL );
-
 	/* trigger iteration */
-	void *o = sp_object(async);
+	void *o = sp_object(db);
+	sp_setint(o, "async", 1);
 	sp_setstring(o, "order", ">=", 0);
 	o = sp_get(db, o);
 	t( o != NULL );

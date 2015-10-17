@@ -124,20 +124,6 @@ SP_API int sp_error(void *ptr)
 	return rc;
 }
 
-SP_API void *sp_asynchronous(void *ptr)
-{
-	so *o = sp_cast(ptr, __func__);
-	if (ssunlikely(o->i->asynchronous == NULL)) {
-		sp_unsupported(o, __func__);
-		return NULL;
-	}
-	so *e = o->env;
-	se_apilock(e);
-	void *h = o->i->asynchronous(o);
-	se_apiunlock(e);
-	return h;
-}
-
 SP_API void *sp_poll(void *ptr)
 {
 	so *o = sp_cast(ptr, __func__);

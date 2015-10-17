@@ -40,9 +40,6 @@ async_get(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *async = sp_asynchronous(db);
-	t( async != NULL );
-
 	events = 0;
 
 	uint32_t key = 7;
@@ -52,7 +49,8 @@ async_get(void)
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	o = sp_object(async);
+	o = sp_object(db);
+	t( sp_setint(o, "async", 1) == 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "arg", "arg_test", 0) == 0 );
 	o = sp_get(db, o);
@@ -113,12 +111,10 @@ async_cursor(void)
 	t( sp_set(tx, o) == 0 );
 	t( sp_commit(tx) == 0 );
 
-	void *async = sp_asynchronous(db);
-	t( async != NULL );
-
 	void *cur = sp_cursor(env);
 
-	o = sp_object(async);
+	o = sp_object(db);
+	sp_setint(o, "async", 1);
 	o = sp_get(cur, o); // 1
 	t( o != NULL );
 	sp_destroy(o);
@@ -210,12 +206,10 @@ async_free0(void)
 	t( sp_set(tx, o) == 0 );
 	t( sp_commit(tx) == 0 );
 
-	void *async = sp_asynchronous(db);
-	t( async != NULL );
-
 	void *c = sp_cursor(env);
 	t( c != NULL );
-	o = sp_object(async);
+	o = sp_object(db);
+	sp_setint(o, "async", 1);
 	sp_get(c, o);
 	t( sp_setint(env, "scheduler.run", 0) == 0 );
 

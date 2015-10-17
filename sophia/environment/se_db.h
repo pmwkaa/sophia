@@ -13,7 +13,6 @@ typedef struct sedb sedb;
 
 struct sedb {
 	so         o;
-	so         async;
 	sestatus   status;
 	uint32_t   created;
 	uint32_t   scheduled;

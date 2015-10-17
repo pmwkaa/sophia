@@ -59,7 +59,6 @@ static soif sesnapshotcursorif =
 	.destroy      = se_snapshotcursor_destroy,
 	.error        = NULL,
 	.object       = NULL,
-	.asynchronous = NULL,
 	.poll         = NULL,
 	.drop         = NULL,
 	.setobject    = NULL,

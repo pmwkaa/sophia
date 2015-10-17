@@ -25,10 +25,9 @@ extern "C" {
 SP_API void    *sp_env(void);
 SP_API void    *sp_object(void*);
 SP_API int      sp_open(void*);
-SP_API int      sp_drop(void*);
-SP_API int      sp_destroy(void*);
 SP_API int      sp_error(void*);
-SP_API void    *sp_asynchronous(void*);
+SP_API int      sp_destroy(void*);
+SP_API int      sp_drop(void*);
 SP_API void    *sp_poll(void*);
 SP_API int      sp_setobject(void*, const char*, const void*);
 SP_API int      sp_setstring(void*, const char*, const void*, int);

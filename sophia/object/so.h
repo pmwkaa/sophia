@@ -18,7 +18,6 @@ struct soif {
 	int      (*destroy)(so*);
 	int      (*error)(so*);
 	void    *(*object)(so*);
-	void    *(*asynchronous)(so*);
 	void    *(*poll)(so*);
 	int      (*drop)(so*);
 	int      (*setobject)(so*, const char*, void*);
@@ -78,22 +77,21 @@ so_cast_dynamic(void *ptr, sotype *type,
 #define so_cast(o, cast, type) \
 	((cast)so_cast_dynamic(o, type, __FILE__, __func__, __LINE__))
 
-#define so_open(o)         (o)->i->open(o)
-#define so_destroy(o)      (o)->i->destroy(o)
-#define so_error(o)        (o)->i->error(o)
-#define so_object(o)       (o)->i->object(o)
-#define so_asynchronous(o) (o)->i->asynchronous(o)
-#define so_poll(o)         (o)->i->poll(o)
-#define so_drop(o)         (o)->i->drop(o)
-#define so_set(o, v)       (o)->i->set(o, v)
-#define so_update(o, v)    (o)->i->update(o, v)
-#define so_delete(o, v)    (o)->i->del(o, v)
-#define so_get(o, v)       (o)->i->get(o, v)
-#define so_batch(o)        (o)->i->batch(o)
-#define so_begin(o)        (o)->i->begin(o)
-#define so_prepare(o)      (o)->i->prepare(o)
-#define so_commit(o)       (o)->i->commit(o)
-#define so_cursor(o)       (o)->i->cursor(o)
+#define so_open(o)      (o)->i->open(o)
+#define so_destroy(o)   (o)->i->destroy(o)
+#define so_error(o)     (o)->i->error(o)
+#define so_object(o)    (o)->i->object(o)
+#define so_poll(o)      (o)->i->poll(o)
+#define so_drop(o)      (o)->i->drop(o)
+#define so_set(o, v)    (o)->i->set(o, v)
+#define so_update(o, v) (o)->i->update(o, v)
+#define so_delete(o, v) (o)->i->del(o, v)
+#define so_get(o, v)    (o)->i->get(o, v)
+#define so_batch(o)     (o)->i->batch(o)
+#define so_begin(o)     (o)->i->begin(o)
+#define so_prepare(o)   (o)->i->prepare(o)
+#define so_commit(o)    (o)->i->commit(o)
+#define so_cursor(o)    (o)->i->cursor(o)
 
 #define so_setobject(o, path, object) \
 	(o)->i->setobject(o, path, object)

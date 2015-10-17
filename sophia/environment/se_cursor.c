@@ -53,7 +53,6 @@ static soif secursorif =
 	.destroy      = se_cursordestroy,
 	.error        = NULL,
 	.object       = NULL,
-	.asynchronous = NULL,
 	.poll         = NULL,
 	.drop         = NULL,
 	.setobject    = NULL,

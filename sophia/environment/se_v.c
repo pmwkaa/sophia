@@ -256,7 +256,6 @@ static soif sevif =
 	.destroy      = se_vdestroy,
 	.error        = NULL,
 	.object       = NULL,
-	.asynchronous = NULL,
 	.poll         = NULL,
 	.drop         = NULL,
 	.setobject    = NULL,

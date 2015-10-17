@@ -158,7 +158,6 @@ static soif sebatchif =
 	.destroy      = se_batchrollback,
 	.error        = NULL,
 	.object       = NULL,
-	.asynchronous = NULL,
 	.poll         = NULL,
 	.drop         = NULL,
 	.setobject    = NULL,

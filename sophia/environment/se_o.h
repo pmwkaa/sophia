@@ -19,7 +19,6 @@ enum {
 	SEREQ,
 	SEV,
 	SEDB,
-	SEDBASYNC,
 	SEBATCH,
 	SETX,
 	SECURSOR,

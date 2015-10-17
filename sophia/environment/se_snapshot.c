@@ -77,7 +77,6 @@ static soif sesnapshotif =
 	.destroy      = se_snapshotdestroy,
 	.error        = NULL,
 	.object       = NULL,
-	.asynchronous = NULL,
 	.poll         = NULL,
 	.drop         = NULL,
 	.setobject    = NULL,

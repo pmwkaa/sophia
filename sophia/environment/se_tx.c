@@ -266,7 +266,6 @@ static soif setxif =
 	.destroy      = se_txrollback,
 	.error        = NULL,
 	.object       = NULL,
-	.asynchronous = NULL,
 	.poll         = NULL,
 	.drop         = NULL,
 	.setobject    = NULL,

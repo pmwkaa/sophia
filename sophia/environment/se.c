@@ -195,7 +195,6 @@ static soif seif =
 	.destroy      = se_destroy,
 	.error        = se_error,
 	.object       = NULL,
-	.asynchronous = NULL,
 	.poll         = se_poll,
 	.drop         = NULL,
 	.setobject    = se_metaset_object,

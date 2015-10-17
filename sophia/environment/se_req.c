@@ -56,7 +56,6 @@ static soif sereqif =
 	.destroy      = se_reqdestroy,
 	.error        = NULL,
 	.object       = NULL,
-	.asynchronous = NULL,
 	.poll         = NULL,
 	.drop         = NULL,
 	.setobject    = NULL,
