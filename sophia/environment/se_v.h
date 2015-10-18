@@ -35,6 +35,10 @@ struct sev {
 	uint32_t  async_operation;
 	uint64_t  async_seq;
 	void     *async_arg;
+	/* stats */
+	int       read_disk;
+	int       read_cache;
+	int       read_latency;
 };
 
 so *se_vnew(se*, so*, sv*, int);

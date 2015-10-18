@@ -57,6 +57,8 @@ int se_reqread(sereq *r)
 	if (arg->has)
 		si_queryhas(&q);
 	r->rc = si_query(&q);
+	r->read_disk  = q.read_disk;
+	r->read_cache = q.read_cache;
 	r->v = q.result.v;
 	si_queryclose(&q);
 	return r->rc;

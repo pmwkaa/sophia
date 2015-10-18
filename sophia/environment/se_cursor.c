@@ -30,6 +30,10 @@ se_cursordestroy(so *o)
 		si_cachepool_push(c->cache);
 	so_listdel(&e->cursor, &c->o);
 	se_dbunbind(e, id);
+	sr_statcursor(&e->stat, c->start,
+	              c->read_disk,
+	              c->read_cache,
+	              c->ops);
 	se_mark_destroyed(&c->o);
 	ss_free(&e->a_cursor, c);
 	return 0;
@@ -44,6 +48,11 @@ se_cursorget(so *o, so *v)
 	ssorder order = key->order;
 	if (ssunlikely(! key->orderset))
 		order = SS_GTE;
+	/* this statistics might be not complete, because
+	 * last statement is not accounted here */
+	c->read_disk  += key->read_disk;
+	c->read_cache += key->read_cache;
+	c->ops++;
 	return se_dbread(db, key, &c->t, 0, c->cache, order);
 }
 
@@ -81,6 +90,10 @@ so *se_cursornew(se *e, uint64_t vlsn)
 	}
 	so_init(&c->o, &se_o[SECURSOR], &secursorif, &e->o, &e->o);
 	sx_init(&e->xm, &c->t);
+	c->start = ss_utime();
+	c->ops = 0;
+	c->read_disk = 0;
+	c->read_cache = 0;
 	c->t.state = SXUNDEF;
 	c->cache = si_cachepool_pop(&e->cachepool);
 	if (ssunlikely(c->cache == NULL)) {

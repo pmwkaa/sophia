@@ -32,6 +32,8 @@ int si_queryopen(siquery *q, sicache *c, si *i, ssorder o,
 	q->update_v   = NULL;
 	q->update_eq  = 0;
 	q->cache_only = 0;
+	q->read_disk  = 0;
+	q->read_cache = 0;
 	memset(&q->result, 0, sizeof(q->result));
 	sv_mergeinit(&q->merge);
 	si_lock(q->index);
@@ -161,7 +163,9 @@ si_qgetbranch(siquery *q, sinode *n, sibranch *b)
 	};
 	ss_iterinit(sd_read, &c->i);
 	int rc = ss_iteropen(sd_read, &c->i, &arg, q->key, q->keysize);
-	q->index->read_disk += sd_read_stat(&c->i);
+	int reads = sd_read_stat(&c->i);
+	q->index->read_disk += reads;
+	q->read_disk += reads;
 	if (ssunlikely(rc <= 0))
 		return rc;
 	/* prepare sources */
@@ -227,6 +231,7 @@ si_qrangebranch(siquery *q, sinode *n, sibranch *b, svmerge *m)
 	if (ss_iterhas(sd_read, &c->i)) {
 		svmergesrc *s = sv_mergeadd(m, &c->i);
 		q->index->read_cache++;
+		q->read_cache++;
 		s->ptr = c;
 		return 1;
 	}
@@ -258,7 +263,9 @@ si_qrangebranch(siquery *q, sinode *n, sibranch *b, svmerge *m)
 	};
 	ss_iterinit(sd_read, &c->i);
 	int rc = ss_iteropen(sd_read, &c->i, &arg, q->key, q->keysize);
-	q->index->read_disk += sd_read_stat(&c->i);
+	int reads = sd_read_stat(&c->i);
+	q->index->read_disk += reads;
+	q->read_disk += reads;
 	if (ssunlikely(rc == -1))
 		return -1;
 	if (ssunlikely(! ss_iterhas(sd_read, &c->i)))

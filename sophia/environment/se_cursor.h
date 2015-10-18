@@ -14,6 +14,10 @@ typedef struct secursor secursor;
 struct secursor {
 	so o;
 	sx t;
+	uint64_t start;
+	int ops;
+	int read_disk;
+	int read_cache;
 	sicache *cache;
 };
 

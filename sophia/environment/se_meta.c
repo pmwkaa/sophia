@@ -335,15 +335,38 @@ se_metaperformance(se *e ssunused, semetart *rt, srmeta **pc)
 {
 	srmeta *perf = *pc;
 	srmeta *p = NULL;
+	sr_M(&p, pc, se_metav, "objects", SS_U64, &rt->stat.v_count, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "objects_used", SS_U64, &rt->stat.v_allocated, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "key", SS_STRING, rt->stat.key.sz, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "value", SS_STRING, rt->stat.value.sz, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "set", SS_U64, &rt->stat.set, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "set_latency", SS_STRING, rt->stat.set_latency.sz, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "delete", SS_U64, &rt->stat.del, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "delete_latency", SS_STRING, rt->stat.del_latency.sz, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "update", SS_U64, &rt->stat.update, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "update_latency", SS_STRING, rt->stat.update_latency.sz, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "get", SS_U64, &rt->stat.get, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "get_latency", SS_STRING, rt->stat.get_latency.sz, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "get_read_disk", SS_STRING, rt->stat.get_read_disk.sz, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "get_read_cache", SS_STRING, rt->stat.get_read_cache.sz, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "tx_active_rw", SS_U32, &rt->tx_rw, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "tx_active_ro", SS_U32, &rt->tx_ro, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "tx", SS_U64, &rt->stat.tx, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "tx_rollback", SS_U64, &rt->stat.tx_rlb, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "tx_conflict", SS_U64, &rt->stat.tx_conflict, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "tx_lock", SS_U64, &rt->stat.tx_lock, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "tx_latency", SS_STRING, rt->stat.tx_latency.sz, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "tx_ops", SS_STRING, rt->stat.tx_stmts.sz, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "tx_gc_queue", SS_U32, &rt->tx_gc_queue, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "cursor", SS_U64, &rt->stat.cursor, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "cursor_latency", SS_STRING, rt->stat.cursor_latency.sz, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "cursor_read_disk", SS_STRING, rt->stat.cursor_read_disk.sz, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "cursor_read_cache", SS_STRING, rt->stat.cursor_read_cache.sz, SR_RO, NULL);
+	sr_M(&p, pc, se_metav, "cursor_ops", SS_STRING, rt->stat.cursor_ops.sz, SR_RO, NULL);
 	sr_M(&p, pc, se_metav, "req_queue", SS_U32, &rt->req_queue, SR_RO, NULL);
 	sr_M(&p, pc, se_metav, "req_ready", SS_U32, &rt->req_ready, SR_RO, NULL);
 	sr_M(&p, pc, se_metav, "req_active", SS_U32, &rt->req_active, SR_RO, NULL);
 	sr_M(&p, pc, se_metav, "reqs", SS_U32, &rt->reqs, SR_RO, NULL);
-	sr_M(&p, pc, se_metav, "tx_rw", SS_U32, &rt->tx_rw, SR_RO, NULL);
-	sr_M(&p, pc, se_metav, "tx_ro", SS_U32, &rt->tx_ro, SR_RO, NULL);
-	sr_M(&p, pc, se_metav, "tx_gc_queue", SS_U32, &rt->tx_gc_queue, SR_RO, NULL);
-	sr_M(&p, pc, se_metav, "objects", SS_U64, &rt->objects, SR_RO, NULL);
-	sr_M(&p, pc, se_metav, "objects_used", SS_U64, &rt->objects_used, SR_RO, NULL);
 	return sr_M(NULL, pc, NULL, "performance", SS_UNDEF, perf, SR_NS, NULL);
 }
 
@@ -804,9 +827,9 @@ se_metart(se *e, semetart *rt)
 	ss_mutexunlock(&e->reqlock);
 
 	ss_spinlock(&e->stat.lock);
-	rt->objects = e->stat.v_count;
-	rt->objects_used = e->stat.v_allocated;
+	rt->stat = e->stat;
 	ss_spinunlock(&e->stat.lock);
+	sr_statprepare(&rt->stat);
 	return 0;
 }
 

@@ -58,6 +58,7 @@ se_vsetpart(sev *v, const char *path, void *pointer, int size)
 	if (fv->part == NULL)
 		v->keyc++;
 	fv->part = part;
+	sr_statkey(&e->stat, size);
 	return fv;
 }
 
@@ -78,6 +79,7 @@ se_vsetstring(so *o, const char *path, void *pointer, int size)
 		}
 		v->value = pointer;
 		v->valuesize = size;
+		sr_statvalue(&e->stat, size);
 		return 0;
 	}
 	if (strcmp(path, "prefix") == 0) {

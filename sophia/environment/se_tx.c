@@ -124,10 +124,13 @@ error:
 	return NULL;
 }
 
-void se_txend(setx *t)
+static inline void
+se_txend(setx *t, int rlb, int conflict)
 {
 	se *e = se_of(&t->o);
+	uint32_t count = sv_logcount(&t->t.log);
 	sx_gc(&t->t);
+	sr_stattx(&e->stat, t->start, count, rlb, conflict);
 	se_dbunbind(e, t->t.id);
 	so_listdel(&e->tx, &t->o);
 	se_mark_destroyed(&t->o);
@@ -139,7 +142,7 @@ se_txrollback(so *o)
 {
 	setx *t = se_cast(o, setx*, SETX);
 	sx_rollback(&t->t);
-	se_txend(t);
+	se_txend(t, 1, 0);
 	return 0;
 }
 
@@ -181,7 +184,7 @@ se_txcommit(so *o)
 	if (ssunlikely(! sv_logcount(&t->t.log))) {
 		sx_prepare(&t->t, NULL, NULL);
 		sx_commit(&t->t);
-		se_txend(t);
+		se_txend(t, 0, 0);
 		return 0;
 	}
 	if (t->t.state == SXREADY || t->t.state == SXLOCK)
@@ -197,11 +200,13 @@ se_txcommit(so *o)
 		sxstate s = sx_prepare(&t->t, prepare, cache);
 		if (cache)
 			si_cachepool_push(cache);
-		if (s == SXLOCK)
+		if (s == SXLOCK) {
+			sr_stattx_lock(&e->stat);
 			return 2;
+		}
 		if (s == SXROLLBACK) {
 			sx_rollback(&t->t);
-			se_txend(t);
+			se_txend(t, 0, 1);
 			return 1;
 		}
 		assert(s == SXPREPARE);
@@ -240,8 +245,7 @@ se_txcommit(so *o)
 	}
 	/* log write and commit */
 	se_execute(&q);
-
-	se_txend(t);
+	se_txend(t, 0, 0);
 	return q.rc;
 }
 
@@ -295,6 +299,7 @@ so *se_txnew(se *e)
 	memset(t, 0, sizeof(*t));
 	so_init(&t->o, &se_o[SETX], &setxif, &e->o, &e->o);
 	sx_init(&e->xm, &t->t);
+	t->start = ss_utime();
 	t->lsn = 0;
 	sx_begin(&e->xm, &t->t, SXRW, 0);
 	se_dbbind(e);

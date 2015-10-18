@@ -87,6 +87,9 @@ void se_reqinit(se *e, sereq *r, sereqop op, so *o, so *db)
 	}
 	memset(&r->arg, 0, sizeof(r->arg));
 	r->v = NULL;
+	r->start = 0;
+	r->read_disk = 0;
+	r->read_cache = 0;
 	r->rc = 0;
 }
 
@@ -214,6 +217,17 @@ so *se_reqresult(sereq *r, int async)
 	v->async_seq       = r->id;
 	v->async_arg       = r->arg.arg;
 	v->cache_only      = r->arg.cache_only;
+	v->read_disk       = r->read_disk;
+	v->read_cache      = r->read_cache;
+	v->read_latency    = 0;
+	if (r->op == SE_REQREAD && result.v) {
+		v->read_latency = ss_utime() - r->start;
+		sr_statget(&e->stat,
+		           v->read_latency,
+		           v->read_disk,
+		           v->read_cache);
+	}
+
 	/* propagate current object settings to
 	 * the result one */
 	v->orderset = 1;

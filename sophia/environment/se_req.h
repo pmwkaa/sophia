@@ -45,6 +45,9 @@ struct sereq {
 	so       *object;
 	so       *db;
 	void     *v;
+	int       start;
+	int       read_disk;
+	int       read_cache;
 	int       rc; 
 };
 

@@ -13,12 +13,12 @@ typedef struct setx setx;
 
 struct setx {
 	so o;
+	uint64_t start;
 	uint64_t lsn;
 	uint32_t half_commit;
 	sx t;
 };
 
-so   *se_txnew(se*);
-void  se_txend(setx*);
+so *se_txnew(se*);
 
 #endif

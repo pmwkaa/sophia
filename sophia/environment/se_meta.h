@@ -48,8 +48,7 @@ struct semetart {
 	uint32_t  tx_rw;
 	uint32_t  tx_ro;
 	uint32_t  tx_gc_queue;
-	uint64_t  objects;
-	uint64_t  objects_used;
+	srstat    stat;
 };
 
 struct semeta {
