@@ -9,8 +9,9 @@
  * BSD License
 */
 
-typedef struct sdc sdc;
 typedef struct sdcbuf sdcbuf;
+typedef struct sdcgc sdcgc;
+typedef struct sdc sdc;
 
 struct sdcbuf {
 	ssbuf a; /* decompression */
@@ -61,6 +62,23 @@ sd_cfree(sdc *sc, sr *r)
 		ss_buffree(&b->b, r->a);
 		ss_free(r->a, b);
 		b = next;
+	}
+}
+
+static inline void
+sd_cgc(sdc *sc, sr *r, int wm)
+{
+	sd_buildgc(&sc->build, r, wm);
+	sv_updategc(&sc->update, r, 600, 512);
+	ss_bufgc(&sc->a, r->a, wm);
+	ss_bufgc(&sc->b, r->a, wm);
+	ss_bufgc(&sc->c, r->a, wm);
+	ss_bufgc(&sc->d, r->a, wm);
+	sdcbuf *b = sc->head;
+	while (b) {
+		ss_bufgc(&b->a, r->a, wm);
+		ss_bufgc(&b->b, r->a, wm);
+		b = b->next;
 	}
 }
 

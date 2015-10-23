@@ -29,6 +29,7 @@ struct sischeme {
 	char       *compression_sz;
 	ssfilterif *compression_if;
 	uint32_t    compression_key;
+	uint32_t    buf_gc_wm;
 	char       *fmt_sz;
 	sf          fmt;
 	sfstorage   fmt_storage;

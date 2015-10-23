@@ -66,6 +66,19 @@ void sd_buildreset(sdbuild *b, sr *r)
 	b->vmax = 0;
 }
 
+void sd_buildgc(sdbuild *b, sr *r, int wm)
+{
+	sd_buildfree_tracker(b, r);
+	ss_htreset(&b->tracker);
+	ss_bufgc(&b->list, r->a, wm);
+	ss_bufgc(&b->m, r->a, wm);
+	ss_bufgc(&b->v, r->a, wm);
+	ss_bufgc(&b->c, r->a, wm);
+	ss_bufgc(&b->k, r->a, wm);
+	b->n = 0;
+	b->vmax = 0;
+}
+
 int sd_buildbegin(sdbuild *b, sr *r, int crc, int compress, int compress_dup)
 {
 	b->crc = crc;

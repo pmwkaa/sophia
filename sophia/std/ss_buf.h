@@ -46,11 +46,6 @@ ss_buffree(ssbuf *b, ssa *a)
 	b->e = NULL;
 }
 
-static inline void
-ss_bufreset(ssbuf *b) {
-	b->p = b->s;
-}
-
 static inline int
 ss_bufsize(ssbuf *b) {
 	return b->e - b->s;
@@ -64,6 +59,22 @@ ss_bufused(ssbuf *b) {
 static inline int
 ss_bufunused(ssbuf *b) {
 	return b->e - b->p;
+}
+
+static inline void
+ss_bufreset(ssbuf *b) {
+	b->p = b->s;
+}
+
+static inline void
+ss_bufgc(ssbuf *b, ssa *a, int wm)
+{
+	if (ssunlikely(ss_bufsize(b) >= wm)) {
+		ss_buffree(b, a);
+		ss_bufinit(b);
+		return;
+	}
+	ss_bufreset(b);
 }
 
 static inline int

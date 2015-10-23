@@ -123,5 +123,7 @@ int si_execute(si *i, sdc *c, siplan *plan, uint64_t vlsn)
 		rc = si_drop(i);
 		break;
 	}
+	/* garbage collect buffers */
+	sd_cgc(c, i->r, i->scheme->buf_gc_wm);
 	return rc;
 }

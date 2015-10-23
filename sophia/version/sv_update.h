@@ -69,6 +69,24 @@ sv_updatereset(svupdate *u)
 	memset(&u->result, 0, sizeof(u->result));
 }
 
+static inline void
+sv_updategc(svupdate *u, sr *r, int wm_stack, int wm_buf)
+{
+	svupdatenode *n = (svupdatenode*)u->stack.s;
+	if (u->max >= wm_stack) {
+		sv_updatefree(u, r);
+		sv_updateinit(u);
+		return;
+	}
+	int i = 0;
+	while (i < u->count) {
+		ss_bufgc(&n[i].buf, r->a, wm_buf);
+		i++;
+	}
+	u->count = 0;
+	memset(&u->result, 0, sizeof(u->result));
+}
+
 static inline int
 sv_updatepush_raw(svupdate *u, sr *r, char *pointer, int size,
                   uint8_t flags, uint64_t lsn)

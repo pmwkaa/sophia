@@ -180,7 +180,6 @@ int si_branch(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 	i = si_noderotate(n);
 	si_unlock(index);
 
-	sd_creset(c, r);
 	sibranch *branch = si_branchcreate(index, c, n, i, vlsn);
 	if (ssunlikely(branch == NULL))
 		return -1;
@@ -221,7 +220,6 @@ int si_compact(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 	sinode *node = plan->node;
 	assert(node->flags & SI_LOCK);
 
-	sd_creset(c, r);
 	/* prepare for compaction */
 	int rc;
 	rc = sd_censure(c, r, node->branch_count);

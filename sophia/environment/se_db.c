@@ -39,6 +39,7 @@ se_dbscheme_init(sedb *db, char *name)
 	scheme->fmt_storage         = SF_SRAW;
 	scheme->path_fail_on_exists = 0;
 	scheme->path_fail_on_drop   = 1;
+	scheme->buf_gc_wm           = 1024 * 1024;
 	sf_updateinit(&scheme->fmt_update);
 	scheme->compression_sz = ss_strdup(&e->a, scheme->compression_if->name);
 	if (ssunlikely(scheme->compression_sz == NULL))
