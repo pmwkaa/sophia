@@ -40,7 +40,7 @@ int ss_mremap(ssmmap *m, uint64_t size)
 	if (ssunlikely(m->p == NULL))
 		return ss_mmap_allocate(m, size);
 	void *p;
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined(__FreeBSD__)
 	p = mmap(NULL, size, PROT_READ|PROT_WRITE,
 	         MAP_PRIVATE|MAP_ANON, -1, 0);
 	if (p == MAP_FAILED)
