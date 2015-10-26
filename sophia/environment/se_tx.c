@@ -181,12 +181,6 @@ se_txcommit(so *o)
 		return -1;
 	int recover = (status == SE_RECOVER);
 	/* prepare transaction */
-	if (ssunlikely(! sv_logcount(&t->t.log))) {
-		sx_prepare(&t->t, NULL, NULL);
-		sx_commit(&t->t);
-		se_txend(t, 0, 0);
-		return 0;
-	}
 	if (t->t.state == SXREADY || t->t.state == SXLOCK)
 	{
 		sicache *cache = NULL;

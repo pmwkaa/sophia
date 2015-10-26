@@ -57,6 +57,32 @@ hc_prepare_commit(void)
 }
 
 static void
+hc_prepare_commit_empty(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_open(env) == 0 );
+
+	int rc;
+	void *tx = sp_begin(env);
+	t( tx != NULL );
+	t( sp_setint(tx, "half_commit", 1) == 0 );
+	rc = sp_commit(tx);
+	t( rc == 0 );
+	rc = sp_commit(tx);
+	t( rc == 0 );
+
+	t( sp_destroy(env) == 0 );
+}
+
+static void
 hc_prepare_rollback0(void)
 {
 	void *env = sp_env();
@@ -201,6 +227,7 @@ hc_prepare_commit_conflict(void)
 stgroup *half_commit_group(void)
 {
 	stgroup *group = st_group("half_commit");
+	st_groupadd(group, st_test("prepare_commit_empty", hc_prepare_commit_empty));
 	st_groupadd(group, st_test("prepare_commit", hc_prepare_commit));
 	st_groupadd(group, st_test("prepare_rollback0", hc_prepare_rollback0));
 	st_groupadd(group, st_test("prepare_rollback1", hc_prepare_rollback1));
