@@ -44,29 +44,25 @@ static inline int
 ss_fileopenas(ssfile *f, char *path, int flags)
 {
 	f->creat = (flags & O_CREAT ? 1 : 0);
-	f->fd = open(path, flags, 0644);
-	if (ssunlikely(f->fd == -1))
-		return -1;
 	f->file = ss_strdup(f->a, path);
 	if (ssunlikely(f->file == NULL))
-		goto err;
+		return -1;
+	f->fd = open(path, flags, 0644);
+	if (ssunlikely(f->fd == -1)) {
+		ss_fileclose(f);
+		return -1;
+	}
 	f->size = 0;
 	if (f->creat)
 		return 0;
 	struct stat st;
 	int rc = lstat(path, &st);
-	if (ssunlikely(rc == -1))
-		goto err;
+	if (ssunlikely(rc == -1)) {
+		ss_fileclose(f);
+		return -1;
+	}
 	f->size = st.st_size;
 	return 0;
-err:
-	if (f->file) {
-		ss_free(f->a, f->file);
-		f->file = NULL;
-	}
-	close(f->fd);
-	f->fd = -1;
-	return -1;
 }
 
 int ss_fileopen(ssfile *f, char *path)

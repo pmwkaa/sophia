@@ -199,6 +199,7 @@ si_cachepool_free(sicachepool *p, sr *r)
 	while (c) {
 		next = c->next;
 		si_cachefree(c, r);
+		ss_free(p->ac, c);
 		c = next;
 	}
 }

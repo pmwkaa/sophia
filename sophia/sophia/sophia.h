@@ -24,17 +24,17 @@ extern "C" {
 
 SP_API void    *sp_env(void);
 SP_API void    *sp_object(void*);
-SP_API int      sp_open(void*);
-SP_API int      sp_error(void*);
-SP_API int      sp_destroy(void*);
-SP_API int      sp_drop(void*);
-SP_API void    *sp_poll(void*);
 SP_API int      sp_setobject(void*, const char*, const void*);
 SP_API int      sp_setstring(void*, const char*, const void*, int);
 SP_API int      sp_setint(void*, const char*, int64_t);
 SP_API void    *sp_getobject(void*, const char*);
 SP_API void    *sp_getstring(void*, const char*, int*);
 SP_API int64_t  sp_getint(void*, const char*);
+SP_API int      sp_open(void*);
+SP_API int      sp_destroy(void*);
+SP_API int      sp_error(void*);
+SP_API void    *sp_poll(void*);
+SP_API int      sp_drop(void*);
 SP_API int      sp_set(void*, void*);
 SP_API int      sp_update(void*, void*);
 SP_API int      sp_delete(void*, void*);

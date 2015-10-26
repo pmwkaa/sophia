@@ -52,10 +52,6 @@ se_statusset(sestatus *s, int status)
 {
 	ss_spinlock(&s->lock);
 	int old = s->status;
-	if (old == SE_MALFUNCTION) {
-		ss_spinunlock(&s->lock);
-		return -1;
-	}
 	s->status = status;
 	ss_spinunlock(&s->lock);
 	return old;

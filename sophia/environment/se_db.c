@@ -585,8 +585,8 @@ so *se_dbnew(se *e, char *name)
 	}
 	rc = si_init(&o->index, &o->r);
 	if (ssunlikely(rc == -1)) {
-		ss_free(&e->a_db, o);
 		si_schemefree(&o->scheme, &o->r);
+		ss_free(&e->a_db, o);
 		return NULL;
 	}
 	sx_indexinit(&o->coindex, &e->xm, &o->r, o);

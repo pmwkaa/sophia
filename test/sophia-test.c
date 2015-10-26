@@ -90,8 +90,9 @@ extern stgroup *multithread_group(void);
 extern stgroup *multithread_be_group(void);
 extern stgroup *multithread_be_multipass_group(void);
 
-/* leak */
+/* memory */
 extern stgroup *leak_group(void);
+extern stgroup *oom_group(void);
 
 static void
 usage(char *path, int error) {
@@ -359,6 +360,7 @@ main(int argc, char *argv[])
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
 	st_planadd(plan, leak_group());
+	st_planadd(plan, oom_group());
 	st_suiteadd(&st_r.suite, plan);
 
 	plan = st_plan("recover_crash");

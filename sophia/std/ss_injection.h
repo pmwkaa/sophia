@@ -22,7 +22,8 @@ typedef struct ssinjection ssinjection;
 #define SS_INJECTION_SI_RECOVER_0    8
 
 struct ssinjection {
-	int e[9];
+	uint32_t e[9];
+	uint32_t oom;
 };
 
 #ifdef SS_INJECTION_ENABLE

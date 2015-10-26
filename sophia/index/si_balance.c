@@ -62,6 +62,8 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 
 	while ((rc = sd_merge(&merge)) > 0)
 	{
+		assert(branch == NULL);
+
 		/* write open seal */
 		uint64_t seal = parent->file.size;
 		rc = sd_writeseal(r, &parent->file, blob);

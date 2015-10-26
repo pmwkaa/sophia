@@ -232,7 +232,6 @@ si_split(si *index, sdc *c, ssbuf *result,
 		rc = ss_bufadd(result, index->r->a, &n, sizeof(sinode*));
 		if (ssunlikely(rc == -1)) {
 			sr_oom_malfunction(index->r->e);
-			si_nodefree(n, r, 1);
 			goto error;
 		}
 
@@ -357,8 +356,10 @@ int si_compaction(si *index, sdc *c, uint64_t vlsn,
 	{
 		n  = ss_iterof(ss_bufiterref, &i);
 		rc = si_nodeseal(n, r, index->scheme);
-		if (ssunlikely(rc == -1))
+		if (ssunlikely(rc == -1)) {
+			si_nodefree(node, r, 0);
 			return -1;
+		}
 		SS_INJECTION(r->i, SS_INJECTION_SI_COMPACTION_3,
 		             si_nodefree(node, r, 0);
 		             sr_malfunction(r->e, "%s", "error injection");

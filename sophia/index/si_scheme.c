@@ -66,12 +66,12 @@ int si_schemedeploy(sischeme *s, sr *r)
 	rc = sd_schemebegin(&c, r);
 	if (ssunlikely(rc == -1))
 		return -1;
+	ssbuf buf;
+	ss_bufinit(&buf);
 	rc = sd_schemeadd(&c, r, SI_SCHEME_NAME, SS_STRING, s->name,
 	                  strlen(s->name) + 1);
 	if (ssunlikely(rc == -1))
 		goto error;
-	ssbuf buf;
-	ss_bufinit(&buf);
 	rc = sr_schemesave(&s->scheme, r->a, &buf);
 	if (ssunlikely(rc == -1))
 		goto error;
@@ -141,12 +141,12 @@ int si_schemerecover(sischeme *s, sr *r)
 	int rc;
 	rc = sd_schemerecover(&c, r, path);
 	if (ssunlikely(rc == -1))
-		return -1;
+		goto error;
 	ssiter i;
 	ss_iterinit(sd_schemeiter, &i);
 	rc = ss_iteropen(sd_schemeiter, &i, r, &c, 1);
 	if (ssunlikely(rc == -1))
-		return -1;
+		goto error;
 	while (ss_iterhas(sd_schemeiter, &i))
 	{
 		sdschemeopt *opt = ss_iterof(sd_schemeiter, &i);

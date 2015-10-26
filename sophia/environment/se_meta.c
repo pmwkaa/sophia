@@ -722,6 +722,47 @@ se_metabackup(se *e, semetart *rt, srmeta **pc)
 	return sr_M(NULL, pc, NULL, "backup", 0, backup, SR_NS, NULL);
 }
 
+static inline int
+se_metadebug_oom(srmeta *c, srmetastmt *s)
+{
+	se *e = s->ptr;
+	assert(e->ei.oom == 0);
+	int rc = se_metav(c, s);
+	if (ssunlikely(rc == -1))
+		return rc;
+
+	ss_aclose(&e->a);
+	ss_aclose(&e->a_db);
+	ss_aclose(&e->a_v);
+	ss_aclose(&e->a_cursor);
+	ss_aclose(&e->a_cachebranch);
+	ss_aclose(&e->a_cache);
+	ss_aclose(&e->a_metacursor);
+	ss_aclose(&e->a_metav);
+	ss_aclose(&e->a_snapshot);
+	ss_aclose(&e->a_snapshotcursor);
+	ss_aclose(&e->a_batch);
+	ss_aclose(&e->a_tx);
+	ss_aclose(&e->a_req);
+	ss_aclose(&e->a_sxv);
+
+	ss_aopen(&e->a_oom, &ss_ooma, e->ei.oom);
+	e->a = e->a_oom;
+	e->a_db = e->a_oom;
+	e->a_v = e->a_oom;
+	e->a_cursor = e->a_oom;
+	e->a_cachebranch = e->a_oom;
+	e->a_cache = e->a_oom;
+	e->a_metav = e->a_oom;
+	e->a_snapshot = e->a_oom;
+	e->a_snapshotcursor = e->a_oom;
+	e->a_batch = e->a_oom;
+	e->a_tx = e->a_oom;
+	e->a_req = e->a_oom;
+	e->a_sxv = e->a_oom;
+	return 0;
+}
+
 static inline srmeta*
 se_metadebug(se *e, semetart *rt ssunused, srmeta **pc)
 {
@@ -729,6 +770,7 @@ se_metadebug(se *e, semetart *rt ssunused, srmeta **pc)
 	srmeta *p = NULL;
 	prev = p;
 	srmeta *ei = *pc;
+	sr_m(&p, pc, se_metadebug_oom, "oom", SS_U32, &e->ei.oom);
 	sr_m(&p, pc, se_metav, "sd_build_0",      SS_U32, &e->ei.e[0]);
 	sr_m(&p, pc, se_metav, "sd_build_1",      SS_U32, &e->ei.e[1]);
 	sr_m(&p, pc, se_metav, "si_branch_0",     SS_U32, &e->ei.e[2]);

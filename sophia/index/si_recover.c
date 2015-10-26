@@ -153,6 +153,8 @@ si_deploy(si *i, sr *r, int create_directory)
 	             return -1);
 	rc = si_nodecomplete(n, r, i->scheme);
 	if (ssunlikely(rc == -1)) {
+		si_nodefree(n, r, 1);
+		return -1;
 	}
 	si_insert(i, n);
 	si_plannerupdate(&i->p, SI_COMPACT|SI_BRANCH, n);

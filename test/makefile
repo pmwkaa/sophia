@@ -61,7 +61,8 @@ STS_TESTS = unit/ss_leb128.test.o \
             recover/recover_loop.test.o \
             multithread/multithread.test.o \
             multithread/multithread_be.test.o \
-            memory/leak.test.o
+            memory/leak.test.o \
+            memory/oom.test.o
 
 SOPHIA_DIRS    = std format runtime object version log database \
                  index \
