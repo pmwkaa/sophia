@@ -61,8 +61,12 @@ ss_rqinit(ssrq *q, ssa *a, uint32_t range, uint32_t count)
 }
 
 static inline void
-ss_rqfree(ssrq *q, ssa *a) {
-	ss_free(a, q->q);
+ss_rqfree(ssrq *q, ssa *a)
+{
+	if (q->q) {
+		ss_free(a, q->q);
+		q->q = NULL;
+	}
 }
 
 static inline void

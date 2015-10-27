@@ -1435,8 +1435,8 @@ update_cursor3(void)
 
 static int
 update_operator2(int a_flags, void *a, int a_size,
-                int b_flags, void *b, int b_size, void *arg,
-                void **result, int *result_size)
+                 int b_flags, void *b, int b_size, void *arg,
+                 void **result, int *result_size)
 {
 	assert(b_flags == SVUPDATE);
 	assert(b != NULL);

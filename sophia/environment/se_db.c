@@ -291,7 +291,7 @@ se_dbread(sedb *db, sev *o, sx *x, int x_search,
 		 * index search */
 		assert(v != NULL);
 		int rc = sx_get(x, &db->coindex, &vp, &vup);
-		if (rc == 2) /* delete */
+		if (ssunlikely(rc == -1 || rc == 2 /* delete */))
 			goto e2;
 		if (rc == 1 && !sv_is(&vup, SVUPDATE)) {
 			so *ret = se_vnew(e, &db->o, &vup, async);

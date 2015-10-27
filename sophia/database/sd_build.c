@@ -202,7 +202,7 @@ sd_buildadd_keyvalue(sdbuild *b, sr *r, sv *v)
 					return sr_oom(r->e);
 			}
 			sdbuildkey *ref = ss_malloc(r->a, sizeof(sdbuildkey));
-			if (ssunlikely(rc == -1))
+			if (ssunlikely(ref == NULL))
 				return sr_oom(r->e);
 			ref->node.hash = hash;
 			ref->offset = offset;

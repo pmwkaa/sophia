@@ -25,12 +25,12 @@ struct ssht {
 static inline int
 ss_htinit(ssht *t, ssa *a, int size)
 {
-	t->count = 0;
-	t->size = size;
 	int sz = size * sizeof(sshtnode*);
 	t->i = (sshtnode**)ss_malloc(a, sz);
 	if (ssunlikely(t->i == NULL))
 		return -1;
+	t->count = 0;
+	t->size = size;
 	memset(t->i, 0, sz);
 	return 0;
 }
@@ -42,6 +42,7 @@ ss_htfree(ssht *t, ssa *a)
 		return;
 	ss_free(a, t->i);
 	t->i = NULL;
+	t->size = 0;
 }
 
 static inline void

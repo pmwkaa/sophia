@@ -15,6 +15,30 @@
 #include <libsd.h>
 #include <libst.h>
 
+static int oom_update_n = 0;
+
+static int
+oom_update_operator(int a_flags, void *a, int a_size,
+                    int b_flags, void *b, int b_size, void *arg,
+                    void **result, int *result_size)
+{
+#if 0
+	assert(a != NULL);
+	assert(a_flags == 0); /* SET */
+#endif
+	assert(b_flags == SVUPDATE);
+	assert(b != NULL);
+	(void)arg;
+	oom_update_n++;
+	if (oom_update_n == 1)
+		return -1;
+	char *c = malloc(b_size);
+	memcpy(c, b, b_size);
+	*result = c;
+	*result_size = b_size;
+	return 0;
+}
+
 static inline void*
 oom_open(void *env)
 {
@@ -37,7 +61,19 @@ oom_open(void *env)
 	rc = sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0);
 	if (rc == -1)
 		return NULL;
+	rc = sp_setstring(env, "db.test.compression", "lz4", 0);
+	if (rc == -1)
+		return NULL;
+	rc = sp_setint(env, "db.test.compression_key", 1);
+	if (rc == -1)
+		return NULL;
+	rc = sp_setint(env, "db.test.in_memory", 1);
+	if (rc == -1)
+		return NULL;
 	rc = sp_setstring(env, "db.test.index.key", "u32", 0);
+	if (rc == -1)
+		return NULL;
+	rc = sp_setstring(env, "db.test.index.update", oom_update_operator, 0);
 	if (rc == -1)
 		return NULL;
 	rc = sp_setint(env, "db.test.sync", 0);
@@ -74,6 +110,51 @@ oom_write_read(void *env, void *db)
 	rc = sp_set(db, o);
 	if (rc == -1)
 		return -1;
+
+	/* transaction */
+	void *tx = sp_begin(env);
+	if (tx == NULL)
+		return -1;
+	o = sp_object(db);
+	if (o == NULL)
+		return -1;
+	key = 123;
+	rc = sp_setstring(o, "key", &key, sizeof(key));
+	if (rc == -1) {
+		sp_destroy(o);
+		sp_destroy(tx);
+		return -1;
+	}
+	rc = sp_setstring(o, "value", &key, sizeof(key));
+	if (rc == -1) {
+		sp_destroy(o);
+		sp_destroy(tx);
+		return -1;
+	}
+	rc = sp_set(tx, o);
+	if (rc == -1) {
+		sp_destroy(tx);
+		return -1;
+	}
+	o = sp_object(db);
+	if (o == NULL)
+		return -1;
+	rc = sp_setstring(o, "key", &key, sizeof(key));
+	if (rc == -1) {
+		sp_destroy(o);
+		sp_destroy(tx);
+		return -1;
+	}
+	o = sp_get(tx, o);
+	if (o == NULL) {
+		sp_destroy(tx);
+		return -1;
+	}
+	sp_destroy(o);
+	rc = sp_commit(tx);
+	if (rc == -1)
+		return -1;
+
 	/* read */
 	o = sp_object(db);
 	if (o == NULL)
@@ -87,6 +168,7 @@ oom_write_read(void *env, void *db)
 	if (o == NULL)
 		return -1;
 	sp_destroy(o);
+
 	/* cursor */
 	void *c = sp_cursor(env);
 	if (c == NULL)
@@ -103,6 +185,40 @@ oom_write_read(void *env, void *db)
 	}
 	sp_destroy(o);
 	sp_destroy(c);
+	return 0;
+}
+
+static inline int
+oom_update(void *env, void *db)
+{
+	void *o = sp_object(db);
+	if (o == NULL)
+		return -1;
+	int up = 777;
+	int i = 0;
+	sp_setstring(o, "key", &i, sizeof(i));
+	sp_setstring(o, "value", &up, sizeof(up));
+	int rc = sp_update(db, o);
+	if (rc == -1)
+		return -1;
+	o = sp_object(db);
+	if (o == NULL)
+		return -1;
+	up = 778;
+	sp_setstring(o, "key", &i, sizeof(i));
+	sp_setstring(o, "value", &up, sizeof(up));
+	rc = sp_update(db, o);
+	if (rc == -1)
+		return -1;
+	o = sp_object(db);
+	if (o == NULL)
+		return -1;
+	sp_setstring(o, "key", &i, sizeof(i));
+	o = sp_get(db, o);
+	if (o == NULL)
+		return -1;
+	t( *(int*)sp_getstring(o, "value", NULL) == 778 );
+	sp_destroy(o);
 	return 0;
 }
 
@@ -138,7 +254,7 @@ oom_compaction(void *env, void *db)
 	rc = sp_setint(env, "db.test.branch", 0);
 	if (rc == -1)
 		return -1;
-	/* left some in log */
+	/* put some statements in log */
 	while (count < 15) {
 		void *o = sp_object(db);
 		if (o == NULL)
@@ -184,8 +300,14 @@ oom_test(void)
 			t( sp_destroy(env) == 0 );
 			continue;
 		}
-		/* write, read, get, cursor */
+		/* write, transaction, read, get, cursor */
 		int rc = oom_write_read(env, db);
+		if (rc == -1) {
+			t( sp_destroy(env) == 0 );
+			continue;
+		}
+		/* update */
+		rc = oom_update(env, db);
 		if (rc == -1) {
 			t( sp_destroy(env) == 0 );
 			continue;
