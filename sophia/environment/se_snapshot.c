@@ -23,7 +23,8 @@ static int
 se_snapshotfree(sesnapshot *s)
 {
 	se *e = se_of(&s->o);
-	sx_rollback(&s->t);
+	if (sslikely(! s->db_view_only))
+		sx_rollback(&s->t);
 	if (sslikely(s->name)) {
 		ss_free(&e->a, s->name);
 		s->name = NULL;
@@ -46,6 +47,32 @@ se_snapshotdestroy(so *o)
 	return 0;
 }
 
+static void*
+se_snapshotget(so *o, so *key)
+{
+	sesnapshot *s = se_cast(o, sesnapshot*, SESNAPSHOT);
+	se *e = se_of(o);
+	sev *v = se_cast(key, sev*, SEV);
+	sedb *db = se_cast(key->parent, sedb*, SEDB);
+	if (s->db_view_only) {
+		sr_error(&e->error, "snapshot '%s' is in db_view_only mode", s->name);
+		return NULL;
+	}
+	return se_dbread(db, v, &s->t, 0, NULL, SS_EQ);
+}
+
+static void*
+se_snapshotcursor(so *o)
+{
+	sesnapshot *s = se_cast(o, sesnapshot*, SESNAPSHOT);
+	se *e = se_of(o);
+	if (s->db_view_only) {
+		sr_error(&e->error, "snapshot '%s' is in db_view_only mode", s->name);
+		return NULL;
+	}
+	return se_cursornew(e, s->vlsn);
+}
+
 void *se_snapshotget_object(so *o, const char *path)
 {
 	sesnapshot *s = se_cast(o, sesnapshot*, SESNAPSHOT);
@@ -54,21 +81,18 @@ void *se_snapshotget_object(so *o, const char *path)
 	return NULL;
 }
 
-static void*
-se_snapshotget(so *o, so *key)
+static int
+se_snapshotset_int(so *o, const char *path, int64_t v ssunused)
 {
 	sesnapshot *s = se_cast(o, sesnapshot*, SESNAPSHOT);
-	sev *v = se_cast(key, sev*, SEV);
-	sedb *db = se_cast(key->parent, sedb*, SEDB);
-	return se_dbread(db, v, &s->t, 0, NULL, SS_EQ);
-}
-
-static void*
-se_snapshotcursor(so *o)
-{
-	sesnapshot *s = (sesnapshot*)o;
-	se *e = se_of(o);
-	return se_cursornew(e, s->vlsn);
+	if (strcmp(path, "db_view_only") == 0) {
+		if (s->db_view_only)
+			return -1;
+		sx_rollback(&s->t);
+		s->db_view_only = 1;
+		return 0;
+	}
+	return -1;
 }
 
 static soif sesnapshotif =
@@ -81,7 +105,7 @@ static soif sesnapshotif =
 	.drop         = NULL,
 	.setobject    = NULL,
 	.setstring    = NULL,
-	.setint       = NULL,
+	.setint       = se_snapshotset_int,
 	.getobject    = se_snapshotget_object,
 	.getstring    = NULL,
 	.getint       = NULL,
@@ -121,6 +145,7 @@ so *se_snapshotnew(se *e, uint64_t vlsn, char *name)
 		return NULL;
 	}
 	sx_begin(&e->xm, &s->t, SXRO, vlsn);
+	s->db_view_only = 0;
 	se_dbbind(e);
 	return &s->o;
 }
@@ -129,8 +154,10 @@ int se_snapshotupdate(sesnapshot *s)
 {
 	se *e = se_of(&s->o);
 	uint32_t id = s->t.id;
-	sx_rollback(&s->t);
-	sx_begin(&e->xm, &s->t, SXRO, s->vlsn);
+	if (! s->db_view_only) {
+		sx_rollback(&s->t);
+		sx_begin(&e->xm, &s->t, SXRO, s->vlsn);
+	}
 	s->t.id = id;
 	return 0;
 }

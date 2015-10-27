@@ -16,6 +16,7 @@ struct sesnapshot {
 	uint64_t vlsn;
 	char *name;
 	sx t;
+	int db_view_only;
 	solist cursor;
 } sspacked;
 
