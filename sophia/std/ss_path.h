@@ -16,6 +16,12 @@ struct sspath {
 };
 
 static inline void
+ss_pathinit(sspath *p)
+{
+	p->path[0] = 0;
+}
+
+static inline void
 ss_pathset(sspath *p, char *fmt, ...)
 {
 	va_list args;
@@ -34,6 +40,16 @@ static inline void
 ss_pathAB(sspath *p, char *dir, uint32_t a, uint32_t b, char *ext)
 {
 	ss_pathset(p, "%s/%010"PRIu32".%010"PRIu32"%s", dir, a, b, ext);
+}
+
+static inline char*
+ss_pathof(sspath *p) {
+	return p->path;
+}
+
+static inline int
+ss_pathis_set(sspath *p) {
+	return p->path[0] != 0;
 }
 
 #endif

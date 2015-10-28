@@ -98,7 +98,8 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 			rc = ss_filesync(&parent->file);
 			if (ssunlikely(rc == -1)) {
 				sr_malfunction(r->e, "file '%s' sync error: %s",
-				               parent->file.file, strerror(errno));
+				               ss_pathof(&parent->file.path),
+				               strerror(errno));
 				goto e0;
 			}
 		}
@@ -116,7 +117,8 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 			rc = ss_filesync(&parent->file);
 			if (ssunlikely(rc == -1)) {
 				sr_malfunction(r->e, "file '%s' sync error: %s",
-				               parent->file.file, strerror(errno));
+				               ss_pathof(&parent->file.path),
+				               strerror(errno));
 				goto e0;
 			}
 		}
@@ -151,7 +153,8 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		              parent->file.size, 1);
 		if (ssunlikely(rc == -1)) {
 			sr_malfunction(r->e, "db file '%s' mmap error: %s",
-			               parent->file.file, strerror(errno));
+			               ss_pathof(&parent->file.path),
+			               strerror(errno));
 			goto e1;
 		}
 	}
@@ -208,7 +211,8 @@ int si_branch(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 		int rc = ss_munmap(&swap_map);
 		if (ssunlikely(rc == -1)) {
 			sr_malfunction(r->e, "db file '%s' munmap error: %s",
-			               n->file.file, strerror(errno));
+			               ss_pathof(&n->file.path),
+			               strerror(errno));
 			return -1;
 		}
 	}

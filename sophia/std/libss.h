@@ -36,8 +36,10 @@
 #include <ss_hash.h>
 #include <ss_ht.h>
 #include <ss_rq.h>
-#include <ss_path.h>
 #include <ss_iov.h>
+#include <ss_path.h>
+#include <ss_vfs.h>
+#include <ss_stdvfs.h>
 #include <ss_file.h>
 #include <ss_mmap.h>
 #include <ss_filter.h>

@@ -43,7 +43,7 @@ sd_recovernext_of(sdrecover *i, sdseal *next)
 	/* validate seal pointer */
 	if (ssunlikely(((pointer + sizeof(sdseal)) > eof))) {
 		sr_malfunction(i->r->e, "corrupted db file '%s': bad seal size",
-		               i->file->file);
+		               ss_pathof(&i->file->path));
 		i->corrupt = 1;
 		i->v = NULL;
 		return -1;
@@ -53,7 +53,7 @@ sd_recovernext_of(sdrecover *i, sdseal *next)
 	/* validate index pointer */
 	if (ssunlikely(((pointer + sizeof(sdindexheader)) > eof))) {
 		sr_malfunction(i->r->e, "corrupted db file '%s': bad index size",
-		               i->file->file);
+		               ss_pathof(&i->file->path));
 		i->corrupt = 1;
 		i->v = NULL;
 		return -1;
@@ -64,7 +64,7 @@ sd_recovernext_of(sdrecover *i, sdseal *next)
 	uint32_t crc = ss_crcs(i->r->crc, index, sizeof(sdindexheader), 0);
 	if (index->crc != crc) {
 		sr_malfunction(i->r->e, "corrupted db file '%s': bad index crc",
-		               i->file->file);
+		               ss_pathof(&i->file->path));
 		i->corrupt = 1;
 		i->v = NULL;
 		return -1;
@@ -75,7 +75,7 @@ sd_recovernext_of(sdrecover *i, sdseal *next)
 	            index->extension;
 	if (ssunlikely(end > eof)) {
 		sr_malfunction(i->r->e, "corrupted db file '%s': bad index size",
-		               i->file->file);
+		               ss_pathof(&i->file->path));
 		i->corrupt = 1;
 		i->v = NULL;
 		return -1;
@@ -85,7 +85,7 @@ sd_recovernext_of(sdrecover *i, sdseal *next)
 	int rc = sd_sealvalidate(next, i->r, index);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(i->r->e, "corrupted db file '%s': bad seal",
-		               i->file->file);
+		               ss_pathof(&i->file->path));
 		i->corrupt = 1;
 		i->v = NULL;
 		return -1;
@@ -104,14 +104,15 @@ int sd_recover_open(ssiter *i, sr *r, ssfile *file)
 	ri->file = file;
 	if (ssunlikely(ri->file->size < (sizeof(sdseal) + sizeof(sdindexheader)))) {
 		sr_malfunction(ri->r->e, "corrupted db file '%s': bad size",
-		               ri->file->file);
+		               ss_pathof(&ri->file->path));
 		ri->corrupt = 1;
 		return -1;
 	}
 	int rc = ss_mmap(&ri->map, ri->file->fd, ri->file->size, 1);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(ri->r->e, "failed to mmap db file '%s': %s",
-		               ri->file->file, strerror(errno));
+		               ss_pathof(&ri->file->path),
+		               strerror(errno));
 		return -1;
 	}
 	sdseal *seal = (sdseal*)((char*)ri->map.p);

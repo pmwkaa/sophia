@@ -79,7 +79,8 @@ sd_read_page(sdread *i, sdindexpage *ref)
 			rc = ss_filepread(arg->file, ref->offset, arg->buf_read->s, ref->size);
 			if (ssunlikely(rc == -1)) {
 				sr_error(r->e, "db file '%s' read error: %s",
-				         arg->file->file, strerror(errno));
+				         ss_pathof(&arg->file->path),
+				         strerror(errno));
 				return -1;
 			}
 			ss_bufadvance(arg->buf_read, ref->size);
@@ -94,13 +95,15 @@ sd_read_page(sdread *i, sdindexpage *ref)
 		ssfilter f;
 		rc = ss_filterinit(&f, (ssfilterif*)r->compression, r->a, SS_FOUTPUT);
 		if (ssunlikely(rc == -1)) {
-			sr_error(r->e, "db file '%s' decompression error", arg->file->file);
+			sr_error(r->e, "db file '%s' decompression error",
+			         ss_pathof(&arg->file->path));
 			return -1;
 		}
 		int size = ref->size - sizeof(sdpageheader);
 		rc = ss_filternext(&f, arg->buf, page_pointer + sizeof(sdpageheader), size);
 		if (ssunlikely(rc == -1)) {
-			sr_error(r->e, "db file '%s' decompression error", arg->file->file);
+			sr_error(r->e, "db file '%s' decompression error",
+			         ss_pathof(&arg->file->path));
 			return -1;
 		}
 		ss_filterfree(&f);
@@ -129,7 +132,8 @@ sd_read_page(sdread *i, sdindexpage *ref)
 	rc = ss_filepread(arg->file, ref->offset, arg->buf->s, ref->sizeorigin);
 	if (ssunlikely(rc == -1)) {
 		sr_error(r->e, "db file '%s' read error: %s",
-		         arg->file->file, strerror(errno));
+		         ss_pathof(&arg->file->path),
+		         strerror(errno));
 		return -1;
 	}
 	ss_bufadvance(arg->buf, ref->sizeorigin);

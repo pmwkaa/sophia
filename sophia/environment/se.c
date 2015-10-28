@@ -121,6 +121,7 @@ se_destroy(so *o)
 	if (ssunlikely(rc == -1))
 		rcret = -1;
 	sx_managerfree(&e->xm);
+	ss_vfsfree(&e->vfs);
 	si_cachepool_free(&e->cachepool, &e->r);
 	se_metafree(&e->meta);
 	ss_quotafree(&e->quota);
@@ -229,6 +230,7 @@ so *se_new(void)
 		free(e);
 		return NULL;
 	}
+	ss_vfsinit(&e->vfs, &ss_stdvfs);
 	ss_aopen(&e->a, &ss_stda);
 	ss_aopen(&e->a_db, &ss_slaba, &e->pager, sizeof(sedb));
 	ss_aopen(&e->a_v, &ss_slaba, &e->pager, sizeof(sev));
@@ -262,7 +264,7 @@ so *se_new(void)
 	sr_errorinit(&e->error);
 	sr_statinit(&e->stat);
 	sscrcf crc = ss_crc32c_function();
-	sr_init(&e->r, &e->error, &e->a, &e->quota, &e->seq,
+	sr_init(&e->r, &e->error, &e->a, &e->vfs, &e->quota, &e->seq,
 	        SF_KV, SF_SRAW, NULL,
 	        &e->meta.scheme, &e->ei, &e->stat, crc, NULL);
 	sy_init(&e->rep);

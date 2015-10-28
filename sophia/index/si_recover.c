@@ -132,7 +132,7 @@ si_deploy(si *i, sr *r, int create_directory)
 {
 	int rc;
 	if (sslikely(create_directory)) {
-		rc = ss_filemkdir(i->scheme->path);
+		rc = ss_vfsmkdir(r->vfs, i->scheme->path, 0755);
 		if (ssunlikely(rc == -1)) {
 			sr_malfunction(r->e, "directory '%s' create error: %s",
 			               i->scheme->path, strerror(errno));
@@ -245,7 +245,7 @@ si_trackdir(sitrack *track, sr *r, si *i)
 			/* remove any incomplete file made during compaction */
 			if (rc == SI_RDB_DBI) {
 				ss_pathAB(&path, i->scheme->path, id_parent, id, ".db.incomplete");
-				rc = ss_fileunlink(path.path);
+				rc = ss_vfsunlink(r->vfs, path.path);
 				if (ssunlikely(rc == -1)) {
 					sr_malfunction(r->e, "db file '%s' unlink error: %s",
 					               path.path, strerror(errno));
@@ -433,7 +433,7 @@ si_recoverdrop(si *i, sr *r)
 {
 	char path[1024];
 	snprintf(path, sizeof(path), "%s/drop", i->scheme->path);
-	int rc = ss_fileexists(path);
+	int rc = ss_vfsexists(r->vfs, path);
 	if (sslikely(! rc))
 		return 0;
 	if (i->scheme->path_fail_on_drop) {
@@ -450,7 +450,7 @@ si_recoverdrop(si *i, sr *r)
 int si_recover(si *i)
 {
 	sr *r = i->r;
-	int exist = ss_fileexists(i->scheme->path);
+	int exist = ss_vfsexists(r->vfs, i->scheme->path);
 	if (exist == 0)
 		goto deploy;
 	if (i->scheme->path_fail_on_exists) {

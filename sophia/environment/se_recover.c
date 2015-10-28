@@ -146,7 +146,8 @@ se_recoverlogpool(se *e)
 	sslist *i;
 	ss_listforeach(&e->lp.list, i) {
 		sl *log = sscast(i, sl, link);
-		se_recoverf(e, "loading journal '%s'", log->file.file);
+		char *path = ss_pathof(&log->file.path);
+		se_recoverf(e, "loading journal '%s'", path);
 		int rc = se_recoverlog(e, log);
 		if (ssunlikely(rc == -1))
 			return -1;

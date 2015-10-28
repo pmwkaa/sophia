@@ -52,7 +52,8 @@ int sd_writeseal(sr *r, ssfile *file, ssblob *blob)
 	rc = ss_filewrite(file, &seal, sizeof(seal));
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "file '%s' write error: %s",
-		               file->file, strerror(errno));
+		               ss_pathof(&file->path),
+		               strerror(errno));
 		return -1;
 	}
 	if (blob) {
@@ -85,7 +86,8 @@ int sd_writepage(sr *r, ssfile *file, ssblob *blob, sdbuild *b)
 	rc = ss_filewritev(file, &iov);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "file '%s' write error: %s",
-		               file->file, strerror(errno));
+		               ss_pathof(&file->path),
+		               strerror(errno));
 		return -1;
 	}
 	if (blob) {
@@ -107,7 +109,8 @@ int sd_writeindex(sr *r, ssfile *file, ssblob *blob, sdindex *index)
 	rc = ss_filewrite(file, index->i.s, ss_bufused(&index->i));
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "file '%s' write error: %s",
-		               file->file, strerror(errno));
+		               ss_pathof(&file->path),
+		               strerror(errno));
 		return -1;
 	}
 	if (blob) {
@@ -126,7 +129,8 @@ int sd_seal(sr *r, ssfile *file, ssblob *blob, sdindex *index, uint64_t offset)
 	rc = ss_filepwrite(file, offset, &seal, sizeof(seal));
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "file '%s' write error: %s",
-		               file->file, strerror(errno));
+		               ss_pathof(&file->path),
+		               strerror(errno));
 		return -1;
 	}
 	if (blob) {

@@ -31,6 +31,7 @@ struct se {
 	semeta      meta;
 	ssquota     quota;
 	sspager     pager;
+	ssvfs       vfs;
 	ssa         a_oom;
 	ssa         a;
 	ssa         a_db;

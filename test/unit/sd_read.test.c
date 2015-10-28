@@ -58,7 +58,7 @@ sd_read_gt0(void)
 	memset(&id, 0, sizeof(id));
 
 	ssfile f;
-	ss_fileinit(&f, &st_r.a);
+	ss_fileinit(&f, &st_r.vfs);
 	t( ss_filenew(&f, "./0000.db") == 0 );
 	t( sd_writeseal(&st_r.r, &f, NULL) == 0 );
 	t( sd_writepage(&st_r.r, &f, NULL, &b) == 0 );
@@ -117,7 +117,7 @@ sd_read_gt0(void)
 
 	ss_fileclose(&f);
 	t( ss_munmap(&map) == 0 );
-	t( ss_fileunlink("./0000.db") == 0 );
+	t( ss_vfsunlink(&st_r.vfs, "./0000.db") == 0 );
 
 	sd_indexfree(&index, &st_r.r);
 	sd_buildfree(&b, &st_r.r);
@@ -129,7 +129,7 @@ static void
 sd_read_gt1(void)
 {
 	ssfile f;
-	ss_fileinit(&f, &st_r.a);
+	ss_fileinit(&f, &st_r.vfs);
 	t( ss_filenew(&f, "./0000.db") == 0 );
 	t( sd_writeseal(&st_r.r, &f, NULL) == 0 );
 
@@ -268,7 +268,7 @@ sd_read_gt1(void)
 
 	ss_fileclose(&f);
 	t( ss_munmap(&map) == 0 );
-	t( ss_fileunlink("./0000.db") == 0 );
+	t( ss_vfsunlink(&st_r.vfs, "./0000.db") == 0 );
 
 	sd_indexfree(&index, &st_r.r);
 	sd_buildfree(&b, &st_r.r);
@@ -281,6 +281,8 @@ sd_read_gt0_compression_zstd(void)
 {
 	ssa a;
 	ss_aopen(&a, &ss_stda);
+	ssvfs vfs;
+	ss_vfsinit(&vfs, &ss_stdvfs);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
 	srkey *part = sr_schemeadd(&cmp, &a);
@@ -296,7 +298,7 @@ sd_read_gt0_compression_zstd(void)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp,
+	sr_init(&r, &error, &a, &vfs, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp,
 	        &ij, &stat, crc, &ss_zstdfilter);
 
 	sdbuild b;
@@ -323,7 +325,7 @@ sd_read_gt0_compression_zstd(void)
 	memset(&id, 0, sizeof(id));
 
 	ssfile f;
-	ss_fileinit(&f, &st_r.a);
+	ss_fileinit(&f, &vfs);
 	t( ss_filenew(&f, "./0000.db") == 0 );
 	t( sd_writeseal(&r, &f, NULL) == 0 );
 	t( sd_writepage(&r, &f, NULL, &b) == 0 );
@@ -384,7 +386,7 @@ sd_read_gt0_compression_zstd(void)
 
 	ss_fileclose(&f);
 	t( ss_munmap(&map) == 0 );
-	t( ss_fileunlink("./0000.db") == 0 );
+	t( ss_vfsunlink(&vfs, "./0000.db") == 0 );
 
 	sd_indexfree(&index, &r);
 	sd_buildfree(&b, &r);
@@ -399,6 +401,8 @@ sd_read_gt0_compression_lz4(void)
 {
 	ssa a;
 	ss_aopen(&a, &ss_stda);
+	ssvfs vfs;
+	ss_vfsinit(&vfs, &ss_stdvfs);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
 	srkey *part = sr_schemeadd(&cmp, &a);
@@ -414,7 +418,7 @@ sd_read_gt0_compression_lz4(void)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij,
+	sr_init(&r, &error, &a, &vfs, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij,
 	        &stat, crc, &ss_lz4filter);
 
 	sdbuild b;
@@ -443,7 +447,7 @@ sd_read_gt0_compression_lz4(void)
 	t( sd_indexcommit(&index, &r, &id, 0) == 0 );
 
 	ssfile f;
-	ss_fileinit(&f, &st_r.a);
+	ss_fileinit(&f, &vfs);
 	t( ss_filenew(&f, "./0000.db") == 0 );
 	t( sd_writeseal(&r, &f, NULL) == 0 );
 	t( sd_writepage(&r, &f, NULL, &b) == 0 );
@@ -504,7 +508,7 @@ sd_read_gt0_compression_lz4(void)
 
 	ss_fileclose(&f);
 	t( ss_munmap(&map) == 0 );
-	t( ss_fileunlink("./0000.db") == 0 );
+	t( ss_vfsunlink(&vfs, "./0000.db") == 0 );
 
 	sd_indexfree(&index, &r);
 	sd_buildfree(&b, &r);
@@ -519,6 +523,8 @@ sd_read_gt1_compression_zstd(void)
 {
 	ssa a;
 	ss_aopen(&a, &ss_stda);
+	ssvfs vfs;
+	ss_vfsinit(&vfs, &ss_stdvfs);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
 	srkey *part = sr_schemeadd(&cmp, &a);
@@ -534,11 +540,11 @@ sd_read_gt1_compression_zstd(void)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp,
+	sr_init(&r, &error, &a, &vfs, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp,
 	        &ij, &stat, crc, &ss_zstdfilter);
 
 	ssfile f;
-	ss_fileinit(&f, &a);
+	ss_fileinit(&f, &vfs);
 	t( ss_filenew(&f, "./0000.db") == 0 );
 	t( sd_writeseal(&r, &f, NULL) == 0 );
 
@@ -679,7 +685,7 @@ sd_read_gt1_compression_zstd(void)
 
 	ss_fileclose(&f);
 	t( ss_munmap(&map) == 0 );
-	t( ss_fileunlink("./0000.db") == 0 );
+	t( ss_vfsunlink(&vfs, "./0000.db") == 0 );
 
 	sd_indexfree(&index, &r);
 	sd_buildfree(&b, &r);
@@ -693,6 +699,8 @@ sd_read_gt1_compression_lz4(void)
 {
 	ssa a;
 	ss_aopen(&a, &ss_stda);
+	ssvfs vfs;
+	ss_vfsinit(&vfs, &ss_stdvfs);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
 	srkey *part = sr_schemeadd(&cmp, &a);
@@ -708,11 +716,11 @@ sd_read_gt1_compression_lz4(void)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp,
+	sr_init(&r, &error, &a, &vfs, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp,
 	        &ij, &stat, crc, &ss_lz4filter);
 
 	ssfile f;
-	ss_fileinit(&f, &a);
+	ss_fileinit(&f, &vfs);
 	t( ss_filenew(&f, "./0000.db") == 0 );
 	t( sd_writeseal(&r, &f, NULL) == 0 );
 
@@ -853,7 +861,7 @@ sd_read_gt1_compression_lz4(void)
 
 	ss_fileclose(&f);
 	t( ss_munmap(&map) == 0 );
-	t( ss_fileunlink("./0000.db") == 0 );
+	t( ss_vfsunlink(&vfs, "./0000.db") == 0 );
 
 	sd_indexfree(&index, &r);
 	sd_buildfree(&b, &r);

@@ -146,7 +146,7 @@ se_backupstart(sescheduler *s)
 	char path[1024];
 	snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete",
 	         e->meta.backup_path, s->backup_bsn);
-	int rc = ss_filemkdir(path);
+	int rc = ss_vfsmkdir(&e->vfs, path, 0755);
 	if (ssunlikely(rc == -1)) {
 		sr_error(&e->error, "backup directory '%s' create error: %s",
 		         path, strerror(errno));
@@ -158,7 +158,7 @@ se_backupstart(sescheduler *s)
 		snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete/%s",
 		         e->meta.backup_path, s->backup_bsn,
 		         db->scheme.name);
-		rc = ss_filemkdir(path);
+		rc = ss_vfsmkdir(&e->vfs, path, 0755);
 		if (ssunlikely(rc == -1)) {
 			sr_error(&e->error, "backup directory '%s' create error: %s",
 			         path, strerror(errno));
@@ -168,7 +168,7 @@ se_backupstart(sescheduler *s)
 	}
 	snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete/log",
 	         e->meta.backup_path, s->backup_bsn);
-	rc = ss_filemkdir(path);
+	rc = ss_vfsmkdir(&e->vfs, path, 0755);
 	if (ssunlikely(rc == -1)) {
 		sr_error(&e->error, "backup directory '%s' create error: %s",
 		         path, strerror(errno));

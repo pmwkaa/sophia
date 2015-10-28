@@ -48,7 +48,7 @@ sl_iternext_of(sliter *i, slv *next, int validate)
 	if (ssunlikely(start == eof)) {
 		if (i->count != i->pos) {
 			sr_malfunction(i->r->e, "corrupted log file '%s': transaction is incomplete",
-			               i->log->file);
+			               ss_pathof(&i->log->path));
 			sl_iterseterror(i);
 			return -1;
 		}
@@ -60,7 +60,7 @@ sl_iternext_of(sliter *i, slv *next, int validate)
 	char *end = start + next->size;
 	if (ssunlikely((start > eof || (end > eof)))) {
 		sr_malfunction(i->r->e, "corrupted log file '%s': bad record size",
-		               i->log->file);
+		               ss_pathof(&i->log->path));
 		sl_iterseterror(i);
 		return -1;
 	}
@@ -73,7 +73,7 @@ sl_iternext_of(sliter *i, slv *next, int validate)
 		crc = ss_crcs(i->r->crc, start, sizeof(slv), crc);
 		if (ssunlikely(crc != next->crc)) {
 			sr_malfunction(i->r->e, "corrupted log file '%s': bad record crc",
-			               i->log->file);
+			               ss_pathof(&i->log->path));
 			sl_iterseterror(i);
 			return -1;
 		}
@@ -121,10 +121,10 @@ sl_iterprepare(sliter *i)
 	srversion *ver = (srversion*)i->map.p;
 	if (! sr_versioncheck(ver))
 		return sr_malfunction(i->r->e, "bad log file '%s' version",
-		                      i->log->file);
+		                      ss_pathof(&i->log->path));
 	if (ssunlikely(i->log->size < (sizeof(srversion))))
 		return sr_malfunction(i->r->e, "corrupted log file '%s': bad size",
-		                      i->log->file);
+		                      ss_pathof(&i->log->path));
 	slv *next = (slv*)((char*)i->map.p + sizeof(srversion));
 	int rc = sl_iternext_of(i, next, 1);
 	if (ssunlikely(rc == -1))
@@ -143,7 +143,7 @@ int sl_iter_open(ssiter *i, sr *r, ssfile *file, int validate)
 	li->validate = validate;
 	if (ssunlikely(li->log->size < sizeof(srversion))) {
 		sr_malfunction(li->r->e, "corrupted log file '%s': bad size",
-		               li->log->file);
+		               ss_pathof(&li->log->path));
 		return -1;
 	}
 	if (ssunlikely(li->log->size == sizeof(srversion)))
@@ -151,7 +151,8 @@ int sl_iter_open(ssiter *i, sr *r, ssfile *file, int validate)
 	int rc = ss_mmap(&li->map, li->log->fd, li->log->size, 1);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(li->r->e, "failed to mmap log file '%s': %s",
-		               li->log->file, strerror(errno));
+		               ss_pathof(&li->log->path),
+		               strerror(errno));
 		return -1;
 	}
 	rc = sl_iterprepare(li);

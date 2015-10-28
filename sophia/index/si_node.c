@@ -30,7 +30,7 @@ sinode *si_nodenew(sr *r)
 	si_branchinit(&n->self);
 	n->branch = NULL;
 	n->branch_count = 0;
-	ss_fileinit(&n->file, r->a);
+	ss_fileinit(&n->file, r->vfs);
 	ss_mmapinit(&n->map);
 	ss_mmapinit(&n->map_swap);
 	sv_indexinit(&n->i0);
@@ -49,13 +49,15 @@ si_nodeclose(sinode *n, sr *r)
 	int rc = ss_munmap(&n->map);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' munmap error: %s",
-		               n->file.file, strerror(errno));
+		               ss_pathof(&n->file.path),
+		               strerror(errno));
 		rcret = -1;
 	}
 	rc = ss_fileclose(&n->file);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' close error: %s",
-		               n->file.file, strerror(errno));
+		               ss_pathof(&n->file.path),
+		               strerror(errno));
 		rcret = -1;
 	}
 	sv_indexfree(&n->i0, r);
@@ -126,13 +128,15 @@ int si_nodeopen(sinode *n, sr *r, sischeme *scheme, sspath *path)
 	int rc = ss_fileopen(&n->file, path->path);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' open error: %s",
-		               n->file.file, strerror(errno));
+		               ss_pathof(&n->file.path),
+		               strerror(errno));
 		return -1;
 	}
 	rc = ss_fileseek(&n->file, n->file.size);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' seek error: %s",
-		               n->file.file, strerror(errno));
+		               ss_pathof(&n->file.path),
+		               strerror(errno));
 		goto error;
 	}
 	rc = si_noderecover(n, r, scheme->in_memory);
@@ -167,7 +171,8 @@ int si_nodemap(sinode *n, sr *r)
 	int rc = ss_mmap(&n->map, n->file.fd, n->file.size, 1);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' mmap error: %s",
-		               n->file.file, strerror(errno));
+		               ss_pathof(&n->file.path),
+		               strerror(errno));
 		return -1;
 	}
 	return 0;
@@ -191,11 +196,12 @@ int si_nodefree(sinode *n, sr *r, int gc)
 {
 	int rcret = 0;
 	int rc;
-	if (gc && n->file.file) {
-		rc = ss_fileunlink(n->file.file);
+	if (gc && ss_pathis_set(&n->file.path)) {
+		rc = ss_vfsunlink(r->vfs, ss_pathof(&n->file.path));
 		if (ssunlikely(rc == -1)) {
 			sr_malfunction(r->e, "db file '%s' unlink error: %s",
-			               n->file.file, strerror(errno));
+			               ss_pathof(&n->file.path),
+			               strerror(errno));
 			rcret = -1;
 		}
 	}
@@ -226,7 +232,8 @@ int si_noderead(sinode *n, sr *r, ssbuf *dest)
 	rc = ss_filepread(&n->file, 0, dest->s, n->file.size);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' read error: %s",
-		               n->file.file, strerror(errno));
+		               ss_pathof(&n->file.path),
+		               strerror(errno));
 		return -1;
 	}
 	ss_bufadvance(dest, n->file.size);
@@ -240,7 +247,8 @@ int si_nodeseal(sinode *n, sr *r, sischeme *scheme)
 		rc = ss_filesync(&n->file);
 		if (ssunlikely(rc == -1)) {
 			sr_malfunction(r->e, "db file '%s' sync error: %s",
-			               n->file.file, strerror(errno));
+			               ss_pathof(&n->file.path),
+			               strerror(errno));
 			return -1;
 		}
 	}
@@ -250,7 +258,8 @@ int si_nodeseal(sinode *n, sr *r, sischeme *scheme)
 	rc = ss_filerename(&n->file, path.path);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' rename error: %s",
-		               n->file.file, strerror(errno));
+		               ss_pathof(&n->file.path),
+		               strerror(errno));
 		return -1;
 	}
 	return 0;
@@ -263,7 +272,8 @@ int si_nodecomplete(sinode *n, sr *r, sischeme *scheme)
 	int rc = ss_filerename(&n->file, path.path);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' rename error: %s",
-		               n->file.file, strerror(errno));
+		               ss_pathof(&n->file.path),
+		               strerror(errno));
 	}
 	return rc;
 }

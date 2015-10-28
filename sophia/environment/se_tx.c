@@ -180,6 +180,7 @@ se_txcommit(so *o)
 	if (ssunlikely(! se_statusactive_is(status)))
 		return -1;
 	int recover = (status == SE_RECOVER);
+
 	/* prepare transaction */
 	if (t->t.state == SXREADY || t->t.state == SXLOCK)
 	{
@@ -221,7 +222,7 @@ se_txcommit(so *o)
 	}
 	assert(t->t.state == SXCOMMIT);
 
-	/* prepare for wal and index write */
+	/* do wal write and backend commit */
 	sereq q;
 	se_reqinit(e, &q, SE_REQWRITE, &t->o, NULL);
 	sereqarg *arg = &q.arg;
@@ -237,7 +238,6 @@ se_txcommit(so *o)
 		arg->vlsn_generate = 1;
 		arg->vlsn = 0;
 	}
-	/* log write and commit */
 	se_execute(&q);
 	se_txend(t, 0, 0);
 	return q.rc;

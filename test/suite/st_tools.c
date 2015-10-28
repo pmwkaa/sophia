@@ -18,7 +18,7 @@
 int exists(char *path, char *name) {
 	char file[1024];
 	snprintf(file, sizeof(file), "%s/%s", path, name);
-	return ss_fileexists(file);
+	return ss_vfsexists(&st_r.vfs, file);
 }
 
 int rmrf(char *path)

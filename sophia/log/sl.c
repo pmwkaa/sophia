@@ -25,7 +25,7 @@ sl_alloc(slpool *p, uint32_t id)
 	l->p    = NULL;
 	ss_gcinit(&l->gc);
 	ss_mutexinit(&l->filelock);
-	ss_fileinit(&l->file, p->r->a);
+	ss_fileinit(&l->file, p->r->vfs);
 	ss_listinit(&l->link);
 	ss_listinit(&l->linkcopy);
 	return l;
@@ -37,7 +37,8 @@ sl_close(slpool *p, sl *l)
 	int rc = ss_fileclose(&l->file);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(p->r->e, "log file '%s' close error: %s",
-		               l->file.file, strerror(errno));
+		               ss_pathof(&l->file.path),
+		               strerror(errno));
 	}
 	ss_mutexfree(&l->filelock);
 	ss_gcfree(&l->gc);
@@ -56,7 +57,8 @@ sl_open(slpool *p, uint32_t id)
 	int rc = ss_fileopen(&l->file, path.path);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(p->r->e, "log file '%s' open error: %s",
-		               l->file.file, strerror(errno));
+		               ss_pathof(&l->file.path),
+		               strerror(errno));
 		goto error;
 	}
 	return l;
@@ -84,7 +86,8 @@ sl_new(slpool *p, uint32_t id)
 	rc = ss_filewrite(&l->file, &v, sizeof(v));
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(p->r->e, "log file '%s' header write error: %s",
-		               l->file.file, strerror(errno));
+		               ss_pathof(&l->file.path),
+		               strerror(errno));
 		goto error;
 	}
 	return l;
@@ -113,7 +116,7 @@ static inline int
 sl_poolcreate(slpool *p)
 {
 	int rc;
-	rc = ss_filemkdir(p->conf->path);
+	rc = ss_vfsmkdir(p->r->vfs, p->conf->path, 0755);
 	if (ssunlikely(rc == -1))
 		return sr_malfunction(p->r->e, "log directory '%s' create error: %s",
 		                      p->conf->path, strerror(errno));
@@ -162,7 +165,7 @@ int sl_poolopen(slpool *p, slconf *conf)
 	p->conf = conf;
 	if (ssunlikely(! p->conf->enable))
 		return 0;
-	int exists = ss_fileexists(p->conf->path);
+	int exists = ss_vfsexists(p->r->vfs, p->conf->path);
 	int rc;
 	if (! exists)
 		rc = sl_poolcreate(p);
@@ -195,7 +198,8 @@ int sl_poolrotate(slpool *p)
 			int rc = ss_filesync(&log->file);
 			if (ssunlikely(rc == -1)) {
 				sr_malfunction(p->r->e, "log file '%s' sync error: %s",
-				               log->file.file, strerror(errno));
+				               ss_pathof(&log->file.path),
+				               strerror(errno));
 				return -1;
 			}
 		}
@@ -238,10 +242,11 @@ static inline int
 sl_gc(slpool *p, sl *l)
 {
 	int rc;
-	rc = ss_fileunlink(l->file.file);
+	rc = ss_vfsunlink(p->r->vfs, ss_pathof(&l->file.path));
 	if (ssunlikely(rc == -1)) {
 		return sr_malfunction(p->r->e, "log file '%s' unlink error: %s",
-		                      l->file.file, strerror(errno));
+		                      ss_pathof(&l->file.path),
+		                      strerror(errno));
 	}
 	rc = sl_close(p, l);
 	if (ssunlikely(rc == -1))
@@ -321,7 +326,7 @@ int sl_poolcopy(slpool *p, char *dest, ssbuf *buf)
 		sspath path;
 		ss_pathA(&path, dest, l->id, ".log");
 		ssfile file;
-		ss_fileinit(&file, p->r->a);
+		ss_fileinit(&file, p->r->vfs);
 		int rc = ss_filenew(&file, path.path);
 		if (ssunlikely(rc == -1)) {
 			sr_malfunction(p->r->e, "log file '%s' create error: %s",
@@ -337,7 +342,8 @@ int sl_poolcopy(slpool *p, char *dest, ssbuf *buf)
 		rc = ss_filepread(&l->file, 0, buf->s, l->file.size);
 		if (ssunlikely(rc == -1)) {
 			sr_malfunction(p->r->e, "log file '%s' read error: %s",
-			               l->file.file, strerror(errno));
+			               ss_pathof(&l->file.path),
+			               strerror(errno));
 			ss_fileclose(&file);
 			return -1;
 		}
@@ -345,7 +351,8 @@ int sl_poolcopy(slpool *p, char *dest, ssbuf *buf)
 		rc = ss_filewrite(&file, buf->s, l->file.size);
 		if (ssunlikely(rc == -1)) {
 			sr_malfunction(p->r->e, "log file '%s' write error: %s",
-			               path.path, strerror(errno));
+			               path.path,
+			               strerror(errno));
 			ss_fileclose(&file);
 			return -1;
 		}
@@ -392,7 +399,8 @@ int sl_rollback(sltx *t)
 		rc = ss_filerlb(&t->l->file, t->svp);
 		if (ssunlikely(rc == -1))
 			sr_malfunction(t->p->r->e, "log file '%s' truncate error: %s",
-			               t->l->file.file, strerror(errno));
+			               ss_pathof(&t->l->file.path),
+			               strerror(errno));
 		ss_mutexunlock(&t->l->filelock);
 	}
 	ss_spinunlock(&t->p->lock);
@@ -464,7 +472,8 @@ sl_write_stmt(sltx *t, svlog *vlog)
 	int rc = ss_filewritev(&t->l->file, &p->iov);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(p->r->e, "log file '%s' write error: %s",
-		               t->l->file.file, strerror(errno));
+		               ss_pathof(&t->l->file.path),
+		               strerror(errno));
 		return -1;
 	}
 	ss_gcmark(&t->l->gc, 1);
@@ -500,7 +509,8 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 			rc = ss_filewritev(&l->file, &p->iov);
 			if (ssunlikely(rc == -1)) {
 				sr_malfunction(p->r->e, "log file '%s' write error: %s",
-				               l->file.file, strerror(errno));
+				               ss_pathof(&l->file.path),
+				               strerror(errno));
 				return -1;
 			}
 			ss_iovreset(&p->iov);
@@ -518,7 +528,8 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 		rc = ss_filewritev(&l->file, &p->iov);
 		if (ssunlikely(rc == -1)) {
 			sr_malfunction(p->r->e, "log file '%s' write error: %s",
-			               l->file.file, strerror(errno));
+			               ss_pathof(&l->file.path),
+			               strerror(errno));
 			return -1;
 		}
 		ss_iovreset(&p->iov);
@@ -549,7 +560,8 @@ int sl_write(sltx *t, svlog *vlog)
 		rc = ss_filesync(&t->l->file);
 		if (ssunlikely(rc == -1)) {
 			sr_malfunction(t->p->r->e, "log file '%s' sync error: %s",
-			               t->l->file.file, strerror(errno));
+			               ss_pathof(&t->l->file.path),
+			               strerror(errno));
 			return -1;
 		}
 	}
