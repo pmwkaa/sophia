@@ -24,6 +24,7 @@ typedef struct ssinjection ssinjection;
 struct ssinjection {
 	uint32_t e[9];
 	uint32_t oom;
+	uint32_t io;
 };
 
 #ifdef SS_INJECTION_ENABLE

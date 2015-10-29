@@ -108,7 +108,7 @@ recover_loop(void)
 
 stgroup *recover_loop_group(void)
 {
-	stgroup *group = st_group("loop");
+	stgroup *group = st_group("recover_loop");
 	st_groupadd(group, st_test("test0", recover_loop));
 	return group;
 }

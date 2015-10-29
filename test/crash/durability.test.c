@@ -16,7 +16,7 @@
 #include <libst.h>
 
 static void
-recover_crash_deploy0(void)
+durability_deploy0(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -82,7 +82,7 @@ recover_crash_deploy0(void)
 }
 
 static void
-recover_crash_branch0(void)
+durability_branch0(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -162,7 +162,7 @@ recover_crash_branch0(void)
 }
 
 static void
-recover_crash_build0(void)
+durability_build0(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -241,7 +241,7 @@ recover_crash_build0(void)
 }
 
 static void
-recover_crash_build1(void)
+durability_build1(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -320,7 +320,7 @@ recover_crash_build1(void)
 }
 
 static void
-recover_crash_compact0(void)
+durability_compact0(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -402,7 +402,7 @@ recover_crash_compact0(void)
 }
 
 static void
-recover_crash_compact1(void)
+durability_compact1(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -487,7 +487,7 @@ recover_crash_compact1(void)
 }
 
 static void
-recover_crash_compact2(void)
+durability_compact2(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -572,7 +572,7 @@ recover_crash_compact2(void)
 }
 
 static void
-recover_crash_compact3(void)
+durability_compact3(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -649,7 +649,7 @@ recover_crash_compact3(void)
 }
 
 static void
-recover_crash_compact4(void)
+durability_compact4(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -728,7 +728,7 @@ recover_crash_compact4(void)
 }
 
 static void
-recover_crash_compact5(void)
+durability_compact5(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -807,7 +807,7 @@ recover_crash_compact5(void)
 }
 
 static void
-recover_crash_compact6(void)
+durability_compact6(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -886,7 +886,7 @@ recover_crash_compact6(void)
 }
 
 static void
-recover_crash_compact7(void)
+durability_compact7(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -965,20 +965,20 @@ recover_crash_compact7(void)
 	t( exists(st_r.conf->db_dir, "0000000004.db") == 1 );
 }
 
-stgroup *recover_crash_group(void)
+stgroup *durability_group(void)
 {
-	stgroup *group = st_group("recover_crash");
-	st_groupadd(group, st_test("deploy_case0",  recover_crash_deploy0));
-	st_groupadd(group, st_test("branch_case0",  recover_crash_branch0));
-	st_groupadd(group, st_test("build_case0",   recover_crash_build0));
-	st_groupadd(group, st_test("build_case1",   recover_crash_build1));
-	st_groupadd(group, st_test("compact_case0", recover_crash_compact0));
-	st_groupadd(group, st_test("compact_case1", recover_crash_compact1));
-	st_groupadd(group, st_test("compact_case2", recover_crash_compact2));
-	st_groupadd(group, st_test("compact_case3", recover_crash_compact3));
-	st_groupadd(group, st_test("compact_case4", recover_crash_compact4));
-	st_groupadd(group, st_test("compact_case5", recover_crash_compact5));
-	st_groupadd(group, st_test("compact_case6", recover_crash_compact6));
-	st_groupadd(group, st_test("compact_case7", recover_crash_compact7));
+	stgroup *group = st_group("durability");
+	st_groupadd(group, st_test("deploy_case0",  durability_deploy0));
+	st_groupadd(group, st_test("branch_case0",  durability_branch0));
+	st_groupadd(group, st_test("build_case0",   durability_build0));
+	st_groupadd(group, st_test("build_case1",   durability_build1));
+	st_groupadd(group, st_test("compact_case0", durability_compact0));
+	st_groupadd(group, st_test("compact_case1", durability_compact1));
+	st_groupadd(group, st_test("compact_case2", durability_compact2));
+	st_groupadd(group, st_test("compact_case3", durability_compact3));
+	st_groupadd(group, st_test("compact_case4", durability_compact4));
+	st_groupadd(group, st_test("compact_case5", durability_compact5));
+	st_groupadd(group, st_test("compact_case6", durability_compact6));
+	st_groupadd(group, st_test("compact_case7", durability_compact7));
 	return group;
 }

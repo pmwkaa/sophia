@@ -57,12 +57,14 @@ STS_TESTS = unit/ss_leb128.test.o \
             functional/hermitage.test.o \
             functional/transaction.test.o \
             functional/cursor.test.o \
-            recover/recover_crash.test.o \
-            recover/recover_loop.test.o \
+            crash/durability.test.o \
+            crash/workflow.test.o \
+            crash/oom.test.o \
+            crash/io.test.o \
+            crash/recover_loop.test.o \
             multithread/multithread.test.o \
             multithread/multithread_be.test.o \
-            memory/leak.test.o \
-            memory/oom.test.o
+            memory/leak.test.o
 
 SOPHIA_DIRS    = std format runtime object version log database \
                  index \

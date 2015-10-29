@@ -81,8 +81,10 @@ extern stgroup *transaction_group(void);
 extern stgroup *hermitage_group(void);
 extern stgroup *cursor_group(void);
 
-/* recover */
-extern stgroup *recover_crash_group(void);
+/* crash */
+extern stgroup *durability_group(void);
+extern stgroup *oom_group(void);
+extern stgroup *io_group(void);
 extern stgroup *recover_loop_group(void);
 
 /* multithread */
@@ -92,7 +94,6 @@ extern stgroup *multithread_be_multipass_group(void);
 
 /* memory */
 extern stgroup *leak_group(void);
-extern stgroup *oom_group(void);
 
 static void
 usage(char *path, int error) {
@@ -360,26 +361,18 @@ main(int argc, char *argv[])
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
 	st_planadd(plan, leak_group());
+	st_suiteadd(&st_r.suite, plan);
+
+	plan = st_plan("crash");
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rmrf"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "init"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rt"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
+	st_planadd(plan, durability_group());
 	st_planadd(plan, oom_group());
-	st_suiteadd(&st_r.suite, plan);
-
-	plan = st_plan("recover_crash");
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rmrf"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "init"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rt"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
-	st_planadd(plan, recover_crash_group());
-	st_suiteadd(&st_r.suite, plan);
-
-	plan = st_plan("recover_loop");
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rmrf"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "init"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rt"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
+	st_planadd(plan, io_group());
 	st_planadd(plan, recover_loop_group());
 	st_suiteadd(&st_r.suite, plan);
 

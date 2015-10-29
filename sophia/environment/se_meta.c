@@ -763,6 +763,19 @@ se_metadebug_oom(srmeta *c, srmetastmt *s)
 	return 0;
 }
 
+static inline int
+se_metadebug_io(srmeta *c, srmetastmt *s)
+{
+	se *e = s->ptr;
+	assert(e->ei.io == 0);
+	int rc = se_metav(c, s);
+	if (ssunlikely(rc == -1))
+		return rc;
+	ss_vfsfree(&e->vfs);
+	ss_vfsinit(&e->vfs, &ss_testvfs, e->ei.io);
+	return 0;
+}
+
 static inline srmeta*
 se_metadebug(se *e, semetart *rt ssunused, srmeta **pc)
 {
@@ -770,7 +783,8 @@ se_metadebug(se *e, semetart *rt ssunused, srmeta **pc)
 	srmeta *p = NULL;
 	prev = p;
 	srmeta *ei = *pc;
-	sr_m(&p, pc, se_metadebug_oom, "oom", SS_U32, &e->ei.oom);
+	sr_m(&p, pc, se_metadebug_oom, "oom",     SS_U32, &e->ei.oom);
+	sr_m(&p, pc, se_metadebug_io, "io",       SS_U32, &e->ei.io);
 	sr_m(&p, pc, se_metav, "sd_build_0",      SS_U32, &e->ei.e[0]);
 	sr_m(&p, pc, se_metav, "sd_build_1",      SS_U32, &e->ei.e[1]);
 	sr_m(&p, pc, se_metav, "si_branch_0",     SS_U32, &e->ei.e[2]);

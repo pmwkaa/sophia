@@ -40,6 +40,7 @@
 #include <ss_path.h>
 #include <ss_vfs.h>
 #include <ss_stdvfs.h>
+#include <ss_testvfs.h>
 #include <ss_file.h>
 #include <ss_mmap.h>
 #include <ss_filter.h>
