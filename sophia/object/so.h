@@ -30,7 +30,6 @@ struct soif {
 	int      (*update)(so*, so*);
 	int      (*del)(so*, so*);
 	void    *(*get)(so*, so*);
-	void    *(*batch)(so*);
 	void    *(*begin)(so*);
 	int      (*prepare)(so*);
 	int      (*commit)(so*);
@@ -87,7 +86,6 @@ so_cast_dynamic(void *ptr, sotype *type,
 #define so_update(o, v) (o)->i->update(o, v)
 #define so_delete(o, v) (o)->i->del(o, v)
 #define so_get(o, v)    (o)->i->get(o, v)
-#define so_batch(o)     (o)->i->batch(o)
 #define so_begin(o)     (o)->i->begin(o)
 #define so_prepare(o)   (o)->i->prepare(o)
 #define so_commit(o)    (o)->i->commit(o)

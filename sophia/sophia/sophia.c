@@ -292,20 +292,6 @@ SP_API void *sp_cursor(void *ptr)
 	return h;
 }
 
-SP_API void *sp_batch(void *ptr)
-{
-	so *o = sp_cast(ptr, __func__);
-	if (ssunlikely(o->i->batch == NULL)) {
-		sp_unsupported(o, __func__);
-		return NULL;
-	}
-	so *e = o->env;
-	se_apilock(e);
-	void *h = o->i->batch(o);
-	se_apiunlock(e);
-	return h;
-}
-
 SP_API void *sp_begin(void *ptr)
 {
 	so *o = sp_cast(ptr, __func__);

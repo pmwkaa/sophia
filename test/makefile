@@ -45,7 +45,6 @@ STS_TESTS = unit/ss_leb128.test.o \
             generic/checkpoint.test.o \
             generic/snapshot.test.o \
             generic/snapshot_cursor.test.o \
-            generic/batch.test.o \
             generic/gc.test.o \
             generic/prefix.test.o \
             generic/transaction_md.test.o \

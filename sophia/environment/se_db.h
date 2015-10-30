@@ -18,7 +18,6 @@ struct sedb {
 	uint32_t   scheduled;
 	uint32_t   dropped;
 	siprofiler rtp;
-	solist     batch;
 	sdc        dc;
 	sischeme   scheme;
 	si         index;

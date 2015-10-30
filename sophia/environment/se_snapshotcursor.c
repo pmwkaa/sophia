@@ -71,7 +71,6 @@ static soif sesnapshotcursorif =
 	.update       = NULL,
 	.del          = NULL,
 	.get          = se_snapshotcursor_get,
-	.batch        = NULL,
 	.begin        = NULL,
 	.prepare      = NULL,
 	.commit       = NULL,

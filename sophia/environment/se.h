@@ -43,7 +43,6 @@ struct se {
 	ssa         a_metav;
 	ssa         a_snapshot;
 	ssa         a_snapshotcursor;
-	ssa         a_batch;
 	ssa         a_tx;
 	ssa         a_sxv;
 	ssa         a_req;

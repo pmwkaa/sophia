@@ -6,7 +6,6 @@ LIBSE_O = se.o \
           se_req.o \
           se_v.o \
           se_db.o \
-          se_batch.o \
           se_tx.o \
           se_cursor.o \
           se_snapshot.o \

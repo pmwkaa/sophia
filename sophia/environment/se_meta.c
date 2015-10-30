@@ -741,7 +741,6 @@ se_metadebug_oom(srmeta *c, srmetastmt *s)
 	ss_aclose(&e->a_metav);
 	ss_aclose(&e->a_snapshot);
 	ss_aclose(&e->a_snapshotcursor);
-	ss_aclose(&e->a_batch);
 	ss_aclose(&e->a_tx);
 	ss_aclose(&e->a_req);
 	ss_aclose(&e->a_sxv);
@@ -756,7 +755,6 @@ se_metadebug_oom(srmeta *c, srmetastmt *s)
 	e->a_metav = e->a_oom;
 	e->a_snapshot = e->a_oom;
 	e->a_snapshotcursor = e->a_oom;
-	e->a_batch = e->a_oom;
 	e->a_tx = e->a_oom;
 	e->a_req = e->a_oom;
 	e->a_sxv = e->a_oom;
