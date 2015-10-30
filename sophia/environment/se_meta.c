@@ -389,21 +389,32 @@ se_metadb_set(srmeta *c ssunused, srmetastmt *s)
 {
 	/* set(db) */
 	se *e = s->ptr;
-	if (s->op != SR_WRITE) {
-		sr_error(&e->error, "%s", "bad operation");
-		return -1;
+	if (s->op == SR_WRITE) {
+		char *name = s->value;
+		sedb *db = (sedb*)se_dbmatch(e, name);
+		if (ssunlikely(db)) {
+			sr_error(&e->error, "database '%s' already exists", name);
+			return -1;
+		}
+		db = (sedb*)se_dbnew(e, name);
+		if (ssunlikely(db == NULL))
+			return -1;
+		so_listadd(&e->db, &db->o);
+		return 0;
 	}
-	char *name = s->value;
-	sedb *db = (sedb*)se_dbmatch(e, name);
-	if (ssunlikely(db)) {
-		sr_error(&e->error, "database '%s' already exists", name);
-		return -1;
+
+	/* get() */
+	if (s->op == SR_READ) {
+		uint64_t txn = sr_seq(&e->seq, SR_TSN);
+		so *c = se_dbcursor_new(e, txn);
+		if (ssunlikely(c == NULL))
+			return -1;
+		*(void**)s->value = c;
+		return 0;
 	}
-	db = (sedb*)se_dbnew(e, name);
-	if (ssunlikely(db == NULL))
-		return -1;
-	so_listadd(&e->db, &db->o);
-	return 0;
+
+	sr_error(&e->error, "%s", "bad operation");
+	return -1;
 }
 
 static inline int
@@ -728,7 +739,7 @@ se_metadebug(se *e, semetart *rt ssunused, srmeta **pc)
 	sr_m(&p, pc, se_metav, "si_compaction_3", SS_U32, &e->ei.e[6]);
 	sr_m(&p, pc, se_metav, "si_compaction_4", SS_U32, &e->ei.e[7]);
 	sr_m(&p, pc, se_metav, "si_recover_0",    SS_U32, &e->ei.e[8]);
-	sr_M(&prev, pc, se_metadb_set, "error_injection", SS_UNDEF, ei, SR_NS, NULL);
+	sr_M(&prev, pc, NULL, "error_injection", SS_UNDEF, ei, SR_NS, NULL);
 	srmeta *debug = prev;
 	return sr_M(NULL, pc, NULL, "debug", SS_UNDEF, debug, SR_NS, NULL);
 }

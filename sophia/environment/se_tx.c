@@ -279,7 +279,7 @@ static soif setxif =
 	.begin        = NULL,
 	.prepare      = NULL,
 	.commit       = se_txcommit,
-	.cursor       = NULL,
+	.cursor       = NULL
 };
 
 so *se_txnew(se *e)
