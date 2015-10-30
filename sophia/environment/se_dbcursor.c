@@ -20,23 +20,21 @@
 #include <libse.h>
 
 static int
-se_snapshotcursor_destroy(so *o)
+se_dbcursor_destroy(so *o)
 {
-	sesnapshotcursor *c =
-		se_cast(o, sesnapshotcursor*, SESNAPSHOTCURSOR);
+	sedbcursor *c = se_cast(o, sedbcursor*, SEDBCURSOR);
 	se *e = se_of(&c->o);
 	ss_buffree(&c->list, &e->a);
-	so_listdel(&c->s->cursor, &c->o);
+	so_listdel(&e->dbcursor, &c->o);
 	se_mark_destroyed(&c->o);
-	ss_free(&e->a_snapshotcursor, c);
+	ss_free(&e->a_dbcursor, c);
 	return 0;
 }
 
 static void*
-se_snapshotcursor_get(so *o, so *v ssunused)
+se_dbcursor_get(so *o, so *v ssunused)
 {
-	sesnapshotcursor *c =
-		se_cast(o, sesnapshotcursor*, SESNAPSHOTCURSOR);
+	sedbcursor *c = se_cast(o, sedbcursor*, SEDBCURSOR);
 	if (c->ready) {
 		c->ready = 0;
 		return c->v;
@@ -53,10 +51,10 @@ se_snapshotcursor_get(so *o, so *v ssunused)
 	return c->v;
 }
 
-static soif sesnapshotcursorif =
+static soif sedbcursorif =
 {
 	.open         = NULL,
-	.destroy      = se_snapshotcursor_destroy,
+	.destroy      = se_dbcursor_destroy,
 	.error        = NULL,
 	.object       = NULL,
 	.poll         = NULL,
@@ -70,7 +68,7 @@ static soif sesnapshotcursorif =
 	.set          = NULL,
 	.update       = NULL,
 	.del          = NULL,
-	.get          = se_snapshotcursor_get,
+	.get          = se_dbcursor_get,
 	.begin        = NULL,
 	.prepare      = NULL,
 	.commit       = NULL,
@@ -78,18 +76,17 @@ static soif sesnapshotcursorif =
 };
 
 static inline int
-se_snapshotcursor_open(sesnapshotcursor *c)
+se_dbcursor_open(sedbcursor *c)
 {
 	se *e = se_of(&c->o);
 	int rc;
-	uint32_t txn = c->s->t.id;
 	sslist *i;
 	ss_listforeach(&e->db.list, i) {
 		sedb *db = (sedb*)sscast(i, so, link);
 		int status = se_status(&db->status);
 		if (status != SE_ONLINE)
 			continue;
-		if (txn > db->txn_min) {
+		if (c->txn_id > db->txn_min) {
 			rc = ss_bufadd(&c->list, &e->a, &db, sizeof(db));
 			if (ssunlikely(rc == -1))
 				return -1;
@@ -98,7 +95,7 @@ se_snapshotcursor_open(sesnapshotcursor *c)
 	ss_spinlock(&e->dblock);
 	ss_listforeach(&e->db_shutdown.list, i) {
 		sedb *db = (sedb*)sscast(i, so, link);
-		if (db->txn_min < txn && txn <= db->txn_max) {
+		if (db->txn_min < c->txn_id && c->txn_id <= db->txn_max) {
 			rc = ss_bufadd(&c->list, &e->a, &db, sizeof(db));
 			if (ssunlikely(rc == -1))
 				return -1;
@@ -113,28 +110,26 @@ se_snapshotcursor_open(sesnapshotcursor *c)
 	return 0;
 }
 
-so *se_snapshotcursor_new(sesnapshot *s)
+so *se_dbcursor_new(se *e, uint32_t txn_id)
 {
-	se *e = se_of(&s->o);
-	sesnapshotcursor *c =
-		ss_malloc(&e->a_snapshotcursor, sizeof(sesnapshotcursor));
+	sedbcursor *c = ss_malloc(&e->a_dbcursor, sizeof(sedbcursor));
 	if (ssunlikely(c == NULL)) {
 		sr_oom(&e->error);
 		return NULL;
 	}
-	so_init(&c->o, &se_o[SESNAPSHOTCURSOR],
-	        &sesnapshotcursorif, &e->o, &e->o);
-	c->s = s;
-	c->v = NULL;
-	c->pos = NULL;
-	c->ready = 0;
+	so_init(&c->o, &se_o[SEDBCURSOR], &sedbcursorif,
+	        &e->o, &e->o);
+	c->txn_id = txn_id;
+	c->v      = NULL;
+	c->pos    = NULL;
+	c->ready  = 0;
 	ss_bufinit(&c->list);
-	int rc = se_snapshotcursor_open(c);
+	int rc = se_dbcursor_open(c);
 	if (ssunlikely(rc == -1)) {
 		so_destroy(&c->o);
 		sr_oom(&e->error);
 		return NULL;
 	}
-	so_listadd(&s->cursor, &c->o);
+	so_listadd(&e->dbcursor, &c->o);
 	return &c->o;
 }

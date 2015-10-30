@@ -6,10 +6,9 @@ LIBSE_O = se.o \
           se_req.o \
           se_v.o \
           se_db.o \
+          se_dbcursor.o \
           se_tx.o \
           se_cursor.o \
-          se_snapshot.o \
-          se_snapshotcursor.o \
           se_execute.o \
           se_recover.o \
           se_scheduler.o

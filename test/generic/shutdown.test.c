@@ -295,53 +295,6 @@ shutdown_transaction6(void)
 	t( sp_destroy(env) == 0 );
 }
 
-static void
-shutdown_snapshot0(void)
-{
-	void *env = sp_env();
-	t( env != NULL );
-	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
-	t( sp_open(env) == 0 );
-
-	t( sp_setstring(env, "snapshot", "a", 0) == 0 );
-	void *a = sp_getobject(env, "snapshot.a");
-	t( a != NULL );
-
-	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
-	void *db = sp_getobject(env, "db.test");
-	t( db != NULL );
-	t( sp_setint(env, "db.test.sync", 0) == 0 );
-	t( sp_open(db) == 0 );
-
-	t( sp_setstring(env, "snapshot", "b", 0) == 0 );
-	void *b = sp_getobject(env, "snapshot.b");
-	t( b != NULL );
-
-	sp_destroy(db); /* unref */
-	sp_destroy(db); /* schedule shutdown, unlink */
-
-	t( sp_setstring(env, "snapshot", "v", 0) == 0 );
-	void *v = sp_getobject(env, "snapshot.v");
-	t( v != NULL );
-
-	void *dbp = sp_getobject(env, "db.test");
-	t( dbp == NULL );
-
-	t( sp_setint(env, "scheduler.run", 0) == 0 );
-	t( sp_destroy(a) == 0 );
-	t( sp_setint(env, "scheduler.run", 0) == 0 ); /* no unlink */
-	t( sp_destroy(v) == 0 );
-	t( sp_setint(env, "scheduler.run", 0) == 0 ); /* no unlink */
-	t( sp_destroy(b) == 0 );
-	t( sp_setint(env, "scheduler.run", 0) == 1 );
-
-	t( sp_destroy(env) == 0 );
-}
-
 stgroup *shutdown_group(void)
 {
 	stgroup *group = st_group("shutdown");
@@ -353,6 +306,5 @@ stgroup *shutdown_group(void)
 	st_groupadd(group, st_test("transaction4", shutdown_transaction4));
 	st_groupadd(group, st_test("transaction5", shutdown_transaction5));
 	st_groupadd(group, st_test("transaction6", shutdown_transaction6));
-	st_groupadd(group, st_test("snapshot0", shutdown_snapshot0));
 	return group;
 }

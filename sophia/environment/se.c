@@ -102,10 +102,10 @@ se_destroy(so *o)
 	rc = so_listdestroy(&e->tx);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_listdestroy(&e->snapshot);
+	rc = so_listdestroy(&e->metacursor);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_listdestroy(&e->metacursor);
+	rc = so_listdestroy(&e->dbcursor);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
 	rc = so_listdestroy(&e->db);
@@ -232,23 +232,22 @@ so *se_new(void)
 	ss_vfsinit(&e->vfs, &ss_stdvfs);
 	ss_aopen(&e->a, &ss_stda);
 	ss_aopen(&e->a_db, &ss_slaba, &e->pager, sizeof(sedb));
+	ss_aopen(&e->a_dbcursor, &ss_slaba, &e->pager, sizeof(sedbcursor));
 	ss_aopen(&e->a_v, &ss_slaba, &e->pager, sizeof(sev));
 	ss_aopen(&e->a_cursor, &ss_slaba, &e->pager, sizeof(secursor));
 	ss_aopen(&e->a_cachebranch, &ss_slaba, &e->pager, sizeof(sicachebranch));
 	ss_aopen(&e->a_cache, &ss_slaba, &e->pager, sizeof(sicache));
 	ss_aopen(&e->a_metacursor, &ss_slaba, &e->pager, sizeof(semetacursor));
 	ss_aopen(&e->a_metav, &ss_slaba, &e->pager, sizeof(semetav));
-	ss_aopen(&e->a_snapshot, &ss_slaba, &e->pager, sizeof(sesnapshot));
-	ss_aopen(&e->a_snapshotcursor, &ss_slaba, &e->pager, sizeof(sesnapshotcursor));
 	ss_aopen(&e->a_tx, &ss_slaba, &e->pager, sizeof(setx));
 	ss_aopen(&e->a_req, &ss_slaba, &e->pager, sizeof(sereq));
 	ss_aopen(&e->a_sxv, &ss_slaba, &e->pager, sizeof(sxv));
 	se_metainit(&e->meta, &e->o);
 	so_listinit(&e->db);
 	so_listinit(&e->db_shutdown);
+	so_listinit(&e->dbcursor);
 	so_listinit(&e->cursor);
 	so_listinit(&e->tx);
-	so_listinit(&e->snapshot);
 	so_listinit(&e->metacursor);
 	so_listinit(&e->req);
 	so_listinit(&e->reqready);

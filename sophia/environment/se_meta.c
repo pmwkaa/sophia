@@ -639,68 +639,6 @@ se_metadb(se *e, semetart *rt ssunused, srmeta **pc)
 }
 
 static inline int
-se_metasnapshot_set(srmeta *c, srmetastmt *s)
-{
-	if (s->op != SR_WRITE)
-		return se_metav(c, s);
-	se *e = s->ptr;
-	char *name = s->value;
-	uint64_t lsn = sr_seq(&e->seq, SR_LSN);
-	/* create snapshot object */
-	sesnapshot *snapshot =
-		(sesnapshot*)se_snapshotnew(e, lsn, name);
-	if (ssunlikely(snapshot == NULL))
-		return -1;
-	so_listadd(&e->snapshot, &snapshot->o);
-	return 0;
-}
-
-static inline int
-se_metasnapshot_lsn(srmeta *c, srmetastmt *s)
-{
-	int rc = se_metav(c, s);
-	if (ssunlikely(rc == -1))
-		return -1;
-	if (s->op != SR_WRITE)
-		return 0;
-	sesnapshot *snapshot = c->ptr;
-	se_snapshotupdate(snapshot);
-	return 0;
-}
-
-static inline int
-se_metasnapshot_get(srmeta *c, srmetastmt *s)
-{
-	/* get(snapshot.name) */
-	se *e = s->ptr;
-	if (s->op != SR_READ) {
-		sr_error(&e->error, "%s", "bad operation");
-		return -1;
-	}
-	assert(c->ptr != NULL);
-	*(void**)s->value = c->ptr;
-	return 0;
-}
-
-static inline srmeta*
-se_metasnapshot(se *e, semetart *rt ssunused, srmeta **pc)
-{
-	srmeta *snapshot = NULL;
-	srmeta *prev = NULL;
-	sslist *i;
-	ss_listforeach(&e->snapshot.list, i)
-	{
-		sesnapshot *s = (sesnapshot*)sscast(i, so, link);
-		srmeta *p = sr_M(NULL, pc, se_metasnapshot_lsn, "lsn", SS_U64, &s->vlsn, 0, s);
-		sr_M(&prev, pc, se_metasnapshot_get, s->name, SS_STRING, p, SR_NS, s);
-		if (snapshot == NULL)
-			snapshot = prev;
-	}
-	return sr_M(NULL, pc, se_metasnapshot_set, "snapshot", SS_STRING,
-	            snapshot, SR_NS, NULL);
-}
-
-static inline int
 se_metabackup_run(srmeta *c, srmetastmt *s)
 {
 	if (s->op != SR_WRITE)
@@ -733,14 +671,13 @@ se_metadebug_oom(srmeta *c, srmetastmt *s)
 
 	ss_aclose(&e->a);
 	ss_aclose(&e->a_db);
+	ss_aclose(&e->a_dbcursor);
 	ss_aclose(&e->a_v);
 	ss_aclose(&e->a_cursor);
 	ss_aclose(&e->a_cachebranch);
 	ss_aclose(&e->a_cache);
 	ss_aclose(&e->a_metacursor);
 	ss_aclose(&e->a_metav);
-	ss_aclose(&e->a_snapshot);
-	ss_aclose(&e->a_snapshotcursor);
 	ss_aclose(&e->a_tx);
 	ss_aclose(&e->a_req);
 	ss_aclose(&e->a_sxv);
@@ -748,13 +685,12 @@ se_metadebug_oom(srmeta *c, srmetastmt *s)
 	ss_aopen(&e->a_oom, &ss_ooma, e->ei.oom);
 	e->a = e->a_oom;
 	e->a_db = e->a_oom;
+	e->a_dbcursor = e->a_oom;
 	e->a_v = e->a_oom;
 	e->a_cursor = e->a_oom;
 	e->a_cachebranch = e->a_oom;
 	e->a_cache = e->a_oom;
 	e->a_metav = e->a_oom;
-	e->a_snapshot = e->a_oom;
-	e->a_snapshotcursor = e->a_oom;
 	e->a_tx = e->a_oom;
 	e->a_req = e->a_oom;
 	e->a_sxv = e->a_oom;
@@ -809,7 +745,6 @@ se_metaprepare(se *e, semetart *rt, srmeta *c, int serialize)
 	srmeta *perf       = se_metaperformance(e, rt, &pc);
 	srmeta *metric     = se_metametric(e, rt, &pc);
 	srmeta *log        = se_metalog(e, rt, &pc);
-	srmeta *snapshot   = se_metasnapshot(e, rt, &pc);
 	srmeta *backup     = se_metabackup(e, rt, &pc);
 	srmeta *db         = se_metadb(e, rt, &pc);
 	srmeta *debug      = se_metadebug(e, rt, &pc);
@@ -820,8 +755,7 @@ se_metaprepare(se *e, semetart *rt, srmeta *c, int serialize)
 	scheduler->next  = perf;
 	perf->next       = metric;
 	metric->next     = log;
-	log->next        = snapshot;
-	snapshot->next   = backup;
+	log->next        = backup;
 	backup->next     = db;
 	if (! serialize)
 		db->next = debug;

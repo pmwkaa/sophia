@@ -30,8 +30,7 @@ sotype se_o[] =
 	{ 0x64519F00L, "req"             },
 	{ 0x2FABCDE2L, "object"          },
 	{ 0x34591111L, "database"        },
+	{ 0x63102654L, "database_cursor" },
 	{ 0x13491FABL, "transaction"     },
-	{ 0x45ABCDFAL, "cursor"          },
-	{ 0x71230BAFL, "snapshot"        },
-	{ 0x63102654L, "snapshot_cursor" }
+	{ 0x45ABCDFAL, "cursor"          }
 };
