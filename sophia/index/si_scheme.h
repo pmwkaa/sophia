@@ -28,6 +28,9 @@ struct sischeme {
 	uint32_t    compression;
 	char       *compression_sz;
 	ssfilterif *compression_if;
+	uint32_t    compression_branch;
+	char       *compression_branch_sz;
+	ssfilterif *compression_branch_if;
 	uint32_t    compression_key;
 	uint32_t    buf_gc_wm;
 	char       *fmt_sz;

@@ -77,8 +77,9 @@ sinode *si_bootstrap(si *i, uint32_t parent)
 	sd_buildinit(&build);
 	rc = sd_buildbegin(&build, r,
 	                   i->scheme->node_page_checksum,
+	                   i->scheme->compression_key,
 	                   i->scheme->compression,
-	                   i->scheme->compression_key);
+	                   i->scheme->compression_if);
 	if (ssunlikely(rc == -1))
 		goto e1;
 	sd_buildend(&build, r);
@@ -466,7 +467,6 @@ int si_recover(si *i)
 	if (ssunlikely(rc == -1))
 		return -1;
 	r->scheme = &i->scheme->scheme;
-	r->compression = i->scheme->compression_if;
 	r->fmt = i->scheme->fmt;
 	r->fmt_storage = i->scheme->fmt_storage;
 	rc = si_recoverindex(i, r);

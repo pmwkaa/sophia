@@ -88,8 +88,9 @@ int sd_mergepage(sdmerge *m, uint64_t offset)
 		return 0;
 	int rc;
 	rc = sd_buildbegin(m->build, m->r, conf->checksum,
+	                   conf->compression_key,
 	                   conf->compression,
-	                   conf->compression_key);
+	                   conf->compression_if);
 	if (ssunlikely(rc == -1))
 		return -1;
 	while (ss_iterhas(sv_writeiter, &m->i))

@@ -48,7 +48,7 @@ cat <<EOF >> $output
 
 /* amalgamation build
  *
- * version:     1.2
+ * version:     2.1
  * build:       $build
  * build date:  $build_date
  *

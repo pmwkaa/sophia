@@ -25,7 +25,8 @@ enum {
 	SI_SCHEME_NODE_PAGE_CHECKSUM,
 	SI_SCHEME_SYNC,
 	SI_SCHEME_COMPRESSION,
-	SI_SCHEME_COMPRESSION_KEY
+	SI_SCHEME_COMPRESSION_KEY,
+	SI_SCHEME_COMPRESSION_BRANCH
 };
 
 void si_schemeinit(sischeme *s)
@@ -50,6 +51,10 @@ void si_schemefree(sischeme *s, sr *r)
 	if (s->compression_sz) {
 		ss_free(r->a, s->compression_sz);
 		s->compression_sz = NULL;
+	}
+	if (s->compression_branch_sz) {
+		ss_free(r->a, s->compression_branch_sz);
+		s->compression_branch_sz = NULL;
 	}
 	if (s->fmt_sz) {
 		ss_free(r->a, s->fmt_sz);
@@ -111,6 +116,11 @@ int si_schemedeploy(sischeme *s, sr *r)
 	rc = sd_schemeadd(&c, r, SI_SCHEME_COMPRESSION, SS_STRING,
 	                  s->compression_if->name,
 	                  strlen(s->compression_if->name) + 1);
+	if (ssunlikely(rc == -1))
+		goto error;
+	rc = sd_schemeadd(&c, r, SI_SCHEME_COMPRESSION_BRANCH, SS_STRING,
+	                  s->compression_branch_if->name,
+	                  strlen(s->compression_branch_if->name) + 1);
 	if (ssunlikely(rc == -1))
 		goto error;
 	rc = sd_schemeadd(&c, r, SI_SCHEME_COMPRESSION_KEY, SS_U32,
@@ -191,22 +201,27 @@ int si_schemerecover(sischeme *s, sr *r)
 			break;
 		case SI_SCHEME_COMPRESSION: {
 			char *name = sd_schemesz(opt);
-			ssfilterif *cif = NULL;
-			if (strcmp(name, "none") == 0)
-				cif = &ss_nonefilter;
-			else
-			if (strcmp(name, "lz4") == 0)
-				cif = &ss_lz4filter;
-			else
-			if (strcmp(name, "zstd") == 0)
-				cif = &ss_zstdfilter;
-			else
+			ssfilterif *cif = ss_filterof(name);
+			if (ssunlikely(cif == NULL))
 				goto error;
 			s->compression_if = cif;
 			s->compression = s->compression_if != &ss_nonefilter;
 			ss_free(r->a, s->compression_sz);
 			s->compression_sz = ss_strdup(r->a, cif->name);
 			if (ssunlikely(s->compression_sz == NULL))
+				goto error;
+			break;
+		}
+		case SI_SCHEME_COMPRESSION_BRANCH: {
+			char *name = sd_schemesz(opt);
+			ssfilterif *cif = ss_filterof(name);
+			if (ssunlikely(cif == NULL))
+				goto error;
+			s->compression_branch_if = cif;
+			s->compression_branch = s->compression_branch_if != &ss_nonefilter;
+			ss_free(r->a, s->compression_branch_sz);
+			s->compression_branch_sz = ss_strdup(r->a, cif->name);
+			if (ssunlikely(s->compression_branch_sz == NULL))
 				goto error;
 			break;
 		}

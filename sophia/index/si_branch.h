@@ -54,4 +54,9 @@ si_branchfree(sibranch *b, sr *r)
 	ss_free(r->a, b);
 }
 
+static inline int
+si_branchis_root(sibranch *b) {
+	return b->next == NULL;
+}
+
 #endif

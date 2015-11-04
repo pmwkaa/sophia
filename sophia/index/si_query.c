@@ -142,6 +142,16 @@ si_qgetbranch(siquery *q, sinode *n, sibranch *b)
 {
 	sicachebranch *c = si_cachefollow(q->cache);
 	assert(c->branch == b);
+	/* choose compression type */
+	int compression;
+	ssfilterif *compression_if;
+	if (! si_branchis_root(b)) {
+		compression    = q->index->scheme->compression_branch;
+		compression_if = q->index->scheme->compression_branch_if;
+	} else {
+		compression    = q->index->scheme->compression;
+		compression_if = q->index->scheme->compression_if;
+	}
 	sdreadarg arg = {
 		.index           = &b->index,
 		.buf             = &c->buf_a,
@@ -149,10 +159,11 @@ si_qgetbranch(siquery *q, sinode *n, sibranch *b)
 		.buf_read        = &q->index->readbuf,
 		.index_iter      = &c->index_iter,
 		.page_iter       = &c->page_iter,
-		.use_compression = q->index->scheme->compression,
 		.use_memory      = q->index->scheme->in_memory,
 		.use_mmap        = q->index->scheme->mmap,
 		.use_mmap_copy   = 0,
+		.use_compression = compression,
+		.compression_if  = compression_if,
 		.has             = q->has,
 		.has_vlsn        = q->vlsn,
 		.o               = SS_GTE,
@@ -242,6 +253,16 @@ si_qrangebranch(siquery *q, sinode *n, sibranch *b, svmerge *m)
 		return 2;
 	}
 	c->open = 1;
+	/* choose compression type */
+	int compression;
+	ssfilterif *compression_if;
+	if (! si_branchis_root(b)) {
+		compression    = q->index->scheme->compression_branch;
+		compression_if = q->index->scheme->compression_branch_if;
+	} else {
+		compression    = q->index->scheme->compression;
+		compression_if = q->index->scheme->compression_if;
+	}
 	sdreadarg arg = {
 		.index           = &b->index,
 		.buf             = &c->buf_a,
@@ -249,10 +270,11 @@ si_qrangebranch(siquery *q, sinode *n, sibranch *b, svmerge *m)
 		.buf_read        = &q->index->readbuf,
 		.index_iter      = &c->index_iter,
 		.page_iter       = &c->page_iter,
-		.use_compression = q->index->scheme->compression,
 		.use_memory      = q->index->scheme->in_memory,
 		.use_mmap        = q->index->scheme->mmap,
 		.use_mmap_copy   = 1,
+		.use_compression = compression,
+		.compression_if  = compression_if,
 		.has             = 0,
 		.has_vlsn        = 0,
 		.o               = q->order,

@@ -47,6 +47,7 @@
 #include <ss_nonefilter.h>
 #include <ss_lz4filter.h>
 #include <ss_zstdfilter.h>
+#include <ss_filterof.h>
 #include <ss_iter.h>
 #include <ss_bufiter.h>
 #include <ss_blob.h>

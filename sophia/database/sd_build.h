@@ -21,6 +21,7 @@ struct sdbuildref {
 
 struct sdbuild {
 	ssbuf list, m, v, k, c;
+	ssfilterif *compress_if;
 	int compress_dup;
 	int compress;
 	int crc;
@@ -77,7 +78,7 @@ sd_buildmaxkey(sdbuild *b) {
 	return b->v.s + r->v + sd_buildmax(b)->offset;
 }
 
-int sd_buildbegin(sdbuild*, sr*, int, int, int);
+int sd_buildbegin(sdbuild*, sr*, int, int, int, ssfilterif*);
 int sd_buildend(sdbuild*, sr*);
 int sd_buildcommit(sdbuild*, sr*);
 int sd_buildadd(sdbuild*, sr*, sv*, uint32_t);

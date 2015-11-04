@@ -51,8 +51,9 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		.size_node       = UINT64_MAX,
 		.size_page       = index->scheme->node_page_size,
 		.checksum        = index->scheme->node_page_checksum,
-		.compression     = index->scheme->compression,
 		.compression_key = index->scheme->compression_key,
+		.compression     = index->scheme->compression_branch,
+		.compression_if  = index->scheme->compression_branch_if,
 		.vlsn            = vlsn,
 		.save_delete     = 1,
 		.save_update     = 1
@@ -256,6 +257,16 @@ int si_compact(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 	sibranch *b = node->branch;
 	while (b) {
 		svmergesrc *s = sv_mergeadd(&merge, NULL);
+		/* choose compression type */
+		int compression;
+		ssfilterif *compression_if;
+		if (! si_branchis_root(b)) {
+			compression    = index->scheme->compression_branch;
+			compression_if = index->scheme->compression_branch_if;
+		} else {
+			compression    = index->scheme->compression;
+			compression_if = index->scheme->compression_if;
+		}
 		sdreadarg arg = {
 			.index           = &b->index,
 			.buf             = &cbuf->a,
@@ -263,10 +274,11 @@ int si_compact(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 			.buf_read        = &c->d,
 			.index_iter      = &cbuf->index_iter,
 			.page_iter       = &cbuf->page_iter,
-			.use_compression = index->scheme->compression,
 			.use_memory      = index->scheme->in_memory,
 			.use_mmap        = use_mmap,
 			.use_mmap_copy   = 0,
+			.use_compression = compression,
+			.compression_if  = compression_if,
 			.has             = 0,
 			.has_vlsn        = 0,
 			.o               = SS_GTE,

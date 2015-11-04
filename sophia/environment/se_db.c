@@ -28,22 +28,29 @@ se_dbscheme_init(sedb *db, char *name)
 	scheme->name = ss_strdup(&e->a, name);
 	if (ssunlikely(scheme->name == NULL))
 		goto e0;
-	scheme->id                  = sr_seq(&e->seq, SR_DSNNEXT);
-	scheme->sync                = 2;
-	scheme->mmap                = 0;
-	scheme->in_memory           = 0;
-	scheme->compression         = 0;
-	scheme->compression_key     = 0;
-	scheme->compression_if      = &ss_nonefilter;
-	scheme->fmt                 = SF_KV;
-	scheme->fmt_storage         = SF_SRAW;
-	scheme->path_fail_on_exists = 0;
-	scheme->path_fail_on_drop   = 1;
-	scheme->buf_gc_wm           = 1024 * 1024;
-	sf_updateinit(&scheme->fmt_update);
-	scheme->compression_sz = ss_strdup(&e->a, scheme->compression_if->name);
+	scheme->id                    = sr_seq(&e->seq, SR_DSNNEXT);
+	scheme->sync                  = 2;
+	scheme->mmap                  = 0;
+	scheme->in_memory             = 0;
+	scheme->compression_key       = 0;
+	scheme->compression           = 0;
+	scheme->compression_if        = &ss_nonefilter;
+	scheme->compression_branch    = 0;
+	scheme->compression_branch_if = &ss_nonefilter;
+	scheme->fmt                   = SF_KV;
+	scheme->fmt_storage           = SF_SRAW;
+	scheme->path_fail_on_exists   = 0;
+	scheme->path_fail_on_drop     = 1;
+	scheme->buf_gc_wm             = 1024 * 1024;
+	scheme->compression_sz =
+		ss_strdup(&e->a, scheme->compression_if->name);
 	if (ssunlikely(scheme->compression_sz == NULL))
 		goto e1;
+	scheme->compression_branch_sz =
+		ss_strdup(&e->a, scheme->compression_branch_if->name);
+	if (ssunlikely(scheme->compression_branch_sz == NULL))
+		goto e1;
+	sf_updateinit(&scheme->fmt_update);
 	scheme->fmt_sz = ss_strdup(&e->a, "kv");
 	if (ssunlikely(scheme->fmt_sz == NULL))
 		goto e1;
@@ -92,20 +99,21 @@ se_dbscheme_set(sedb *db)
 		s->fmt_storage = SF_SKEYVALUE;
 	}
 	/* compression */
-	if (strcmp(s->compression_sz, "none") == 0) {
-		s->compression_if = &ss_nonefilter;
-	} else
-	if (strcmp(s->compression_sz, "zstd") == 0) {
-		s->compression_if = &ss_zstdfilter;
-	} else
-	if (strcmp(s->compression_sz, "lz4") == 0) {
-		s->compression_if = &ss_lz4filter;
-	} else {
+	s->compression_if = ss_filterof(s->compression_sz);
+	if (ssunlikely(s->compression_if == NULL)) {
 		sr_error(&e->error, "unknown compression type '%s'",
 		         s->compression_sz);
 		return -1;
 	}
 	s->compression = s->compression_if != &ss_nonefilter;
+	/* compression branch */
+	s->compression_branch_if = ss_filterof(s->compression_branch_sz);
+	if (ssunlikely(s->compression_branch_if == NULL)) {
+		sr_error(&e->error, "unknown compression type '%s'",
+		         s->compression_branch_sz);
+		return -1;
+	}
+	s->compression_branch = s->compression_branch_if != &ss_nonefilter;
 	/* path */
 	if (s->path == NULL) {
 		char path[1024];
@@ -131,7 +139,6 @@ se_dbscheme_set(sedb *db)
 	db->r.fmt = s->fmt;
 	db->r.fmt_storage = s->fmt_storage;
 	db->r.fmt_update  = &s->fmt_update;
-	db->r.compression = s->compression_if;
 	return 0;
 }
 

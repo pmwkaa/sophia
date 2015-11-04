@@ -263,7 +263,7 @@ so *se_new(void)
 	sscrcf crc = ss_crc32c_function();
 	sr_init(&e->r, &e->error, &e->a, &e->vfs, &e->quota, &e->seq,
 	        SF_KV, SF_SRAW, NULL,
-	        &e->meta.scheme, &e->ei, &e->stat, crc, NULL);
+	        &e->meta.scheme, &e->ei, &e->stat, crc);
 	sy_init(&e->rep);
 	sl_poolinit(&e->lp, &e->r);
 	sx_managerinit(&e->xm, &e->r, &e->a_sxv);

@@ -13,23 +13,24 @@ typedef struct sdread sdread;
 typedef struct sdreadarg sdreadarg;
 
 struct sdreadarg {
-	sdindex  *index;
-	ssbuf    *buf;
-	ssbuf    *buf_xf;
-	ssbuf    *buf_read;
-	ssiter   *index_iter;
-	ssiter   *page_iter;
-	ssmmap   *mmap;
-	ssblob   *memory;
-	ssfile   *file;
-	ssorder   o;
-	int       has;
-	uint64_t  has_vlsn;
-	int       use_compression;
-	int       use_memory;
-	int       use_mmap;
-	int       use_mmap_copy;
-	sr       *r;
+	sdindex    *index;
+	ssbuf      *buf;
+	ssbuf      *buf_xf;
+	ssbuf      *buf_read;
+	ssiter     *index_iter;
+	ssiter     *page_iter;
+	ssmmap     *mmap;
+	ssblob     *memory;
+	ssfile     *file;
+	ssorder     o;
+	int         has;
+	uint64_t    has_vlsn;
+	int         use_memory;
+	int         use_mmap;
+	int         use_mmap_copy;
+	int         use_compression;
+	ssfilterif *compression_if;
+	sr         *r;
 };
 
 struct sdread {
@@ -93,7 +94,7 @@ sd_read_page(sdread *i, sdindexpage *ref)
 
 		/* decompression */
 		ssfilter f;
-		rc = ss_filterinit(&f, (ssfilterif*)r->compression, r->a, SS_FOUTPUT);
+		rc = ss_filterinit(&f, (ssfilterif*)arg->compression_if, r->a, SS_FOUTPUT);
 		if (ssunlikely(rc == -1)) {
 			sr_error(r->e, "db file '%s' decompression error",
 			         ss_pathof(&arg->file->path));

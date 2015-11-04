@@ -14,6 +14,7 @@ typedef struct sditer sditer;
 struct sditer {
 	int validate;
 	int compression;
+	ssfilterif *compression_if;
 	ssbuf *compression_buf;
 	ssbuf *transform_buf;
 	sdindex *index;
@@ -76,7 +77,7 @@ sd_iternextpage(sditer *i)
 
 		/* decompression */
 		ssfilter f;
-		rc = ss_filterinit(&f, (ssfilterif*)i->r->compression, i->r->a, SS_FOUTPUT);
+		rc = ss_filterinit(&f, (ssfilterif*)i->compression_if, i->r->a, SS_FOUTPUT);
 		if (ssunlikely(rc == -1)) {
 			i->page = NULL;
 			sr_malfunction(i->r->e, "%s", "page decompression error");
