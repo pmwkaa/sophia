@@ -23,7 +23,7 @@ static inline srzone*
 se_zoneof(se *e)
 {
 	int p = ss_quotaused_percent(&e->quota);
-	return sr_zonemap(&e->meta.zones, p);
+	return sr_zonemap(&e->conf.zones, p);
 }
 
 int se_scheduler_branch(void *arg)
@@ -110,7 +110,7 @@ int se_scheduler_backup(void *arg)
 {
 	se *e = arg;
 	sescheduler *s = &e->sched;
-	if (ssunlikely(e->meta.backup_path == NULL)) {
+	if (ssunlikely(e->conf.backup_path == NULL)) {
 		sr_error(&e->error, "%s", "backup is not enabled");
 		return -1;
 	}
@@ -145,7 +145,7 @@ se_backupstart(sescheduler *s)
 	*/
 	char path[1024];
 	snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete",
-	         e->meta.backup_path, s->backup_bsn);
+	         e->conf.backup_path, s->backup_bsn);
 	int rc = ss_vfsmkdir(&e->vfs, path, 0755);
 	if (ssunlikely(rc == -1)) {
 		sr_error(&e->error, "backup directory '%s' create error: %s",
@@ -156,7 +156,7 @@ se_backupstart(sescheduler *s)
 	while (i < s->count) {
 		sedb *db = s->i[i];
 		snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete/%s",
-		         e->meta.backup_path, s->backup_bsn,
+		         e->conf.backup_path, s->backup_bsn,
 		         db->scheme.name);
 		rc = ss_vfsmkdir(&e->vfs, path, 0755);
 		if (ssunlikely(rc == -1)) {
@@ -167,7 +167,7 @@ se_backupstart(sescheduler *s)
 		i++;
 	}
 	snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete/log",
-	         e->meta.backup_path, s->backup_bsn);
+	         e->conf.backup_path, s->backup_bsn);
 	rc = ss_vfsmkdir(&e->vfs, path, 0755);
 	if (ssunlikely(rc == -1)) {
 		sr_error(&e->error, "backup directory '%s' create error: %s",
@@ -200,7 +200,7 @@ se_backupcomplete(sescheduler *s, seworker *w)
 
 	char path[1024];
 	snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete/log",
-	         e->meta.backup_path, s->backup_bsn);
+	         e->conf.backup_path, s->backup_bsn);
 	rc = sl_poolcopy(&e->lp, path, &w->dc.c);
 	if (ssunlikely(rc == -1)) {
 		sr_errorrecover(&e->error);
@@ -212,10 +212,10 @@ se_backupcomplete(sescheduler *s, seworker *w)
 
 	/* complete backup */
 	snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete",
-	         e->meta.backup_path, s->backup_bsn);
+	         e->conf.backup_path, s->backup_bsn);
 	char newpath[1024];
 	snprintf(newpath, sizeof(newpath), "%s/%" PRIu32,
-	         e->meta.backup_path, s->backup_bsn);
+	         e->conf.backup_path, s->backup_bsn);
 	rc = rename(path, newpath);
 	if (ssunlikely(rc == -1)) {
 		sr_error(&e->error, "backup directory '%s' rename error: %s",
@@ -380,7 +380,7 @@ int se_scheduler_run(sescheduler *s)
 {
 	se *e = (se*)s->env;
 	int rc;
-	rc = se_workerpool_new(&s->workers, &e->r, e->meta.threads,
+	rc = se_workerpool_new(&s->workers, &e->r, e->conf.threads,
 	                       se_worker, e);
 	if (ssunlikely(rc == -1))
 		return -1;
@@ -731,7 +731,7 @@ se_rotate(sescheduler *s, seworker *w)
 {
 	ss_trace(&w->trace, "%s", "log rotation");
 	se *e = (se*)s->env;
-	int rc = sl_poolrotate_ready(&e->lp, e->meta.log_rotate_wm);
+	int rc = sl_poolrotate_ready(&e->lp, e->conf.log_rotate_wm);
 	if (rc) {
 		rc = sl_poolrotate(&e->lp);
 		if (ssunlikely(rc == -1))

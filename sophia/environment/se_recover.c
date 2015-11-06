@@ -22,14 +22,14 @@
 static inline void
 se_recoverf(se *e, char *fmt, ...)
 {
-	if (e->meta.on_recover.function == NULL)
+	if (e->conf.on_recover.function == NULL)
 		return;
 	char trace[1024];
 	va_list args;
 	va_start(args, fmt);
 	vsnprintf(trace, sizeof(trace), fmt, args);
 	va_end(args);
-	e->meta.on_recover.function(trace, e->meta.on_recover.arg);
+	e->conf.on_recover.function(trace, e->conf.on_recover.arg);
 }
 
 int se_recoverbegin(sedb *db)
@@ -159,15 +159,15 @@ se_recoverlogpool(se *e)
 int se_recover(se *e)
 {
 	slconf *lc = &e->lpconf;
-	lc->enable         = e->meta.log_enable;
-	lc->path           = e->meta.log_path;
-	lc->rotatewm       = e->meta.log_rotate_wm;
-	lc->sync_on_rotate = e->meta.log_rotate_sync;
-	lc->sync_on_write  = e->meta.log_sync;
+	lc->enable         = e->conf.log_enable;
+	lc->path           = e->conf.log_path;
+	lc->rotatewm       = e->conf.log_rotate_wm;
+	lc->sync_on_rotate = e->conf.log_rotate_sync;
+	lc->sync_on_write  = e->conf.log_sync;
 	int rc = sl_poolopen(&e->lp, lc);
 	if (ssunlikely(rc == -1))
 		return -1;
-	if (e->meta.two_phase_recover)
+	if (e->conf.two_phase_recover)
 		return 0;
 	/* recover log files */
 	rc = se_recoverlogpool(e);
@@ -185,10 +185,10 @@ error:
 int se_recover_repository(se *e)
 {
 	syconf *rc = &e->repconf;
-	rc->path        = e->meta.path;
-	rc->path_create = e->meta.path_create;
-	rc->path_backup = e->meta.backup_path;
+	rc->path        = e->conf.path;
+	rc->path_create = e->conf.path_create;
+	rc->path_backup = e->conf.backup_path;
 	rc->sync = 0;
-	se_recoverf(e, "recovering repository '%s'", e->meta.path);
+	se_recoverf(e, "recovering repository '%s'", e->conf.path);
 	return sy_open(&e->rep, &e->r, rc);
 }

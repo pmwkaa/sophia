@@ -1,5 +1,5 @@
-#ifndef SE_META_H_
-#define SE_META_H_
+#ifndef SE_CONF_H_
+#define SE_CONF_H_
 
 /*
  * sophia database
@@ -9,8 +9,8 @@
  * BSD License
 */
 
-typedef struct semetart semetart;
-typedef struct semeta semeta;
+typedef struct seconfrt seconfrt;
+typedef struct seconf seconf;
 
 typedef void (*serecovercbf)(char*, void*);
 
@@ -19,7 +19,7 @@ typedef struct {
 	void *arg;
 } serecovercb;
 
-struct semetart {
+struct seconfrt {
 	/* sophia */
 	char      version[16];
 	char      build[32];
@@ -51,7 +51,7 @@ struct semetart {
 	srstat    stat;
 };
 
-struct semeta {
+struct seconf {
 	/* sophia */
 	char         *path;
 	uint32_t      path_create;
@@ -82,15 +82,15 @@ struct semeta {
 	so           *env;
 };
 
-void     se_metainit(semeta*, so*);
-void     se_metafree(semeta*);
-int      se_metavalidate(semeta*);
-int      se_metaserialize(semeta*, ssbuf*);
-int      se_metaset_object(so*, const char*, void*);
-int      se_metaset_string(so*, const char*, void*, int);
-int      se_metaset_int(so*, const char*, int64_t);
-void    *se_metaget_object(so*, const char*);
-void    *se_metaget_string(so*, const char*, int*);
-int64_t  se_metaget_int(so*, const char*);
+void     se_confinit(seconf*, so*);
+void     se_conffree(seconf*);
+int      se_confvalidate(seconf*);
+int      se_confserialize(seconf*, ssbuf*);
+int      se_confset_object(so*, const char*, void*);
+int      se_confset_string(so*, const char*, void*, int);
+int      se_confset_int(so*, const char*, int64_t);
+void    *se_confget_object(so*, const char*);
+void    *se_confget_string(so*, const char*, int*);
+int64_t  se_confget_int(so*, const char*);
 
 #endif

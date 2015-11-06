@@ -228,7 +228,7 @@ se_txcommit(so *o)
 	sereqarg *arg = &q.arg;
 	arg->log = &t->t.log;
 	arg->lsn = 0;
-	if (recover || e->meta.commit_lsn)
+	if (recover || e->conf.commit_lsn)
 		arg->lsn = t->lsn;
 	if (ssunlikely(recover)) {
 		arg->recover = 1;

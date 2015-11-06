@@ -27,7 +27,7 @@ extern stgroup *ss_zstdfilter_group(void);
 extern stgroup *ss_lz4filter_group(void);
 
 /* runtime */
-extern stgroup *sr_meta_group(void);
+extern stgroup *sr_conf_group(void);
 extern stgroup *sr_scheme_group(void);
 
 /* version */
@@ -44,7 +44,7 @@ extern stgroup *sd_read_group(void);
 extern stgroup *sd_pageiter_group(void);
 
 /* generic */
-extern stgroup *meta_group(void);
+extern stgroup *conf_group(void);
 extern stgroup *cache_group(void);
 extern stgroup *error_group(void);
 extern stgroup *method_group(void);
@@ -191,7 +191,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, ss_ht_group());
 	st_planadd(plan, ss_zstdfilter_group());
 	st_planadd(plan, ss_lz4filter_group());
-	st_planadd(plan, sr_meta_group());
+	st_planadd(plan, sr_conf_group());
 	st_planadd(plan, sr_scheme_group());
 	st_planadd(plan, sv_v_group());
 	st_planadd(plan, sv_index_group());
@@ -213,7 +213,7 @@ main(int argc, char *argv[])
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
-	st_planadd(plan, meta_group());
+	st_planadd(plan, conf_group());
 	st_planadd(plan, cache_group());
 	st_planadd(plan, error_group());
 	st_planadd(plan, method_group());

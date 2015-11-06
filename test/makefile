@@ -10,7 +10,7 @@ STS_TESTS = unit/ss_leb128.test.o \
             unit/ss_ht.test.o \
             unit/ss_zstdfilter.test.o \
             unit/ss_lz4filter.test.o \
-            unit/sr_meta.test.o \
+            unit/sr_conf.test.o \
             unit/sr_scheme.test.o \
             unit/sv_v.test.o \
             unit/sv_index.test.o \
@@ -23,7 +23,7 @@ STS_TESTS = unit/ss_leb128.test.o \
             unit/sd_v.test.o \
             unit/sd_read.test.o \
             unit/sd_pageiter.test.o \
-            generic/meta.test.o \
+            generic/conf.test.o \
             generic/cache.test.o \
             generic/error.test.o \
             generic/method.test.o \

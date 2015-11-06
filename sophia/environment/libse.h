@@ -12,8 +12,8 @@
 #include <se_o.h>
 #include <se_worker.h>
 #include <se_status.h>
-#include <se_meta.h>
-#include <se_metacursor.h>
+#include <se_conf.h>
+#include <se_confcursor.h>
 #include <se_scheduler.h>
 #include <se.h>
 #include <se_req.h>

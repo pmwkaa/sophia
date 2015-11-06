@@ -117,23 +117,23 @@ se_dbscheme_set(sedb *db)
 	/* path */
 	if (s->path == NULL) {
 		char path[1024];
-		snprintf(path, sizeof(path), "%s/%s", e->meta.path, s->name);
+		snprintf(path, sizeof(path), "%s/%s", e->conf.path, s->name);
 		s->path = ss_strdup(&e->a, path);
 		if (ssunlikely(s->path == NULL))
 			return sr_oom(&e->error);
 	}
 	/* backup path */
-	s->path_backup = e->meta.backup_path;
-	if (e->meta.backup_path) {
-		s->path_backup = ss_strdup(&e->a, e->meta.backup_path);
+	s->path_backup = e->conf.backup_path;
+	if (e->conf.backup_path) {
+		s->path_backup = ss_strdup(&e->a, e->conf.backup_path);
 		if (ssunlikely(s->path_backup == NULL))
 			return sr_oom(&e->error);
 	}
 	/* compaction */
-	s->node_size          = e->meta.node_size;
-	s->node_page_size     = e->meta.page_size;
-	s->node_page_checksum = e->meta.page_checksum;
-	s->node_compact_load  = e->meta.node_preload;
+	s->node_size          = e->conf.node_size;
+	s->node_page_size     = e->conf.page_size;
+	s->node_page_checksum = e->conf.page_checksum;
+	s->node_compact_load  = e->conf.node_preload;
 
 	db->r.scheme = &s->scheme;
 	db->r.fmt = s->fmt;

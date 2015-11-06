@@ -11,7 +11,7 @@
 #include <libsf.h>
 #include <libsr.h>
 
-int sr_meta_read(srmeta *m, srmetastmt *s)
+int sr_conf_read(srconf *m, srconfstmt *s)
 {
 	switch (m->type) {
 	case SS_U32:
@@ -89,13 +89,13 @@ int sr_meta_read(srmeta *m, srmetastmt *s)
 	return 0;
 
 bad_type:
-	return sr_error(s->r->e, "bad meta read type (%s) -> (%s) %s",
+	return sr_error(s->r->e, "configuration read bad type (%s) -> (%s) %s",
 	                ss_typeof(s->valuetype),
 	                ss_typeof(m->type), s->path);
 	return 0;
 }
 
-int sr_meta_write(srmeta *m, srmetastmt *s)
+int sr_conf_write(srconf *m, srconfstmt *s)
 {
 	if (m->flags & SR_RO) {
 		sr_error(s->r->e, "%s is read-only", s->path);
@@ -153,13 +153,13 @@ int sr_meta_write(srmeta *m, srmetastmt *s)
 	return 0;
 
 bad_type:
-	return sr_error(s->r->e, "bad meta write type (%s) for (%s) %s",
+	return sr_error(s->r->e, "configuration write bad type (%s) for (%s) %s",
 	                ss_typeof(s->valuetype),
 	                ss_typeof(m->type), s->path);
 }
 
 static inline int
-sr_meta_write_cast(sstype a, sstype b)
+sr_conf_write_cast(sstype a, sstype b)
 {
 	switch (a) {
 	case SS_U32:
@@ -195,13 +195,13 @@ sr_meta_write_cast(sstype a, sstype b)
 	return 0;
 }
 
-int sr_meta_serialize(srmeta *m, srmetastmt *s)
+int sr_conf_serialize(srconf *m, srconfstmt *s)
 {
 	char buf[128];
 	char name_function[] = "function";
 	char name_object[] = "object";
 	void *value = NULL;
-	srmetadump v = {
+	srconfdump v = {
 		.type = m->type
 	};
 	switch (m->type) {
@@ -269,7 +269,7 @@ int sr_meta_serialize(srmeta *m, srmetastmt *s)
 }
 
 static inline int
-sr_metaexec_serialize(srmeta *c, srmetastmt *stmt, char *root)
+sr_confexec_serialize(srconf *c, srconfstmt *stmt, char *root)
 {
 	char path[256];
 	while (c) {
@@ -279,7 +279,7 @@ sr_metaexec_serialize(srmeta *c, srmetastmt *stmt, char *root)
 			snprintf(path, sizeof(path), "%s", c->key);
 		int rc;
 		if (c->flags & SR_NS) {
-			rc = sr_metaexec_serialize(c->value, stmt, path);
+			rc = sr_confexec_serialize(c->value, stmt, path);
 			if (ssunlikely(rc == -1))
 				return -1;
 		} else {
@@ -294,10 +294,10 @@ sr_metaexec_serialize(srmeta *c, srmetastmt *stmt, char *root)
 	return 0;
 }
 
-int sr_metaexec(srmeta *start, srmetastmt *s)
+int sr_confexec(srconf *start, srconfstmt *s)
 {
 	if (s->op == SR_SERIALIZE)
-		return sr_metaexec_serialize(start, s, NULL);
+		return sr_confexec_serialize(start, s, NULL);
 	char path[256];
 	snprintf(path, sizeof(path), "%s", s->path);
 	char *ptr = NULL;
@@ -305,7 +305,7 @@ int sr_metaexec(srmeta *start, srmetastmt *s)
 	token = strtok_r(path, ".", &ptr);
 	if (ssunlikely(token == NULL))
 		return -1;
-	srmeta *c = start;
+	srconf *c = start;
 	while (c) {
 		if (strcmp(token, c->key) != 0) {
 			c = c->next;
@@ -316,7 +316,7 @@ int sr_metaexec(srmeta *start, srmetastmt *s)
 			if (ssunlikely(token == NULL))
 			{
 				if (s->op == SR_WRITE && c->type != SS_UNDEF) {
-					int rc = sr_meta_write_cast(c->type, s->valuetype);
+					int rc = sr_conf_write_cast(c->type, s->valuetype);
 					if (ssunlikely(rc == -1))
 						goto bad_type;
 				}
@@ -326,7 +326,7 @@ int sr_metaexec(srmeta *start, srmetastmt *s)
 				/* not supported */
 				goto bad_path;
 			}
-			c = (srmeta*)c->value;
+			c = (srconf*)c->value;
 			continue;
 		}
 		s->match = c;
@@ -337,7 +337,7 @@ int sr_metaexec(srmeta *start, srmetastmt *s)
 	}
 
 bad_path:
-	return sr_error(s->r->e, "bad metadata path: %s", s->path);
+	return sr_error(s->r->e, "bad configuration path: %s", s->path);
 
 bad_type:
 	return sr_error(s->r->e, "incompatible type (%s) for (%s) %s",

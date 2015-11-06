@@ -1,7 +1,7 @@
 LIBSE_O = se.o \
           se_o.o \
-          se_meta.o \
-          se_metacursor.o \
+          se_conf.o \
+          se_confcursor.o \
           se_worker.o \
           se_req.o \
           se_v.o \

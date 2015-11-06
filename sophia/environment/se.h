@@ -26,9 +26,9 @@ struct se {
 	solist      req;
 	solist      reqactive;
 	solist      reqready;
-	solist      metacursor;
+	solist      confcursor;
 	srseq       seq;
-	semeta      meta;
+	seconf      conf;
 	ssquota     quota;
 	sspager     pager;
 	ssvfs       vfs;
@@ -40,8 +40,8 @@ struct se {
 	ssa         a_cursor;
 	ssa         a_cachebranch;
 	ssa         a_cache;
-	ssa         a_metacursor;
-	ssa         a_metav;
+	ssa         a_confcursor;
+	ssa         a_confv;
 	ssa         a_tx;
 	ssa         a_sxv;
 	ssa         a_req;

@@ -114,8 +114,8 @@ se_reqadd(se *e, sereq *r)
 
 void se_reqonbackup(se *e)
 {
-	if (e->meta.event_on_backup)
-		ss_triggerrun(&e->meta.on_event);
+	if (e->conf.event_on_backup)
+		ss_triggerrun(&e->conf.on_event);
 }
 
 void se_reqready(sereq *r)
@@ -126,7 +126,7 @@ void se_reqready(sereq *r)
 	so_listdel(&e->reqactive, &r->o);
 	so_listadd(&e->reqready, &r->o);
 	ss_mutexunlock(&e->reqlock);
-	ss_triggerrun(&e->meta.on_event);
+	ss_triggerrun(&e->conf.on_event);
 }
 
 sereq*
