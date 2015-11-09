@@ -315,7 +315,7 @@ se_dbread(sedb *db, sev *o, sx *x, int x_search,
 			return ret;
 		}
 	} else {
-		sx_getstmt(&e->xm, &db->coindex);
+		sx_get_autocommit(&e->xm, &db->coindex);
 	}
 
 	/* prepare read cache */
@@ -414,22 +414,13 @@ se_dbwrite(sedb *db, sev *o, uint8_t flags)
 	ss_quota(&e->quota, SS_QADD, sv_vsize(v));
 
 	/* single-statement transaction */
-	sx t;
-	sx_begin(&e->xm, &t, SXRW, 0);
-	rc = sx_set(&t, &db->coindex, v);
-	if (ssunlikely(rc == -1)) {
-		ss_quota(&e->quota, SS_QREMOVE, sv_vsize(v));
-		return -1;
-	}
-	sxstate s = sx_prepare(&t, NULL, NULL);
-	switch (s) {
-	case SXLOCK: sx_rollback(&t);
-		return 2;
-	case SXROLLBACK:
-		return 1;
+	sx x;
+	sxstate state = sx_set_autocommit(&e->xm, &db->coindex, &x, v);
+	switch (state) {
+	case SXLOCK: return 2;
+	case SXROLLBACK: return 1;
 	default: break;
 	}
-	sx_commit(&t);
 
 	/* execute req */
 	sereq q;
@@ -438,13 +429,13 @@ se_dbwrite(sedb *db, sev *o, uint8_t flags)
 	arg->vlsn_generate = 1;
 	arg->lsn = 0;
 	arg->recover = 0;
-	arg->log = &t.log;
+	arg->log = &x.log;
 	se_execute(&q);
 	if (ssunlikely(q.rc == -1))
 		ss_quota(&e->quota, SS_QREMOVE, sv_vsize(v));
 	se_reqend(&q);
 
-	sx_gc(&t);
+	sx_gc(&x);
 	return q.rc;
 error:
 	so_destroy(&o->o);

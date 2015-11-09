@@ -400,6 +400,7 @@ int sx_set(sx *x, sxindex *index, svv *version)
 	/* allocate mvcc container */
 	sxv *v = sx_valloc(m->asxv, version);
 	if (ssunlikely(v == NULL)) {
+		ss_quota(r->quota, SS_QREMOVE, sv_vsize(version));
 		sv_vfree(r, version);
 		return -1;
 	}
@@ -424,10 +425,10 @@ int sx_set(sx *x, sxindex *index, svv *version)
 		rc = sv_logadd(&x->log, r->a, &lv, index->ptr);
 		if (ssunlikely(rc == -1)) {
 			sr_oom(r->e);
-		} else {
-			ss_rbset(&index->i, n, pos, &v->node);
+			goto error;
 		}
-		return rc;
+		ss_rbset(&index->i, n, pos, &v->node);
+		return 0;
 	}
 	sxv *head = sscast(n, sxv, node);
 	/* match previous update made by current
@@ -438,8 +439,7 @@ int sx_set(sx *x, sxindex *index, svv *version)
 		if (ssunlikely(version->flags & SVUPDATE)) {
 			sr_error(r->e, "%s", "only one update statement is "
 			         "allowed per a transaction key");
-			sx_vfree(r, m->asxv, v);
-			return -1;
+			goto error;
 		}
 		/* replace old object with the new one */
 		lv.next = sv_logat(&x->log, own->lo)->next;
@@ -451,6 +451,7 @@ int sx_set(sx *x, sxindex *index, svv *version)
 			ss_rbreplace(&index->i, &own->node, &v->node);
 		/* update log */
 		sv_logreplace(&x->log, v->lo, &lv);
+
 		ss_quota(r->quota, SS_QREMOVE, sv_vsize(own->v));
 		sx_vfree(r, m->asxv, own);
 		return 0;
@@ -459,12 +460,16 @@ int sx_set(sx *x, sxindex *index, svv *version)
 	v->lo = sv_logcount(&x->log);
 	rc = sv_logadd(&x->log, r->a, &lv, index->ptr);
 	if (ssunlikely(rc == -1)) {
-		sx_vfree(r, m->asxv, v);
-		return sr_oom(r->e);
+		sr_oom(r->e);
+		goto error;
 	}
 	/* add version */
 	sx_vlink(head, v);
 	return 0;
+error:
+	ss_quota(r->quota, SS_QREMOVE, sv_vsize(v->v));
+	sx_vfree(r, m->asxv, v);
+	return -1;
 }
 
 int sx_get(sx *x, sxindex *index, sv *key, sv *result)
@@ -508,7 +513,34 @@ add:
 	return 0;
 }
 
-sxstate sx_getstmt(sxmanager *m, sxindex *index ssunused)
+sxstate sx_set_autocommit(sxmanager *m, sxindex *index, sx *x, svv *v)
+{
+	if (sslikely(m->count_rw == 0)) {
+		sx_init(m, x);
+		svlogv lv;
+		lv.id   = index->dsn;
+		lv.next = UINT32_MAX;
+		sv_init(&lv.v, &sv_vif, v, NULL);
+		sv_logadd(&x->log, m->r->a, &lv, index->ptr);
+		sr_seq(m->r->seq, SR_TSNNEXT);
+		return SXCOMMIT;
+	}
+	sx_begin(m, x, SXRW, 0);
+	int rc = sx_set(x, index, v);
+	if (ssunlikely(rc == -1)) {
+		sx_rollback(x);
+		return SXROLLBACK;
+	}
+	sxstate s = sx_prepare(x, NULL, NULL);
+	if (sslikely(s == SXPREPARE))
+		sx_commit(x);
+	else
+	if (s == SXLOCK)
+		sx_rollback(x);
+	return s;
+}
+
+sxstate sx_get_autocommit(sxmanager *m, sxindex *index ssunused)
 {
 	sr_seq(m->r->seq, SR_TSNNEXT);
 	return SXCOMMIT;

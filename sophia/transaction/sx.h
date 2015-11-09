@@ -80,7 +80,7 @@ int       sx_get(sx*, sxindex*, sv*, sv*);
 uint32_t  sx_min(sxmanager*);
 uint32_t  sx_max(sxmanager*);
 uint64_t  sx_vlsn(sxmanager*);
-
-sxstate   sx_getstmt(sxmanager*, sxindex*);
+sxstate   sx_set_autocommit(sxmanager*, sxindex*, sx*, svv*);
+sxstate   sx_get_autocommit(sxmanager*, sxindex*);
 
 #endif
