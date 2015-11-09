@@ -38,12 +38,12 @@ cursor_md_test0(void)
 
 	uint32_t key = 7;
 	uint32_t value = 7;
-	void *o = sp_object(t0);
+	void *o = sp_document(t0);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(t0, o) == 0 );
-	o = sp_object(t1);
+	o = sp_document(t1);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
@@ -52,25 +52,25 @@ cursor_md_test0(void)
 	void *c = sp_cursor(env);
 
 	value = 8;
-	o = sp_object(t0);
+	o = sp_document(t0);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(t0, o) == 0 );
-	o = sp_object(t1);
+	o = sp_document(t1);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(t1, o) == 0 );
 
-	o = sp_object(t0);
+	o = sp_document(t0);
 	o = sp_get(c, o);
 	t( o != NULL );
 	t( *(uint32_t*)sp_getstring(o, "value", 0) == 7 );
 	o = sp_get(c, o);
 	t( o == NULL );
 
-	o = sp_object(t1);
+	o = sp_document(t1);
 	o = sp_get(c, o);
 	t( o != NULL );
 	t( *(uint32_t*)sp_getstring(o, "value", 0) == 7 );
@@ -79,7 +79,7 @@ cursor_md_test0(void)
 
 	sp_destroy(c);
 
-	o = sp_object(t0);
+	o = sp_document(t0);
 	sp_setstring(o, "order", ">", 0);
 	o = sp_get(t0, o);
 	t( o != NULL );
@@ -87,7 +87,7 @@ cursor_md_test0(void)
 	o = sp_get(t0, o);
 	t( o == NULL );
 
-	o = sp_object(t1);
+	o = sp_document(t1);
 	sp_setstring(o, "order", ">", 0);
 	o = sp_get(t1, o);
 	t( o != NULL );

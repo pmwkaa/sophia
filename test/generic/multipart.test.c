@@ -91,21 +91,21 @@ multipart_set_get0(void)
 	char key_a[] = "hello";
 	uint32_t key_b = 7;
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	sp_setstring(o, "key", key_a, sizeof(key_a));
 	t( sp_set(db, o) == -1 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	sp_setstring(o, "key", key_a, sizeof(key_a));
 	sp_setstring(o, "key_b", &key_b, sizeof(key_b));
 	t( sp_set(db, o) == 0);
 
-	o = sp_object(db);
+	o = sp_document(db);
 	sp_setstring(o, "key", key_a, sizeof(key_a));
 	o = sp_get(db, o);
 	t( o == NULL );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	sp_setstring(o, "key", key_a, sizeof(key_a));
 	sp_setstring(o, "key_b", &key_b, sizeof(key_b));
 	o = sp_get(db, o);
@@ -137,7 +137,7 @@ multipart_set_get1(void)
 	char key_a[] = "hello";
 	uint32_t i = 0;
 	while (i < 546) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		sp_setstring(o, "key", key_a, sizeof(key_a));
 		sp_setstring(o, "key_b", &i, sizeof(i));
 		sp_setstring(o, "value", &i, sizeof(i));
@@ -147,7 +147,7 @@ multipart_set_get1(void)
 
 	i = 0;
 	while (i < 546) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		sp_setstring(o, "key", key_a, sizeof(key_a));
 		sp_setstring(o, "key_b", &i, sizeof(i));
 		o = sp_get(db, o);
@@ -190,7 +190,7 @@ multipart_cursor0(void)
 	char key_a[] = "hello";
 	uint32_t i = 0;
 	while (i < 546) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		sp_setstring(o, "key", key_a, sizeof(key_a));
 		sp_setstring(o, "key_b", &i, sizeof(i));
 		sp_setstring(o, "value", &i, sizeof(i));
@@ -201,7 +201,7 @@ multipart_cursor0(void)
 	i = 0;
 	void *cur = sp_cursor(env);
 	t( cur != NULL );
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	while ((o = sp_get(cur, o))) {
 		int asize;
 		t( strcmp(key_a, sp_getstring(o, "key", &asize)) == 0 );
@@ -241,7 +241,7 @@ multipart_cursor1(void)
 	char key_a[] = "hello";
 	uint32_t i = 0;
 	while (i < 546) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		sp_setstring(o, "key", key_a, sizeof(key_a));
 		sp_setstring(o, "key_b", &i, sizeof(i));
 		sp_setstring(o, "value", &i, sizeof(i));
@@ -252,7 +252,7 @@ multipart_cursor1(void)
 	i = 322;
 	void *cur = sp_cursor(env);
 	t( cur != NULL );
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	sp_setstring(o, "key", key_a, sizeof(key_a));
 	sp_setstring(o, "key_b", &i, sizeof(i));
 	sp_setstring(o, "value", &i, sizeof(i));

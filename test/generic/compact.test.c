@@ -34,7 +34,7 @@ compact_delete_node0(void)
 
 	int key = 0;
 	while (key < 20) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 		t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
@@ -46,7 +46,7 @@ compact_delete_node0(void)
 
 	key = 0;
 	while (key < 20) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 		t( sp_delete(db, o) == 0 );
@@ -80,7 +80,7 @@ compact_delete_node1(void)
 	char value[100];
 	memset(value, 0, sizeof(value));
 	while (key < 13000) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 		t( sp_setstring(o, "value", value, sizeof(value)) == 0 );
@@ -94,7 +94,7 @@ compact_delete_node1(void)
 
 	key = 0;
 	while (key < 5511 ) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 		t( sp_delete(db, o) == 0 );
@@ -106,13 +106,13 @@ compact_delete_node1(void)
 
 	t( sp_getint(env, "db.test.index.node_count") == 1 );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	void *cur = sp_cursor(env);
 	while ((o = sp_get(cur, o))) {
 		int keysize;
 		void *keyptr = sp_getstring(o, "key", &keysize);
 		t( *(uint32_t*)keyptr == key );
-		void *ko = sp_object(db);
+		void *ko = sp_document(db);
 		t( ko != NULL );
 		t( sp_setstring(ko, "key", keyptr, keysize) == 0 );
 		t( sp_delete(db, ko) == 0 );
@@ -147,7 +147,7 @@ compact_delete0(void)
 
 	int key = 0;
 	while (key < 20) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 		t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
@@ -160,7 +160,7 @@ compact_delete0(void)
 
 	key = 0;
 	while (key < 20) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 		t( sp_delete(db, o) == 0 );
@@ -168,7 +168,7 @@ compact_delete0(void)
 	}
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	void *cur = sp_cursor(env);
 	t( o != NULL );
@@ -201,7 +201,7 @@ compact_delete1(void)
 
 	int key = 0;
 	while (key < 20) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 		t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
@@ -214,7 +214,7 @@ compact_delete1(void)
 
 	key = 0;
 	while (key < 20) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 		t( sp_delete(db, o) == 0 );
@@ -224,7 +224,7 @@ compact_delete1(void)
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 	t( sp_setint(env, "db.test.compact", 0) == 0 );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	void *cur = sp_cursor(env);
 	t( o != NULL );
@@ -257,7 +257,7 @@ compact_delete_cursor(void)
 
 	int key = 0;
 	while (key < 25) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 		t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
@@ -270,7 +270,7 @@ compact_delete_cursor(void)
 
 	key = 0;
 	while (key < 20) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 		t( sp_delete(db, o) == 0 );
@@ -278,7 +278,7 @@ compact_delete_cursor(void)
 	}
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	void *cur = sp_cursor(env);
 	t( o != NULL );

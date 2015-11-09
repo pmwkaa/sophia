@@ -36,7 +36,7 @@ gc_test0(void)
 	int i = 0;
 	while ( i < 100 ) {
 		value = i;
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
@@ -48,7 +48,7 @@ gc_test0(void)
 	i = 0;
 	while ( i < 100 ) {
 		value = i + 1;
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
 		t( sp_set(db, o) == 0 );
@@ -57,7 +57,7 @@ gc_test0(void)
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
 	i = 0;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	void *cur = sp_cursor(env);
 	while ((o = sp_get(cur, o))) {
@@ -73,7 +73,7 @@ gc_test0(void)
 	t( sp_setint(env, "db.test.compact", 0) == 0 );
 
 	i = 0;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	cur = sp_cursor(env);
 	while ((o = sp_get(cur, o))) {
@@ -113,7 +113,7 @@ gc_test1(void)
 	int i = 0;
 	while ( i < 100 ) {
 		value = i;
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
@@ -123,7 +123,7 @@ gc_test1(void)
 	i = 0;
 	while ( i < 100 ) {
 		value = i + 1;
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
 		t( sp_set(db, o) == 0 );
@@ -132,7 +132,7 @@ gc_test1(void)
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
 	i = 0;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	void *cur = sp_cursor(env);
 	while ((o = sp_get(cur, o))) {
@@ -148,7 +148,7 @@ gc_test1(void)
 	t( sp_setint(env, "db.test.compact", 0) == 0 );
 
 	i = 0;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	cur = sp_cursor(env);
 	while ((o = sp_get(cur, o))) {
@@ -186,7 +186,7 @@ gc_test2(void)
 	int i = 0;
 	while ( i < 100 ) {
 		value = i;
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
@@ -196,7 +196,7 @@ gc_test2(void)
 	i = 0;
 	while ( i < 100 ) {
 		value = i + 1;
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
 		t( sp_set(db, o) == 0 );
@@ -207,7 +207,7 @@ gc_test2(void)
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
 	i = 0;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	void *cur = sp_cursor(env);
 	while ((o = sp_get(cur, o))) {
@@ -223,7 +223,7 @@ gc_test2(void)
 	t( sp_setint(env, "db.test.compact", 0) == 0 );
 
 	i = 0;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	cur = sp_cursor(env);
 	while ((o = sp_get(cur, o))) {
@@ -263,7 +263,7 @@ gc_test3(void)
 	int i = 0;
 	while ( i < 100 ) {
 		value = i;
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
@@ -273,7 +273,7 @@ gc_test3(void)
 	i = 0;
 	while ( i < 100 ) {
 		value = i + 1;
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
 		t( sp_set(db, o) == 0 );
@@ -284,7 +284,7 @@ gc_test3(void)
 	t( sp_setint(env, "db.test.compact", 0) == 0 );
 
 	i = 0;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	void *cur = sp_cursor(env);
 	while ((o = sp_get(cur, o))) {

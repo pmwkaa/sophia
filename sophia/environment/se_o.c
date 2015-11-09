@@ -21,16 +21,16 @@
 
 sotype se_o[] =
 {
-	{ 0L,          "undefined"       },
-	{ 0x9BA14568L, "destroyed"       },
-	{ 0x06154834L, "env"             },
-	{ 0x20490B34L, "env_conf"        },
-	{ 0x6AB65429L, "env_conf_cursor" },
-	{ 0x00FCDE12L, "env_conf_object" },
-	{ 0x64519F00L, "req"             },
-	{ 0x2FABCDE2L, "object"          },
-	{ 0x34591111L, "database"        },
-	{ 0x63102654L, "database_cursor" },
-	{ 0x13491FABL, "transaction"     },
-	{ 0x45ABCDFAL, "cursor"          }
+	{ 0L,          "undefined"         },
+	{ 0x9BA14568L, "destroyed"         },
+	{ 0x06154834L, "env"               },
+	{ 0x20490B34L, "env_conf"          },
+	{ 0x6AB65429L, "env_conf_cursor"   },
+	{ 0x00FCDE12L, "env_conf_kv"       },
+	{ 0x64519F00L, "req"               },
+	{ 0x2FABCDE2L, "document"          },
+	{ 0x34591111L, "database"          },
+	{ 0x63102654L, "database_cursor"   },
+	{ 0x13491FABL, "transaction"       },
+	{ 0x45ABCDFAL, "cursor"            }
 };

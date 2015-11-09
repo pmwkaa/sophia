@@ -78,7 +78,7 @@ tpr_test1(void)
 
 	int key = 7;
 	int value = 8;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
@@ -86,7 +86,7 @@ tpr_test1(void)
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 	key = 7;
 	value = 9;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
@@ -118,7 +118,7 @@ tpr_test1(void)
 	t( tx != NULL );
 	key = 7;
 	value = 8;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
@@ -130,7 +130,7 @@ tpr_test1(void)
 	t( tx != NULL );
 	key = 7;
 	value = 9;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
@@ -144,7 +144,7 @@ tpr_test1(void)
 	t( strcmp(v, "online") == 0 );
 	free(v);
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(db, o);

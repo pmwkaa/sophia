@@ -101,17 +101,17 @@ durability_branch0(void)
 	t( sp_open(env) == 0 );
 
 	int key = 7;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 	key = 8;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 	key = 9;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
@@ -138,7 +138,7 @@ durability_branch0(void)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(env);
@@ -181,17 +181,17 @@ durability_build0(void)
 	t( sp_open(env) == 0 );
 
 	int key = 7;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 	key = 8;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 	key = 9;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
@@ -218,7 +218,7 @@ durability_build0(void)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(env);
 	t( c != NULL );
@@ -260,17 +260,17 @@ durability_build1(void)
 	t( sp_open(env) == 0 );
 
 	int key = 7;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 	key = 8;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 	key = 9;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
@@ -297,7 +297,7 @@ durability_build1(void)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(env);
 	t( c != NULL );
@@ -339,17 +339,17 @@ durability_compact0(void)
 	t( sp_open(env) == 0 );
 
 	int key = 7;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 	key = 8;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 	key = 9;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
@@ -378,7 +378,7 @@ durability_compact0(void)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(env);
 	t( c != NULL );
@@ -421,17 +421,17 @@ durability_compact1(void)
 	t( sp_open(env) == 0 );
 
 	int key = 7;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 	key = 8;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 	key = 9;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
@@ -461,7 +461,7 @@ durability_compact1(void)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(env);
 	t( c != NULL );
@@ -506,17 +506,17 @@ durability_compact2(void)
 	t( sp_open(env) == 0 );
 
 	int key = 7;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 	key = 8;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 	key = 9;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
@@ -546,7 +546,7 @@ durability_compact2(void)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(env);
 	t( c != NULL );
@@ -594,7 +594,7 @@ durability_compact3(void)
 
 	int i = 0;
 	while (i < 20) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != 0 );
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
@@ -628,7 +628,7 @@ durability_compact3(void)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(env);
 	t( c != NULL );
@@ -671,7 +671,7 @@ durability_compact4(void)
 
 	int i = 0;
 	while (i < 20) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != 0 );
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
@@ -705,7 +705,7 @@ durability_compact4(void)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(env);
 	t( c != NULL );
@@ -750,7 +750,7 @@ durability_compact5(void)
 
 	int i = 0;
 	while (i < 20) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != 0 );
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
@@ -784,7 +784,7 @@ durability_compact5(void)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(env);
 	t( c != NULL );
@@ -829,7 +829,7 @@ durability_compact6(void)
 
 	int i = 0;
 	while (i < 20) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != 0 );
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
@@ -863,7 +863,7 @@ durability_compact6(void)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(env);
 	t( c != NULL );
@@ -908,7 +908,7 @@ durability_compact7(void)
 
 	int i = 0;
 	while (i < 20) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != 0 );
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
@@ -943,7 +943,7 @@ durability_compact7(void)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(env);
 	t( c != NULL );

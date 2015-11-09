@@ -245,7 +245,7 @@ sd_buildadd_raw(sdbuild *b, sr *r, sv *v)
 
 int sd_buildadd(sdbuild *b, sr *r, sv *v, uint32_t flags)
 {
-	/* prepare object metadata */
+	/* prepare document metadata */
 	int rc = ss_bufensure(&b->m, r->a, sizeof(sdv));
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
@@ -254,7 +254,7 @@ int sd_buildadd(sdbuild *b, sr *r, sv *v, uint32_t flags)
 	sv->flags  = sv_flags(v) | flags;
 	sv->offset = ss_bufused(&b->v) - sd_buildref(b)->v;
 	ss_bufadvance(&b->m, sizeof(sdv));
-	/* copy object */
+	/* copy document */
 	switch (r->fmt_storage) {
 	case SF_SKEYVALUE:
 		rc = sd_buildadd_keyvalue(b, r, v);

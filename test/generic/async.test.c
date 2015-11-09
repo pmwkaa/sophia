@@ -43,13 +43,13 @@ async_get(void)
 	events = 0;
 
 	uint32_t key = 7;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setint(o, "async", 1) == 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "arg", "arg_test", 0) == 0 );
@@ -95,17 +95,17 @@ async_cursor(void)
 	void *tx = sp_begin(env);
 	t( tx != NULL );
 	uint32_t key = 7;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
@@ -113,7 +113,7 @@ async_cursor(void)
 
 	void *cur = sp_cursor(env);
 
-	o = sp_object(db);
+	o = sp_document(db);
 	sp_setint(o, "async", 1);
 	o = sp_get(cur, o); // 1
 	t( o != NULL );
@@ -190,17 +190,17 @@ async_free0(void)
 	void *tx = sp_begin(env);
 	t( tx != NULL );
 	uint32_t key = 7;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
@@ -208,7 +208,7 @@ async_free0(void)
 
 	void *c = sp_cursor(env);
 	t( c != NULL );
-	o = sp_object(db);
+	o = sp_document(db);
 	sp_setint(o, "async", 1);
 	sp_get(c, o);
 	t( sp_setint(env, "scheduler.run", 0) == 0 );

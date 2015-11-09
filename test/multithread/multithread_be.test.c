@@ -52,7 +52,7 @@ mt_set_checkpoint_get(void)
 	for (i = 0; i < n; i++) {
 		k = rand();
 		*(uint32_t*)value = k;
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
 		t( sp_setstring(o, "value", value, sizeof(value)) == 0 );
@@ -81,7 +81,7 @@ mt_set_checkpoint_get(void)
 	srand(82351);
 	for (i = 0; i < n; i++) {
 		k = rand();
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
 		o = sp_get(db, o);
@@ -119,7 +119,7 @@ mt_set_delete_get(void)
 	for (i = 0; i < n; i++) {
 		k = rand();
 		*(uint32_t*)value = k;
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
 		t( sp_setstring(o, "value", value, sizeof(value)) == 0 );
@@ -130,7 +130,7 @@ mt_set_delete_get(void)
 	for (i = 0; i < n; i++) {
 		k = rand();
 		*(uint32_t*)value = k;
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
 		t( sp_setstring(o, "value", value, sizeof(value)) == 0 );
@@ -140,7 +140,7 @@ mt_set_delete_get(void)
 	srand(82351);
 	for (i = 0; i < n; i++) {
 		k = rand();
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
 		o = sp_get(db, o);
@@ -177,7 +177,7 @@ mt_set_get_kv_multipart(void)
 	for (i = 0; i < n; i++) {
 		uint32_t key_b = rand();
 		uint32_t value = key_b;
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", key_a, sizeof(key_a)) == 0 );
 		t( sp_setstring(o, "key_b", &key_b, sizeof(key_b)) == 0 );
@@ -189,7 +189,7 @@ mt_set_get_kv_multipart(void)
 	for (i = 0; i < n; i++) {
 		uint32_t key_b = rand();
 		uint32_t value = key_b;
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", key_a, sizeof(key_a)) == 0 );
 		t( sp_setstring(o, "key_b", &key_b, sizeof(key_b)) == 0 );
@@ -244,7 +244,7 @@ mt_set_get_document_multipart(void)
 		doc.key_a = rand();
 		doc.key_b = rand();
 		doc.value = doc.key_a ^ doc.key_b;
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &doc.key_a, sizeof(doc.key_a)) == 0 );
 		t( sp_setstring(o, "key_b", &doc.key_b, sizeof(doc.key_b)) == 0 );
@@ -257,7 +257,7 @@ mt_set_get_document_multipart(void)
 		doc.key_a = rand();
 		doc.key_b = rand();
 		doc.value = doc.key_a ^ doc.key_b;
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &doc.key_a, sizeof(doc.key_a)) == 0 );
 		t( sp_setstring(o, "key_b", &doc.key_b, sizeof(doc.key_b)) == 0 );
@@ -316,7 +316,7 @@ mt_set_get_document_multipart_cursor(void)
 		doc.key_a = i;
 		doc.key_b = i;
 		doc.value = doc.key_a ^ doc.key_b;
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &doc.key_a, sizeof(doc.key_a)) == 0 );
 		t( sp_setstring(o, "key_b", &doc.key_b, sizeof(doc.key_b)) == 0 );
@@ -326,7 +326,7 @@ mt_set_get_document_multipart_cursor(void)
 	}
 
 	i = 0;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	void *cursor = sp_cursor(env);
 	t( cursor != NULL );
@@ -366,7 +366,7 @@ mt_async_read(void)
 
 	int i = 0;
 	while (i < 100000) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		assert(o != NULL);
 		sp_setstring(o, "key", &i, sizeof(i));
 		int rc = sp_set(db, o);
@@ -377,7 +377,7 @@ mt_async_read(void)
 	fprintf(st_r.output, " (insert done..iterate) ");
 
 	/* trigger iteration */
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	sp_setint(o, "async", 1);
 	sp_setstring(o, "order", ">=", 0);
 	o = sp_get(db, o);
@@ -426,7 +426,7 @@ mt_setget(void)
 	for (i = 0; i < n; i++) {
 		k = rand();
 		*(uint32_t*)value = k;
-		void *o = sp_object(st_r.db);
+		void *o = sp_document(st_r.db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
 		t( sp_setstring(o, "value", value, sizeof(value)) == 0 );
@@ -436,7 +436,7 @@ mt_setget(void)
 	srand(82351);
 	for (i = 0; i < n; i++) {
 		k = rand();
-		void *o = sp_object(st_r.db);
+		void *o = sp_document(st_r.db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
 		o = sp_get(st_r.db, o);

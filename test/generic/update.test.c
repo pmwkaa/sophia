@@ -33,7 +33,7 @@ update_no_operator(void)
 
 	int i = 0;
 	while ( i < 100 ) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_update(db, o) == 0 );
@@ -41,7 +41,7 @@ update_no_operator(void)
 	}
 
 	i = 0;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	void *cur = sp_cursor(env);
 	while ((o = sp_get(cur, o))) {
@@ -113,14 +113,14 @@ update_update_get_index(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int up = 777;
 	int i = 0;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_update(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
@@ -152,7 +152,7 @@ update_update_get_branch0(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int up = 777;
 	int i = 0;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
@@ -162,7 +162,7 @@ update_update_get_branch0(void)
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 	t( update_ops == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
@@ -194,7 +194,7 @@ update_update_get_compact(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int up = 777;
 	int i = 0;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
@@ -206,7 +206,7 @@ update_update_get_compact(void)
 
 	t( update_ops == 1 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
@@ -238,19 +238,19 @@ update_set_update_get_index(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_update(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
@@ -282,7 +282,7 @@ update_set_update_get_branch0(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
@@ -290,13 +290,13 @@ update_set_update_get_branch0(void)
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_update(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
@@ -328,7 +328,7 @@ update_set_update_get_branch1(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
@@ -336,7 +336,7 @@ update_set_update_get_branch1(void)
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
@@ -344,7 +344,7 @@ update_set_update_get_branch1(void)
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
@@ -376,7 +376,7 @@ update_set_update_get_compact(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
@@ -384,7 +384,7 @@ update_set_update_get_compact(void)
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
@@ -393,7 +393,7 @@ update_set_update_get_compact(void)
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 	t( sp_setint(env, "db.test.compact", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
@@ -425,25 +425,25 @@ update_set_update_update_get_index(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up0 = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up0, sizeof(up0)) == 0 );
 	t( sp_update(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up1 = 778;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up1, sizeof(up1)) == 0 );
 	t( sp_update(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
@@ -475,7 +475,7 @@ update_set_update_update_get_branch0(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
@@ -483,19 +483,19 @@ update_set_update_update_get_branch0(void)
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up0 = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up0, sizeof(up0)) == 0 );
 	t( sp_update(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up1 = 778;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up1, sizeof(up1)) == 0 );
 	t( sp_update(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
@@ -527,7 +527,7 @@ update_set_update_update_get_branch1(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
@@ -535,7 +535,7 @@ update_set_update_update_get_branch1(void)
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up0 = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up0, sizeof(up0)) == 0 );
@@ -543,13 +543,13 @@ update_set_update_update_get_branch1(void)
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up1 = 778;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up1, sizeof(up1)) == 0 );
 	t( sp_update(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
@@ -581,7 +581,7 @@ update_set_update_update_get_branch2(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
@@ -589,7 +589,7 @@ update_set_update_update_get_branch2(void)
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up0 = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up0, sizeof(up0)) == 0 );
@@ -597,7 +597,7 @@ update_set_update_update_get_branch2(void)
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up1 = 778;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up1, sizeof(up1)) == 0 );
@@ -605,7 +605,7 @@ update_set_update_update_get_branch2(void)
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
@@ -637,7 +637,7 @@ update_set_update_update_get_compact(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
@@ -645,7 +645,7 @@ update_set_update_update_get_compact(void)
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up0 = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up0, sizeof(up0)) == 0 );
@@ -653,7 +653,7 @@ update_set_update_update_get_compact(void)
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up1 = 778;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up1, sizeof(up1)) == 0 );
@@ -662,7 +662,7 @@ update_set_update_update_get_compact(void)
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 	t( sp_setint(env, "db.test.compact", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
@@ -694,7 +694,7 @@ update_set_update_update_get_cursor(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
@@ -702,7 +702,7 @@ update_set_update_update_get_cursor(void)
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up0 = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up0, sizeof(up0)) == 0 );
@@ -710,7 +710,7 @@ update_set_update_update_get_cursor(void)
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up1 = 778;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up1, sizeof(up1)) == 0 );
@@ -718,7 +718,7 @@ update_set_update_update_get_cursor(void)
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	void *cur = sp_cursor(env);
 	o = sp_get(cur, o);
@@ -770,23 +770,23 @@ update_set_delete_update_get_index(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_delete(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_update(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
@@ -818,25 +818,25 @@ update_set_delete_update_get_branch0(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_delete(db, o) == 0 );
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_update(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
@@ -868,19 +868,19 @@ update_set_delete_update_get_branch1(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_delete(db, o) == 0 );
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
@@ -888,7 +888,7 @@ update_set_delete_update_get_branch1(void)
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
@@ -920,19 +920,19 @@ update_set_delete_update_get_compact(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_delete(db, o) == 0 );
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
@@ -941,7 +941,7 @@ update_set_delete_update_get_compact(void)
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 	t( sp_setint(env, "db.test.compact", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
@@ -973,19 +973,19 @@ update_delete_update_get_index(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_delete(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_update(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
@@ -1017,21 +1017,21 @@ update_delete_update_get_branch0(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_delete(db, o) == 0 );
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_update(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
@@ -1063,15 +1063,15 @@ update_delete_update_get_branch1(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_delete(db, o) == 0 );
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
@@ -1079,7 +1079,7 @@ update_delete_update_get_branch1(void)
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
@@ -1111,15 +1111,15 @@ update_delete_update_get_compact(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_delete(db, o) == 0 );
 
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
@@ -1128,7 +1128,7 @@ update_delete_update_get_compact(void)
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 	t( sp_setint(env, "db.test.compact", 0) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
@@ -1162,13 +1162,13 @@ update_sx_set_update_get(void)
 
 	void *tx = sp_begin(env);
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 	t( sp_set(tx, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
@@ -1206,13 +1206,13 @@ update_sx_update_update(void)
 	void *o;
 	int i = 0;
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_update(tx, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	up = 778;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
@@ -1245,25 +1245,25 @@ update_cursor0(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up0 = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up0, sizeof(up0)) == 0 );
 	t( sp_update(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up1 = 778;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up1, sizeof(up1)) == 0 );
 	t( sp_update(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	void *cur = sp_cursor(env);
 	o = sp_get(cur, o);
@@ -1297,13 +1297,13 @@ update_cursor1(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up0 = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up0, sizeof(up0)) == 0 );
@@ -1311,13 +1311,13 @@ update_cursor1(void)
 
 	void *cur = sp_cursor(env);
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up1 = 778;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up1, sizeof(up1)) == 0 );
 	t( sp_update(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	o = sp_get(cur, o);
 	t( *(int*)sp_getstring(o, "value", NULL) == up0 );
@@ -1350,7 +1350,7 @@ update_cursor2(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
@@ -1358,19 +1358,19 @@ update_cursor2(void)
 
 	void *cur = sp_cursor(env);
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up0 = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up0, sizeof(up0)) == 0 );
 	t( sp_update(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up1 = 778;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up1, sizeof(up1)) == 0 );
 	t( sp_update(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	o = sp_get(cur, o);
 	t( *(int*)sp_getstring(o, "value", NULL) == i );
@@ -1403,24 +1403,24 @@ update_cursor3(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_delete(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up1 = 778;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up1, sizeof(up1)) == 0 );
 	t( sp_update(db, o) == 0 );
 
 	void *cur = sp_cursor(env);
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	o = sp_get(cur, o);
 	t( *(int*)sp_getstring(o, "value", NULL) == up1 );
@@ -1469,30 +1469,30 @@ update_cursor4(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_delete(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up1 = 778;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up1, sizeof(up1)) == 0 );
 	t( sp_update(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up0 = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up0, sizeof(up0)) == 0 );
 	t( sp_update(db, o) == 0 );
 
 	void *cur = sp_cursor(env);
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	o = sp_get(cur, o);
 	t( *(int*)sp_getstring(o, "value", NULL) == up0 );
@@ -1525,23 +1525,23 @@ update_cursor5(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_delete(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up1 = 778;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up1, sizeof(up1)) == 0 );
 	t( sp_update(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up0 = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up0, sizeof(up0)) == 0 );
@@ -1551,7 +1551,7 @@ update_cursor5(void)
 	t( sp_setint(env, "db.test.compact", 0) == 0 );
 
 	void *cur = sp_cursor(env);
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	o = sp_get(cur, o);
 	t( *(int*)sp_getstring(o, "value", NULL) == up0 );
@@ -1584,19 +1584,19 @@ update_cursor6(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	int i = 0;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up1 = 778;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up1, sizeof(up1)) == 0 );
 	t( sp_update(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	int up0 = 777;
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up0, sizeof(up0)) == 0 );
@@ -1606,7 +1606,7 @@ update_cursor6(void)
 	t( sp_setint(env, "db.test.compact", 0) == 0 );
 
 	void *cur = sp_cursor(env);
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	o = sp_get(cur, o);
 	t( *(int*)sp_getstring(o, "value", NULL) == up0 );

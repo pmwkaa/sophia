@@ -16,7 +16,7 @@
 #include <libst.h>
 
 static void
-object_db(void)
+document_db(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -32,7 +32,7 @@ object_db(void)
 	t( db != NULL );
 	t( sp_open(db) == 0 );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t(o != NULL);
 	sp_destroy(o);
 
@@ -40,7 +40,7 @@ object_db(void)
 }
 
 static void
-object_set_get(void)
+document_set_get(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -57,7 +57,7 @@ object_set_get(void)
 	t( sp_open(db) == 0 );
 
 	int key = 7;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t(o != NULL);
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
@@ -72,7 +72,7 @@ object_set_get(void)
 }
 
 static void
-object_lsn0(void)
+document_lsn0(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -89,14 +89,14 @@ object_lsn0(void)
 	t( sp_open(db) == 0 );
 
 	int key = 7;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t(o != NULL);
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_getint(o, "lsn") == -1 );
 	t( sp_set(db, o) == 0 );
 	void *c = sp_cursor(env);
-	o = sp_object(db);
+	o = sp_document(db);
 	t(o != NULL);
 	t( sp_setstring(o, "order", ">", 0) == 0 );
 	o = sp_get(c, o);
@@ -115,7 +115,7 @@ object_lsn0(void)
 }
 
 static void
-object_readonly0(void)
+document_readonly0(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -132,12 +132,12 @@ object_readonly0(void)
 	t( sp_open(db) == 0 );
 
 	int key = 7;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t(o != NULL);
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
-	o = sp_object(db);
+	o = sp_document(db);
 	t(o != NULL);
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(db, o);
@@ -150,7 +150,7 @@ object_readonly0(void)
 }
 
 static void
-object_readonly1(void)
+document_readonly1(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -167,13 +167,13 @@ object_readonly1(void)
 	t( sp_open(db) == 0 );
 
 	int key = 7;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t(o != NULL);
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 	void *c = sp_cursor(env);
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "order", ">", 0) == 0 );
 	o = sp_get(c, o);
@@ -186,7 +186,7 @@ object_readonly1(void)
 }
 
 static void
-object_reuse(void)
+document_reuse(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -203,20 +203,20 @@ object_reuse(void)
 	t( sp_open(db) == 0 );
 
 	int key = 7;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t(o != NULL);
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t(o != NULL);
 	t( sp_setstring(o, "order", ">", 0) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
 	t( sp_delete(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t(o != NULL);
 	t( sp_setstring(o, "order", ">", 0) == 0 );
 	o = sp_get(db, o);
@@ -226,7 +226,7 @@ object_reuse(void)
 }
 
 static void
-object_immutable(void)
+document_immutable(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -243,7 +243,7 @@ object_immutable(void)
 	t( sp_open(db) == 0 );
 
 	int key = 7;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t(o != NULL);
 	t( sp_setint(o, "immutable", 1) == 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
@@ -265,15 +265,15 @@ object_immutable(void)
 	sp_destroy(env);
 }
 
-stgroup *object_group(void)
+stgroup *document_group(void)
 {
-	stgroup *group = st_group("object");
-	st_groupadd(group, st_test("db", object_db));
-	st_groupadd(group, st_test("setget", object_set_get));
-	st_groupadd(group, st_test("lsn0", object_lsn0));
-	st_groupadd(group, st_test("readonly0", object_readonly0));
-	st_groupadd(group, st_test("readonly1", object_readonly1));
-	st_groupadd(group, st_test("reuse", object_reuse));
-	st_groupadd(group, st_test("immutable", object_immutable));
+	stgroup *group = st_group("document");
+	st_groupadd(group, st_test("db", document_db));
+	st_groupadd(group, st_test("setget", document_set_get));
+	st_groupadd(group, st_test("lsn0", document_lsn0));
+	st_groupadd(group, st_test("readonly0", document_readonly0));
+	st_groupadd(group, st_test("readonly1", document_readonly1));
+	st_groupadd(group, st_test("reuse", document_reuse));
+	st_groupadd(group, st_test("immutable", document_immutable));
 	return group;
 }

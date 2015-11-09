@@ -49,16 +49,16 @@ SP_API void *sp_env(void)
 	return se_new();
 }
 
-SP_API void *sp_object(void *ptr)
+SP_API void *sp_document(void *ptr)
 {
 	so *o = sp_cast(ptr, __func__);
-	if (ssunlikely(o->i->object == NULL)) {
+	if (ssunlikely(o->i->document == NULL)) {
 		sp_unsupported(o, __func__);
 		return NULL;
 	}
 	so *e = o->env;
 	se_apilock(e);
-	void *h = o->i->object(o);
+	void *h = o->i->document(o);
 	se_apiunlock(e);
 	return h;
 }

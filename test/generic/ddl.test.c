@@ -95,15 +95,15 @@ ddl_create_online2(void)
 	t( sp_open(s0) == 0 );
 
 	int key = 7;
-	void *o = sp_object(s0);
+	void *o = sp_document(s0);
 	sp_setstring(o, "key", &key, sizeof(key));
 	t( sp_set(s0, o) == 0 );
 	key = 8;
-	o = sp_object(s0);
+	o = sp_document(s0);
 	sp_setstring(o, "key", &key, sizeof(key));
 	t( sp_set(s0, o) == 0 );
 	key = 9;
-	o = sp_object(s0);
+	o = sp_document(s0);
 	sp_setstring(o, "key", &key, sizeof(key));
 	t( sp_set(s0, o) == 0 );
 
@@ -116,15 +116,15 @@ ddl_create_online2(void)
 	t( sp_open(s1) == 0 );
 
 	key = 7;
-	o = sp_object(s1);
+	o = sp_document(s1);
 	sp_setstring(o, "key", &key, sizeof(key));
 	t( sp_set(s1, o) == 0 );
 	key = 8;
-	o = sp_object(s1);
+	o = sp_document(s1);
 	sp_setstring(o, "key", &key, sizeof(key));
 	t( sp_set(s1, o) == 0 );
 	key = 9;
-	o = sp_object(s1);
+	o = sp_document(s1);
 	sp_setstring(o, "key", &key, sizeof(key));
 	t( sp_set(s1, o) == 0 );
 
@@ -160,15 +160,15 @@ ddl_open_online0(void)
 	t( sp_open(s0) == 0 );
 
 	int key = 7;
-	void *o = sp_object(s0);
+	void *o = sp_document(s0);
 	sp_setstring(o, "key", &key, sizeof(key));
 	t( sp_set(s0, o) == 0 );
 	key = 8;
-	o = sp_object(s0);
+	o = sp_document(s0);
 	sp_setstring(o, "key", &key, sizeof(key));
 	t( sp_set(s0, o) == 0 );
 	key = 9;
-	o = sp_object(s0);
+	o = sp_document(s0);
 	sp_setstring(o, "key", &key, sizeof(key));
 	t( sp_set(s0, o) == 0 );
 	t( sp_destroy(s0) == 0 );

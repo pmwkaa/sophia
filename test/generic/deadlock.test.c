@@ -37,7 +37,7 @@ deadlock_test0(void)
 	t( tx != NULL );
 
 	int key = 7;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
@@ -75,14 +75,14 @@ deadlock_test1(void)
 	t( t1 != NULL );
 
 	int key = 7;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(t0, o) == 0 );
 
 	key = 7;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
@@ -123,27 +123,27 @@ deadlock_test2(void)
 	t( t1 != NULL );
 
 	int key = 7;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(t0, o) == 0 );
 
 	key = 8;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(t1, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(t0, o) == 0 );
 
 	key = 7;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
@@ -189,27 +189,27 @@ deadlock_test3(void)
 	t( t1 != NULL );
 
 	int key = 7;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(t0, o) == 0 );
 
 	key = 8;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(t1, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(t0, o) == 0 );
 
 	key = 7;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );

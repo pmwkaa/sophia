@@ -15,7 +15,7 @@ SOPHIA_DIRS    = std \
                  sophia
 SOPHIA_INCLUDE = $(addprefix -I../../sophia/, $(SOPHIA_DIRS))
 CFLAGS         = -I. -Wall -O0 -g $(SOPHIA_INCLUDE)
-OBJECTS        = st_r.o st_suite.o st_generator.o st.o st_object.o st_tools.o st_scenes.o st_phase.o
+OBJECTS        = st_r.o st_suite.o st_generator.o st.o st_document.o st_tools.o st_scenes.o st_phase.o
 TARGET         = libst.a
 
 $(TARGET): $(OBJECTS)

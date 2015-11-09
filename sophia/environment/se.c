@@ -195,7 +195,7 @@ static soif seif =
 	.open         = se_open,
 	.destroy      = se_destroy,
 	.error        = se_error,
-	.object       = NULL,
+	.document     = NULL,
 	.poll         = se_poll,
 	.drop         = NULL,
 	.setobject    = se_confset_object,
@@ -233,12 +233,12 @@ so *se_new(void)
 	ss_aopen(&e->a, &ss_stda);
 	ss_aopen(&e->a_db, &ss_slaba, &e->pager, sizeof(sedb));
 	ss_aopen(&e->a_dbcursor, &ss_slaba, &e->pager, sizeof(sedbcursor));
-	ss_aopen(&e->a_v, &ss_slaba, &e->pager, sizeof(sev));
+	ss_aopen(&e->a_document, &ss_slaba, &e->pager, sizeof(sedocument));
 	ss_aopen(&e->a_cursor, &ss_slaba, &e->pager, sizeof(secursor));
 	ss_aopen(&e->a_cachebranch, &ss_slaba, &e->pager, sizeof(sicachebranch));
 	ss_aopen(&e->a_cache, &ss_slaba, &e->pager, sizeof(sicache));
 	ss_aopen(&e->a_confcursor, &ss_slaba, &e->pager, sizeof(seconfcursor));
-	ss_aopen(&e->a_confv, &ss_slaba, &e->pager, sizeof(seconfv));
+	ss_aopen(&e->a_confkv, &ss_slaba, &e->pager, sizeof(seconfkv));
 	ss_aopen(&e->a_tx, &ss_slaba, &e->pager, sizeof(setx));
 	ss_aopen(&e->a_req, &ss_slaba, &e->pager, sizeof(sereq));
 	ss_aopen(&e->a_sxv, &ss_slaba, &e->pager, sizeof(sxv));

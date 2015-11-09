@@ -19,7 +19,7 @@ static void
 cursor_empty_gte(void)
 {
 	void *db = st_r.db;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
@@ -33,7 +33,7 @@ static void
 cursor_empty_gt(void)
 {
 	void *db = st_r.db;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "order", ">", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
@@ -47,7 +47,7 @@ static void
 cursor_empty_lte(void)
 {
 	void *db = st_r.db;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "order", "<=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
@@ -61,7 +61,7 @@ static void
 cursor_empty_lt(void)
 {
 	void *db = st_r.db;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "order", "<", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
@@ -78,31 +78,31 @@ cursor_gte(void)
 	int rc;
 	void *tx = sp_begin(st_r.env);
 	int key = 7;
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 7, 7);
+	st_document_is(o, 7, 7);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 8, 8);
+	st_document_is(o, 8, 8);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 9, 9);
+	st_document_is(o, 9, 9);
 	o = sp_get(c, o);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -116,31 +116,31 @@ cursor_gt(void)
 	int rc;
 	void *tx = sp_begin(st_r.env);
 	int key = 7;
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "order", ">", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 7, 7);
+	st_document_is(o, 7, 7);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 8, 8);
+	st_document_is(o, 8, 8);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 9, 9);
+	st_document_is(o, 9, 9);
 	o = sp_get(c, o);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -154,31 +154,31 @@ cursor_lte(void)
 	int rc;
 	void *tx = sp_begin(st_r.env);
 	int key = 7;
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "order", "<=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 9, 9);
+	st_document_is(o, 9, 9);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 8, 8);
+	st_document_is(o, 8, 8);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 7, 7);
+	st_document_is(o, 7, 7);
 	o = sp_get(c, o);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -192,31 +192,31 @@ cursor_lt(void)
 	int rc;
 	void *tx = sp_begin(st_r.env);
 	int key = 7;
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "order", "<", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 9, 9);
+	st_document_is(o, 9, 9);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 8, 8);
+	st_document_is(o, 8, 8);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 7, 7);
+	st_document_is(o, 7, 7);
 	o = sp_get(c, o);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -229,31 +229,31 @@ cursor_pos_gte0(void)
 	int rc;
 	void *tx = sp_begin(st_r.env);
 	int key = 7;
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 	key = 7;
-	void *pos = st_object(key, key);
+	void *pos = st_document(key, key);
 	t( sp_setstring(pos, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 7, 7);
+	st_document_is(o, 7, 7);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 8, 8);
+	st_document_is(o, 8, 8);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 9, 9);
+	st_document_is(o, 9, 9);
 	o = sp_get(c, o);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -266,28 +266,28 @@ cursor_pos_gte1(void)
 	int rc;
 	void *tx = sp_begin(st_r.env);
 	int key = 7;
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 	key = 8;
-	void *pos = st_object(key, key);
+	void *pos = st_document(key, key);
 	t( sp_setstring(pos, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 8, 8);
+	st_document_is(o, 8, 8);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 9, 9);
+	st_document_is(o, 9, 9);
 	o = sp_get(c, o);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -300,25 +300,25 @@ cursor_pos_gte2(void)
 	int rc;
 	void *tx = sp_begin(st_r.env);
 	int key = 7;
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 	key = 9;
-	void *pos = st_object(key, key);
+	void *pos = st_document(key, key);
 	t( sp_setstring(pos, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 9, 9);
+	st_document_is(o, 9, 9);
 	o = sp_get(c, o);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -331,19 +331,19 @@ cursor_pos_gte3(void)
 	int rc;
 	void *tx = sp_begin(st_r.env);
 	int key = 7;
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 	key = 15;
-	void *pos = st_object(key, key);
+	void *pos = st_document(key, key);
 	t( sp_setstring(pos, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
@@ -359,28 +359,28 @@ cursor_pos_gte4(void)
 	int rc;
 	void *tx = sp_begin(st_r.env);
 	int key = 73;
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 80;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 90;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 	key = 79;
-	void *pos = st_object(key, key);
+	void *pos = st_document(key, key);
 	t( sp_setstring(pos, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 80, 80);
+	st_document_is(o, 80, 80);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 90, 90);
+	st_document_is(o, 90, 90);
 	o = sp_get(c, o);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -393,31 +393,31 @@ cursor_pos_gte5(void)
 	int rc;
 	void *tx = sp_begin(st_r.env);
 	int key = 7;
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 	key = 0;
-	void *pos = st_object(key, key);
+	void *pos = st_document(key, key);
 	t( sp_setstring(pos, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 7, 7);
+	st_document_is(o, 7, 7);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 8, 8);
+	st_document_is(o, 8, 8);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 9, 9);
+	st_document_is(o, 9, 9);
 	o = sp_get(c, o);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -430,28 +430,28 @@ cursor_pos_gt0(void)
 	int rc;
 	void *tx = sp_begin(st_r.env);
 	int key = 7;
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 	key = 7;
-	void *pos = st_object(key, key);
+	void *pos = st_document(key, key);
 	t( sp_setstring(pos, "order", ">", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 8, 8);
+	st_document_is(o, 8, 8);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 9, 9);
+	st_document_is(o, 9, 9);
 	o = sp_get(c, o);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -464,25 +464,25 @@ cursor_pos_gt1(void)
 	int rc;
 	void *tx = sp_begin(st_r.env);
 	int key = 7;
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 	key = 8;
-	void *pos = st_object(key, key);
+	void *pos = st_document(key, key);
 	t( sp_setstring(pos, "order", ">", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 9, 9);
+	st_document_is(o, 9, 9);
 	o = sp_get(c, o);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -495,19 +495,19 @@ cursor_pos_gt2(void)
 	int rc;
 	void *tx = sp_begin(st_r.env);
 	int key = 7;
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 	key = 9;
-	void *pos = st_object(key, key);
+	void *pos = st_document(key, key);
 	t( sp_setstring(pos, "order", ">", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
@@ -523,31 +523,31 @@ cursor_pos_lte0(void)
 	int rc;
 	void *tx = sp_begin(st_r.env);
 	int key = 7;
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 	key = 9;
-	void *pos = st_object(key, key);
+	void *pos = st_document(key, key);
 	t( sp_setstring(pos, "order", "<=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 9, 9);
+	st_document_is(o, 9, 9);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 8, 8);
+	st_document_is(o, 8, 8);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 7, 7);
+	st_document_is(o, 7, 7);
 	o = sp_get(c, o);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -560,28 +560,28 @@ cursor_pos_lte1(void)
 	int rc;
 	void *tx = sp_begin(st_r.env);
 	int key = 7;
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 	key = 8;
-	void *pos = st_object(key, key);
+	void *pos = st_document(key, key);
 	t( sp_setstring(pos, "order", "<=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 8, 8);
+	st_document_is(o, 8, 8);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 7, 7);
+	st_document_is(o, 7, 7);
 	o = sp_get(c, o);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -594,25 +594,25 @@ cursor_pos_lte2(void)
 	int rc;
 	void *tx = sp_begin(st_r.env);
 	int key = 7;
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 	key = 7;
-	void *pos = st_object(key, key);
+	void *pos = st_document(key, key);
 	t( sp_setstring(pos, "order", "<=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 7, 7);
+	st_document_is(o, 7, 7);
 	o = sp_get(c, o);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -625,19 +625,19 @@ cursor_pos_lte3(void)
 	int rc;
 	void *tx = sp_begin(st_r.env);
 	int key = 7;
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 	key = 5;
-	void *pos = st_object(key, key);
+	void *pos = st_document(key, key);
 	t( sp_setstring(pos, "order", "<=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
@@ -653,31 +653,31 @@ cursor_pos_lte4(void)
 	int rc;
 	void *tx = sp_begin(st_r.env);
 	int key = 7;
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 	key = 20;
-	void *pos = st_object(key, key);
+	void *pos = st_document(key, key);
 	t( sp_setstring(pos, "order", "<=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 9, 9);
+	st_document_is(o, 9, 9);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 8, 8);
+	st_document_is(o, 8, 8);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 7, 7);
+	st_document_is(o, 7, 7);
 	o = sp_get(c, o);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -690,28 +690,28 @@ cursor_pos_lt0(void)
 	int rc;
 	void *tx = sp_begin(st_r.env);
 	int key = 7;
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 	key = 9;
-	void *pos = st_object(key, key);
+	void *pos = st_document(key, key);
 	t( sp_setstring(pos, "order", "<", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 8, 8);
+	st_document_is(o, 8, 8);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 7, 7);
+	st_document_is(o, 7, 7);
 	o = sp_get(c, o);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -724,25 +724,25 @@ cursor_pos_lt1(void)
 	int rc;
 	void *tx = sp_begin(st_r.env);
 	int key = 7;
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 	key = 8;
-	void *pos = st_object(key, key);
+	void *pos = st_document(key, key);
 	t( sp_setstring(pos, "order", "<", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 7, 7);
+	st_document_is(o, 7, 7);
 	o = sp_get(c, o);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -755,19 +755,19 @@ cursor_pos_lt2(void)
 	int rc;
 	void *tx = sp_begin(st_r.env);
 	int key = 7;
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 	key = 7;
-	void *pos = st_object(key, key);
+	void *pos = st_document(key, key);
 	t( sp_setstring(pos, "order", "<", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
@@ -783,19 +783,19 @@ cursor_pos_lt3(void)
 	int rc;
 	void *tx = sp_begin(st_r.env);
 	int key = 7;
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 	key = 2;
-	void *pos = st_object(key, key);
+	void *pos = st_document(key, key);
 	t( sp_setstring(pos, "order", "<", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
@@ -811,31 +811,31 @@ cursor_pos_lt4(void)
 	int rc;
 	void *tx = sp_begin(st_r.env);
 	int key = 7;
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 	key = 20;
-	void *pos = st_object(key, key);
+	void *pos = st_document(key, key);
 	t( sp_setstring(pos, "order", "<", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 9, 9);
+	st_document_is(o, 9, 9);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 8, 8);
+	st_document_is(o, 8, 8);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, 7, 7);
+	st_document_is(o, 7, 7);
 	o = sp_get(c, o);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
@@ -850,7 +850,7 @@ cursor_pos_gte_range(void)
 	t( tx != NULL );
 	int i = 0;
 	while (i < 385) {
-		void *o = st_object(i, i);
+		void *o = st_document(i, i);
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
@@ -859,13 +859,13 @@ cursor_pos_gte_range(void)
 	st_phase();
 	i = 0;
 	while (i < 385) {
-		void *pos = st_object(i, i);
+		void *pos = st_document(i, i);
 		t( sp_setstring(pos, "order", ">=", 0) == 0 );
 		void *c = sp_cursor(st_r.env);
 		t( c != NULL );
 		void *v = sp_get(c, pos);
 		t( v != NULL );
-		st_object_is(v, i, i);
+		st_document_is(v, i, i);
 		t( sp_destroy(v) == 0 );
 		t( sp_destroy(c) == 0 );
 		i++;
@@ -881,7 +881,7 @@ cursor_pos_gt_range(void)
 	t( tx != NULL );
 	int i = 0;
 	while (i < 385) {
-		void *o = st_object(i, i);
+		void *o = st_document(i, i);
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
@@ -890,13 +890,13 @@ cursor_pos_gt_range(void)
 	st_phase();
 	i = 0;
 	while (i < (385 - 1)) {
-		void *pos = st_object(i, i);
+		void *pos = st_document(i, i);
 		t( sp_setstring(pos, "order", ">", 0) == 0 );
 		void *c = sp_cursor(st_r.env);
 		t( c != NULL );
 		void *v = sp_get(c, pos);
 		t( v != NULL );
-		st_object_is(v, i + 1, i + 1);
+		st_document_is(v, i + 1, i + 1);
 		t( sp_destroy(v) == 0 );
 		t( sp_destroy(c) == 0 );
 		i++;
@@ -912,7 +912,7 @@ cursor_pos_lte_range(void)
 	t( tx != NULL );
 	int i = 0;
 	while (i < 385) {
-		void *o = st_object(i, i);
+		void *o = st_document(i, i);
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
@@ -921,13 +921,13 @@ cursor_pos_lte_range(void)
 	st_phase();
 	i = 0;
 	while (i < 385) {
-		void *pos = st_object(i, i);
+		void *pos = st_document(i, i);
 		t( sp_setstring(pos, "order", "<=", 0) == 0 );
 		void *c = sp_cursor(st_r.env);
 		t( c != NULL );
 		void *v = sp_get(c, pos);
 		t( v != NULL );
-		st_object_is(v, i, i);
+		st_document_is(v, i, i);
 		t( sp_destroy(v) == 0 );
 		t( sp_destroy(c) == 0 );
 		i++;
@@ -943,7 +943,7 @@ cursor_pos_lt_range(void)
 	t( tx != NULL );
 	int i = 0;
 	while (i < 385) {
-		void *o = st_object(i, i);
+		void *o = st_document(i, i);
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
@@ -952,13 +952,13 @@ cursor_pos_lt_range(void)
 	st_phase();
 	i = 1;
 	while (i < 385) {
-		void *pos = st_object(i, i);
+		void *pos = st_document(i, i);
 		t( sp_setstring(pos, "order", "<", 0) == 0 );
 		void *c = sp_cursor(st_r.env);
 		t( c != NULL );
 		void *v = sp_get(c, pos);
 		t( v != NULL );
-		st_object_is(v, i - 1, i - 1);
+		st_document_is(v, i - 1, i - 1);
 		t( sp_destroy(v) == 0 );
 		t( sp_destroy(c) == 0 );
 		i++;
@@ -977,7 +977,7 @@ cursor_pos_gte_random(void)
 	int i = 0;
 	while (i < 270) {
 		int key = rand();
-		void *o = st_object(key, i);
+		void *o = st_document(key, i);
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
@@ -988,13 +988,13 @@ cursor_pos_gte_random(void)
 	i = 0;
 	while (i < 270) {
 		int key = rand();
-		void *pos = st_object(key, key);
+		void *pos = st_document(key, key);
 		t( sp_setstring(pos, "order", ">=", 0) == 0 );
 		void *c = sp_cursor(st_r.env);
 		t( c != NULL );
 		void *v = sp_get(c, pos);
 		t( v != NULL );
-		st_object_is(v, key, i);
+		st_document_is(v, key, i);
 		t( sp_destroy(v) == 0 );
 		t( sp_destroy(c) == 0 );
 		i++;
@@ -1013,7 +1013,7 @@ cursor_pos_lte_random(void)
 	int i = 0;
 	while (i < 403) {
 		int key = rand();
-		void *o = st_object(key, i);
+		void *o = st_document(key, i);
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
@@ -1024,13 +1024,13 @@ cursor_pos_lte_random(void)
 	i = 0;
 	while (i < 403) {
 		int key = rand();
-		void *pos = st_object(key, key);
+		void *pos = st_document(key, key);
 		t( sp_setstring(pos, "order", "<=", 0) == 0 );
 		void *c = sp_cursor(st_r.env);
 		t( c != NULL );
 		void *v = sp_get(c, pos);
 		t( v != NULL );
-		st_object_is(v, key, i);
+		st_document_is(v, key, i);
 		t( sp_destroy(v) == 0 );
 		t( sp_destroy(c) == 0 );
 		i++;
@@ -1048,18 +1048,18 @@ cursor_consistency0(void)
 	t( c != NULL );
 	void *tx = sp_begin(st_r.env);
 	int key = 7;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	st_phase();
 	t( rc == 0 );
-	void *co = sp_object(db);
+	void *co = sp_document(db);
 	t( co != NULL );
 	t( sp_setstring(co, "order", ">=", 0) == 0 );
 	t( sp_get(c, co) == NULL );
@@ -1074,19 +1074,19 @@ cursor_consistency1(void)
 	int rc;
 	void *tx = sp_begin(st_r.env);
 	int key = 7;
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 8;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 9;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 
 	void *co;
-	co = sp_object(db);
+	co = sp_document(db);
 	t( co != NULL );
 	t( sp_setstring(co, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
@@ -1096,10 +1096,10 @@ cursor_consistency1(void)
 	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	key = 0;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	key = 19;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
@@ -1107,13 +1107,13 @@ cursor_consistency1(void)
 
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 7, 7);
+	st_document_is(co, 7, 7);
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 8, 8);
+	st_document_is(co, 8, 8);
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 9, 9);
+	st_document_is(co, 9, 9);
 	co = sp_get(c, co);
 	t( co == NULL );
 	t( sp_destroy(c) == 0 );
@@ -1128,13 +1128,13 @@ cursor_consistency2(void)
 	void *tx = sp_begin(st_r.env);
 	int k = 1;
 	int v = 2;
-	void *o = st_object(k, v);
+	void *o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 2;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
@@ -1147,26 +1147,26 @@ cursor_consistency2(void)
 	t( tx != NULL );
 	k = 1;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 
 	void *co;
-	co = sp_object(db);
+	co = sp_document(db);
 	t( co != NULL );
 	t( sp_setstring(co, "order", ">=", 0) == 0 );
 
 	co = sp_get(c, o);
 	t( co != NULL );
-	st_object_is(co, 1, 2);
+	st_document_is(co, 1, 2);
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 2, 2);
+	st_document_is(co, 2, 2);
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 3, 2);
+	st_document_is(co, 3, 2);
 	co = sp_get(c, co);
 	t( co == NULL );
 	t( sp_destroy(c) == 0 );
@@ -1181,13 +1181,13 @@ cursor_consistency3(void)
 	void *tx = sp_begin(st_r.env);
 	int k = 1;
 	int v = 2;
-	void *o = st_object(k, v);
+	void *o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 2;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
@@ -1200,30 +1200,30 @@ cursor_consistency3(void)
 	t( tx != NULL );
 	k = 1;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 2;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 
 	void *co;
-	co = sp_object(db);
+	co = sp_document(db);
 	t( co != NULL );
 	t( sp_setstring(co, "order", ">=", 0) == 0 );
 
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 1, 2);
+	st_document_is(co, 1, 2);
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 2, 2);
+	st_document_is(co, 2, 2);
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 3, 2);
+	st_document_is(co, 3, 2);
 	co = sp_get(c, co);
 	t( co == NULL );
 	t( sp_destroy(c) == 0 );
@@ -1238,13 +1238,13 @@ cursor_consistency4(void)
 	void *tx = sp_begin(st_r.env);
 	int k = 1;
 	int v = 2;
-	void *o = st_object(k, v);
+	void *o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 2;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
@@ -1257,11 +1257,11 @@ cursor_consistency4(void)
 	t( tx != NULL );
 	k = 1;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 2;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
@@ -1271,29 +1271,29 @@ cursor_consistency4(void)
 	t( tx != NULL );
 	k = 3;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 4;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 
 	void *co;
-	co = sp_object(db);
+	co = sp_document(db);
 	t( co != NULL );
 	t( sp_setstring(co, "order", ">=", 0) == 0 );
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 1, 2);
+	st_document_is(co, 1, 2);
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 2, 2);
+	st_document_is(co, 2, 2);
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 3, 2);
+	st_document_is(co, 3, 2);
 	co = sp_get(c, co);
 	t( co == NULL );
 	t( sp_destroy(c) == 0 );
@@ -1309,33 +1309,33 @@ cursor_consistency5(void)
 	int v = 2;
 	int k;
 	k = 1;
-	void *o = st_object(k, v);
+	void *o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 4;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 6;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 
 	void *co;
-	co = sp_object(db);
+	co = sp_document(db);
 	t( co != NULL );
 	t( sp_setstring(co, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 1, 2);
+	st_document_is(co, 1, 2);
 
 	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 2;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
@@ -1343,10 +1343,10 @@ cursor_consistency5(void)
 
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 4, 2);
+	st_document_is(co, 4, 2);
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 6, 2);
+	st_document_is(co, 6, 2);
 	co = sp_get(c, co);
 	t( co == NULL );
 	t( sp_destroy(c) == 0 );
@@ -1362,20 +1362,20 @@ cursor_consistency6(void)
 	int v = 2;
 	int k;
 	k = 1;
-	void *o = st_object(k, v);
+	void *o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 4;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 6;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 
 	void *co;
-	co = sp_object(db);
+	co = sp_document(db);
 	t( co != NULL );
 	t( sp_setstring(co, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
@@ -1383,23 +1383,23 @@ cursor_consistency6(void)
 
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 1, 2);
+	st_document_is(co, 1, 2);
 
 	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 2;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 3;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 4;
 	v = 3;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
@@ -1407,10 +1407,10 @@ cursor_consistency6(void)
 
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 4, 2);
+	st_document_is(co, 4, 2);
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 6, 2);
+	st_document_is(co, 6, 2);
 	co = sp_get(c, co);
 	t( co == NULL );
 	t( sp_destroy(c) == 0 );
@@ -1426,49 +1426,49 @@ cursor_consistency7(void)
 	int v = 2;
 	int k;
 	k = 1;
-	void *o = st_object(k, v);
+	void *o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 4;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 6;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 
 	void *co;
-	co = sp_object(db);
+	co = sp_document(db);
 	t( co != NULL );
 	t( sp_setstring(co, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 1, 2);
+	st_document_is(co, 1, 2);
 
 	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 0;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 4;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 5;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 6;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 7;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
@@ -1476,10 +1476,10 @@ cursor_consistency7(void)
 
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 4, 2);
+	st_document_is(co, 4, 2);
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 6, 2);
+	st_document_is(co, 6, 2);
 	co = sp_get(c, co);
 	t( co == NULL );
 	t( sp_destroy(c) == 0 );
@@ -1495,37 +1495,37 @@ cursor_consistency8(void)
 	int v = 2;
 	int k;
 	k = 1;
-	void *o = st_object(k, v);
+	void *o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 4;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 6;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 
 	void *co;
-	co = sp_object(db);
+	co = sp_document(db);
 	t( co != NULL );
 	t( sp_setstring(co, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 1, 2);
+	st_document_is(co, 1, 2);
 
 	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 0;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 4;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
@@ -1533,20 +1533,20 @@ cursor_consistency8(void)
 
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 4, 2);
+	st_document_is(co, 4, 2);
 
 	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 0;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 5;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 6;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
@@ -1554,13 +1554,13 @@ cursor_consistency8(void)
 
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 6, 2);
+	st_document_is(co, 6, 2);
 
 	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 7;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
@@ -1578,37 +1578,37 @@ cursor_consistency9(void)
 	int v = 2;
 	int k;
 	k = 1;
-	void *o = st_object(k, v);
+	void *o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 4;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 6;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 
 	void *co;
-	co = sp_object(db);
+	co = sp_document(db);
 	t( co != NULL );
 	t( sp_setstring(co, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 1, 2);
+	st_document_is(co, 1, 2);
 
 	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 0;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 4;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
@@ -1618,7 +1618,7 @@ cursor_consistency9(void)
 	t( tx != NULL );
 	k = 4;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
@@ -1626,17 +1626,17 @@ cursor_consistency9(void)
 
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 4, 2);
+	st_document_is(co, 4, 2);
 
 	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 5;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 6;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
@@ -1644,17 +1644,17 @@ cursor_consistency9(void)
 
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 6, 2);
+	st_document_is(co, 6, 2);
 
 	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 7;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 8;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
@@ -1665,31 +1665,31 @@ cursor_consistency9(void)
 	c = sp_cursor(st_r.env);
 	t( c != NULL );
 
-	co = sp_object(db);
+	co = sp_document(db);
 	t( co != NULL );
 	t( sp_setstring(co, "order", ">=", 0) == 0 );
 
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 0, 3);
+	st_document_is(co, 0, 3);
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 1, 2);
+	st_document_is(co, 1, 2);
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 4, 3);
+	st_document_is(co, 4, 3);
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 5, 3);
+	st_document_is(co, 5, 3);
 	co = sp_get(c, co);
 	t( o != NULL );
-	st_object_is(co, 6, 3);
+	st_document_is(co, 6, 3);
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 7, 3);
+	st_document_is(co, 7, 3);
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 8, 3);
+	st_document_is(co, 8, 3);
 	t( sp_get(c, co) == NULL );
 	t( sp_destroy(c) == 0 );
 	st_phase();
@@ -1704,20 +1704,20 @@ cursor_consistencyN(void)
 	int k;
 	int v = 2;
 	k = 1;
-	void *o = st_object(k, v);
+	void *o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 2;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 
 	void *co;
-	co = sp_object(db);
+	co = sp_document(db);
 	t( co != NULL );
 	t( sp_setstring(co, "order", ">=", 0) == 0 );
 
@@ -1725,16 +1725,16 @@ cursor_consistencyN(void)
 	t( c != NULL );
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 1, 2);
+	st_document_is(co, 1, 2);
 
 	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 0;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	k = 4;
 	v = 3;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
@@ -1743,7 +1743,7 @@ cursor_consistencyN(void)
 	tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	k = 4;
-	o = st_object(k, v);
+	o = st_document(k, v);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
@@ -1754,38 +1754,38 @@ cursor_consistencyN(void)
 
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 2, 2);
+	st_document_is(co, 2, 2);
 	co = sp_get(c, co);
 	t( co != NULL );
-	st_object_is(co, 3, 2);
+	st_document_is(co, 3, 2);
 	co = sp_get(c, co);
 	t( co == NULL );
 	sp_destroy(c);
 
-	co = sp_object(db);
+	co = sp_document(db);
 	t( co != NULL );
 	t( sp_setstring(co, "order", ">=", 0) == 0 );
 
 	co = sp_get(c2, co);
 	t( co != NULL );
-	st_object_is(co, 0, 2);
+	st_document_is(co, 0, 2);
 
 	co = sp_get(c2, co);
 	t( co != NULL );
-	st_object_is(co, 1, 2);
+	st_document_is(co, 1, 2);
 
 	o = sp_get(c2, co);
 	t( co != NULL );
-	st_object_is(co, 2, 2);
+	st_document_is(co, 2, 2);
 	st_phase();
 
 	co = sp_get(c2, co);
 	t( co != NULL );
-	st_object_is(co, 3, 2);
+	st_document_is(co, 3, 2);
 
 	co = sp_get(c2, co);
 	t( co != NULL );
-	st_object_is(co, 4, 3);
+	st_document_is(co, 4, 3);
 	t( sp_get(c2, co) == NULL );
 	t( sp_destroy(c2) == 0 );
 }
@@ -1802,7 +1802,7 @@ cursor_consistency_rewrite0(void)
 	int v = 15;
 	int i = 0;
 	while (i < 385) {
-		void *o = st_object(i, v);
+		void *o = st_document(i, v);
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
@@ -1810,7 +1810,7 @@ cursor_consistency_rewrite0(void)
 	st_phase();
 
 	void *co1;
-	co1 = sp_object(db);
+	co1 = sp_document(db);
 	t( co1 != NULL );
 	t( sp_setstring(co1, "order", ">=", 0) == 0 );
 
@@ -1820,7 +1820,7 @@ cursor_consistency_rewrite0(void)
 	v = 20;
 	i = 0;
 	while (i < 385) {
-		void *o = st_object(i, v);
+		void *o = st_document(i, v);
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
@@ -1829,7 +1829,7 @@ cursor_consistency_rewrite0(void)
 
 	void *c2 = sp_cursor(st_r.env);
 
-	void *co0 = sp_object(db);
+	void *co0 = sp_document(db);
 	t( co0 != NULL );
 	t( sp_setstring(co0, "order", ">=", 0) == 0 );
 
@@ -1837,19 +1837,19 @@ cursor_consistency_rewrite0(void)
 
 	i = 0;
 	while ((co1 = sp_get(c1, co1))) {
-		st_object_is(co1, i, 15);
+		st_document_is(co1, i, 15);
 		i++;
 	}
 	t(i == 385);
 	st_phase();
 
-	void *co2 = sp_object(db);
+	void *co2 = sp_document(db);
 	t( co2 != NULL );
 	t( sp_setstring(co2, "order", ">=", 0) == 0 );
 
 	i = 0;
 	while ((co2 = sp_get(c2, co2))) {
-		st_object_is(co2, i, 20);
+		st_document_is(co2, i, 20);
 		i++;
 	}
 	t(i == 385);
@@ -1871,7 +1871,7 @@ cursor_consistency_rewrite1(void)
 	int v = 15;
 	int i = 0;
 	while (i < 385) {
-		void *o = st_object(i, v);
+		void *o = st_document(i, v);
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
@@ -1884,26 +1884,26 @@ cursor_consistency_rewrite1(void)
 	v = 20;
 	i = 0;
 	while (i < 385) {
-		void *o = st_object(i, v);
+		void *o = st_document(i, v);
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
 	t( sp_commit(tx) == 0 );
 	st_phase();
 
-	void *co0 = sp_object(db);
+	void *co0 = sp_document(db);
 	t( co0 != NULL );
 	t( sp_setstring(co0, "order", ">=", 0) == 0 );
 
 	t( sp_get(c0, co0) == NULL );
 
 	void *co1;
-	co1 = sp_object(db);
+	co1 = sp_document(db);
 	t( co1 != NULL );
 	t( sp_setstring(co1, "order", ">=", 0) == 0 );
 	i = 0;
 	while ((co1 = sp_get(c1, co1))) {
-		st_object_is(co1, i, 15);
+		st_document_is(co1, i, 15);
 		i++;
 	}
 	t(i == 385);
@@ -1912,10 +1912,10 @@ cursor_consistency_rewrite1(void)
 	while (i < 385) {
 		void *c2 = sp_cursor(st_r.env);
 		t( c2 != NULL );
-		void *ckey = st_object(i, i);
+		void *ckey = st_document(i, i);
 		t( sp_setstring(ckey, "order", ">=", 0) == 0 );
 		void *o = sp_get(c2, ckey);
-		st_object_is(o, i, 20);
+		st_document_is(o, i, 20);
 		t( sp_destroy(o) == 0 );
 		t( sp_destroy(c2) == 0 );
 		i++;
@@ -1937,7 +1937,7 @@ cursor_consistency_rewrite2(void)
 	int v = 15;
 	int i = 0;
 	while (i < 385) {
-		void *o = st_object(i, v);
+		void *o = st_document(i, v);
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
@@ -1945,16 +1945,16 @@ cursor_consistency_rewrite2(void)
 	st_phase();
 
 	void *c1 = sp_cursor(st_r.env);
-	void *co1 = sp_object(db);
+	void *co1 = sp_document(db);
 	t( co1 != NULL );
 	t( sp_setstring(co1, "order", ">=", 0) == 0 );
 	v = 20;
 	i = 0;
 	while ((co1 = sp_get(c1, co1))) {
-		st_object_is(co1, i, 15);
+		st_document_is(co1, i, 15);
 		tx = sp_begin(st_r.env);
 		void *o;
-		o = st_object(i, v);
+		o = st_document(i, v);
 		t( sp_set(tx, o) == 0 );
 		t( sp_commit(tx) == 0 );
 		i++;
@@ -1962,19 +1962,19 @@ cursor_consistency_rewrite2(void)
 	t(i == 385);
 	st_phase();
 
-	void *co0 = sp_object(db);
+	void *co0 = sp_document(db);
 	t( co0 != NULL );
 	t( sp_setstring(co0, "order", ">=", 0) == 0 );
 	t( sp_get(c0, co0) == 0 );
 
 	void *co2;
-	co2 = sp_object(db);
+	co2 = sp_document(db);
 	t( co2 != NULL );
 	t( sp_setstring(co2, "order", ">=", 0) == 0 );
 	void *c2 = sp_cursor(st_r.env);
 	i = 0;
 	while ((co2 = sp_get(c2, co2))) {
-		st_object_is(co2, i, 20);
+		st_document_is(co2, i, 20);
 		i++;
 	}
 	t(i == 385);
@@ -1994,7 +1994,7 @@ cursor_consistency_delete0(void)
 	void *tx = sp_begin(st_r.env);
 	int i = 0;
 	while (i < 385) {
-		void *o = st_object(i, i);
+		void *o = st_document(i, i);
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
@@ -2004,14 +2004,14 @@ cursor_consistency_delete0(void)
 	tx = sp_begin(st_r.env);
 	i = 0;
 	while (i < 385) {
-		void *o = st_object(i, i);
+		void *o = st_document(i, i);
 		t( sp_delete(tx, o) == 0 );
 		i++;
 	}
 	t( sp_commit(tx) == 0 );
 	st_phase();
 
-	void *co0 = sp_object(db);
+	void *co0 = sp_document(db);
 	t( co0 != NULL );
 	t( sp_setstring(co0, "order", ">=", 0) == 0 );
 	t( sp_get(c0, co0) == NULL );
@@ -2029,7 +2029,7 @@ cursor_consistency_delete1(void)
 	void *tx = sp_begin(st_r.env);
 	int i = 0;
 	while (i < 385) {
-		o = st_object(i, i);
+		o = st_document(i, i);
 		t( sp_set(tx, o) == 0 );
 		i++;
 	}
@@ -2038,12 +2038,12 @@ cursor_consistency_delete1(void)
 
 	tx = sp_begin(st_r.env);
 	void *co1;
-	co1 = sp_object(db);
+	co1 = sp_document(db);
 	t( co1 != NULL );
 	t( sp_setstring(co1, "order", ">=", 0) == 0 );
 	void *c1 = sp_cursor(st_r.env);
 	while ((co1 = sp_get(c1, co1))) {
-		void *k = sp_object(st_r.db);
+		void *k = sp_document(st_r.db);
 		t( k != NULL );
 		int valuesize;
 		void *value = sp_getstring(co1, "value", &valuesize);
@@ -2061,7 +2061,7 @@ cursor_consistency_delete1(void)
 	t( sp_destroy(c1) == 0 );
 	st_phase();
 
-	void *co0 = sp_object(db);
+	void *co0 = sp_document(db);
 	t( co0 != NULL );
 	t( sp_setstring(co0, "order", ">=", 0) == 0 );
 	t( sp_get(c0, co0) == NULL );

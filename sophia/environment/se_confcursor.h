@@ -9,10 +9,10 @@
  * BSD License
 */
 
-typedef struct seconfv seconfv;
+typedef struct seconfkv seconfkv;
 typedef struct seconfcursor seconfcursor;
 
-struct seconfv {
+struct seconfkv {
 	so    o;
 	char *key;
 	char *value;

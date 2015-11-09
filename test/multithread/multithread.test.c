@@ -30,7 +30,7 @@ static inline void *single_stmt_thread(void *arg)
 		char key[100];
 		int keylen = snprintf(key, sizeof(key), "key_%" PRIiPTR "_%d",
 		                      (uintptr_t)self, i);
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		assert(o != NULL);
 		sp_setstring(o, "key", key, keylen + 1);
 		sp_setstring(o, "value", &i, sizeof(i));
@@ -83,7 +83,7 @@ static inline void *multi_stmt_thread(void *arg)
 			char key[100];
 			int keylen = snprintf(key, sizeof(key), "key_%" PRIiPTR "_%d_%d",
 			                      (uintptr_t)self, i, j);
-			void *o = sp_object(db);
+			void *o = sp_document(db);
 			assert(o != NULL);
 			sp_setstring(o, "key", key, keylen + 1);
 			rc = sp_set(tx, o);
@@ -137,7 +137,7 @@ static inline void *multi_stmt_conflict_thread(void *arg)
 		assert( tx != NULL );
 		int j = 0;
 		while (j < 10) {
-			void *o = sp_object(db);
+			void *o = sp_document(db);
 			int key = i + j;
 			assert(o != NULL);
 			sp_setstring(o, "key", &key, sizeof(key));
@@ -211,7 +211,7 @@ mt_quota(void)
 	memset(value, 0, sizeof(value));
 	int i = 0;
 	while (i < 20000) { /* ~ 20Mb */
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		assert(o != NULL);
 		sp_setstring(o, "key", &i, sizeof(i));
 		sp_setstring(o, "value", value, sizeof(value));
@@ -246,7 +246,7 @@ mt_quota_checkpoint(void)
 	memset(value, 0, sizeof(value));
 	int i = 0;
 	while (i < 20000) { /* ~ 20Mb */
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		assert(o != NULL);
 		sp_setstring(o, "key", &i, sizeof(i));
 		sp_setstring(o, "value", value, sizeof(value));
@@ -287,7 +287,7 @@ mt_quota_age(void)
 	memset(value, 0, sizeof(value));
 	int i = 0;
 	while (i < 20000) { /* ~ 20Mb */
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		assert(o != NULL);
 		sp_setstring(o, "key", &i, sizeof(i));
 		sp_setstring(o, "value", value, sizeof(value));

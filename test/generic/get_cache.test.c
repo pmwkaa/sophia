@@ -32,19 +32,19 @@ get_cache_test0(void)
 	void *db = sp_getobject(env, "db.test");
 
 	uint32_t key = 7;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 
 	key = 8;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 
 	/* default */
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(db, o);
@@ -52,7 +52,7 @@ get_cache_test0(void)
 	sp_destroy(o);
 
 	/* cache only */
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setint(o, "cache_only", 1) == 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
@@ -63,7 +63,7 @@ get_cache_test0(void)
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
 	/* default */
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(db, o);
@@ -71,7 +71,7 @@ get_cache_test0(void)
 	sp_destroy(o);
 
 	/* cache only */
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setint(o, "cache_only", 1) == 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
@@ -98,13 +98,13 @@ get_cache_test1(void)
 	void *db = sp_getobject(env, "db.test");
 
 	uint32_t key = 7;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 
 	key = 8;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
@@ -113,7 +113,7 @@ get_cache_test1(void)
 
 	/* default */
 	cursor = sp_cursor(env);
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(cursor, o);
@@ -123,7 +123,7 @@ get_cache_test1(void)
 
 	/* cache only */
 	cursor = sp_cursor(env);
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setint(o, "cache_only", 1) == 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
@@ -135,7 +135,7 @@ get_cache_test1(void)
 
 	/* start by filling cache (gte) */
 	cursor = sp_cursor(env);
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	o = sp_get(cursor, o);
 	t( o != NULL );

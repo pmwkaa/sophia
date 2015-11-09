@@ -4,7 +4,7 @@ LIBSE_O = se.o \
           se_confcursor.o \
           se_worker.o \
           se_req.o \
-          se_v.o \
+          se_document.o \
           se_db.o \
           se_dbcursor.o \
           se_tx.o \

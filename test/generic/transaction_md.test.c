@@ -39,26 +39,26 @@ transaction_md_set_commit(void)
 	uint32_t key = 7;
 	void *tx = sp_begin(env);
 	t( tx != NULL );
-	void *o = sp_object(t0);
+	void *o = sp_document(t0);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
-	o = sp_object(t1);
+	o = sp_document(t1);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	t( sp_commit(tx) == 0 );
 
-	o = sp_object(t0);
+	o = sp_document(t0);
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(t0, o);
 	t( o != NULL );
 	t( *(int*)sp_getstring(o, "value", NULL) == key );
 	sp_destroy(o);
 
-	o = sp_object(t1);
+	o = sp_document(t1);
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(t1, o);
 	t( o != NULL );
@@ -92,24 +92,24 @@ transaction_md_set_rollback(void)
 	uint32_t key = 7;
 	void *tx = sp_begin(env);
 	t( tx != NULL );
-	void *o = sp_object(t0);
+	void *o = sp_document(t0);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
-	o = sp_object(t1);
+	o = sp_document(t1);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
 	t( sp_destroy(tx) == 0 );
 
-	o = sp_object(t0);
+	o = sp_document(t0);
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(t0, o);
 	t( o == NULL );
 
-	o = sp_object(t1);
+	o = sp_document(t1);
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(t1, o);
 	t( o == NULL );

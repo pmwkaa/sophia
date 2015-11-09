@@ -25,27 +25,27 @@
 static inline void
 set(void *dest, uint32_t id, uint32_t value)
 {
-	void *o = st_object(id, value);
+	void *o = st_document(id, value);
 	t( sp_set(dest, o) == 0 );
 }
 
 static inline void
 delete(void *dest, uint32_t id)
 {
-	void *o = st_object(id, id);
+	void *o = st_document(id, id);
 	t( sp_delete(dest, o) == 0 );
 }
 
 static inline void
 get(void *dest, uint32_t id, int value_to_check)
 {
-	void *o = st_object(id, id);
+	void *o = st_document(id, id);
 	o = sp_get(dest, o);
 	if (o == NULL) {
 		t( value_to_check == -1 );
 		return;
 	}
-	st_object_is(o, id, value_to_check);
+	st_document_is(o, id, value_to_check);
 	sp_destroy(o);
 }
 
@@ -170,7 +170,7 @@ hermitage_pmp(void)
 	void *T2 = begin();
 	/* select * from test where value = 30 */
 	void *cursor = sp_cursor(st_r.env);
-	void *o = sp_object(st_r.db);
+	void *o = sp_document(st_r.db);
 	while ((o = sp_get(cursor, o))) {
 		uint32_t key = *(uint32_t*)sp_getstring(o, "key", NULL);
 		t( key != 30 );

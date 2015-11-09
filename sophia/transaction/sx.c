@@ -442,7 +442,7 @@ int sx_set(sx *x, sxindex *index, svv *version)
 			         "allowed per a transaction key");
 			goto error;
 		}
-		/* replace old object with the new one */
+		/* replace old document with the new one */
 		lv.next = sv_logat(&x->log, own->lo)->next;
 		v->lo = own->lo;
 		if (ssunlikely(sx_vaborted(own)))

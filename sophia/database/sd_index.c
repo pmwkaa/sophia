@@ -67,7 +67,7 @@ sd_indexadd_raw(sdindex *i, sr *r, sdindexpage *p, char *min, char *max)
 	int rc = ss_bufensure(&i->v, r->a, p->sizemin + p->sizemax);
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
-	/* reformat key object to exclude value */
+	/* reformat key document to exclude value */
 	rc = sf_keycopy(i->v.p, min, r->scheme->count);
 	assert(rc == p->sizemin);
 	(void)rc;

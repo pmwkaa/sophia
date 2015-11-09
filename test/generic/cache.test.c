@@ -33,7 +33,7 @@ cache_test0(void)
 
 	int i = 0;
 	while (i < 185) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
@@ -45,7 +45,7 @@ cache_test0(void)
 	void *cur = sp_cursor(env);
 	i = 0;
 	t( cur != NULL );
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	while ((o = sp_get(cur, o))) {
 		t( *(int*)sp_getstring(o, "key", 0) == i );
 		i++;
@@ -77,7 +77,7 @@ cache_test1(void)
 
 	int i = 0;
 	while (i < 185) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
@@ -87,7 +87,7 @@ cache_test1(void)
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 	i = 185;
 	while (i < 370) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
@@ -99,7 +99,7 @@ cache_test1(void)
 
 	void *cur = sp_cursor(env);
 	t( cur != NULL );
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	i = 0;
 	while ((o = sp_get(cur, o))) {
 		t( *(int*)sp_getstring(o, "key", NULL) == i );
@@ -130,7 +130,7 @@ cache_invalidate(void)
 
 	int i = 0;
 	while (i < 185) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
@@ -141,7 +141,7 @@ cache_invalidate(void)
 
 	i = 185;
 	while (i < 370) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
@@ -151,7 +151,7 @@ cache_invalidate(void)
 	t( i == 370 );
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
@@ -159,7 +159,7 @@ cache_invalidate(void)
 
 	void *cur = sp_cursor(env);
 	t( cur != NULL );
-	o = sp_object(db);
+	o = sp_document(db);
 	i = 0;
 	while ((o = sp_get(cur, o))) {
 		t( *(int*)sp_getstring(o, "key", NULL) == i );

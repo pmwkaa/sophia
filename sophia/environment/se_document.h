@@ -1,5 +1,5 @@
-#ifndef SE_V_H_
-#define SE_V_H_
+#ifndef SE_DOCUMENT_H_
+#define SE_DOCUMENT_H_
 
 /*
  * sophia database
@@ -9,9 +9,9 @@
  * BSD License
 */
 
-typedef struct sev sev;
+typedef struct sedocument sedocument;
 
-struct sev {
+struct sedocument {
 	so        o;
 	sv        v;
 	sv        vprefix;
@@ -41,6 +41,6 @@ struct sev {
 	int       read_latency;
 };
 
-so *se_vnew(se*, so*, sv*, int);
+so *se_document_new(se*, so*, sv*, int);
 
 #endif

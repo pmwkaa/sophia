@@ -46,7 +46,7 @@ transaction_set_commit(void)
 	void *tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	int key = st_seed();
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
@@ -60,12 +60,12 @@ transaction_set_get_commit(void)
 	void *tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	int key = st_seed();
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(tx, o);
 	t( o != NULL );
-	st_object_is(o, key, key);
+	st_document_is(o, key, key);
 	sp_destroy(o);
 	rc = sp_commit(tx);
 	t( rc == 0 );
@@ -79,15 +79,15 @@ transaction_set_commit_get0(void)
 	void *tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	int key = st_seed();
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	tx = sp_begin(st_r.env);
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(tx, o);
 	t( o != NULL );
-	st_object_is(o, key, key);
+	st_document_is(o, key, key);
 	sp_destroy(o);
 	rc = sp_destroy(tx);
 	t( rc == 0 );
@@ -102,7 +102,7 @@ transaction_set_commit_get1(void)
 	t( tx != NULL );
 	int key = 0;
 	while (key < 10) {
-		void *o = st_object(key, key);
+		void *o = st_document(key, key);
 		t( sp_set(tx, o) == 0 );
 		key++;
 	}
@@ -112,10 +112,10 @@ transaction_set_commit_get1(void)
 	key = 0;
 	tx = sp_begin(st_r.env);
 	while (key < 10) {
-		void *o = st_object(key, key);
+		void *o = st_document(key, key);
 		o = sp_get(tx, o);
 		t( o != NULL );
-		st_object_is(o, key, key);
+		st_document_is(o, key, key);
 		sp_destroy(o);
 		key++;
 	}
@@ -131,7 +131,7 @@ transaction_set_rollback(void)
 	void *tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	int key = st_seed();
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_destroy(tx);
 	t( rc == 0 );
@@ -145,13 +145,13 @@ transaction_set_rollback_get0(void)
 	void *tx = sp_begin(st_r.env);
 	t( tx != NULL );
 	int key = st_seed();
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_destroy(tx);
 	t( rc == 0 );
 	st_phase();
 	tx = sp_begin(st_r.env);
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(tx, o);
 	t( o == NULL );
 	rc = sp_destroy(tx);
@@ -167,7 +167,7 @@ transaction_set_rollback_get1(void)
 	t( tx != NULL );
 	int key = 0;
 	while (key < 10) {
-		void *o = st_object(key, key);
+		void *o = st_document(key, key);
 		t( sp_set(tx, o) == 0 );
 		key++;
 	}
@@ -177,7 +177,7 @@ transaction_set_rollback_get1(void)
 	tx = sp_begin(st_r.env);
 	key = 0;
 	while (key < 10) {
-		void *o = st_object(key, key);
+		void *o = st_document(key, key);
 		o = sp_get(tx, o);
 		t( o == NULL );
 		key++;
@@ -195,10 +195,10 @@ transaction_set_set_commit(void)
 	t( tx != NULL );
 	int key = st_seed();
 	int value = key;
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(tx, o) == 0 );
 	value = st_seed();
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_commit(tx);
 	t( rc == 0 );
@@ -213,15 +213,15 @@ transaction_set_set_get_commit(void)
 	t( tx != NULL );
 	int key = st_seed();
 	int value = key;
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(tx, o) == 0 );
 	value = st_seed();
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(tx, o) == 0 );
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(tx, o);
 	t( o != NULL );
-	st_object_is(o, key, value);
+	st_document_is(o, key, value);
 	sp_destroy(o);
 	rc = sp_commit(tx);
 	t( rc == 0 );
@@ -237,11 +237,11 @@ transaction_set_set_commit_get(void)
 	int key = st_seed();
 	int value = key;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(tx, o) == 0 );
 
 	value = st_seed();
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(tx, o) == 0 );
 
 	rc = sp_commit(tx);
@@ -249,10 +249,10 @@ transaction_set_set_commit_get(void)
 
 	st_phase();
 	tx = sp_begin(st_r.env);
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(tx, o);
 	t( o != NULL );
-	st_object_is(o, key, value);
+	st_document_is(o, key, value);
 	sp_destroy(o);
 	rc = sp_destroy(tx);
 	t( rc == 0 );
@@ -267,16 +267,16 @@ transaction_set_set_rollback_get(void)
 	t( tx != NULL );
 	int key = st_seed();
 	int value = key;
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(tx, o) == 0 );
 	value = st_seed();
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(tx, o) == 0 );
 	rc = sp_destroy(tx);
 	t( rc == 0 );
 	st_phase();
 	tx = sp_begin(st_r.env);
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(tx, o);
 	t( o == NULL );
 	rc = sp_destroy(tx);
@@ -292,11 +292,11 @@ transaction_set_delete_get_commit(void)
 	t( tx != NULL );
 	int key = st_seed();
 	int value = key;
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(tx, o) == 0 );
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_delete(tx, o) == 0 );
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(tx, o);
 	t( o == NULL );
 	rc = sp_commit(tx);
@@ -313,17 +313,17 @@ transaction_set_delete_get_commit_get(void)
 	t( tx != NULL );
 	int key = st_seed();
 	int value = key;
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(tx, o) == 0 );
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_delete(tx, o) == 0 );
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(tx, o);
 	t( o == NULL );
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(db, o);
 	t( o == NULL );
 	st_phase();
@@ -339,29 +339,29 @@ transaction_set_delete_set_commit_get(void)
 	int key = st_seed();
 	int value = key;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(tx, o) == 0 );
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_delete(tx, o) == 0 );
 
 	value = st_seed();
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(tx, o) == 0 );
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(tx, o);
 	t( o != NULL );
-	st_object_is(o, key, value);
+	st_document_is(o, key, value);
 	sp_destroy(o);
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(db, o);
 	t( o != NULL );
-	st_object_is(o, key, value);
+	st_document_is(o, key, value);
 	sp_destroy(o);
 	st_phase();
 }
@@ -376,27 +376,27 @@ transaction_set_delete_commit_get_set(void)
 	int key = st_seed();
 	int value = key;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(tx, o) == 0 );
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_delete(tx, o) == 0 );
 
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(db, o);
 	t( o == NULL );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(db, o) == 0 );
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(db, o);
 	t( o != NULL );
-	st_object_is(o, key, value);
+	st_document_is(o, key, value);
 	sp_destroy(o);
 	st_phase();
 }
@@ -412,7 +412,7 @@ transaction_p_set_commit(void)
 	int value = 10;
 	int key_a = st_seed();
 
-	void *o = st_object(key_a, value);
+	void *o = st_document(key_a, value);
 	t( sp_set(a, o) == 0 );
 
 	rc = sp_commit(a);
@@ -420,7 +420,7 @@ transaction_p_set_commit(void)
 	st_phase();
 
 	int key_b = st_seed();
-	o = st_object(key_b, value);
+	o = st_document(key_b, value);
 	t( sp_set(b, o) == 0 );
 	rc = sp_commit(b);
 	t( rc == 0 );
@@ -438,13 +438,13 @@ transaction_p_set_get_commit(void)
 	int value_a = 10;
 	int key_a = st_seed();
 
-	void *o = st_object(key_a, value_a);
+	void *o = st_document(key_a, value_a);
 	t( sp_set(a, o) == 0 );
 
-	o = st_object(key_a, key_a);
+	o = st_document(key_a, key_a);
 	o = sp_get(a, o);
 	t( o != NULL );
-	st_object_is(o, key_a, value_a);
+	st_document_is(o, key_a, value_a);
 	sp_destroy(o);
 
 	rc = sp_commit(a);
@@ -454,13 +454,13 @@ transaction_p_set_get_commit(void)
 	int value_b = 15;
 	int key_b = st_seed();
 
-	o = st_object(key_b, value_b);
+	o = st_document(key_b, value_b);
 	t( sp_set(b, o) == 0 );
 
-	o = st_object(key_b, key_b);
+	o = st_document(key_b, key_b);
 	o = sp_get(b, o);
 	t( o != NULL );
-	st_object_is(o, key_b, value_b);
+	st_document_is(o, key_b, value_b);
 	sp_destroy(o);
 
 	rc = sp_commit(b);
@@ -479,7 +479,7 @@ transaction_p_set_commit_get0(void)
 	int key_a = st_seed();
 	int value_a = 10;
 
-	void *o = st_object(key_a, value_a);
+	void *o = st_document(key_a, value_a);
 	t( sp_set(a, o) == 0 );
 
 	rc = sp_commit(a);
@@ -488,23 +488,23 @@ transaction_p_set_commit_get0(void)
 
 	int key_b = st_seed();
 	int value_b = 15;
-	o = st_object(key_b, value_b);
+	o = st_document(key_b, value_b);
 	t( sp_set(b, o) == 0 );
 	rc = sp_commit(b);
 	t( rc == 0 );
 	st_phase();
 
 	void *tx = sp_begin(st_r.env);
-	o = st_object(key_a, key_a);
+	o = st_document(key_a, key_a);
 	o = sp_get(tx, o);
 	t( o != NULL );
-	st_object_is(o, key_a, value_a);
+	st_document_is(o, key_a, value_a);
 	sp_destroy(o);
 
-	o = st_object(key_b, key_b);
+	o = st_document(key_b, key_b);
 	o = sp_get(tx, o);
 	t( o != NULL );
-	st_object_is(o, key_b, value_b);
+	st_document_is(o, key_b, value_b);
 	sp_destroy(o);
 	t( sp_destroy(tx) == 0 );
 	st_phase();
@@ -521,7 +521,7 @@ transaction_p_set_commit_get1(void)
 
 	int key_a = st_seed();
 	int value_a = 10;
-	void *o = st_object(key_a, value_a);
+	void *o = st_document(key_a, value_a);
 	t( sp_set(a, o) == 0 );
 	rc = sp_commit(a);
 	t( rc == 0 );
@@ -529,21 +529,21 @@ transaction_p_set_commit_get1(void)
 
 	int key_b = st_seed();
 	int value_b = 15;
-	o = st_object(key_b, value_b);
+	o = st_document(key_b, value_b);
 	t( sp_set(b, o) == 0 );
 	rc = sp_commit(b);
 	t( rc == 0 );
 	st_phase();
 
 	void *tx = sp_begin(st_r.env);
-	o = st_object(key_a, value_a);
+	o = st_document(key_a, value_a);
 	o = sp_get(tx, o);
 	t( o != NULL );
-	st_object_is(o, key_a, value_a);
+	st_document_is(o, key_a, value_a);
 	sp_destroy(o);
 
-	o = st_object(key_b, value_b);
-	st_object_is(o, key_b, value_b);
+	o = st_document(key_b, value_b);
+	st_document_is(o, key_b, value_b);
 	sp_destroy(o);
 	t( sp_destroy(tx) == 0 );
 	st_phase();
@@ -561,7 +561,7 @@ transaction_p_set_commit_get2(void)
 	int key_b = st_seed();
 	int value_b = 15;
 
-	void *o = st_object(key_b, value_b);
+	void *o = st_document(key_b, value_b);
 	t( sp_set(a, o) == 0 );
 	rc = sp_commit(a);
 	t( rc == 0 );
@@ -570,23 +570,23 @@ transaction_p_set_commit_get2(void)
 	int key_a = st_seed();
 	int value_a = 10;
 
-	o = st_object(key_a, value_a);
+	o = st_document(key_a, value_a);
 	t( sp_set(b, o) == 0 );
 	rc = sp_commit(b);
 	t( rc == 0 );
 	st_phase();
 
 	void *tx = sp_begin(st_r.env);
-	o = st_object(key_a, key_a);
+	o = st_document(key_a, key_a);
 	o = sp_get(tx, o);
 	t( o != NULL );
-	st_object_is(o, key_a, value_a);
+	st_document_is(o, key_a, value_a);
 	sp_destroy(o);
 
-	o = st_object(key_b, key_b);
+	o = st_document(key_b, key_b);
 	o = sp_get(tx, o);
 	t( o != NULL );
-	st_object_is(o, key_b, value_b);
+	st_document_is(o, key_b, value_b);
 	sp_destroy(o);
 	t( sp_destroy(tx) == 0 );
 	st_phase();
@@ -604,7 +604,7 @@ transaction_p_set_rollback_get0(void)
 	int key_a = st_seed();
 	int value_a = 10;
 
-	void *o = st_object(key_a, value_a);
+	void *o = st_document(key_a, value_a);
 	t( sp_set(a, o) == 0 );
 	rc = sp_destroy(a);
 	t( rc == 0 );
@@ -612,18 +612,18 @@ transaction_p_set_rollback_get0(void)
 
 	int key_b = st_seed();
 	int value_b = 15;
-	o = st_object(key_b, value_b);
+	o = st_document(key_b, value_b);
 	t( sp_set(b, o) == 0 );
 	rc = sp_destroy(b);
 	t( rc == 0 );
 	st_phase();
 
 	void *tx = sp_begin(st_r.env);
-	o = st_object(key_a, key_a);
+	o = st_document(key_a, key_a);
 	o = sp_get(tx, o);
 	t( o == NULL );
 
-	o = st_object(key_b, key_b);
+	o = st_document(key_b, key_b);
 	o = sp_get(tx, o);
 	t( o == NULL );
 	t( sp_destroy(tx) == 0 );
@@ -641,7 +641,7 @@ transaction_p_set_rollback_get1(void)
 
 	int key_a = st_seed();
 	int value_a = 10;
-	void *o = st_object(key_a, value_a);
+	void *o = st_document(key_a, value_a);
 	t( sp_set(a, o) == 0 );
 
 	rc = sp_destroy(a);
@@ -650,17 +650,17 @@ transaction_p_set_rollback_get1(void)
 
 	int key_b = st_seed();
 	int value_b = 15;
-	o = st_object(key_b, value_b);
+	o = st_document(key_b, value_b);
 	t( sp_set(b, o) == 0 );
 	rc = sp_destroy(b);
 	t( rc == 0 );
 	st_phase();
 
 	void *tx = sp_begin(st_r.env);
-	o = st_object(key_a, key_a);
+	o = st_document(key_a, key_a);
 	o = sp_get(tx, o);
 	t( o == NULL );
-	o = st_object(key_b, key_b);
+	o = st_document(key_b, key_b);
 	o = sp_get(tx, o);
 	t( o == NULL );
 	t( sp_destroy(tx) == 0 );
@@ -679,7 +679,7 @@ transaction_p_set_rollback_get2(void)
 	int key_b = st_seed();
 	int value_b = 15;
 
-	void *o = st_object(key_b, value_b);
+	void *o = st_document(key_b, value_b);
 	t( sp_set(b, o) == 0 );
 	rc = sp_destroy(b);
 	t( rc == 0 );
@@ -687,17 +687,17 @@ transaction_p_set_rollback_get2(void)
 
 	int key_a = st_seed();
 	int value_a = 10;
-	o = st_object(key_a, value_a);
+	o = st_document(key_a, value_a);
 	t( sp_set(a, o) == 0 );
 	rc = sp_destroy(a);
 	t( rc == 0 );
 	st_phase();
 
 	void *tx = sp_begin(st_r.env);
-	o = st_object(key_a, key_a);
+	o = st_document(key_a, key_a);
 	o = sp_get(tx, o);
 	t( o == NULL );
-	o = st_object(key_b, key_b);
+	o = st_document(key_b, key_b);
 	o = sp_get(tx, o);
 	t( o == NULL );
 	t( sp_destroy(tx) == 0 );
@@ -714,13 +714,13 @@ transaction_c_set_commit0(void)
 	t( b != NULL );
 	int key = st_seed();
 	int value = 10;
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 	rc = sp_commit(a);
 	t( rc == 0 );
 	st_phase();
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 	rc = sp_commit(b);
 	t( rc == 1 ); /* rlb */
@@ -738,13 +738,13 @@ transaction_c_set_commit1(void)
 	int key = st_seed();
 	int value = 10;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 	rc = sp_commit(a);
 	t( rc == 0 );
 	st_phase();
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 	rc = sp_commit(b);
 	t( rc == 1 ); /* rlb */
@@ -762,10 +762,10 @@ transaction_c_set_commit2(void)
 	int key = st_seed();
 	int value = 10;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 
 	rc = sp_commit(a);
@@ -787,14 +787,14 @@ transaction_c_set_commit_rollback_a0(void)
 	int key = st_seed();
 	int value = 10;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 
 	rc = sp_destroy(a);
 	t( rc == 0 );
 	st_phase();
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 
 	rc = sp_commit(b);
@@ -813,10 +813,10 @@ transaction_c_set_commit_rollback_a1(void)
 	int key = st_seed();
 	int value = 10;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 
 	rc = sp_destroy(a);
@@ -838,13 +838,13 @@ transaction_c_set_commit_rollback_b0(void)
 	int key = st_seed();
 	int value = 10;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 	rc = sp_commit(a);
 	t( rc == 0 );
 
 	st_phase();
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 	rc = sp_destroy(b);
 	t( rc == 0 );
@@ -863,10 +863,10 @@ transaction_c_set_commit_rollback_b1(void)
 	int key = st_seed();
 	int value = 10;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 
 	rc = sp_commit(a);
@@ -888,13 +888,13 @@ transaction_c_set_commit_rollback_ab0(void)
 	int key = st_seed();
 	int value = 10;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 	rc = sp_destroy(a);
 	t( rc == 0 );
 	st_phase();
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 	rc = sp_destroy(b);
 	t( rc == 0 );
@@ -912,10 +912,10 @@ transaction_c_set_commit_rollback_ab1(void)
 	int key = st_seed();
 	int value = 10;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 
 	rc = sp_destroy(a);
@@ -937,10 +937,10 @@ transaction_c_set_commit_wait_a0(void)
 	int key = st_seed();
 	int value = 10;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 
 	rc = sp_commit(a);
@@ -965,10 +965,10 @@ transaction_c_set_commit_wait_a1(void)
 	int key = st_seed();
 	int value = 10;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 
 	rc = sp_commit(a);
@@ -993,10 +993,10 @@ transaction_c_set_commit_wait_b0(void)
 	int key = st_seed();
 	int value = 10;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 
 	rc = sp_commit(b);
@@ -1021,10 +1021,10 @@ transaction_c_set_commit_wait_b1(void)
 	int key = st_seed();
 	int value = 10;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 
 	rc = sp_commit(b);
@@ -1049,10 +1049,10 @@ transaction_c_set_commit_wait_rollback_a0(void)
 	int key = st_seed();
 	int value = 10;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 
 	rc = sp_commit(b);
@@ -1077,10 +1077,10 @@ transaction_c_set_commit_wait_rollback_a1(void)
 	int key = st_seed();
 	int value = 10;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 
 	rc = sp_commit(b);
@@ -1105,10 +1105,10 @@ transaction_c_set_commit_wait_rollback_b0(void)
 	int key = st_seed();
 	int value = 10;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 
 	rc = sp_commit(b);
@@ -1133,10 +1133,10 @@ transaction_c_set_commit_wait_rollback_b1(void)
 	int key = st_seed();
 	int value = 10;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 
 	rc = sp_commit(b);
@@ -1164,13 +1164,13 @@ transaction_c_set_commit_wait_n0(void)
 	int key = st_seed();
 	int value = 10;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(c, o) == 0 );
 
 	rc = sp_commit(b);
@@ -1204,13 +1204,13 @@ transaction_c_set_commit_wait_n1(void)
 	int key = st_seed();
 	int value = 10;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(c, o) == 0 );
 
 	rc = sp_commit(b);
@@ -1244,13 +1244,13 @@ transaction_c_set_commit_wait_rollback_n0(void)
 	int key = st_seed();
 	int value = 10;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(c, o) == 0 );
 
 	rc = sp_commit(b);
@@ -1287,13 +1287,13 @@ transaction_c_set_commit_wait_rollback_n1(void)
 	int key = st_seed();
 	int value = 10;
 	
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(c, o) == 0 );
 
 	rc = sp_commit(b);
@@ -1330,13 +1330,13 @@ transaction_c_set_commit_wait_rollback_n2(void)
 	int key = st_seed();
 	int value = 10;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(c, o) == 0 );
 
 	rc = sp_commit(b);
@@ -1373,13 +1373,13 @@ transaction_c_set_commit_wait_rollback_n3(void)
 	int key = st_seed();
 	int value = 10;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(c, o) == 0 );
 
 	rc = sp_commit(b);
@@ -1413,13 +1413,13 @@ transaction_c_set_commit_wait_rollback_n4(void)
 	int key = st_seed();
 	int value = 10;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(c, o) == 0 );
 
 	rc = sp_commit(b);
@@ -1450,27 +1450,27 @@ transaction_c_set_get0(void)
 	int key = st_seed();
 	int value = 10;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 	rc = sp_commit(a);
 	t( rc == 0 );
 	st_phase();
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(b, o);
 	t( o == NULL );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 	rc = sp_commit(b);
 	t( rc == 1 ); /* rlb */
 	st_phase();
 
 	void *tx = sp_begin(st_r.env);
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(tx, o);
 	t( o != NULL );
-	st_object_is(o, key, value);
+	st_document_is(o, key, value);
 	sp_destroy(o);
 	rc = sp_commit(tx);
 	t( rc == 0 );
@@ -1488,7 +1488,7 @@ transaction_c_set_get1(void)
 	int key = st_seed();
 	int value = 10;
 
-	void *o = st_object(key, value);
+	void *o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 
 	rc = sp_destroy(a);
@@ -1496,21 +1496,21 @@ transaction_c_set_get1(void)
 	st_phase();
 
 	value = 15;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(b, o);
 	t( o == NULL );
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 	rc = sp_commit(b);
 	t( rc == 0 );
 	st_phase();
 
 	void *tx = sp_begin(st_r.env);
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(tx, o);
 	t( o != NULL );
-	st_object_is(o, key, value);
+	st_document_is(o, key, value);
 	sp_destroy(o);
 	rc = sp_commit(tx);
 	t( rc == 0 );
@@ -1529,68 +1529,68 @@ transaction_c_set_get2(void)
 	int value = 1;
 
 	void *o;
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(a, o) == 0 );
 
 	void *b = sp_begin(st_r.env);
 	t( b != NULL );
 	value = 2;
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(b, o) == 0 );
 
 	void *c = sp_begin(st_r.env);
 	t( c != NULL );
 	value = 3;
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(c, o) == 0 );
 
 	void *d = sp_begin(st_r.env);
 	t( d != NULL );
 	value = 4;
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(d, o) == 0 );
 
 	void *e = sp_begin(st_r.env);
 	t( e != NULL );
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(a, o);
 	t( o != NULL );
-	st_object_is(o, key, 1);
+	st_document_is(o, key, 1);
 	sp_destroy(o);
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(b, o);
 	t( o != NULL );
-	st_object_is(o, key, 2);
+	st_document_is(o, key, 2);
 	sp_destroy(o);
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, key, 3);
+	st_document_is(o, key, 3);
 	sp_destroy(o);
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(d, o);
 	t( o != NULL );
-	st_object_is(o, key, 4);
+	st_document_is(o, key, 4);
 	sp_destroy(o);
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(e, o);
 	t( o == NULL );
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(z, o);
 	t( o == NULL );
 
 	void *tx = sp_begin(st_r.env);
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(tx, o);
 	t( o == NULL );
 	rc = sp_destroy(tx);
@@ -1623,7 +1623,7 @@ transaction_c_set_get3(void)
 	void *tx = sp_begin(st_r.env);
 
 	void *o;
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(tx, o) == 0 );
 	t( sp_commit(tx) == 0 );
 	st_phase();
@@ -1633,7 +1633,7 @@ transaction_c_set_get3(void)
 	value = 2;
 	tx = sp_begin(st_r.env);
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(tx, o) == 0 );
 	t( sp_commit(tx) == 0 );
 	st_phase();
@@ -1643,7 +1643,7 @@ transaction_c_set_get3(void)
 	value = 3;
 	tx = sp_begin(st_r.env);
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(tx, o) == 0 );
 	t( sp_commit(tx) == 0 );
 	st_phase();
@@ -1653,7 +1653,7 @@ transaction_c_set_get3(void)
 	value = 4;
 	tx = sp_begin(st_r.env);
 
-	o = st_object(key, value);
+	o = st_document(key, value);
 	t( sp_set(tx, o) == 0 );
 	t( sp_commit(tx) == 0 );
 	st_phase();
@@ -1662,43 +1662,43 @@ transaction_c_set_get3(void)
 	t( e != NULL );
 
 	/* 0 */
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(b, o);
 	t( o != NULL );
-	st_object_is(o, key, 1);
+	st_document_is(o, key, 1);
 	sp_destroy(o);
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, key, 2);
+	st_document_is(o, key, 2);
 	sp_destroy(o);
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(d, o);
 	t( o != NULL );
-	st_object_is(o, key, 3);
+	st_document_is(o, key, 3);
 	sp_destroy(o);
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(e, o);
 	t( o != NULL );
-	st_object_is(o, key, 4);
+	st_document_is(o, key, 4);
 	sp_destroy(o);
 
 	tx = sp_begin(st_r.env);
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(tx, o);
 	t( o != NULL );
-	st_object_is(o, key, 4);
+	st_document_is(o, key, 4);
 	sp_destroy(o);
 	t( sp_destroy(tx) == 0 );
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(a, o);
 	t( o == NULL );
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(z, o);
 	t( o == NULL );
 
@@ -1706,38 +1706,38 @@ transaction_c_set_get3(void)
 	t( sp_destroy(b) == 0 );
 	st_phase();
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(c, o);
 	t( o != NULL );
-	st_object_is(o, key, 2);
+	st_document_is(o, key, 2);
 	sp_destroy(o);
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(d, o);
 	t( o != NULL );
-	st_object_is(o, key, 3);
+	st_document_is(o, key, 3);
 	sp_destroy(o);
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(e, o);
 	t( o != NULL );
-	st_object_is(o, key, 4);
+	st_document_is(o, key, 4);
 	sp_destroy(o);
 
 	tx = sp_begin(st_r.env);
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(tx, o);
 	t( o != NULL );
-	st_object_is(o, key, 4);
+	st_document_is(o, key, 4);
 	sp_destroy(o);
 	t( sp_destroy(tx) == 0 );
 	st_phase();
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(a, o);
 	t( o == NULL );
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(z, o);
 	t( o == NULL );
 
@@ -1745,31 +1745,31 @@ transaction_c_set_get3(void)
 	t( sp_destroy(c) == 0 );
 	st_phase();
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(d, o);
 	t( o != NULL );
-	st_object_is(o, key, 3);
+	st_document_is(o, key, 3);
 	sp_destroy(o);
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(e, o);
 	t( o != NULL );
-	st_object_is(o, key, 4);
+	st_document_is(o, key, 4);
 	sp_destroy(o);
 
 	tx = sp_begin(st_r.env);
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(tx, o);
 	t( o != NULL );
-	st_object_is(o, key, 4);
+	st_document_is(o, key, 4);
 	sp_destroy(o);
 	t( sp_destroy(tx) == 0 );
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(a, o);
 	t( o == NULL );
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(z, o);
 	t( o == NULL );
 
@@ -1777,26 +1777,26 @@ transaction_c_set_get3(void)
 	t( sp_destroy(d) == 0 );
 	st_phase();
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(e, o);
 	t( o != NULL );
-	st_object_is(o, key, 4);
+	st_document_is(o, key, 4);
 	sp_destroy(o);
 
 	tx = sp_begin(st_r.env);
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(tx, o);
 	t( o != NULL );
-	st_object_is(o, key, 4);
+	st_document_is(o, key, 4);
 	sp_destroy(o);
 	t( sp_destroy(tx) == 0 );
 	st_phase();
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(a, o);
 	t( o == NULL );
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(z, o);
 	t( o == NULL );
 
@@ -1805,19 +1805,19 @@ transaction_c_set_get3(void)
 	st_phase();
 
 	tx = sp_begin(st_r.env);
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(tx, o);
 	t( o != NULL );
-	st_object_is(o, key, 4);
+	st_document_is(o, key, 4);
 	sp_destroy(o);
 	t( sp_destroy(tx) == 0 );
 	st_phase();
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(a, o);
 	t( o == NULL );
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(z, o);
 	t( o == NULL );
 
@@ -1828,10 +1828,10 @@ transaction_c_set_get3(void)
 	st_phase();
 
 	tx = sp_begin(st_r.env);
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(tx, o);
 	t( o != NULL );
-	st_object_is(o, key, 4);
+	st_document_is(o, key, 4);
 	sp_destroy(o);
 	t( sp_destroy(tx) == 0 );
 	st_phase();
@@ -1848,16 +1848,16 @@ transaction_c_set_conflict_derive(void)
 
 	int key = st_seed();
 
-	void *o = st_object(key, key);
+	void *o = st_document(key, key);
 	t( sp_set(a, o) == 0 );
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(b, o) == 0 );
 
 	t( sp_commit(a) == 0 );
 	st_phase();
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(b, o) == 0 ); /* should not reset conflict flag */
 
 	t( sp_commit(b) == 1 ); /* rlb */
@@ -1873,10 +1873,10 @@ transaction_sc_set_wait(void)
 	t( tx != NULL );
 
 	void *o;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(tx, o) == 0 );
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(db, o) == 2 ); /* wait */
 	st_phase();
 
@@ -1884,10 +1884,10 @@ transaction_sc_set_wait(void)
 	t( rc == 0 );
 	st_phase();
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(db, o);
 	t( o != NULL );
-	st_object_is(o, key, key);
+	st_document_is(o, key, key);
 	sp_destroy(o);
 	st_phase();
 }
@@ -1901,7 +1901,7 @@ transaction_sc_get(void)
 	int v = 7;
 
 	void *o;
-	o = st_object(key, v);
+	o = st_document(key, v);
 	t( sp_set(db, o) == 0 );
 	st_phase();
 
@@ -1909,24 +1909,24 @@ transaction_sc_get(void)
 	t( tx != NULL );
 	v = 8;
 
-	o = st_object(key, v);
+	o = st_document(key, v);
 	t( sp_set(tx, o) == 0 );
 
-	o = st_object(key, v);
+	o = st_document(key, v);
 	o = sp_get(db, o);
 	t( o != NULL );
-	st_object_is(o, key, 7);
+	st_document_is(o, key, 7);
 	sp_destroy(o);
 
 	rc = sp_commit(tx);
 	t( rc == 0 );
 	st_phase();
 
-	o = st_object(key, v);
+	o = st_document(key, v);
 	o = sp_get(db, o);
 	t( o != NULL );
 	st_phase();
-	st_object_is(o, key, 8);
+	st_document_is(o, key, 8);
 	sp_destroy(o);
 }
 
@@ -1936,7 +1936,7 @@ transaction_s_set(void)
 	void *db = st_r.db;
 	int key = st_seed();
 	void *o;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(db, o) == 0 );
 	st_phase();
 }
@@ -1947,14 +1947,14 @@ transaction_s_set_get(void)
 	void *db = st_r.db;
 	int key = st_seed();
 	void *o;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(db, o) == 0 );
 	st_phase();
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(db, o);
 	t( o != NULL );
 	st_phase();
-	st_object_is(o, key, key);
+	st_document_is(o, key, key);
 	sp_destroy(o);
 }
 
@@ -1964,13 +1964,13 @@ transaction_s_set_delete_get(void)
 	void *db = st_r.db;
 	int key = st_seed();
 	void *o;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(db, o) == 0 );
 	st_phase();
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_delete(db, o) == 0 );
 	st_phase();
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(db, o);
 	t( o == NULL );
 }
@@ -1982,23 +1982,23 @@ transaction_s_set_delete_set_get(void)
 	int key = st_seed();
 
 	void *o;
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_set(db, o) == 0 );
 
 	st_phase();
-	o = st_object(key, key);
+	o = st_document(key, key);
 	t( sp_delete(db, o) == 0 );
 	st_phase();
 
 	int v = 8;
-	o = st_object(key, v);
+	o = st_document(key, v);
 	t( sp_set(db, o) == 0 );
 	st_phase();
 
-	o = st_object(key, key);
+	o = st_document(key, key);
 	o = sp_get(db, o);
 	t( o != NULL );
-	st_object_is(o, key, 8);
+	st_document_is(o, key, 8);
 	sp_destroy(o);
 	st_phase();
 }

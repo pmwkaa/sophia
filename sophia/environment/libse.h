@@ -17,7 +17,7 @@
 #include <se_scheduler.h>
 #include <se.h>
 #include <se_req.h>
-#include <se_v.h>
+#include <se_document.h>
 #include <se_db.h>
 #include <se_dbcursor.h>
 #include <se_tx.h>

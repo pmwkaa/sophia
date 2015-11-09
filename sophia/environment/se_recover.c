@@ -94,7 +94,7 @@ se_recoverlog(se *e, sl *log)
 				               " is not declared", dsn);
 				goto rlb;
 			}
-			so *o = so_object(&db->o);
+			so *o = so_document(&db->o);
 			if (ssunlikely(o == NULL))
 				goto rlb;
 			so_setstring(o, "raw", sv_pointer(v), sv_size(v));

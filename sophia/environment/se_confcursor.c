@@ -20,21 +20,21 @@
 #include <libse.h>
 
 static int
-se_confv_destroy(so *o)
+se_confkv_destroy(so *o)
 {
-	seconfv *v = se_cast(o, seconfv*, SECONFV);
+	seconfkv *v = se_cast(o, seconfkv*, SECONFKV);
 	se *e = se_of(o);
 	ss_free(&e->a, v->key);
 	if (v->value)
 		ss_free(&e->a, v->value);
 	se_mark_destroyed(&v->o);
-	ss_free(&e->a_confv, v);
+	ss_free(&e->a_confkv, v);
 	return 0;
 }
 
-void *se_confv_string(so *o, const char *path, int *size)
+void *se_confkv_getstring(so *o, const char *path, int *size)
 {
-	seconfv *v = se_cast(o, seconfv*, SECONFV);
+	seconfkv *v = se_cast(o, seconfkv*, SECONFKV);
 	if (strcmp(path, "key") == 0) {
 		if (size)
 			*size = v->keysize;
@@ -48,19 +48,19 @@ void *se_confv_string(so *o, const char *path, int *size)
 	return NULL;
 }
 
-static soif seconfvif =
+static soif seconfkvif =
 {
 	.open         = NULL,
-	.destroy      = se_confv_destroy,
+	.destroy      = se_confkv_destroy,
 	.error        = NULL,
-	.object       = NULL,
+	.document     = NULL,
 	.poll         = NULL,
 	.drop         = NULL,
 	.setobject    = NULL,
 	.setstring    = NULL,
 	.setint       = NULL,
 	.getobject    = NULL,
-	.getstring    = se_confv_string,
+	.getstring    = se_confkv_getstring,
 	.getint       = NULL,
 	.set          = NULL,
 	.update       = NULL,
@@ -72,19 +72,20 @@ static soif seconfvif =
 	.cursor       = NULL,
 };
 
-static inline so *se_confv_new(se *e, srconfdump *vp)
+static inline so *se_confkv_new(se *e, srconfdump *vp)
 {
-	seconfv *v = ss_malloc(&e->a_confv, sizeof(seconfv));
+	seconfkv *v =
+		ss_malloc(&e->a_confkv, sizeof(seconfkv));
 	if (ssunlikely(v == NULL)) {
 		sr_oom(&e->error);
 		return NULL;
 	}
-	so_init(&v->o, &se_o[SECONFV], &seconfvif, &e->o, &e->o);
+	so_init(&v->o, &se_o[SECONFKV], &seconfkvif, &e->o, &e->o);
 	v->keysize = vp->keysize;
 	v->key = ss_malloc(&e->a, v->keysize);
 	if (ssunlikely(v->key == NULL)) {
 		se_mark_destroyed(&v->o);
-		ss_free(&e->a_confv, v);
+		ss_free(&e->a_confkv, v);
 		return NULL;
 	}
 	memcpy(v->key, sr_confkey(vp), v->keysize);
@@ -95,7 +96,7 @@ static inline so *se_confv_new(se *e, srconfdump *vp)
 		if (ssunlikely(v->key == NULL)) {
 			ss_free(&e->a, v->key);
 			se_mark_destroyed(&v->o);
-			ss_free(&e->a_confv, v);
+			ss_free(&e->a_confkv, v);
 			return NULL;
 		}
 	}
@@ -116,10 +117,10 @@ se_confcursor_destroy(so *o)
 }
 
 static inline so*
-se_confcursor_object(seconfcursor *c)
+se_confcursor_document(seconfcursor *c)
 {
 	se *e = se_of(&c->o);
-	return se_confv_new(e, c->pos);
+	return se_confkv_new(e, c->pos);
 }
 
 static void*
@@ -141,7 +142,7 @@ se_confcursor_get(so *o, so *v)
 	}
 	if (ssunlikely(c->pos == NULL))
 		return NULL;
-	return se_confcursor_object(c);
+	return se_confcursor_document(c);
 }
 
 static soif seconfcursorif =
@@ -149,7 +150,7 @@ static soif seconfcursorif =
 	.open         = NULL,
 	.destroy      = se_confcursor_destroy,
 	.error        = NULL,
-	.object       = NULL,
+	.document     = NULL,
 	.poll         = NULL,
 	.drop         = NULL,
 	.setobject    = NULL,

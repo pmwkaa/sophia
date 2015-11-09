@@ -37,7 +37,7 @@ env_dbid_forge(void)
 	char key[] = "foo";
 	char val[] = "bar";
 
-	o = sp_object(dbx);
+	o = sp_document(dbx);
 	sp_setstring(o, "key",   key, sizeof(key));
 	sp_setstring(o, "value", val, sizeof(val));
 	sp_set(dbx, o);
@@ -58,7 +58,7 @@ env_dbid_forge(void)
 
 	t( sp_open(env) == 0 );
 
-	o = sp_object(dby);
+	o = sp_document(dby);
 	sp_setstring(o, "key", key, sizeof(key));
 	void *result = sp_get(dby, o);
 	t( result != NULL );
@@ -90,7 +90,7 @@ env_dbid_resolve(void)
 	char key[] = "foo";
 	char val[] = "bar";
 
-	o = sp_object(dbx);
+	o = sp_document(dbx);
 	sp_setstring(o, "key",   key, sizeof(key));
 	sp_setstring(o, "value", val, sizeof(val));
 	sp_set(dbx, o);
@@ -112,7 +112,7 @@ env_dbid_resolve(void)
 
 	t( sp_open(env) == 0 );
 
-	o = sp_object(dby);
+	o = sp_document(dby);
 	sp_setstring(o, "key", key, sizeof(key));
 	void *result = sp_get(dby, o);
 	t( result == NULL );

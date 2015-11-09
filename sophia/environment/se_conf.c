@@ -335,8 +335,8 @@ se_confperformance(se *e ssunused, seconfrt *rt, srconf **pc)
 {
 	srconf *perf = *pc;
 	srconf *p = NULL;
-	sr_C(&p, pc, se_confv, "objects", SS_U64, &rt->stat.v_count, SR_RO, NULL);
-	sr_C(&p, pc, se_confv, "objects_used", SS_U64, &rt->stat.v_allocated, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "documents", SS_U64, &rt->stat.v_count, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "documents_used", SS_U64, &rt->stat.v_allocated, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "key", SS_STRING, rt->stat.key.sz, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "value", SS_STRING, rt->stat.value.sz, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "set", SS_U64, &rt->stat.set, SR_RO, NULL);
@@ -684,12 +684,12 @@ se_confdebug_oom(srconf *c, srconfstmt *s)
 	ss_aclose(&e->a);
 	ss_aclose(&e->a_db);
 	ss_aclose(&e->a_dbcursor);
-	ss_aclose(&e->a_v);
+	ss_aclose(&e->a_document);
 	ss_aclose(&e->a_cursor);
 	ss_aclose(&e->a_cachebranch);
 	ss_aclose(&e->a_cache);
 	ss_aclose(&e->a_confcursor);
-	ss_aclose(&e->a_confv);
+	ss_aclose(&e->a_confkv);
 	ss_aclose(&e->a_tx);
 	ss_aclose(&e->a_req);
 	ss_aclose(&e->a_sxv);
@@ -698,11 +698,11 @@ se_confdebug_oom(srconf *c, srconfstmt *s)
 	e->a = e->a_oom;
 	e->a_db = e->a_oom;
 	e->a_dbcursor = e->a_oom;
-	e->a_v = e->a_oom;
+	e->a_document = e->a_oom;
 	e->a_cursor = e->a_oom;
 	e->a_cachebranch = e->a_oom;
 	e->a_cache = e->a_oom;
-	e->a_confv = e->a_oom;
+	e->a_confkv = e->a_oom;
 	e->a_tx = e->a_oom;
 	e->a_req = e->a_oom;
 	e->a_sxv = e->a_oom;

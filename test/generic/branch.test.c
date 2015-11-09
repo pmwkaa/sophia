@@ -36,7 +36,7 @@ branch_loggc(void)
 
 	int key = 0;
 	while (key < 20) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 		t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
@@ -49,7 +49,7 @@ branch_loggc(void)
 
 	key = 40;
 	while (key < 80) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 		t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );

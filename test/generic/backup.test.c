@@ -36,7 +36,7 @@ backup_test0(void)
 
 	int i = 0;
 	while ( i < 100 ) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
@@ -85,7 +85,7 @@ backup_test0(void)
 	/* ensure correct bsn recover */
 	t( sp_getint(env, "metric.bsn") == 1 );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	void *cur = sp_cursor(env);
 	t( cur != NULL );
@@ -132,7 +132,7 @@ backup_test1(void)
 
 	int i = 0;
 	while ( i < 100 ) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
@@ -189,7 +189,7 @@ backup_test1(void)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	void *cur = sp_cursor(env);
 	t( cur != NULL );

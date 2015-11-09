@@ -31,31 +31,31 @@ prefix_test0(void)
 	t( db != NULL );
 
 	char key[] = "a";
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 
 	char keyb[] = "ab";
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", keyb, sizeof(keyb)) == 0 );
 	t( sp_set(db, o) == 0 );
 
 	char keyc[] = "aba";
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", keyc, sizeof(keyc)) == 0 );
 	t( sp_set(db, o) == 0 );
 
 	char keyd[] = "abac";
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", keyd, sizeof(keyd)) == 0 );
 	t( sp_set(db, o) == 0 );
 
 	char keye[] = "bbac";
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", keye, sizeof(keye)) == 0 );
 	t( sp_set(db, o) == 0 );
@@ -65,7 +65,7 @@ prefix_test0(void)
 	void *c = sp_cursor(env);
 	t( c != NULL );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	t( sp_setstring(o, "prefix", prefix, sizeof(prefix) - 1) == 0 );
@@ -104,31 +104,31 @@ prefix_test1(void)
 	t( db != NULL );
 
 	char key[] = "a";
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 
 	char keyb[] = "ab";
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", keyb, sizeof(keyb)) == 0 );
 	t( sp_set(db, o) == 0 );
 
 	char keyc[] = "aba";
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", keyc, sizeof(keyc)) == 0 );
 	t( sp_set(db, o) == 0 );
 
 	char keyd[] = "abac";
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", keyd, sizeof(keyd)) == 0 );
 	t( sp_set(db, o) == 0 );
 
 	char keye[] = "bbac";
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", keye, sizeof(keye)) == 0 );
 	t( sp_set(db, o) == 0 );
@@ -138,7 +138,7 @@ prefix_test1(void)
 	void *c = sp_cursor(env);
 	t( c != NULL );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "order", "<=", 0) == 0 );
 	t( sp_setstring(o, "prefix", prefix, sizeof(prefix)) == 0 );

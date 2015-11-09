@@ -186,11 +186,11 @@ void st_scene_truncate(stscene *s ssunused)
 	}
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
-	void *o = sp_object(st_r.db);
+	void *o = sp_document(st_r.db);
 	t( o != NULL );
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	while ((o = sp_get(c, o))) {
-		void *k = sp_object(st_r.db);
+		void *k = sp_document(st_r.db);
 		t( k != NULL );
 		int valuesize;
 		void *value = sp_getstring(o, "value", &valuesize);

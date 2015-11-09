@@ -35,12 +35,12 @@ hc_prepare_commit(void)
 	t( tx != NULL );
 
 	int key = 7;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(tx, o);
 	t( o != NULL );
@@ -102,12 +102,12 @@ hc_prepare_rollback0(void)
 	t( tx != NULL );
 
 	int key = 7;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(tx, o);
 	t( o != NULL );
@@ -143,12 +143,12 @@ hc_prepare_rollback1(void)
 	t( tx != NULL );
 
 	int key = 7;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(tx, o) == 0 );
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(tx, o);
 	t( o != NULL );
@@ -163,7 +163,7 @@ hc_prepare_rollback1(void)
 
 	tx = sp_begin(env);
 	t( tx != NULL );
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
@@ -198,7 +198,7 @@ hc_prepare_commit_conflict(void)
 	void *a = sp_begin(env);
 	t( a != NULL );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(a, o) == 0 );
@@ -208,7 +208,7 @@ hc_prepare_commit_conflict(void)
 
 	void *b = sp_begin(env);
 	t( b != NULL );
-	o = sp_object(db);
+	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(b, o) == 0 );

@@ -20,7 +20,7 @@ method_unsupported(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	void *o = sp_object(env);
+	void *o = sp_document(env);
 	t(o == NULL);
 	char *value = sp_getstring(o, "sophia.error", 0);
 	t( value != NULL );

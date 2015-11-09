@@ -20,7 +20,7 @@
 #include <libse.h>
 
 static inline int
-se_txwrite(setx *t, sev *o, uint8_t flags)
+se_txwrite(setx *t, sedocument *o, uint8_t flags)
 {
 	se *e = se_of(&t->o);
 	sedb *db = se_cast(o->o.parent, sedb*, SEDB);
@@ -46,7 +46,7 @@ se_txwrite(setx *t, sev *o, uint8_t flags)
 	if (flags == SVUPDATE && !sf_updatehas(&db->scheme.fmt_update))
 		flags = 0;
 
-	/* prepare object */
+	/* prepare document */
 	svv *v;
 	int rc = se_dbv(db, o, 0, &v);
 	if (ssunlikely(rc == -1))
@@ -76,24 +76,24 @@ error:
 static int
 se_txset(so *o, so *v)
 {
-	setx  *t = se_cast(o, setx*, SETX);
-	sev *key = se_cast(v, sev*, SEV);
+	setx *t = se_cast(o, setx*, SETX);
+	sedocument *key = se_cast(v, sedocument*, SEDOCUMENT);
 	return se_txwrite(t, key, 0);
 }
 
 static int
 se_txupdate(so *o, so *v)
 {
-	setx  *t = se_cast(o, setx*, SETX);
-	sev *key = se_cast(v, sev*, SEV);
+	setx *t = se_cast(o, setx*, SETX);
+	sedocument *key = se_cast(v, sedocument*, SEDOCUMENT);
 	return se_txwrite(t, key, SVUPDATE);
 }
 
 static int
 se_txdelete(so *o, so *v)
 {
-	setx  *t = se_cast(o, setx*, SETX);
-	sev *key = se_cast(v, sev*, SEV);
+	setx *t = se_cast(o, setx*, SETX);
+	sedocument *key = se_cast(v, sedocument*, SEDOCUMENT);
 	return se_txwrite(t, key, SVDELETE);
 }
 
@@ -101,7 +101,7 @@ static void*
 se_txget(so *o, so *v)
 {
 	setx  *t = se_cast(o, setx*, SETX);
-	sev *key = se_cast(v, sev*, SEV);
+	sedocument *key = se_cast(v, sedocument*, SEDOCUMENT);
 	se *e = se_of(&t->o);
 	sedb *db = se_cast(key->o.parent, sedb*, SEDB);
 	/* validate database */
@@ -259,7 +259,7 @@ static soif setxif =
 	.open         = NULL,
 	.destroy      = se_txrollback,
 	.error        = NULL,
-	.object       = NULL,
+	.document     = NULL,
 	.poll         = NULL,
 	.drop         = NULL,
 	.setobject    = NULL,

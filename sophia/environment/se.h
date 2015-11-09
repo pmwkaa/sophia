@@ -36,12 +36,12 @@ struct se {
 	ssa         a;
 	ssa         a_db;
 	ssa         a_dbcursor;
-	ssa         a_v;
+	ssa         a_document;
 	ssa         a_cursor;
 	ssa         a_cachebranch;
 	ssa         a_cache;
 	ssa         a_confcursor;
-	ssa         a_confv;
+	ssa         a_confkv;
 	ssa         a_tx;
 	ssa         a_sxv;
 	ssa         a_req;

@@ -55,7 +55,7 @@ static soif sereqif =
 	.open         = NULL,
 	.destroy      = se_reqdestroy,
 	.error        = NULL,
-	.object       = NULL,
+	.document     = NULL,
 	.poll         = NULL,
 	.drop         = NULL,
 	.setobject    = NULL,
@@ -207,7 +207,8 @@ so *se_reqresult(sereq *r, int async)
 	se *e = se_of(&r->o);
 	sv result;
 	sv_init(&result, &sv_vif, r->v, NULL);
-	sev *v = (sev*)se_vnew(e, r->db, &result, async);
+	sedocument *v =
+		(sedocument*)se_document_new(e, r->db, &result, async);
 	if (ssunlikely(v == NULL))
 		return NULL;
 	r->v = NULL;
@@ -227,7 +228,7 @@ so *se_reqresult(sereq *r, int async)
 		           v->read_cache);
 	}
 
-	/* propagate current object settings to
+	/* propagate current document settings to
 	 * the result one */
 	v->orderset = 1;
 	v->order = r->arg.order;
@@ -236,7 +237,7 @@ so *se_reqresult(sereq *r, int async)
 	else
 	if (v->order == SS_LTE)
 		v->order = SS_LT;
-	/* reuse prefix object */
+	/* reuse prefix document */
 	v->vprefix.v = r->arg.vprefix.v;
 	if (v->vprefix.v) {
 		r->arg.vprefix.v = NULL;

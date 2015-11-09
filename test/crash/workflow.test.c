@@ -95,7 +95,7 @@ static inline int
 workflow_write_read(void *env, void *db)
 {
 	/* write */
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	if (o == NULL)
 		return -1;
 	uint32_t key = 123;
@@ -118,7 +118,7 @@ workflow_write_read(void *env, void *db)
 	void *tx = sp_begin(env);
 	if (tx == NULL)
 		return -1;
-	o = sp_object(db);
+	o = sp_document(db);
 	if (o == NULL)
 		return -1;
 	key = 123;
@@ -139,7 +139,7 @@ workflow_write_read(void *env, void *db)
 		sp_destroy(tx);
 		return -1;
 	}
-	o = sp_object(db);
+	o = sp_document(db);
 	if (o == NULL)
 		return -1;
 	rc = sp_setstring(o, "key", &key, sizeof(key));
@@ -159,7 +159,7 @@ workflow_write_read(void *env, void *db)
 		return -1;
 
 	/* read */
-	o = sp_object(db);
+	o = sp_document(db);
 	if (o == NULL)
 		return -1;
 	rc = sp_setstring(o, "key", &key, sizeof(key));
@@ -176,7 +176,7 @@ workflow_write_read(void *env, void *db)
 	void *c = sp_cursor(env);
 	if (c == NULL)
 		return -1;
-	o = sp_object(db);
+	o = sp_document(db);
 	if (o == NULL) {
 		sp_destroy(c);
 		return -1;
@@ -194,7 +194,7 @@ workflow_write_read(void *env, void *db)
 static inline int
 workflow_update(void *env, void *db)
 {
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	if (o == NULL)
 		return -1;
 	int up = 777;
@@ -204,7 +204,7 @@ workflow_update(void *env, void *db)
 	int rc = sp_update(db, o);
 	if (rc == -1)
 		return -1;
-	o = sp_object(db);
+	o = sp_document(db);
 	if (o == NULL)
 		return -1;
 	up = 778;
@@ -213,7 +213,7 @@ workflow_update(void *env, void *db)
 	rc = sp_update(db, o);
 	if (rc == -1)
 		return -1;
-	o = sp_object(db);
+	o = sp_document(db);
 	if (o == NULL)
 		return -1;
 	sp_setstring(o, "key", &i, sizeof(i));
@@ -235,7 +235,7 @@ workflow_compaction(void *env, void *db)
 	uint32_t key = 123;
 	int count = 0;
 	while (count < 10) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		if (o == NULL)
 			return -1;
 		rc = sp_setstring(o, "key", &key, sizeof(key));
@@ -259,7 +259,7 @@ workflow_compaction(void *env, void *db)
 		return -1;
 	/* put some statements in log */
 	while (count < 15) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		if (o == NULL)
 			return -1;
 		rc = sp_setstring(o, "key", &key, sizeof(key));

@@ -122,7 +122,7 @@ conf_validation(void)
 	t( sp_setstring(env, "db.test.path", "path", 0) == -1 );
 	t( sp_setstring(env, "db.test.index.key", NULL, 0) == -1 );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 
 	char key[65000];
@@ -148,11 +148,11 @@ conf_empty_key(void)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( sp_setstring(o, "key", "", 0) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", "", 0) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );

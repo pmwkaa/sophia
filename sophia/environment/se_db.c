@@ -248,13 +248,13 @@ se_dbdrop(so *o)
 }
 
 void*
-se_dbread(sedb *db, sev *o, sx *x, int x_search,
+se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
           sicache *cache, ssorder order)
 {
 	se *e = se_of(&db->o);
 	/* validate request */
 	if (ssunlikely(o->o.parent != &db->o)) {
-		sr_error(&e->error, "%s", "bad object parent");
+		sr_error(&e->error, "%s", "bad document parent");
 		return NULL;
 	}
 	if (ssunlikely(! se_online(&db->status)))
@@ -298,11 +298,11 @@ se_dbread(sedb *db, sev *o, sx *x, int x_search,
 		if (ssunlikely(rc == -1 || rc == 2 /* delete */))
 			goto e2;
 		if (rc == 1 && !sv_is(&vup, SVUPDATE)) {
-			so *ret = se_vnew(e, &db->o, &vup, async);
+			so *ret = se_document_new(e, &db->o, &vup, async);
 			if (ssunlikely(ret == NULL))
 				sv_vfree(&db->r, vup.v);
 			if (async) {
-				sev *match = (sev*)ret;
+				sedocument *match = (sedocument*)ret;
 				match->async_operation = SE_REQREAD;
 				match->async_status    = 1;
 				match->async_arg       = async_arg;
@@ -359,7 +359,7 @@ se_dbread(sedb *db, sev *o, sx *x, int x_search,
 
 	/* asynchronous */
 	if (async) {
-		o = (sev*)se_reqresult(&q, 1);
+		o = (sedocument*)se_reqresult(&q, 1);
 		if (ssunlikely(o == NULL)) {
 			se_reqend(&q);
 			return NULL;
@@ -376,7 +376,7 @@ se_dbread(sedb *db, sev *o, sx *x, int x_search,
 	/* synchronous */
 	rc = se_execute(&q);
 	if (rc == 1)
-		o = (sev*)se_reqresult(&q, async);
+		o = (sedocument*)se_reqresult(&q, async);
 	se_reqend(&q);
 	return o;
 e2: if (vprf)
@@ -389,12 +389,12 @@ e0: if (o)
 }
 
 static inline int
-se_dbwrite(sedb *db, sev *o, uint8_t flags)
+se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 {
 	se *e = se_of(&db->o);
 	/* validate req */
 	if (ssunlikely(o->o.parent != &db->o)) {
-		sr_error(&e->error, "%s", "bad object parent");
+		sr_error(&e->error, "%s", "bad document parent");
 		return -1;
 	}
 	if (ssunlikely(! se_online(&db->status)))
@@ -402,7 +402,7 @@ se_dbwrite(sedb *db, sev *o, uint8_t flags)
 	if (flags == SVUPDATE && !sf_updatehas(&db->scheme.fmt_update))
 		flags = 0;
 
-	/* prepare object */
+	/* prepare document */
 	svv *v;
 	int rc = se_dbv(db, o, 0, &v);
 	if (ssunlikely(rc == -1))
@@ -446,7 +446,7 @@ static int
 se_dbset(so *o, so *v)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
-	sev *key = se_cast(v, sev*, SEV);
+	sedocument *key = se_cast(v, sedocument*, SEDOCUMENT);
 	se *e = se_of(&db->o);
 	uint64_t start = ss_utime();
 	int rc = se_dbwrite(db, key, 0);
@@ -458,7 +458,7 @@ static int
 se_dbupdate(so *o, so *v)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
-	sev *key = se_cast(v, sev*, SEV);
+	sedocument *key = se_cast(v, sedocument*, SEDOCUMENT);
 	se *e = se_of(&db->o);
 	uint64_t start = ss_utime();
 	int rc = se_dbwrite(db, key, SVUPDATE);
@@ -470,7 +470,7 @@ static int
 se_dbdel(so *o, so *v)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
-	sev *key = se_cast(v, sev*, SEV);
+	sedocument *key = se_cast(v, sedocument*, SEDOCUMENT);
 	se *e = se_of(&db->o);
 	uint64_t start = ss_utime();
 	int rc = se_dbwrite(db, key, SVDELETE);
@@ -482,16 +482,16 @@ static void*
 se_dbget(so *o, so *v)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
-	sev *key = se_cast(v, sev*, SEV);
+	sedocument *key = se_cast(v, sedocument*, SEDOCUMENT);
 	return se_dbread(db, key, NULL, 0, NULL, key->order);
 }
 
 static void*
-se_dbobject(so *o)
+se_dbdocument(so *o)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
 	se *e = se_of(&db->o);
-	return se_vnew(e, &db->o, NULL, 0);
+	return se_document_new(e, &db->o, NULL, 0);
 }
 
 static void*
@@ -528,7 +528,7 @@ static soif sedbif =
 	.open         = se_dbopen,
 	.destroy      = se_dbdestroy,
 	.error        = NULL,
-	.object       = se_dbobject,
+	.document     = se_dbdocument,
 	.poll         = NULL,
 	.drop         = se_dbdrop,
 	.setobject    = NULL,
@@ -696,11 +696,11 @@ int se_dbmalfunction(sedb *o)
 	return -1;
 }
 
-int se_dbv(sedb *db, sev *o, int search, svv **v)
+int se_dbv(sedb *db, sedocument *o, int search, svv **v)
 {
 	se *e = se_of(&db->o);
 	*v = NULL;
-	/* reuse object */
+	/* reuse document */
 	if (o->v.v) {
 		if (sslikely(! o->immutable)) {
 			*v = o->v.v;
@@ -710,7 +710,7 @@ int se_dbv(sedb *db, sev *o, int search, svv **v)
 		*v = sv_vbuildraw(&db->r, sv_pointer(&o->v), sv_size(&o->v));
 		goto ret;
 	}
-	/* create object from raw data */
+	/* create document from raw data */
 	if (o->raw) {
 		*v = sv_vbuildraw(&db->r, o->raw, o->rawsize);
 		goto ret;
@@ -729,10 +729,10 @@ int se_dbv(sedb *db, sev *o, int search, svv **v)
 		}
 	}
 
-	/* create object using current format, supplied
+	/* create document using current format, supplied
 	 * key-chain and value */
 	if (ssunlikely(o->keyc != db->scheme.scheme.count))
-		return sr_error(&e->error, "%s", "bad object key");
+		return sr_error(&e->error, "%s", "bad document key");
 
 	*v = sv_vbuild(runtime, o->keyv, o->keyc,
 	               o->value,
@@ -743,7 +743,7 @@ ret:
 	return 0;
 }
 
-int se_dbvprefix(sedb *db, sev *o, svv **v)
+int se_dbvprefix(sedb *db, sedocument *o, svv **v)
 {
 	se *e = se_of(&db->o);
 	*v = NULL;
@@ -759,7 +759,7 @@ int se_dbvprefix(sedb *db, sev *o, svv **v)
 	if (sr_schemeof(&db->scheme.scheme, 0)->type != SS_STRING)
 		return sr_error(&e->error, "%s", "prefix search is only "
 		                "supported for a string key");
-	/* create prefix object */
+	/* create prefix document */
 	sfv fv;
 	fv.key      = o->prefix;
 	fv.r.size   = o->prefixsize;

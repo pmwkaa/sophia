@@ -202,7 +202,7 @@ shutdown_transaction4(void)
 	sp_destroy(db); /* unref */
 	sp_destroy(db); /* schedule shutdown, unlink */
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	uint32_t key = 7;
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
@@ -239,7 +239,7 @@ shutdown_transaction5(void)
 	sp_destroy(db); /* unref */
 	sp_destroy(db); /* schedule shutdown, unlink */
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	uint32_t key = 7;
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
@@ -276,7 +276,7 @@ shutdown_transaction6(void)
 	sp_destroy(db); /* unref */
 	sp_destroy(db); /* schedule shutdown, unlink */
 
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	uint32_t key = 7;
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
@@ -284,7 +284,7 @@ shutdown_transaction6(void)
 	t( sp_set(a, o) == 0 ); /* ok */
 
 	key = 8;
-	o = sp_object(db);
+	o = sp_document(db);
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == -1 );
 

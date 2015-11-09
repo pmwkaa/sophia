@@ -34,20 +34,20 @@ rev_u32_test0(void)
 
 	uint32_t key = 0;
 	while (key < 10) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 		t( sp_set(db, o) == 0 );
 		key++;
 	}
 
 	key = 4;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	sp_setstring(o, "key", &key, sizeof(key));
 	o = sp_get(db, o);
 	t( o != NULL );
 	sp_destroy(o);
 
-	o = sp_object(db);
+	o = sp_document(db);
 	sp_setstring(o, "order", ">=", 0);
 	void *c = sp_cursor(env);
 	key = 9;
@@ -58,7 +58,7 @@ rev_u32_test0(void)
 	t(key == UINT32_MAX); /* overflow */
 	sp_destroy(c);
 
-	o = sp_object(db);
+	o = sp_document(db);
 	sp_setstring(o, "order", "<=", 0);
 	c = sp_cursor(env);
 	key = 0;
@@ -91,14 +91,14 @@ rev_u32_test1(void)
 
 	uint32_t key = 0;
 	while (key < 10) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 		t( sp_set(db, o) == 0 );
 		key++;
 	}
 
 	key = 15;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	sp_setstring(o, "order", ">=", 0);
 	sp_setstring(o, "key", &key, sizeof(key));
 
@@ -112,7 +112,7 @@ rev_u32_test1(void)
 	sp_destroy(c);
 
 	key = 5;
-	o = sp_object(db);
+	o = sp_document(db);
 	sp_setstring(o, "order", ">=", 0);
 	sp_setstring(o, "key", &key, sizeof(key));
 
@@ -126,7 +126,7 @@ rev_u32_test1(void)
 	sp_destroy(c);
 
 	key = 5;
-	o = sp_object(db);
+	o = sp_document(db);
 	sp_setstring(o, "order", "<=", 0);
 	sp_setstring(o, "key", &key, sizeof(key));
 	c = sp_cursor(env);
@@ -160,20 +160,20 @@ rev_u64_test0(void)
 
 	uint64_t key = 0;
 	while (key < 10) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 		t( sp_set(db, o) == 0 );
 		key++;
 	}
 
 	key = 4;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	sp_setstring(o, "key", &key, sizeof(key));
 	o = sp_get(db, o);
 	t( o != NULL );
 	sp_destroy(o);
 
-	o = sp_object(db);
+	o = sp_document(db);
 	sp_setstring(o, "order", ">=", 0);
 	void *c = sp_cursor(env);
 	key = 9;
@@ -184,7 +184,7 @@ rev_u64_test0(void)
 	t(key == UINT64_MAX); /* overflow */
 	sp_destroy(c);
 
-	o = sp_object(db);
+	o = sp_document(db);
 	sp_setstring(o, "order", "<=", 0);
 	c = sp_cursor(env);
 	key = 0;
@@ -217,14 +217,14 @@ rev_u64_test1(void)
 
 	uint64_t key = 0;
 	while (key < 10) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 		t( sp_set(db, o) == 0 );
 		key++;
 	}
 
 	key = 15;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	sp_setstring(o, "order", ">=", 0);
 	sp_setstring(o, "key", &key, sizeof(key));
 
@@ -238,7 +238,7 @@ rev_u64_test1(void)
 	sp_destroy(c);
 
 	key = 5;
-	o = sp_object(db);
+	o = sp_document(db);
 	sp_setstring(o, "order", ">=", 0);
 	sp_setstring(o, "key", &key, sizeof(key));
 
@@ -252,7 +252,7 @@ rev_u64_test1(void)
 	sp_destroy(c);
 
 	key = 5;
-	o = sp_object(db);
+	o = sp_document(db);
 	sp_setstring(o, "order", "<=", 0);
 	sp_setstring(o, "key", &key, sizeof(key));
 	c = sp_cursor(env);

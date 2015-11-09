@@ -15,7 +15,7 @@
 #include <libso.h>
 #include <libst.h>
 
-void *st_object_generate(stgenerator *g, sf fmt, stlist *l, void *db,
+void *st_document_generate(stgenerator *g, sf fmt, stlist *l, void *db,
                          uint32_t seed,
                          uint32_t seed_value)
 {
@@ -28,7 +28,7 @@ void *st_object_generate(stgenerator *g, sf fmt, stlist *l, void *db,
 		sv_vfree(g->r, v);
 		return NULL;
 	}
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	switch (fmt) {
 	case SF_KV: {
@@ -67,7 +67,7 @@ void *st_object_generate(stgenerator *g, sf fmt, stlist *l, void *db,
 	return o;
 }
 
-void st_object_eq(stgenerator *g, sf fmt, void *o,
+void st_document_eq(stgenerator *g, sf fmt, void *o,
                   uint32_t seed,
                   uint32_t seed_value)
 {

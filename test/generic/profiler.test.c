@@ -39,7 +39,7 @@ profiler_count(void)
 
 	int i = 0;
 	while ( i < 100 ) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
 		i++;
@@ -52,7 +52,7 @@ profiler_count(void)
 
 	i = 0;
 	while ( i < 10 ) {
-		void *o = sp_object(db);
+		void *o = sp_document(db);
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
 		i++;

@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 
 	/* set */
 	uint32_t key = 1;
-	void *o = sp_object(db);
+	void *o = sp_document(db);
 	sp_setstring(o, "key", &key, sizeof(key));
 	sp_setstring(o, "value", &key, sizeof(key));
 	rc = sp_set(db, o);
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 		goto error;
 
 	/* get */
-	o = sp_object(db);
+	o = sp_document(db);
 	sp_setstring(o, "key", &key, sizeof(key));
 	o = sp_get(db, o);
 	if (o) {
@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* delete */
-	o = sp_object(db);
+	o = sp_document(db);
 	sp_setstring(o, "key", &key, sizeof(key));
 	rc = sp_delete(db, o);
 	if (rc == -1)

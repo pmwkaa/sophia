@@ -55,7 +55,7 @@ extern stgroup *drop_group(void);
 extern stgroup *ddl_group(void);
 extern stgroup *multipart_group(void);
 extern stgroup *tpr_group(void);
-extern stgroup *object_group(void);
+extern stgroup *document_group(void);
 extern stgroup *env_group(void);
 extern stgroup *deadlock_group(void);
 extern stgroup *scheme_group(void);
@@ -225,7 +225,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, multipart_group());
 	st_planadd(plan, tpr_group());
 	st_planadd(plan, env_group());
-	st_planadd(plan, object_group());
+	st_planadd(plan, document_group());
 	st_planadd(plan, deadlock_group());
 	st_planadd(plan, scheme_group());
 	st_planadd(plan, rev_group());

@@ -43,7 +43,7 @@ static void*
 se_cursorget(so *o, so *v)
 {
 	secursor *c = se_cast(o, secursor*, SECURSOR);
-	sev *key = se_cast(v, sev*, SEV);
+	sedocument *key = se_cast(v, sedocument*, SEDOCUMENT);
 	sedb *db = se_cast(v->parent, sedb*, SEDB);
 	ssorder order = key->order;
 	if (ssunlikely(! key->orderset))
@@ -61,7 +61,7 @@ static soif secursorif =
 	.open         = NULL,
 	.destroy      = se_cursordestroy,
 	.error        = NULL,
-	.object       = NULL,
+	.document     = NULL,
 	.poll         = NULL,
 	.drop         = NULL,
 	.setobject    = NULL,

@@ -42,7 +42,7 @@ profile_set_get(void)
 		k = rand();
 		*(uint32_t*)value = k;
 		double t0 = st_histogram_time();
-		void *o = sp_object(st_r.db);
+		void *o = sp_document(st_r.db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
 		t( sp_setstring(o, "value", value, sizeof(value)) == 0 );
@@ -66,7 +66,7 @@ profile_set_get(void)
 	for (i = 0; i < n; i++) {
 		k = rand();
 		double t0 = st_histogram_time();
-		void *o = sp_object(st_r.db);
+		void *o = sp_document(st_r.db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
 		o = sp_get(st_r.db, o);

@@ -20,9 +20,9 @@
 #include <libse.h>
 
 static int
-se_vdestroy(so *o)
+se_document_destroy(so *o)
 {
-	sev *v = se_cast(o, sev*, SEV);
+	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
 	if (ssunlikely(v->immutable))
 		return 0;
 	se *e = se_of(o);
@@ -30,12 +30,12 @@ se_vdestroy(so *o)
 		sv_vfree(&e->r, (svv*)v->v.v);
 	v->v.v = NULL;
 	se_mark_destroyed(&v->o);
-	ss_free(&e->a_v, v);
+	ss_free(&e->a_document, v);
 	return 0;
 }
 
 static sfv*
-se_vsetpart(sev *v, const char *path, void *pointer, int size)
+se_document_setpart(sedocument *v, const char *path, void *pointer, int size)
 {
 	se *e = se_of(&v->o);
 	sedb *db = (sedb*)v->o.parent;
@@ -63,12 +63,12 @@ se_vsetpart(sev *v, const char *path, void *pointer, int size)
 }
 
 static int
-se_vsetstring(so *o, const char *path, void *pointer, int size)
+se_document_setstring(so *o, const char *path, void *pointer, int size)
 {
-	sev *v = se_cast(o, sev*, SEV);
+	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
 	se *e = se_of(o);
 	if (ssunlikely(v->v.v))
-		return sr_error(&e->error, "%s", "object is read-only");
+		return sr_error(&e->error, "%s", "document is read-only");
 
 	if (strcmp(path, "value") == 0) {
 		const int valuesize_max = 1 << 21;
@@ -112,19 +112,19 @@ se_vsetstring(so *o, const char *path, void *pointer, int size)
 		v->async_arg = pointer;
 		return 0;
 	}
-	/* object keypart */
-	sfv *fv = se_vsetpart(v, path, pointer, size);
+	/* document keypart */
+	sfv *fv = se_document_setpart(v, path, pointer, size);
 	if (ssunlikely(fv == NULL))
 		return -1;
 	return 0;
 }
 
 static void*
-se_vgetstring(so *o, const char *path, int *size)
+se_document_getstring(so *o, const char *path, int *size)
 {
-	sev *v = se_cast(o, sev*, SEV);
+	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
 	if (strcmp(path, "value") == 0) {
-		/* key object */
+		/* key document */
 		if (v->value) {
 			if (size)
 				*size = v->valuesize;
@@ -137,7 +137,7 @@ se_vgetstring(so *o, const char *path, int *size)
 				*size = 0;
 			return NULL;
 		}
-		/* result object */
+		/* result document */
 		sedb *db = (sedb*)o->parent;
 		int vsize = sv_valuesize(&v->v, &db->r);
 		if (size)
@@ -188,13 +188,13 @@ se_vgetstring(so *o, const char *path, int *size)
 	srkey *part = sr_schemefind(&db->scheme.scheme, (char*)path);
 	if (ssunlikely(part == NULL))
 		return NULL;
-	/* database result object */
+	/* database result document */
 	if (v->v.v) {
 		if (size)
 			*size = sv_keysize(&v->v, &db->r, part->pos);
 		return sv_key(&v->v, &db->r, part->pos);
 	}
-	/* database key object */
+	/* database key document */
 	assert(part->pos < (int)(sizeof(v->keyv) / sizeof(sfv)));
 	sfv *fv = &v->keyv[part->pos];
 	if (fv->key == NULL)
@@ -205,9 +205,9 @@ se_vgetstring(so *o, const char *path, int *size)
 }
 
 static int
-se_vsetint(so *o, const char *path, int64_t num)
+se_document_setint(so *o, const char *path, int64_t num)
 {
-	sev *v = se_cast(o, sev*, SEV);
+	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
 	if (strcmp(path, "cache_only") == 0) {
 		v->cache_only = num;
 		return 0;
@@ -224,9 +224,9 @@ se_vsetint(so *o, const char *path, int64_t num)
 }
 
 static int64_t
-se_vgetint(so *o, const char *path)
+se_document_getint(so *o, const char *path)
 {
-	sev *v = se_cast(o, sev*, SEV);
+	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
 	se *e = se_of(o);
 	if (strcmp(path, "lsn") == 0) {
 		uint64_t lsn = -1;
@@ -246,26 +246,26 @@ se_vgetint(so *o, const char *path)
 	if (strcmp(path, "immutable") == 0) {
 		return v->immutable;
 	} else {
-		sr_error(&e->error, "unknown object field '%s'",
+		sr_error(&e->error, "unknown document field '%s'",
 		         path);
 	}
 	return -1;
 }
 
-static soif sevif =
+static soif sedocumentif =
 {
 	.open         = NULL,
-	.destroy      = se_vdestroy,
+	.destroy      = se_document_destroy,
 	.error        = NULL,
-	.object       = NULL,
+	.document     = NULL,
 	.poll         = NULL,
 	.drop         = NULL,
 	.setobject    = NULL,
-	.setstring    = se_vsetstring,
-	.setint       = se_vsetint,
+	.setstring    = se_document_setstring,
+	.setint       = se_document_setint,
 	.getobject    = NULL,
-	.getstring    = se_vgetstring,
-	.getint       = se_vgetint,
+	.getstring    = se_document_getstring,
+	.getint       = se_document_getint,
 	.set          = NULL,
 	.update       = NULL,
 	.del          = NULL,
@@ -276,15 +276,15 @@ static soif sevif =
 	.cursor       = NULL,
 };
 
-so *se_vnew(se *e, so *parent, sv *vp, int async)
+so *se_document_new(se *e, so *parent, sv *vp, int async)
 {
-	sev *v = ss_malloc(&e->a_v, sizeof(sev));
+	sedocument *v = ss_malloc(&e->a_document, sizeof(sedocument));
 	if (ssunlikely(v == NULL)) {
 		sr_oom(&e->error);
 		return NULL;
 	}
 	memset(v, 0, sizeof(*v));
-	so_init(&v->o, &se_o[SEV], &sevif, parent, &e->o);
+	so_init(&v->o, &se_o[SEDOCUMENT], &sedocumentif, parent, &e->o);
 	v->order = SS_EQ;
 	v->async = async;
 	if (vp) {
