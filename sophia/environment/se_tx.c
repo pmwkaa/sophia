@@ -254,6 +254,15 @@ se_txset_int(so *o, const char *path, int64_t v)
 	return -1;
 }
 
+static int64_t
+se_txget_int(so *o, const char *path)
+{
+	setx *t = se_cast(o, setx*, SETX);
+	if (strcmp(path, "deadlock") == 0)
+		return sx_deadlock(&t->t);
+	return -1;
+}
+
 static soif setxif =
 {
 	.open         = NULL,
@@ -267,7 +276,7 @@ static soif setxif =
 	.setint       = se_txset_int,
 	.getobject    = NULL,
 	.getstring    = NULL,
-	.getint       = NULL,
+	.getint       = se_txget_int,
 	.set          = se_txset,
 	.update       = se_txupdate,
 	.del          = se_txdelete,
