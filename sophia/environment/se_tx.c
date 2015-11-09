@@ -152,10 +152,6 @@ se_txprepare(sx *x, sv *v, void *arg0, void *arg1)
 	sicache *cache = arg0;
 	sedb *db = arg1;
 	se *e = se_of(&db->o);
-	uint64_t lsn = sr_seq(e->r.seq, SR_LSN);
-	if (x->vlsn == lsn)
-		return 0;
-	/* prepare request */
 	sereq q;
 	se_reqinit(e, &q, SE_REQREAD, &db->o, &db->o);
 	sereqarg *arg = &q.arg;

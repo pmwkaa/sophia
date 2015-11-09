@@ -304,6 +304,7 @@ sxstate sx_rollback(sx *x)
 
 sxstate sx_prepare(sx *x, sxpreparef prepare, void *arg)
 {
+	uint64_t lsn = sr_seq(x->manager->r->seq, SR_LSN);
 	/* proceed read-only transactions */
 	if (x->type == SXRO || sv_logcount_write(&x->log) == 0)
 		return sx_promote(x, SXPREPARE);
@@ -319,7 +320,7 @@ sxstate sx_prepare(sx *x, sxpreparef prepare, void *arg)
 		if (sx_vaborted(v))
 			return sx_promote(x, SXROLLBACK);
 		if (sslikely(v->prev == NULL)) {
-			if (prepare) {
+			if (prepare && lsn != x->vlsn) {
 				sxindex *i = v->index;
 				if (prepare(x, &lv->v, arg, i->ptr))
 					return sx_promote(x, SXROLLBACK);
