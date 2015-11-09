@@ -138,20 +138,6 @@ SP_API void *sp_poll(void *ptr)
 	return h;
 }
 
-SP_API int sp_setobject(void *ptr, const char *path, const void *object)
-{
-	so *o = sp_cast(ptr, __func__);
-	if (ssunlikely(o->i->setobject == NULL)) {
-		sp_unsupported(o, __func__);
-		return -1;
-	}
-	so *e = o->env;
-	se_apilock(e);
-	int rc = o->i->setobject(o, path, (void*)object);
-	se_apiunlock(e);
-	return rc;
-}
-
 SP_API int sp_setstring(void *ptr, const char *path, const void *pointer, int size)
 {
 	so *o = sp_cast(ptr, __func__);

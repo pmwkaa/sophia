@@ -59,7 +59,6 @@ static soif sedbcursorif =
 	.document     = NULL,
 	.poll         = NULL,
 	.drop         = NULL,
-	.setobject    = NULL,
 	.setstring    = NULL,
 	.setint       = NULL,
 	.getobject    = NULL,

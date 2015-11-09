@@ -271,7 +271,6 @@ static soif setxif =
 	.document     = NULL,
 	.poll         = NULL,
 	.drop         = NULL,
-	.setobject    = NULL,
 	.setstring    = NULL,
 	.setint       = se_txset_int,
 	.getobject    = NULL,

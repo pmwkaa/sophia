@@ -198,7 +198,6 @@ static soif seif =
 	.document     = NULL,
 	.poll         = se_poll,
 	.drop         = NULL,
-	.setobject    = se_confset_object,
 	.setstring    = se_confset_string,
 	.setint       = se_confset_int,
 	.getobject    = se_confget_object,

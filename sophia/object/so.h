@@ -20,7 +20,6 @@ struct soif {
 	void    *(*document)(so*);
 	void    *(*poll)(so*);
 	int      (*drop)(so*);
-	int      (*setobject)(so*, const char*, void*);
 	int      (*setstring)(so*, const char*, void*, int);
 	int      (*setint)(so*, const char*, int64_t);
 	void    *(*getobject)(so*, const char*);
@@ -91,8 +90,6 @@ so_cast_dynamic(void *ptr, sotype *type,
 #define so_commit(o)    (o)->i->commit(o)
 #define so_cursor(o)    (o)->i->cursor(o)
 
-#define so_setobject(o, path, object) \
-	(o)->i->setobject(o, path, object)
 #define so_setstring(o, path, pointer, size) \
 	(o)->i->setstring(o, path, pointer, size)
 #define so_setint(o, path, v) \

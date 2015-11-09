@@ -86,7 +86,6 @@ void     se_confinit(seconf*, so*);
 void     se_conffree(seconf*);
 int      se_confvalidate(seconf*);
 int      se_confserialize(seconf*, ssbuf*);
-int      se_confset_object(so*, const char*, void*);
 int      se_confset_string(so*, const char*, void*, int);
 int      se_confset_int(so*, const char*, int64_t);
 void    *se_confget_object(so*, const char*);

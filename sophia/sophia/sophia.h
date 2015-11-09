@@ -24,7 +24,6 @@ extern "C" {
 
 SP_API void    *sp_env(void);
 SP_API void    *sp_document(void*);
-SP_API int      sp_setobject(void*, const char*, const void*);
 SP_API int      sp_setstring(void*, const char*, const void*, int);
 SP_API int      sp_setint(void*, const char*, int64_t);
 SP_API void    *sp_getobject(void*, const char*);

@@ -865,13 +865,6 @@ se_confquery(se *e, int op, const char *path,
 	return rc;
 }
 
-int se_confset_object(so *o, const char *path, void *object)
-{
-	se *e = se_of(o);
-	return se_confquery(e, SR_WRITE, path, SS_OBJECT,
-	                    object, sizeof(so*), NULL);
-}
-
 int se_confset_string(so *o, const char *path, void *string, int size)
 {
 	se *e = se_of(o);

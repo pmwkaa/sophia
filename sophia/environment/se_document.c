@@ -260,7 +260,6 @@ static soif sedocumentif =
 	.document     = NULL,
 	.poll         = NULL,
 	.drop         = NULL,
-	.setobject    = NULL,
 	.setstring    = se_document_setstring,
 	.setint       = se_document_setint,
 	.getobject    = NULL,
