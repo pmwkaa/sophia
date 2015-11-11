@@ -24,6 +24,7 @@ struct ssvfsif {
 	int     (*open)(ssvfs*, char*, int, int);
 	int     (*close)(ssvfs*, int);
 	int     (*sync)(ssvfs*, int);
+	int     (*advise)(ssvfs*, int, int, uint64_t, uint64_t);
 	int     (*truncate)(ssvfs*, int, uint64_t);
 	int64_t (*pread)(ssvfs*, int, uint64_t, void*, int);
 	int64_t (*pwrite)(ssvfs*, int, uint64_t, void*, int);
@@ -63,6 +64,7 @@ ss_vfsfree(ssvfs *f)
 #define ss_vfsopen(fs, path, flags, mode)    (fs)->i->open(fs, path, flags, mode)
 #define ss_vfsclose(fs, fd)                  (fs)->i->close(fs, fd)
 #define ss_vfssync(fs, fd)                   (fs)->i->sync(fs, fd)
+#define ss_vfsadvise(fs, fd, hint, off, len) (fs)->i->advise(fs, fd, hint, off, len)
 #define ss_vfstruncate(fs, fd, size)         (fs)->i->truncate(fs, fd, size)
 #define ss_vfspread(fs, fd, off, buf, size)  (fs)->i->pread(fs, fd, off, buf, size)
 #define ss_vfspwrite(fs, fd, off, buf, size) (fs)->i->pwrite(fs, fd, off, buf, size)

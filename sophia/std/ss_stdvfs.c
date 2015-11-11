@@ -87,6 +87,13 @@ ss_stdvfs_sync(ssvfs *f ssunused, int fd)
 }
 
 static int
+ss_stdvfs_advise(ssvfs *f ssunused, int fd, int hint, uint64_t off, uint64_t len)
+{
+	(void)hint;
+	return posix_fadvise(fd, off, len, POSIX_FADV_DONTNEED);
+}
+
+static int
 ss_stdvfs_truncate(ssvfs *f ssunused, int fd, uint64_t size)
 {
 	return ftruncate(fd, size);
@@ -192,6 +199,7 @@ ssvfsif ss_stdvfs =
 	.open     = ss_stdvfs_open,
 	.close    = ss_stdvfs_close,
 	.sync     = ss_stdvfs_sync,
+	.advise   = ss_stdvfs_advise,
 	.truncate = ss_stdvfs_truncate,
 	.pread    = ss_stdvfs_pread,
 	.pwrite   = ss_stdvfs_pwrite,

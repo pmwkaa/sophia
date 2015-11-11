@@ -116,6 +116,14 @@ ss_testvfs_sync(ssvfs *f, int fd)
 }
 
 static int
+ss_testvfs_advise(ssvfs *f, int fd, int hint, uint64_t off, uint64_t len)
+{
+	if (ss_testvfs_call(f))
+		return -1;
+	return ss_stdvfs.advise(f, fd, hint, off, len);
+}
+
+static int
 ss_testvfs_truncate(ssvfs *f, int fd, uint64_t size)
 {
 	if (ss_testvfs_call(f))
@@ -176,6 +184,7 @@ ssvfsif ss_testvfs =
 	.open     = ss_testvfs_open,
 	.close    = ss_testvfs_close,
 	.sync     = ss_testvfs_sync,
+	.advise   = ss_testvfs_advise,
 	.truncate = ss_testvfs_truncate,
 	.pread    = ss_testvfs_pread,
 	.pwrite   = ss_testvfs_pwrite,

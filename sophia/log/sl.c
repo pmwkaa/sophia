@@ -186,14 +186,13 @@ int sl_poolrotate(slpool *p)
 		return -1;
 	sl *log = NULL;
 	ss_spinlock(&p->lock);
-	if (p->n) {
+	if (p->n)
 		log = sscast(p->list.prev, sl, link);
-		ss_gccomplete(&log->gc);
-	}
 	ss_listappend(&p->list, &l->link);
 	p->n++;
 	ss_spinunlock(&p->lock);
 	if (log) {
+		assert(log->file.fd != -1);
 		if (p->conf->sync_on_rotate) {
 			int rc = ss_filesync(&log->file);
 			if (ssunlikely(rc == -1)) {
@@ -203,6 +202,8 @@ int sl_poolrotate(slpool *p)
 				return -1;
 			}
 		}
+		ss_fileadvise(&log->file, 0, 0, log->file.size);
+		ss_gccomplete(&log->gc);
 	}
 	return 0;
 }
