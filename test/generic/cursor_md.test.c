@@ -23,6 +23,8 @@ cursor_md_test0(void)
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.sync", 0) == 0 );
+	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "t0", 0) == 0 );
 	t( sp_setstring(env, "db", "t1", 0) == 0 );
 	t( sp_setstring(env, "db.t0.index.key", "u32", 0) == 0 );

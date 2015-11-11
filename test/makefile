@@ -48,6 +48,7 @@ STS_TESTS = unit/ss_leb128.test.o \
             generic/prefix.test.o \
             generic/transaction_md.test.o \
             generic/cursor_md.test.o \
+            generic/cursor_rc.test.o \
             generic/half_commit.test.o \
             generic/update.test.o \
             generic/async.test.o \

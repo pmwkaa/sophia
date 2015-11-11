@@ -24,8 +24,9 @@ se_cursordestroy(so *o)
 {
 	secursor *c = se_cast(o, secursor*, SECURSOR);
 	se *e = se_of(&c->o);
-	sx_rollback(&c->t);
 	uint32_t id = c->t.id;
+	if (! c->read_commited)
+		sx_rollback(&c->t);
 	if (c->cache)
 		si_cachepool_push(c->cache);
 	so_listdel(&e->cursor, &c->o);
@@ -53,7 +54,26 @@ se_cursorget(so *o, so *v)
 	c->read_disk  += key->read_disk;
 	c->read_cache += key->read_cache;
 	c->ops++;
-	return se_dbread(db, key, &c->t, 0, c->cache, order);
+	sx *x = &c->t;
+	if (c->read_commited)
+		x = NULL;
+	return se_dbread(db, key, x, 0, c->cache, order);
+}
+
+static int
+se_cursorset_int(so *o, const char *path, int64_t v)
+{
+	secursor *c = se_cast(o, secursor*, SECURSOR);
+	if (strcmp(path, "read_commited") == 0) {
+		if (c->read_commited)
+			return -1;
+		if (v != 1)
+			return -1;
+		sx_rollback(&c->t);
+		c->read_commited = 1;
+		return 0;
+	}
+	return -1;
 }
 
 static soif secursorif =
@@ -65,7 +85,7 @@ static soif secursorif =
 	.poll         = NULL,
 	.drop         = NULL,
 	.setstring    = NULL,
-	.setint       = NULL,
+	.setint       = se_cursorset_int,
 	.getobject    = NULL,
 	.getstring    = NULL,
 	.getint       = NULL,
@@ -98,6 +118,7 @@ so *se_cursornew(se *e, uint64_t vlsn)
 		ss_free(&e->a_cursor, c);
 		return NULL;
 	}
+	c->read_commited = 0;
 	sx_begin(&e->xm, &c->t, SXRO, vlsn);
 	se_dbbind(e);
 	so_listadd(&e->cursor, &c->o);
