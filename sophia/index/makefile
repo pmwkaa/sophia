@@ -3,8 +3,9 @@ LIBSI_O = si_scheme.o \
           si_planner.o \
           si.o \
           si_gc.o \
+          si_tx.o \
           si_write.o \
-          si_query.o \
+          si_read.o \
           si_iter.o \
           si_balance.o \
           si_compaction.o \

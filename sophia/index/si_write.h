@@ -9,20 +9,6 @@
  * BSD License
 */
 
-typedef struct sitx sitx;
-
-struct sitx {
-	uint64_t time;
-	uint64_t vlsn;
-	sslist nodelist;
-	svlog *l;
-	svlogindex *li;
-	si *index;
-};
-
-void si_begin(sitx*, si*, uint64_t, uint64_t,
-              svlog*, svlogindex*);
-void si_commit(sitx*);
-void si_write(sitx*, int);
+void si_write(sitx*, int, uint64_t, svlog*, svlogindex*);
 
 #endif

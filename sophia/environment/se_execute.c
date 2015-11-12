@@ -44,23 +44,26 @@ int se_reqread(sereq *r)
 	}
 	if (sslikely(arg->vlsn_generate))
 		arg->vlsn = sr_seq(db->r.seq, SR_LSN);
-	siquery q;
-	si_queryopen(&q, arg->cache, &db->index,
-	             arg->order,
-	             arg->vlsn,
-	             prefix,
-	             prefixsize, key, keysize);
+	sitx x;
+	si_begin(&x, &db->index, 1);
+	siread q;
+	si_readopen(&q, &x, arg->cache,
+	            arg->order,
+	            arg->vlsn,
+	            prefix,
+	            prefixsize, key, keysize);
 	if (arg->update)
-		si_queryupdate(&q, &arg->vup, arg->update_eq);
+		si_readupdate(&q, &arg->vup, arg->update_eq);
 	if (arg->cache_only)
-		si_querycache_only(&q);
+		si_readcache_only(&q);
 	if (arg->has)
-		si_queryhas(&q);
-	r->rc = si_query(&q);
+		si_readhas(&q);
+	r->rc = si_read(&q);
 	r->read_disk  = q.read_disk;
 	r->read_cache = q.read_cache;
 	r->v = q.result.v;
-	si_queryclose(&q);
+	si_readclose(&q);
+	si_commit(&x);
 	return r->rc;
 }
 
@@ -91,10 +94,10 @@ int se_reqwrite(sereq *r)
 	svlogindex *end = (svlogindex*)log->index.p;
 	while (i < end) {
 		sedb *db = i->ptr;
-		sitx ti;
-		si_begin(&ti, &db->index, arg->vlsn, now, log, i);
-		si_write(&ti, arg->recover);
-		si_commit(&ti);
+		sitx x;
+		si_begin(&x, &db->index, 0);
+		si_write(&x, arg->recover, now, log, i);
+		si_commit(&x);
 		i++;
 	}
 	return 0;
