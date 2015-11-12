@@ -74,6 +74,7 @@ extern stgroup *half_commit_group(void);
 extern stgroup *update_group(void);
 extern stgroup *async_group(void);
 extern stgroup *get_cache_group(void);
+extern stgroup *github_group(void);
 
 /* functional */
 extern stgroup *transaction_group(void);
@@ -244,6 +245,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, update_group());
 	st_planadd(plan, async_group());
 	st_planadd(plan, get_cache_group());
+	st_planadd(plan, github_group());
 	st_suiteadd(&st_r.suite, plan);
 
 	if (! full) {

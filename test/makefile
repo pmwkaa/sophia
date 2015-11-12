@@ -53,6 +53,7 @@ STS_TESTS = unit/ss_leb128.test.o \
             generic/update.test.o \
             generic/async.test.o \
             generic/get_cache.test.o \
+            generic/github.test.o \
             functional/hermitage.test.o \
             functional/transaction.test.o \
             functional/cursor.test.o \
