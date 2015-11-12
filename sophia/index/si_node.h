@@ -30,12 +30,15 @@ struct sinode {
 	sibranch  self;
 	sibranch *branch;
 	uint32_t  branch_count;
+	uint32_t  temperature;
+	uint64_t  temperature_reads;
 	svindex   i0, i1;
 	ssfile    file;
 	ssmmap    map, map_swap;
 	ssrbnode  node;
 	ssrqnode  nodecompact;
 	ssrqnode  nodebranch;
+	ssrqnode  nodetemp;
 	sslist    commit;
 } sspacked;
 

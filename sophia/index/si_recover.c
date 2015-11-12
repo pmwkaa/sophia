@@ -158,7 +158,7 @@ si_deploy(si *i, sr *r, int create_directory)
 		return -1;
 	}
 	si_insert(i, n);
-	si_plannerupdate(&i->p, SI_COMPACT|SI_BRANCH, n);
+	si_plannerupdate(&i->p, SI_COMPACT|SI_BRANCH|SI_TEMP, n);
 	return 1;
 }
 
@@ -391,7 +391,7 @@ si_recovercomplete(sitrack *track, sr *r, si *index, ssbuf *buf)
 		}
 		n->recover = SI_RDB;
 		si_insert(index, n);
-		si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH, n);
+		si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH|SI_TEMP, n);
 		ss_iternext(ss_bufiterref, &i);
 	}
 	return 0;

@@ -30,6 +30,8 @@ sinode *si_nodenew(sr *r)
 	si_branchinit(&n->self);
 	n->branch = NULL;
 	n->branch_count = 0;
+	n->temperature = 0;
+	n->temperature_reads = 0;
 	ss_fileinit(&n->file, r->vfs);
 	ss_mmapinit(&n->map);
 	ss_mmapinit(&n->map_swap);
@@ -38,6 +40,7 @@ sinode *si_nodenew(sr *r)
 	ss_rbinitnode(&n->node);
 	ss_rqinitnode(&n->nodecompact);
 	ss_rqinitnode(&n->nodebranch);
+	ss_rqinitnode(&n->nodetemp);
 	ss_listinit(&n->commit);
 	return n;
 }

@@ -36,6 +36,12 @@ int si_plannerinit(siplanner *p, ssa *a, void *i)
 		ss_rqfree(&p->compact, a);
 		return -1;
 	}
+	rc = ss_rqinit(&p->temp, a, 1, 100);
+	if (ssunlikely(rc == -1)) {
+		ss_rqfree(&p->compact, a);
+		ss_rqfree(&p->branch, a);
+		return -1;
+	}
 	p->i = i;
 	return 0;
 }
@@ -44,6 +50,7 @@ int si_plannerfree(siplanner *p, ssa *a)
 {
 	ss_rqfree(&p->compact, a);
 	ss_rqfree(&p->branch, a);
+	ss_rqfree(&p->temp, a);
 	return 0;
 }
 
@@ -60,6 +67,8 @@ int si_plannertrace(siplan *p, sstrace *t)
 	case SI_CHECKPOINT: plan = "checkpoint";
 		break;
 	case SI_GC: plan = "gc";
+		break;
+	case SI_TEMP: plan = "temperature";
 		break;
 	case SI_BACKUP:
 	case SI_BACKUPEND: plan = "backup";
@@ -103,6 +112,8 @@ int si_plannerupdate(siplanner *p, int mask, sinode *n)
 		ss_rqupdate(&p->branch, &n->nodebranch, n->used);
 	if (mask & SI_COMPACT)
 		ss_rqupdate(&p->compact, &n->nodecompact, n->branch_count);
+	if (mask & SI_TEMP)
+		ss_rqupdate(&p->temp, &n->nodetemp, n->temperature);
 	return 0;
 }
 
@@ -112,6 +123,8 @@ int si_plannerremove(siplanner *p, int mask, sinode *n)
 		ss_rqdelete(&p->branch, &n->nodebranch);
 	if (mask & SI_COMPACT)
 		ss_rqdelete(&p->compact, &n->nodecompact);
+	if (mask & SI_TEMP)
+		ss_rqdelete(&p->temp, &n->nodetemp);
 	return 0;
 }
 

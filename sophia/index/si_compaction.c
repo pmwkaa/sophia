@@ -259,8 +259,8 @@ int si_compaction(si *index, sdc *c, uint64_t vlsn,
 
 	/* begin compaction.
 	 *
-	 * split merge stream into a number
-	 * of a new nodes.
+	 * Split merge stream into a number of
+	 * a new nodes.
 	 */
 	int rc;
 	rc = si_split(index, c, result,
@@ -303,7 +303,7 @@ int si_compaction(si *index, sdc *c, uint64_t vlsn,
 	/* commit compaction changes */
 	si_lock(index);
 	svindex *j = si_nodeindex(node);
-	si_plannerremove(&index->p, SI_COMPACT|SI_BRANCH, node);
+	si_plannerremove(&index->p, SI_COMPACT|SI_BRANCH|SI_TEMP, node);
 	switch (count) {
 	case 0: /* delete */
 		si_remove(index, node);
@@ -315,11 +315,13 @@ int si_compaction(si *index, sdc *c, uint64_t vlsn,
 		break;
 	case 1: /* self update */
 		n = *(sinode**)result->s;
-		n->i0   = *j;
+		n->i0 = *j;
+		n->temperature = node->temperature;
+		n->temperature_reads = node->temperature_reads;
 		n->used = sv_indexused(j);
 		si_nodelock(n);
 		si_replace(index, node, n);
-		si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH, n);
+		si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH|SI_TEMP, n);
 		break;
 	default: /* split */
 		rc = si_redistribute(index, r, c, node, result);
@@ -332,16 +334,20 @@ int si_compaction(si *index, sdc *c, uint64_t vlsn,
 		ss_iteropen(ss_bufiterref, &i, result, sizeof(sinode*));
 		n = ss_iterof(ss_bufiterref, &i);
 		n->used = sv_indexused(&n->i0);
+		n->temperature = node->temperature;
+		n->temperature_reads = node->temperature_reads;
 		si_nodelock(n);
 		si_replace(index, node, n);
-		si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH, n);
+		si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH|SI_TEMP, n);
 		for (ss_iternext(ss_bufiterref, &i); ss_iterhas(ss_bufiterref, &i);
 		     ss_iternext(ss_bufiterref, &i)) {
 			n = ss_iterof(ss_bufiterref, &i);
 			n->used = sv_indexused(&n->i0);
+			n->temperature = node->temperature;
+			n->temperature_reads = node->temperature_reads;
 			si_nodelock(n);
 			si_insert(index, n);
-			si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH, n);
+			si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH|SI_TEMP, n);
 		}
 		break;
 	}

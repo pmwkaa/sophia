@@ -72,6 +72,20 @@ si_readdup(siread *q, sv *result)
 	return 1;
 }
 
+static inline void
+si_readstat(siread *q, int cache, sinode *n, uint32_t reads)
+{
+	si *i = q->index;
+	if (cache) {
+		i->read_cache += reads;
+		q->read_cache += reads;
+	} else {
+		i->read_disk += reads;
+		q->read_disk += reads;
+	}
+	n->temperature_reads += reads;
+}
+
 static inline int
 si_getresult(siread *q, sv *v, int compare)
 {
@@ -101,10 +115,10 @@ si_getresult(siread *q, sv *v, int compare)
 }
 
 static inline int
-si_getindex(siread *q, sinode *node)
+si_getindex(siread *q, sinode *n)
 {
 	svindex *second;
-	svindex *first = si_nodeindex_priority(node, &second);
+	svindex *first = si_nodeindex_priority(n, &second);
 	ssiter i;
 	ss_iterinit(sv_indexiter, &i);
 	int rc;
@@ -123,6 +137,7 @@ si_getindex(siread *q, sinode *node)
 		return 0;
 	}
 result:;
+	si_readstat(q, 1, n, 1);
 	sv *v = ss_iterof(sv_indexiter, &i);
 	assert(v != NULL);
 	svv *visible = v->v;
@@ -174,8 +189,7 @@ si_getbranch(siread *q, sinode *n, sibranch *b)
 	ss_iterinit(sd_read, &c->i);
 	int rc = ss_iteropen(sd_read, &c->i, &arg, q->key, q->keysize);
 	int reads = sd_read_stat(&c->i);
-	q->index->read_disk += reads;
-	q->read_disk += reads;
+	si_readstat(q, 0, n, reads);
 	if (ssunlikely(rc <= 0))
 		return rc;
 	/* prepare sources */
@@ -205,6 +219,7 @@ si_get(siread *q)
 	sinode *node;
 	node = ss_iterof(si_iter, &i);
 	assert(node != NULL);
+	si_txtrack(q->x, node);
 	/* search in memory */
 	int rc;
 	rc = si_getindex(q, node);
@@ -240,8 +255,7 @@ si_rangebranch(siread *q, sinode *n, sibranch *b, svmerge *m)
 	/* iterate cache */
 	if (ss_iterhas(sd_read, &c->i)) {
 		svmergesrc *s = sv_mergeadd(m, &c->i);
-		q->index->read_cache++;
-		q->read_cache++;
+		si_readstat(q, 1, n, 1);
 		s->ptr = c;
 		return 1;
 	}
@@ -285,8 +299,7 @@ si_rangebranch(siread *q, sinode *n, sibranch *b, svmerge *m)
 	ss_iterinit(sd_read, &c->i);
 	int rc = ss_iteropen(sd_read, &c->i, &arg, q->key, q->keysize);
 	int reads = sd_read_stat(&c->i);
-	q->index->read_disk += reads;
-	q->read_disk += reads;
+	si_readstat(q, 0, n, reads);
 	if (ssunlikely(rc == -1))
 		return -1;
 	if (ssunlikely(! ss_iterhas(sd_read, &c->i)))
@@ -309,6 +322,7 @@ next_node:
 	node = ss_iterof(si_iter, &i);
 	if (ssunlikely(node == NULL))
 		return 0;
+	si_txtrack(q->x, node);
 
 	/* prepare sources */
 	svmerge *m = &q->merge;

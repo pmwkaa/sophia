@@ -18,6 +18,7 @@ int si_profilerbegin(siprofiler *p, si *i)
 {
 	memset(p, 0, sizeof(*p));
 	p->i = i;
+	p->temperature_min = 100;
 	si_lock(i);
 	return 0;
 }
@@ -60,12 +61,18 @@ si_profiler_histogram_branch(siprofiler *p)
 
 int si_profiler(siprofiler *p)
 {
+	uint32_t temperature_total = 0;
 	uint64_t memory_used = 0;
 	ssrbnode *pn;
 	sinode *n;
 	pn = ss_rbmin(&p->i->i);
 	while (pn) {
 		n = sscast(pn, sinode, node);
+		if (p->temperature_max < n->temperature)
+			p->temperature_max = n->temperature;
+		if (p->temperature_min > n->temperature)
+			p->temperature_min = n->temperature;
+		temperature_total += n->temperature;
 		p->total_node_count++;
 		p->count += n->i0.count;
 		p->count += n->i1.count;
@@ -90,9 +97,12 @@ int si_profiler(siprofiler *p)
 		}
 		pn = ss_rbnext(&p->i->i, pn);
 	}
-	if (p->total_node_count > 0)
+	if (p->total_node_count > 0) {
 		p->total_branch_avg =
 			p->total_branch_count / p->total_node_count;
+		p->temperature_avg =
+			temperature_total / p->total_node_count;
+	}
 	p->memory_used = memory_used;
 	p->read_disk  = p->i->read_disk;
 	p->read_cache = p->i->read_cache;
