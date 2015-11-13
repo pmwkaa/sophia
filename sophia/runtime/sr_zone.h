@@ -17,6 +17,7 @@ struct srzone {
 	char     name[4];
 	uint32_t mode;
 	uint32_t compact_wm;
+	uint32_t compact_mode;
 	uint32_t branch_prio;
 	uint32_t branch_wm;
 	uint32_t branch_age;

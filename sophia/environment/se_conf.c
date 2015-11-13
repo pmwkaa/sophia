@@ -138,6 +138,7 @@ se_confcompaction(se *e, seconfrt *rt ssunused, srconf **pc)
 		p = NULL;
 		sr_c(&p, pc, se_confv_offline, "mode", SS_U32, &z->mode);
 		sr_c(&p, pc, se_confv_offline, "compact_wm", SS_U32, &z->compact_wm);
+		sr_c(&p, pc, se_confv_offline, "compact_mode", SS_U32, &z->compact_mode);
 		sr_c(&p, pc, se_confv_offline, "branch_prio", SS_U32, &z->branch_prio);
 		sr_c(&p, pc, se_confv_offline, "branch_wm", SS_U32, &z->branch_wm);
 		sr_c(&p, pc, se_confv_offline, "branch_age", SS_U32, &z->branch_age);
@@ -954,6 +955,7 @@ int se_confinit(seconf *c, so *e)
 		.enable        = 1,
 		.mode          = 3, /* branch + compact */
 		.compact_wm    = 2,
+		.compact_mode  = 0, /* branch priority */
 		.branch_prio   = 1,
 		.branch_wm     = 10 * 1024 * 1024,
 		.branch_age    = 40,
@@ -970,6 +972,7 @@ int se_confinit(seconf *c, so *e)
 		.enable        = 1,
 		.mode          = 2, /* checkpoint */
 		.compact_wm    = 4,
+		.compact_mode  = 0,
 		.branch_prio   = 0,
 		.branch_wm     = 0,
 		.branch_age    = 0,

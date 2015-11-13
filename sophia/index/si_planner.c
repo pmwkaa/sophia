@@ -95,6 +95,9 @@ int si_plannertrace(siplan *p, sstrace *t)
 	case SI_EBRANCH_COUNT:
 		explain = "branch count";
 		break;
+	case SI_ETEMP:
+		explain = "temperature";
+		break;
 	}
 	if (p->node) {
 		ss_trace(t, "%s <#%" PRIu32 " explain: %s>",
@@ -265,6 +268,29 @@ match:
 }
 
 static inline int
+si_plannerpeek_compact_temperature(siplanner *p, siplan *plan)
+{
+	/* try to peek a hottest node with number of
+	 * branches >= watermark */
+	sinode *n;
+	ssrqnode *pn = NULL;
+	while ((pn = ss_rqprev(&p->temp, pn))) {
+		n = sscast(pn, sinode, nodetemp);
+		if (n->flags & SI_LOCK)
+			continue;
+		if (n->branch_count >= plan->a)
+			goto match;
+		return 0;
+	}
+	return 0;
+match:
+	si_nodelock(n);
+	plan->explain = SI_ETEMP;
+	plan->node = n;
+	return 1;
+}
+
+static inline int
 si_plannerpeek_gc(siplanner *p, siplan *plan)
 {
 	/* try to peek a node with a biggest number
@@ -301,14 +327,16 @@ int si_planner(siplanner *p, siplan *plan)
 	switch (plan->plan) {
 	case SI_BRANCH:
 		return si_plannerpeek_branch(p, plan);
-	case SI_AGE:
-		return si_plannerpeek_age(p, plan);
-	case SI_CHECKPOINT:
-		return si_plannerpeek_checkpoint(p, plan);
 	case SI_COMPACT:
+		if (plan->b == 1)
+			return si_plannerpeek_compact_temperature(p, plan);
 		return si_plannerpeek_compact(p, plan);
 	case SI_GC:
 		return si_plannerpeek_gc(p, plan);
+	case SI_CHECKPOINT:
+		return si_plannerpeek_checkpoint(p, plan);
+	case SI_AGE:
+		return si_plannerpeek_age(p, plan);
 	case SI_BACKUP:
 		return si_plannerpeek_backup(p, plan);
 	}

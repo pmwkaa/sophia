@@ -39,12 +39,9 @@ STS_TESTS = unit/ss_leb128.test.o \
             generic/deadlock.test.o \
             generic/scheme.test.o \
             generic/rev.test.o \
-            generic/branch.test.o \
-            generic/compact.test.o \
             generic/backup.test.o \
             generic/checkpoint.test.o \
             generic/db_cursor.test.o \
-            generic/gc.test.o \
             generic/prefix.test.o \
             generic/transaction_md.test.o \
             generic/cursor_md.test.o \
@@ -54,6 +51,10 @@ STS_TESTS = unit/ss_leb128.test.o \
             generic/async.test.o \
             generic/get_cache.test.o \
             generic/github.test.o \
+            compaction/branch.test.o \
+            compaction/compact.test.o \
+            compaction/compact_delete.test.o \
+            compaction/gc.test.o \
             functional/hermitage.test.o \
             functional/transaction.test.o \
             functional/cursor.test.o \

@@ -35,8 +35,9 @@ struct siplanner {
 #define SI_ENONE         0
 #define SI_ERETRY        1
 #define SI_EINDEX_SIZE   2
-#define SI_EINDEX_AGE    4
-#define SI_EBRANCH_COUNT 3
+#define SI_EINDEX_AGE    3
+#define SI_EBRANCH_COUNT 4
+#define SI_ETEMP         5
 
 struct siplan {
 	int explain;
@@ -51,7 +52,7 @@ struct siplan {
 	 *   c:
 	 * compact:
 	 *   a: branches
-	 *   b:
+	 *   b: mode
 	 *   c:
 	 * checkpoint:
 	 *   a: lsn

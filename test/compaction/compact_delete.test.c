@@ -292,13 +292,13 @@ compact_delete_cursor(void)
 	t( sp_destroy(env) == 0 );
 }
 
-stgroup *compact_group(void)
+stgroup *compact_delete_group(void)
 {
-	stgroup *group = st_group("compact");
-	st_groupadd(group, st_test("delete_node0", compact_delete_node0));
-	st_groupadd(group, st_test("delete_node1", compact_delete_node1));
-	st_groupadd(group, st_test("delete_compaction0", compact_delete0));
-	st_groupadd(group, st_test("delete_compaction1", compact_delete1));
-	st_groupadd(group, st_test("delete_cursor", compact_delete_cursor));
+	stgroup *group = st_group("compact_delete");
+	st_groupadd(group, st_test("node0", compact_delete_node0));
+	st_groupadd(group, st_test("node1", compact_delete_node1));
+	st_groupadd(group, st_test("compaction0", compact_delete0));
+	st_groupadd(group, st_test("compaction1", compact_delete1));
+	st_groupadd(group, st_test("cursor", compact_delete_cursor));
 	return group;
 }

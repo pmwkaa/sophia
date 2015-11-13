@@ -60,11 +60,8 @@ extern stgroup *env_group(void);
 extern stgroup *deadlock_group(void);
 extern stgroup *scheme_group(void);
 extern stgroup *rev_group(void);
-extern stgroup *branch_group(void);
-extern stgroup *compact_group(void);
 extern stgroup *backup_group(void);
 extern stgroup *checkpoint_group(void);
-extern stgroup *gc_group(void);
 extern stgroup *db_cursor_group(void);
 extern stgroup *prefix_group(void);
 extern stgroup *transaction_md_group(void);
@@ -75,6 +72,12 @@ extern stgroup *update_group(void);
 extern stgroup *async_group(void);
 extern stgroup *get_cache_group(void);
 extern stgroup *github_group(void);
+
+/* compaction */
+extern stgroup *branch_group(void);
+extern stgroup *compact_group(void);
+extern stgroup *compact_delete_group(void);
+extern stgroup *gc_group(void);
 
 /* functional */
 extern stgroup *transaction_group(void);
@@ -231,21 +234,31 @@ main(int argc, char *argv[])
 	st_planadd(plan, deadlock_group());
 	st_planadd(plan, scheme_group());
 	st_planadd(plan, rev_group());
-	st_planadd(plan, branch_group());
-	st_planadd(plan, compact_group());
 	st_planadd(plan, backup_group());
 	st_planadd(plan, checkpoint_group());
-	st_planadd(plan, gc_group());
 	st_planadd(plan, db_cursor_group());
 	st_planadd(plan, prefix_group());
 	st_planadd(plan, transaction_md_group());
+	st_planadd(plan, half_commit_group());
 	st_planadd(plan, cursor_md_group());
 	st_planadd(plan, cursor_rc_group());
-	st_planadd(plan, half_commit_group());
 	st_planadd(plan, update_group());
 	st_planadd(plan, async_group());
 	st_planadd(plan, get_cache_group());
 	st_planadd(plan, github_group());
+	st_suiteadd(&st_r.suite, plan);
+
+	plan = st_plan("compaction");
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rmrf"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "init"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rt"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
+	st_planadd(plan, branch_group());
+	st_planadd(plan, compact_group());
+	st_planadd(plan, compact_delete_group());
+	st_planadd(plan, gc_group());
 	st_suiteadd(&st_r.suite, plan);
 
 	if (! full) {

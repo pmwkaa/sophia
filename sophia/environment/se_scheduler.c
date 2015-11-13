@@ -69,7 +69,7 @@ int se_scheduler_compact(void *arg)
 			.explain   = SI_ENONE,
 			.plan      = SI_COMPACT,
 			.a         = z->compact_wm,
-			.b         = 0,
+			.b         = z->compact_mode,
 			.c         = 0,
 			.node      = NULL
 		};
@@ -703,6 +703,7 @@ backup_error:;
 	/* compaction */
 	task->plan.plan = SI_COMPACT;
 	task->plan.a = zone->compact_wm;
+	task->plan.b = zone->compact_mode;
 	rc = se_schedule_plan(s, &task->plan, &db);
 	if (rc == 1) {
 		se_dbref(db, 1);
