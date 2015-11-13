@@ -12,7 +12,6 @@
 typedef struct siprofiler siprofiler;
 
 struct siprofiler {
-	si *i;
 	uint32_t  total_node_count;
 	uint64_t  total_node_size;
 	uint64_t  total_node_origin_size;
@@ -32,6 +31,9 @@ struct siprofiler {
 	int       histogram_branch_20plus;
 	char      histogram_branch_sz[512];
 	char     *histogram_branch_ptr;
+	char      histogram_temperature_sz[512];
+	char     *histogram_temperature_ptr;
+	si       *i;
 } sspacked;
 
 int si_profilerbegin(siprofiler*, si*);

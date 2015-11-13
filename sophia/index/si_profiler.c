@@ -59,6 +59,47 @@ si_profiler_histogram_branch(siprofiler *p)
 	}
 }
 
+static void
+si_profiler_histogram_temperature(siprofiler *p)
+{
+	/* build histogram */
+	struct {
+		int nodes;
+		int branches;
+	} h[100];
+	memset(h, 0, sizeof(h));
+	sinode *n;
+	ssrqnode *pn = NULL;
+	while ((pn = ss_rqprev(&p->i->p.temp, pn)))
+	{
+		n = sscast(pn, sinode, nodetemp);
+		h[pn->v].nodes++;
+		h[pn->v].branches += n->branch_count;
+	}
+
+	/* prepare histogram string */
+	int count = 0;
+	int i = 99;
+	int size = 0;
+	while (i >= 0 && count < 10) {
+		if (h[i].nodes == 0) {
+			i--;
+			continue;
+		}
+		size += snprintf(p->histogram_temperature_sz + size,
+		                 sizeof(p->histogram_temperature_sz) - size,
+		                 "[%d]:%d-%d ", i,
+		                 h[i].nodes, h[i].branches);
+		i--;
+		count++;
+	}
+	if (size == 0)
+		p->histogram_temperature_ptr = NULL;
+	else {
+		p->histogram_temperature_ptr = p->histogram_temperature_sz;
+	}
+}
+
 int si_profiler(siprofiler *p)
 {
 	uint32_t temperature_total = 0;
@@ -106,6 +147,8 @@ int si_profiler(siprofiler *p)
 	p->memory_used = memory_used;
 	p->read_disk  = p->i->read_disk;
 	p->read_cache = p->i->read_cache;
+
 	si_profiler_histogram_branch(p);
+	si_profiler_histogram_temperature(p);
 	return 0;
 }
