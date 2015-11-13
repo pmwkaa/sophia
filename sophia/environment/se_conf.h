@@ -79,10 +79,11 @@ struct seconf {
 	uint32_t      two_phase_recover;
 	uint32_t      commit_lsn;
 	srscheme      scheme;
+	srconf       *conf;
 	so           *env;
 };
 
-void     se_confinit(seconf*, so*);
+int      se_confinit(seconf*, so*);
 void     se_conffree(seconf*);
 int      se_confvalidate(seconf*);
 int      se_confserialize(seconf*, ssbuf*);

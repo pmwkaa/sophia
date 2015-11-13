@@ -826,7 +826,7 @@ int se_confserialize(seconf *c, ssbuf *buf)
 	se *e = (se*)c->env;
 	seconfrt rt;
 	se_confrt(e, &rt);
-	srconf conf[1024];
+	srconf *conf = c->conf;
 	srconf *root;
 	root = se_confprepare(e, &rt, conf, 1);
 	srconfstmt stmt = {
@@ -849,7 +849,7 @@ se_confquery(se *e, int op, const char *path,
 {
 	seconfrt rt;
 	se_confrt(e, &rt);
-	srconf conf[1024];
+	srconf *conf = e->conf.conf;
 	srconf *root;
 	root = se_confprepare(e, &rt, conf, 0);
 	srconfstmt stmt = {
@@ -919,9 +919,12 @@ int64_t se_confget_int(so *o, const char *path)
 	return result;
 }
 
-void se_confinit(seconf *c, so *e)
+int se_confinit(seconf *c, so *e)
 {
-	se *o = (se*)e;
+	se *o = se_of(e);
+	c->conf = ss_malloc(&o->a, sizeof(srconf) * 1024);
+	if (ssunlikely(c->conf == NULL))
+		return -1;
 	sr_schemeinit(&c->scheme);
 	srkey *part = sr_schemeadd(&c->scheme, &o->a);
 	sr_keysetname(part, &o->a, "key");
@@ -981,11 +984,16 @@ void se_confinit(seconf *c, so *e)
 	sr_zonemap_set(&o->conf.zones,  0, &def);
 	sr_zonemap_set(&o->conf.zones, 80, &redzone);
 	c->backup_path = NULL;
+	return 0;
 }
 
 void se_conffree(seconf *c)
 {
 	se *e = (se*)c->env;
+	if (c->conf) {
+		ss_free(&e->a, c->conf);
+		c->conf = NULL;
+	}
 	if (c->path) {
 		ss_free(&e->a, c->path);
 		c->path = NULL;
