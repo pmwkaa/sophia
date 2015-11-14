@@ -31,7 +31,7 @@ se_dbscheme_init(sedb *db, char *name)
 	scheme->id                    = sr_seq(&e->seq, SR_DSNNEXT);
 	scheme->sync                  = 2;
 	scheme->mmap                  = 0;
-	scheme->in_memory             = 0;
+	scheme->storage               = SI_SCACHE;
 	scheme->compression_key       = 0;
 	scheme->compression           = 0;
 	scheme->compression_if        = &ss_nonefilter;
@@ -42,6 +42,9 @@ se_dbscheme_init(sedb *db, char *name)
 	scheme->path_fail_on_exists   = 0;
 	scheme->path_fail_on_drop     = 1;
 	scheme->buf_gc_wm             = 1024 * 1024;
+	scheme->storage_sz = ss_strdup(&e->a, "cache");
+	if (ssunlikely(scheme->storage_sz == NULL))
+		goto e1;
 	scheme->compression_sz =
 		ss_strdup(&e->a, scheme->compression_if->name);
 	if (ssunlikely(scheme->compression_sz == NULL))
@@ -79,6 +82,16 @@ se_dbscheme_set(sedb *db)
 {
 	se *e = se_of(&db->o);
 	sischeme *s = &db->scheme;
+	/* storage */
+	if (strcmp(s->storage_sz, "cache") == 0) {
+		s->storage = SI_SCACHE;
+	} else
+	if (strcmp(s->storage_sz, "in_memory") == 0) {
+		s->storage = SI_SIN_MEMORY;
+	} else {
+		sr_error(&e->error, "unknown storage type '%s'", s->storage_sz);
+		return -1;
+	}
 	/* format */
 	if (strcmp(s->fmt_sz, "kv") == 0) {
 		s->fmt = SF_KV;

@@ -27,6 +27,7 @@ sinode *si_nodenew(sr *r)
 	n->flags = 0;
 	n->update_time = 0;
 	n->used = 0;
+	n->in_memory = 0;
 	si_branchinit(&n->self);
 	n->branch = NULL;
 	n->branch_count = 0;
@@ -120,6 +121,8 @@ si_noderecover(sinode *n, sr *r, int in_memory)
 	if (ssunlikely(rc == -1))
 		goto error;
 	ss_iteratorclose(&i);
+
+	n->in_memory = in_memory;
 	return 0;
 error:
 	ss_iteratorclose(&i);
@@ -142,7 +145,10 @@ int si_nodeopen(sinode *n, sr *r, sischeme *scheme, sspath *path)
 		               strerror(errno));
 		goto error;
 	}
-	rc = si_noderecover(n, r, scheme->in_memory);
+	int in_memory = 0;
+	if (scheme->storage == SI_SIN_MEMORY)
+		in_memory = 1;
+	rc = si_noderecover(n, r, in_memory);
 	if (ssunlikely(rc == -1))
 		goto error;
 	if (scheme->mmap) {

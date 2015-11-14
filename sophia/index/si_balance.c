@@ -23,7 +23,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 	/* in-memory mode blob */
 	int rc;
 	ssblob copy, *blob = NULL;
-	if (index->scheme->in_memory) {
+	if (parent->in_memory) {
 		ss_blobinit(&copy);
 		rc = ss_blobensure(&copy, 10ULL * 1024 * 1024);
 		if (ssunlikely(rc == -1)) {
@@ -274,7 +274,7 @@ int si_compact(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 			.buf_read        = &c->d,
 			.index_iter      = &cbuf->index_iter,
 			.page_iter       = &cbuf->page_iter,
-			.use_memory      = index->scheme->in_memory,
+			.use_memory      = node->in_memory,
 			.use_mmap        = use_mmap,
 			.use_mmap_copy   = 0,
 			.use_compression = compression,

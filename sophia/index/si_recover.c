@@ -60,11 +60,12 @@ sinode *si_bootstrap(si *i, uint32_t parent)
 
 	/* in-memory mode support */
 	ssblob *blob = NULL;
-	if (i->scheme->in_memory) {
+	if (i->scheme->storage == SI_SIN_MEMORY) {
 		blob = &n->self.copy;
 		rc = ss_blobensure(blob, 4096);
 		if (ssunlikely(rc == -1))
 			goto e0;
+		n->in_memory = 1;
 	}
 
 	/* create index with one empty page */

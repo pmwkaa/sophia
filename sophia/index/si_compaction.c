@@ -178,11 +178,12 @@ si_split(si *index, sdc *c, ssbuf *result,
 		n->branch_count++;
 
 		ssblob *blob = NULL;
-		if (index->scheme->in_memory) {
+		if (parent->in_memory) {
 			blob = &n->self.copy;
 			rc = ss_blobensure(blob, index->scheme->node_size);
 			if (ssunlikely(rc == -1))
 				goto error;
+			n->in_memory = 1;
 		}
 
 		/* write open seal */
