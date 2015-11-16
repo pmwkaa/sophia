@@ -326,6 +326,7 @@ int si_planner(siplanner *p, siplan *plan)
 {
 	switch (plan->plan) {
 	case SI_BRANCH:
+	case SI_COMPACT_INDEX:
 		return si_plannerpeek_branch(p, plan);
 	case SI_COMPACT:
 		if (plan->b == 1)

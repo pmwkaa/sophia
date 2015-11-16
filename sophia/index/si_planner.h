@@ -23,13 +23,14 @@ struct siplanner {
 #define SI_BRANCH        1
 #define SI_AGE           2
 #define SI_COMPACT       4
-#define SI_CHECKPOINT    8
-#define SI_GC            16
-#define SI_TEMP          32
-#define SI_BACKUP        64
-#define SI_BACKUPEND     128
-#define SI_SHUTDOWN      256
-#define SI_DROP          512
+#define SI_COMPACT_INDEX 8
+#define SI_CHECKPOINT    16
+#define SI_GC            32
+#define SI_TEMP          64
+#define SI_BACKUP        128
+#define SI_BACKUPEND     256
+#define SI_SHUTDOWN      512
+#define SI_DROP          1024
 
 /* explain */
 #define SI_ENONE         0
@@ -44,8 +45,6 @@ struct siplan {
 	int plan;
 	/* branch:
 	 *   a: index_size
-	 *   b: ttl
-	 *   c: ttl_wm
 	 * age:
 	 *   a: ttl
 	 *   b: ttl_wm
@@ -54,6 +53,8 @@ struct siplan {
 	 *   a: branches
 	 *   b: mode
 	 *   c:
+	 * compact_index:
+	 *   a: index_size
 	 * checkpoint:
 	 *   a: lsn
 	 *   b:

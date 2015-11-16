@@ -221,7 +221,9 @@ int si_branch(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 	return 1;
 }
 
-int si_compact(si *index, sdc *c, siplan *plan, uint64_t vlsn)
+int si_compact(si *index, sdc *c, siplan *plan, uint64_t vlsn,
+               ssiter *vindex,
+               uint32_t vindex_used)
 {
 	sr *r = index->r;
 	sinode *node = plan->node;
@@ -234,7 +236,7 @@ int si_compact(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 		return sr_oom_malfunction(r->e);
 	svmerge merge;
 	sv_mergeinit(&merge);
-	rc = sv_mergeprepare(&merge, r, node->branch_count);
+	rc = sv_mergeprepare(&merge, r, node->branch_count + 1);
 	if (ssunlikely(rc == -1))
 		return -1;
 
@@ -252,11 +254,18 @@ int si_compact(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 		use_mmap = 1;
 	}
 
+	/* include vindex into merge process */
+	svmergesrc *s;
 	uint32_t size_stream = 0;
+	if (vindex) {
+		s = sv_mergeadd(&merge, vindex);
+		size_stream = vindex_used;
+	}
+
 	sdcbuf *cbuf = c->head;
 	sibranch *b = node->branch;
 	while (b) {
-		svmergesrc *s = sv_mergeadd(&merge, NULL);
+		s = sv_mergeadd(&merge, NULL);
 		/* choose compression type */
 		int compression;
 		ssfilterif *compression_if;
@@ -301,4 +310,25 @@ int si_compact(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 	rc = si_compaction(index, c, vlsn, node, &i, size_stream);
 	sv_mergefree(&merge, r->a);
 	return rc;
+}
+
+int si_compact_index(si *index, sdc *c, siplan *plan, uint64_t vlsn)
+{
+	sinode *node = plan->node;
+
+	si_lock(index);
+	if (ssunlikely(node->used == 0)) {
+		si_nodeunlock(node);
+		si_unlock(index);
+		return 0;
+	}
+	svindex *vindex;
+	vindex = si_noderotate(node);
+	si_unlock(index);
+
+	uint32_t size_stream = sv_indexused(vindex);
+	ssiter i;
+	ss_iterinit(sv_indexiter, &i);
+	ss_iteropen(sv_indexiter, &i, index->r, vindex, SS_GTE, NULL, 0);
+	return si_compact(index, c, plan, vlsn, &i, size_stream);
 }

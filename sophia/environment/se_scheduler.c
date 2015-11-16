@@ -84,6 +84,35 @@ int se_scheduler_compact(void *arg)
 	return rc;
 }
 
+int se_scheduler_compact_index(void *arg)
+{
+	sedb *db = arg;
+	se *e = se_of(&db->o);
+	srzone *z = se_zoneof(e);
+	seworker stub;
+	se_workerstub_init(&stub);
+	int rc;
+	while (1) {
+		uint64_t vlsn = sx_vlsn(&e->xm);
+		siplan plan = {
+			.explain   = SI_ENONE,
+			.plan      = SI_COMPACT_INDEX,
+			.a         = z->branch_wm,
+			.b         = 0,
+			.c         = 0,
+			.node      = NULL
+		};
+		rc = si_plan(&db->index, &plan);
+		if (rc == 0)
+			break;
+		rc = si_execute(&db->index, &stub.dc, &plan, vlsn);
+		if (ssunlikely(rc == -1))
+			break;
+	}
+	se_workerstub_free(&stub, &db->r);
+	return rc;
+}
+
 int se_scheduler_checkpoint(void *arg)
 {
 	se *o = arg;
@@ -496,6 +525,7 @@ checkpoint:
 	/* apply zone policy */
 	switch (zone->mode) {
 	case 0:  /* compact_index */
+		break;
 	case 1:  /* compact_index + branch_count prio */
 		assert(0);
 		break;
@@ -620,6 +650,8 @@ backup_error:;
 			rc = se_schedule_plan(s, &task->plan, &db);
 			switch (rc) {
 			case 1:
+				if (zone->mode == 0)
+					task->plan.plan = SI_COMPACT_INDEX;
 				s->workers_gc++;
 				se_dbref(db, 1);
 				task->db = db;
@@ -650,6 +682,8 @@ backup_error:;
 			rc = se_schedule_plan(s, &task->plan, &db);
 			switch (rc) {
 			case 1:
+				if (zone->mode == 0)
+					task->plan.plan = SI_COMPACT_INDEX;
 				s->workers_branch++;
 				se_dbref(db, 1);
 				task->db = db;
@@ -667,6 +701,22 @@ backup_error:;
 				s->age = 1;
 			}
 		}
+	}
+
+	/* compact_index (compaction with in-memory index) */
+	if (zone->mode == 0) {
+		task->plan.plan = SI_COMPACT_INDEX;
+		task->plan.a = zone->branch_wm;
+		rc = se_schedule_plan(s, &task->plan, &db);
+		if (rc == 1) {
+			se_dbref(db, 1);
+			task->db = db;
+			task->gc = 1;
+			ss_mutexunlock(&s->lock);
+			return 1;
+		}
+		ss_mutexunlock(&s->lock);
+		return 0;
 	}
 
 	/* branching */
@@ -782,6 +832,8 @@ se_complete(sescheduler *s, setask *t)
 	case SI_AGE:
 	case SI_CHECKPOINT:
 		s->workers_branch--;
+		break;
+	case SI_COMPACT_INDEX:
 		break;
 	case SI_BACKUP:
 	case SI_BACKUPEND:

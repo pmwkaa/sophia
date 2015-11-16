@@ -57,6 +57,7 @@ int se_scheduler_del(sescheduler*, void*);
 int se_scheduler(sescheduler*, seworker*);
 int se_scheduler_branch(void*);
 int se_scheduler_compact(void*);
+int se_scheduler_compact_index(void*);
 int se_scheduler_checkpoint(void*);
 int se_scheduler_gc(void*);
 int se_scheduler_backup(void*);

@@ -110,7 +110,10 @@ int si_execute(si *i, sdc *c, siplan *plan, uint64_t vlsn)
 		break;
 	case SI_GC:
 	case SI_COMPACT:
-		rc = si_compact(i, c, plan, vlsn);
+		rc = si_compact(i, c, plan, vlsn, NULL, 0);
+		break;
+	case SI_COMPACT_INDEX:
+		rc = si_compact_index(i, c, plan, vlsn);
 		break;
 	case SI_BACKUP:
 	case SI_BACKUPEND:

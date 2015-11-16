@@ -500,6 +500,15 @@ se_confdb_compact(srconf *c, srconfstmt *s)
 }
 
 static inline int
+se_confdb_compact_index(srconf *c, srconfstmt *s)
+{
+	if (s->op != SR_WRITE)
+		return se_confv(c, s);
+	sedb *db = c->value;
+	return se_scheduler_compact(db);
+}
+
+static inline int
 se_confv_dboffline(srconf *c, srconfstmt *s)
 {
 	sedb *db = c->ptr;
@@ -632,6 +641,7 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc)
 		sr_C(&p, pc, se_confv_dboffline, "compression", SS_STRINGPTR, &o->scheme.compression_sz, 0, o);
 		sr_c(&p, pc, se_confdb_branch, "branch", SS_FUNCTION, o);
 		sr_c(&p, pc, se_confdb_compact, "compact", SS_FUNCTION, o);
+		sr_c(&p, pc, se_confdb_compact_index, "compact_index", SS_FUNCTION, o);
 		sr_C(&p, pc, se_confdb_index, "index", SS_UNDEF, index, SR_NS, o);
 		sr_C(&prev, pc, se_confdb_get, o->scheme.name, SS_STRING, database, SR_NS, o);
 		if (db == NULL)
