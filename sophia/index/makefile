@@ -7,7 +7,7 @@ LIBSI_O = si_scheme.o \
           si_write.o \
           si_read.o \
           si_iter.o \
-          si_balance.o \
+          si_merge.o \
           si_compaction.o \
           si_drop.o \
           si_backup.o \
