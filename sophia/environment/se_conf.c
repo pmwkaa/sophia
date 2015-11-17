@@ -377,7 +377,7 @@ se_confmetric(se *e ssunused, seconfrt *rt, srconf **pc)
 	srconf *metric = *pc;
 	srconf *p = NULL;
 	sr_C(&p, pc, se_confv, "dsn",  SS_U32, &rt->seq.dsn, SR_RO, NULL);
-	sr_C(&p, pc, se_confv, "nsn",  SS_U32, &rt->seq.nsn, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "nsn",  SS_U64, &rt->seq.nsn, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "bsn",  SS_U32, &rt->seq.bsn, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "lsn",  SS_U64, &rt->seq.lsn, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "lfsn", SS_U32, &rt->seq.lfsn, SR_RO, NULL);

@@ -14,7 +14,7 @@ typedef struct sitrack sitrack;
 struct sitrack {
 	ssrb i;
 	int count;
-	uint32_t nsn;
+	uint64_t nsn;
 	uint64_t lsn;
 };
 
@@ -54,13 +54,13 @@ si_trackmetrics(sitrack *t, sinode *n)
 }
 
 static inline void
-si_tracknsn(sitrack *t, uint32_t nsn)
+si_tracknsn(sitrack *t, uint64_t nsn)
 {
 	if (t->nsn < nsn)
 		t->nsn = nsn;
 }
 
-ss_rbget(si_trackmatch, ss_cmp((sscast(n, sinode, node))->self.id.id, *(uint32_t*)key))
+ss_rbget(si_trackmatch, ss_cmp((sscast(n, sinode, node))->self.id.id, *(uint64_t*)key))
 
 static inline void
 si_trackset(sitrack *t, sinode *n)
@@ -74,7 +74,7 @@ si_trackset(sitrack *t, sinode *n)
 }
 
 static inline sinode*
-si_trackget(sitrack *t, uint32_t id)
+si_trackget(sitrack *t, uint64_t id)
 {
 	ssrbnode *p = NULL;
 	int rc = si_trackmatch(&t->i, NULL, (char*)&id, sizeof(id), &p);

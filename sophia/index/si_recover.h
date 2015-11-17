@@ -9,7 +9,7 @@
  * BSD License
 */
 
-sinode *si_bootstrap(si*, uint32_t);
+sinode *si_bootstrap(si*, uint64_t);
 int si_recover(si*);
 
 #endif

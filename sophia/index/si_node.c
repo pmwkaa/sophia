@@ -181,7 +181,8 @@ error:
 int si_nodecreate(sinode *n, sr *r, sischeme *scheme, sdid *id)
 {
 	sspath path;
-	ss_pathAB(&path, scheme->path, id->parent, id->id, ".db.incomplete");
+	ss_path64_compound(&path, scheme->path, id->parent, id->id,
+	                   ".db.incomplete");
 	int rc = ss_filenew(&n->file, path.path);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' create error: %s",
@@ -268,8 +269,9 @@ int si_nodeseal(sinode *n, sr *r, sischeme *scheme)
 		}
 	}
 	sspath path;
-	ss_pathAB(&path, scheme->path, n->self.id.parent,
-	          n->self.id.id, ".db.seal");
+	ss_path64_compound(&path, scheme->path,
+	                   n->self.id.parent, n->self.id.id,
+	                   ".db.seal");
 	rc = ss_filerename(&n->file, path.path);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' rename error: %s",
@@ -283,7 +285,7 @@ int si_nodeseal(sinode *n, sr *r, sischeme *scheme)
 int si_nodecomplete(sinode *n, sr *r, sischeme *scheme)
 {
 	sspath path;
-	ss_pathA(&path, scheme->path, n->self.id.id, ".db");
+	ss_path64(&path, scheme->path, n->self.id.id, ".db");
 	int rc = ss_filerename(&n->file, path.path);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' rename error: %s",

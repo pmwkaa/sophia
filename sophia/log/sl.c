@@ -53,7 +53,7 @@ sl_open(slpool *p, uint32_t id)
 	if (ssunlikely(l == NULL))
 		return NULL;
 	sspath path;
-	ss_pathA(&path, p->conf->path, id, ".log");
+	ss_path32(&path, p->conf->path, id, ".log");
 	int rc = ss_fileopen(&l->file, path.path);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(p->r->e, "log file '%s' open error: %s",
@@ -74,7 +74,7 @@ sl_new(slpool *p, uint32_t id)
 	if (ssunlikely(l == NULL))
 		return NULL;
 	sspath path;
-	ss_pathA(&path, p->conf->path, id, ".log");
+	ss_path32(&path, p->conf->path, id, ".log");
 	int rc = ss_filenew(&l->file, path.path);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(p->r->e, "log file '%s' create error: %s",
@@ -325,7 +325,7 @@ int sl_poolcopy(slpool *p, char *dest, ssbuf *buf)
 		sl *l = sscast(i, sl, linkcopy);
 		ss_listinit(&l->linkcopy);
 		sspath path;
-		ss_pathA(&path, dest, l->id, ".log");
+		ss_path32(&path, dest, l->id, ".log");
 		ssfile file;
 		ss_fileinit(&file, p->r->vfs);
 		int rc = ss_filenew(&file, path.path);

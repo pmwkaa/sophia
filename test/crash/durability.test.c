@@ -37,7 +37,7 @@ durability_deploy0(void)
 
 	t( sp_destroy(env) == 0 );
 
-	t( exists(st_r.conf->db_dir, "0000000000.0000000001.db.incomplete") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000000.00000000000000000001.db.incomplete") == 1 );
 
 	/* recover */
 	env = sp_env();
@@ -57,8 +57,8 @@ durability_deploy0(void)
 	t( sp_open(env) == -1 );
 	t( sp_destroy(env) == 0 );
 
-	t( exists(st_r.conf->db_dir, "0000000001.db") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000000.0000000001.db.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.db") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000000.00000000000000000001.db.incomplete") == 0 );
 
 	env = sp_env();
 	t( env != NULL );
@@ -77,8 +77,8 @@ durability_deploy0(void)
 	t( sp_open(env) == 0 ); /* reuse empty directory */
 	t( sp_destroy(env) == 0 );
 
-	t( exists(st_r.conf->db_dir, "0000000001.db") == 1 );
-	t( exists(st_r.conf->db_dir, "0000000000.0000000001.db.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.db") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000000.00000000000000000001.db.incomplete") == 0 );
 }
 
 static void
@@ -119,7 +119,7 @@ durability_branch0(void)
 	t( sp_setint(env, "db.test.branch", 0) == -1 );
 	t( sp_destroy(env) == 0 );
 
-	t( exists(st_r.conf->db_dir, "0000000001.db") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.db") == 1 );
 
 	/* recover */
 	env = sp_env();
@@ -158,7 +158,7 @@ durability_branch0(void)
 
 	t( sp_destroy(env) == 0 );
 
-	t( exists(st_r.conf->db_dir, "0000000001.db") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.db") == 1 );
 }
 
 static void
@@ -199,7 +199,7 @@ durability_build0(void)
 	t( sp_setint(env, "db.test.branch", 0) == -1 );
 	t( sp_destroy(env) == 0 );
 
-	t( exists(st_r.conf->db_dir, "0000000001.db") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.db") == 1 );
 
 	/* recover */
 	env = sp_env();
@@ -237,7 +237,7 @@ durability_build0(void)
 
 	t( sp_destroy(env) == 0 );
 
-	t( exists(st_r.conf->db_dir, "0000000001.db") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.db") == 1 );
 }
 
 static void
@@ -278,7 +278,7 @@ durability_build1(void)
 	t( sp_setint(env, "db.test.branch", 0) == 0 ); /* seal crc is corrupted */
 	t( sp_destroy(env) == 0 );
 
-	t( exists(st_r.conf->db_dir, "0000000001.db") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.db") == 1 );
 
 	/* recover */
 	env = sp_env();
@@ -316,7 +316,7 @@ durability_build1(void)
 
 	t( sp_destroy(env) == 0 );
 
-	t( exists(st_r.conf->db_dir, "0000000001.db") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.db") == 1 );
 }
 
 static void
@@ -358,8 +358,8 @@ durability_compact0(void)
 	t( sp_setint(env, "db.test.compact", 0) == -1 );
 	t( sp_destroy(env) == 0 );
 
-	t( exists(st_r.conf->db_dir, "0000000001.db") == 1 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.incomplete") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.db") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.incomplete") == 1 );
 
 	/* recover */
 	env = sp_env();
@@ -397,8 +397,8 @@ durability_compact0(void)
 
 	t( sp_destroy(env) == 0 );
 
-	t( exists(st_r.conf->db_dir, "0000000001.db") == 1 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.db") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.incomplete") == 0 );
 }
 
 static void
@@ -440,9 +440,9 @@ durability_compact1(void)
 	t( sp_setint(env, "db.test.compact", 0) == -1 );
 	t( sp_destroy(env) == 0 );
 
-	t( exists(st_r.conf->db_dir, "0000000001.db") == 1 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.incomplete") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.seal") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.db") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.seal") == 1 );
 
 	/* recover */
 	env = sp_env();
@@ -480,10 +480,10 @@ durability_compact1(void)
 
 	t( sp_destroy(env) == 0 );
 
-	t( exists(st_r.conf->db_dir, "0000000001.db") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.incomplete") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.seal") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000003.db") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.db") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.seal") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000003.db") == 1 );
 }
 
 static void
@@ -525,9 +525,9 @@ durability_compact2(void)
 	t( sp_setint(env, "db.test.compact", 0) == -1 );
 	t( sp_destroy(env) == 0 );
 
-	t( exists(st_r.conf->db_dir, "0000000001.db") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.incomplete") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.seal") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.db") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.seal") == 1 );
 
 	/* recover */
 	env = sp_env();
@@ -565,10 +565,10 @@ durability_compact2(void)
 
 	t( sp_destroy(env) == 0 );
 
-	t( exists(st_r.conf->db_dir, "0000000001.db") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.incomplete") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.seal") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000003.db") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.db") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.seal") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000003.db") == 1 );
 }
 
 static void
@@ -605,11 +605,11 @@ durability_compact3(void)
 	t( sp_setint(env, "db.test.compact", 0) == -1 );
 	t( sp_destroy(env) == 0 );
 
-	t( exists(st_r.conf->db_dir, "0000000001.db") == 1 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.incomplete") == 1 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.seal") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000004.db.incomplete") == 1 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000004.db.seal") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.db") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.incomplete") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.seal") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000004.db.incomplete") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000004.db.seal") == 0 );
 
 	/* recover */
 	env = sp_env();
@@ -641,11 +641,11 @@ durability_compact3(void)
 
 	t( sp_destroy(env) == 0 );
 
-	t( exists(st_r.conf->db_dir, "0000000001.db") == 1 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.incomplete") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.seal") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000004.db.incomplete") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000004.db.seal") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.db") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.seal") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000004.db.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000004.db.seal") == 0 );
 }
 
 static void
@@ -682,11 +682,11 @@ durability_compact4(void)
 	t( sp_setint(env, "db.test.compact", 0) == -1 );
 	t( sp_destroy(env) == 0 );
 
-	t( exists(st_r.conf->db_dir, "0000000001.db") == 1 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.incomplete") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.seal") == 1 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000004.db.incomplete") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000004.db.seal") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.db") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.seal") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000004.db.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000004.db.seal") == 1 );
 
 	/* recover */
 	env = sp_env();
@@ -718,13 +718,13 @@ durability_compact4(void)
 
 	t( sp_destroy(env) == 0 );
 
-	t( exists(st_r.conf->db_dir, "0000000001.db") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.incomplete") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.seal") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000004.db.incomplete") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000004.db.seal") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000003.db") == 1 );
-	t( exists(st_r.conf->db_dir, "0000000004.db") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.db") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.seal") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000004.db.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000004.db.seal") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000003.db") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000004.db") == 1 );
 }
 
 static void
@@ -761,11 +761,11 @@ durability_compact5(void)
 	t( sp_setint(env, "db.test.compact", 0) == -1 );
 	t( sp_destroy(env) == 0 );
 
-	t( exists(st_r.conf->db_dir, "0000000001.db") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.incomplete") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.seal") == 1 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000004.db.incomplete") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000004.db.seal") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.db") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.seal") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000004.db.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000004.db.seal") == 1 );
 
 	/* recover */
 	env = sp_env();
@@ -797,13 +797,13 @@ durability_compact5(void)
 
 	t( sp_destroy(env) == 0 );
 
-	t( exists(st_r.conf->db_dir, "0000000001.db") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.incomplete") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.seal") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000004.db.incomplete") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000004.db.seal") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000003.db") == 1 );
-	t( exists(st_r.conf->db_dir, "0000000004.db") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.db") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.seal") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000004.db.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000004.db.seal") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000003.db") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000004.db") == 1 );
 }
 
 static void
@@ -840,11 +840,11 @@ durability_compact6(void)
 	t( sp_setint(env, "db.test.compact", 0) == -1 );
 	t( sp_destroy(env) == 0 );
 
-	t( exists(st_r.conf->db_dir, "0000000001.db") == 1 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.incomplete") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.seal") == 1 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000004.db.incomplete") == 1 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000004.db.seal") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.db") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.seal") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000004.db.incomplete") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000004.db.seal") == 0 );
 
 	/* recover */
 	env = sp_env();
@@ -876,13 +876,13 @@ durability_compact6(void)
 
 	t( sp_destroy(env) == 0 );
 
-	t( exists(st_r.conf->db_dir, "0000000001.db") == 1 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.incomplete") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.seal") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000004.db.incomplete") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000004.db.seal") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000003.db") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000004.db") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.db") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.seal") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000004.db.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000004.db.seal") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000003.db") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000004.db") == 0 );
 }
 
 static void
@@ -919,12 +919,12 @@ durability_compact7(void)
 	t( sp_setint(env, "db.test.compact", 0) == -1 );
 	t( sp_destroy(env) == 0 );
 
-	t( exists(st_r.conf->db_dir, "0000000001.db") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.incomplete") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.seal") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000003.db") == 1 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000004.db.incomplete") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000004.db.seal") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.db") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.seal") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000003.db") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000004.db.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000004.db.seal") == 1 );
 
 	/* recover */
 	env = sp_env();
@@ -956,13 +956,13 @@ durability_compact7(void)
 
 	t( sp_destroy(env) == 0 );
 
-	t( exists(st_r.conf->db_dir, "0000000001.db") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.incomplete") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000003.db.seal") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000004.db.incomplete") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000001.0000000004.db.seal") == 0 );
-	t( exists(st_r.conf->db_dir, "0000000003.db") == 1 );
-	t( exists(st_r.conf->db_dir, "0000000004.db") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.db") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000003.db.seal") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000004.db.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000001.00000000000000000004.db.seal") == 0 );
+	t( exists(st_r.conf->db_dir, "00000000000000000003.db") == 1 );
+	t( exists(st_r.conf->db_dir, "00000000000000000004.db") == 1 );
 }
 
 stgroup *durability_group(void)

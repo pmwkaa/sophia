@@ -39,7 +39,7 @@
 #include <libsd.h>
 #include <libsi.h>
 
-sinode *si_bootstrap(si *i, uint32_t parent)
+sinode *si_bootstrap(si *i, uint64_t parent)
 {
 	sr *r = i->r;
 	/* create node */
@@ -163,12 +163,13 @@ si_deploy(si *i, sr *r, int create_directory)
 	return 1;
 }
 
-static inline ssize_t
-si_processid(char **str) {
+static inline int64_t
+si_processid(char **str)
+{
 	char *s = *str;
 	size_t v = 0;
 	while (*s && *s != '.') {
-		if (ssunlikely(!isdigit(*s)))
+		if (ssunlikely(! isdigit(*s)))
 			return -1;
 		v = (v * 10) + *s - '0';
 		s++;
@@ -178,13 +179,13 @@ si_processid(char **str) {
 }
 
 static inline int
-si_process(char *name, uint32_t *nsn, uint32_t *parent)
+si_process(char *name, uint64_t *nsn, uint64_t *parent)
 {
 	/* id.db */
 	/* id.id.db.incomplete */
 	/* id.id.db.seal */
 	char *token = name;
-	ssize_t id = si_processid(&token);
+	int64_t id = si_processid(&token);
 	if (ssunlikely(id == -1))
 		return -1;
 	*parent = id;
@@ -219,8 +220,8 @@ si_trackdir(sitrack *track, sr *r, si *i)
 	while ((de = readdir(dir))) {
 		if (ssunlikely(de->d_name[0] == '.'))
 			continue;
-		uint32_t id_parent = 0;
-		uint32_t id = 0;
+		uint64_t id_parent = 0;
+		uint64_t id = 0;
 		int rc = si_process(de->d_name, &id, &id_parent);
 		if (ssunlikely(rc == -1))
 			continue; /* skip unknown file */
@@ -246,7 +247,8 @@ si_trackdir(sitrack *track, sr *r, si *i)
 			head->recover |= rc;
 			/* remove any incomplete file made during compaction */
 			if (rc == SI_RDB_DBI) {
-				ss_pathAB(&path, i->scheme->path, id_parent, id, ".db.incomplete");
+				ss_path64_compound(&path, i->scheme->path, id_parent, id,
+				                   ".db.incomplete");
 				rc = ss_vfsunlink(r->vfs, path.path);
 				if (ssunlikely(rc == -1)) {
 					sr_malfunction(r->e, "db file '%s' unlink error: %s",
@@ -261,7 +263,8 @@ si_trackdir(sitrack *track, sr *r, si *i)
 			if (ssunlikely(node == NULL))
 				goto error;
 			node->recover = SI_RDB_DBSEAL;
-			ss_pathAB(&path, i->scheme->path, id_parent, id, ".db.seal");
+			ss_path64_compound(&path, i->scheme->path, id_parent, id,
+			                   ".db.seal");
 			rc = si_nodeopen(node, r, i->scheme, &path);
 			if (ssunlikely(rc == -1)) {
 				si_nodefree(node, r, 0);
@@ -279,7 +282,7 @@ si_trackdir(sitrack *track, sr *r, si *i)
 		if (ssunlikely(node == NULL))
 			goto error;
 		node->recover = SI_RDB;
-		ss_pathA(&path, i->scheme->path, id, ".db");
+		ss_path64(&path, i->scheme->path, id, ".db");
 		rc = si_nodeopen(node, r, i->scheme, &path);
 		if (ssunlikely(rc == -1)) {
 			si_nodefree(node, r, 0);

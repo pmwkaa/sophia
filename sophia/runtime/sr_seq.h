@@ -28,13 +28,13 @@ typedef enum {
 
 typedef struct {
 	ssspinlock lock;
-	uint32_t dsn;
-	uint32_t nsn;
-	uint32_t bsn;
 	uint64_t lsn;
-	uint32_t lfsn;
 	uint64_t tsn;
+	uint64_t nsn;
 	uint64_t rsn;
+	uint32_t lfsn;
+	uint32_t dsn;
+	uint32_t bsn;
 } srseq;
 
 static inline void
