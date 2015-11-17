@@ -13,13 +13,13 @@ typedef struct sedbcursor sedbcursor;
 
 struct sedbcursor {
 	so o;
-	uint32_t txn_id;
+	uint64_t txn_id;
 	int ready;
 	ssbuf list;
 	char *pos;
 	sedb *v;
 } sspacked;
 
-so *se_dbcursor_new(se*, uint32_t);
+so *se_dbcursor_new(se*, uint64_t);
 
 #endif

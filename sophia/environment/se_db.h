@@ -25,8 +25,8 @@ struct sedb {
 	ssspinlock reflock;
 	uint32_t   ref;
 	uint32_t   ref_be;
-	uint32_t   txn_min;
-	uint32_t   txn_max;
+	uint64_t   txn_min;
+	uint64_t   txn_max;
 	sr         r;
 };
 
@@ -43,9 +43,9 @@ void      se_dbref(sedb*, int);
 uint32_t  se_dbunref(sedb*, int);
 uint32_t  se_dbrefof(sedb*, int);
 int       se_dbgarbage(sedb*);
-int       se_dbvisible(sedb*, uint32_t);
+int       se_dbvisible(sedb*, uint64_t);
 void      se_dbbind(se*);
-void      se_dbunbind(se*, uint32_t);
+void      se_dbunbind(se*, uint64_t);
 int       se_dbmalfunction(sedb*);
 int       se_dbv(sedb*, sedocument*, int, svv**);
 int       se_dbvprefix(sedb*, sedocument*, svv**);

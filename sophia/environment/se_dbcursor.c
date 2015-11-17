@@ -109,7 +109,7 @@ se_dbcursor_open(sedbcursor *c)
 	return 0;
 }
 
-so *se_dbcursor_new(se *e, uint32_t txn_id)
+so *se_dbcursor_new(se *e, uint64_t txn_id)
 {
 	sedbcursor *c = ss_malloc(&e->a_dbcursor, sizeof(sedbcursor));
 	if (ssunlikely(c == NULL)) {

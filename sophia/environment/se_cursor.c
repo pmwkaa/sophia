@@ -24,7 +24,7 @@ se_cursordestroy(so *o)
 {
 	secursor *c = se_cast(o, secursor*, SECURSOR);
 	se *e = se_of(&c->o);
-	uint32_t id = c->t.id;
+	uint64_t id = c->t.id;
 	if (! c->read_commited)
 		sx_rollback(&c->t);
 	if (c->cache)

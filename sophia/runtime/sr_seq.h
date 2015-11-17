@@ -33,7 +33,7 @@ typedef struct {
 	uint32_t bsn;
 	uint64_t lsn;
 	uint32_t lfsn;
-	uint32_t tsn;
+	uint64_t tsn;
 	uint64_t rsn;
 } srseq;
 

@@ -78,10 +78,10 @@ int sx_indexfree(sxindex *i, sxmanager *m)
 	return 0;
 }
 
-uint32_t sx_min(sxmanager *m)
+uint64_t sx_min(sxmanager *m)
 {
 	ss_spinlock(&m->lock);
-	uint32_t id = 0;
+	uint64_t id = 0;
 	if (sx_count(m) > 0) {
 		ssrbnode *node = ss_rbmin(&m->i);
 		sx *min = sscast(node, sx, node);
@@ -91,10 +91,10 @@ uint32_t sx_min(sxmanager *m)
 	return id;
 }
 
-uint32_t sx_max(sxmanager *m)
+uint64_t sx_max(sxmanager *m)
 {
 	ss_spinlock(&m->lock);
-	uint32_t id = 0;
+	uint64_t id = 0;
 	if (sx_count(m) > 0) {
 		ssrbnode *node = ss_rbmax(&m->i);
 		sx *max = sscast(node, sx, node);
@@ -119,9 +119,9 @@ uint64_t sx_vlsn(sxmanager *m)
 	return vlsn;
 }
 
-ss_rbget(sx_matchtx, ss_cmp((sscast(n, sx, node))->id, *(uint32_t*)key))
+ss_rbget(sx_matchtx, ss_cmp((sscast(n, sx, node))->id, *(uint64_t*)key))
 
-sx *sx_find(sxmanager *m, uint32_t id)
+sx *sx_find(sxmanager *m, uint64_t id)
 {
 	ssrbnode *n = NULL;
 	int rc = sx_matchtx(&m->i, NULL, (char*)&id, sizeof(id), &n);
@@ -348,7 +348,7 @@ sxstate sx_commit(sx *x)
 	ssiter i;
 	ss_iterinit(ss_bufiter, &i);
 	ss_iteropen(ss_bufiter, &i, &x->log.buf, sizeof(svlogv));
-	uint32_t csn = ++m->csn;
+	uint64_t csn = ++m->csn;
 	for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
 	{
 		svlogv *lv = ss_iterof(ss_bufiter, &i);

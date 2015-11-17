@@ -666,7 +666,7 @@ int se_dbgarbage(sedb *o)
 	return v;
 }
 
-int se_dbvisible(sedb *db, uint32_t txn)
+int se_dbvisible(sedb *db, uint64_t txn)
 {
 	return db->txn_min < txn && txn <= db->txn_max;
 }
@@ -682,7 +682,7 @@ void se_dbbind(se *e)
 	}
 }
 
-void se_dbunbind(se *e, uint32_t txn)
+void se_dbunbind(se *e, uint64_t txn)
 {
 	sslist *i;
 	ss_listforeach(&e->db.list, i) {

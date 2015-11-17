@@ -12,7 +12,8 @@
 typedef struct sxv sxv;
 
 struct sxv {
-	uint32_t id, lo;
+	uint64_t id;
+	uint32_t lo;
 	uint64_t csn;
 	void *index;
 	svv *v;
@@ -61,7 +62,7 @@ sx_vfreeall(sr *r, ssa *asxv, sxv *v)
 }
 
 static inline sxv*
-sx_vmatch(sxv *head, uint32_t id)
+sx_vmatch(sxv *head, uint64_t id)
 {
 	sxv *c = head;
 	while (c) {
@@ -108,7 +109,7 @@ sx_vunlink(sxv *v)
 static inline void
 sx_vcommit(sxv *v, uint32_t csn)
 {
-	v->id  = UINT32_MAX;
+	v->id  = UINT64_MAX;
 	v->lo  = UINT32_MAX;
 	v->csn = csn;
 }
@@ -116,7 +117,7 @@ sx_vcommit(sxv *v, uint32_t csn)
 static inline int
 sx_vcommitted(sxv *v)
 {
-	return v->id == UINT32_MAX && v->lo == UINT32_MAX;
+	return v->id == UINT64_MAX && v->lo == UINT32_MAX;
 }
 
 static inline void
