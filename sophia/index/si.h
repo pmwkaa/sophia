@@ -12,19 +12,21 @@
 typedef struct si si;
 
 struct si {
-	ssmutex lock;
-	siplanner p;
-	ssrb i;
-	int n;
-	int destroyed;
-	uint32_t backup;
-	uint64_t update_time;
-	uint64_t read_disk;
-	uint64_t read_cache;
-	ssbuf readbuf;
-	svupdate u;
-	sischeme *scheme;
-	sr *r;
+	ssmutex    lock;
+	siplanner  p;
+	ssrb       i;
+	int        n;
+	int        destroyed;
+	uint32_t   backup;
+	uint32_t   snapshot_run;
+	uint64_t   snapshot;
+	uint64_t   update_time;
+	uint64_t   read_disk;
+	uint64_t   read_cache;
+	ssbuf      readbuf;
+	svupdate   u;
+	sischeme  *scheme;
+	sr        *r;
 };
 
 static inline void

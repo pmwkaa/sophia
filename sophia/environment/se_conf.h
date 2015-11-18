@@ -32,6 +32,9 @@ struct seconfrt {
 	uint32_t  checkpoint_active;
 	uint64_t  checkpoint_lsn;
 	uint64_t  checkpoint_lsn_last;
+	uint32_t  snapshot_active;
+	uint64_t  snapshot_ssn;
+	uint64_t  snapshot_ssn_last;
 	uint32_t  backup_active;
 	uint32_t  backup_last;
 	uint32_t  backup_last_complete;

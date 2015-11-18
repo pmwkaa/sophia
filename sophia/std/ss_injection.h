@@ -20,9 +20,12 @@ typedef struct ssinjection ssinjection;
 #define SS_INJECTION_SI_COMPACTION_3 6
 #define SS_INJECTION_SI_COMPACTION_4 7
 #define SS_INJECTION_SI_RECOVER_0    8
+#define SS_INJECTION_SI_SNAPSHOT_0   9
+#define SS_INJECTION_SI_SNAPSHOT_1   10
+#define SS_INJECTION_SI_SNAPSHOT_2   11
 
 struct ssinjection {
-	uint32_t e[9];
+	uint32_t e[12];
 	uint32_t oom;
 	uint32_t io;
 };

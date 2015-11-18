@@ -23,13 +23,15 @@ int si_init(si *i, sr *r)
 	sv_updateinit(&i->u);
 	ss_rbinit(&i->i);
 	ss_mutexinit(&i->lock);
-	i->scheme      = NULL;
-	i->update_time = 0;
-	i->read_disk   = 0;
-	i->read_cache  = 0;
-	i->backup      = 0;
-	i->destroyed   = 0;
-	i->r           = r;
+	i->scheme       = NULL;
+	i->update_time  = 0;
+	i->read_disk    = 0;
+	i->read_cache   = 0;
+	i->backup       = 0;
+	i->snapshot_run = 0;
+	i->snapshot     = 0;
+	i->destroyed    = 0;
+	i->r            = r;
 	return 0;
 }
 
@@ -114,6 +116,9 @@ int si_execute(si *i, sdc *c, siplan *plan, uint64_t vlsn)
 		break;
 	case SI_COMPACT_INDEX:
 		rc = si_compact_index(i, c, plan, vlsn);
+		break;
+	case SI_SNAPSHOT:
+		rc = si_snapshot(i, plan);
 		break;
 	case SI_BACKUP:
 	case SI_BACKUPEND:

@@ -113,6 +113,18 @@ int se_scheduler_compact_index(void *arg)
 	return rc;
 }
 
+int se_scheduler_snapshot(void *arg)
+{
+	se *o = arg;
+	sescheduler *s = &o->sched;
+	uint64_t ssn = sr_seq(&o->seq, SR_SSNNEXT);
+	ss_mutexlock(&s->lock);
+	s->snapshot_ssn = ssn;
+	s->snapshot = 1;
+	ss_mutexunlock(&s->lock);
+	return 0;
+}
+
 int se_scheduler_checkpoint(void *arg)
 {
 	se *o = arg;
@@ -283,6 +295,8 @@ int se_scheduler_call(void *arg)
 
 int se_scheduler_init(sescheduler *s, so *env)
 {
+	uint64_t now = ss_utime();
+
 	ss_mutexinit(&s->lock);
 	s->workers_branch       = 0;
 	s->workers_backup       = 0;
@@ -298,14 +312,18 @@ int se_scheduler_init(sescheduler *s, so *env)
 	s->checkpoint_lsn_last  = 0;
 	s->checkpoint           = 0;
 	s->age                  = 0;
-	s->age_last             = 0;
+	s->age_last             = now;
 	s->backup_bsn           = 0;
 	s->backup_last          = 0;
 	s->backup_last_complete = 0;
 	s->backup_events        = 0;
 	s->backup               = 0;
+	s->snapshot_ssn         = 0;
+	s->snapshot_ssn_last    = 0;
+	s->snapshot_last        = now;
+	s->snapshot             = 0;
 	s->gc                   = 0;
-	s->gc_last              = 0;
+	s->gc_last              = now;
 	se_workerpool_init(&s->workers);
 	return 0;
 }
@@ -465,6 +483,7 @@ se_schedule(sescheduler *s, setask *task, seworker *w)
 	assert(zone != NULL);
 
 	task->checkpoint_complete = 0;
+	task->snapshot_complete = 0;
 	task->backup_complete = 0;
 	task->rotate = 0;
 	task->req = 0;
@@ -567,6 +586,37 @@ checkpoint:
 			task->db = db;
 			ss_mutexunlock(&s->lock);
 			return 1;
+		}
+	}
+
+	/* snapshot */
+	if (s->snapshot) {
+		task->plan.plan = SI_SNAPSHOT;
+		task->plan.a = s->snapshot_ssn;
+		rc = se_schedule_plan(s, &task->plan, &db);
+		switch (rc) {
+		case 1:
+			se_dbref(db, 1);
+			task->db = db;
+			ss_mutexunlock(&s->lock);
+			return 1;
+		case 2: /* work in progress */
+			in_progress = 1;
+			break;
+		case 0: /* complete checkpoint */
+			s->snapshot = 0;
+			s->snapshot_ssn_last = s->snapshot_ssn;
+			s->snapshot_ssn = 0;
+			s->snapshot_last = now;
+			task->snapshot_complete = 1;
+			break;
+		}
+	} else {
+		if (zone->snapshot_period) {
+			if ( (now - s->snapshot_last) >= ((uint64_t)zone->snapshot_period * 1000000) ) {
+				s->snapshot = 1;
+				s->snapshot_ssn = sr_seq(&e->seq, SR_SSNNEXT);
+			}
 		}
 	}
 
@@ -838,6 +888,8 @@ se_complete(sescheduler *s, setask *t)
 	case SI_BACKUP:
 	case SI_BACKUPEND:
 		s->workers_backup--;
+		break;
+	case SI_SNAPSHOT:
 		break;
 	case SI_GC:
 		s->workers_gc--;

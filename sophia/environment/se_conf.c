@@ -145,6 +145,7 @@ se_confcompaction(se *e, seconfrt *rt ssunused, srconf **pc)
 		sr_c(&p, pc, se_confv_offline, "branch_age_period", SS_U32, &z->branch_age_period);
 		sr_c(&p, pc, se_confv_offline, "branch_age_wm", SS_U32, &z->branch_age_wm);
 		sr_c(&p, pc, se_confv_offline, "backup_prio", SS_U32, &z->backup_prio);
+		sr_c(&p, pc, se_confv_offline, "snapshot_period", SS_U32, &z->snapshot_period);
 		sr_c(&p, pc, se_confv_offline, "gc_wm", SS_U32, &z->gc_wm);
 		sr_c(&p, pc, se_confv_offline, "gc_db_prio", SS_U32, &z->gc_db_prio);
 		sr_c(&p, pc, se_confv_offline, "gc_prio", SS_U32, &z->gc_prio);
@@ -186,6 +187,15 @@ se_confscheduler_checkpoint(srconf *c, srconfstmt *s)
 		return se_confv(c, s);
 	se *e = s->ptr;
 	return se_scheduler_checkpoint(e);
+}
+
+static inline int
+se_confscheduler_snapshot(srconf *c, srconfstmt *s)
+{
+	if (s->op != SR_WRITE)
+		return se_confv(c, s);
+	se *e = s->ptr;
+	return se_scheduler_snapshot(e);
 }
 
 static inline int
@@ -271,10 +281,15 @@ se_confscheduler(se *e, seconfrt *rt, srconf **pc)
 	srconf *p = NULL;
 	sr_c(&p, pc, se_confv_offline, "threads", SS_U32, &e->conf.threads);
 	sr_C(&p, pc, se_confv, "zone", SS_STRING, rt->zone, SR_RO, NULL);
+
 	sr_C(&p, pc, se_confv, "checkpoint_active", SS_U32, &rt->checkpoint_active, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "checkpoint_lsn", SS_U64, &rt->checkpoint_lsn, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "checkpoint_lsn_last", SS_U64, &rt->checkpoint_lsn_last, SR_RO, NULL);
 	sr_c(&p, pc, se_confscheduler_checkpoint, "checkpoint",  SS_FUNCTION, NULL);
+	sr_C(&p, pc, se_confv, "snapshot_active", SS_U32, &rt->snapshot_active, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "snapshot_ssn", SS_U64, &rt->snapshot_ssn, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "snapshot_ssn_last", SS_U64, &rt->snapshot_ssn_last, SR_RO, NULL);
+	sr_c(&p, pc, se_confscheduler_snapshot, "snapshot", SS_FUNCTION, NULL);
 	sr_c(&p, pc, se_confscheduler_on_recover, "on_recover", SS_STRING, NULL);
 	sr_c(&p, pc, se_confscheduler_on_recover_arg, "on_recover_arg", SS_STRING, NULL);
 	sr_c(&p, pc, se_confscheduler_on_event, "on_event", SS_STRING, NULL);
@@ -600,6 +615,7 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc)
 		sr_C(&p, pc, se_confv, "memory_used", SS_U64, &o->rtp.memory_used, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "size", SS_U64, &o->rtp.total_node_size, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "size_uncompressed", SS_U64, &o->rtp.total_node_origin_size, SR_RO, NULL);
+		sr_C(&p, pc, se_confv, "size_snapshot", SS_U64, &o->rtp.total_snapshot_size, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "count", SS_U64, &o->rtp.count, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "count_dup", SS_U64, &o->rtp.count_dup, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "read_disk", SS_U64, &o->rtp.read_disk, SR_RO, NULL);
@@ -740,6 +756,9 @@ se_confdebug(se *e, seconfrt *rt ssunused, srconf **pc)
 	sr_c(&p, pc, se_confv, "si_compaction_3", SS_U32, &e->ei.e[6]);
 	sr_c(&p, pc, se_confv, "si_compaction_4", SS_U32, &e->ei.e[7]);
 	sr_c(&p, pc, se_confv, "si_recover_0",    SS_U32, &e->ei.e[8]);
+	sr_c(&p, pc, se_confv, "si_snapshot_0",   SS_U32, &e->ei.e[9]);
+	sr_c(&p, pc, se_confv, "si_snapshot_1",   SS_U32, &e->ei.e[10]);
+	sr_c(&p, pc, se_confv, "si_snapshot_2",   SS_U32, &e->ei.e[11]);
 	sr_C(&prev, pc, NULL, "error_injection", SS_UNDEF, ei, SR_NS, NULL);
 	srconf *debug = prev;
 	return sr_C(NULL, pc, NULL, "debug", SS_UNDEF, debug, SR_NS, NULL);
@@ -796,6 +815,9 @@ se_confrt(se *e, seconfrt *rt)
 	rt->checkpoint_active    = e->sched.checkpoint;
 	rt->checkpoint_lsn_last  = e->sched.checkpoint_lsn_last;
 	rt->checkpoint_lsn       = e->sched.checkpoint_lsn;
+	rt->snapshot_active      = e->sched.snapshot;
+	rt->snapshot_ssn         = e->sched.snapshot_ssn;
+	rt->snapshot_ssn_last    = e->sched.snapshot_ssn_last;
 	rt->backup_active        = e->sched.backup;
 	rt->backup_last          = e->sched.backup_last;
 	rt->backup_last_complete = e->sched.backup_last_complete;
@@ -947,7 +969,7 @@ int se_confinit(seconf *c, so *e)
 	c->memory_limit        = 0;
 	c->node_size           = 64 * 1024 * 1024;
 	c->node_preload        = 0;
-	c->page_size           = 64 * 1024;
+	c->page_size           = 128 * 1024;
 	c->page_checksum       = 1;
 	c->threads             = 6;
 	c->log_enable          = 1;
@@ -962,38 +984,40 @@ int se_confinit(seconf *c, so *e)
 	ss_triggerinit(&c->on_event);
 	c->event_on_backup     = 0;
 	srzone def = {
-		.enable        = 1,
-		.mode          = 3, /* branch + compact */
-		.compact_wm    = 2,
-		.compact_mode  = 0, /* branch priority */
-		.branch_prio   = 1,
-		.branch_wm     = 10 * 1024 * 1024,
-		.branch_age    = 40,
+		.enable            = 1,
+		.mode              = 3, /* branch + compact */
+		.compact_wm        = 2,
+		.compact_mode      = 0, /* branch priority */
+		.branch_prio       = 1,
+		.branch_wm         = 10 * 1024 * 1024,
+		.branch_age        = 40,
 		.branch_age_period = 40,
-		.branch_age_wm = 1 * 1024 * 1024,
-		.backup_prio   = 1,
-		.gc_db_prio    = 1,
-		.gc_prio       = 1,
-		.gc_period     = 60,
-		.gc_wm         = 30,
-		.async         = 2 /* do not own thread */
+		.branch_age_wm     = 1 * 1024 * 1024,
+		.snapshot_period   = 60,
+		.backup_prio       = 1,
+		.gc_db_prio        = 1,
+		.gc_prio           = 1,
+		.gc_period         = 60,
+		.gc_wm             = 30,
+		.async             = 2 /* do not own thread */
 	};
 	srzone redzone = {
-		.enable        = 1,
-		.mode          = 2, /* checkpoint */
-		.compact_wm    = 4,
-		.compact_mode  = 0,
-		.branch_prio   = 0,
-		.branch_wm     = 0,
-		.branch_age    = 0,
+		.enable            = 1,
+		.mode              = 2, /* checkpoint */
+		.compact_wm        = 4,
+		.compact_mode      = 0,
+		.branch_prio       = 0,
+		.branch_wm         = 0,
+		.branch_age        = 0,
 		.branch_age_period = 0,
-		.branch_age_wm = 0,
-		.backup_prio   = 0,
-		.gc_db_prio    = 0,
-		.gc_prio       = 0,
-		.gc_period     = 0,
-		.gc_wm         = 0,
-		.async         = 2
+		.branch_age_wm     = 0,
+		.snapshot_period   = 0,
+		.backup_prio       = 0,
+		.gc_db_prio        = 0,
+		.gc_prio           = 0,
+		.gc_period         = 0,
+		.gc_wm             = 0,
+		.async             = 2
 	};
 	sr_zonemap_set(&o->conf.zones,  0, &def);
 	sr_zonemap_set(&o->conf.zones, 80, &redzone);

@@ -61,6 +61,7 @@ extern stgroup *deadlock_group(void);
 extern stgroup *scheme_group(void);
 extern stgroup *rev_group(void);
 extern stgroup *backup_group(void);
+extern stgroup *snapshot_group(void);
 extern stgroup *checkpoint_group(void);
 extern stgroup *db_cursor_group(void);
 extern stgroup *prefix_group(void);
@@ -235,6 +236,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, scheme_group());
 	st_planadd(plan, rev_group());
 	st_planadd(plan, backup_group());
+	st_planadd(plan, snapshot_group());
 	st_planadd(plan, checkpoint_group());
 	st_planadd(plan, db_cursor_group());
 	st_planadd(plan, prefix_group());

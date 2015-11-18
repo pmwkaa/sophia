@@ -1,5 +1,5 @@
-#ifndef SD_COMMIT_H_
-#define SD_COMMIT_H_
+#ifndef SD_WRITE_H_
+#define SD_WRITE_H_
 
 /*
  * sophia database

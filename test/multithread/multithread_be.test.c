@@ -62,6 +62,7 @@ mt_set_checkpoint_get(void)
 	t( sp_setint(env, "log.rotate", 0) == 0 );
 	t( sp_setint(env, "scheduler.checkpoint", 0) == 0 );
 	fprintf(st_r.output, " (checkpoint..");
+	fflush(st_r.output);
 	for (;;) {
 		int active = sp_getint(env, "scheduler.checkpoint_active");
 		if (!active)
@@ -77,6 +78,83 @@ mt_set_checkpoint_get(void)
 	*/
 	t( sp_setint(env, "log.gc", 0) == 0 );
 	t( sp_getint(env, "log.files") == 1 );
+
+	srand(82351);
+	for (i = 0; i < n; i++) {
+		k = rand();
+		void *o = sp_document(db);
+		t( o != NULL );
+		t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+		o = sp_get(db, o);
+		t( o != NULL );
+		t( *(uint32_t*)sp_getstring(o, "value", NULL) == k );
+		sp_destroy(o);
+		print_current(i);
+	}
+
+	t( sp_destroy(env) == 0 );
+}
+
+static void
+mt_set_snapshot_recover_get(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 5) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.sync", 0) == 0 );
+	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(env) == 0 );
+
+	char value[100];
+	memset(value, 0, sizeof(value));
+	uint32_t n = 300000;
+	uint32_t i, k;
+	srand(82351);
+	for (i = 0; i < n; i++) {
+		k = rand();
+		*(uint32_t*)value = k;
+		void *o = sp_document(db);
+		t( o != NULL );
+		t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
+		t( sp_setstring(o, "value", value, sizeof(value)) == 0 );
+		t( sp_set(db, o) == 0 );
+		print_current(i);
+	}
+	t( sp_setint(env, "log.rotate", 0) == 0 );
+	t( sp_setint(env, "scheduler.snapshot", 0) == 0 );
+	fprintf(st_r.output, " (snapshot..");
+	fflush(st_r.output);
+	for (;;) {
+		int active = sp_getint(env, "scheduler.snapshot_active");
+		if (!active)
+			break;
+	}
+	fprintf(st_r.output, "done)");
+	t( sp_destroy(env) == 0 );
+
+	fprintf(st_r.output, "(recover..");
+	fflush(st_r.output);
+	env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 5) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.sync", 0) == 0 );
+	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(env) == 0 );
+	fprintf(st_r.output, "done)");
 
 	srand(82351);
 	for (i = 0; i < n; i++) {
@@ -407,6 +485,7 @@ stgroup *multithread_be_group(void)
 {
 	stgroup *group = st_group("mt_backend");
 	st_groupadd(group, st_test("set_delete_get", mt_set_delete_get));
+	st_groupadd(group, st_test("set_snapshot_recover_get", mt_set_snapshot_recover_get));
 	st_groupadd(group, st_test("set_checkpoint_get", mt_set_checkpoint_get));
 	st_groupadd(group, st_test("set_get_kv_multipart", mt_set_get_kv_multipart));
 	st_groupadd(group, st_test("set_get_document_multipart", mt_set_get_document_multipart));

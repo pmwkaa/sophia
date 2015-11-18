@@ -44,7 +44,7 @@ struct sinode {
 } sspacked;
 
 sinode *si_nodenew(sr*);
-int si_nodeopen(sinode*, sr*, sischeme*, sspath*);
+int si_nodeopen(sinode*, sr*, sischeme*, sspath*, sdsnapshotnode*);
 int si_nodecreate(sinode*, sr*, sischeme*, sdid*);
 int si_nodefree(sinode*, sr*, int);
 int si_nodegc_index(sr*, svindex*);

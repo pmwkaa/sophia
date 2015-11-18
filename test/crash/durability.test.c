@@ -965,6 +965,156 @@ durability_compact7(void)
 	t( exists(st_r.conf->db_dir, "00000000000000000004.db") == 1 );
 }
 
+static void
+durability_snapshot0(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.sync", 0) == 0 );
+	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(env) == 0 );
+	t( sp_setint(env, "debug.error_injection.si_snapshot_0", 1) == 0 );
+
+	t( sp_setint(env, "scheduler.snapshot", 0) == 0 );
+	t( sp_setint(env, "scheduler.run", 0) == -1 );
+
+	t( sp_destroy(env) == 0 );
+
+	t( exists(st_r.conf->db_dir, "index.incomplete") == 1 );
+	t( exists(st_r.conf->db_dir, "index") == 0 );
+
+	/* recover */
+	env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.sync", 0) == 0 );
+	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(env) == 0 );
+	t( sp_destroy(env) == 0 );
+
+	t( exists(st_r.conf->db_dir, "index.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "index") == 0 );
+}
+
+static void
+durability_snapshot1(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.sync", 0) == 0 );
+	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(env) == 0 );
+	t( sp_setint(env, "debug.error_injection.si_snapshot_1", 1) == 0 );
+
+	t( sp_setint(env, "scheduler.snapshot", 0) == 0 );
+	t( sp_setint(env, "scheduler.run", 0) == -1 );
+
+	t( sp_destroy(env) == 0 );
+
+	t( exists(st_r.conf->db_dir, "index.incomplete") == 1 );
+	t( exists(st_r.conf->db_dir, "index") == 0 );
+
+	/* recover */
+	env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.sync", 0) == 0 );
+	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(env) == 0 );
+	t( sp_destroy(env) == 0 );
+
+	t( exists(st_r.conf->db_dir, "index.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "index") == 0 );
+}
+
+static void
+durability_snapshot2(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.sync", 0) == 0 );
+	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(env) == 0 );
+	t( sp_setint(env, "debug.error_injection.si_snapshot_2", 1) == 0 );
+
+	t( sp_setint(env, "scheduler.snapshot", 0) == 0 );
+	t( sp_setint(env, "scheduler.run", 0) == -1 );
+
+	t( sp_destroy(env) == 0 );
+
+	t( exists(st_r.conf->db_dir, "index.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "index") == 1 );
+
+	/* recover */
+	env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.sync", 0) == 0 );
+	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(env) == 0 );
+	t( sp_destroy(env) == 0 );
+
+	t( exists(st_r.conf->db_dir, "index.incomplete") == 0 );
+	t( exists(st_r.conf->db_dir, "index") == 1 );
+}
+
 stgroup *durability_group(void)
 {
 	stgroup *group = st_group("durability");
@@ -980,5 +1130,8 @@ stgroup *durability_group(void)
 	st_groupadd(group, st_test("compact_case5", durability_compact5));
 	st_groupadd(group, st_test("compact_case6", durability_compact6));
 	st_groupadd(group, st_test("compact_case7", durability_compact7));
+	st_groupadd(group, st_test("snapshot_case0", durability_snapshot0));
+	st_groupadd(group, st_test("snapshot_case1", durability_snapshot1));
+	st_groupadd(group, st_test("snapshot_case2", durability_snapshot2));
 	return group;
 }

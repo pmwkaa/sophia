@@ -13,10 +13,10 @@ typedef struct siplanner siplanner;
 typedef struct siplan siplan;
 
 struct siplanner {
-	void *i;
 	ssrq branch;
 	ssrq compact;
 	ssrq temp;
+	void *i;
 };
 
 /* plan */
@@ -31,6 +31,7 @@ struct siplanner {
 #define SI_BACKUPEND     256
 #define SI_SHUTDOWN      512
 #define SI_DROP          1024
+#define SI_SNAPSHOT      2048
 
 /* explain */
 #define SI_ENONE         0
@@ -48,26 +49,21 @@ struct siplan {
 	 * age:
 	 *   a: ttl
 	 *   b: ttl_wm
-	 *   c:
 	 * compact:
 	 *   a: branches
 	 *   b: mode
-	 *   c:
 	 * compact_index:
 	 *   a: index_size
 	 * checkpoint:
 	 *   a: lsn
-	 *   b:
-	 *   c:
 	 * gc:
 	 *   a: lsn
 	 *   b: percent
-	 *   c:
 	 * temperature:
+	 * snapshot:
+	 *   a: ssn
 	 * backup:
 	 *   a: bsn
-	 *   b:
-	 *   c:
 	 * shutdown:
 	 * drop:
 	 */

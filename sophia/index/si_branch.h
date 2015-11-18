@@ -15,6 +15,7 @@ struct sibranch {
 	sdid id;
 	sdindex index;
 	ssblob copy;
+	sibranch *link;
 	sibranch *next;
 };
 
@@ -24,6 +25,7 @@ si_branchinit(sibranch *b)
 	memset(&b->id, 0, sizeof(b->id));
 	sd_indexinit(&b->index);
 	ss_blobinit(&b->copy);
+	b->link = NULL;
 	b->next = NULL;
 }
 

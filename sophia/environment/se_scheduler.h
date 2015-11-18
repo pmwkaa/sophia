@@ -18,6 +18,7 @@ struct setask {
 	int     req;
 	int     gc;
 	int     checkpoint_complete;
+	int     snapshot_complete;
 	int     backup_complete;
 	void   *db;
 };
@@ -34,6 +35,10 @@ struct sescheduler {
 	uint32_t      backup_last_complete;
 	uint32_t      backup_events;
 	uint32_t      backup;
+	uint64_t      snapshot_ssn;
+	uint64_t      snapshot_ssn_last;
+	uint64_t      snapshot_last;
+	uint64_t      snapshot;
 	uint32_t      gc;
 	uint32_t      gc_last;
 	uint32_t      workers_backup;
@@ -58,6 +63,7 @@ int se_scheduler(sescheduler*, seworker*);
 int se_scheduler_branch(void*);
 int se_scheduler_compact(void*);
 int se_scheduler_compact_index(void*);
+int se_scheduler_snapshot(void*);
 int se_scheduler_checkpoint(void*);
 int se_scheduler_gc(void*);
 int se_scheduler_backup(void*);

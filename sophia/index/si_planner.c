@@ -77,6 +77,8 @@ int si_plannertrace(siplan *p, sstrace *t)
 		break;
 	case SI_DROP: plan = "database drop";
 		break;
+	case SI_SNAPSHOT: plan = "snapshot";
+		break;
 	}
 	char *explain = NULL;
 	switch (p->explain) {
@@ -322,6 +324,21 @@ match:
 	return 1;
 }
 
+static inline int
+si_plannerpeek_snapshot(siplanner *p, siplan *plan)
+{
+	si *index = p->i;
+	if (index->snapshot >= plan->a)
+		return 0;
+	if (index->snapshot_run) {
+		/* snaphot inprogress */
+		plan->explain = SI_ERETRY;
+		return 2;
+	}
+	index->snapshot_run = 1;
+	return 1;
+}
+
 int si_planner(siplanner *p, siplan *plan)
 {
 	switch (plan->plan) {
@@ -340,6 +357,8 @@ int si_planner(siplanner *p, siplan *plan)
 		return si_plannerpeek_age(p, plan);
 	case SI_BACKUP:
 		return si_plannerpeek_backup(p, plan);
+	case SI_SNAPSHOT:
+		return si_plannerpeek_snapshot(p, plan);
 	}
 	return -1;
 }

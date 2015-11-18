@@ -193,6 +193,7 @@ int si_branch(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 	/* commit */
 	si_lock(index);
 	branch->next = n->branch;
+	n->branch->link = branch;
 	n->branch = branch;
 	n->branch_count++;
 	uint32_t used = sv_indexused(i);
