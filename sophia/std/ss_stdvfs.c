@@ -232,7 +232,10 @@ ss_stdvfs_mremap(ssvfs *f ssunused, ssmmap *m, uint64_t size)
 	         MAP_PRIVATE|MAP_ANON, -1, 0);
 	if (p == MAP_FAILED)
 		return -1;
-	memcpy(p, m->p, m->size);
+	uint64_t to_copy = m->size;
+	if (to_copy > size)
+		to_copy = size;
+	memcpy(p, m->p, size);
 	munmap(m->p, m->size);
 #else
 	p = mremap(m->p, m->size, size, MREMAP_MAYMOVE);
