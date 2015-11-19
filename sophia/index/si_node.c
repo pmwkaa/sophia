@@ -28,7 +28,7 @@ sinode *si_nodenew(sr *r)
 	n->update_time = 0;
 	n->used = 0;
 	n->in_memory = 0;
-	si_branchinit(&n->self);
+	si_branchinit(&n->self, r);
 	n->branch = NULL;
 	n->branch_count = 0;
 	n->temperature = 0;
@@ -61,7 +61,8 @@ static inline int
 si_nodeclose(sinode *n, sr *r, int gc)
 {
 	int rcret = 0;
-	int rc = ss_munmap(&n->map);
+
+	int rc = ss_vfsmunmap(r->vfs, &n->map);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' munmap error: %s",
 		               ss_pathof(&n->file.path),
@@ -236,7 +237,7 @@ int si_nodecreate(sinode *n, sr *r, sischeme *scheme, sdid *id)
 
 int si_nodemap(sinode *n, sr *r)
 {
-	int rc = ss_mmap(&n->map, n->file.fd, n->file.size, 1);
+	int rc = ss_vfsmmap(r->vfs, &n->map, n->file.fd, n->file.size, 1);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' mmap error: %s",
 		               ss_pathof(&n->file.path),

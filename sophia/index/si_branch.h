@@ -20,11 +20,11 @@ struct sibranch {
 };
 
 static inline void
-si_branchinit(sibranch *b)
+si_branchinit(sibranch *b, sr *r)
 {
 	memset(&b->id, 0, sizeof(b->id));
 	sd_indexinit(&b->index);
-	ss_blobinit(&b->copy);
+	ss_blobinit(&b->copy, r->vfs);
 	b->link = NULL;
 	b->next = NULL;
 }
@@ -37,7 +37,7 @@ si_branchnew(sr *r)
 		sr_oom_malfunction(r->e);
 		return NULL;
 	}
-	si_branchinit(b);
+	si_branchinit(b, r);
 	return b;
 }
 

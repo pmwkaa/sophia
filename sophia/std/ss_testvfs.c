@@ -171,24 +171,60 @@ ss_testvfs_seek(ssvfs *f, int fd, uint64_t off)
 	return ss_stdvfs.seek(f, fd, off);
 }
 
+static int
+ss_testvfs_mmap(ssvfs *f, ssmmap *m, int fd, uint64_t size, int ro)
+{
+	if (ss_testvfs_call(f))
+		return -1;
+	return ss_stdvfs.mmap(f, m, fd, size, ro);
+}
+
+static int
+ss_testvfs_mmap_allocate(ssvfs *f, ssmmap *m, uint64_t size)
+{
+	if (ss_testvfs_call(f))
+		return -1;
+	return ss_stdvfs.mmap_allocate(f, m, size);
+}
+
+static int
+ss_testvfs_mremap(ssvfs *f, ssmmap *m, uint64_t size)
+{
+	if (ss_testvfs_call(f))
+		return -1;
+	return ss_stdvfs.mremap(f, m, size);
+}
+
+static int
+ss_testvfs_munmap(ssvfs *f, ssmmap *m)
+{
+	if (ss_testvfs_call(f))
+		return -1;
+	return ss_stdvfs.munmap(f, m);
+}
+
 ssvfsif ss_testvfs =
 {
-	.init     = ss_testvfs_init,
-	.free     = ss_testvfs_free,
-	.size     = ss_testvfs_size,
-	.exists   = ss_testvfs_exists,
-	.unlink   = ss_testvfs_unlink,
-	.rename   = ss_testvfs_rename,
-	.mkdir    = ss_testvfs_mkdir,
-	.rmdir    = ss_testvfs_rmdir,
-	.open     = ss_testvfs_open,
-	.close    = ss_testvfs_close,
-	.sync     = ss_testvfs_sync,
-	.advise   = ss_testvfs_advise,
-	.truncate = ss_testvfs_truncate,
-	.pread    = ss_testvfs_pread,
-	.pwrite   = ss_testvfs_pwrite,
-	.write    = ss_testvfs_write,
-	.writev   = ss_testvfs_writev,
-	.seek     = ss_testvfs_seek
+	.init          = ss_testvfs_init,
+	.free          = ss_testvfs_free,
+	.size          = ss_testvfs_size,
+	.exists        = ss_testvfs_exists,
+	.unlink        = ss_testvfs_unlink,
+	.rename        = ss_testvfs_rename,
+	.mkdir         = ss_testvfs_mkdir,
+	.rmdir         = ss_testvfs_rmdir,
+	.open          = ss_testvfs_open,
+	.close         = ss_testvfs_close,
+	.sync          = ss_testvfs_sync,
+	.advise        = ss_testvfs_advise,
+	.truncate      = ss_testvfs_truncate,
+	.pread         = ss_testvfs_pread,
+	.pwrite        = ss_testvfs_pwrite,
+	.write         = ss_testvfs_write,
+	.writev        = ss_testvfs_writev,
+	.seek          = ss_testvfs_seek,
+	.mmap          = ss_testvfs_mmap,
+	.mmap_allocate = ss_testvfs_mmap_allocate,
+	.mremap        = ss_testvfs_mremap,
+	.munmap        = ss_testvfs_munmap
 };

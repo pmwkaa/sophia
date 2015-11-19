@@ -14,21 +14,23 @@ typedef struct ssblob ssblob;
 struct ssblob {
 	ssmmap map;
 	char *s, *p, *e;
+	ssvfs *vfs;
 };
 
 static inline void
-ss_blobinit(ssblob *b)
+ss_blobinit(ssblob *b, ssvfs *vfs)
 {
 	ss_mmapinit(&b->map);
-	b->s = NULL;
-	b->p = NULL;
-	b->e = NULL;
+	b->s   = NULL;
+	b->p   = NULL;
+	b->e   = NULL;
+	b->vfs = vfs;
 }
 
 static inline int
 ss_blobfree(ssblob *b)
 {
-	return ss_munmap(&b->map);
+	return ss_vfsmunmap(b->vfs, &b->map);
 }
 
 static inline void
@@ -60,7 +62,7 @@ ss_blobadvance(ssblob *b, int size)
 static inline int
 ss_blobrealloc(ssblob *b, int size)
 {
-	int rc = ss_mremap(&b->map, size);
+	int rc = ss_vfsmremap(b->vfs, &b->map, size);
 	if (ssunlikely(rc == -1))
 		return -1;
 	char *p = b->map.p;

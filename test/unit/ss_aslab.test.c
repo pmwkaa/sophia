@@ -19,7 +19,7 @@ static void
 ss_aslab_reuse(void)
 {
 	sspager p;
-	ss_pagerinit(&p, 3, 1024);
+	ss_pagerinit(&p, &st_r.vfs, 3, 1024);
 
 	ssa slab;
 	t( ss_aopen(&slab, &ss_slaba, &p, 32) == 0 );

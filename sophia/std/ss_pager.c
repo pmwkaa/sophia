@@ -9,7 +9,7 @@
 
 #include <libss.h>
 
-void ss_pagerinit(sspager *p, uint32_t pool_count, uint32_t page_size)
+void ss_pagerinit(sspager *p, ssvfs *vfs, uint32_t pool_count, uint32_t page_size)
 {
 	p->page_size  = sizeof(sspage) + page_size;
 	p->pool_count = pool_count;
@@ -17,6 +17,7 @@ void ss_pagerinit(sspager *p, uint32_t pool_count, uint32_t page_size)
 	p->pools      = 0;
 	p->pp         = NULL;
 	p->p          = NULL;
+	p->vfs        = vfs;
 }
 
 void ss_pagerfree(sspager *p)
@@ -24,7 +25,11 @@ void ss_pagerfree(sspager *p)
 	sspagepool *pp_next, *pp = p->pp;
 	while (pp) {
 		pp_next = pp->next;
-		munmap(pp, p->pool_size);
+		ssmmap map = {
+			.p = (char*)pp,
+			.size = p->pool_size
+		};
+		ss_vfsmunmap(p->vfs, &map);
 		pp = pp_next;
 	}
 }
@@ -51,11 +56,12 @@ ss_pagerprefetch(sspager *p, sspagepool *pp)
 
 int ss_pageradd(sspager *p)
 {
-	sspagepool *pp =
-		mmap(NULL, p->pool_size, PROT_READ|PROT_WRITE|PROT_EXEC,
-	         MAP_PRIVATE|MAP_ANON, -1, 0);
-	if (ssunlikely(pp == MAP_FAILED))
+	ssmmap map;
+	ss_mmapinit(&map);
+	int rc = ss_vfsmmap_allocate(p->vfs, &map, p->pool_size);
+	if (ssunlikely(rc == -1))
 		return -1;
+	sspagepool *pp = (sspagepool*)map.p;
 	pp->used = 0;
 	pp->next = p->pp;
 	p->pp = pp;

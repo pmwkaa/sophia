@@ -31,6 +31,11 @@ struct ssvfsif {
 	int64_t (*write)(ssvfs*, int, void*, int);
 	int64_t (*writev)(ssvfs*, int, ssiov*);
 	int64_t (*seek)(ssvfs*, int, uint64_t);
+
+	int     (*mmap)(ssvfs*, ssmmap*, int, uint64_t, int);
+	int     (*mmap_allocate)(ssvfs*, ssmmap*, uint64_t);
+	int     (*mremap)(ssvfs*, ssmmap*, uint64_t);
+	int     (*munmap)(ssvfs*, ssmmap*);
 };
 
 struct ssvfs {
@@ -71,5 +76,9 @@ ss_vfsfree(ssvfs *f)
 #define ss_vfswrite(fs, fd, buf, size)       (fs)->i->write(fs, fd, buf, size)
 #define ss_vfswritev(fs, fd, iov)            (fs)->i->writev(fs, fd, iov)
 #define ss_vfsseek(fs, fd, off)              (fs)->i->seek(fs, fd, off)
+#define ss_vfsmmap(fs, m, fd, size, ro)      (fs)->i->mmap(fs, m, fd, size, ro)
+#define ss_vfsmmap_allocate(fs, m, size)     (fs)->i->mmap_allocate(fs, m, size)
+#define ss_vfsmremap(fs, m, size)            (fs)->i->mremap(fs, m, size)
+#define ss_vfsmunmap(fs, m)                  (fs)->i->munmap(fs, m)
 
 #endif

@@ -19,7 +19,7 @@ static void
 ss_pager_test0(void)
 {
 	sspager p;
-	ss_pagerinit(&p, 3, 1024);
+	ss_pagerinit(&p, &st_r.vfs, 3, 1024);
 
 	t( ss_pageradd(&p) == 0 );
 

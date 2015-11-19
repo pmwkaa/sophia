@@ -108,7 +108,7 @@ int sd_recover_open(ssiter *i, sr *r, ssfile *file)
 		ri->corrupt = 1;
 		return -1;
 	}
-	int rc = ss_mmap(&ri->map, ri->file->fd, ri->file->size, 1);
+	int rc = ss_vfsmmap(r->vfs, &ri->map, ri->file->fd, ri->file->size, 1);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(ri->r->e, "failed to mmap db file '%s': %s",
 		               ss_pathof(&ri->file->path),
@@ -118,15 +118,15 @@ int sd_recover_open(ssiter *i, sr *r, ssfile *file)
 	sdseal *seal = (sdseal*)((char*)ri->map.p);
 	rc = sd_recovernext_of(ri, seal);
 	if (ssunlikely(rc == -1))
-		ss_munmap(&ri->map);
+		ss_vfsmunmap(r->vfs, &ri->map);
 	return rc;
 }
 
 static void
-sd_recoverclose(ssiter *i ssunused)
+sd_recoverclose(ssiter *i)
 {
 	sdrecover *ri = (sdrecover*)i->priv;
-	ss_munmap(&ri->map);
+	ss_vfsmunmap(ri->r->vfs, &ri->map);
 }
 
 static int

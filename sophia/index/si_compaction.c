@@ -24,7 +24,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 	int rc;
 	ssblob copy, *blob = NULL;
 	if (parent->in_memory) {
-		ss_blobinit(&copy);
+		ss_blobinit(&copy, r->vfs);
 		rc = ss_blobensure(&copy, 10ULL * 1024 * 1024);
 		if (ssunlikely(rc == -1)) {
 			sr_oom_malfunction(r->e);
@@ -150,7 +150,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 	/* mmap support */
 	if (index->scheme->mmap) {
 		ss_mmapinit(&parent->map_swap);
-		rc = ss_mmap(&parent->map_swap, parent->file.fd,
+		rc = ss_vfsmmap(r->vfs, &parent->map_swap, parent->file.fd,
 		              parent->file.size, 1);
 		if (ssunlikely(rc == -1)) {
 			sr_malfunction(r->e, "db file '%s' mmap error: %s",
@@ -210,7 +210,7 @@ int si_branch(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 
 	/* gc */
 	if (index->scheme->mmap) {
-		int rc = ss_munmap(&swap_map);
+		int rc = ss_vfsmunmap(r->vfs, &swap_map);
 		if (ssunlikely(rc == -1)) {
 			sr_malfunction(r->e, "db file '%s' munmap error: %s",
 			               ss_pathof(&n->file.path),

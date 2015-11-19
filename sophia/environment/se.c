@@ -222,7 +222,8 @@ so *se_new(void)
 	so_init(&e->o, &se_o[SE], &seif, &e->o, &e->o /* self */);
 	se_statusinit(&e->status);
 	se_statusset(&e->status, SE_OFFLINE);
-	ss_pagerinit(&e->pager, 10, 4096);
+	ss_vfsinit(&e->vfs, &ss_stdvfs);
+	ss_pagerinit(&e->pager, &e->vfs, 10, 4096);
 	int rc = ss_pageradd(&e->pager);
 	if (ssunlikely(rc == -1)) {
 		se_statusfree(&e->status);
@@ -230,7 +231,6 @@ so *se_new(void)
 		free(e);
 		return NULL;
 	}
-	ss_vfsinit(&e->vfs, &ss_stdvfs);
 	ss_aopen(&e->a, &ss_stda);
 	ss_aopen(&e->a_db, &ss_slaba, &e->pager, sizeof(sedb));
 	ss_aopen(&e->a_dbcursor, &ss_slaba, &e->pager, sizeof(sedbcursor));

@@ -30,9 +30,10 @@ struct sspager {
 	uint32_t pools;
 	sspagepool *pp;
 	sspage *p;
+	ssvfs *vfs;
 };
 
-void  ss_pagerinit(sspager*, uint32_t, uint32_t);
+void  ss_pagerinit(sspager*, ssvfs*, uint32_t, uint32_t);
 void  ss_pagerfree(sspager*);
 int   ss_pageradd(sspager*);
 void *ss_pagerpop(sspager*);
