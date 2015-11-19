@@ -90,7 +90,14 @@ static int
 ss_stdvfs_advise(ssvfs *f ssunused, int fd, int hint, uint64_t off, uint64_t len)
 {
 	(void)hint;
+#if defined(__APPLE__)
+	(void)fd;
+	(void)off;
+	(void)len;
+	return 0;
+#else
 	return posix_fadvise(fd, off, len, POSIX_FADV_DONTNEED);
+#endif
 }
 
 static int
