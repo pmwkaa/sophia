@@ -61,4 +61,26 @@ si_branchis_root(sibranch *b) {
 	return b->next == NULL;
 }
 
+static inline int
+si_branchload(sibranch *b, sr *r, ssfile *file)
+{
+	sdindexheader *h = b->index.h;
+	uint64_t offset = h->offset - h->total - sizeof(sdseal);
+	uint64_t size   = h->total + sizeof(sdseal) + sizeof(sdindexheader) +
+	                  h->size + h->extension;
+	assert(b->copy.s == NULL);
+	int rc;
+	rc = ss_blobensure(&b->copy, size);
+	if (ssunlikely(rc == -1))
+		return sr_oom_malfunction(r->e);
+	rc = ss_filepread(file, offset, b->copy.s, size);
+	if (ssunlikely(rc == -1)) {
+		sr_malfunction(r->e, "db file '%s' read error: %s",
+		               ss_pathof(&file->path), strerror(errno));
+		return -1;
+	}
+	ss_blobadvance(&b->copy, size);
+	return 0;
+}
+
 #endif

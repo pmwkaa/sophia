@@ -35,6 +35,9 @@ struct seconfrt {
 	uint32_t  snapshot_active;
 	uint64_t  snapshot_ssn;
 	uint64_t  snapshot_ssn_last;
+	uint32_t  anticache_active;
+	uint64_t  anticache_asn;
+	uint64_t  anticache_asn_last;
 	uint32_t  backup_active;
 	uint32_t  backup_last;
 	uint32_t  backup_last_complete;
@@ -73,6 +76,7 @@ struct seconf {
 	uint32_t      event_on_backup;
 	/* memory */
 	uint64_t      memory_limit;
+	uint64_t      anticache;
 	/* log */
 	uint32_t      log_enable;
 	char         *log_path;

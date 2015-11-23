@@ -14,7 +14,7 @@
 #include <libsl.h>
 
 static inline sl*
-sl_alloc(slpool *p, uint32_t id)
+sl_alloc(slpool *p, uint64_t id)
 {
 	sl *l = ss_malloc(p->r->a, sizeof(*l));
 	if (ssunlikely(l == NULL)) {
@@ -47,7 +47,7 @@ sl_close(slpool *p, sl *l)
 }
 
 static inline sl*
-sl_open(slpool *p, uint32_t id)
+sl_open(slpool *p, uint64_t id)
 {
 	sl *l = sl_alloc(p, id);
 	if (ssunlikely(l == NULL))
@@ -68,7 +68,7 @@ error:
 }
 
 static inline sl*
-sl_new(slpool *p, uint32_t id)
+sl_new(slpool *p, uint64_t id)
 {
 	sl *l = sl_alloc(p, id);
 	if (ssunlikely(l == NULL))
@@ -180,7 +180,7 @@ int sl_poolrotate(slpool *p)
 {
 	if (ssunlikely(! p->conf->enable))
 		return 0;
-	uint32_t lfsn = sr_seq(p->r->seq, SR_LFSNNEXT);
+	uint64_t lfsn = sr_seq(p->r->seq, SR_LFSNNEXT);
 	sl *l = sl_new(p, lfsn);
 	if (ssunlikely(l == NULL))
 		return -1;

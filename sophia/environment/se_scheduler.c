@@ -113,6 +113,19 @@ int se_scheduler_compact_index(void *arg)
 	return rc;
 }
 
+int se_scheduler_anticache(void *arg)
+{
+	se *o = arg;
+	sescheduler *s = &o->sched;
+	uint64_t asn = sr_seq(&o->seq, SR_ASNNEXT);
+	ss_mutexlock(&s->lock);
+	s->anticache_asn = asn;
+	s->anticache_storage = o->conf.anticache;
+	s->anticache = 1;
+	ss_mutexunlock(&s->lock);
+	return 0;
+}
+
 int se_scheduler_snapshot(void *arg)
 {
 	se *o = arg;
@@ -318,6 +331,11 @@ int se_scheduler_init(sescheduler *s, so *env)
 	s->backup_last_complete = 0;
 	s->backup_events        = 0;
 	s->backup               = 0;
+	s->anticache_asn        = 0;
+	s->anticache_asn_last   = 0;
+	s->anticache_last       = now;
+	s->anticache_storage    = 0;
+	s->anticache            = 0;
 	s->snapshot_ssn         = 0;
 	s->snapshot_ssn_last    = 0;
 	s->snapshot_last        = now;
@@ -483,6 +501,7 @@ se_schedule(sescheduler *s, setask *task, seworker *w)
 	assert(zone != NULL);
 
 	task->checkpoint_complete = 0;
+	task->anticache_complete = 0;
 	task->snapshot_complete = 0;
 	task->backup_complete = 0;
 	task->rotate = 0;
@@ -589,6 +608,47 @@ checkpoint:
 		}
 	}
 
+	/* anti-cache */
+	if (s->anticache) {
+		task->plan.plan = SI_ANTICACHE;
+		task->plan.a = s->anticache_asn;
+		task->plan.b = s->anticache_storage;
+		rc = se_schedule_plan(s, &task->plan, &db);
+		switch (rc) {
+		case 1:
+			se_dbref(db, 1);
+			task->db = db;
+			uint64_t size = task->plan.c;
+			if (size > 0) {
+				if (ssunlikely(size > s->anticache_storage))
+					s->anticache_storage = 0;
+				else
+					s->anticache_storage -= size;
+			}
+			ss_mutexunlock(&s->lock);
+			return 1;
+		case 2: /* work in progress */
+			in_progress = 1;
+			break;
+		case 0: /* complete */
+			s->anticache = 0;
+			s->anticache_asn_last = s->anticache_asn;
+			s->anticache_asn = 0;
+			s->anticache_storage = 0;
+			s->anticache_last = now;
+			task->anticache_complete = 1;
+			break;
+		}
+	} else {
+		if (zone->anticache_period) {
+			if ( (now - s->anticache_last) >= ((uint64_t)zone->anticache_period * 1000000) ) {
+				s->anticache = 1;
+				s->anticache_storage = e->conf.anticache;
+				s->anticache_asn = sr_seq(&e->seq, SR_ASNNEXT);
+			}
+		}
+	}
+
 	/* snapshot */
 	if (s->snapshot) {
 		task->plan.plan = SI_SNAPSHOT;
@@ -603,7 +663,7 @@ checkpoint:
 		case 2: /* work in progress */
 			in_progress = 1;
 			break;
-		case 0: /* complete checkpoint */
+		case 0: /* complete */
 			s->snapshot = 0;
 			s->snapshot_ssn_last = s->snapshot_ssn;
 			s->snapshot_ssn = 0;
@@ -890,6 +950,8 @@ se_complete(sescheduler *s, setask *t)
 		s->workers_backup--;
 		break;
 	case SI_SNAPSHOT:
+		break;
+	case SI_ANTICACHE:
 		break;
 	case SI_GC:
 		s->workers_gc--;

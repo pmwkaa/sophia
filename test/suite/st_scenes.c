@@ -394,7 +394,7 @@ void st_scene_phase_storage(stscene *s)
 			fprintf(st_r.output, ".storage_in_memory");
 			fflush(st_r.output);
 		}
-		t( sp_setstring(st_r.env, "db.test.storage", "in_memory", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.storage", "in-memory", 0) == 0 );
 		break;
 	case 2:
 		if (st_r.verbose) {
@@ -473,7 +473,7 @@ void st_scene_phase_storage(stscene *s)
 			fprintf(st_r.output, ".storage_in_memory_mmap");
 			fflush(st_r.output);
 		}
-		t( sp_setstring(st_r.env, "db.test.storage", "in_memory", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.storage", "in-memory", 0) == 0 );
 		t( sp_setint(st_r.env, "db.test.mmap", 1) == 0 );
 		break;
 	case 12:
@@ -481,7 +481,7 @@ void st_scene_phase_storage(stscene *s)
 			fprintf(st_r.output, ".storage_in_memory_compression");
 			fflush(st_r.output);
 		}
-		t( sp_setstring(st_r.env, "db.test.storage", "in_memory", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.storage", "in-memory", 0) == 0 );
 		t( sp_setstring(st_r.env, "db.test.compression", "lz4", 0) == 0 );
 		break;
 	case 13:
@@ -489,7 +489,7 @@ void st_scene_phase_storage(stscene *s)
 			fprintf(st_r.output, ".storage_in_memory_compression_compression_key");
 			fflush(st_r.output);
 		}
-		t( sp_setstring(st_r.env, "db.test.storage", "in_memory", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.storage", "in-memory", 0) == 0 );
 		t( sp_setstring(st_r.env, "db.test.compression", "lz4", 0) == 0 );
 		t( sp_setint(st_r.env, "db.test.compression_key", 1) == 0 );
 		break;

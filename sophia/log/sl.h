@@ -14,7 +14,7 @@ typedef struct slpool slpool;
 typedef struct sltx sltx;
 
 struct sl {
-	uint32_t id;
+	uint64_t id;
 	ssgc gc;
 	ssmutex filelock;
 	ssfile file;

@@ -117,6 +117,9 @@ int si_execute(si *i, sdc *c, siplan *plan, uint64_t vlsn)
 	case SI_COMPACT_INDEX:
 		rc = si_compact_index(i, c, plan, vlsn);
 		break;
+	case SI_ANTICACHE:
+		rc = si_anticache(i, plan);
+		break;
 	case SI_SNAPSHOT:
 		rc = si_snapshot(i, plan);
 		break;

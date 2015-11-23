@@ -32,6 +32,7 @@ struct siplanner {
 #define SI_SHUTDOWN      512
 #define SI_DROP          1024
 #define SI_SNAPSHOT      2048
+#define SI_ANTICACHE     4096
 
 /* explain */
 #define SI_ENONE         0
@@ -39,7 +40,6 @@ struct siplanner {
 #define SI_EINDEX_SIZE   2
 #define SI_EINDEX_AGE    3
 #define SI_EBRANCH_COUNT 4
-#define SI_ETEMP         5
 
 struct siplan {
 	int explain;
@@ -60,6 +60,10 @@ struct siplan {
 	 *   a: lsn
 	 *   b: percent
 	 * temperature:
+	 * ac:
+	 *   a: asn
+	 *   b: available
+	 *   c: *node_size
 	 * snapshot:
 	 *   a: ssn
 	 * backup:

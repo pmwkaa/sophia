@@ -14,6 +14,8 @@ typedef struct sinode sinode;
 #define SI_NONE       0
 #define SI_LOCK       1
 #define SI_ROTATE     2
+#define SI_PROMOTE    4
+#define SI_REVOKE     8
 
 #define SI_RDB        16
 #define SI_RDB_DBI    32
@@ -27,6 +29,7 @@ struct sinode {
 	uint64_t  update_time;
 	uint32_t  used;
 	uint32_t  backup;
+	uint32_t  ac;
 	uint32_t  in_memory;
 	sibranch  self;
 	sibranch *branch;
@@ -120,6 +123,18 @@ si_nodecmp(sinode *n, void *key, int size, srscheme *s)
 	/* key < range */
 	assert(r == 1);
 	return 1;
+}
+
+static inline uint64_t
+si_nodesize(sinode *n)
+{
+	uint64_t size = n->used;
+	sibranch *b = n->branch;
+	while (b) {
+		size += sd_indextotal(&b->index);
+		b = b->next;
+	}
+	return size;
 }
 
 #endif

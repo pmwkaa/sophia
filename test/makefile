@@ -41,6 +41,7 @@ STS_TESTS = unit/ss_leb128.test.o \
             generic/rev.test.o \
             generic/backup.test.o \
             generic/snapshot.test.o \
+            generic/anticache.test.o \
             generic/checkpoint.test.o \
             generic/db_cursor.test.o \
             generic/prefix.test.o \

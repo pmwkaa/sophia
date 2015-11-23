@@ -70,7 +70,7 @@ workflow_open(void *env)
 	rc = sp_setint(env, "db.test.compression_key", 1);
 	if (rc == -1)
 		return NULL;
-	rc = sp_setstring(env, "db.test.storage", "in_memory", 0);
+	rc = sp_setstring(env, "db.test.storage", "in-memory", 0);
 	if (rc == -1)
 		return NULL;
 	rc = sp_setstring(env, "db.test.index.key", "u32", 0);

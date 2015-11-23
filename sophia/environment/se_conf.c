@@ -88,6 +88,7 @@ se_confmemory(se *e, seconfrt *rt, srconf **pc)
 	srconf *p = NULL;
 	sr_c(&p, pc, se_confv_offline, "limit", SS_U64, &e->conf.memory_limit);
 	sr_C(&p, pc, se_confv, "used", SS_U64, &rt->memory_used, SR_RO, NULL);
+	sr_c(&p, pc, se_confv_offline, "anticache", SS_U64, &e->conf.anticache);
 	sr_C(&p, pc, se_confv, "pager_pools", SS_U32, &rt->pager_pools, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "pager_pool_size", SS_U32, &rt->pager_pool_size, SR_RO, NULL);
 	return sr_C(NULL, pc, NULL, "memory", SS_UNDEF, memory, SR_NS, NULL);
@@ -144,8 +145,9 @@ se_confcompaction(se *e, seconfrt *rt ssunused, srconf **pc)
 		sr_c(&p, pc, se_confv_offline, "branch_age", SS_U32, &z->branch_age);
 		sr_c(&p, pc, se_confv_offline, "branch_age_period", SS_U32, &z->branch_age_period);
 		sr_c(&p, pc, se_confv_offline, "branch_age_wm", SS_U32, &z->branch_age_wm);
-		sr_c(&p, pc, se_confv_offline, "backup_prio", SS_U32, &z->backup_prio);
+		sr_c(&p, pc, se_confv_offline, "anticache_period", SS_U32, &z->anticache_period);
 		sr_c(&p, pc, se_confv_offline, "snapshot_period", SS_U32, &z->snapshot_period);
+		sr_c(&p, pc, se_confv_offline, "backup_prio", SS_U32, &z->backup_prio);
 		sr_c(&p, pc, se_confv_offline, "gc_wm", SS_U32, &z->gc_wm);
 		sr_c(&p, pc, se_confv_offline, "gc_db_prio", SS_U32, &z->gc_db_prio);
 		sr_c(&p, pc, se_confv_offline, "gc_prio", SS_U32, &z->gc_prio);
@@ -196,6 +198,15 @@ se_confscheduler_snapshot(srconf *c, srconfstmt *s)
 		return se_confv(c, s);
 	se *e = s->ptr;
 	return se_scheduler_snapshot(e);
+}
+
+static inline int
+se_confscheduler_anticache(srconf *c, srconfstmt *s)
+{
+	if (s->op != SR_WRITE)
+		return se_confv(c, s);
+	se *e = s->ptr;
+	return se_scheduler_anticache(e);
 }
 
 static inline int
@@ -286,6 +297,10 @@ se_confscheduler(se *e, seconfrt *rt, srconf **pc)
 	sr_C(&p, pc, se_confv, "checkpoint_lsn", SS_U64, &rt->checkpoint_lsn, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "checkpoint_lsn_last", SS_U64, &rt->checkpoint_lsn_last, SR_RO, NULL);
 	sr_c(&p, pc, se_confscheduler_checkpoint, "checkpoint",  SS_FUNCTION, NULL);
+	sr_C(&p, pc, se_confv, "anticache_active", SS_U32, &rt->anticache_active, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "anticache_asn", SS_U64, &rt->anticache_asn, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "anticache_asn_last", SS_U64, &rt->anticache_asn_last, SR_RO, NULL);
+	sr_c(&p, pc, se_confscheduler_anticache, "anticache", SS_FUNCTION, NULL);
 	sr_C(&p, pc, se_confv, "snapshot_active", SS_U32, &rt->snapshot_active, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "snapshot_ssn", SS_U64, &rt->snapshot_ssn, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "snapshot_ssn_last", SS_U64, &rt->snapshot_ssn_last, SR_RO, NULL);
@@ -391,12 +406,14 @@ se_confmetric(se *e ssunused, seconfrt *rt, srconf **pc)
 {
 	srconf *metric = *pc;
 	srconf *p = NULL;
-	sr_C(&p, pc, se_confv, "dsn",  SS_U32, &rt->seq.dsn, SR_RO, NULL);
-	sr_C(&p, pc, se_confv, "nsn",  SS_U64, &rt->seq.nsn, SR_RO, NULL);
-	sr_C(&p, pc, se_confv, "bsn",  SS_U32, &rt->seq.bsn, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "lsn",  SS_U64, &rt->seq.lsn, SR_RO, NULL);
-	sr_C(&p, pc, se_confv, "lfsn", SS_U32, &rt->seq.lfsn, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "tsn",  SS_U64, &rt->seq.tsn, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "nsn",  SS_U64, &rt->seq.nsn, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "ssn",  SS_U64, &rt->seq.ssn, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "asn",  SS_U64, &rt->seq.asn, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "dsn",  SS_U32, &rt->seq.dsn, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "bsn",  SS_U32, &rt->seq.bsn, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "lfsn", SS_U64, &rt->seq.lfsn, SR_RO, NULL);
 	return sr_C(NULL, pc, NULL, "metric", SS_UNDEF, metric, SR_NS, NULL);
 }
 
@@ -818,6 +835,9 @@ se_confrt(se *e, seconfrt *rt)
 	rt->snapshot_active      = e->sched.snapshot;
 	rt->snapshot_ssn         = e->sched.snapshot_ssn;
 	rt->snapshot_ssn_last    = e->sched.snapshot_ssn_last;
+	rt->anticache_active     = e->sched.anticache;
+	rt->anticache_asn        = e->sched.anticache_asn;
+	rt->anticache_asn_last   = e->sched.anticache_asn_last;
 	rt->backup_active        = e->sched.backup;
 	rt->backup_last          = e->sched.backup_last;
 	rt->backup_last_complete = e->sched.backup_last_complete;
@@ -967,6 +987,7 @@ int se_confinit(seconf *c, so *e)
 	c->path                = NULL;
 	c->path_create         = 1;
 	c->memory_limit        = 0;
+	c->anticache           = 0;
 	c->node_size           = 64 * 1024 * 1024;
 	c->node_preload        = 0;
 	c->page_size           = 128 * 1024;
@@ -993,6 +1014,7 @@ int se_confinit(seconf *c, so *e)
 		.branch_age        = 40,
 		.branch_age_period = 40,
 		.branch_age_wm     = 1 * 1024 * 1024,
+		.anticache_period  = 0,
 		.snapshot_period   = 60,
 		.backup_prio       = 1,
 		.gc_db_prio        = 1,
@@ -1011,6 +1033,7 @@ int se_confinit(seconf *c, so *e)
 		.branch_age        = 0,
 		.branch_age_period = 0,
 		.branch_age_wm     = 0,
+		.anticache_period  = 0,
 		.snapshot_period   = 0,
 		.backup_prio       = 0,
 		.gc_db_prio        = 0,

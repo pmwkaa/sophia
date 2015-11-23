@@ -79,6 +79,8 @@ int si_plannertrace(siplan *p, sstrace *t)
 		break;
 	case SI_SNAPSHOT: plan = "snapshot";
 		break;
+	case SI_ANTICACHE: plan = "anticache";
+		break;
 	}
 	char *explain = NULL;
 	switch (p->explain) {
@@ -96,9 +98,6 @@ int si_plannertrace(siplan *p, sstrace *t)
 		break;
 	case SI_EBRANCH_COUNT:
 		explain = "branch count";
-		break;
-	case SI_ETEMP:
-		explain = "temperature";
 		break;
 	}
 	if (p->node) {
@@ -287,7 +286,7 @@ si_plannerpeek_compact_temperature(siplanner *p, siplan *plan)
 	return 0;
 match:
 	si_nodelock(n);
-	plan->explain = SI_ETEMP;
+	plan->explain = SI_ENONE;
 	plan->node = n;
 	return 1;
 }
@@ -339,6 +338,52 @@ si_plannerpeek_snapshot(siplanner *p, siplan *plan)
 	return 1;
 }
 
+static inline int
+si_plannerpeek_anticache(siplanner *p, siplan *plan)
+{
+	si *index = p->i;
+	if (index->scheme->storage != SI_SANTI_CACHE)
+		return 0;
+	int rc_inprogress = 0;
+	sinode *n;
+	ssrqnode *pn = NULL;
+	while ((pn = ss_rqprev(&p->temp, pn))) {
+		n = sscast(pn, sinode, nodetemp);
+		if (n->flags & SI_LOCK) {
+			rc_inprogress = 2;
+			continue;
+		}
+		if (n->ac >= plan->a)
+			continue;
+		n->ac = plan->a;
+		uint64_t size = si_nodesize(n);
+		if (size <= plan->b) {
+			/* promote */
+			if (n->in_memory)
+				continue;
+			plan->c = size;
+			n->flags |= SI_PROMOTE;
+		} else {
+			/* revoke in_memory flag */
+			if (! n->in_memory)
+				continue;
+			plan->c = 0;
+			n->flags |= SI_REVOKE;
+		}
+		goto match;
+	}
+	if (rc_inprogress) {
+		plan->explain = SI_ERETRY;
+		return 2;
+	}
+	return 0;
+match:
+	si_nodelock(n);
+	plan->explain = SI_ENONE;
+	plan->node = n;
+	return 1;
+}
+
 int si_planner(siplanner *p, siplan *plan)
 {
 	switch (plan->plan) {
@@ -359,6 +404,8 @@ int si_planner(siplanner *p, siplan *plan)
 		return si_plannerpeek_backup(p, plan);
 	case SI_SNAPSHOT:
 		return si_plannerpeek_snapshot(p, plan);
+	case SI_ANTICACHE:
+		return si_plannerpeek_anticache(p, plan);
 	}
 	return -1;
 }

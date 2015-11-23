@@ -86,7 +86,10 @@ se_dbscheme_set(sedb *db)
 	if (strcmp(s->storage_sz, "cache") == 0) {
 		s->storage = SI_SCACHE;
 	} else
-	if (strcmp(s->storage_sz, "in_memory") == 0) {
+	if (strcmp(s->storage_sz, "anti-cache") == 0) {
+		s->storage = SI_SANTI_CACHE;
+	} else
+	if (strcmp(s->storage_sz, "in-memory") == 0) {
 		s->storage = SI_SIN_MEMORY;
 	} else {
 		sr_error(&e->error, "unknown storage type '%s'", s->storage_sz);

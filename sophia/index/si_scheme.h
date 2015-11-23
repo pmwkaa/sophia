@@ -13,6 +13,7 @@ typedef struct sischeme sischeme;
 
 typedef enum {
 	SI_SCACHE,
+	SI_SANTI_CACHE,
 	SI_SIN_MEMORY
 } sistorage;
 
@@ -26,6 +27,7 @@ struct sischeme {
 	uint32_t    mmap;
 	sistorage   storage;
 	char       *storage_sz;
+	uint64_t    anticache;
 	uint32_t    sync;
 	uint64_t    node_size;
 	uint32_t    node_page_size;

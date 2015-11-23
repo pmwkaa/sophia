@@ -24,6 +24,7 @@ sinode *si_nodenew(sr *r)
 	}
 	n->recover = 0;
 	n->backup = 0;
+	n->ac = 0;
 	n->flags = 0;
 	n->update_time = 0;
 	n->used = 0;
@@ -155,17 +156,9 @@ si_noderecover(sinode *n, sr *r, sdsnapshotnode *sn, int in_memory)
 		si_branchset(b, &index);
 
 		if (in_memory) {
-			char *start = (char*)h - h->total - sizeof(sdseal);
-			char *end = start + sizeof(sdseal) + h->total +
-			            sizeof(sdindexheader) + h->size +
-			            h->extension;
-			int branch_size = end - start;
-			rc = ss_blobensure(&b->copy, branch_size);
-			if (ssunlikely(rc == -1)) {
-				sr_oom_malfunction(r->e);
+			rc = si_branchload(b, r, &n->file);
+			if (ssunlikely(rc == -1))
 				goto error;
-			}
-			memcpy(b->copy.p, start, branch_size);
 		}
 
 		b->next   = n->branch;
