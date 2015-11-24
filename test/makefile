@@ -84,15 +84,19 @@ endif
 STS_CFLAGS     = $(SOPHIA_INCLUDE) -g -O0 -Wall -I. -I../sophia -Isuite/ -pthread
 STS_LDFLAGS    = ../sophia.o suite/libst.a -pthread -lm $(STS_COVERAGE)
 STS_BINARY     = sophia-test
+STS_PROF       = sophia-prof
 STS_SOPHIA_DIR = _test_sophia
 STS_BACKUP_DIR = _test_backup
 STS_LOG_DIR    = _test_log
 STS_DB_DIR     = _test_db
 
-all: banner validate sophia-test
-sophia-test: suite $(STS_TESTS)
+all: banner sophia-test sophia-prof
+sophia-test: validate suite $(STS_TESTS)
 	@echo "ld $(STS_BINARY)"
 	@$(CC) $(STS_TESTS) sophia-test.c $(STS_CFLAGS) $(STS_LDFLAGS) -o $(STS_BINARY)
+sophia-prof: validate suite
+	@echo "ld $(STS_PROF)"
+	@$(CC) sophia-prof.c $(STS_CFLAGS) $(STS_LDFLAGS) -o $(STS_PROF)
 suite:
 	@(cd suite; make --silent --no-print-directory)
 banner:
@@ -111,6 +115,7 @@ validate:
 clean:
 	@(cd suite; make --no-print-directory clean)
 	@rm -f $(STS_BINARY)
+	@rm -f $(STS_PROF)
 	@rm -f $(STS_TESTS)
 	@rm -fr $(STS_SOPHIA_DIR) \
 	        $(STS_BACKUP_DIR) \
@@ -119,6 +124,6 @@ test:
 	@gdb -q -return-child-result -batch -ex "run" -ex "bt" --args $(STS_BINARY) -v
 
 .PHONY: all clean validate banner suite test
-.PHONY: sophia-test
+.PHONY: sophia-test sophia-prof
 
 # vim: syntax=make
