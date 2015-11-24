@@ -13,7 +13,7 @@ test/_test_backup
 test/_test_log
 test/_test_db
 test/sophia-test
-test/sophia-benchmark
+test/sophia-prof
 sophia.h
 sophia.c
 example/crud

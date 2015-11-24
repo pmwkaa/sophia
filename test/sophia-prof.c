@@ -62,6 +62,7 @@ spr_cmd_start(void)
 	/* create env */
 	spr_env = sp_env();
 	sp_setstring(spr_env, "sophia.path", "_test_sophia", 0);
+	sp_setstring(spr_env, "backup.path", "_test_backup", 0);
 	sp_setstring(spr_env, "db", "test", 0);
 	spr_db = sp_getobject(spr_env, "db.test");
 	int rc;
@@ -136,16 +137,26 @@ spr_cmd_anticache(void)
 	sp_setint(spr_env, "scheduler.anticache", 0);
 }
 
+static inline void
+spr_cmd_backup(void)
+{
+	if (! spr_start)
+		return;
+	sp_setint(spr_env, "backup.run", 0);
+}
+
 static inline void spr_cmd_help(void)
 {
 	printf(" start      -- start profiling (create env)\n");
 	printf(" stop       -- stop profiling\n");
-	printf(" pause      -- pause/continue profiling\n");
+	printf(" [p]ause    -- pause/continue profiling\n");
+	printf(" [c]ontinue -- continue profiling\n");
 	printf(" [i]nfo     -- show sophia statistics\n");
 	printf(" checkpoint -- schedule checkpoint operation\n");
 	printf(" snapshot   -- schedule snapshot operation\n");
 	printf(" gc         -- schedule garbage collection\n");
 	printf(" anticache  -- schedule anticache operation\n");
+	printf(" backup     -- schedule backup operation\n");
 	printf(" help       -- this help\n");
 	printf(" exit       -- stop and quit\n");
 }
@@ -181,10 +192,8 @@ spr_execute(char *cmd, int size)
 	if (argc == 0)
 		return;
 	/* match command */
-	if (strcmp(argv[0], "i") == 0) {
-		spr_cmd_info();
-	} else
-	if (strcmp(argv[0], "info") == 0) {
+	if (strcmp(argv[0], "i") == 0 ||
+	    strcmp(argv[0], "info") == 0) {
 		spr_cmd_info();
 	} else
 	if (strcmp(argv[0], "checkpoint") == 0) {
@@ -203,6 +212,10 @@ spr_execute(char *cmd, int size)
 		spr_cmd_anticache();
 		printf("anticache is in progress\n");
 	} else
+	if (strcmp(argv[0], "backup") == 0) {
+		spr_cmd_backup();
+		printf("backup is in progress\n");
+	} else
 	if (strcmp(argv[0], "start") == 0) {
 		if (spr_start) {
 			printf("profiling is already started\n");
@@ -219,12 +232,20 @@ spr_execute(char *cmd, int size)
 		spr_cmd_stop();
 		printf("profiling stopped\n");
 	} else
-	if (strcmp(argv[0], "pause") == 0) {
+	if (strcmp(argv[0], "p") == 0 ||
+	    strcmp(argv[0], "pause") == 0) {
 		if (spr_pause)
 			printf("continue\n");
 		else
 			printf("on pause\n");
 		spr_pause = !spr_pause;
+	} else
+	if (strcmp(argv[0], "c") == 0 ||
+	    strcmp(argv[0], "continue") == 0) {
+		if (spr_pause) {
+			printf("continue\n");
+			spr_pause = 0;
+		}
 	} else
 	if (strcmp(argv[0], "exit") == 0) {
 		printf("shutdown\n");
