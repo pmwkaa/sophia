@@ -269,7 +269,7 @@ mt_quota_age(void)
 	t( sp_setint(env, "compaction.80.branch_wm", 104857600) == 0 );
 	t( sp_setint(env, "compaction.80.branch_age_period", 1) == 0 );
 	t( sp_setint(env, "compaction.80.branch_age", 1) == 0 );
-	t( sp_setint(env, "compaction.80.branch_prio", 3) == 0 );
+	t( sp_setint(env, "compaction.80.branch_prio", 1) == 0 );
 	t( sp_setint(env, "compaction.80.branch_age_wm", 500000) == 0 );
 	t( sp_setint(env, "scheduler.threads", 5) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
@@ -286,7 +286,7 @@ mt_quota_age(void)
 	char value[1000];
 	memset(value, 0, sizeof(value));
 	int i = 0;
-	while (i < 20000) { /* ~ 20Mb */
+	while (i < 1000) { /* ~ 1Mb ~ 2-4 seconds */
 		void *o = sp_document(db);
 		assert(o != NULL);
 		sp_setstring(o, "key", &i, sizeof(i));

@@ -30,7 +30,7 @@ struct sescheduler {
 	uint64_t      checkpoint_lsn;
 	uint32_t      checkpoint;
 	uint32_t      age;
-	uint32_t      age_last;
+	uint64_t      age_last;
 	uint64_t      anticache_asn;
 	uint64_t      anticache_asn_last;
 	uint64_t      anticache_last;
@@ -41,10 +41,10 @@ struct sescheduler {
 	uint64_t      snapshot_last;
 	uint64_t      snapshot;
 	uint32_t      gc;
-	uint32_t      gc_last;
+	uint64_t      gc_last;
 	uint32_t      backup_bsn;
-	uint32_t      backup_last;
-	uint32_t      backup_last_complete;
+	uint32_t      backup_bsn_last;
+	uint32_t      backup_bsn_last_complete;
 	uint32_t      backup_events;
 	uint32_t      backup;
 	uint32_t      workers_backup;

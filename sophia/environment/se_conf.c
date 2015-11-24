@@ -839,8 +839,8 @@ se_confrt(se *e, seconfrt *rt)
 	rt->anticache_asn        = e->sched.anticache_asn;
 	rt->anticache_asn_last   = e->sched.anticache_asn_last;
 	rt->backup_active        = e->sched.backup;
-	rt->backup_last          = e->sched.backup_last;
-	rt->backup_last_complete = e->sched.backup_last_complete;
+	rt->backup_last          = e->sched.backup_bsn_last;
+	rt->backup_last_complete = e->sched.backup_bsn_last_complete;
 	rt->gc_active            = e->sched.gc;
 	ss_mutexunlock(&e->sched.lock);
 

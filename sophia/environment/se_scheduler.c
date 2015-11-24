@@ -278,8 +278,8 @@ se_backupcomplete(sescheduler *s, seworker *w)
 	}
 
 	/* complete */
-	s->backup_last = s->backup_bsn;
-	s->backup_last_complete = 1;
+	s->backup_bsn_last = s->backup_bsn;
+	s->backup_bsn_last_complete = 1;
 	s->backup = 0;
 	s->backup_bsn = 0;
 	return 0;
@@ -291,7 +291,7 @@ se_backuperror(sescheduler *s)
 	se *e = (se*)s->env;
 	sl_poolgc_enable(&e->lp, 1);
 	s->backup = 0;
-	s->backup_last_complete = 0;
+	s->backup_bsn_last_complete = 0;
 	return 0;
 }
 
@@ -311,37 +311,37 @@ int se_scheduler_init(sescheduler *s, so *env)
 	uint64_t now = ss_utime();
 
 	ss_mutexinit(&s->lock);
-	s->workers_branch       = 0;
-	s->workers_backup       = 0;
-	s->workers_gc           = 0;
-	s->workers_gc_db        = 0;
-	s->rotate               = 0;
-	s->req                  = 0;
-	s->i                    = NULL;
-	s->count                = 0;
-	s->rr                   = 0;
-	s->env                  = env;
-	s->checkpoint_lsn       = 0;
-	s->checkpoint_lsn_last  = 0;
-	s->checkpoint           = 0;
-	s->age                  = 0;
-	s->age_last             = now;
-	s->backup_bsn           = 0;
-	s->backup_last          = 0;
-	s->backup_last_complete = 0;
-	s->backup_events        = 0;
-	s->backup               = 0;
-	s->anticache_asn        = 0;
-	s->anticache_asn_last   = 0;
-	s->anticache_last       = now;
-	s->anticache_storage    = 0;
-	s->anticache            = 0;
-	s->snapshot_ssn         = 0;
-	s->snapshot_ssn_last    = 0;
-	s->snapshot_last        = now;
-	s->snapshot             = 0;
-	s->gc                   = 0;
-	s->gc_last              = now;
+	s->workers_branch           = 0;
+	s->workers_backup           = 0;
+	s->workers_gc               = 0;
+	s->workers_gc_db            = 0;
+	s->rotate                   = 0;
+	s->req                      = 0;
+	s->i                        = NULL;
+	s->count                    = 0;
+	s->rr                       = 0;
+	s->env                      = env;
+	s->checkpoint_lsn           = 0;
+	s->checkpoint_lsn_last      = 0;
+	s->checkpoint               = 0;
+	s->age                      = 0;
+	s->age_last                 = now;
+	s->backup_bsn               = 0;
+	s->backup_bsn_last          = 0;
+	s->backup_bsn_last_complete = 0;
+	s->backup_events            = 0;
+	s->backup                   = 0;
+	s->anticache_asn            = 0;
+	s->anticache_asn_last       = 0;
+	s->anticache_last           = now;
+	s->anticache_storage        = 0;
+	s->anticache                = 0;
+	s->snapshot_ssn             = 0;
+	s->snapshot_ssn_last        = 0;
+	s->snapshot_last            = now;
+	s->snapshot                 = 0;
+	s->gc                       = 0;
+	s->gc_last                  = now;
 	se_workerpool_init(&s->workers);
 	return 0;
 }
