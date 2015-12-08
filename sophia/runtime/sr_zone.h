@@ -30,6 +30,8 @@ struct srzone {
 	uint32_t gc_prio;
 	uint32_t gc_period;
 	uint32_t gc_wm;
+	uint32_t lru_prio;
+	uint32_t lru_period;
 	uint32_t async;
 };
 

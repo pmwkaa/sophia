@@ -57,6 +57,7 @@ STS_TESTS = unit/ss_leb128.test.o \
             compaction/compact.test.o \
             compaction/compact_delete.test.o \
             compaction/gc.test.o \
+            compaction/lru.test.o \
             functional/hermitage.test.o \
             functional/transaction.test.o \
             functional/cursor.test.o \

@@ -165,6 +165,7 @@ si_deploy(si *i, sr *r, int create_directory)
 	}
 	si_insert(i, n);
 	si_plannerupdate(&i->p, SI_COMPACT|SI_BRANCH|SI_TEMP, n);
+	i->size = si_nodesize(n);
 	return 1;
 }
 
@@ -446,7 +447,20 @@ si_tracksnapshot(sitrack *track, sr *r, si *i, sdsnapshot *s)
 	sdsnapshotheader *h = sd_snapshot_header(s);
 	i->read_cache = h->read_cache;
 	i->read_disk  = h->read_disk;
+	i->lru_v      = h->lru_v;
+	i->lru_steps  = h->lru_steps;
 	return 0;
+}
+
+static inline void
+si_recoversize(si *i)
+{
+	ssrbnode *pn = ss_rbmin(&i->i);
+	while (pn) {
+		sinode *n = sscast(pn, sinode, node);
+		i->size += si_nodesize(n);
+		pn = ss_rbnext(&i->i, pn);
+	}
 }
 
 static inline int
@@ -478,6 +492,7 @@ si_recoverindex(si *i, sr *r, sdsnapshot *s)
 		r->seq->nsn = track.nsn;
 	if (track.lsn > r->seq->lsn)
 		r->seq->lsn = track.lsn;
+	si_recoversize(i);
 	ss_buffree(&buf, r->a);
 	return 0;
 error:

@@ -14,6 +14,7 @@
 #include <si_node.h>
 #include <si_planner.h>
 #include <si.h>
+#include <si_lru.h>
 #include <si_gc.h>
 #include <si_cache.h>
 #include <si_tx.h>

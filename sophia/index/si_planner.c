@@ -356,7 +356,7 @@ si_plannerpeek_anticache(siplanner *p, siplan *plan)
 		if (n->ac >= plan->a)
 			continue;
 		n->ac = plan->a;
-		uint64_t size = si_nodesize(n);
+		uint64_t size = si_nodesize(n) + n->used;
 		if (size <= plan->b) {
 			/* promote */
 			if (n->in_memory)
@@ -377,6 +377,43 @@ si_plannerpeek_anticache(siplanner *p, siplan *plan)
 		return 2;
 	}
 	return 0;
+match:
+	si_nodelock(n);
+	plan->explain = SI_ENONE;
+	plan->node = n;
+	return 1;
+}
+
+static inline int
+si_plannerpeek_lru(siplanner *p, siplan *plan)
+{
+	si *index = p->i;
+	if (sslikely(! index->scheme->lru))
+		return 0;
+	if (! index->lru_run_lsn) {
+		index->lru_run_lsn = si_lru_vlsn_of(index);
+		if (sslikely(index->lru_run_lsn == 0))
+			return 0;
+	}
+	int rc_inprogress = 0;
+	sinode *n;
+	ssrqnode *pn = NULL;
+	while ((pn = ss_rqprev(&p->compact, pn))) {
+		n = sscast(pn, sinode, nodecompact);
+		sdindexheader *h = n->self.index.h;
+		if (h->lsnmin < index->lru_run_lsn) {
+			if (n->flags & SI_LOCK) {
+				rc_inprogress = 2;
+				continue;
+			}
+			goto match;
+		}
+	}
+	if (rc_inprogress)
+		plan->explain = SI_ERETRY;
+	else
+		index->lru_run_lsn = 0;
+	return rc_inprogress;
 match:
 	si_nodelock(n);
 	plan->explain = SI_ENONE;
@@ -406,6 +443,8 @@ int si_planner(siplanner *p, siplan *plan)
 		return si_plannerpeek_snapshot(p, plan);
 	case SI_ANTICACHE:
 		return si_plannerpeek_anticache(p, plan);
+	case SI_LRU:
+		return si_plannerpeek_lru(p, plan);
 	}
 	return -1;
 }

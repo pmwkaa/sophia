@@ -42,6 +42,8 @@ struct sescheduler {
 	uint64_t      snapshot;
 	uint32_t      gc;
 	uint64_t      gc_last;
+	uint32_t      lru;
+	uint64_t      lru_last;
 	uint32_t      backup_bsn;
 	uint32_t      backup_bsn_last;
 	uint32_t      backup_bsn_last_complete;
@@ -50,6 +52,7 @@ struct sescheduler {
 	uint32_t      workers_backup;
 	uint32_t      workers_branch;
 	uint32_t      workers_gc;
+	uint32_t      workers_lru;
 	uint32_t      workers_gc_db;
 	int           rotate;
 	int           req;
@@ -73,6 +76,7 @@ int se_scheduler_anticache(void*);
 int se_scheduler_snapshot(void*);
 int se_scheduler_checkpoint(void*);
 int se_scheduler_gc(void*);
+int se_scheduler_lru(void*);
 int se_scheduler_backup(void*);
 int se_scheduler_call(void*);
 

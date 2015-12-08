@@ -58,7 +58,7 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 	so_destroy(&o->o);
 
 	/* ensure quota */
-	int size = sizeof(svv) + sv_size(&vp);
+	int size = sv_vsize(v);
 	ss_quota(&e->quota, SS_QADD, size);
 
 	/* concurrent index only */

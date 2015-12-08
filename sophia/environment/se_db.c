@@ -41,6 +41,8 @@ se_dbscheme_init(sedb *db, char *name)
 	scheme->fmt_storage           = SF_SRAW;
 	scheme->path_fail_on_exists   = 0;
 	scheme->path_fail_on_drop     = 1;
+	scheme->lru                   = 0;
+	scheme->lru_step              = 128 * 1024;
 	scheme->buf_gc_wm             = 1024 * 1024;
 	scheme->storage_sz = ss_strdup(&e->a, "cache");
 	if (ssunlikely(scheme->storage_sz == NULL))

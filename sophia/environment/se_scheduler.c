@@ -36,6 +36,7 @@ int se_scheduler_branch(void *arg)
 	int rc;
 	while (1) {
 		uint64_t vlsn = sx_vlsn(&e->xm);
+		uint64_t vlsn_lru = si_lru_vlsn(&db->index);
 		siplan plan = {
 			.explain   = SI_ENONE,
 			.plan      = SI_BRANCH,
@@ -47,7 +48,7 @@ int se_scheduler_branch(void *arg)
 		rc = si_plan(&db->index, &plan);
 		if (rc == 0)
 			break;
-		rc = si_execute(&db->index, &stub.dc, &plan, vlsn);
+		rc = si_execute(&db->index, &stub.dc, &plan, vlsn, vlsn_lru);
 		if (ssunlikely(rc == -1))
 			break;
 	}
@@ -65,6 +66,7 @@ int se_scheduler_compact(void *arg)
 	int rc;
 	while (1) {
 		uint64_t vlsn = sx_vlsn(&e->xm);
+		uint64_t vlsn_lru = si_lru_vlsn(&db->index);
 		siplan plan = {
 			.explain   = SI_ENONE,
 			.plan      = SI_COMPACT,
@@ -76,7 +78,7 @@ int se_scheduler_compact(void *arg)
 		rc = si_plan(&db->index, &plan);
 		if (rc == 0)
 			break;
-		rc = si_execute(&db->index, &stub.dc, &plan, vlsn);
+		rc = si_execute(&db->index, &stub.dc, &plan, vlsn, vlsn_lru);
 		if (ssunlikely(rc == -1))
 			break;
 	}
@@ -94,6 +96,7 @@ int se_scheduler_compact_index(void *arg)
 	int rc;
 	while (1) {
 		uint64_t vlsn = sx_vlsn(&e->xm);
+		uint64_t vlsn_lru = si_lru_vlsn(&db->index);
 		siplan plan = {
 			.explain   = SI_ENONE,
 			.plan      = SI_COMPACT_INDEX,
@@ -105,7 +108,7 @@ int se_scheduler_compact_index(void *arg)
 		rc = si_plan(&db->index, &plan);
 		if (rc == 0)
 			break;
-		rc = si_execute(&db->index, &stub.dc, &plan, vlsn);
+		rc = si_execute(&db->index, &stub.dc, &plan, vlsn, vlsn_lru);
 		if (ssunlikely(rc == -1))
 			break;
 	}
@@ -156,6 +159,16 @@ int se_scheduler_gc(void *arg)
 	sescheduler *s = &o->sched;
 	ss_mutexlock(&s->lock);
 	s->gc = 1;
+	ss_mutexunlock(&s->lock);
+	return 0;
+}
+
+int se_scheduler_lru(void *arg)
+{
+	se *o = arg;
+	sescheduler *s = &o->sched;
+	ss_mutexlock(&s->lock);
+	s->lru = 1;
 	ss_mutexunlock(&s->lock);
 	return 0;
 }
@@ -309,12 +322,12 @@ int se_scheduler_call(void *arg)
 int se_scheduler_init(sescheduler *s, so *env)
 {
 	uint64_t now = ss_utime();
-
 	ss_mutexinit(&s->lock);
 	s->workers_branch           = 0;
 	s->workers_backup           = 0;
 	s->workers_gc               = 0;
 	s->workers_gc_db            = 0;
+	s->workers_lru              = 0;
 	s->rotate                   = 0;
 	s->req                      = 0;
 	s->i                        = NULL;
@@ -342,6 +355,8 @@ int se_scheduler_init(sescheduler *s, so *env)
 	s->snapshot                 = 0;
 	s->gc                       = 0;
 	s->gc_last                  = now;
+	s->lru                      = 0;
+	s->lru_last                 = now;
 	se_workerpool_init(&s->workers);
 	return 0;
 }
@@ -783,6 +798,36 @@ backup_error:;
 		}
 	}
 
+	/* lru */
+	if (s->lru) {
+		if (s->workers_lru < zone->lru_prio) {
+			task->plan.plan = SI_LRU;
+			rc = se_schedule_plan(s, &task->plan, &db);
+			switch (rc) {
+			case 1:
+				if (zone->mode == 0)
+					task->plan.plan = SI_COMPACT_INDEX;
+				s->workers_lru++;
+				se_dbref(db, 1);
+				task->db = db;
+				ss_mutexunlock(&s->lock);
+				return 1;
+			case 2: /* work in progress */
+				break;
+			case 0: /* state 3 */
+				s->lru = 0;
+				s->lru_last = now;
+				break;
+			}
+		}
+	} else {
+		if (zone->lru_prio && zone->lru_period) {
+			if ( (now - s->lru_last) >= ((uint64_t)zone->lru_period * 1000000) ) {
+				s->lru = 1;
+			}
+		}
+	}
+
 	/* index aging */
 	if (s->age) {
 		if (s->workers_branch < zone->branch_prio) {
@@ -908,7 +953,8 @@ se_run(setask *t, seworker *w)
 	sedb *db = t->db;
 	se *e = (se*)db->o.env;
 	uint64_t vlsn = sx_vlsn(&e->xm);
-	return si_execute(&db->index, &w->dc, &t->plan, vlsn);
+	uint64_t vlsn_lru = si_lru_vlsn(&db->index);
+	return si_execute(&db->index, &w->dc, &t->plan, vlsn, vlsn_lru);
 }
 
 static int
@@ -955,6 +1001,9 @@ se_complete(sescheduler *s, setask *t)
 		break;
 	case SI_GC:
 		s->workers_gc--;
+		break;
+	case SI_LRU:
+		s->workers_lru--;
 		break;
 	case SI_SHUTDOWN:
 	case SI_DROP:

@@ -17,6 +17,7 @@ struct svwriteiter {
 	uint64_t size;
 	uint32_t sizev;
 	uint64_t vlsn;
+	uint64_t vlsn_lru;
 	int save_delete;
 	int save_update;
 	int next;
@@ -88,12 +89,14 @@ sv_writeiter_next(ssiter *i)
 	for (; ss_iterhas(sv_mergeiter, im->merge); ss_iternext(sv_mergeiter, im->merge))
 	{
 		sv *v = ss_iterof(sv_mergeiter, im->merge);
+		uint64_t lsn = sv_lsn(v);
+		if (lsn < im->vlsn_lru)
+			continue;
 		int dup = sv_is(v, SVDUP) || sv_mergeisdup(im->merge);
 		if (im->size >= im->limit) {
 			if (! dup)
 				break;
 		}
-		uint64_t lsn = sv_lsn(v);
 		if (ssunlikely(dup)) {
 			/* keep atleast one visible version for <= vlsn */
 			if (im->prevlsn <= im->vlsn)
@@ -147,18 +150,21 @@ sv_writeiter_next(ssiter *i)
 static inline int
 sv_writeiter_open(ssiter *i, sr *r, ssiter *merge, svupdate *u,
                   uint64_t limit,
-                  uint32_t sizev, uint64_t vlsn,
+                  uint32_t sizev,
+                  uint64_t vlsn,
+                  uint64_t vlsn_lru,
                   int save_delete,
                   int save_update)
 {
 	svwriteiter *im = (svwriteiter*)i->priv;
-	im->u     = u;
-	im->r     = r;
-	im->merge = merge;
-	im->limit = limit;
-	im->size  = 0;
-	im->sizev = sizev;
-	im->vlsn  = vlsn;;
+	im->u           = u;
+	im->r           = r;
+	im->merge       = merge;
+	im->limit       = limit;
+	im->size        = 0;
+	im->sizev       = sizev;
+	im->vlsn        = vlsn;
+	im->vlsn_lru    = vlsn_lru;
 	im->save_delete = save_delete;
 	im->save_update = save_update;
 	assert(im->merge->vif == &sv_mergeiter);

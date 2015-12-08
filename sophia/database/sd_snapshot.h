@@ -17,6 +17,10 @@ struct sdsnapshotheader {
 	uint32_t crc;
 	uint32_t size;
 	uint32_t nodes;
+	uint64_t lru_v;
+	uint64_t lru_steps;
+	uint64_t lru_intr_lsn;
+	uint64_t lru_intr_sum;
 	uint64_t read_disk;
 	uint64_t read_cache;
 	uint64_t reserve[4];
@@ -64,6 +68,7 @@ sd_snapshot_is(sdsnapshot *s) {
 int sd_snapshot_begin(sdsnapshot*, sr*);
 int sd_snapshot_add(sdsnapshot*, sr*, uint64_t, uint64_t, uint32_t, uint64_t);
 int sd_snapshot_addbranch(sdsnapshot*, sr*, sdindexheader*);
-int sd_snapshot_commit(sdsnapshot*, sr*, uint64_t, uint64_t);
+int sd_snapshot_commit(sdsnapshot*, sr*, uint64_t, uint64_t, uint64_t, uint64_t,
+                       uint64_t, uint64_t);
 
 #endif

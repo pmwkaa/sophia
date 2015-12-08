@@ -34,6 +34,8 @@ static inline int si_set(sitx *x, svv *v, uint64_t time)
 	/* update node */
 	node->update_time = index->update_time;
 	node->used += sv_vsize(v);
+	if (index->scheme->lru)
+		si_lru_add(index, v);
 	si_txtrack(x, node);
 	return 0;
 }

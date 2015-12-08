@@ -152,6 +152,8 @@ se_confcompaction(se *e, seconfrt *rt ssunused, srconf **pc)
 		sr_c(&p, pc, se_confv_offline, "gc_db_prio", SS_U32, &z->gc_db_prio);
 		sr_c(&p, pc, se_confv_offline, "gc_prio", SS_U32, &z->gc_prio);
 		sr_c(&p, pc, se_confv_offline, "gc_period", SS_U32, &z->gc_period);
+		sr_c(&p, pc, se_confv_offline, "lru_prio", SS_U32, &z->lru_prio);
+		sr_c(&p, pc, se_confv_offline, "lru_period", SS_U32, &z->lru_period);
 		sr_c(&p, pc, se_confv_offline, "async", SS_U32, &z->async);
 		sr_C(&prev, pc, NULL, z->name, SS_UNDEF, zone, SR_NS, NULL);
 	}
@@ -276,6 +278,15 @@ se_confscheduler_gc(srconf *c, srconfstmt *s)
 }
 
 static inline int
+se_confscheduler_lru(srconf *c, srconfstmt *s)
+{
+	if (s->op != SR_WRITE)
+		return se_confv(c, s);
+	se *e = s->ptr;
+	return se_scheduler_lru(e);
+}
+
+static inline int
 se_confscheduler_run(srconf *c, srconfstmt *s)
 {
 	if (s->op != SR_WRITE)
@@ -292,7 +303,6 @@ se_confscheduler(se *e, seconfrt *rt, srconf **pc)
 	srconf *p = NULL;
 	sr_c(&p, pc, se_confv_offline, "threads", SS_U32, &e->conf.threads);
 	sr_C(&p, pc, se_confv, "zone", SS_STRING, rt->zone, SR_RO, NULL);
-
 	sr_C(&p, pc, se_confv, "checkpoint_active", SS_U32, &rt->checkpoint_active, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "checkpoint_lsn", SS_U64, &rt->checkpoint_lsn, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "checkpoint_lsn_last", SS_U64, &rt->checkpoint_lsn_last, SR_RO, NULL);
@@ -312,6 +322,8 @@ se_confscheduler(se *e, seconfrt *rt, srconf **pc)
 	sr_c(&p, pc, se_confv_offline, "event_on_backup", SS_U32, &e->conf.event_on_backup);
 	sr_C(&p, pc, se_confv, "gc_active", SS_U32, &rt->gc_active, SR_RO, NULL);
 	sr_c(&p, pc, se_confscheduler_gc, "gc", SS_FUNCTION, NULL);
+	sr_C(&p, pc, se_confv, "lru_active", SS_U32, &rt->lru_active, SR_RO, NULL);
+	sr_c(&p, pc, se_confscheduler_lru, "lru", SS_FUNCTION, NULL);
 	sr_c(&p, pc, se_confscheduler_run, "run", SS_FUNCTION, NULL);
 	prev = p;
 	sslist *i;
@@ -672,6 +684,8 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc)
 		sr_C(&p, pc, se_confv_dboffline, "compression_key", SS_U32, &o->scheme.compression_key, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "compression_branch", SS_STRINGPTR, &o->scheme.compression_branch_sz, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "compression", SS_STRINGPTR, &o->scheme.compression_sz, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "lru", SS_U64, &o->scheme.lru, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "lru_step", SS_U32, &o->scheme.lru_step, 0, o);
 		sr_c(&p, pc, se_confdb_branch, "branch", SS_FUNCTION, o);
 		sr_c(&p, pc, se_confdb_compact, "compact", SS_FUNCTION, o);
 		sr_c(&p, pc, se_confdb_compact_index, "compact_index", SS_FUNCTION, o);
@@ -842,6 +856,7 @@ se_confrt(se *e, seconfrt *rt)
 	rt->backup_last          = e->sched.backup_bsn_last;
 	rt->backup_last_complete = e->sched.backup_bsn_last_complete;
 	rt->gc_active            = e->sched.gc;
+	rt->lru_active           = e->sched.lru;
 	ss_mutexunlock(&e->sched.lock);
 
 	int v = ss_quotaused_percent(&e->quota);
@@ -1021,6 +1036,8 @@ int se_confinit(seconf *c, so *e)
 		.gc_prio           = 1,
 		.gc_period         = 60,
 		.gc_wm             = 30,
+		.lru_prio          = 0,
+		.lru_period        = 0,
 		.async             = 2 /* do not own thread */
 	};
 	srzone redzone = {
@@ -1040,6 +1057,8 @@ int se_confinit(seconf *c, so *e)
 		.gc_prio           = 0,
 		.gc_period         = 0,
 		.gc_wm             = 0,
+		.lru_prio          = 0,
+		.lru_period        = 0,
 		.async             = 2
 	};
 	sr_zonemap_set(&o->conf.zones,  0, &def);

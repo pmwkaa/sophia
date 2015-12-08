@@ -80,6 +80,7 @@ extern stgroup *branch_group(void);
 extern stgroup *compact_group(void);
 extern stgroup *compact_delete_group(void);
 extern stgroup *gc_group(void);
+extern stgroup *lru_group(void);
 
 /* functional */
 extern stgroup *transaction_group(void);
@@ -263,6 +264,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, compact_group());
 	st_planadd(plan, compact_delete_group());
 	st_planadd(plan, gc_group());
+	st_planadd(plan, lru_group());
 	st_suiteadd(&st_r.suite, plan);
 
 	if (! full) {

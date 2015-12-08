@@ -29,6 +29,7 @@ int sd_mergeinit(sdmerge *m, sr *r, ssiter *i, sdbuild *build,
 	ss_iteropen(sv_writeiter, &m->i, r, i, update,
 	            (uint64_t)conf->size_page, sizeof(sdv),
 	            conf->vlsn,
+	            conf->vlsn_lru,
 	            conf->save_delete,
 	            conf->save_update);
 	return 0;

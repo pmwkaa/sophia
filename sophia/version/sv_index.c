@@ -36,6 +36,7 @@ int sv_indexfree(svindex *i, sr *r)
 static inline svv*
 sv_vset(svv *head, svv *v)
 {
+	assert(head->lsn != v->lsn);
 	/* default */
 	if (sslikely(head->lsn < v->lsn)) {
 		v->next = head;

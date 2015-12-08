@@ -114,6 +114,7 @@ si_redistribute_index(si *index, sr *r, sdc *c, sinode *node)
 	ss_iteropen(ss_bufiterref, &i, &c->b, sizeof(svv*));
 	while (ss_iterhas(ss_bufiterref, &i)) {
 		svv *v = ss_iterof(ss_bufiterref, &i);
+		v->next = NULL;
 		si_redistribute_set(index, r, now, v);
 		ss_iternext(ss_bufiterref, &i);
 	}
@@ -140,8 +141,9 @@ si_split(si *index, sdc *c, ssbuf *result,
          sinode   *parent,
          ssiter   *i,
          uint64_t  size_node,
-         uint32_t  size_stream,
-         uint64_t  vlsn)
+         uint64_t  size_stream,
+         uint64_t  vlsn,
+         uint64_t  vlsn_lru)
 {
 	sr *r = index->r;
 	int rc;
@@ -154,6 +156,7 @@ si_split(si *index, sdc *c, ssbuf *result,
 		.compression     = index->scheme->compression,
 		.compression_if  = index->scheme->compression_if,
 		.vlsn            = vlsn,
+		.vlsn_lru        = vlsn_lru,
 		.save_delete     = 0,
 		.save_update     = 0
 	};
@@ -250,9 +253,11 @@ error:
 	return -1;
 }
 
-int si_merge(si *index, sdc *c, uint64_t vlsn,
-             sinode *node,
-             ssiter *stream, uint32_t size_stream)
+int si_merge(si *index, sdc *c, sinode *node,
+             uint64_t vlsn,
+             uint64_t vlsn_lru,
+             ssiter *stream,
+             uint64_t size_stream)
 {
 	sr *r = index->r;
 	ssbuf *result = &c->a;
@@ -268,7 +273,8 @@ int si_merge(si *index, sdc *c, uint64_t vlsn,
 	              node, stream,
 	              index->scheme->node_size,
 	              size_stream,
-	              vlsn);
+	              vlsn,
+	              vlsn_lru);
 	if (ssunlikely(rc == -1))
 		return -1;
 
@@ -305,14 +311,11 @@ int si_merge(si *index, sdc *c, uint64_t vlsn,
 	si_lock(index);
 	svindex *j = si_nodeindex(node);
 	si_plannerremove(&index->p, SI_COMPACT|SI_BRANCH|SI_TEMP, node);
+	index->size -= si_nodesize(node);
 	switch (count) {
 	case 0: /* delete */
 		si_remove(index, node);
 		si_redistribute_index(index, r, c, node);
-		uint32_t used = sv_indexused(j);
-		if (used) {
-			ss_quota(r->quota, SS_QREMOVE, used);
-		}
 		break;
 	case 1: /* self update */
 		n = *(sinode**)result->s;
@@ -320,6 +323,7 @@ int si_merge(si *index, sdc *c, uint64_t vlsn,
 		n->temperature = node->temperature;
 		n->temperature_reads = node->temperature_reads;
 		n->used = sv_indexused(j);
+		index->size += si_nodesize(n);
 		si_nodelock(n);
 		si_replace(index, node, n);
 		si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH|SI_TEMP, n);
@@ -337,6 +341,7 @@ int si_merge(si *index, sdc *c, uint64_t vlsn,
 		n->used = sv_indexused(&n->i0);
 		n->temperature = node->temperature;
 		n->temperature_reads = node->temperature_reads;
+		index->size += si_nodesize(n);
 		si_nodelock(n);
 		si_replace(index, node, n);
 		si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH|SI_TEMP, n);
@@ -346,6 +351,7 @@ int si_merge(si *index, sdc *c, uint64_t vlsn,
 			n->used = sv_indexused(&n->i0);
 			n->temperature = node->temperature;
 			n->temperature_reads = node->temperature_reads;
+			index->size += si_nodesize(n);
 			si_nodelock(n);
 			si_insert(index, n);
 			si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH|SI_TEMP, n);

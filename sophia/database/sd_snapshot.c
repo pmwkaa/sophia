@@ -63,12 +63,22 @@ int sd_snapshot_addbranch(sdsnapshot *s, sr *r, sdindexheader *h)
 	return 0;
 }
 
-int sd_snapshot_commit(sdsnapshot *s, sr *r, uint64_t read_disk, uint64_t read_cache)
+int sd_snapshot_commit(sdsnapshot *s, sr *r,
+                       uint64_t lru_v,
+                       uint64_t lru_steps,
+                       uint64_t lru_intr_lsn,
+                       uint64_t lru_intr_sum,
+                       uint64_t read_disk,
+                       uint64_t read_cache)
 {
 	sdsnapshotheader *h = sd_snapshot_header(s);
-	h->read_disk  = read_disk;
-	h->read_cache = read_cache;
-	h->size       = ss_bufused(&s->buf);
+	h->lru_v        = lru_v;
+	h->lru_steps    = lru_steps;
+	h->lru_intr_lsn = lru_intr_lsn;
+	h->lru_intr_sum = lru_intr_sum;
+	h->read_disk    = read_disk;
+	h->read_cache   = read_cache;
+	h->size         = ss_bufused(&s->buf);
 	h->crc = ss_crcs(r->crc, (char*)h, sizeof(*h), 0);
 	return 0;
 }

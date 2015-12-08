@@ -25,6 +25,12 @@ int si_init(si *i, sr *r)
 	ss_mutexinit(&i->lock);
 	i->scheme       = NULL;
 	i->update_time  = 0;
+	i->lru_run_lsn  = 0;
+	i->lru_v        = 0;
+	i->lru_steps    = 1;
+	i->lru_intr_lsn = 0;
+	i->lru_intr_sum = 0;
+	i->size         = 0;
 	i->read_disk    = 0;
 	i->read_cache   = 0;
 	i->backup       = 0;
@@ -101,7 +107,9 @@ int si_plan(si *i, siplan *plan)
 	return rc;
 }
 
-int si_execute(si *i, sdc *c, siplan *plan, uint64_t vlsn)
+int si_execute(si *i, sdc *c, siplan *plan,
+               uint64_t vlsn,
+               uint64_t vlsn_lru)
 {
 	int rc = -1;
 	switch (plan->plan) {
@@ -110,12 +118,13 @@ int si_execute(si *i, sdc *c, siplan *plan, uint64_t vlsn)
 	case SI_AGE:
 		rc = si_branch(i, c, plan, vlsn);
 		break;
+	case SI_LRU:
 	case SI_GC:
 	case SI_COMPACT:
-		rc = si_compact(i, c, plan, vlsn, NULL, 0);
+		rc = si_compact(i, c, plan, vlsn, vlsn_lru, NULL, 0);
 		break;
 	case SI_COMPACT_INDEX:
-		rc = si_compact_index(i, c, plan, vlsn);
+		rc = si_compact_index(i, c, plan, vlsn, vlsn_lru);
 		break;
 	case SI_ANTICACHE:
 		rc = si_anticache(i, plan);

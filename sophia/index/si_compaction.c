@@ -55,6 +55,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		.compression     = index->scheme->compression_branch,
 		.compression_if  = index->scheme->compression_branch_if,
 		.vlsn            = vlsn,
+		.vlsn_lru        = 0,
 		.save_delete     = 1,
 		.save_update     = 1
 	};
@@ -199,6 +200,9 @@ int si_branch(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 	uint32_t used = sv_indexused(i);
 	n->used -= used;
 	ss_quota(r->quota, SS_QREMOVE, used);
+	index->size +=
+		sd_indexsize(branch->index.h) +
+		sd_indextotal(&branch->index);
 	svindex swap = *i;
 	si_nodeunrotate(n);
 	si_nodeunlock(n);
@@ -222,9 +226,11 @@ int si_branch(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 	return 1;
 }
 
-int si_compact(si *index, sdc *c, siplan *plan, uint64_t vlsn,
+int si_compact(si *index, sdc *c, siplan *plan,
+               uint64_t vlsn,
+               uint64_t vlsn_lru,
                ssiter *vindex,
-               uint32_t vindex_used)
+               uint64_t vindex_used)
 {
 	sr *r = index->r;
 	sinode *node = plan->node;
@@ -257,7 +263,7 @@ int si_compact(si *index, sdc *c, siplan *plan, uint64_t vlsn,
 
 	/* include vindex into merge process */
 	svmergesrc *s;
-	uint32_t size_stream = 0;
+	uint64_t size_stream = 0;
 	if (vindex) {
 		s = sv_mergeadd(&merge, vindex);
 		size_stream = vindex_used;
@@ -308,12 +314,14 @@ int si_compact(si *index, sdc *c, siplan *plan, uint64_t vlsn,
 	ssiter i;
 	ss_iterinit(sv_mergeiter, &i);
 	ss_iteropen(sv_mergeiter, &i, r, &merge, SS_GTE);
-	rc = si_merge(index, c, vlsn, node, &i, size_stream);
+	rc = si_merge(index, c, node, vlsn, vlsn_lru, &i, size_stream);
 	sv_mergefree(&merge, r->a);
 	return rc;
 }
 
-int si_compact_index(si *index, sdc *c, siplan *plan, uint64_t vlsn)
+int si_compact_index(si *index, sdc *c, siplan *plan,
+                     uint64_t vlsn,
+                     uint64_t vlsn_lru)
 {
 	sinode *node = plan->node;
 
@@ -327,9 +335,9 @@ int si_compact_index(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 	vindex = si_noderotate(node);
 	si_unlock(index);
 
-	uint32_t size_stream = sv_indexused(vindex);
+	uint64_t size_stream = sv_indexused(vindex);
 	ssiter i;
 	ss_iterinit(sv_indexiter, &i);
 	ss_iteropen(sv_indexiter, &i, index->r, vindex, SS_GTE, NULL, 0);
-	return si_compact(index, c, plan, vlsn, &i, size_stream);
+	return si_compact(index, c, plan, vlsn, vlsn_lru, &i, size_stream);
 }

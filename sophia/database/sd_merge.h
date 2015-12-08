@@ -14,7 +14,7 @@ typedef struct sdmerge sdmerge;
 
 struct sdmergeconf {
 	uint32_t    write;
-	uint32_t    size_stream;
+	uint64_t    size_stream;
 	uint64_t    size_node;
 	uint32_t    size_page;
 	uint32_t    checksum;
@@ -22,6 +22,7 @@ struct sdmergeconf {
 	uint32_t    compression;
 	ssfilterif *compression_if;
 	uint64_t    vlsn;
+	uint64_t    vlsn_lru;
 	uint32_t    save_delete;
 	uint32_t    save_update;
 };

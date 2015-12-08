@@ -33,6 +33,7 @@ struct siplanner {
 #define SI_DROP          1024
 #define SI_SNAPSHOT      2048
 #define SI_ANTICACHE     4096
+#define SI_LRU           8192
 
 /* explain */
 #define SI_ENONE         0
@@ -59,8 +60,9 @@ struct siplan {
 	 * gc:
 	 *   a: lsn
 	 *   b: percent
+	 * lru:
 	 * temperature:
-	 * ac:
+	 * anticache:
 	 *   a: asn
 	 *   b: available
 	 *   c: *node_size
