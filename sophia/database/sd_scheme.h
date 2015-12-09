@@ -48,13 +48,13 @@ sd_schemesz(sdschemeopt *o) {
 static inline uint32_t
 sd_schemeu32(sdschemeopt *o) {
 	assert(o->type == SS_U32);
-	return *(uint32_t*)((char*)o + sizeof(sdschemeopt));
+	return sscastu32((char*)o + sizeof(sdschemeopt));
 }
 
 static inline uint64_t
 sd_schemeu64(sdschemeopt *o) {
 	assert(o->type == SS_U64);
-	return *(uint64_t*)((char*)o + sizeof(sdschemeopt));
+	return sscastu64((char*)o + sizeof(sdschemeopt));
 }
 
 int sd_schemebegin(sdscheme*, sr*);

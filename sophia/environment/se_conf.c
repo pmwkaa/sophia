@@ -107,7 +107,7 @@ se_confcompaction_set(srconf *c ssunused, srconfstmt *s)
 		return -1;
 	}
 	/* validate argument */
-	uint32_t percent = *(uint32_t*)s->value;
+	uint32_t percent = sscastu32(s->value);
 	if (percent > 100) {
 		sr_error(&e->error, "%s", "bad argument");
 		return -1;

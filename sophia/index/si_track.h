@@ -60,7 +60,7 @@ si_tracknsn(sitrack *t, uint64_t nsn)
 		t->nsn = nsn;
 }
 
-ss_rbget(si_trackmatch, ss_cmp((sscast(n, sinode, node))->self.id.id, *(uint64_t*)key))
+ss_rbget(si_trackmatch, ss_cmp((sscast(n, sinode, node))->self.id.id, sscastu64(key)))
 
 static inline void
 si_trackset(sitrack *t, sinode *n)

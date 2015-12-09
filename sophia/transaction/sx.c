@@ -119,7 +119,7 @@ uint64_t sx_vlsn(sxmanager *m)
 	return vlsn;
 }
 
-ss_rbget(sx_matchtx, ss_cmp((sscast(n, sx, node))->id, *(uint64_t*)key))
+ss_rbget(sx_matchtx, ss_cmp((sscast(n, sx, node))->id, sscastu64(key)))
 
 sx *sx_find(sxmanager *m, uint64_t id)
 {

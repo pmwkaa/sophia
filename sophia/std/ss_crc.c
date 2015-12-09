@@ -322,7 +322,7 @@ ss_crc32c_sw(uint32_t crc, const void *buf, int len)
 	int end_bytes = len - running_len; 
 
 	for (li = 0; li < running_len / 8; li++) {
-		crc ^= *(uint32_t*)p_buf;
+		crc ^= sscastu32(p_buf);
 		p_buf += 4;
 		uint32_t term1 = crc_tableil8_o88[(crc) & 0x000000FF] ^
 		                 crc_tableil8_o80[(crc >> 8) & 0x000000FF];
@@ -330,9 +330,9 @@ ss_crc32c_sw(uint32_t crc, const void *buf, int len)
 		crc = term1 ^
 		      crc_tableil8_o72[term2 & 0x000000FF] ^ 
 		      crc_tableil8_o64[(term2 >> 8) & 0x000000FF];
-		term1 = crc_tableil8_o56[(*(uint32_t*)p_buf) & 0x000000FF] ^
-		        crc_tableil8_o48[((*(uint32_t*)p_buf) >> 8) & 0x000000FF];
-		term2 = (*(uint32_t*)p_buf) >> 16;
+		term1 = crc_tableil8_o56[sscastu32(p_buf) & 0x000000FF] ^
+		        crc_tableil8_o48[(sscastu32(p_buf) >> 8) & 0x000000FF];
+		term2 = sscastu32(p_buf) >> 16;
 		crc = crc ^ term1 ^
 		      crc_tableil8_o40[term2 & 0x000000FF] ^
 		      crc_tableil8_o32[(term2 >> 8) & 0x000000FF];

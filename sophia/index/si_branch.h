@@ -17,7 +17,7 @@ struct sibranch {
 	ssblob copy;
 	sibranch *link;
 	sibranch *next;
-};
+} sspacked;
 
 static inline void
 si_branchinit(sibranch *b, sr *r)

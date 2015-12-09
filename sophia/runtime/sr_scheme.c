@@ -27,8 +27,8 @@ sr_cmpany(char *prefix, int prefixsz,
 static inline sshot int
 sr_compare_u32(const char *a, const char *b)
 {
-	uint32_t av = *(const uint32_t*)a;
-	uint32_t bv = *(const uint32_t*)b;
+	uint32_t av = sscastu32(a);
+	uint32_t bv = sscastu32(b);
 	if (av == bv)
 		return 0;
 	return (av > bv) ? 1 : -1;
@@ -66,8 +66,8 @@ sr_cmpu32_reverse(char *a, int asz ssunused, char *b, int bsz ssunused, void *ar
 
 static inline sshot int sr_compare_u64(const char *a, const char *b)
 {
-	uint64_t av = *(const uint64_t*)a;
-	uint64_t bv = *(const uint64_t*)b;
+	uint64_t av = sscastu64(a);
+	uint64_t bv = sscastu64(b);
 	if (av == bv)
 		return 0;
 	return (av > bv) ? 1 : -1;
@@ -267,7 +267,7 @@ int sr_schemeload(srscheme *s, ssa *a, char *buf, int size ssunused)
 {
 	/* count */
 	char *p = buf;
-	uint32_t v = *(uint32_t*)p;
+	uint32_t v = sscastu32(p);
 	p += sizeof(uint32_t);
 	int count = v;
 	int i = 0;
@@ -277,14 +277,14 @@ int sr_schemeload(srscheme *s, ssa *a, char *buf, int size ssunused)
 		if (ssunlikely(key == NULL))
 			goto error;
 		/* name */
-		v = *(uint32_t*)p;
+		v = sscastu32(p);
 		p += sizeof(uint32_t);
 		rc = sr_keysetname(key, a, p);
 		if (ssunlikely(rc == -1))
 			goto error;
 		p += v;
 		/* path */
-		v = *(uint32_t*)p;
+		v = sscastu32(p);
 		p += sizeof(uint32_t);
 		rc = sr_keyset(key, a, p);
 		if (ssunlikely(rc == -1))

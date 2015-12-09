@@ -17,7 +17,7 @@ struct ssfile {
 	int creat;
 	sspath path;
 	ssvfs *vfs;
-};
+} sspacked;
 
 static inline void
 ss_fileinit(ssfile *f, ssvfs *vfs)

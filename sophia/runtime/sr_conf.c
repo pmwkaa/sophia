@@ -17,13 +17,13 @@ int sr_conf_read(srconf *m, srconfstmt *s)
 	case SS_U32:
 		s->valuesize = sizeof(uint32_t);
 		if (s->valuetype == SS_I64) {
-			*(int64_t*)s->value = *(uint32_t*)m->value;
+			sscasti64(s->value) = sscastu32(m->value);
 		} else
 		if (s->valuetype == SS_U32) {
-			*(uint32_t*)s->value = *(uint32_t*)m->value;
+			sscastu32(s->value) = sscastu32(m->value);
 		} else
 		if (s->valuetype == SS_U64) {
-			*(uint64_t*)s->value = *(uint32_t*)m->value;
+			sscastu64(s->value) = sscastu32(m->value);
 		} else {
 			goto bad_type;
 		}
@@ -31,13 +31,13 @@ int sr_conf_read(srconf *m, srconfstmt *s)
 	case SS_U64:
 		s->valuesize = sizeof(uint64_t);
 		if (s->valuetype == SS_I64) {
-			*(int64_t*)s->value = *(uint64_t*)m->value;
+			sscasti64(s->value) = sscastu64(m->value);
 		} else
 		if (s->valuetype == SS_U32) {
-			*(uint32_t*)s->value = *(uint64_t*)m->value;
+			sscastu32(s->value) = sscastu64(m->value);
 		} else
 		if (s->valuetype == SS_U64) {
-			*(uint64_t*)s->value = *(uint64_t*)m->value;
+			sscastu64(s->value) = sscastu64(m->value);
 		} else {
 			goto bad_type;
 		}
@@ -104,26 +104,26 @@ int sr_conf_write(srconf *m, srconfstmt *s)
 	switch (m->type) {
 	case SS_U32:
 		if (s->valuetype == SS_I64) {
-			*((uint32_t*)m->value) = *(int64_t*)s->value;
+			sscastu32(m->value) = sscasti64(s->value);
 		} else
 		if (s->valuetype == SS_U32) {
-			*((uint32_t*)m->value) = *(uint32_t*)s->value;
+			sscastu32(m->value) = sscastu32(s->value);
 		} else
 		if (s->valuetype == SS_U64) {
-			*((uint32_t*)m->value) = *(uint64_t*)s->value;
+			sscastu32(m->value) = sscastu64(s->value);
 		} else {
 			goto bad_type;
 		}
 		break;
 	case SS_U64:
 		if (s->valuetype == SS_I64) {
-			*((uint64_t*)m->value) = *(int64_t*)s->value;
+			sscastu64(m->value) = sscasti64(s->value);
 		} else
 		if (s->valuetype == SS_U32) {
-			*((uint64_t*)m->value) = *(uint32_t*)s->value;
+			sscastu64(m->value) = sscastu32(s->value);
 		} else
 		if (s->valuetype == SS_U64) {
-			*((uint64_t*)m->value) = *(uint64_t*)s->value;
+			sscastu64(m->value) = sscastu64(s->value);
 		} else {
 			goto bad_type;
 		}
@@ -206,17 +206,17 @@ int sr_conf_serialize(srconf *m, srconfstmt *s)
 	};
 	switch (m->type) {
 	case SS_U32:
-		v.valuesize  = snprintf(buf, sizeof(buf), "%" PRIu32, *(uint32_t*)m->value);
+		v.valuesize  = snprintf(buf, sizeof(buf), "%" PRIu32, sscastu32(m->value));
 		v.valuesize += 1;
 		value = buf;
 		break;
 	case SS_U64:
-		v.valuesize  = snprintf(buf, sizeof(buf), "%" PRIu64, *(uint64_t*)m->value);
+		v.valuesize  = snprintf(buf, sizeof(buf), "%" PRIu64, sscastu64(m->value));
 		v.valuesize += 1;
 		value = buf;
 		break;
 	case SS_I64:
-		v.valuesize  = snprintf(buf, sizeof(buf), "%" PRIi64, *(int64_t*)m->value);
+		v.valuesize  = snprintf(buf, sizeof(buf), "%" PRIi64, sscasti64(m->value));
 		v.valuesize += 1;
 		value = buf;
 		break;
