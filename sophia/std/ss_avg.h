@@ -14,7 +14,8 @@ typedef struct ssavg ssavg;
 struct ssavg {
 	uint64_t count;
 	uint64_t total;
-	uint32_t min, max, avg;
+	uint32_t min, max;
+	double   avg;
 	char sz[32];
 };
 
@@ -33,7 +34,7 @@ ss_avgupdate(ssavg *a, uint32_t v)
 {
 	a->count++;
 	a->total += v;
-	a->avg = a->total / a->count;
+	a->avg = (double)a->total / (double)a->count;
 	if (v < a->min)
 		a->min = v;
 	if (v > a->max)
@@ -43,8 +44,8 @@ ss_avgupdate(ssavg *a, uint32_t v)
 static inline void
 ss_avgprepare(ssavg *a)
 {
-	snprintf(a->sz, sizeof(a->sz), "%"PRIu32" %"PRIu32" %"PRIu32,
-	         a->avg, a->min, a->max);
+	snprintf(a->sz, sizeof(a->sz), "%"PRIu32" %"PRIu32" %.1f",
+	         a->min, a->max, a->avg);
 }
 
 #endif
