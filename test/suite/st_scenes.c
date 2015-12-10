@@ -125,7 +125,6 @@ void st_scene_env(stscene *s ssunused)
 
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.page_checksum", 1) == 0 );
 	t( sp_setint(env, "log.enable", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setint(env, "log.sync", 0) == 0 );
@@ -135,6 +134,7 @@ void st_scene_env(stscene *s ssunused)
 	t( sp_setstring(env, "db.test.format", "kv", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "db.test.mmap", 0) == 0 );
+	t( sp_setint(env, "db.test.page_checksum", 1) == 0 );
 	t( sp_setstring(env, "db.test.compression", "none", 0) == 0 );
 	t( sp_setstring(env, "db.test.compression_branch", "none", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );

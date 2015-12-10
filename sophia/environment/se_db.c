@@ -32,6 +32,10 @@ se_dbscheme_init(sedb *db, char *name)
 	scheme->sync                  = 2;
 	scheme->mmap                  = 0;
 	scheme->storage               = SI_SCACHE;
+	scheme->node_size             = 64 * 1024 * 1024;
+	scheme->node_compact_load     = 0;
+	scheme->node_page_size        = 128 * 1024;
+	scheme->node_page_checksum    = 1;
 	scheme->compression_key       = 0;
 	scheme->compression           = 0;
 	scheme->compression_if        = &ss_nonefilter;
@@ -147,11 +151,6 @@ se_dbscheme_set(sedb *db)
 		if (ssunlikely(s->path_backup == NULL))
 			return sr_oom(&e->error);
 	}
-	/* compaction */
-	s->node_size          = e->conf.node_size;
-	s->node_page_size     = e->conf.page_size;
-	s->node_page_checksum = e->conf.page_checksum;
-	s->node_compact_load  = e->conf.node_preload;
 
 	db->r.scheme = &s->scheme;
 	db->r.fmt = s->fmt;

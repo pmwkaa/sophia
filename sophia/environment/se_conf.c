@@ -122,14 +122,9 @@ se_confcompaction_set(srconf *c ssunused, srconfstmt *s)
 static inline srconf*
 se_confcompaction(se *e, seconfrt *rt ssunused, srconf **pc)
 {
-	srconf *compaction = *pc;
-	srconf *prev;
-	srconf *p = NULL;
-	sr_c(&p, pc, se_confv_offline, "node_preload", SS_U32, &e->conf.node_preload);
-	sr_c(&p, pc, se_confv_offline, "node_size", SS_U32, &e->conf.node_size);
-	sr_c(&p, pc, se_confv_offline, "page_size", SS_U32, &e->conf.page_size);
-	sr_c(&p, pc, se_confv_offline, "page_checksum", SS_U32, &e->conf.page_checksum);
-	prev = p;
+	srconf *compaction = NULL;
+	srconf *prev = NULL;
+	srconf *p;
 	int i = 0;
 	for (; i < 11; i++) {
 		srzone *z = &e->conf.zones.zones[i];
@@ -155,7 +150,9 @@ se_confcompaction(se *e, seconfrt *rt ssunused, srconf **pc)
 		sr_c(&p, pc, se_confv_offline, "lru_prio", SS_U32, &z->lru_prio);
 		sr_c(&p, pc, se_confv_offline, "lru_period", SS_U32, &z->lru_period);
 		sr_c(&p, pc, se_confv_offline, "async", SS_U32, &z->async);
-		sr_C(&prev, pc, NULL, z->name, SS_UNDEF, zone, SR_NS, NULL);
+		prev = sr_C(&prev, pc, NULL, z->name, SS_UNDEF, zone, SR_NS, NULL);
+		if (compaction == NULL)
+			compaction = prev;
 	}
 	return sr_C(NULL, pc, se_confcompaction_set, "compaction", SS_U32,
 	            compaction, SR_NS, NULL);
@@ -679,8 +676,12 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc)
 		sr_C(&p, pc, se_confv_dboffline, "path", SS_STRINGPTR, &o->scheme.path, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "path_fail_on_exists", SS_U32, &o->scheme.path_fail_on_exists, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "path_fail_on_drop", SS_U32, &o->scheme.path_fail_on_drop, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "sync", SS_U32, &o->scheme.sync, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "mmap", SS_U32, &o->scheme.mmap, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "sync", SS_U32, &o->scheme.sync, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "node_preload", SS_U32, &o->scheme.node_compact_load, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "node_size", SS_U64, &o->scheme.node_size, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "page_size", SS_U32, &o->scheme.node_page_size, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "page_checksum", SS_U32, &o->scheme.node_page_checksum, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "compression_key", SS_U32, &o->scheme.compression_key, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "compression_branch", SS_STRINGPTR, &o->scheme.compression_branch_sz, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "compression", SS_STRINGPTR, &o->scheme.compression_sz, 0, o);
@@ -1003,10 +1004,6 @@ int se_confinit(seconf *c, so *e)
 	c->path_create         = 1;
 	c->memory_limit        = 0;
 	c->anticache           = 0;
-	c->node_size           = 64 * 1024 * 1024;
-	c->node_preload        = 0;
-	c->page_size           = 128 * 1024;
-	c->page_checksum       = 1;
 	c->threads             = 6;
 	c->log_enable          = 1;
 	c->log_path            = NULL;

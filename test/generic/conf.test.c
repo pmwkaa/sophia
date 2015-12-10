@@ -101,8 +101,6 @@ conf_validation(void)
 
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == -1 );
 	t( sp_setint(env, "memory.limit", 0) == -1 );
-	t( sp_setint(env, "compaction.page_size", 0) == -1 );
-	t( sp_setint(env, "compaction.node_size", 0) == -1 );
 	t( sp_setint(env, "scheduler.threads", 0) == -1 );
 
 	t( sp_setint(env, "log.enable", 0) == -1 );
@@ -119,6 +117,8 @@ conf_validation(void)
 
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(db) == 0 );
+	t( sp_setint(env, "db.test.page_size", 0) == -1 );
+	t( sp_setint(env, "db.test.node_size", 0) == -1 );
 	t( sp_setstring(env, "db.test.path", "path", 0) == -1 );
 	t( sp_setstring(env, "db.test.index.key", NULL, 0) == -1 );
 

@@ -489,14 +489,14 @@ mt_set_get_anticache(void)
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 5) == 0 );
 	t( sp_setint(env, "memory.anticache", 500 * 1024) == 0 );
-	t( sp_setint(env, "compaction.node_size", 100 * 1024) == 0 );
-	t( sp_setint(env, "compaction.page_size", 8 * 1024) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.storage", "anti-cache", 0) == 0 );
 	t( sp_setint(env, "db.test.compression_key", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_setint(env, "db.test.node_size", 100 * 1024) == 0 );
+	t( sp_setint(env, "db.test.page_size", 8 * 1024) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
