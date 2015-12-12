@@ -67,6 +67,7 @@ STS_TESTS = unit/ss_leb128.test.o \
             crash/io.test.o \
             crash/recover_loop.test.o \
             multithread/multithread.test.o \
+            multithread/multithread_update.test.o \
             multithread/multithread_be.test.o \
             memory/leak.test.o
 

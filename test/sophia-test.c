@@ -95,6 +95,7 @@ extern stgroup *recover_loop_group(void);
 
 /* multithread */
 extern stgroup *multithread_group(void);
+extern stgroup *multithread_update_group(void);
 extern stgroup *multithread_be_group(void);
 extern stgroup *multithread_be_multipass_group(void);
 
@@ -403,6 +404,7 @@ main(int argc, char *argv[])
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
 	st_planadd(plan, multithread_be_group());
+	st_planadd(plan, multithread_update_group());
 	st_planadd(plan, multithread_group());
 	st_suiteadd(&st_r.suite, plan);
 

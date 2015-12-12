@@ -46,8 +46,13 @@ sv_flags(sv *v) {
 }
 
 static inline int
-sv_is(sv *v, uint8_t flags) {
-	return (sv_flags(v) & flags) > 0;
+sv_isflags(int flags, int value) {
+	return (flags & value) > 0;
+}
+
+static inline int
+sv_is(sv *v, int flags) {
+	return sv_isflags(sv_flags(v), flags) > 0;
 }
 
 static inline uint64_t
