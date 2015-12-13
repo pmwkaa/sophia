@@ -1,5 +1,5 @@
-#ifndef SV_UPDATEV_H_
-#define SV_UPDATEV_H_
+#ifndef SV_UPSERTV_H_
+#define SV_UPSERTV_H_
 
 /*
  * sophia database
@@ -9,6 +9,6 @@
  * BSD License
 */
 
-extern svif sv_updatevif;
+extern svif sv_upsertvif;
 
 #endif

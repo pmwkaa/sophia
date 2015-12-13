@@ -15,10 +15,10 @@
 #include <libsd.h>
 #include <libst.h>
 
-static int workflow_update_n = 0;
+static int workflow_upsert_n = 0;
 
 static int
-workflow_update_operator(int a_flags, void *a, int a_size,
+workflow_upsert_operator(int a_flags, void *a, int a_size,
                     int b_flags, void *b, int b_size, void *arg,
                     void **result, int *result_size)
 {
@@ -26,11 +26,11 @@ workflow_update_operator(int a_flags, void *a, int a_size,
 	assert(a != NULL);
 	assert(a_flags == 0); /* SET */
 #endif
-	assert(b_flags == SVUPDATE);
+	assert(b_flags == SVUPSERT);
 	assert(b != NULL);
 	(void)arg;
-	workflow_update_n++;
-	if (workflow_update_n == 1)
+	workflow_upsert_n++;
+	if (workflow_upsert_n == 1)
 		return -1;
 	char *c = malloc(b_size);
 	memcpy(c, b, b_size);
@@ -76,7 +76,7 @@ workflow_open(void *env)
 	rc = sp_setstring(env, "db.test.index.key", "u32", 0);
 	if (rc == -1)
 		return NULL;
-	rc = sp_setstring(env, "db.test.index.update", workflow_update_operator, 0);
+	rc = sp_setstring(env, "db.test.index.upsert", workflow_upsert_operator, 0);
 	if (rc == -1)
 		return NULL;
 	rc = sp_setint(env, "db.test.sync", 0);
@@ -192,7 +192,7 @@ workflow_write_read(void *env, void *db)
 }
 
 static inline int
-workflow_update(void *env, void *db)
+workflow_upsert(void *env, void *db)
 {
 	void *o = sp_document(db);
 	if (o == NULL)
@@ -201,7 +201,7 @@ workflow_update(void *env, void *db)
 	int i = 0;
 	sp_setstring(o, "key", &i, sizeof(i));
 	sp_setstring(o, "value", &up, sizeof(up));
-	int rc = sp_update(db, o);
+	int rc = sp_upsert(db, o);
 	if (rc == -1)
 		return -1;
 	o = sp_document(db);
@@ -210,7 +210,7 @@ workflow_update(void *env, void *db)
 	up = 778;
 	sp_setstring(o, "key", &i, sizeof(i));
 	sp_setstring(o, "value", &up, sizeof(up));
-	rc = sp_update(db, o);
+	rc = sp_upsert(db, o);
 	if (rc == -1)
 		return -1;
 	o = sp_document(db);
@@ -306,7 +306,7 @@ workflow_snapshot(void *env, void *db)
 void
 workflow_test(char *injection)
 {
-	workflow_update_n = 0;
+	workflow_upsert_n = 0;
 
 	int i = 0;
 	int j = 0;
@@ -329,8 +329,8 @@ workflow_test(char *injection)
 			sp_destroy(env);
 			continue;
 		}
-		/* update */
-		rc = workflow_update(env, db);
+		/* upsert */
+		rc = workflow_upsert(env, db);
 		if (rc == -1) {
 			sp_destroy(env);
 			continue;

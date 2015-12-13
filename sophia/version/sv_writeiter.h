@@ -18,35 +18,35 @@ struct svwriteiter {
 	uint64_t  size;
 	uint32_t  sizev;
 	int       save_delete;
-	int       save_update;
+	int       save_upsert;
 	int       next;
-	int       update;
+	int       upsert;
 	uint64_t  prevlsn;
 	int       vdup;
 	sv       *v;
-	svupdate *u;
+	svupsert *u;
 	ssiter   *merge;
 	sr       *r;
 } sspacked;
 
 static inline int
-sv_writeiter_update(svwriteiter *i)
+sv_writeiter_upsert(svwriteiter *i)
 {
-	/* apply update only on statements which are the latest or
+	/* apply upsert only on statements which are the latest or
 	 * ready to be garbage-collected */
-	sv_updatereset(i->u);
+	sv_upsertreset(i->u);
 
-	/* update begin */
+	/* upsert begin */
 	sv *v = ss_iterof(sv_mergeiter, i->merge);
 	assert(v != NULL);
-	assert(sv_flags(v) & SVUPDATE);
+	assert(sv_flags(v) & SVUPSERT);
 	assert(sv_lsn(v) <= i->vlsn);
-	int rc = sv_updatepush(i->u, i->r, v);
+	int rc = sv_upsertpush(i->u, i->r, v);
 	if (ssunlikely(rc == -1))
 		return -1;
 	ss_iternext(sv_mergeiter, i->merge);
 
-	/* iterate over update statements */
+	/* iterate over upsert statements */
 	int last_non_upd = 0;
 	for (; ss_iterhas(sv_mergeiter, i->merge); ss_iternext(sv_mergeiter, i->merge))
 	{
@@ -55,20 +55,20 @@ sv_writeiter_update(svwriteiter *i)
 		int dup = sv_isflags(flags, SVDUP) || sv_mergeisdup(i->merge);
 		if (! dup)
 			break;
-		/* stop forming updates on a second non-update stmt,
+		/* stop forming upserts on a second non-upsert stmt,
 		 * but continue to iterate stream */
 		if (last_non_upd) {
-			assert(! sv_is(v, SVUPDATE));
+			assert(! sv_is(v, SVUPSERT));
 			continue;
 		}
-		last_non_upd = ! sv_isflags(flags, SVUPDATE);
-		int rc = sv_updatepush(i->u, i->r, v);
+		last_non_upd = ! sv_isflags(flags, SVUPSERT);
+		int rc = sv_upsertpush(i->u, i->r, v);
 		if (ssunlikely(rc == -1))
 			return -1;
 	}
 
-	/* update */
-	rc = sv_update(i->u, i->r);
+	/* upsert */
+	rc = sv_upsert(i->u, i->r);
 	if (ssunlikely(rc == -1))
 		return -1;
 	return 0;
@@ -100,14 +100,14 @@ sv_writeiter_next(ssiter *i)
 		if (ssunlikely(dup)) {
 			/* keep atleast one visible version for <= vlsn */
 			if (im->prevlsn <= im->vlsn) {
-				if (im->update) {
-					im->update = sv_isflags(flags, SVUPDATE);
+				if (im->upsert) {
+					im->upsert = sv_isflags(flags, SVUPSERT);
 				} else {
 					continue;
 				}
 			}
 		} else {
-			im->update = 0;
+			im->upsert = 0;
 			/* delete (stray or on branch) */
 			if (! im->save_delete) {
 				int del = sv_isflags(flags, SVDELETE);
@@ -117,17 +117,17 @@ sv_writeiter_next(ssiter *i)
 				}
 			}
 			im->size += im->sizev + sv_size(v);
-			/* update (track first statement start) */
-			if (sv_is(v, SVUPDATE))
-				im->update = 1;
+			/* upsert (track first statement start) */
+			if (sv_is(v, SVUPSERT))
+				im->upsert = 1;
 		}
 
-		/* update */
-		if (im->update) {
-			if (! im->save_update) {
+		/* upsert */
+		if (im->upsert) {
+			if (! im->save_upsert) {
 				if (lsn <= im->vlsn) {
 					int rc;
-					rc = sv_writeiter_update(im);
+					rc = sv_writeiter_upsert(im);
 					if (ssunlikely(rc == -1))
 						return;
 					im->prevlsn = lsn;
@@ -148,13 +148,13 @@ sv_writeiter_next(ssiter *i)
 }
 
 static inline int
-sv_writeiter_open(ssiter *i, sr *r, ssiter *merge, svupdate *u,
+sv_writeiter_open(ssiter *i, sr *r, ssiter *merge, svupsert *u,
                   uint64_t limit,
                   uint32_t sizev,
                   uint64_t vlsn,
                   uint64_t vlsn_lru,
                   int save_delete,
-                  int save_update)
+                  int save_upsert)
 {
 	svwriteiter *im = (svwriteiter*)i->priv;
 	im->u           = u;
@@ -166,13 +166,13 @@ sv_writeiter_open(ssiter *i, sr *r, ssiter *merge, svupdate *u,
 	im->vlsn        = vlsn;
 	im->vlsn_lru    = vlsn_lru;
 	im->save_delete = save_delete;
-	im->save_update = save_update;
+	im->save_upsert = save_upsert;
 	assert(im->merge->vif == &sv_mergeiter);
 	im->next  = 0;
 	im->prevlsn  = 0;
 	im->v = NULL;
 	im->vdup = 0;
-	im->update = 0;
+	im->upsert = 0;
 	sv_writeiter_next(i);
 	return 0;
 }
@@ -207,7 +207,7 @@ sv_writeiter_resume(ssiter *i)
 	im->vdup    = sv_is(im->v, SVDUP) || sv_mergeisdup(im->merge);
 	im->prevlsn = sv_lsn(im->v);
 	im->next    = 1;
-	im->update  = 0;
+	im->upsert  = 0;
 	im->size    = im->sizev + sv_size(im->v);
 	return 1;
 }

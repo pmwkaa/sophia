@@ -30,8 +30,8 @@ int si_readopen(siread *q, sitx *x, sicache *c, ssorder o,
 	q->prefix     = prefix;
 	q->prefixsize = prefixsize;
 	q->has        = 0;
-	q->update_v   = NULL;
-	q->update_eq  = 0;
+	q->upsert_v   = NULL;
+	q->upsert_eq  = 0;
 	q->cache_only = 0;
 	q->read_disk  = 0;
 	q->read_cache = 0;
@@ -50,10 +50,10 @@ void si_readhas(siread *q)
 	q->has = 1;
 }
 
-void si_readupdate(siread *q, sv *v, int eq)
+void si_readupsert(siread *q, sv *v, int eq)
 {
-	q->update_v  = v;
-	q->update_eq = eq;
+	q->upsert_v  = v;
+	q->upsert_eq = eq;
 }
 
 int si_readclose(siread *q)
@@ -333,13 +333,13 @@ next_node:
 		return -1;
 	}
 
-	/* external source (update) */
+	/* external source (upsert) */
 	svmergesrc *s;
 	sv upbuf_reserve;
 	ssbuf upbuf;
-	if (ssunlikely(q->update_v && q->update_v->v)) {
+	if (ssunlikely(q->upsert_v && q->upsert_v->v)) {
 		ss_bufinit_reserve(&upbuf, &upbuf_reserve, sizeof(upbuf_reserve));
-		ss_bufadd(&upbuf, NULL, (void*)&q->update_v, sizeof(sv*));
+		ss_bufadd(&upbuf, NULL, (void*)&q->upsert_v, sizeof(sv*));
 		s = sv_mergeadd(m, NULL);
 		ss_iterinit(ss_bufiterref, &s->src);
 		ss_iteropen(ss_bufiterref, &s->src, &upbuf, sizeof(sv*));
@@ -390,8 +390,8 @@ next_node:
 	}
 
 	rc = 1;
-	/* convert update search to SS_EQ */
-	if (q->update_eq) {
+	/* convert upsert search to SS_EQ */
+	if (q->upsert_eq) {
 		rc = sr_compare(q->r->scheme, sv_pointer(v), sv_size(v),
 		                q->key, q->keysize);
 		rc = rc == 0;

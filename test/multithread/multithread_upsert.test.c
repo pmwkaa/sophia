@@ -33,18 +33,18 @@ struct sophiaref {
 } __attribute__((packed));
 
 static inline uint32_t*
-update_value(char *ptr)
+upsert_value(char *ptr)
 {
 	return (uint32_t*)((char*)ptr + sizeof(struct sophiaref) +
 	                   sizeof(uint32_t));
 }
 
 static int
-update_op(int a_flags, void *a, int a_size,
+upsert_op(int a_flags, void *a, int a_size,
           int b_flags, void *b, int b_size, void *arg,
           void **result, int *result_size)
 {
-	assert(b_flags == SVUPDATE);
+	assert(b_flags == SVUPSERT);
 	assert(b != NULL);
 	(void)arg;
 	char *c = malloc(b_size);
@@ -58,14 +58,14 @@ update_op(int a_flags, void *a, int a_size,
 	}
 	assert(a_size == b_size);
 	memcpy(c, a, a_size);
-	uint32_t *incr = update_value(b);
-	uint32_t *up = update_value(c);
+	uint32_t *incr = upsert_value(b);
+	uint32_t *up = upsert_value(c);
 	*up += *incr;
 	return 0;
 }
 
 static void
-mt_update0(void)
+mt_upsert0(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -74,7 +74,7 @@ mt_update0(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.update", update_op, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.upsert", upsert_op, 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
@@ -89,7 +89,7 @@ mt_update0(void)
 		t( o != NULL );
 		t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
 		t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
-		t( sp_update(db, o) == 0 );
+		t( sp_upsert(db, o) == 0 );
 		print_current(i);
 	}
 
@@ -108,7 +108,7 @@ mt_update0(void)
 }
 
 static void
-mt_update1(void)
+mt_upsert1(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -117,7 +117,7 @@ mt_update1(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.update", update_op, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.upsert", upsert_op, 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
@@ -147,7 +147,7 @@ mt_update1(void)
 		t( o != NULL );
 		t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
 		t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
-		t( sp_update(db, o) == 0 );
+		t( sp_upsert(db, o) == 0 );
 
 		print_current(i);
 	}
@@ -158,7 +158,7 @@ mt_update1(void)
 }
 
 static void
-mt_update2(void)
+mt_upsert2(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -167,7 +167,7 @@ mt_update2(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.update", update_op, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.upsert", upsert_op, 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
@@ -202,7 +202,7 @@ mt_update2(void)
 		t( o != NULL );
 		t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
 		t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
-		t( sp_update(db, o) == 0 );
+		t( sp_upsert(db, o) == 0 );
 
 		print_current(i);
 	}
@@ -212,11 +212,11 @@ mt_update2(void)
 	t( sp_destroy(env) == 0 );
 }
 
-stgroup *multithread_update_group(void)
+stgroup *multithread_upsert_group(void)
 {
-	stgroup *group = st_group("mt_update");
-	st_groupadd(group, st_test("update0", mt_update0));
-	st_groupadd(group, st_test("update1", mt_update1));
-	st_groupadd(group, st_test("update2", mt_update2));
+	stgroup *group = st_group("mt_upsert");
+	st_groupadd(group, st_test("upsert0", mt_upsert0));
+	st_groupadd(group, st_test("upsert1", mt_upsert1));
+	st_groupadd(group, st_test("upsert2", mt_upsert2));
 	return group;
 }

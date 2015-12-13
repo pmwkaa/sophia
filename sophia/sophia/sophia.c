@@ -222,16 +222,16 @@ SP_API int sp_set(void *ptr, void *v)
 	return rc;
 }
 
-SP_API int sp_update(void *ptr, void *v)
+SP_API int sp_upsert(void *ptr, void *v)
 {
 	so *o = sp_cast(ptr, __func__);
-	if (ssunlikely(o->i->update == NULL)) {
+	if (ssunlikely(o->i->upsert == NULL)) {
 		sp_unsupported(o, __func__);
 		return -1;
 	}
 	so *e = o->env;
 	se_apilock(e);
-	int rc = o->i->update(o, v);
+	int rc = o->i->upsert(o, v);
 	se_apiunlock(e);
 	return rc;
 }

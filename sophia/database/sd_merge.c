@@ -14,7 +14,7 @@
 #include <libsd.h>
 
 int sd_mergeinit(sdmerge *m, sr *r, ssiter *i, sdbuild *build,
-                 svupdate *update, sdmergeconf *conf)
+                 svupsert *upsert, sdmergeconf *conf)
 {
 	m->conf      = conf;
 	m->build     = build;
@@ -26,12 +26,12 @@ int sd_mergeinit(sdmerge *m, sr *r, ssiter *i, sdbuild *build,
 	m->resume    = 0;
 	sd_indexinit(&m->index);
 	ss_iterinit(sv_writeiter, &m->i);
-	ss_iteropen(sv_writeiter, &m->i, r, i, update,
+	ss_iteropen(sv_writeiter, &m->i, r, i, upsert,
 	            (uint64_t)conf->size_page, sizeof(sdv),
 	            conf->vlsn,
 	            conf->vlsn_lru,
 	            conf->save_delete,
-	            conf->save_update);
+	            conf->save_upsert);
 	return 0;
 }
 

@@ -57,10 +57,10 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		.vlsn            = vlsn,
 		.vlsn_lru        = 0,
 		.save_delete     = 1,
-		.save_update     = 1
+		.save_upsert     = 1
 	};
 	sdmerge merge;
-	sd_mergeinit(&merge, r, &i, &c->build, &c->update, &mergeconf);
+	sd_mergeinit(&merge, r, &i, &c->build, &c->upsert, &mergeconf);
 
 	while ((rc = sd_merge(&merge)) > 0)
 	{

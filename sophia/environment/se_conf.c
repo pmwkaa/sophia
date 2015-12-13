@@ -383,8 +383,8 @@ se_confperformance(se *e ssunused, seconfrt *rt, srconf **pc)
 	sr_C(&p, pc, se_confv, "set_latency", SS_STRING, rt->stat.set_latency.sz, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "delete", SS_U64, &rt->stat.del, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "delete_latency", SS_STRING, rt->stat.del_latency.sz, SR_RO, NULL);
-	sr_C(&p, pc, se_confv, "update", SS_U64, &rt->stat.update, SR_RO, NULL);
-	sr_C(&p, pc, se_confv, "update_latency", SS_STRING, rt->stat.update_latency.sz, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "upsert", SS_U64, &rt->stat.upsert, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "upsert_latency", SS_STRING, rt->stat.upsert_latency.sz, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "get", SS_U64, &rt->stat.get, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "get_latency", SS_STRING, rt->stat.get_latency.sz, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "get_read_disk", SS_STRING, rt->stat.get_read_disk.sz, SR_RO, NULL);
@@ -476,7 +476,7 @@ se_confdb_get(srconf *c, srconfstmt *s)
 }
 
 static inline int
-se_confdb_update(srconf *c, srconfstmt *s)
+se_confdb_upsert(srconf *c, srconfstmt *s)
 {
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
@@ -485,14 +485,14 @@ se_confdb_update(srconf *c, srconfstmt *s)
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
-	/* set update function */
-	sfupdatef update = (sfupdatef)(uintptr_t)s->value;
-	sf_updateset(&db->scheme.fmt_update, update);
+	/* set upsert function */
+	sfupsertf upsert = (sfupsertf)(uintptr_t)s->value;
+	sf_upsertset(&db->scheme.fmt_upsert, upsert);
 	return 0;
 }
 
 static inline int
-se_confdb_updatearg(srconf *c, srconfstmt *s)
+se_confdb_upsertarg(srconf *c, srconfstmt *s)
 {
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
@@ -501,7 +501,7 @@ se_confdb_updatearg(srconf *c, srconfstmt *s)
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
-	sf_updateset_arg(&db->scheme.fmt_update, s->value);
+	sf_upsertset_arg(&db->scheme.fmt_upsert, s->value);
 	return 0;
 }
 
@@ -656,8 +656,8 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc)
 		sr_C(&p, pc, se_confv, "branch_max", SS_U32, &o->rtp.total_branch_max, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "branch_histogram", SS_STRINGPTR, &o->rtp.histogram_branch_ptr, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "page_count", SS_U32, &o->rtp.total_page_count, SR_RO, NULL);
-		sr_C(&p, pc, se_confdb_update, "update", SS_STRING, NULL, 0, o);
-		sr_C(&p, pc, se_confdb_updatearg, "update_arg", SS_STRING, NULL, 0, o);
+		sr_C(&p, pc, se_confdb_upsert, "upsert", SS_STRING, NULL, 0, o);
+		sr_C(&p, pc, se_confdb_upsertarg, "upsert_arg", SS_STRING, NULL, 0, o);
 		/* index keys */
 		int i = 0;
 		while (i < o->scheme.scheme.count) {

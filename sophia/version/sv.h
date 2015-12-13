@@ -11,7 +11,7 @@
 
 #define SVNONE     0
 #define SVDELETE   1
-#define SVUPDATE   2
+#define SVUPSERT   2
 #define SVGET      4
 #define SVDUP      8
 #define SVBEGIN    16

@@ -52,8 +52,8 @@ int se_reqread(sereq *r)
 	            arg->vlsn,
 	            prefix,
 	            prefixsize, key, keysize);
-	if (arg->update)
-		si_readupdate(&q, &arg->vup, arg->update_eq);
+	if (arg->upsert)
+		si_readupsert(&q, &arg->vup, arg->upsert_eq);
 	if (arg->cache_only)
 		si_readcache_only(&q);
 	if (arg->has)

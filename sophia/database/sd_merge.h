@@ -24,7 +24,7 @@ struct sdmergeconf {
 	uint64_t    vlsn;
 	uint64_t    vlsn_lru;
 	uint32_t    save_delete;
-	uint32_t    save_update;
+	uint32_t    save_upsert;
 };
 
 struct sdmerge {
@@ -40,7 +40,7 @@ struct sdmerge {
 	int resume;
 };
 
-int sd_mergeinit(sdmerge*, sr*, ssiter*, sdbuild*, svupdate*,
+int sd_mergeinit(sdmerge*, sr*, ssiter*, sdbuild*, svupsert*,
                  sdmergeconf*);
 int sd_mergefree(sdmerge*);
 int sd_merge(sdmerge*);

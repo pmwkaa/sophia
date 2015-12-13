@@ -35,7 +35,7 @@ SP_API int      sp_error(void*);
 SP_API void    *sp_poll(void*);
 SP_API int      sp_drop(void*);
 SP_API int      sp_set(void*, void*);
-SP_API int      sp_update(void*, void*);
+SP_API int      sp_upsert(void*, void*);
 SP_API int      sp_delete(void*, void*);
 SP_API void    *sp_get(void*, void*);
 SP_API void    *sp_cursor(void*);

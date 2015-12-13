@@ -24,9 +24,9 @@ struct srstat {
 	/* delete */
 	uint64_t del;
 	ssavg    del_latency;
-	/* update */
-	uint64_t update;
-	ssavg    update_latency;
+	/* upsert */
+	uint64_t upsert;
+	ssavg    upsert_latency;
 	/* get */
 	uint64_t get;
 	ssavg    get_read_disk;
@@ -66,7 +66,7 @@ sr_statprepare(srstat *s)
 	ss_avgprepare(&s->value);
 	ss_avgprepare(&s->set_latency);
 	ss_avgprepare(&s->del_latency);
-	ss_avgprepare(&s->update_latency);
+	ss_avgprepare(&s->upsert_latency);
 	ss_avgprepare(&s->get_read_disk);
 	ss_avgprepare(&s->get_read_cache);
 	ss_avgprepare(&s->get_latency);
@@ -115,12 +115,12 @@ sr_statdelete(srstat *s, uint64_t start)
 }
 
 static inline void
-sr_statupdate(srstat *s, uint64_t start)
+sr_statupsert(srstat *s, uint64_t start)
 {
 	uint64_t diff = ss_utime() - start;
 	ss_spinlock(&s->lock);
-	s->update++;
-	ss_avgupdate(&s->update_latency, diff);
+	s->upsert++;
+	ss_avgupdate(&s->upsert_latency, diff);
 	ss_spinunlock(&s->lock);
 }
 

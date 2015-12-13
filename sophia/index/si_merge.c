@@ -158,11 +158,11 @@ si_split(si *index, sdc *c, ssbuf *result,
 		.vlsn            = vlsn,
 		.vlsn_lru        = vlsn_lru,
 		.save_delete     = 0,
-		.save_update     = 0
+		.save_upsert     = 0
 	};
 	sinode *n = NULL;
 	sdmerge merge;
-	sd_mergeinit(&merge, r, i, &c->build, &c->update, &mergeconf);
+	sd_mergeinit(&merge, r, i, &c->build, &c->upsert, &mergeconf);
 	while ((rc = sd_merge(&merge)) > 0)
 	{
 		/* create new node */

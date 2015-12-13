@@ -13,7 +13,7 @@ typedef struct sr sr;
 
 struct sr {
 	srerror *e;
-	sfupdate *fmt_update;
+	sfupsert *fmt_upsert;
 	sfstorage fmt_storage;
 	sf fmt;
 	srscheme *scheme;
@@ -35,7 +35,7 @@ sr_init(sr *r,
         srseq *seq,
         sf fmt,
         sfstorage fmt_storage,
-        sfupdate *fmt_update,
+        sfupsert *fmt_upsert,
         srscheme *scheme,
         ssinjection *i,
 		srstat *stat,
@@ -49,7 +49,7 @@ sr_init(sr *r,
 	r->scheme      = scheme;
 	r->fmt         = fmt;
 	r->fmt_storage = fmt_storage;
-	r->fmt_update  = fmt_update;
+	r->fmt_upsert  = fmt_upsert;
 	r->i           = i;
 	r->stat        = stat;
 	r->crc         = crc;

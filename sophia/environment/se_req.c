@@ -23,7 +23,7 @@ void
 se_reqend(sereq *r)
 {
 	se *e = se_of(r->object);
-	/* free key, prefix, update and a pending result */
+	/* free key, prefix, upsert and a pending result */
 	if (r->arg.v.v)
 		sv_vfree(&e->r, r->arg.v.v);
 	if (r->arg.vprefix.v)
@@ -64,7 +64,7 @@ static soif sereqif =
 	.getstring    = NULL,
 	.getint       = NULL,
 	.set          = NULL,
-	.update       = NULL,
+	.upsert       = NULL,
 	.del          = NULL,
 	.get          = NULL,
 	.begin        = NULL,

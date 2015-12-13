@@ -26,8 +26,8 @@ struct sereqarg {
 	int       cachegc;
 	ssorder   order;
 	int       has;
-	int       update;
-	int       update_eq;
+	int       upsert;
+	int       upsert_eq;
 	int       cache_only;
 	int       vlsn_generate;
 	uint64_t  vlsn;

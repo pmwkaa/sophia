@@ -10,6 +10,6 @@
 */
 
 #include <sf.h>
-#include <sf_update.h>
+#include <sf_upsert.h>
 
 #endif

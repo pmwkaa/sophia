@@ -30,7 +30,7 @@ struct si {
 	uint64_t   read_cache;
 	uint64_t   size;
 	ssbuf      readbuf;
-	svupdate   u;
+	svupsert   u;
 	sischeme  *scheme;
 	sr        *r;
 };

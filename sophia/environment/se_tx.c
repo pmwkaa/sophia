@@ -43,7 +43,7 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 	case SE_ONLINE: break;
 	default: goto error;
 	}
-	if (flags == SVUPDATE && !sf_updatehas(&db->scheme.fmt_update))
+	if (flags == SVUPSERT && !sf_upserthas(&db->scheme.fmt_upsert))
 		flags = 0;
 
 	/* prepare document */
@@ -82,11 +82,11 @@ se_txset(so *o, so *v)
 }
 
 static int
-se_txupdate(so *o, so *v)
+se_txupsert(so *o, so *v)
 {
 	setx *t = se_cast(o, setx*, SETX);
 	sedocument *key = se_cast(v, sedocument*, SEDOCUMENT);
-	return se_txwrite(t, key, SVUPDATE);
+	return se_txwrite(t, key, SVUPSERT);
 }
 
 static int
@@ -277,7 +277,7 @@ static soif setxif =
 	.getstring    = NULL,
 	.getint       = se_txget_int,
 	.set          = se_txset,
-	.update       = se_txupdate,
+	.upsert       = se_txupsert,
 	.del          = se_txdelete,
 	.get          = se_txget,
 	.begin        = NULL,

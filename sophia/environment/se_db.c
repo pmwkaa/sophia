@@ -59,7 +59,7 @@ se_dbscheme_init(sedb *db, char *name)
 		ss_strdup(&e->a, scheme->compression_branch_if->name);
 	if (ssunlikely(scheme->compression_branch_sz == NULL))
 		goto e1;
-	sf_updateinit(&scheme->fmt_update);
+	sf_upsertinit(&scheme->fmt_upsert);
 	scheme->fmt_sz = ss_strdup(&e->a, "kv");
 	if (ssunlikely(scheme->fmt_sz == NULL))
 		goto e1;
@@ -155,7 +155,7 @@ se_dbscheme_set(sedb *db)
 	db->r.scheme = &s->scheme;
 	db->r.fmt = s->fmt;
 	db->r.fmt_storage = s->fmt_storage;
-	db->r.fmt_update  = &s->fmt_update;
+	db->r.fmt_upsert = &s->fmt_upsert;
 	return 0;
 }
 
@@ -314,7 +314,7 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 		int rc = sx_get(x, &db->coindex, &vp, &vup);
 		if (ssunlikely(rc == -1 || rc == 2 /* delete */))
 			goto e2;
-		if (rc == 1 && !sv_is(&vup, SVUPDATE)) {
+		if (rc == 1 && !sv_is(&vup, SVUPSERT)) {
 			so *ret = se_document_new(e, &db->o, &vup, async);
 			if (ssunlikely(ret == NULL))
 				sv_vfree(&db->r, vup.v);
@@ -366,11 +366,11 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 		arg->vlsn = 0;
 		arg->vlsn_generate = 1;
 	}
-	if (sf_updatehas(&db->scheme.fmt_update)) {
-		arg->update = 1;
+	if (sf_upserthas(&db->scheme.fmt_upsert)) {
+		arg->upsert = 1;
 		if (arg->order == SS_EQ) {
 			arg->order = SS_GTE;
-			arg->update_eq = 1;
+			arg->upsert_eq = 1;
 		}
 	}
 
@@ -416,7 +416,7 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 	}
 	if (ssunlikely(! se_online(&db->status)))
 		goto error;
-	if (flags == SVUPDATE && !sf_updatehas(&db->scheme.fmt_update))
+	if (flags == SVUPSERT && !sf_upserthas(&db->scheme.fmt_upsert))
 		flags = 0;
 
 	/* prepare document */
@@ -472,14 +472,14 @@ se_dbset(so *o, so *v)
 }
 
 static int
-se_dbupdate(so *o, so *v)
+se_dbupsert(so *o, so *v)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
 	sedocument *key = se_cast(v, sedocument*, SEDOCUMENT);
 	se *e = se_of(&db->o);
 	uint64_t start = ss_utime();
-	int rc = se_dbwrite(db, key, SVUPDATE);
-	sr_statupdate(&e->stat, start);
+	int rc = se_dbwrite(db, key, SVUPSERT);
+	sr_statupsert(&e->stat, start);
 	return rc;
 }
 
@@ -554,7 +554,7 @@ static soif sedbif =
 	.getstring    = se_dbget_string,
 	.getint       = se_dbget_int,
 	.set          = se_dbset,
-	.update       = se_dbupdate,
+	.upsert       = se_dbupsert,
 	.del          = se_dbdel,
 	.get          = se_dbget,
 	.begin        = NULL,

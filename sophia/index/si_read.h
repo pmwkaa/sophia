@@ -23,8 +23,8 @@ struct siread {
 	int       cache_only;
 	int       read_disk;
 	int       read_cache;
-	sv       *update_v;
-	int       update_eq;
+	sv       *upsert_v;
+	int       upsert_eq;
 	sv        result;
 	sicache  *cache;
 	sr       *r;
@@ -39,7 +39,7 @@ int  si_readopen(siread*, sitx*, sicache*, ssorder,
 int  si_readclose(siread*);
 void si_readcache_only(siread*);
 void si_readhas(siread*);
-void si_readupdate(siread*, sv*, int);
+void si_readupsert(siread*, sv*, int);
 int  si_read(siread*);
 int  si_readcommited(si*, sr*, sv*);
 

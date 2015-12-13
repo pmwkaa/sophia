@@ -17,24 +17,24 @@ struct svreaditer {
 	int next;
 	int nextdup;
 	int save_delete;
-	svupdate *u;
+	svupsert *u;
 	sr *r;
 	sv *v;
 } sspacked;
 
 static inline int
-sv_readiter_update(svreaditer *i)
+sv_readiter_upsert(svreaditer *i)
 {
-	sv_updatereset(i->u);
-	/* update begin */
+	sv_upsertreset(i->u);
+	/* upsert begin */
 	sv *v = ss_iterof(sv_mergeiter, i->merge);
 	assert(v != NULL);
-	assert(sv_flags(v) & SVUPDATE);
-	int rc = sv_updatepush(i->u, i->r, v);
+	assert(sv_flags(v) & SVUPSERT);
+	int rc = sv_upsertpush(i->u, i->r, v);
 	if (ssunlikely(rc == -1))
 		return -1;
 	ss_iternext(sv_mergeiter, i->merge);
-	/* iterate over update statements */
+	/* iterate over upsert statements */
 	int skip = 0;
 	for (; ss_iterhas(sv_mergeiter, i->merge); ss_iternext(sv_mergeiter, i->merge))
 	{
@@ -44,14 +44,14 @@ sv_readiter_update(svreaditer *i)
 			break;
 		if (skip)
 			continue;
-		int rc = sv_updatepush(i->u, i->r, v);
+		int rc = sv_upsertpush(i->u, i->r, v);
 		if (ssunlikely(rc == -1))
 			return -1;
-		if (! (sv_flags(v) & SVUPDATE))
+		if (! (sv_flags(v) & SVUPSERT))
 			skip = 1;
 	}
-	/* update */
-	rc = sv_update(i->u, i->r);
+	/* upsert */
+	rc = sv_upsert(i->u, i->r);
 	if (ssunlikely(rc == -1))
 		return -1;
 	return 0;
@@ -82,8 +82,8 @@ sv_readiter_next(ssiter *i)
 		im->nextdup = 1;
 		if (ssunlikely(!im->save_delete && sv_is(v, SVDELETE)))
 			continue;
-		if (ssunlikely(sv_is(v, SVUPDATE))) {
-			int rc = sv_readiter_update(im);
+		if (ssunlikely(sv_is(v, SVUPSERT))) {
+			int rc = sv_readiter_upsert(im);
 			if (ssunlikely(rc == -1))
 				return;
 			im->v = &im->u->result;
@@ -97,7 +97,7 @@ sv_readiter_next(ssiter *i)
 }
 
 static inline int
-sv_readiter_open(ssiter *i, sr *r, ssiter *iterator, svupdate *u,
+sv_readiter_open(ssiter *i, sr *r, ssiter *iterator, svupsert *u,
                  uint64_t vlsn, int save_delete)
 {
 	svreaditer *im = (svreaditer*)i->priv;

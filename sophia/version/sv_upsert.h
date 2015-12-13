@@ -1,5 +1,5 @@
-#ifndef SV_UPDATE_H_
-#define SV_UPDATE_H_
+#ifndef SV_UPSERT_H_
+#define SV_UPSERT_H_
 
 /*
  * sophia database
@@ -9,19 +9,19 @@
  * BSD License
 */
 
-typedef struct svupdatenode svupdatenode;
-typedef struct svupdate svupdate;
+typedef struct svupsertnode svupsertnode;
+typedef struct svupsert svupsert;
 
-struct svupdatenode {
+struct svupsertnode {
 	uint64_t lsn;
 	uint8_t flags;
 	ssbuf buf;
 };
 
-#define SV_UPDATERESRV 16
+#define SV_UPSERTRESRV 16
 
-struct svupdate {
-	svupdatenode reserve[SV_UPDATERESRV];
+struct svupsert {
+	svupsertnode reserve[SV_UPSERTRESRV];
 	ssbuf stack;
 	int max;
 	int count;
@@ -29,9 +29,9 @@ struct svupdate {
 };
 
 static inline void
-sv_updateinit(svupdate *u)
+sv_upsertinit(svupsert *u)
 {
-	const int reserve = SV_UPDATERESRV;
+	const int reserve = SV_UPSERTRESRV;
 	int i = 0;
 	while (i < reserve) {
 		ss_bufinit(&u->reserve[i].buf);
@@ -44,9 +44,9 @@ sv_updateinit(svupdate *u)
 }
 
 static inline void
-sv_updatefree(svupdate *u, sr *r)
+sv_upsertfree(svupsert *u, sr *r)
 {
-	svupdatenode *n = (svupdatenode*)u->stack.s;
+	svupsertnode *n = (svupsertnode*)u->stack.s;
 	int i = 0;
 	while (i < u->max) {
 		ss_buffree(&n[i].buf, r->a);
@@ -56,9 +56,9 @@ sv_updatefree(svupdate *u, sr *r)
 }
 
 static inline void
-sv_updatereset(svupdate *u)
+sv_upsertreset(svupsert *u)
 {
-	svupdatenode *n = (svupdatenode*)u->stack.s;
+	svupsertnode *n = (svupsertnode*)u->stack.s;
 	int i = 0;
 	while (i < u->count) {
 		ss_bufreset(&n[i].buf);
@@ -70,12 +70,12 @@ sv_updatereset(svupdate *u)
 }
 
 static inline void
-sv_updategc(svupdate *u, sr *r, int wm_stack, int wm_buf)
+sv_upsertgc(svupsert *u, sr *r, int wm_stack, int wm_buf)
 {
-	svupdatenode *n = (svupdatenode*)u->stack.s;
+	svupsertnode *n = (svupsertnode*)u->stack.s;
 	if (u->max >= wm_stack) {
-		sv_updatefree(u, r);
-		sv_updateinit(u);
+		sv_upsertfree(u, r);
+		sv_upsertinit(u);
 		return;
 	}
 	int i = 0;
@@ -88,19 +88,19 @@ sv_updategc(svupdate *u, sr *r, int wm_stack, int wm_buf)
 }
 
 static inline int
-sv_updatepush_raw(svupdate *u, sr *r, char *pointer, int size,
+sv_upsertpush_raw(svupsert *u, sr *r, char *pointer, int size,
                   uint8_t flags, uint64_t lsn)
 {
-	svupdatenode *n;
+	svupsertnode *n;
 	int rc;
 	if (sslikely(u->max > u->count)) {
-		n = (svupdatenode*)u->stack.p;
+		n = (svupsertnode*)u->stack.p;
 		ss_bufreset(&n->buf);
 	} else {
-		rc = ss_bufensure(&u->stack, r->a, sizeof(svupdatenode));
+		rc = ss_bufensure(&u->stack, r->a, sizeof(svupsertnode));
 		if (ssunlikely(rc == -1))
 			return -1;
-		n = (svupdatenode*)u->stack.p;
+		n = (svupsertnode*)u->stack.p;
 		ss_bufinit(&n->buf);
 		u->max++;
 	}
@@ -111,36 +111,36 @@ sv_updatepush_raw(svupdate *u, sr *r, char *pointer, int size,
 	n->flags = flags;
 	n->lsn = lsn;
 	ss_bufadvance(&n->buf, size);
-	ss_bufadvance(&u->stack, sizeof(svupdatenode));
+	ss_bufadvance(&u->stack, sizeof(svupsertnode));
 	u->count++;
 	return 0;
 }
 
 static inline int
-sv_updatepush(svupdate *u, sr *r, sv *v)
+sv_upsertpush(svupsert *u, sr *r, sv *v)
 {
-	return sv_updatepush_raw(u, r, sv_pointer(v),
+	return sv_upsertpush_raw(u, r, sv_pointer(v),
 	                         sv_size(v),
 	                         sv_flags(v), sv_lsn(v));
 }
 
-static inline svupdatenode*
-sv_updatepop(svupdate *u)
+static inline svupsertnode*
+sv_upsertpop(svupsert *u)
 {
 	if (u->count == 0)
 		return NULL;
 	int pos = u->count - 1;
 	u->count--;
-	u->stack.p -= sizeof(svupdatenode);
-	return ss_bufat(&u->stack, sizeof(svupdatenode), pos);
+	u->stack.p -= sizeof(svupsertnode);
+	return ss_bufat(&u->stack, sizeof(svupsertnode), pos);
 }
 
 static inline int
-sv_updatedo(svupdate *u, sr *r, svupdatenode *a, svupdatenode *b)
+sv_upsertdo(svupsert *u, sr *r, svupsertnode *a, svupsertnode *b)
 {
-	assert(b->flags & SVUPDATE);
+	assert(b->flags & SVUPSERT);
 	int       b_flagsraw = b->flags;
-	int       b_flags = b->flags & SVUPDATE;
+	int       b_flags = b->flags & SVUPSERT;
 	uint64_t  b_lsn = b->lsn;
 	void     *b_pointer = b->buf.s;
 	int       b_size = ss_bufused(&b->buf);
@@ -149,56 +149,56 @@ sv_updatedo(svupdate *u, sr *r, svupdatenode *a, svupdatenode *b)
 	int       a_size;
 	if (sslikely(a && !(a->flags & SVDELETE)))
 	{
-		a_flags   = a->flags & SVUPDATE;
+		a_flags   = a->flags & SVUPSERT;
 		a_pointer = a->buf.s;
 		a_size    = ss_bufused(&a->buf);
 	} else {
-		/* convert delete to orphan update case */
+		/* convert delete to orphan upsert case */
 		a_flags   = 0;
 		a_pointer = NULL;
 		a_size    = 0;
 	}
 	void *c_pointer;
 	int c_size;
-	int rc = r->fmt_update->function(a_flags, a_pointer, a_size,
+	int rc = r->fmt_upsert->function(a_flags, a_pointer, a_size,
 	                                 b_flags, b_pointer, b_size,
-	                                 r->fmt_update->arg,
+	                                 r->fmt_upsert->arg,
 	                                 &c_pointer, &c_size);
 	if (ssunlikely(rc == -1))
 		return -1;
 	assert(c_pointer != NULL);
-	rc = sv_updatepush_raw(u, r, c_pointer, c_size,
-	                       b_flagsraw & ~SVUPDATE,
+	rc = sv_upsertpush_raw(u, r, c_pointer, c_size,
+	                       b_flagsraw & ~SVUPSERT,
 	                       b_lsn);
 	free(c_pointer);
 	return rc;
 }
 
 static inline int
-sv_update(svupdate *u, sr *r)
+sv_upsert(svupsert *u, sr *r)
 {
 	assert(u->count >= 1 );
-	svupdatenode *f = ss_bufat(&u->stack, sizeof(svupdatenode), u->count - 1);
+	svupsertnode *f = ss_bufat(&u->stack, sizeof(svupsertnode), u->count - 1);
 	int rc;
-	if (f->flags & SVUPDATE) {
-		f = sv_updatepop(u);
-		rc = sv_updatedo(u, r, NULL, f);
+	if (f->flags & SVUPSERT) {
+		f = sv_upsertpop(u);
+		rc = sv_upsertdo(u, r, NULL, f);
 		if (ssunlikely(rc == -1))
 			return -1;
 	}
 	if (u->count == 1)
 		goto done;
 	while (u->count > 1) {
-		svupdatenode *f = sv_updatepop(u);
-		svupdatenode *s = sv_updatepop(u);
+		svupsertnode *f = sv_upsertpop(u);
+		svupsertnode *s = sv_upsertpop(u);
 		assert(f != NULL);
 		assert(s != NULL);
-		rc = sv_updatedo(u, r, f, s);
+		rc = sv_upsertdo(u, r, f, s);
 		if (ssunlikely(rc == -1))
 			return -1;
 	}
 done:
-	sv_init(&u->result, &sv_updatevif, u->stack.s, NULL);
+	sv_init(&u->result, &sv_upsertvif, u->stack.s, NULL);
 	return 0;
 }
 

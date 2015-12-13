@@ -26,7 +26,7 @@ struct soif {
 	void    *(*getstring)(so*, const char*, int*);
 	int64_t  (*getint)(so*, const char*);
 	int      (*set)(so*, so*);
-	int      (*update)(so*, so*);
+	int      (*upsert)(so*, so*);
 	int      (*del)(so*, so*);
 	void    *(*get)(so*, so*);
 	void    *(*begin)(so*);
@@ -82,7 +82,7 @@ so_cast_dynamic(void *ptr, sotype *type,
 #define so_poll(o)      (o)->i->poll(o)
 #define so_drop(o)      (o)->i->drop(o)
 #define so_set(o, v)    (o)->i->set(o, v)
-#define so_update(o, v) (o)->i->update(o, v)
+#define so_upsert(o, v) (o)->i->upsert(o, v)
 #define so_delete(o, v) (o)->i->del(o, v)
 #define so_get(o, v)    (o)->i->get(o, v)
 #define so_begin(o)     (o)->i->begin(o)
