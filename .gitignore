@@ -17,6 +17,7 @@ test/sophia-prof
 sophia.h
 sophia.c
 example/crud
+example/upsert
 example/transaction
 example/batch
 example/cursor
