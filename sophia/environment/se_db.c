@@ -66,9 +66,7 @@ se_dbscheme_init(sedb *db, char *name)
 	/* init single key part as string */
 	int rc;
 	sr_schemeinit(&scheme->scheme);
-	srkey *part = sr_schemeadd(&scheme->scheme, &e->a);
-	if (ssunlikely(part == NULL))
-		goto e1;
+	srkey *part = sr_schemeadd(&scheme->scheme);
 	rc = sr_keysetname(part, &e->a, "key");
 	if (ssunlikely(rc == -1))
 		goto e1;
@@ -110,6 +108,14 @@ se_dbscheme_set(sedb *db)
 	} else {
 		sr_error(&e->error, "unknown format type '%s'", s->fmt_sz);
 		return -1;
+	}
+	/* upsert and format */
+	if (sf_upserthas(&s->fmt_upsert)) {
+		if (s->fmt == SF_DOCUMENT) {
+			sr_error(&e->error, "%s", "incompatible options: format=document "
+			         "and upsert function");
+			return -1;
+		}
 	}
 	/* compression_key */
 	if (s->compression_key) {

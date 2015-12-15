@@ -135,6 +135,40 @@ conf_validation(void)
 	t( sp_destroy(env) == 0 );
 }
 
+static int
+conf_validation_upsert_op(void *arg, char *src, int src_size,
+                          char *upsert, int upsert_size,
+                          char **result)
+{
+	(void)arg;
+	(void)src;
+	(void)src_size;
+	(void)upsert;
+	(void)upsert_size;
+	(void)result;
+	return -1;
+}
+
+static void
+conf_validation_upsert(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "log.enable", 0) == 0 );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "log.sync", 0) == 0 );
+	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.upsert", conf_validation_upsert_op, 0) == 0 );
+	t( sp_setstring(env, "db.test.format", "document", 0) == 0 );
+	t( sp_open(env) == -1 );
+	t( sp_destroy(env) == 0 );
+}
+
 static void
 conf_empty_key(void)
 {
@@ -241,6 +275,7 @@ stgroup *conf_group(void)
 	st_groupadd(group, st_test("scheduler", conf_scheduler));
 	st_groupadd(group, st_test("compaction", conf_compaction));
 	st_groupadd(group, st_test("validation", conf_validation));
+	st_groupadd(group, st_test("validation_upsert", conf_validation_upsert));
 	st_groupadd(group, st_test("empty_key", conf_empty_key));
 	st_groupadd(group, st_test("db", conf_db));
 	st_groupadd(group, st_test("cursor", conf_cursor));

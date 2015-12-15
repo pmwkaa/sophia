@@ -27,41 +27,30 @@ print_current(int i) {
 	}
 }
 
-struct sophiaref {
-	uint32_t offset;
-	uint16_t size;
-} __attribute__((packed));
-
-static inline uint32_t*
-upsert_value(char *ptr)
-{
-	return (uint32_t*)((char*)ptr + sizeof(struct sophiaref) +
-	                   sizeof(uint32_t));
-}
-
 static int
-upsert_op(int a_flags, void *a, int a_size,
-          int b_flags, void *b, int b_size, void *arg,
-          void **result, int *result_size)
+upsert_op(char **result,
+          char **key, int *key_size, int key_count,
+          char *src, int src_size,
+          char *upsert, int upsert_size,
+          void *arg)
 {
-	assert(b_flags == SVUPSERT);
-	assert(b != NULL);
+	(void)key;
+	(void)key_size;
+	(void)key_count;
+	assert(upsert != NULL);
 	(void)arg;
-	char *c = malloc(b_size);
+	char *c = malloc(upsert_size);
 	if (c == NULL)
 		return -1;
 	*result = c;
-	*result_size = b_size;
-	if (a == NULL) {
-		memcpy(c, b, b_size);
-		return 0;
+	if (src == NULL) {
+		memcpy(c, upsert, upsert_size);
+		return upsert_size;
 	}
-	assert(a_size == b_size);
-	memcpy(c, a, a_size);
-	uint32_t *incr = upsert_value(b);
-	uint32_t *up = upsert_value(c);
-	*up += *incr;
-	return 0;
+	assert(src_size == upsert_size);
+	memcpy(c, src, src_size);
+	*(uint32_t*)c += *(uint32_t*)upsert;
+	return upsert_size;
 }
 
 static void

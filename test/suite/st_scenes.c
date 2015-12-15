@@ -73,7 +73,7 @@ void st_scene_init(stscene *s ssunused)
 
 void st_scene_scheme_u32(stscene *s ssunused)
 {
-	srkey *part = sr_schemeadd(&st_r.scheme, &st_r.a);
+	srkey *part = sr_schemeadd(&st_r.scheme);
 	t( sr_keysetname(part, &st_r.a, "key") == 0 );
 	t( sr_keyset(part, &st_r.a, "u32") == 0 );
 }
@@ -253,7 +253,7 @@ void st_scene_phase_scheme_int(stscene *s)
 			fprintf(st_r.output, ".scheme_u32");
 			fflush(st_r.output);
 		}
-		part = sr_schemeadd(&st_r.scheme, &st_r.a);
+		part = sr_schemeadd(&st_r.scheme);
 		t( sr_keysetname(part, &st_r.a, "key") == 0 );
 		t( sr_keyset(part, &st_r.a, "u32") == 0 );
 		t( sp_setstring(st_r.env, "db.test.index.key", "u32", 0) == 0 );
@@ -263,7 +263,7 @@ void st_scene_phase_scheme_int(stscene *s)
 			fprintf(st_r.output, ".scheme_u64");
 			fflush(st_r.output);
 		}
-		part = sr_schemeadd(&st_r.scheme, &st_r.a);
+		part = sr_schemeadd(&st_r.scheme);
 		t( sr_keysetname(part, &st_r.a, "key") == 0 );
 		t( sr_keyset(part, &st_r.a, "u64") == 0 );
 		t( sp_setstring(st_r.env, "db.test.index.key", "u64", 0) == 0 );
@@ -273,10 +273,10 @@ void st_scene_phase_scheme_int(stscene *s)
 			fprintf(st_r.output, ".scheme_u32_u32");
 			fflush(st_r.output);
 		}
-		part = sr_schemeadd(&st_r.scheme, &st_r.a);
+		part = sr_schemeadd(&st_r.scheme);
 		t( sr_keysetname(part, &st_r.a, "key") == 0 );
 		t( sr_keyset(part, &st_r.a, "u32") == 0 );
-		part = sr_schemeadd(&st_r.scheme, &st_r.a);
+		part = sr_schemeadd(&st_r.scheme);
 		t( sr_keysetname(part, &st_r.a, "key_b") == 0 );
 		t( sr_keyset(part, &st_r.a, "u32") == 0 );
 		t( sp_setstring(st_r.env, "db.test.index.key", "u32", 0) == 0 );
@@ -296,7 +296,7 @@ void st_scene_phase_scheme(stscene *s)
 			fprintf(st_r.output, ".scheme_u32");
 			fflush(st_r.output);
 		}
-		part = sr_schemeadd(&st_r.scheme, &st_r.a);
+		part = sr_schemeadd(&st_r.scheme);
 		t( sr_keysetname(part, &st_r.a, "key") == 0 );
 		t( sr_keyset(part, &st_r.a, "u32") == 0 );
 		t( sp_setstring(st_r.env, "db.test.index.key", "u32", 0) == 0 );
@@ -306,7 +306,7 @@ void st_scene_phase_scheme(stscene *s)
 			fprintf(st_r.output, ".scheme_u64");
 			fflush(st_r.output);
 		}
-		part = sr_schemeadd(&st_r.scheme, &st_r.a);
+		part = sr_schemeadd(&st_r.scheme);
 		t( sr_keysetname(part, &st_r.a, "key") == 0 );
 		t( sr_keyset(part, &st_r.a, "u64") == 0 );
 		t( sp_setstring(st_r.env, "db.test.index.key", "u64", 0) == 0 );
@@ -316,7 +316,7 @@ void st_scene_phase_scheme(stscene *s)
 			fprintf(st_r.output, ".scheme_string");
 			fflush(st_r.output);
 		}
-		part = sr_schemeadd(&st_r.scheme, &st_r.a);
+		part = sr_schemeadd(&st_r.scheme);
 		t( sr_keysetname(part, &st_r.a, "key") == 0 );
 		t( sr_keyset(part, &st_r.a, "string") == 0 );
 		t( sp_setstring(st_r.env, "db.test.index.key", "string", 0) == 0 );
@@ -326,10 +326,10 @@ void st_scene_phase_scheme(stscene *s)
 			fprintf(st_r.output, ".scheme_u32_u32");
 			fflush(st_r.output);
 		}
-		part = sr_schemeadd(&st_r.scheme, &st_r.a);
+		part = sr_schemeadd(&st_r.scheme);
 		t( sr_keysetname(part, &st_r.a, "key") == 0 );
 		t( sr_keyset(part, &st_r.a, "u32") == 0 );
-		part = sr_schemeadd(&st_r.scheme, &st_r.a);
+		part = sr_schemeadd(&st_r.scheme);
 		t( sr_keysetname(part, &st_r.a, "key_b") == 0 );
 		t( sr_keyset(part, &st_r.a, "u32") == 0 );
 		t( sp_setstring(st_r.env, "db.test.index.key", "u32", 0) == 0 );
@@ -341,10 +341,10 @@ void st_scene_phase_scheme(stscene *s)
 			fprintf(st_r.output, ".scheme_string_u32");
 			fflush(st_r.output);
 		}
-		part = sr_schemeadd(&st_r.scheme, &st_r.a);
+		part = sr_schemeadd(&st_r.scheme);
 		t( sr_keysetname(part, &st_r.a, "key") == 0 );
 		t( sr_keyset(part, &st_r.a, "string") == 0 );
-		part = sr_schemeadd(&st_r.scheme, &st_r.a);
+		part = sr_schemeadd(&st_r.scheme);
 		t( sr_keysetname(part, &st_r.a, "key_b") == 0 );
 		t( sr_keyset(part, &st_r.a, "u32") == 0 );
 		t( sp_setstring(st_r.env, "db.test.index.key", "string", 0) == 0 );

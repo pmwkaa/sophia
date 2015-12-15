@@ -273,7 +273,7 @@ int sr_schemeload(srscheme *s, ssa *a, char *buf, int size ssunused)
 	int i = 0;
 	int rc;
 	while (i < count) {
-		srkey *key = sr_schemeadd(s, a);
+		srkey *key = sr_schemeadd(s);
 		if (ssunlikely(key == NULL))
 			goto error;
 		/* name */

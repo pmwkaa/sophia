@@ -20,7 +20,7 @@ sr_scheme_saveload(void)
 {
 	srscheme cmp;
 	sr_schemeinit(&cmp);
-	srkey *part = sr_schemeadd(&cmp, &st_r.a);
+	srkey *part = sr_schemeadd(&cmp);
 	t( sr_keysetname(part, &st_r.a, "key") == 0 );
 	t( sr_keyset(part, &st_r.a, "u32") == 0 );
 

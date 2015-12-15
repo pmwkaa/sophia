@@ -223,7 +223,7 @@ so *se_new(void)
 	se_statusinit(&e->status);
 	se_statusset(&e->status, SE_OFFLINE);
 	ss_vfsinit(&e->vfs, &ss_stdvfs);
-	ss_pagerinit(&e->pager, &e->vfs, 10, 4096);
+	ss_pagerinit(&e->pager, &e->vfs, 10, 8192);
 	int rc = ss_pageradd(&e->pager);
 	if (ssunlikely(rc == -1)) {
 		se_statusfree(&e->status);

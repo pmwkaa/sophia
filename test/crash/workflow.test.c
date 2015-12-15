@@ -18,25 +18,24 @@
 static int workflow_upsert_n = 0;
 
 static int
-workflow_upsert_operator(int a_flags, void *a, int a_size,
-                    int b_flags, void *b, int b_size, void *arg,
-                    void **result, int *result_size)
+workflow_upsert_operator(char **result,
+                         char **key, int *key_size, int key_count,
+                         char *src, int src_size,
+                         char *upsert, int upsert_size,
+                         void *arg)
 {
-#if 0
-	assert(a != NULL);
-	assert(a_flags == 0); /* SET */
-#endif
-	assert(b_flags == SVUPSERT);
-	assert(b != NULL);
+	(void)key;
+	(void)key_size;
+	(void)key_count;
+	assert(upsert != NULL);
 	(void)arg;
 	workflow_upsert_n++;
 	if (workflow_upsert_n == 1)
 		return -1;
-	char *c = malloc(b_size);
-	memcpy(c, b, b_size);
+	char *c = malloc(upsert_size);
+	memcpy(c, upsert, upsert_size);
 	*result = c;
-	*result_size = b_size;
-	return 0;
+	return upsert_size;
 }
 
 static inline void*

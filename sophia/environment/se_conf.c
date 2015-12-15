@@ -582,16 +582,13 @@ se_confdb_index(srconf *c ssunused, srconfstmt *s)
 		sr_error(&e->error, "keypart '%s' already exists", name);
 		return -1;
 	}
-	const int part_max = 8;
-	if (ssunlikely(db->scheme.scheme.count == part_max)) {
+	/* create new key-part */
+	part = sr_schemeadd(&db->scheme.scheme);
+	if (ssunlikely(part == NULL)) {
 		sr_error(&e->error, "number of index parts reached limit (%d limit)",
-		         part_max);
+		         SR_SCHEME_MAXKEY);
 		return -1;
 	}
-	/* create new key-part */
-	part = sr_schemeadd(&db->scheme.scheme, &e->a);
-	if (ssunlikely(part == NULL))
-		return -1;
 	int rc = sr_keysetname(part, &e->a, name);
 	if (ssunlikely(rc == -1))
 		goto error;
@@ -600,7 +597,7 @@ se_confdb_index(srconf *c ssunused, srconfstmt *s)
 		goto error;
 	return 0;
 error:
-	sr_schemedelete(&db->scheme.scheme, &e->a, part->pos);
+	sr_schemepop(&db->scheme.scheme, &e->a);
 	return -1;
 }
 
@@ -996,7 +993,7 @@ int se_confinit(seconf *c, so *e)
 	if (ssunlikely(c->conf == NULL))
 		return -1;
 	sr_schemeinit(&c->scheme);
-	srkey *part = sr_schemeadd(&c->scheme, &o->a);
+	srkey *part = sr_schemeadd(&c->scheme);
 	sr_keysetname(part, &o->a, "key");
 	sr_keyset(part, &o->a, "string");
 	c->env                 = e;

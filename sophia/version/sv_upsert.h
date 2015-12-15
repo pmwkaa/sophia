@@ -23,6 +23,7 @@ struct svupsertnode {
 struct svupsert {
 	svupsertnode reserve[SV_UPSERTRESRV];
 	ssbuf stack;
+	ssbuf tmp;
 	int max;
 	int count;
 	sv result;
@@ -41,6 +42,7 @@ sv_upsertinit(svupsert *u)
 	u->max = reserve;
 	u->count = 0;
 	ss_bufinit_reserve(&u->stack, u->reserve, sizeof(u->reserve));
+	ss_bufinit(&u->tmp);
 }
 
 static inline void
@@ -53,6 +55,7 @@ sv_upsertfree(svupsert *u, sr *r)
 		i++;
 	}
 	ss_buffree(&u->stack, r->a);
+	ss_buffree(&u->tmp, r->a);
 }
 
 static inline void
@@ -66,6 +69,7 @@ sv_upsertreset(svupsert *u)
 	}
 	u->count = 0;
 	ss_bufreset(&u->stack);
+	ss_bufreset(&u->tmp);
 	memset(&u->result, 0, sizeof(u->result));
 }
 
@@ -78,6 +82,7 @@ sv_upsertgc(svupsert *u, sr *r, int wm_stack, int wm_buf)
 		sv_upsertinit(u);
 		return;
 	}
+	ss_bufgc(&u->tmp, r->a, wm_buf);
 	int i = 0;
 	while (i < u->count) {
 		ss_bufgc(&n[i].buf, r->a, wm_buf);
@@ -138,40 +143,74 @@ sv_upsertpop(svupsert *u)
 static inline int
 sv_upsertdo(svupsert *u, sr *r, svupsertnode *a, svupsertnode *b)
 {
-	assert(b->flags & SVUPSERT);
-	int       b_flagsraw = b->flags;
-	int       b_flags = b->flags & SVUPSERT;
-	uint64_t  b_lsn = b->lsn;
-	void     *b_pointer = b->buf.s;
-	int       b_size = ss_bufused(&b->buf);
-	int       a_flags;
-	void     *a_pointer;
-	int       a_size;
+	int rc;
+	int key_count = r->scheme->count;
+
+	/* source record */
+	char *src_value;
+	int   src_size;
 	if (sslikely(a && !(a->flags & SVDELETE)))
 	{
-		a_flags   = a->flags & SVUPSERT;
-		a_pointer = a->buf.s;
-		a_size    = ss_bufused(&a->buf);
-	} else {
 		/* convert delete to orphan upsert case */
-		a_flags   = 0;
-		a_pointer = NULL;
-		a_size    = 0;
+		src_value = sf_value(r->fmt, a->buf.s, key_count);
+		src_size  = sf_valuesize(r->fmt,
+		                         a->buf.s,
+		                         ss_bufused(&a->buf),
+		                         key_count);
+	} else {
+		src_value = NULL;
+		src_size  = 0;
 	}
-	void *c_pointer;
-	int c_size;
-	int rc = r->fmt_upsert->function(a_flags, a_pointer, a_size,
-	                                 b_flags, b_pointer, b_size,
-	                                 r->fmt_upsert->arg,
-	                                 &c_pointer, &c_size);
-	if (ssunlikely(rc == -1))
+
+	/* upsert record */
+	assert(b->flags & SVUPSERT);
+	int   key_size[SR_SCHEME_MAXKEY];
+	char *key[SR_SCHEME_MAXKEY];
+	int i;
+	for (i = 0; i < key_count; i++) {
+		key[i] = sf_key(b->buf.s, i);
+		key_size[i] = sf_keysize(b->buf.s, i);
+	}
+	char *upsert_value;
+	int   upsert_size;
+	upsert_value = sf_value(r->fmt, b->buf.s, key_count);
+	upsert_size  = sf_valuesize(r->fmt,
+	                            b->buf.s,
+	                            ss_bufused(&b->buf),
+	                            key_count);
+
+	/* execute */
+	sfupsertf upsert = r->fmt_upsert->function;
+	char *result;
+	int   result_size;
+	result_size  = upsert(&result, key, key_size, key_count,
+	                      src_value,
+	                      src_size,
+	                      upsert_value,
+	                      upsert_size,
+	                      r->fmt_upsert->arg);
+	if (ssunlikely(result_size == -1))
 		return -1;
-	assert(c_pointer != NULL);
-	rc = sv_upsertpush_raw(u, r, c_pointer, c_size,
-	                       b_flagsraw & ~SVUPSERT,
-	                       b_lsn);
-	free(c_pointer);
-	return rc;
+	assert(result != NULL);
+
+	/* rebuild record with new value */
+	int v_size = (upsert_value - b->buf.s) + result_size;
+	ss_bufreset(&u->tmp);
+	rc = ss_bufensure(&u->tmp, r->a, v_size);
+	if (ssunlikely(rc == -1)) {
+		free(result);
+		return -1;
+	}
+	int off = sf_keycopy(u->tmp.p, b->buf.s, key_count);
+	ss_bufadvance(&u->tmp, off);
+	memcpy(u->tmp.p, result, result_size);
+	ss_bufadvance(&u->tmp, result_size);
+	free(result);
+
+	/* push result */
+	return sv_upsertpush_raw(u, r, u->tmp.s, ss_bufused(&u->tmp),
+	                         b->flags & ~SVUPSERT,
+	                         b->lsn);
 }
 
 static inline int

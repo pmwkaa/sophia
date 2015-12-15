@@ -57,40 +57,44 @@ upsert_no_operator(void)
 static int upsert_ops = 0;
 
 static int
-upsert_operator_orphan(int a_flags, void *a, int a_size,
-                       int b_flags, void *b, int b_size, void *arg,
-                       void **result, int *result_size)
+upsert_operator_orphan(char **result,
+                       char **key, int *key_size, int key_count,
+                       char *src, int src_size,
+                       char *upsert, int upsert_size,
+                       void *arg)
 {
-	assert(a == NULL);
-	assert(a_flags == 0);
-	assert(a_size == 0);
-	assert(b_flags == SVUPSERT);
-	assert(b != NULL);
+	(void)key;
+	(void)key_size;
+	(void)key_count;
+	assert(src == NULL);
+	assert(src_size == 0);
+	assert(upsert != NULL);
 	(void)arg;
-	char *c = malloc(b_size);
-	memcpy(c, b, b_size);
+	char *c = malloc(upsert_size);
+	memcpy(c, upsert, upsert_size);
 	*result = c;
-	*result_size = b_size;
 	upsert_ops++;
-	return 0;
+	return upsert_size;
 }
 
 static int
-upsert_operator(int a_flags, void *a, int a_size,
-                int b_flags, void *b, int b_size, void *arg,
-                void **result, int *result_size)
+upsert_operator(char **result,
+                char **key, int *key_size, int key_count,
+                char *src, int src_size,
+                char *upsert, int upsert_size,
+                void *arg)
 {
-	assert(a != NULL);
-	assert(a_flags == 0); /* SET */
-	assert(b_flags == SVUPSERT);
-	assert(b != NULL);
+	(void)key;
+	(void)key_size;
+	(void)key_count;
+	assert(src != NULL);
+	assert(upsert != NULL);
 	(void)arg;
-	char *c = malloc(b_size);
-	memcpy(c, b, b_size);
+	char *c = malloc(upsert_size);
+	memcpy(c, upsert, upsert_size);
 	*result = c;
-	*result_size = b_size;
 	upsert_ops++;
-	return 0;
+	return upsert_size;
 }
 
 static void
@@ -733,21 +737,23 @@ upsert_set_upsert_upsert_get_cursor(void)
 }
 
 static int
-upsert_operator_delete(int a_flags, void *a, int a_size,
-                       int b_flags, void *b, int b_size, void *arg,
-                       void **result, int *result_size)
+upsert_operator_delete(char **result,
+                       char **key, int *key_size, int key_count,
+                       char *src, int src_size,
+                       char *upsert, int upsert_size,
+                       void *arg)
 {
-	assert(a == NULL);
-	assert(a_flags == 0);
-	assert(b_flags == SVUPSERT);
-	assert(b != NULL);
+	(void)key;
+	(void)key_size;
+	(void)key_count;
+	assert(src == NULL);
+	assert(upsert != NULL);
 	(void)arg;
-	char *c = malloc(b_size);
-	memcpy(c, b, b_size);
+	char *c = malloc(upsert_size);
+	memcpy(c, upsert, upsert_size);
 	*result = c;
-	*result_size = b_size;
 	upsert_ops++;
-	return 0;
+	return upsert_size;
 }
 
 static void
@@ -1434,19 +1440,24 @@ upsert_cursor3(void)
 }
 
 static int
-upsert_operator2(int a_flags, void *a, int a_size,
-                 int b_flags, void *b, int b_size, void *arg,
-                 void **result, int *result_size)
+upsert_operator2(char **result,
+                 char **key, int *key_size, int key_count,
+                 char *src, int src_size,
+                 char *upsert, int upsert_size,
+                 void *arg)
 {
-	assert(b_flags == SVUPSERT);
-	assert(b != NULL);
+	(void)key;
+	(void)key_size;
+	(void)key_count;
+	assert(upsert != NULL);
 	(void)arg;
-	char *c = malloc(b_size);
-	memcpy(c, b, b_size);
+	(void)src;
+	(void)src_size;
+	char *c = malloc(upsert_size);
+	memcpy(c, upsert, upsert_size);
 	*result = c;
-	*result_size = b_size;
 	upsert_ops++;
-	return 0;
+	return upsert_size;
 }
 
 static void

@@ -287,7 +287,7 @@ sd_read_gt0_compression_zstd(void)
 	ss_vfsinit(&vfs, &ss_stdvfs);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
-	srkey *part = sr_schemeadd(&cmp, &a);
+	srkey *part = sr_schemeadd(&cmp);
 	t( sr_keysetname(part, &a, "key") == 0 );
 	t( sr_keyset(part, &a, "u32") == 0 );
 	ssinjection ij;
@@ -408,7 +408,7 @@ sd_read_gt0_compression_lz4(void)
 	ss_vfsinit(&vfs, &ss_stdvfs);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
-	srkey *part = sr_schemeadd(&cmp, &a);
+	srkey *part = sr_schemeadd(&cmp);
 	t( sr_keysetname(part, &a, "key") == 0 );
 	t( sr_keyset(part, &a, "u32") == 0 );
 	ssinjection ij;
@@ -531,7 +531,7 @@ sd_read_gt1_compression_zstd(void)
 	ss_vfsinit(&vfs, &ss_stdvfs);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
-	srkey *part = sr_schemeadd(&cmp, &a);
+	srkey *part = sr_schemeadd(&cmp);
 	t( sr_keysetname(part, &a, "key") == 0 );
 	t( sr_keyset(part, &a, "u32") == 0 );
 	ssinjection ij;
@@ -708,7 +708,7 @@ sd_read_gt1_compression_lz4(void)
 	ss_vfsinit(&vfs, &ss_stdvfs);
 	srscheme cmp;
 	sr_schemeinit(&cmp);
-	srkey *part = sr_schemeadd(&cmp, &a);
+	srkey *part = sr_schemeadd(&cmp);
 	t( sr_keysetname(part, &a, "key") == 0 );
 	t( sr_keyset(part, &a, "u32") == 0 );
 	ssinjection ij;
