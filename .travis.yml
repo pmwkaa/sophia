@@ -2,7 +2,7 @@ language: c
 before_install:
   - sudo pip install cpp-coveralls
   # backtrace support
-  - sudo apt-get -y install gdb
+  # - sudo apt-get -y install gdb
 after_success:
   - coveralls -r . -b .  --exclude test --exclude sophia/std/ss_zstdfilter.c --exclude sophia/std/ss_lz4filter.c --exclude sophia/std/ss_crc.c
 compiler:
