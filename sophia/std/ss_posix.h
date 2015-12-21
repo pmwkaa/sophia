@@ -1,5 +1,5 @@
-#ifndef SS_STDC_H_
-#define SS_STDC_H_
+#ifndef SS_POSIX_H_
+#define SS_POSIX_H_
 
 /*
  * sophia database

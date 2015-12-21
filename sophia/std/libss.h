@@ -9,7 +9,7 @@
  * BSD License
 */
 
-#include <ss_stdc.h>
+#include <ss_posix.h>
 #include <ss_macro.h>
 #include <ss_time.h>
 #include <ss_spinlock.h>
