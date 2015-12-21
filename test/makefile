@@ -122,8 +122,10 @@ clean:
 	@rm -fr $(STS_SOPHIA_DIR) \
 	        $(STS_BACKUP_DIR) \
 	        $(STS_DB_DIR) $(STS_LOG_DIR)
-test:
+test_gdb:
 	@gdb -q -return-child-result -batch -ex "run" -ex "bt" --args $(STS_BINARY) -v
+test:
+	@./$(STS_BINARY) -v
 
 .PHONY: all clean validate banner suite test
 .PHONY: sophia-test sophia-prof
