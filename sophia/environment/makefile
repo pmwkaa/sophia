@@ -6,8 +6,9 @@ LIBSE_O = se.o \
           se_req.o \
           se_document.o \
           se_db.o \
-          se_dbcursor.o \
           se_tx.o \
+          se_viewdb.o \
+          se_view.o \
           se_cursor.o \
           se_execute.o \
           se_recover.o \

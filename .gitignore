@@ -22,4 +22,4 @@ example/upsert
 example/transaction
 example/batch
 example/cursor
-example/snapshot
+example/view

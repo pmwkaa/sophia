@@ -20,8 +20,9 @@ struct se {
 	ssspinlock  dblock;
 	solist      db;
 	solist      db_shutdown;
-	solist      dbcursor;
 	solist      cursor;
+	solist      viewdb;
+	solist      view;
 	solist      tx;
 	solist      req;
 	solist      reqactive;
@@ -35,9 +36,10 @@ struct se {
 	ssa         a_oom;
 	ssa         a;
 	ssa         a_db;
-	ssa         a_dbcursor;
 	ssa         a_document;
 	ssa         a_cursor;
+	ssa         a_viewdb;
+	ssa         a_view;
 	ssa         a_cachebranch;
 	ssa         a_cache;
 	ssa         a_confcursor;

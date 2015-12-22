@@ -32,5 +32,6 @@ sotype se_o[] =
 	{ 0x34591111L, "database"          },
 	{ 0x63102654L, "database_cursor"   },
 	{ 0x13491FABL, "transaction"       },
+	{ 0x22FA0348L, "view"              },
 	{ 0x45ABCDFAL, "cursor"            }
 };

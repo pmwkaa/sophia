@@ -19,8 +19,9 @@
 #include <se_req.h>
 #include <se_document.h>
 #include <se_db.h>
-#include <se_dbcursor.h>
 #include <se_tx.h>
+#include <se_viewdb.h>
+#include <se_view.h>
 #include <se_cursor.h>
 #include <se_execute.h>
 #include <se_recover.h>

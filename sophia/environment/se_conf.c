@@ -448,7 +448,7 @@ se_confdb_set(srconf *c ssunused, srconfstmt *s)
 	/* get() */
 	if (s->op == SR_READ) {
 		uint64_t txn = sr_seq(&e->seq, SR_TSN);
-		so *c = se_dbcursor_new(e, txn);
+		so *c = se_viewdb_new(e, txn);
 		if (ssunlikely(c == NULL))
 			return -1;
 		*(void**)s->value = c;
@@ -696,6 +696,68 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc)
 }
 
 static inline int
+se_confview_set(srconf *c, srconfstmt *s)
+{
+	if (s->op != SR_WRITE)
+		return se_confv(c, s);
+	se *e = s->ptr;
+	char *name = s->value;
+	uint64_t lsn = sr_seq(&e->seq, SR_LSN);
+	/* create view object */
+	seview *view = (seview*)se_viewnew(e, lsn, name);
+	if (ssunlikely(view == NULL))
+		return -1;
+	so_listadd(&e->view, &view->o);
+	return 0;
+}
+
+static inline int
+se_confview_lsn(srconf *c, srconfstmt *s)
+{
+	int rc = se_confv(c, s);
+	if (ssunlikely(rc == -1))
+		return -1;
+	if (s->op != SR_WRITE)
+		return 0;
+	seview *view  = c->ptr;
+	se_viewupdate(view);
+	return 0;
+}
+
+static inline int
+se_confview_get(srconf *c, srconfstmt *s)
+{
+	/* get(view.name) */
+	se *e = s->ptr;
+	if (s->op != SR_READ) {
+		sr_error(&e->error, "%s", "bad operation");
+		return -1;
+	}
+	assert(c->ptr != NULL);
+	*(void**)s->value = c->ptr;
+	return 0;
+}
+
+static inline srconf*
+se_confview(se *e, seconfrt *rt ssunused, srconf **pc)
+{
+	srconf *view = NULL;
+	srconf *prev = NULL;
+	sslist *i;
+	ss_listforeach(&e->view.list, i)
+	{
+		seview *s = (seview*)sscast(i, so, link);
+		srconf *p = sr_C(NULL, pc, se_confview_lsn, "lsn", SS_U64, &s->vlsn, 0, s);
+		sr_C(&prev, pc, se_confview_get, s->name, SS_STRING, p, SR_NS, s);
+		if (view == NULL)
+			view = prev;
+	}
+	return sr_C(NULL, pc, se_confview_set, "view", SS_STRING,
+	            view, SR_NS, NULL);
+}
+
+
+static inline int
 se_confbackup_run(srconf *c, srconfstmt *s)
 {
 	if (s->op != SR_WRITE)
@@ -728,9 +790,10 @@ se_confdebug_oom(srconf *c, srconfstmt *s)
 
 	ss_aclose(&e->a);
 	ss_aclose(&e->a_db);
-	ss_aclose(&e->a_dbcursor);
 	ss_aclose(&e->a_document);
 	ss_aclose(&e->a_cursor);
+	ss_aclose(&e->a_viewdb);
+	ss_aclose(&e->a_view);
 	ss_aclose(&e->a_cachebranch);
 	ss_aclose(&e->a_cache);
 	ss_aclose(&e->a_confcursor);
@@ -742,9 +805,10 @@ se_confdebug_oom(srconf *c, srconfstmt *s)
 	ss_aopen(&e->a_oom, &ss_ooma, e->ei.oom);
 	e->a = e->a_oom;
 	e->a_db = e->a_oom;
-	e->a_dbcursor = e->a_oom;
 	e->a_document = e->a_oom;
 	e->a_cursor = e->a_oom;
+	e->a_viewdb = e->a_oom;
+	e->a_view = e->a_oom;
 	e->a_cachebranch = e->a_oom;
 	e->a_cache = e->a_oom;
 	e->a_confkv = e->a_oom;
@@ -805,6 +869,7 @@ se_confprepare(se *e, seconfrt *rt, srconf *c, int serialize)
 	srconf *perf       = se_confperformance(e, rt, &pc);
 	srconf *metric     = se_confmetric(e, rt, &pc);
 	srconf *log        = se_conflog(e, rt, &pc);
+	srconf *view       = se_confview(e, rt, &pc);
 	srconf *backup     = se_confbackup(e, rt, &pc);
 	srconf *db         = se_confdb(e, rt, &pc);
 	srconf *debug      = se_confdebug(e, rt, &pc);
@@ -815,7 +880,8 @@ se_confprepare(se *e, seconfrt *rt, srconf *c, int serialize)
 	scheduler->next  = perf;
 	perf->next       = metric;
 	metric->next     = log;
-	log->next        = backup;
+	log->next        = view;
+	view->next       = backup;
 	backup->next     = db;
 	if (! serialize)
 		db->next = debug;

@@ -21,6 +21,7 @@ enum {
 	SEDB,
 	SEDBCURSOR,
 	SETX,
+	SEVIEW,
 	SECURSOR
 };
 

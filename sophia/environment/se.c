@@ -99,13 +99,16 @@ se_destroy(so *o)
 	rc = so_listdestroy(&e->cursor);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
+	rc = so_listdestroy(&e->view);
+	if (ssunlikely(rc == -1))
+		rcret = -1;
+	rc = so_listdestroy(&e->viewdb);
+	if (ssunlikely(rc == -1))
+		rcret = -1;
 	rc = so_listdestroy(&e->tx);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
 	rc = so_listdestroy(&e->confcursor);
-	if (ssunlikely(rc == -1))
-		rcret = -1;
-	rc = so_listdestroy(&e->dbcursor);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
 	rc = so_listdestroy(&e->db);
@@ -233,9 +236,10 @@ so *se_new(void)
 	}
 	ss_aopen(&e->a, &ss_stda);
 	ss_aopen(&e->a_db, &ss_slaba, &e->pager, sizeof(sedb));
-	ss_aopen(&e->a_dbcursor, &ss_slaba, &e->pager, sizeof(sedbcursor));
 	ss_aopen(&e->a_document, &ss_slaba, &e->pager, sizeof(sedocument));
 	ss_aopen(&e->a_cursor, &ss_slaba, &e->pager, sizeof(secursor));
+	ss_aopen(&e->a_view, &ss_slaba, &e->pager, sizeof(seview));
+	ss_aopen(&e->a_viewdb, &ss_slaba, &e->pager, sizeof(seviewdb));
 	ss_aopen(&e->a_cachebranch, &ss_slaba, &e->pager, sizeof(sicachebranch));
 	ss_aopen(&e->a_cache, &ss_slaba, &e->pager, sizeof(sicache));
 	ss_aopen(&e->a_confcursor, &ss_slaba, &e->pager, sizeof(seconfcursor));
@@ -252,8 +256,9 @@ so *se_new(void)
 	}
 	so_listinit(&e->db);
 	so_listinit(&e->db_shutdown);
-	so_listinit(&e->dbcursor);
 	so_listinit(&e->cursor);
+	so_listinit(&e->viewdb);
+	so_listinit(&e->view);
 	so_listinit(&e->tx);
 	so_listinit(&e->confcursor);
 	so_listinit(&e->req);

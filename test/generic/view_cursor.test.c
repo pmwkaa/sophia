@@ -16,15 +16,13 @@
 #include <libst.h>
 
 static void
-db_cursor_test0(void)
+view_cursor_test0(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
-	t( sp_setint(env, "log.rotate_wm", 0) == 0 );
-	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
@@ -33,8 +31,9 @@ db_cursor_test0(void)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	void *snapcur = sp_getobject(env, "db");
-	t( snapcur != NULL );
+	t( sp_setstring(env, "view", "test_view", 0) == 0 );
+	void *view = sp_getobject(env, "view.test_view");
+	t( view != NULL );
 
 	t( sp_drop(db) == 0 );
 	t( sp_destroy(db) == 0 ); /* unref */
@@ -45,14 +44,18 @@ db_cursor_test0(void)
 	t( db2 != NULL );
 	t( sp_open(db2) == 0 );
 
+	void *snapcur = sp_getobject(view, "db");
 	void *o;
 	while ((o = sp_get(snapcur, NULL))) {
 		t( o == db );
 	}
 	sp_destroy(snapcur);
 
-	snapcur = sp_getobject(env, "db");
-	t( snapcur != NULL );
+	t( sp_setstring(env, "view", "test_view2", 0) == 0 );
+	void *view2 = sp_getobject(env, "view.test_view2");
+	t( view != NULL );
+
+	snapcur = sp_getobject(view2, "db");
 	while ((o = sp_get(snapcur, NULL))) {
 		t( o == db2 );
 	}
@@ -61,9 +64,9 @@ db_cursor_test0(void)
 	t( sp_destroy(env) == 0 );
 }
 
-stgroup *db_cursor_group(void)
+stgroup *view_cursor_group(void)
 {
-	stgroup *group = st_group("db_cursor");
-	st_groupadd(group, st_test("test0", db_cursor_test0));
+	stgroup *group = st_group("view_cursor");
+	st_groupadd(group, st_test("test0", view_cursor_test0));
 	return group;
 }

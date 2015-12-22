@@ -20,21 +20,21 @@
 #include <libse.h>
 
 static int
-se_dbcursor_destroy(so *o)
+se_viewdb_destroy(so *o)
 {
-	sedbcursor *c = se_cast(o, sedbcursor*, SEDBCURSOR);
+	seviewdb *c = se_cast(o, seviewdb*, SEDBCURSOR);
 	se *e = se_of(&c->o);
 	ss_buffree(&c->list, &e->a);
-	so_listdel(&e->dbcursor, &c->o);
+	so_listdel(&e->viewdb, &c->o);
 	se_mark_destroyed(&c->o);
-	ss_free(&e->a_dbcursor, c);
+	ss_free(&e->a_viewdb, c);
 	return 0;
 }
 
 static void*
-se_dbcursor_get(so *o, so *v ssunused)
+se_viewdb_get(so *o, so *v ssunused)
 {
-	sedbcursor *c = se_cast(o, sedbcursor*, SEDBCURSOR);
+	seviewdb *c = se_cast(o, seviewdb*, SEDBCURSOR);
 	if (c->ready) {
 		c->ready = 0;
 		return c->v;
@@ -51,10 +51,10 @@ se_dbcursor_get(so *o, so *v ssunused)
 	return c->v;
 }
 
-static soif sedbcursorif =
+static soif seviewdbif =
 {
 	.open         = NULL,
-	.destroy      = se_dbcursor_destroy,
+	.destroy      = se_viewdb_destroy,
 	.error        = NULL,
 	.document     = NULL,
 	.poll         = NULL,
@@ -67,7 +67,7 @@ static soif sedbcursorif =
 	.set          = NULL,
 	.upsert       = NULL,
 	.del          = NULL,
-	.get          = se_dbcursor_get,
+	.get          = se_viewdb_get,
 	.begin        = NULL,
 	.prepare      = NULL,
 	.commit       = NULL,
@@ -75,7 +75,7 @@ static soif sedbcursorif =
 };
 
 static inline int
-se_dbcursor_open(sedbcursor *c)
+se_viewdb_open(seviewdb *c)
 {
 	se *e = se_of(&c->o);
 	int rc;
@@ -109,26 +109,26 @@ se_dbcursor_open(sedbcursor *c)
 	return 0;
 }
 
-so *se_dbcursor_new(se *e, uint64_t txn_id)
+so *se_viewdb_new(se *e, uint64_t txn_id)
 {
-	sedbcursor *c = ss_malloc(&e->a_dbcursor, sizeof(sedbcursor));
+	seviewdb *c = ss_malloc(&e->a_viewdb, sizeof(seviewdb));
 	if (ssunlikely(c == NULL)) {
 		sr_oom(&e->error);
 		return NULL;
 	}
-	so_init(&c->o, &se_o[SEDBCURSOR], &sedbcursorif,
+	so_init(&c->o, &se_o[SEDBCURSOR], &seviewdbif,
 	        &e->o, &e->o);
 	c->txn_id = txn_id;
 	c->v      = NULL;
 	c->pos    = NULL;
 	c->ready  = 0;
 	ss_bufinit(&c->list);
-	int rc = se_dbcursor_open(c);
+	int rc = se_viewdb_open(c);
 	if (ssunlikely(rc == -1)) {
 		so_destroy(&c->o);
 		sr_oom(&e->error);
 		return NULL;
 	}
-	so_listadd(&e->dbcursor, &c->o);
+	so_listadd(&e->viewdb, &c->o);
 	return &c->o;
 }
