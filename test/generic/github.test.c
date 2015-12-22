@@ -59,9 +59,62 @@ github_97(void)
 	t( sp_destroy(env) == 0 );
 }
 
+static void
+github_104(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "string", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_open(env) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+
+	char key_a[] = "aa";
+	char key_b[] = "bb";
+	char key_c[] = "cc";
+	char key_d[] = "dd";
+
+	void *o = sp_document(db);
+	t( sp_setstring(o, "key", key_a, sizeof(key_a)) == 0 );
+	t( sp_set(db, o) == 0 );
+	o = sp_document(db);
+	t( sp_setstring(o, "key", key_b, sizeof(key_b)) == 0 );
+	t( sp_set(db, o) == 0 );
+	o = sp_document(db);
+	t( sp_setstring(o, "key", key_c, sizeof(key_c)) == 0 );
+	t( sp_set(db, o) == 0 );
+	o = sp_document(db);
+	t( sp_setstring(o, "key", key_d, sizeof(key_d)) == 0 );
+	t( sp_set(db, o) == 0 );
+
+	void *cur = sp_cursor(env);
+	t( cur != NULL );
+	o = sp_document(db);
+	t( o != NULL );
+	t( sp_setstring(o, "key", key_b, sizeof(key_b)) == 0 );
+	t( sp_setstring(o, "order", "<=", 0) == 0 );
+	int i = 0;
+	while ((o = sp_get(cur, o))) {
+		printf(" %s", (char*)sp_getstring(o, "key", 0));
+		i++;
+	}
+	fflush(NULL);
+	t( i == 2 );
+	sp_destroy(cur);
+
+	t( sp_destroy(env) == 0 );
+}
+
 stgroup *github_group(void)
 {
 	stgroup *group = st_group("github");
 	st_groupadd(group, st_test("ticket_97", github_97));
+	st_groupadd(group, st_test("ticket_104", github_104));
 	return group;
 }
