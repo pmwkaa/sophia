@@ -69,8 +69,9 @@ se_document_setstring(so *o, const char *path, void *pointer, int size)
 	se *e = se_of(o);
 	if (ssunlikely(v->v.v))
 		return sr_error(&e->error, "%s", "document is read-only");
-
-	if (strcmp(path, "value") == 0) {
+	if (sslikely(strncmp(path, "key", 3)) == 0)
+		goto key_part;
+	if (sslikely(strcmp(path, "value")) == 0) {
 		const int valuesize_max = 1 << 21;
 		if (ssunlikely(size > valuesize_max)) {
 			sr_error(&e->error, "value is too big (%d limit)",
@@ -112,6 +113,7 @@ se_document_setstring(so *o, const char *path, void *pointer, int size)
 		v->async_arg = pointer;
 		return 0;
 	}
+key_part:;
 	/* document keypart */
 	sfv *fv = se_document_setpart(v, path, pointer, size);
 	if (ssunlikely(fv == NULL))
@@ -123,7 +125,9 @@ static void*
 se_document_getstring(so *o, const char *path, int *size)
 {
 	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
-	if (strcmp(path, "value") == 0) {
+	if (sslikely(strncmp(path, "key", 3)) == 0)
+		goto key_part;
+	if (sslikely(strcmp(path, "value")) == 0) {
 		/* key document */
 		if (v->value) {
 			if (size)
@@ -182,7 +186,7 @@ se_document_getstring(so *o, const char *path, int *size)
 			*size = sv_size(&v->v);
 		return sv_pointer(&v->v);
 	}
-
+key_part:;
 	/* match key-part */
 	sedb *db = (sedb*)o->parent;
 	srkey *part = sr_schemefind(&db->scheme.scheme, (char*)path);
