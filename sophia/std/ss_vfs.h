@@ -31,7 +31,6 @@ struct ssvfsif {
 	int64_t (*write)(ssvfs*, int, void*, int);
 	int64_t (*writev)(ssvfs*, int, ssiov*);
 	int64_t (*seek)(ssvfs*, int, uint64_t);
-
 	int     (*mmap)(ssvfs*, ssmmap*, int, uint64_t, int);
 	int     (*mmap_allocate)(ssvfs*, ssmmap*, uint64_t);
 	int     (*mremap)(ssvfs*, ssmmap*, uint64_t);

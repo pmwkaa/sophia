@@ -227,7 +227,9 @@ ss_stdvfs_mremap(ssvfs *f ssunused, ssmmap *m, uint64_t size)
 	if (ssunlikely(m->p == NULL))
 		return ss_stdvfs_mmap_allocate(f, m, size);
 	void *p;
-#if defined(__APPLE__) || defined(__FreeBSD__)
+#if  defined(__APPLE__) || \
+     defined(__FreeBSD__) || \
+	(defined(__FreeBSD_kernel__) && defined(__GLIBC__)) /* kFreeBSD */
 	p = mmap(NULL, size, PROT_READ|PROT_WRITE,
 	         MAP_PRIVATE|MAP_ANON, -1, 0);
 	if (p == MAP_FAILED)
