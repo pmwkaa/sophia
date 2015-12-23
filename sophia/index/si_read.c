@@ -408,7 +408,7 @@ next_node:
 	}
 
 	/* skip a possible duplicates from data sources */
-	ss_iternext(sv_readiter, &k);
+	sv_readiter_forward(&k);
 	return rc;
 }
 

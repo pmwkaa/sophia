@@ -96,6 +96,26 @@ sv_readiter_next(ssiter *i)
 	}
 }
 
+static inline void
+sv_readiter_forward(ssiter *i)
+{
+	svreaditer *im = (svreaditer*)i->priv;
+	if (im->next)
+		ss_iternext(sv_mergeiter, im->merge);
+	im->next = 0;
+	im->v = NULL;
+	for (; ss_iterhas(sv_mergeiter, im->merge); ss_iternext(sv_mergeiter, im->merge))
+	{
+		sv *v = ss_iterof(sv_mergeiter, im->merge);
+		int dup = sv_is(v, SVDUP) || sv_mergeisdup(im->merge);
+		if (dup)
+			continue;
+		im->next = 0;
+		im->v = v;
+		break;
+	}
+}
+
 static inline int
 sv_readiter_open(ssiter *i, sr *r, ssiter *iterator, svupsert *u,
                  uint64_t vlsn, int save_delete)

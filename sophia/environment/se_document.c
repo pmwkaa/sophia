@@ -159,7 +159,7 @@ se_document_getstring(so *o, const char *path, int *size)
 	}
 	if (strcmp(path, "order") == 0) {
 		char *order = ss_ordername(v->order);
-		if (*size)
+		if (size)
 			*size = strlen(order) + 1;
 		return order;
 	}
