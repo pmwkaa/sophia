@@ -313,10 +313,9 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 	o = NULL;
 
 	/* concurrent */
-	if (x_search) {
+	if (x_search && order == SS_EQ && v) {
 		/* note: prefix is ignored during concurrent
 		 * index search */
-		assert(v != NULL);
 		int rc = sx_get(x, &db->coindex, &vp, &vup);
 		if (ssunlikely(rc == -1 || rc == 2 /* delete */))
 			goto e2;

@@ -118,7 +118,7 @@ se_txget(so *o, so *v)
 		break;
 	default: goto error;
 	}
-	return se_dbread(db, key, &t->t, 1, NULL, SS_EQ);
+	return se_dbread(db, key, &t->t, 1, NULL, key->order);
 error:
 	so_destroy(&key->o);
 	return NULL;
