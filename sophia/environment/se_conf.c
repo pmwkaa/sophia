@@ -366,7 +366,6 @@ se_conflog(se *e, seconfrt *rt, srconf **pc)
 	sr_c(&p, pc, se_conflog_gc, "gc", SS_FUNCTION, NULL);
 	sr_C(&p, pc, se_confv, "files", SS_U32, &rt->log_files, SR_RO, NULL);
 	sr_c(&p, pc, se_confv_offline, "two_phase_recover", SS_U32, &e->conf.two_phase_recover);
-	sr_c(&p, pc, se_confv_offline, "commit_lsn", SS_U32, &e->conf.commit_lsn);
 	return sr_C(NULL, pc, NULL, "log", SS_UNDEF, log, SR_NS, NULL);
 }
 
@@ -1074,7 +1073,6 @@ int se_confinit(seconf *c, so *e)
 	c->log_sync            = 0;
 	c->log_rotate_sync     = 1;
 	c->two_phase_recover   = 0;
-	c->commit_lsn          = 0;
 	c->on_recover.function = NULL;
 	c->on_recover.arg      = NULL;
 	ss_triggerinit(&c->on_event);

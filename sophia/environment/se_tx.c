@@ -224,7 +224,7 @@ se_txcommit(so *o)
 	sereqarg *arg = &q.arg;
 	arg->log = &t->t.log;
 	arg->lsn = 0;
-	if (recover || e->conf.commit_lsn)
+	if (t->lsn >= 0)
 		arg->lsn = t->lsn;
 	if (ssunlikely(recover)) {
 		arg->recover = 1;
@@ -297,7 +297,7 @@ so *se_txnew(se *e)
 	so_init(&t->o, &se_o[SETX], &setxif, &e->o, &e->o);
 	sx_init(&e->xm, &t->t);
 	t->start = ss_utime();
-	t->lsn = 0;
+	t->lsn = -1;
 	sx_begin(&e->xm, &t->t, SXRW, 0);
 	se_dbbind(e);
 	so_listadd(&e->tx, &t->o);

@@ -109,7 +109,6 @@ conf_validation(void)
 	t( sp_setint(env, "log.rotate_wm", 0) == -1 );
 	t( sp_setint(env, "log.rotate_sync", 0) == -1 );
 	t( sp_setint(env, "log.two_phase_commit", 0) == -1 );
-	t( sp_setint(env, "log.commit_lsn", 0) == -1 );
 
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");

@@ -81,7 +81,6 @@ struct seconf {
 	uint32_t      log_rotate_wm;
 	uint32_t      log_rotate_sync;
 	uint32_t      two_phase_recover;
-	uint32_t      commit_lsn;
 	srscheme      scheme;
 	srconf       *conf;
 	so           *env;
