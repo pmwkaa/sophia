@@ -171,17 +171,17 @@ sd_read_open(ssiter *iptr, sdreadarg *arg, void *key, int keysize)
 	i->ref = ss_iterof(sd_indexiter, arg->index_iter);
 	if (i->ref == NULL)
 		return 0;
+	if (arg->has) {
+		assert(arg->o == SS_GTE);
+		if (sslikely(i->ref->lsnmax <= arg->has_vlsn)) {
+			i->ref = NULL;
+			return 0;
+		}
+	}
 	int rc = sd_read_openpage(i, key, keysize);
 	if (ssunlikely(rc == -1)) {
 		i->ref = NULL;
 		return -1;
-	}
-	if (ssunlikely(arg->has)) {
-		assert(arg->o == SS_GTE);
-		if (i->ref->lsnmax <= arg->has_vlsn) {
-			i->ref = NULL;
-			return 0;
-		}
 	}
 	if (ssunlikely(! ss_iterhas(sd_pageiter, i->ra.page_iter))) {
 		sd_read_next(iptr);

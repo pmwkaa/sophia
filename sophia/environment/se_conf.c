@@ -638,6 +638,7 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc)
 		sr_C(&p, pc, se_confv, "size", SS_U64, &o->rtp.total_node_size, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "size_uncompressed", SS_U64, &o->rtp.total_node_origin_size, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "size_snapshot", SS_U64, &o->rtp.total_snapshot_size, SR_RO, NULL);
+		sr_C(&p, pc, se_confv, "size_amqf", SS_U64, &o->rtp.total_amqf_size, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "count", SS_U64, &o->rtp.count, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "count_dup", SS_U64, &o->rtp.count_dup, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "read_disk", SS_U64, &o->rtp.read_disk, SR_RO, NULL);
@@ -669,6 +670,7 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc)
 		sr_C(&p, pc, se_confdb_status,   "status", SS_STRING, o, SR_RO, NULL);
 		sr_C(&p, pc, se_confv_dboffline, "storage", SS_STRINGPTR, &o->scheme.storage_sz, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "format", SS_STRINGPTR, &o->scheme.fmt_sz, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "amqf", SS_U32, &o->scheme.amqf, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "path", SS_STRINGPTR, &o->scheme.path, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "path_fail_on_exists", SS_U32, &o->scheme.path_fail_on_exists, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "path_fail_on_drop", SS_U32, &o->scheme.path_fail_on_drop, 0, o);

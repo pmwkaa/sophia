@@ -64,6 +64,7 @@ spr_cmd_start(void)
 	sp_setstring(spr_env, "sophia.path", "_test_sophia", 0);
 	sp_setstring(spr_env, "backup.path", "_test_backup", 0);
 	sp_setstring(spr_env, "db", "test", 0);
+	sp_setint(spr_env, "db.test.amqf", 1);
 	sp_setint(spr_env, "db.test.lru", 500 * 1024 * 1024);
 	spr_db = sp_getobject(spr_env, "db.test");
 	int rc;

@@ -493,6 +493,13 @@ void st_scene_phase_storage(stscene *s)
 		t( sp_setstring(st_r.env, "db.test.compression", "lz4", 0) == 0 );
 		t( sp_setint(st_r.env, "db.test.compression_key", 1) == 0 );
 		break;
+	case 14:
+		if (st_r.verbose) {
+			fprintf(st_r.output, ".storage_amqf");
+			fflush(st_r.output);
+		}
+		t( sp_setint(st_r.env, "db.test.amqf", 1) == 0 );
+		break;
 	default: assert(0);
 	}
 }

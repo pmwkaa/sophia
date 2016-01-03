@@ -26,9 +26,12 @@ struct ssqf {
 };
 
 int  ss_qfinit(ssqf*);
+int  ss_qfinit_from(ssqf*, int, int, uint32_t, char*);
 int  ss_qfensure(ssqf*, ssa*, uint32_t);
 void ss_qffree(ssqf*, ssa*);
+void ss_qfgc(ssqf*, ssa*, int);
 void ss_qfreset(ssqf*);
+void ss_qfrecover(ssqf*, int, int, uint32_t, uint64_t*);
 void ss_qfadd(ssqf*, uint64_t);
 int  ss_qfhas(ssqf*, uint64_t);
 

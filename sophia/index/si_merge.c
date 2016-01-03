@@ -142,12 +142,14 @@ si_split(si *index, sdc *c, ssbuf *result,
          ssiter   *i,
          uint64_t  size_node,
          uint64_t  size_stream,
+         uint32_t  stream,
          uint64_t  vlsn,
          uint64_t  vlsn_lru)
 {
 	sr *r = index->r;
 	int rc;
 	sdmergeconf mergeconf = {
+		.stream          = stream,
 		.size_stream     = size_stream,
 		.size_node       = size_node,
 		.size_page       = index->scheme->node_page_size,
@@ -155,6 +157,7 @@ si_split(si *index, sdc *c, ssbuf *result,
 		.compression_key = index->scheme->compression_key,
 		.compression     = index->scheme->compression,
 		.compression_if  = index->scheme->compression_if,
+		.amqf            = index->scheme->amqf,
 		.vlsn            = vlsn,
 		.vlsn_lru        = vlsn_lru,
 		.save_delete     = 0,
@@ -162,7 +165,9 @@ si_split(si *index, sdc *c, ssbuf *result,
 	};
 	sinode *n = NULL;
 	sdmerge merge;
-	sd_mergeinit(&merge, r, i, &c->build, &c->upsert, &mergeconf);
+	rc = sd_mergeinit(&merge, r, i, &c->build, &c->qf, &c->upsert, &mergeconf);
+	if (ssunlikely(rc == -1))
+		return -1;
 	while ((rc = sd_merge(&merge)) > 0)
 	{
 		/* create new node */
@@ -257,7 +262,8 @@ int si_merge(si *index, sdc *c, sinode *node,
              uint64_t vlsn,
              uint64_t vlsn_lru,
              ssiter *stream,
-             uint64_t size_stream)
+             uint64_t size_stream,
+             uint32_t n_stream)
 {
 	sr *r = index->r;
 	ssbuf *result = &c->a;
@@ -273,6 +279,7 @@ int si_merge(si *index, sdc *c, sinode *node,
 	              node, stream,
 	              index->scheme->node_size,
 	              size_stream,
+	              n_stream,
 	              vlsn,
 	              vlsn_lru);
 	if (ssunlikely(rc == -1))

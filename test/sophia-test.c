@@ -76,6 +76,7 @@ extern stgroup *cursor_rc_group(void);
 extern stgroup *half_commit_group(void);
 extern stgroup *upsert_group(void);
 extern stgroup *async_group(void);
+extern stgroup *amqf_group(void);
 extern stgroup *get_cache_group(void);
 extern stgroup *github_group(void);
 
@@ -178,7 +179,7 @@ main(int argc, char *argv[])
 	st_suiteadd_scene(&st_r.suite, st_scene("phase_compaction", st_scene_phase_compaction, 5));
 	st_suiteadd_scene(&st_r.suite, st_scene("phase_scheme", st_scene_phase_scheme, 5));
 	st_suiteadd_scene(&st_r.suite, st_scene("phase_scheme_int", st_scene_phase_scheme_int, 3));
-	st_suiteadd_scene(&st_r.suite, st_scene("phase_storage", st_scene_phase_storage, 14));
+	st_suiteadd_scene(&st_r.suite, st_scene("phase_storage", st_scene_phase_storage, 15));
 	st_suiteadd_scene(&st_r.suite, st_scene("phase_format", st_scene_phase_format, 2));
 	st_suiteadd_scene(&st_r.suite, st_scene("phase_size", st_scene_phase_size, 3));
 	st_suiteadd_scene(&st_r.suite, st_scene("open", st_scene_open, 1));
@@ -258,6 +259,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, cursor_rc_group());
 	st_planadd(plan, upsert_group());
 	st_planadd(plan, async_group());
+	st_planadd(plan, amqf_group());
 	st_planadd(plan, get_cache_group());
 	st_planadd(plan, github_group());
 	st_suiteadd(&st_r.suite, plan);

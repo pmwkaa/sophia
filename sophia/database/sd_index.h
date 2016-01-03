@@ -10,8 +10,11 @@
 */
 
 typedef struct sdindexheader sdindexheader;
+typedef struct sdindexamqf sdindexamqf;
 typedef struct sdindexpage sdindexpage;
 typedef struct sdindex sdindex;
+
+#define SD_INDEXEXT_AMQF 1
 
 struct sdindexheader {
 	uint32_t  crc;
@@ -30,7 +33,15 @@ struct sdindexheader {
 	uint32_t  dupkeys;
 	uint64_t  dupmin;
 	uint32_t  extension;
-	char      reserve[32];
+	uint8_t   extensions;
+	char      reserve[31];
+} sspacked;
+
+struct sdindexamqf {
+	uint8_t  q, r;
+	uint32_t entries;
+	uint32_t size;
+	uint64_t table[];
 } sspacked;
 
 struct sdindexpage {
@@ -114,13 +125,20 @@ sd_indextotal(sdindex *i)
 }
 
 static inline uint32_t
-sd_indexsize(sdindexheader *h)
+sd_indexsize_ext(sdindexheader *h)
 {
-	return sizeof(sdindexheader) + h->size;
+	return sizeof(sdindexheader) + h->size + h->extension;
+}
+
+static inline sdindexamqf*
+sd_indexamqf(sdindex *i) {
+	sdindexheader *h = sd_indexheader(i);
+	assert(h->extensions & SD_INDEXEXT_AMQF);
+	return (sdindexamqf*)(i->i.s + sizeof(sdindexheader) + h->size);
 }
 
 int sd_indexbegin(sdindex*, sr*);
-int sd_indexcommit(sdindex*, sr*, sdid*, uint64_t);
+int sd_indexcommit(sdindex*, sr*, sdid*, ssqf*, uint64_t);
 int sd_indexadd(sdindex*, sr*, sdbuild*, uint64_t);
 int sd_indexcopy(sdindex*, sr*, sdindexheader*);
 

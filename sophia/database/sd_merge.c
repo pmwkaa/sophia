@@ -13,17 +13,23 @@
 #include <libsv.h>
 #include <libsd.h>
 
-int sd_mergeinit(sdmerge *m, sr *r, ssiter *i, sdbuild *build,
+int sd_mergeinit(sdmerge *m, sr *r, ssiter *i, sdbuild *build, ssqf *qf,
                  svupsert *upsert, sdmergeconf *conf)
 {
 	m->conf      = conf;
 	m->build     = build;
+	m->qf        = qf;
 	m->r         = r;
 	m->merge     = i;
 	m->processed = 0;
 	m->current   = 0;
 	m->limit     = 0;
 	m->resume    = 0;
+	if (conf->amqf) {
+		int rc = ss_qfensure(qf, r->a, conf->stream);
+		if (ssunlikely(rc == -1))
+			return sr_oom(r->e);
+	}
 	sd_indexinit(&m->index);
 	ss_iterinit(sv_writeiter, &m->i);
 	ss_iteropen(sv_writeiter, &m->i, r, i, upsert,
@@ -60,6 +66,8 @@ int sd_merge(sdmerge *m)
 	int rc = sd_indexbegin(&m->index, m->r);
 	if (ssunlikely(rc == -1))
 		return -1;
+	if (conf->amqf)
+		ss_qfreset(m->qf);
 	m->current = 0;
 	m->limit   = 0;
 	uint64_t processed = m->processed;
@@ -79,7 +87,6 @@ int sd_mergepage(sdmerge *m, uint64_t offset)
 {
 	sdmergeconf *conf = m->conf;
 	sd_buildreset(m->build, m->r);
-
 	if (m->resume) {
 		m->resume = 0;
 		if (ssunlikely(! sv_writeiter_resume(&m->i)))
@@ -103,6 +110,9 @@ int sd_mergepage(sdmerge *m, uint64_t offset)
 		rc = sd_buildadd(m->build, m->r, v, flags);
 		if (ssunlikely(rc == -1))
 			return -1;
+		if (conf->amqf) {
+			ss_qfadd(m->qf, sv_hash(v, m->r));
+		}
 		ss_iternext(sv_writeiter, &m->i);
 	}
 	rc = sd_buildend(m->build, m->r);
@@ -111,7 +121,6 @@ int sd_mergepage(sdmerge *m, uint64_t offset)
 	rc = sd_indexadd(&m->index, m->r, m->build, offset);
 	if (ssunlikely(rc == -1))
 		return -1;
-
 	m->current = sd_indextotal(&m->index);
 	m->resume  = 1;
 	return 1;
@@ -120,5 +129,8 @@ int sd_mergepage(sdmerge *m, uint64_t offset)
 int sd_mergecommit(sdmerge *m, sdid *id, uint64_t offset)
 {
 	m->processed += sd_indextotal(&m->index);
-	return sd_indexcommit(&m->index, m->r, id, offset);
+	ssqf *qf = NULL;
+	if (m->conf->amqf)
+		qf = m->qf;
+	return sd_indexcommit(&m->index, m->r, id, qf, offset);
 }

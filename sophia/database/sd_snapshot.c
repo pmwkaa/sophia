@@ -52,7 +52,7 @@ int sd_snapshot_add(sdsnapshot *s, sr *r, uint64_t id,
 
 int sd_snapshot_addbranch(sdsnapshot *s, sr *r, sdindexheader *h)
 {
-	int size = sd_indexsize(h);
+	int size = sd_indexsize_ext(h);
 	int rc = ss_bufensure(&s->buf, r->a, size);
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);

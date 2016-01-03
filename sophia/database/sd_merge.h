@@ -14,6 +14,7 @@ typedef struct sdmerge sdmerge;
 
 struct sdmergeconf {
 	uint32_t    write;
+	uint32_t    stream;
 	uint64_t    size_stream;
 	uint64_t    size_node;
 	uint32_t    size_page;
@@ -21,6 +22,7 @@ struct sdmergeconf {
 	uint32_t    compression_key;
 	uint32_t    compression;
 	ssfilterif *compression_if;
+	uint32_t    amqf;
 	uint64_t    vlsn;
 	uint64_t    vlsn_lru;
 	uint32_t    save_delete;
@@ -28,19 +30,20 @@ struct sdmergeconf {
 };
 
 struct sdmerge {
-	sdindex index;
-	ssiter *merge;
-	ssiter i;
+	sdindex     index;
+	ssiter      *merge;
+	ssiter      i;
 	sdmergeconf *conf;
-	sr *r;
-	sdbuild *build;
-	uint64_t processed;
-	uint64_t current;
-	uint64_t limit;
-	int resume;
+	sr          *r;
+	sdbuild     *build;
+	ssqf        *qf;
+	uint64_t    processed;
+	uint64_t    current;
+	uint64_t    limit;
+	int         resume;
 };
 
-int sd_mergeinit(sdmerge*, sr*, ssiter*, sdbuild*, svupsert*,
+int sd_mergeinit(sdmerge*, sr*, ssiter*, sdbuild*, ssqf*, svupsert*,
                  sdmergeconf*);
 int sd_mergefree(sdmerge*);
 int sd_merge(sdmerge*);

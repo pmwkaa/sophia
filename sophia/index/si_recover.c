@@ -76,6 +76,10 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 	rc = sd_indexbegin(&index, r);
 	if (ssunlikely(rc == -1))
 		goto e0;
+
+	ssqf f, *qf = NULL;
+	ss_qfinit(&f);
+
 	sdbuild build;
 	sd_buildinit(&build);
 	rc = sd_buildbegin(&build, r,
@@ -99,7 +103,17 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 	rc = sd_writepage(r, &n->file, blob, &build);
 	if (ssunlikely(rc == -1))
 		goto e1;
-	sd_indexcommit(&index, r, &id, n->file.size);
+	/* amqf */
+	if (i->scheme->amqf) {
+		rc = ss_qfensure(&f, r->a, 0);
+		if (ssunlikely(rc == -1))
+			goto e1;
+		qf = &f;
+	}
+	rc = sd_indexcommit(&index, r, &id, qf, n->file.size);
+	if (ssunlikely(rc == -1))
+		goto e1;
+	ss_qffree(&f, r->a);
 	/* write index */
 	rc = sd_writeindex(r, &n->file, blob, &index);
 	if (ssunlikely(rc == -1))
@@ -124,6 +138,7 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 	sd_buildfree(&build, r);
 	return n;
 e1:
+	ss_qffree(&f, r->a);
 	sd_indexfree(&index, r);
 	sd_buildfree(&build, r);
 e0:

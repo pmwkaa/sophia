@@ -154,4 +154,16 @@ sf_write(sf format, char *dest, sfv *keys, int count,
 	memcpy(dest + offset, v, vsize);
 }
 
+static inline uint64_t
+sf_hash(char *data, int count)
+{
+	uint64_t hash = 0;
+	int i = 0;
+	while (i < count) {
+		hash ^= ss_fnv(sf_key(data, i), sf_keysize(data, i));
+		i++;
+	}
+	return hash;
+}
+
 #endif

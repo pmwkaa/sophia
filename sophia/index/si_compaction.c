@@ -47,6 +47,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 
 	/* merge iter is not used */
 	sdmergeconf mergeconf = {
+		.stream          = vindex->count,
 		.size_stream     = UINT32_MAX,
 		.size_node       = UINT64_MAX,
 		.size_page       = index->scheme->node_page_size,
@@ -54,13 +55,17 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		.compression_key = index->scheme->compression_key,
 		.compression     = index->scheme->compression_branch,
 		.compression_if  = index->scheme->compression_branch_if,
+		.amqf            = index->scheme->amqf,
 		.vlsn            = vlsn,
 		.vlsn_lru        = 0,
 		.save_delete     = 1,
 		.save_upsert     = 1
 	};
 	sdmerge merge;
-	sd_mergeinit(&merge, r, &i, &c->build, &c->upsert, &mergeconf);
+	rc = sd_mergeinit(&merge, r, &i, &c->build, &c->qf,
+	                  &c->upsert, &mergeconf);
+	if (ssunlikely(rc == -1))
+		return NULL;
 
 	while ((rc = sd_merge(&merge)) > 0)
 	{
@@ -165,6 +170,7 @@ e0:
 	sd_mergefree(&merge);
 	if (blob)
 		ss_blobfree(blob);
+		sv_mergefree(&vmerge, r->a);
 	return NULL;
 e1:
 	si_branchfree(branch, r);
@@ -201,7 +207,7 @@ int si_branch(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 	n->used -= used;
 	ss_quota(r->quota, SS_QREMOVE, used);
 	index->size +=
-		sd_indexsize(branch->index.h) +
+		sd_indexsize_ext(branch->index.h) +
 		sd_indextotal(&branch->index);
 	svindex swap = *i;
 	si_nodeunrotate(n);
@@ -263,6 +269,7 @@ int si_compact(si *index, sdc *c, siplan *plan,
 
 	/* include vindex into merge process */
 	svmergesrc *s;
+	uint32_t count = 0;
 	uint64_t size_stream = 0;
 	if (vindex) {
 		s = sv_mergeadd(&merge, vindex);
@@ -308,13 +315,14 @@ int si_compact(si *index, sdc *c, siplan *plan,
 		if (ssunlikely(rc == -1))
 			return sr_oom_malfunction(r->e);
 		size_stream += sd_indextotal(&b->index);
+		count += sd_indexkeys(&b->index);
 		cbuf = cbuf->next;
 		b = b->next;
 	}
 	ssiter i;
 	ss_iterinit(sv_mergeiter, &i);
 	ss_iteropen(sv_mergeiter, &i, r, &merge, SS_GTE);
-	rc = si_merge(index, c, node, vlsn, vlsn_lru, &i, size_stream);
+	rc = si_merge(index, c, node, vlsn, vlsn_lru, &i, size_stream, count);
 	sv_mergefree(&merge, r->a);
 	return rc;
 }

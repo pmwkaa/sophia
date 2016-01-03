@@ -41,6 +41,7 @@ se_dbscheme_init(sedb *db, char *name)
 	scheme->compression_if        = &ss_nonefilter;
 	scheme->compression_branch    = 0;
 	scheme->compression_branch_if = &ss_nonefilter;
+	scheme->amqf                  = 0;
 	scheme->fmt                   = SF_KV;
 	scheme->fmt_storage           = SF_SRAW;
 	scheme->path_fail_on_exists   = 0;
@@ -339,6 +340,8 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 	} else {
 		sx_get_autocommit(&e->xm, &db->coindex);
 	}
+	if (ssunlikely(order == SS_EQ && v == NULL))
+		order = SS_GTE;
 
 	/* prepare read cache */
 	int cachegc = 0;

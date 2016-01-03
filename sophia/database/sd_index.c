@@ -28,6 +28,7 @@ int sd_indexbegin(sdindex *i, sr *r)
 	h->total       = 0;
 	h->totalorigin = 0;
 	h->extension   = 0;
+	h->extensions  = 0;
 	h->lsnmin      = UINT64_MAX;
 	h->lsnmax      = 0;
 	h->tsmin       = 0;
@@ -41,19 +42,38 @@ int sd_indexbegin(sdindex *i, sr *r)
 	return 0;
 }
 
-int sd_indexcommit(sdindex *i, sr *r, sdid *id, uint64_t offset)
+int sd_indexcommit(sdindex *i, sr *r, sdid *id, ssqf *qf, uint64_t offset)
 {
 	int size = ss_bufused(&i->v);
-	int rc = ss_bufensure(&i->i, r->a, size);
+	int size_extension = 0;
+	int extensions = 0;
+	if (qf) {
+		extensions = SD_INDEXEXT_AMQF;
+		size_extension += sizeof(sdindexamqf);
+		size_extension += qf->qf_table_size;
+	}
+	int rc = ss_bufensure(&i->i, r->a, size + size_extension);
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
 	memcpy(i->i.p, i->v.s, size);
 	ss_bufadvance(&i->i, size);
+	if (qf) {
+		sdindexamqf *qh = (sdindexamqf*)(i->i.p);
+		qh->q       = qf->qf_qbits;
+		qh->r       = qf->qf_rbits;
+		qh->entries = qf->qf_entries;
+		qh->size    = qf->qf_table_size;
+		ss_bufadvance(&i->i, sizeof(sdindexamqf));
+		memcpy(i->i.p, qf->qf_table, qf->qf_table_size);
+		ss_bufadvance(&i->i, qf->qf_table_size);
+	}
 	ss_buffree(&i->v, r->a);
 	i->h = sd_indexheader(i);
-	i->h->offset = offset;
-	i->h->id     = *id;
-	i->h->crc    = ss_crcs(r->crc, i->h, sizeof(sdindexheader), 0);
+	i->h->offset     = offset;
+	i->h->id         = *id;
+	i->h->extension  = size_extension;
+	i->h->extensions = extensions;
+	i->h->crc = ss_crcs(r->crc, i->h, sizeof(sdindexheader), 0);
 	return 0;
 }
 
@@ -202,7 +222,7 @@ int sd_indexadd(sdindex *i, sr *r, sdbuild *build, uint64_t offset)
 
 int sd_indexcopy(sdindex *i, sr *r, sdindexheader *h)
 {
-	int size = sd_indexsize(h);
+	int size = sd_indexsize_ext(h);
 	int rc = ss_bufensure(&i->i, r->a, size);
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);

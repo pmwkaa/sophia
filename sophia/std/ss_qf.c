@@ -17,6 +17,20 @@
 
 #define ss_qflmask(n) ((1ULL << (n)) - 1ULL)
 
+void ss_qfrecover(ssqf *f, int q, int r, uint32_t size, uint64_t *table)
+{
+	f->qf_qbits      = q;
+	f->qf_rbits      = r;
+	f->qf_elem_bits  = f->qf_rbits + 3;
+	f->qf_index_mask = ss_qflmask(q);
+	f->qf_rmask      = ss_qflmask(r);
+	f->qf_elem_mask  = ss_qflmask(f->qf_elem_bits);
+	f->qf_entries    = 0;
+	f->qf_max_size   = 1 << q;
+	f->qf_table_size = size;
+	f->qf_table      = table;
+}
+
 int ss_qfinit(ssqf *f)
 {
 	memset(f, 0, sizeof(*f));
@@ -33,14 +47,13 @@ int ss_qfensure(ssqf *f, ssa *a, uint32_t count)
 			break;
 		q++;
 	}
-	assert(! (q == 0 || r == 0 || q + r > 64));
 	f->qf_qbits      = q;
 	f->qf_rbits      = r;
 	f->qf_elem_bits  = f->qf_rbits + 3;
 	f->qf_index_mask = ss_qflmask(q);
 	f->qf_rmask      = ss_qflmask(r);
 	f->qf_elem_mask  = ss_qflmask(f->qf_elem_bits);
-	f->qf_entries    = 0; 
+	f->qf_entries    = 0;
 	f->qf_max_size   = 1 << q;
 	f->qf_table_size = ((1 << q) * (r + 3)) / 8;
 	if (f->qf_table_size % 8)
@@ -60,6 +73,16 @@ void ss_qffree(ssqf *f, ssa *a)
 		ss_buffree(&f->qf_buf, a);
 		f->qf_table = NULL;
 	}
+}
+
+void ss_qfgc(ssqf *f, ssa *a, int wm)
+{
+	if (ssunlikely(ss_bufsize(&f->qf_buf) >= wm)) {
+		ss_buffree(&f->qf_buf, a);
+		ss_bufinit(&f->qf_buf);
+		return;
+	}
+	ss_bufreset(&f->qf_buf);
 }
 
 void ss_qfreset(ssqf *f)

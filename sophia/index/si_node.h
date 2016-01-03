@@ -132,7 +132,7 @@ si_nodesize(sinode *n)
 	uint64_t size = 0;
 	sibranch *b = n->branch;
 	while (b) {
-		size += sd_indexsize(b->index.h) +
+		size += sd_indexsize_ext(b->index.h) +
 		        sd_indextotal(&b->index);
 		b = b->next;
 	}

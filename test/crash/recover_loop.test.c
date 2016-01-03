@@ -34,6 +34,7 @@ recover_loop(void)
 		t( sp_setstring(env, "db", "test", 0) == 0 );
 		t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 		t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+		t( sp_setint(env, "db.test.amqf", 1) == 0 );
 		t( sp_setint(env, "db.test.sync", 0) == 0 );
 		t( sp_setint(env, "log.sync", 0) == 0 );
 		t( sp_setint(env, "log.rotate_sync", 0) == 0 );
@@ -84,6 +85,7 @@ recover_loop(void)
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.amqf", 1) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );

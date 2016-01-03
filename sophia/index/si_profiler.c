@@ -130,11 +130,15 @@ int si_profiler(siprofiler *p)
 		while (b) {
 			p->count += b->index.h->keys;
 			p->count_dup += b->index.h->dupkeys;
-			int indexsize = sd_indexsize(b->index.h);
+			int indexsize = sd_indexsize_ext(b->index.h);
 			p->total_snapshot_size += indexsize;
 			p->total_node_size += indexsize + b->index.h->total;
 			p->total_node_origin_size += indexsize + b->index.h->totalorigin;
 			p->total_page_count += b->index.h->count;
+			if (b->index.h->extensions & SD_INDEXEXT_AMQF) {
+				p->total_amqf_size +=
+					sizeof(sdindexamqf) + sd_indexamqf(&b->index)->size;
+			}
 			b = b->next;
 		}
 		pn = ss_rbnext(&p->i->i, pn);

@@ -116,7 +116,7 @@ si_noderecover_snapshot(sinode *n, sr *r, sdsnapshotnode *sn)
 		n->branch = b;
 		n->branch_count++;
 		first = 0;
-		p += sd_indexsize(h);
+		p += sd_indexsize_ext(h);
 		i++;
 	}
 	return 0;

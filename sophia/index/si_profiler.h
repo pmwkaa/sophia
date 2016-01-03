@@ -20,6 +20,7 @@ struct siprofiler {
 	uint32_t  total_branch_max;
 	uint32_t  total_page_count;
 	uint64_t  total_snapshot_size;
+	uint64_t  total_amqf_size;
 	uint32_t  temperature_avg;
 	uint32_t  temperature_min;
 	uint32_t  temperature_max;

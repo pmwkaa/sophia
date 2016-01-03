@@ -83,7 +83,6 @@ ss_qf_test1(void)
 		has += ss_qfhas(&f, hash);
 		i++;
 	}
-
 	t(has == 100);
 
 	while (i < 200) {
@@ -93,10 +92,7 @@ ss_qf_test1(void)
 		has += ss_qfhas(&f, hash);
 		i++;
 	}
-
 	t(has == 162);
-
-	fflush(NULL);
 
 	ss_qffree(&f, &a);
 }
@@ -133,9 +129,6 @@ ss_qf_test2(void)
 	}
 	t( has >= 2000 );
 	t( has == 2246 );
-
-	printf("%d\n", has);
-	fflush(NULL);
 
 	ss_qffree(&f, &a);
 }

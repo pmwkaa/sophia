@@ -156,15 +156,26 @@ si_getbranch(siread *q, sinode *n, sibranch *b)
 {
 	sicachebranch *c = si_cachefollow(q->cache);
 	assert(c->branch == b);
+	/* amqf */
+	sischeme *scheme = q->index->scheme;
+	int rc;
+	if (scheme->amqf) {
+		sdindexamqf *qh = sd_indexamqf(&b->index);
+		ssqf qf;
+		ss_qfrecover(&qf, qh->q, qh->r, qh->size, qh->table);
+		rc = ss_qfhas(&qf, sf_hash(q->key, q->r->scheme->count));
+		if (sslikely(! rc))
+			return 0;
+	}
 	/* choose compression type */
 	int compression;
 	ssfilterif *compression_if;
 	if (! si_branchis_root(b)) {
-		compression    = q->index->scheme->compression_branch;
-		compression_if = q->index->scheme->compression_branch_if;
+		compression    = scheme->compression_branch;
+		compression_if = scheme->compression_branch_if;
 	} else {
-		compression    = q->index->scheme->compression;
-		compression_if = q->index->scheme->compression_if;
+		compression    = scheme->compression;
+		compression_if = scheme->compression_if;
 	}
 	sdreadarg arg = {
 		.index           = &b->index,
@@ -174,7 +185,7 @@ si_getbranch(siread *q, sinode *n, sibranch *b)
 		.index_iter      = &c->index_iter,
 		.page_iter       = &c->page_iter,
 		.use_memory      = n->in_memory,
-		.use_mmap        = q->index->scheme->mmap,
+		.use_mmap        = scheme->mmap,
 		.use_mmap_copy   = 0,
 		.use_compression = compression,
 		.compression_if  = compression_if,
@@ -187,7 +198,7 @@ si_getbranch(siread *q, sinode *n, sibranch *b)
 		.r               = q->r
 	};
 	ss_iterinit(sd_read, &c->i);
-	int rc = ss_iteropen(sd_read, &c->i, &arg, q->key, q->keysize);
+	rc = ss_iteropen(sd_read, &c->i, &arg, q->key, q->keysize);
 	int reads = sd_read_stat(&c->i);
 	si_readstat(q, 0, n, reads);
 	if (ssunlikely(rc <= 0))
@@ -213,6 +224,7 @@ si_getbranch(siread *q, sinode *n, sibranch *b)
 static inline int
 si_get(siread *q)
 {
+	assert(q->key != NULL);
 	ssiter i;
 	ss_iterinit(si_iter, &i);
 	ss_iteropen(si_iter, &i, q->r, q->index, SS_GTE, q->key, q->keysize);
@@ -267,14 +279,15 @@ si_rangebranch(siread *q, sinode *n, sibranch *b, svmerge *m)
 	}
 	c->open = 1;
 	/* choose compression type */
+	sischeme *scheme = q->index->scheme;
 	int compression;
 	ssfilterif *compression_if;
 	if (! si_branchis_root(b)) {
-		compression    = q->index->scheme->compression_branch;
-		compression_if = q->index->scheme->compression_branch_if;
+		compression    = scheme->compression_branch;
+		compression_if = scheme->compression_branch_if;
 	} else {
-		compression    = q->index->scheme->compression;
-		compression_if = q->index->scheme->compression_if;
+		compression    = scheme->compression;
+		compression_if = scheme->compression_if;
 	}
 	sdreadarg arg = {
 		.index           = &b->index,
@@ -284,7 +297,7 @@ si_rangebranch(siread *q, sinode *n, sibranch *b, svmerge *m)
 		.index_iter      = &c->index_iter,
 		.page_iter       = &c->page_iter,
 		.use_memory      = n->in_memory,
-		.use_mmap        = q->index->scheme->mmap,
+		.use_mmap        = scheme->mmap,
 		.use_mmap_copy   = 1,
 		.use_compression = compression,
 		.compression_if  = compression_if,

@@ -62,7 +62,7 @@ sd_read_gt0(void)
 	t( ss_filenew(&f, "./0000.db") == 0 );
 	t( sd_writeseal(&st_r.r, &f, NULL) == 0 );
 	t( sd_writepage(&st_r.r, &f, NULL, &b) == 0 );
-	t( sd_indexcommit(&index, &st_r.r, &id, f.size) == 0 );
+	t( sd_indexcommit(&index, &st_r.r, &id, NULL, f.size) == 0 );
 	t( sd_writeindex(&st_r.r, &f, NULL, &index) == 0 );
 	t( sd_seal(&st_r.r, &f, NULL, &index, 0) == 0 );
 
@@ -190,7 +190,7 @@ sd_read_gt1(void)
 	sdid id;
 	memset(&id, 0, sizeof(id));
 
-	t( sd_indexcommit(&index, &st_r.r, &id, f.size) == 0 );
+	t( sd_indexcommit(&index, &st_r.r, &id, NULL, f.size) == 0 );
 	t( sd_writeindex(&st_r.r, &f, NULL, &index) == 0 );
 	t( sd_seal(&st_r.r, &f, NULL, &index, 0) == 0 );
 
@@ -331,7 +331,7 @@ sd_read_gt0_compression_zstd(void)
 	t( ss_filenew(&f, "./0000.db") == 0 );
 	t( sd_writeseal(&r, &f, NULL) == 0 );
 	t( sd_writepage(&r, &f, NULL, &b) == 0 );
-	t( sd_indexcommit(&index, &r, &id, f.size) == 0 );
+	t( sd_indexcommit(&index, &r, &id, NULL, f.size) == 0 );
 	t( sd_writeindex(&r, &f, NULL, &index) == 0 );
 	t( sd_seal(&r, &f, NULL, &index, 0) == 0 );
 
@@ -447,14 +447,14 @@ sd_read_gt0_compression_lz4(void)
 	sdid id;
 	memset(&id, 0, sizeof(id));
 
-	t( sd_indexcommit(&index, &r, &id, 0) == 0 );
+	t( sd_indexcommit(&index, &r, &id, NULL, 0) == 0 );
 
 	ssfile f;
 	ss_fileinit(&f, &vfs);
 	t( ss_filenew(&f, "./0000.db") == 0 );
 	t( sd_writeseal(&r, &f, NULL) == 0 );
 	t( sd_writepage(&r, &f, NULL, &b) == 0 );
-	t( sd_indexcommit(&index, &r, &id, f.size) == 0 );
+	t( sd_indexcommit(&index, &r, &id, NULL, f.size) == 0 );
 	t( sd_writeindex(&r, &f, NULL, &index) == 0 );
 	t( sd_seal(&r, &f, NULL, &index, 0) == 0 );
 
@@ -609,7 +609,7 @@ sd_read_gt1_compression_zstd(void)
 
 	sdid id;
 	memset(&id, 0, sizeof(id));
-	t( sd_indexcommit(&index, &r, &id, f.size) == 0 );
+	t( sd_indexcommit(&index, &r, &id, NULL, f.size) == 0 );
 
 	t( sd_writeindex(&r, &f, NULL, &index) == 0 );
 	t( sd_seal(&r, &f, NULL, &index, 0) == 0 );
@@ -786,7 +786,7 @@ sd_read_gt1_compression_lz4(void)
 
 	sdid id;
 	memset(&id, 0, sizeof(id));
-	t( sd_indexcommit(&index, &r, &id, f.size) == 0 );
+	t( sd_indexcommit(&index, &r, &id, NULL, f.size) == 0 );
 
 	t( sd_writeindex(&r, &f, NULL, &index) == 0 );
 	t( sd_seal(&r, &f, NULL, &index, 0) == 0 );

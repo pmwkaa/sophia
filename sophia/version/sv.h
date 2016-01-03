@@ -95,4 +95,9 @@ sv_valuesize(sv *v, sr *r) {
 	return sf_valuesize(r->fmt, sv_pointer(v), sv_size(v), r->scheme->count);
 }
 
+static inline uint64_t
+sv_hash(sv *v, sr *r ssunused) {
+	return sf_hash(sv_pointer(v), r->scheme->count);
+}
+
 #endif
