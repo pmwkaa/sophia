@@ -22,6 +22,7 @@ extern stgroup *ss_a_group(void);
 extern stgroup *ss_aslab_group(void);
 extern stgroup *ss_order_group(void);
 extern stgroup *ss_rq_group(void);
+extern stgroup *ss_qf_group(void);
 extern stgroup *ss_ht_group(void);
 extern stgroup *ss_zstdfilter_group(void);
 extern stgroup *ss_lz4filter_group(void);
@@ -200,6 +201,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, ss_aslab_group());
 	st_planadd(plan, ss_order_group());
 	st_planadd(plan, ss_rq_group());
+	st_planadd(plan, ss_qf_group());
 	st_planadd(plan, ss_ht_group());
 	st_planadd(plan, ss_zstdfilter_group());
 	st_planadd(plan, ss_lz4filter_group());

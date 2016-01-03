@@ -39,6 +39,7 @@
 #include <ss_thread.h>
 #include <ss_quota.h>
 #include <ss_rb.h>
+#include <ss_qf.h>
 #include <ss_leb128.h>
 #include <ss_hash.h>
 #include <ss_ht.h>

@@ -7,6 +7,7 @@ STS_TESTS = unit/ss_leb128.test.o \
             unit/ss_aslab.test.o \
             unit/ss_order.test.o \
             unit/ss_rq.test.o \
+            unit/ss_qf.test.o \
             unit/ss_ht.test.o \
             unit/ss_zstdfilter.test.o \
             unit/ss_lz4filter.test.o \
