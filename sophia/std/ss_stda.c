@@ -40,6 +40,7 @@ ssaif ss_stda =
 	.open    = ss_stdaopen,
 	.close   = ss_stdaclose,
 	.malloc  = ss_stdamalloc,
+	.ensure  = NULL,
 	.realloc = ss_stdarealloc,
 	.free    = ss_stdafree 
 };

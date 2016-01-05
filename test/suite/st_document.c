@@ -22,10 +22,10 @@ void *st_document_generate(stgenerator *g, sf fmt, stlist *l, void *db,
 	svv *v = st_svv_seed(g, seed, seed_value);
 	if (ssunlikely(v == NULL))
 		return NULL;
-	assert(l->svv == 1);
+	assert(l->type == ST_SVV);
 	int rc = ss_bufadd(&l->list, g->r->a, &v, sizeof(svv**));
 	if (ssunlikely(rc == -1)) {
-		sv_vfree(g->r, v);
+		sv_vunref(g->r, v);
 		return NULL;
 	}
 	void *o = sp_document(db);
@@ -122,5 +122,5 @@ void st_document_eq(stgenerator *g, sf fmt, void *o,
 		break;
 	}
 	}
-	sv_vfree(g->r, v);
+	sv_vunref(g->r, v);
 }

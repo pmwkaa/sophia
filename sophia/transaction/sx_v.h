@@ -46,7 +46,7 @@ sx_valloc(ssa *asxv, svv *v)
 static inline void
 sx_vfree(sr *r, ssa *asxv, sxv *v)
 {
-	sv_vfree(r, v->v);
+	sv_vunref(r, v->v);
 	ss_free(asxv, v);
 }
 
@@ -55,7 +55,7 @@ sx_vfreeall(sr *r, ssa *asxv, sxv *v)
 {
 	while (v) {
 		sxv *next = v->next;
-		sv_vfree(r, v->v);
+		sv_vunref(r, v->v);
 		ss_free(asxv, v);
 		v = next;
 	}

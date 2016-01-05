@@ -291,7 +291,7 @@ sxstate sx_rollback(sx *x)
 		{
 			svlogv *lv = ss_iterof(ss_bufiter, &i);
 			svv *v = lv->v.v;
-			sv_vfree(m->r, v);
+			sv_vunref(m->r, v);
 		}
 		sx_promote(x, SXROLLBACK);
 		return SXROLLBACK;
@@ -402,7 +402,7 @@ int sx_set(sx *x, sxindex *index, svv *version)
 	sxv *v = sx_valloc(m->asxv, version);
 	if (ssunlikely(v == NULL)) {
 		ss_quota(r->quota, SS_QREMOVE, sv_vsize(version));
-		sv_vfree(r, version);
+		sv_vunref(r, version);
 		return -1;
 	}
 	v->id = x->id;

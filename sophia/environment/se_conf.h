@@ -27,6 +27,8 @@ struct seconfrt {
 	uint64_t  memory_used;
 	uint32_t  pager_pools;
 	uint32_t  pager_pool_size;
+	uint32_t  pager_ref_pools;
+	uint32_t  pager_ref_pool_size;
 	/* scheduler */
 	char      zone[4];
 	uint32_t  checkpoint_active;

@@ -14,7 +14,7 @@ typedef struct svindexiter svindexiter;
 struct svindexiter {
 	svindex *index;
 	ssrbnode *v;
-	svv *vcur;
+	svref *vcur;
 	sv current;
 	ssorder order;
 } sspacked;
@@ -75,8 +75,8 @@ sv_indexiter_open(ssiter *i, sr *r, svindex *index, ssorder o, void *key, int ke
 	}
 	ii->vcur = NULL;
 	if (ii->v) {
-		ii->vcur = sscast(ii->v, svv, node);
-		sv_init(&ii->current, &sv_vif, ii->vcur, NULL);
+		ii->vcur = sscast(ii->v, svref, node);
+		sv_init(&ii->current, &sv_refif, ii->vcur, NULL);
 	}
 	return eq;
 }
@@ -108,10 +108,10 @@ sv_indexiter_next(ssiter *i)
 	if (ssunlikely(ii->v == NULL))
 		return;
 	assert(ii->vcur != NULL);
-	svv *v = ii->vcur->next;
+	svref *v = ii->vcur->next;
 	if (v) {
 		ii->vcur = v;
-		sv_init(&ii->current, &sv_vif, ii->vcur, NULL);
+		sv_init(&ii->current, &sv_refif, ii->vcur, NULL);
 		return;
 	}
 	switch (ii->order) {
@@ -127,8 +127,8 @@ sv_indexiter_next(ssiter *i)
 	}
 	ii->vcur = NULL;
 	if (ii->v) {
-		ii->vcur = sscast(ii->v, svv, node);
-		sv_init(&ii->current, &sv_vif, ii->vcur, NULL);
+		ii->vcur = sscast(ii->v, svref, node);
+		sv_init(&ii->current, &sv_refif, ii->vcur, NULL);
 	}
 }
 

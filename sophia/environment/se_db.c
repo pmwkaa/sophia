@@ -323,7 +323,7 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 		if (rc == 1 && !sv_is(&vup, SVUPSERT)) {
 			so *ret = se_document_new(e, &db->o, &vup, async);
 			if (ssunlikely(ret == NULL))
-				sv_vfree(&db->r, vup.v);
+				sv_vunref(&db->r, vup.v);
 			if (async) {
 				sedocument *match = (sedocument*)ret;
 				match->async_operation = SE_REQREAD;
@@ -333,8 +333,8 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 				match->cache_only      = cache_only;
 			}
 			if (vprf)
-				sv_vfree(&db->r, vprf);
-			sv_vfree(&db->r, v);
+				sv_vunref(&db->r, vprf);
+			sv_vunref(&db->r, v);
 			return ret;
 		}
 	} else {
@@ -405,9 +405,9 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 	se_reqend(&q);
 	return o;
 e2: if (vprf)
-		sv_vfree(&db->r, vprf);
+		sv_vunref(&db->r, vprf);
 e1: if (v)
-		sv_vfree(&db->r, v);
+		sv_vunref(&db->r, v);
 e0: if (o)
 		so_destroy(&o->o);
 	return NULL;

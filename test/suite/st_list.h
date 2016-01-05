@@ -11,15 +11,21 @@
 
 typedef struct stlist stlist;
 
+typedef enum {
+	ST_SVREF,
+	ST_SVV,
+	ST_SV
+} stlisttype;
+
 struct stlist {
-	int svv;
+	stlisttype type;
 	ssbuf list;
 };
 
 static inline void
-st_listinit(stlist *l, int svv)
+st_listinit(stlist *l, stlisttype type)
 {
-	l->svv = svv;
+	l->type = type;
 	ss_bufinit(&l->list);
 }
 
@@ -28,21 +34,32 @@ st_listfree(stlist *l, sr *r)
 {
 	ssiter i;
 	ss_iterinit(ss_bufiterref, &i);
-	if (l->svv) {
+	switch (l->type) {
+	case ST_SVREF:
+		ss_iteropen(ss_bufiterref, &i, &l->list, sizeof(svv*));
+		while (ss_iteratorhas(&i)) {
+			svref *v = (svref*)ss_iteratorof(&i);
+			sv_reffree(r, v);
+			ss_iteratornext(&i);
+		}
+		break;
+	case ST_SVV:
 		ss_iteropen(ss_bufiterref, &i, &l->list, sizeof(svv*));
 		while (ss_iteratorhas(&i)) {
 			svv *v = (svv*)ss_iteratorof(&i);
-			sv_vfree(r, v);
+			sv_vunref(r, v);
 			ss_iteratornext(&i);
 		}
-	} else {
+		break;
+	case ST_SV:
 		ss_iteropen(ss_bufiterref, &i, &l->list, sizeof(sv*));
 		while (ss_iteratorhas(&i)) {
 			sv *v = (sv*)ss_iteratorof(&i);
-			sv_vfree(r, v->v);
+			sv_vunref(r, v->v);
 			ss_free(r->a, v);
 			ss_iteratornext(&i);
 		}
+		break;
 	}
 	ss_buffree(&l->list, r->a);
 }

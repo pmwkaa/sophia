@@ -28,7 +28,7 @@ addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 	sv vv;
 	sv_init(&vv, &sv_vif, v, NULL);
 	sd_buildadd(b, r, &vv, flags & SVDUP);
-	sv_vfree(r, v);
+	sv_vunref(r, v);
 }
 
 static void
@@ -283,6 +283,8 @@ sd_read_gt0_compression_zstd(void)
 {
 	ssa a;
 	ss_aopen(&a, &ss_stda);
+	ssa aref;
+	ss_aopen(&aref, &ss_stda);
 	ssvfs vfs;
 	ss_vfsinit(&vfs, &ss_stdvfs);
 	srscheme cmp;
@@ -300,7 +302,7 @@ sd_read_gt0_compression_zstd(void)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &vfs, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp,
+	sr_init(&r, &error, &a, &aref, &vfs, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp,
 	        &ij, &stat, crc);
 
 	sdbuild b;
@@ -404,6 +406,8 @@ sd_read_gt0_compression_lz4(void)
 {
 	ssa a;
 	ss_aopen(&a, &ss_stda);
+	ssa aref;
+	ss_aopen(&aref, &ss_stda);
 	ssvfs vfs;
 	ss_vfsinit(&vfs, &ss_stdvfs);
 	srscheme cmp;
@@ -421,7 +425,7 @@ sd_read_gt0_compression_lz4(void)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &vfs, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij,
+	sr_init(&r, &error, &a, &aref, &vfs, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp, &ij,
 	        &stat, crc);
 
 	sdbuild b;
@@ -527,6 +531,8 @@ sd_read_gt1_compression_zstd(void)
 {
 	ssa a;
 	ss_aopen(&a, &ss_stda);
+	ssa aref;
+	ss_aopen(&aref, &ss_stda);
 	ssvfs vfs;
 	ss_vfsinit(&vfs, &ss_stdvfs);
 	srscheme cmp;
@@ -544,7 +550,7 @@ sd_read_gt1_compression_zstd(void)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &vfs, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp,
+	sr_init(&r, &error, &a, &aref, &vfs, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp,
 	        &ij, &stat, crc);
 
 	ssfile f;
@@ -704,6 +710,8 @@ sd_read_gt1_compression_lz4(void)
 {
 	ssa a;
 	ss_aopen(&a, &ss_stda);
+	ssa aref;
+	ss_aopen(&aref, &ss_stda);
 	ssvfs vfs;
 	ss_vfsinit(&vfs, &ss_stdvfs);
 	srscheme cmp;
@@ -721,7 +729,7 @@ sd_read_gt1_compression_lz4(void)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, &error, &a, &vfs, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp,
+	sr_init(&r, &error, &a, &aref, &vfs, NULL, &seq, SF_KV, SF_SRAW, NULL, &cmp,
 	        &ij, &stat, crc);
 
 	ssfile f;

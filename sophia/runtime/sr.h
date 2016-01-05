@@ -19,6 +19,7 @@ struct sr {
 	srscheme *scheme;
 	srseq *seq;
 	ssa *a;
+	ssa *aref;
 	ssvfs *vfs;
 	ssquota *quota;
 	ssinjection *i;
@@ -30,6 +31,7 @@ static inline void
 sr_init(sr *r,
         srerror *e,
         ssa *a,
+        ssa *aref,
         ssvfs *vfs,
         ssquota *quota,
         srseq *seq,
@@ -43,6 +45,7 @@ sr_init(sr *r,
 {
 	r->e           = e;
 	r->a           = a;
+	r->aref        = aref;
 	r->vfs         = vfs;
 	r->quota       = quota;
 	r->seq         = seq;

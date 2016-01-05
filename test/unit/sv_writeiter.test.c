@@ -20,8 +20,8 @@ sv_writeiter_iter(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 	int i = 0;
 	while (i < 10)
 	{
@@ -79,8 +79,8 @@ sv_writeiter_limit(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 	int i = 0;
 	while (i < 18)
 	{
@@ -177,8 +177,8 @@ sv_writeiter_limit_small(void)
 
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 	int i = 0;
 	while (i < 18)
 	{
@@ -283,8 +283,8 @@ sv_writeiter_dup_lsn_gt(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 
 	int key = 7;
 	st_sv(&st_r.g, &vlista, 10, 0, key);
@@ -346,8 +346,8 @@ sv_writeiter_dup_lsn_lt0(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 
 	int key = 7;
 
@@ -410,8 +410,8 @@ sv_writeiter_dup_lsn_lt1(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 
 	int key = 7;
 
@@ -474,8 +474,8 @@ sv_writeiter_dup_lsn_lt2(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 
 	int key = 7;
 
@@ -538,8 +538,8 @@ sv_writeiter_dup_lsn_gt_chain(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 
 	int key = 7;
 	int key2 = 8;
@@ -603,8 +603,8 @@ sv_writeiter_dup_lsn_lt0_chain(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 
 	int key = 7;
 	int key2 = 8;
@@ -670,8 +670,8 @@ sv_writeiter_dup_lsn_lt1_chain(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 
 	int key = 7;
 	int key2 = 8;
@@ -739,8 +739,8 @@ sv_writeiter_dup_lsn_lt2_chain(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 
 	int key = 7;
 	int key2 = 8;
@@ -810,8 +810,8 @@ sv_writeiter_dup_lsn_limit0(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 
 	int key = 7;
 
@@ -863,8 +863,8 @@ sv_writeiter_dup_lsn_limit1(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 
 	int key = 7;
 
@@ -918,8 +918,8 @@ sv_writeiter_dup_lsn_limit2(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 
 	int key = 7;
 	st_sv(&st_r.g, &vlista, 10, 0, key);
@@ -974,8 +974,8 @@ sv_writeiter_dup_lsn_limit3(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 
 	int k = 0;
 	int key = 7;
@@ -1029,8 +1029,8 @@ sv_writeiter_dup_lsn_limit4(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 
 	int k = 0;
 	int key = 7;
@@ -1091,8 +1091,8 @@ sv_writeiter_dup_lsn_limit5(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 
 	int k = 0;
 	int key = 7;
@@ -1153,8 +1153,8 @@ sv_writeiter_delete0(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 
 	int key = 7;
 
@@ -1217,8 +1217,8 @@ sv_writeiter_delete1(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 
 	int key = 7;
 
@@ -1281,8 +1281,8 @@ sv_writeiter_delete2(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 
 	int key = 7;
 
@@ -1345,8 +1345,8 @@ sv_writeiter_delete3(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 
 	int key = 7;
 
@@ -1409,8 +1409,8 @@ sv_writeiter_delete4(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 
 	int key = 7;
 
@@ -1473,8 +1473,8 @@ sv_writeiter_delete5(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 
 	int key = 7;
 
@@ -1537,8 +1537,8 @@ sv_writeiter_delete6(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 
 	int key = 6;
 	st_sv(&st_r.g, &vlista, 12, 0, key);
@@ -1606,8 +1606,8 @@ sv_writeiter_delete7(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 
 	int key = 6;
 	st_sv(&st_r.g, &vlista, 12, 0, key);
@@ -1676,8 +1676,8 @@ sv_writeiter_delete8(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 
 	int key = 6;
 	st_sv(&st_r.g, &vlista, 12, 0, key);
@@ -1756,8 +1756,8 @@ sv_writeiter_duprange0(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 
 	int key = 7;
 	int lsn = 1;
@@ -1816,8 +1816,8 @@ sv_writeiter_duprange1(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 
 	int key = 7;
 	int lsn = 1;

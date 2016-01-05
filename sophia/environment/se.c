@@ -135,6 +135,7 @@ se_destroy(so *o)
 	sr_statfree(&e->stat);
 	sr_seqfree(&e->seq);
 	ss_pagerfree(&e->pager);
+	ss_pagerfree(&e->pager_ref);
 	se_statusfree(&e->status);
 	se_mark_destroyed(&e->o);
 	free(e);
@@ -227,14 +228,13 @@ so *se_new(void)
 	se_statusset(&e->status, SE_OFFLINE);
 	ss_vfsinit(&e->vfs, &ss_stdvfs);
 	ss_pagerinit(&e->pager, &e->vfs, 10, 8192);
+	ss_pagerinit(&e->pager_ref, &e->vfs, 1, sizeof(svref) * 100000);
 	int rc = ss_pageradd(&e->pager);
-	if (ssunlikely(rc == -1)) {
-		se_statusfree(&e->status);
-		ss_pagerfree(&e->pager);
-		free(e);
-		return NULL;
-	}
+	if (ssunlikely(rc == -1))
+		goto error;
 	ss_aopen(&e->a, &ss_stda);
+	ss_aopen(&e->a_ref, &ss_stda);
+	/*ss_aopen(&e->a_ref, &ss_slaba_lock, &e->pager_ref, sizeof(svref));*/
 	ss_aopen(&e->a_db, &ss_slaba, &e->pager, sizeof(sedb));
 	ss_aopen(&e->a_document, &ss_slaba, &e->pager, sizeof(sedocument));
 	ss_aopen(&e->a_cursor, &ss_slaba, &e->pager, sizeof(secursor));
@@ -248,12 +248,8 @@ so *se_new(void)
 	ss_aopen(&e->a_req, &ss_slaba, &e->pager, sizeof(sereq));
 	ss_aopen(&e->a_sxv, &ss_slaba, &e->pager, sizeof(sxv));
 	rc = se_confinit(&e->conf, &e->o);
-	if (ssunlikely(rc == -1)) {
-		se_statusfree(&e->status);
-		ss_pagerfree(&e->pager);
-		free(e);
-		return NULL;
-	}
+	if (ssunlikely(rc == -1))
+		goto error;
 	so_listinit(&e->db);
 	so_listinit(&e->db_shutdown);
 	so_listinit(&e->cursor);
@@ -273,7 +269,7 @@ so *se_new(void)
 	sr_errorinit(&e->error);
 	sr_statinit(&e->stat);
 	sscrcf crc = ss_crc32c_function();
-	sr_init(&e->r, &e->error, &e->a, &e->vfs, &e->quota, &e->seq,
+	sr_init(&e->r, &e->error, &e->a, &e->a_ref, &e->vfs, &e->quota, &e->seq,
 	        SF_KV, SF_SRAW, NULL,
 	        &e->conf.scheme, &e->ei, &e->stat, crc);
 	sy_init(&e->rep);
@@ -282,4 +278,10 @@ so *se_new(void)
 	si_cachepool_init(&e->cachepool, &e->a_cache, &e->a_cachebranch);
 	se_scheduler_init(&e->sched, &e->o);
 	return &e->o;
+error:
+	se_statusfree(&e->status);
+	ss_pagerfree(&e->pager);
+	ss_pagerfree(&e->pager_ref);
+	free(e);
+	return NULL;
 }

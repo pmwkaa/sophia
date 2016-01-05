@@ -140,14 +140,14 @@ result:;
 	si_readstat(q, 1, n, 1);
 	sv *v = ss_iterof(sv_indexiter, &i);
 	assert(v != NULL);
-	svv *visible = v->v;
+	svref *visible = v->v;
 	if (sslikely(! q->has)) {
-		visible = sv_visible(visible, q->vlsn);
+		visible = sv_refvisible(visible, q->vlsn);
 		if (visible == NULL)
 			return 0;
 	}
 	sv vret;
-	sv_init(&vret, &sv_vif, visible, NULL);
+	sv_init(&vret, &sv_vif, visible->v, NULL);
 	return si_getresult(q, &vret, 0);
 }
 

@@ -10,5 +10,6 @@
 */
 
 uint32_t si_gcv(sr*, svv*);
+uint32_t si_gcref(sr*, svref*);
 
 #endif

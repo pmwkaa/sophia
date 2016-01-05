@@ -27,7 +27,7 @@ se_document_destroy(so *o)
 		return 0;
 	se *e = se_of(o);
 	if (v->v.v)
-		sv_vfree(&e->r, (svv*)v->v.v);
+		sv_vunref(&e->r, (svv*)v->v.v);
 	v->v.v = NULL;
 	se_mark_destroyed(&v->o);
 	ss_free(&e->a_document, v);

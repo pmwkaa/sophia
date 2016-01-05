@@ -14,7 +14,7 @@
 #include <libsv.h>
 
 ss_rbtruncate(sv_indextruncate,
-              sv_vfreelist((sr*)arg, sscast(n, svv, node)))
+              sv_reffree((sr*)arg, sscast(n, svref, node)))
 
 int sv_indexinit(svindex *i)
 {
@@ -33,54 +33,56 @@ int sv_indexfree(svindex *i, sr *r)
 	return 0;
 }
 
-static inline svv*
-sv_vset(svv *head, svv *v)
+static inline svref*
+sv_vset(svref *head, svref *v)
 {
-	assert(head->lsn != v->lsn);
+	assert(head->v->lsn != v->v->lsn);
+	svv *hv = head->v;
+	svv *vv = v->v;
 	/* default */
-	if (sslikely(head->lsn < v->lsn)) {
+	if (sslikely(hv->lsn < vv->lsn)) {
 		v->next = head;
-		head->flags |= SVDUP;
+		hv->flags |= SVDUP;
 		return v;
 	}
 	/* redistribution (starting from highest lsn) */
-	svv *prev = head;
-	svv *c = head->next;
+	svref *prev = head;
+	svref *c = head->next;
 	while (c) {
-		assert(c->lsn != v->lsn);
-		if (c->lsn < v->lsn)
+		assert(c->v->lsn != vv->lsn);
+		if (c->v->lsn < vv->lsn)
 			break;
 		prev = c;
 		c = c->next;
 	}
 	prev->next = v;
 	v->next = c;
-	v->flags |= SVDUP;
+	vv->flags |= SVDUP;
 	return head;
 }
 
-svv *sv_indexget(svindex *i, sr *r, svindexpos *p, svv *v)
+svref*
+sv_indexget(svindex *i, sr *r, svindexpos *p, svref *v)
 {
-	p->rc = sv_indexmatch(&i->i, r->scheme, sv_vpointer(v), v->size, &p->node);
+	p->rc = sv_indexmatch(&i->i, r->scheme, sv_vpointer(v->v), v->v->size, &p->node);
 	if (p->rc == 0 && p->node)
-		return sscast(p->node, svv, node);
+		return sscast(p->node, svref, node);
 	return NULL;
 }
 
-int sv_indexupdate(svindex *i, svindexpos *p, svv *v)
+int sv_indexupdate(svindex *i, svindexpos *p, svref *v)
 {
-	if (p->rc == 0 && p->node)
-	{
-		svv *head = sscast(p->node, svv, node);
-		svv *update = sv_vset(head, v);
+	if (p->rc == 0 && p->node) {
+		svref *head = sscast(p->node, svref, node);
+		svref *update = sv_vset(head, v);
 		if (head != update)
 			ss_rbreplace(&i->i, p->node, &update->node);
 	} else {
 		ss_rbset(&i->i, p->node, p->rc, &v->node);
 	}
-	if (v->lsn < i->lsnmin)
-		i->lsnmin = v->lsn;
+	if (v->v->lsn < i->lsnmin)
+		i->lsnmin = v->v->lsn;
 	i->count++;
-	i->used += v->size;
+	i->used += v->v->size;
 	return 0;
 }

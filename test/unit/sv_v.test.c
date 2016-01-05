@@ -44,7 +44,7 @@ sv_v_kv(void)
 	t( *(uint32_t*)sf_value(SF_KV, sv_pointer(&v), st_r.scheme.count) == value );
 	t( sf_valuesize(SF_KV, sv_pointer(&v), sv_size(&v), st_r.scheme.count) == sizeof(value) );
 
-	sv_vfree(&st_r.r, vv);
+	sv_vunref(&st_r.r, vv);
 }
 
 stgroup *sv_v_group(void)

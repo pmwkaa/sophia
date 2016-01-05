@@ -35,17 +35,19 @@ struct ssaligni64 {
 	int64_t __v;
 } sspacked;
 
-#define sslikely(EXPR) __builtin_expect(!! (EXPR), 1)
-#define ssunlikely(EXPR) __builtin_expect(!! (EXPR), 0)
+#define sslikely(e)   __builtin_expect(!! (e), 1)
+#define ssunlikely(e) __builtin_expect(!! (e), 0)
 
 #define sscastu32(ptr) ((ssalignu32*)(ptr))->__v
 #define sscastu64(ptr) ((ssalignu64*)(ptr))->__v
 #define sscasti64(ptr) ((ssaligni64*)(ptr))->__v
+#define sscast(ptr, t, f) \
+	((t*)((char*)(ptr) - __builtin_offsetof(t, f)))
 
-#define sscast(N, T, F) ((T*)((char*)(N) - __builtin_offsetof(T, F)))
+#define ss_align(align, len) \
+	(((uintptr_t)(len) + ((align) - 1)) & ~((uintptr_t)((align) - 1)))
 
-#define ss_templatecat(a, b) ss_##a##b
-#define ss_template(a, b) ss_templatecat(a, b)
-#define ss_cmp(a, b) ((a) == (b) ? 0 : (((a) > (b)) ? 1 : -1))
+#define ss_cmp(a, b) \
+	((a) == (b) ? 0 : (((a) > (b)) ? 1 : -1))
 
 #endif

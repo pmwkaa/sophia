@@ -27,6 +27,7 @@ struct str {
 
 	/* runtime */
 	ssa          a;
+	ssa          aref;
 	ssvfs        vfs;
 	ssinjection  injection;
 	srstat       stat;

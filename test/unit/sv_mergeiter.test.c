@@ -19,8 +19,8 @@ sv_mergeiter_merge_a(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 	int i = 0;
 	while (i < 10)
 	{
@@ -70,8 +70,8 @@ sv_mergeiter_merge_b(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 	int i = 0;
 	while (i < 10)
 	{
@@ -121,8 +121,8 @@ sv_mergeiter_merge_ab(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 	int i = 0;
 	while (i < 5)
 	{
@@ -179,9 +179,9 @@ sv_mergeiter_merge_abc(void)
 	stlist vlista;
 	stlist vlistb;
 	stlist vlistc;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
-	st_listinit(&vlistc, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
+	st_listinit(&vlistc, ST_SV);
 	int i = 0;
 	while (i < 5)
 	{
@@ -249,8 +249,8 @@ sv_mergeiter_merge_ba(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 	int i = 0;
 	while (i < 5)
 	{
@@ -306,8 +306,8 @@ sv_mergeiter_merge_dup_ab(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 	int i = 0;
 	int lsn = 10;
 	while (i < 5)
@@ -373,8 +373,8 @@ sv_mergeiter_merge_dup_a_chain(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 	int key = 7;
 	int i = 0;
 	int lsn = 5;
@@ -431,8 +431,8 @@ sv_mergeiter_merge_dup_ab_chain(void)
 {
 	stlist vlista;
 	stlist vlistb;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
 	int key = 7;
 	int i = 0;
 	int lsn = 10;
@@ -497,9 +497,9 @@ sv_mergeiter_merge_dup_abc_chain(void)
 	stlist vlista;
 	stlist vlistb;
 	stlist vlistc;
-	st_listinit(&vlista, 0);
-	st_listinit(&vlistb, 0);
-	st_listinit(&vlistc, 0);
+	st_listinit(&vlista, ST_SV);
+	st_listinit(&vlistb, ST_SV);
+	st_listinit(&vlistc, ST_SV);
 	int key = 7;
 	int i = 0;
 	int lsn = 10;

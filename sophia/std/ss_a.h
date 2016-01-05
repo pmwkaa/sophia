@@ -17,6 +17,7 @@ struct ssaif {
 	int   (*close)(ssa*);
 	void *(*malloc)(ssa*, int);
 	void *(*realloc)(ssa*, void*, int);
+	int   (*ensure)(ssa*, int, int);
 	void  (*free)(ssa*, void*);
 };
 
@@ -53,6 +54,11 @@ ss_realloc(ssa *a, void *ptr, int size) {
 static inline void
 ss_free(ssa *a, void *ptr) {
 	a->i->free(a, ptr);
+}
+
+static inline int
+ss_ensure(ssa *a, int n, int size) {
+	return a->i->ensure(a, n, size);
 }
 
 static inline char*
