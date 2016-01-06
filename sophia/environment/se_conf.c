@@ -674,6 +674,8 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc)
 		sr_C(&p, pc, se_confv_dboffline, "path", SS_STRINGPTR, &o->scheme.path, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "path_fail_on_exists", SS_U32, &o->scheme.path_fail_on_exists, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "path_fail_on_drop", SS_U32, &o->scheme.path_fail_on_drop, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "cache_mode", SS_U32, &o->scheme.cache_mode, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "cache", SS_STRINGPTR, &o->scheme.cache_sz, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "mmap", SS_U32, &o->scheme.mmap, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "sync", SS_U32, &o->scheme.sync, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "node_preload", SS_U32, &o->scheme.node_compact_load, 0, o);

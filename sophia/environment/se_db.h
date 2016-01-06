@@ -27,6 +27,7 @@ struct sedb {
 	uint32_t   ref_be;
 	uint64_t   txn_min;
 	uint64_t   txn_max;
+	sedb      *cache;
 	sr         r;
 };
 

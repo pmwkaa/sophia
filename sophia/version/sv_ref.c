@@ -14,7 +14,8 @@
 
 static uint8_t
 sv_refifflags(sv *v) {
-	return ((svv*)((svref*)v->v)->v)->flags;
+	svref *ref = (svref*)v->v;
+	return ((svv*)ref->v)->flags | ref->flags;
 }
 
 static uint64_t

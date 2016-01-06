@@ -12,8 +12,9 @@
 typedef struct svref svref;
 
 struct svref {
-	svv *v;
-	svref *next;
+	svv      *v;
+	svref    *next;
+	uint8_t  flags;
 	ssrbnode node;
 } sspacked;
 
@@ -27,6 +28,7 @@ sv_refnew(sr *r, svv *v)
 		return NULL;
 	ref->v = v;
 	ref->next = NULL;
+	ref->flags = 0;
 	memset(&ref->node, 0, sizeof(ref->node));
 	return ref;
 }

@@ -420,8 +420,6 @@ sl_follow(slpool *p, uint64_t lsn)
 
 int sl_prepare(slpool *p, svlog *vlog, uint64_t lsn)
 {
-	if (ssunlikely(sv_logcount_write(vlog) == 0))
-		return 0;
 	if (sslikely(lsn == 0))
 		lsn = sr_seq(p->r->seq, SR_LSNNEXT);
 	else

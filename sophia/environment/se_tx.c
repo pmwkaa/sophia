@@ -100,7 +100,7 @@ se_txdelete(so *o, so *v)
 static void*
 se_txget(so *o, so *v)
 {
-	setx  *t = se_cast(o, setx*, SETX);
+	setx *t = se_cast(o, setx*, SETX);
 	sedocument *key = se_cast(v, sedocument*, SEDOCUMENT);
 	se *e = se_of(&t->o);
 	sedb *db = se_cast(key->o.parent, sedb*, SEDB);
@@ -162,7 +162,7 @@ se_txprepare(sx *x, sv *v, void *arg0, void *arg1)
 	arg->has           = 1;
 	arg->vlsn          = x->vlsn;
 	arg->vlsn_generate = 0;
-	se_execute(&q);
+	se_execute_read(&q);
 	se_reqend(&q);
 	return q.rc;
 }
@@ -234,7 +234,7 @@ se_txcommit(so *o)
 		arg->vlsn_generate = 1;
 		arg->vlsn = 0;
 	}
-	se_execute(&q);
+	se_execute_write(&q);
 	se_txend(t, 0, 0);
 	return q.rc;
 }

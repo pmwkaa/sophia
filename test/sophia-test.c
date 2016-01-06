@@ -46,7 +46,6 @@ extern stgroup *sd_pageiter_group(void);
 
 /* generic */
 extern stgroup *conf_group(void);
-extern stgroup *cache_group(void);
 extern stgroup *error_group(void);
 extern stgroup *method_group(void);
 extern stgroup *profiler_group(void);
@@ -63,7 +62,6 @@ extern stgroup *scheme_group(void);
 extern stgroup *rev_group(void);
 extern stgroup *backup_group(void);
 extern stgroup *snapshot_group(void);
-extern stgroup *anticache_group(void);
 extern stgroup *checkpoint_group(void);
 extern stgroup *view_db_group(void);
 extern stgroup *view_group(void);
@@ -71,6 +69,7 @@ extern stgroup *view_cursor_group(void);
 extern stgroup *prefix_group(void);
 extern stgroup *transaction_md_group(void);
 extern stgroup *transaction_misc_group(void);
+extern stgroup *cursor_cache_group(void);
 extern stgroup *cursor_md_group(void);
 extern stgroup *cursor_rc_group(void);
 extern stgroup *half_commit_group(void);
@@ -86,6 +85,10 @@ extern stgroup *compact_group(void);
 extern stgroup *compact_delete_group(void);
 extern stgroup *gc_group(void);
 extern stgroup *lru_group(void);
+
+/* cache */
+extern stgroup *cache_group(void);
+extern stgroup *anticache_group(void);
 
 /* functional */
 extern stgroup *transaction_group(void);
@@ -229,7 +232,6 @@ main(int argc, char *argv[])
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
 	st_planadd(plan, conf_group());
-	st_planadd(plan, cache_group());
 	st_planadd(plan, error_group());
 	st_planadd(plan, method_group());
 	st_planadd(plan, profiler_group());
@@ -246,7 +248,6 @@ main(int argc, char *argv[])
 	st_planadd(plan, rev_group());
 	st_planadd(plan, backup_group());
 	st_planadd(plan, snapshot_group());
-	st_planadd(plan, anticache_group());
 	st_planadd(plan, checkpoint_group());
 	st_planadd(plan, view_db_group());
 	st_planadd(plan, view_group());
@@ -255,6 +256,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, transaction_md_group());
 	st_planadd(plan, transaction_misc_group());
 	st_planadd(plan, half_commit_group());
+	st_planadd(plan, cursor_cache_group());
 	st_planadd(plan, cursor_md_group());
 	st_planadd(plan, cursor_rc_group());
 	st_planadd(plan, upsert_group());
@@ -276,6 +278,17 @@ main(int argc, char *argv[])
 	st_planadd(plan, compact_delete_group());
 	st_planadd(plan, gc_group());
 	st_planadd(plan, lru_group());
+	st_suiteadd(&st_r.suite, plan);
+
+	plan = st_plan("cache");
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rmrf"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "init"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rt"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
+	st_planadd(plan, cache_group());
+	st_planadd(plan, anticache_group());
 	st_suiteadd(&st_r.suite, plan);
 
 	if (! full) {

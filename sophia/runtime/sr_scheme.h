@@ -127,6 +127,7 @@ int sr_keyset(srkey*, ssa*, char*);
 
 int sr_schemesave(srscheme*, ssa*, ssbuf*);
 int sr_schemeload(srscheme*, ssa*, char*, int);
+int sr_schemeeq(srscheme*, srscheme*);
 
 static inline int
 sr_compare(srscheme *s, char *a, int asize, char *b, int bsize) {

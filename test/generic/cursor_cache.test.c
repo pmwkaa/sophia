@@ -16,7 +16,7 @@
 #include <libst.h>
 
 static void
-cache_test0(void)
+cursor_cache_test0(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -60,7 +60,7 @@ cache_test0(void)
 }
 
 static void
-cache_test1(void)
+cursor_cache_test1(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -113,7 +113,7 @@ cache_test1(void)
 }
 
 static void
-cache_invalidate(void)
+cursor_cache_invalidate(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -177,11 +177,11 @@ cache_invalidate(void)
 	t( sp_destroy(env) == 0 );
 }
 
-stgroup *cache_group(void)
+stgroup *cursor_cache_group(void)
 {
-	stgroup *group = st_group("cache");
-	st_groupadd(group, st_test("single_branch", cache_test0));
-	st_groupadd(group, st_test("double_branch", cache_test1));
-	st_groupadd(group, st_test("invalidate", cache_invalidate));
+	stgroup *group = st_group("cursor_cache");
+	st_groupadd(group, st_test("single_branch", cursor_cache_test0));
+	st_groupadd(group, st_test("double_branch", cursor_cache_test1));
+	st_groupadd(group, st_test("invalidate", cursor_cache_invalidate));
 	return group;
 }

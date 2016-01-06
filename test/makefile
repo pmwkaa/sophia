@@ -25,7 +25,6 @@ STS_TESTS = unit/ss_leb128.test.o \
             unit/sd_read.test.o \
             unit/sd_pageiter.test.o \
             generic/conf.test.o \
-            generic/cache.test.o \
             generic/error.test.o \
             generic/method.test.o \
             generic/profiler.test.o \
@@ -42,7 +41,6 @@ STS_TESTS = unit/ss_leb128.test.o \
             generic/rev.test.o \
             generic/backup.test.o \
             generic/snapshot.test.o \
-            generic/anticache.test.o \
             generic/checkpoint.test.o \
             generic/view_db.test.o \
             generic/view.test.o \
@@ -50,6 +48,7 @@ STS_TESTS = unit/ss_leb128.test.o \
             generic/prefix.test.o \
             generic/transaction_md.test.o \
             generic/transaction_misc.test.o \
+            generic/cursor_cache.test.o \
             generic/cursor_md.test.o \
             generic/cursor_rc.test.o \
             generic/half_commit.test.o \
@@ -63,6 +62,8 @@ STS_TESTS = unit/ss_leb128.test.o \
             compaction/compact_delete.test.o \
             compaction/gc.test.o \
             compaction/lru.test.o \
+            cache/cache.test.o \
+            cache/anticache.test.o \
             functional/hermitage.test.o \
             functional/transaction.test.o \
             functional/cursor.test.o \

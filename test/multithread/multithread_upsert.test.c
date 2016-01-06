@@ -165,7 +165,7 @@ mt_upsert2(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_open(db) == 0 );
-	uint32_t n = 700000;
+	uint32_t n = 400000;
 	uint32_t i, k = 1234;
 	uint32_t value = 1;
 

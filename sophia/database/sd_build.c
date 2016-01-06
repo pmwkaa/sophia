@@ -251,7 +251,7 @@ int sd_buildadd(sdbuild *b, sr *r, sv *v, uint32_t flags)
 		return sr_oom(r->e);
 	sdpageheader *h = sd_buildheader(b);
 	sdv *sv = (sdv*)b->m.p;
-	sv->flags  = sv_flags(v) | flags;
+	sv->flags  = flags;
 	sv->offset = ss_bufused(&b->v) - sd_buildref(b)->v;
 	ss_bufadvance(&b->m, sizeof(sdv));
 	/* copy document */

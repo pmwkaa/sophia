@@ -32,6 +32,8 @@ se_dbscheme_init(sedb *db, char *name)
 	scheme->sync                  = 2;
 	scheme->mmap                  = 0;
 	scheme->storage               = SI_SCACHE;
+	scheme->cache_mode            = 0;
+	scheme->cache_sz              = NULL;
 	scheme->node_size             = 64 * 1024 * 1024;
 	scheme->node_compact_load     = 0;
 	scheme->node_page_size        = 128 * 1024;
@@ -117,6 +119,11 @@ se_dbscheme_set(sedb *db)
 			         "and upsert function");
 			return -1;
 		}
+		if (s->cache_mode) {
+			sr_error(&e->error, "%s", "incompatible options: cache_mode=1 "
+			         "and upsert function");
+			return -1;
+		}
 	}
 	/* compression_key */
 	if (s->compression_key) {
@@ -157,6 +164,32 @@ se_dbscheme_set(sedb *db)
 		s->path_backup = ss_strdup(&e->a, e->conf.backup_path);
 		if (ssunlikely(s->path_backup == NULL))
 			return sr_oom(&e->error);
+	}
+	/* cache */
+	if (s->cache_sz) {
+		sedb *cache = (sedb*)se_dbmatch(e, s->cache_sz);
+		if (ssunlikely(cache == NULL)) {
+			sr_error(&e->error, "could not find cache database '%s'",
+			         s->cache_sz);
+			return -1;
+		}
+		if (ssunlikely(cache == db)) {
+			sr_error(&e->error, "bad cache database '%s'",
+			         s->cache_sz);
+			return -1;
+		}
+		if (! cache->scheme.cache_mode) {
+			sr_error(&e->error, "database '%s' is not in cache mode",
+			         s->cache_sz);
+			return -1;
+		}
+		if (! sr_schemeeq(&db->scheme.scheme, &cache->scheme.scheme)) {
+			sr_error(&e->error, "database and cache '%s' scheme mismatch",
+			         s->cache_sz);
+			return -1;
+		}
+		se_dbref(cache, 0);
+		db->cache = cache;
 	}
 
 	db->r.scheme = &s->scheme;
@@ -242,6 +275,8 @@ se_dbdestroy(so *o)
 	}
 
 shutdown:;
+	if (db->cache)
+		se_dbunref(db->cache, 0);
 	sx_indexfree(&db->coindex, &e->xm);
 	rc = si_close(&db->index);
 	if (ssunlikely(rc == -1))
@@ -399,7 +434,7 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 	}
 
 	/* synchronous */
-	rc = se_execute(&q);
+	rc = se_execute_read(&q);
 	if (rc == 1)
 		o = (sedocument*)se_reqresult(&q, async);
 	se_reqend(&q);
@@ -423,6 +458,8 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 		return -1;
 	}
 	if (ssunlikely(! se_online(&db->status)))
+		goto error;
+	if (ssunlikely(db->scheme.cache_mode))
 		goto error;
 	if (flags == SVUPSERT && !sf_upserthas(&db->scheme.fmt_upsert))
 		flags = 0;
@@ -455,7 +492,7 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 	arg->lsn = 0;
 	arg->recover = 0;
 	arg->log = &x.log;
-	se_execute(&q);
+	se_execute_write(&q);
 	if (ssunlikely(q.rc == -1))
 		ss_quota(&e->quota, SS_QREMOVE, sv_vsize(v));
 	se_reqend(&q);

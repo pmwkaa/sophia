@@ -297,3 +297,18 @@ error:
 	sr_schemefree(s, a);
 	return -1;
 }
+
+int sr_schemeeq(srscheme *a, srscheme *b)
+{
+	if (a->count != b->count)
+		return 0;
+	int i = 0;
+	while (i < a->count) {
+		srkey *key_a = &a->parts[i];
+		srkey *key_b = &b->parts[i];
+		if (key_a->type != key_b->type)
+			return 0;
+		i++;
+	}
+	return 1;
+}

@@ -9,6 +9,7 @@
  * BSD License
 */
 
-int se_execute(sereq*);
+int se_execute_read(sereq*);
+int se_execute_write(sereq*);
 
 #endif

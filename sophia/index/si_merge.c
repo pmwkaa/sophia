@@ -161,7 +161,8 @@ si_split(si *index, sdc *c, ssbuf *result,
 		.vlsn            = vlsn,
 		.vlsn_lru        = vlsn_lru,
 		.save_delete     = 0,
-		.save_upsert     = 0
+		.save_upsert     = 0,
+		.save_set        = !index->scheme->cache_mode
 	};
 	sinode *n = NULL;
 	sdmerge merge;

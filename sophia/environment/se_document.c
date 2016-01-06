@@ -249,6 +249,12 @@ se_document_getint(so *o, const char *path)
 	} else
 	if (strcmp(path, "immutable") == 0) {
 		return v->immutable;
+	} else
+	if (strcmp(path, "flags") == 0) {
+		uint64_t flags = -1;
+		if (v->v.v)
+			flags = ((svv*)(v->v.v))->flags;
+		return flags;
 	} else {
 		sr_error(&e->error, "unknown document field '%s'",
 		         path);

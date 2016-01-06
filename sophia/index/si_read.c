@@ -160,10 +160,7 @@ si_getbranch(siread *q, sinode *n, sibranch *b)
 	sischeme *scheme = q->index->scheme;
 	int rc;
 	if (scheme->amqf) {
-		sdindexamqf *qh = sd_indexamqf(&b->index);
-		ssqf qf;
-		ss_qfrecover(&qf, qh->q, qh->r, qh->size, qh->table);
-		rc = ss_qfhas(&qf, sf_hash(q->key, q->r->scheme->count));
+		rc = si_amqfhas_branch(q->r, b, q->key);
 		if (sslikely(! rc))
 			return 0;
 	}

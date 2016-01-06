@@ -37,12 +37,11 @@ static inline svref*
 sv_vset(svref *head, svref *v)
 {
 	assert(head->v->lsn != v->v->lsn);
-	svv *hv = head->v;
 	svv *vv = v->v;
 	/* default */
-	if (sslikely(hv->lsn < vv->lsn)) {
+	if (sslikely(head->v->lsn < vv->lsn)) {
 		v->next = head;
-		hv->flags |= SVDUP;
+		head->flags |= SVDUP;
 		return v;
 	}
 	/* redistribution (starting from highest lsn) */
@@ -57,7 +56,7 @@ sv_vset(svref *head, svref *v)
 	}
 	prev->next = v;
 	v->next = c;
-	vv->flags |= SVDUP;
+	v->flags |= SVDUP;
 	return head;
 }
 

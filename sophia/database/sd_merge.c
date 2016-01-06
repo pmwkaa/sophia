@@ -37,7 +37,8 @@ int sd_mergeinit(sdmerge *m, sr *r, ssiter *i, sdbuild *build, ssqf *qf,
 	            conf->vlsn,
 	            conf->vlsn_lru,
 	            conf->save_delete,
-	            conf->save_upsert);
+	            conf->save_upsert,
+	            conf->save_set);
 	return 0;
 }
 
@@ -104,9 +105,13 @@ int sd_mergepage(sdmerge *m, uint64_t offset)
 	while (ss_iterhas(sv_writeiter, &m->i))
 	{
 		sv *v = ss_iterof(sv_writeiter, &m->i);
-		uint8_t flags = 0;
+		uint8_t flags = sv_flags(v);
 		if (sv_writeiter_is_duplicate(&m->i))
-			flags = SVDUP;
+			flags |= SVDUP;
+		if (! conf->save_set) {
+			if (flags == 0)
+				flags = SVGET;
+		}
 		rc = sd_buildadd(m->build, m->r, v, flags);
 		if (ssunlikely(rc == -1))
 			return -1;

@@ -13,6 +13,7 @@
 #include <si_branch.h>
 #include <si_node.h>
 #include <si_planner.h>
+#include <si_amqf.h>
 #include <si.h>
 #include <si_lru.h>
 #include <si_gc.h>

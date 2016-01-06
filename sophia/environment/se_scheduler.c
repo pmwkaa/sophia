@@ -969,7 +969,12 @@ se_dispatch(sescheduler *s, seworker *w, setask *t)
 			break;
 		sereq *req = se_reqdispatch(e, block);
 		if (req) {
-			se_execute(req);
+			switch (req->op) {
+			case SE_REQREAD:
+				se_execute_read(req);
+				break;
+			default: assert(0);
+			}
 			se_reqready(req);
 		}
 	} while (block);
