@@ -74,6 +74,7 @@ se_confsophia(se *e, seconfrt *rt, srconf **pc)
 	srconf *sophia = *pc;
 	srconf *p = NULL;
 	sr_C(&p, pc, se_confv, "version", SS_STRING, rt->version, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "version_storage", SS_STRING, rt->version_storage, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "build", SS_STRING, rt->build, SR_RO, NULL);
 	sr_C(&p, pc, se_confsophia_error, "error", SS_STRING, NULL, SR_RO, NULL);
 	sr_c(&p, pc, se_confv_offline, "path", SS_STRINGPTR, &e->conf.path);
@@ -900,6 +901,11 @@ se_confrt(se *e, seconfrt *rt)
 	         SR_VERSION_A - '0',
 	         SR_VERSION_B - '0',
 	         SR_VERSION_C - '0');
+	snprintf(rt->version_storage, sizeof(rt->version_storage),
+	         "%d.%d.%d",
+	         SR_VERSION_STORAGE_A - '0',
+	         SR_VERSION_STORAGE_B - '0',
+	         SR_VERSION_STORAGE_C - '0');
 	snprintf(rt->build, sizeof(rt->build), "%s",
 	         SR_VERSION_COMMIT);
 

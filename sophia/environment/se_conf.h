@@ -22,6 +22,7 @@ typedef struct {
 struct seconfrt {
 	/* sophia */
 	char      version[16];
+	char      version_storage[16];
 	char      build[32];
 	/* memory */
 	uint64_t  memory_used;
