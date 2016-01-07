@@ -19,6 +19,87 @@
 #include <libsy.h>
 #include <libse.h>
 
+enum {
+	SE_DOCUMENT_KEY,
+	SE_DOCUMENT_VALUE,
+	SE_DOCUMENT_ORDER,
+	SE_DOCUMENT_PREFIX,
+	SE_DOCUMENT_LSN,
+	SE_DOCUMENT_LOG,
+	SE_DOCUMENT_RAW,
+	SE_DOCUMENT_ARG,
+	SE_DOCUMENT_FLAGS,
+	SE_DOCUMENT_TYPE,
+	SE_DOCUMENT_CACHE_ONLY,
+	SE_DOCUMENT_IMMUTABLE,
+	SE_DOCUMENT_ASYNC,
+	SE_DOCUMENT_STATUS,
+	SE_DOCUMENT_SEQ,
+	SE_DOCUMENT_UNKNOWN
+};
+
+static inline int
+se_document_opt(const char *path)
+{
+	switch (path[0]) {
+	case 'v':
+		if (sslikely(strcmp(path, "value") == 0))
+			return SE_DOCUMENT_VALUE;
+		break;
+	case 'k':
+		if (sslikely(strncmp(path, "key", 3) == 0))
+			return SE_DOCUMENT_KEY;
+		break;
+	case 'o':
+		if (sslikely(strcmp(path, "order") == 0))
+			return SE_DOCUMENT_ORDER;
+		break;
+	case 'l':
+		if (sslikely(strcmp(path, "lsn") == 0))
+			return SE_DOCUMENT_LSN;
+		if (sslikely(strcmp(path, "log") == 0))
+			return SE_DOCUMENT_LOG;
+		break;
+	case 'p':
+		if (sslikely(strcmp(path, "prefix") == 0))
+			return SE_DOCUMENT_PREFIX;
+		break;
+	case 'a':
+		if (sslikely(strcmp(path, "arg") == 0))
+			return SE_DOCUMENT_ARG;
+		if (strcmp(path, "async") == 0)
+			return SE_DOCUMENT_ASYNC;
+		break;
+	case 'r':
+		if (sslikely(strcmp(path, "raw") == 0))
+			return SE_DOCUMENT_RAW;
+		break;
+	case 'f':
+		if (sslikely(strcmp(path, "flags") == 0))
+			return SE_DOCUMENT_FLAGS;
+		break;
+	case 't':
+		if (sslikely(strcmp(path, "type") == 0))
+			return SE_DOCUMENT_TYPE;
+		break;
+	case 'c':
+		if (sslikely(strcmp(path, "cache_only") == 0))
+			return SE_DOCUMENT_CACHE_ONLY;
+		break;
+	case 'i':
+		if (sslikely(strcmp(path, "immutable") == 0))
+			return SE_DOCUMENT_IMMUTABLE;
+		break;
+	case 's':
+		if (sslikely(strcmp(path, "status") == 0))
+			return SE_DOCUMENT_STATUS;
+		if (strcmp(path, "seq") == 0)
+			return SE_DOCUMENT_SEQ;
+		break;
+	}
+	return SE_DOCUMENT_UNKNOWN;
+}
+
 static int
 se_document_destroy(so *o)
 {
@@ -69,9 +150,14 @@ se_document_setstring(so *o, const char *path, void *pointer, int size)
 	se *e = se_of(o);
 	if (ssunlikely(v->v.v))
 		return sr_error(&e->error, "%s", "document is read-only");
-	if (sslikely(strncmp(path, "key", 3)) == 0)
-		goto key_part;
-	if (sslikely(strcmp(path, "value")) == 0) {
+	switch (se_document_opt(path)) {
+	case SE_DOCUMENT_KEY: {
+		sfv *fv = se_document_setpart(v, path, pointer, size);
+		if (ssunlikely(fv == NULL))
+			return -1;
+		break;
+	}
+	case SE_DOCUMENT_VALUE: {
 		const int valuesize_max = 1 << 21;
 		if (ssunlikely(size > valuesize_max)) {
 			sr_error(&e->error, "value is too big (%d limit)",
@@ -81,18 +167,9 @@ se_document_setstring(so *o, const char *path, void *pointer, int size)
 		v->value = pointer;
 		v->valuesize = size;
 		sr_statvalue(&e->stat, size);
-		return 0;
+		break;
 	}
-	if (strcmp(path, "prefix") == 0) {
-		v->prefix = pointer;
-		v->prefixsize = size;
-		return 0;
-	}
-	if (strcmp(path, "log") == 0) {
-		v->log = pointer;
-		return 0;
-	}
-	if (strcmp(path, "order") == 0) {
+	case SE_DOCUMENT_ORDER:
 		if (size == 0)
 			size = strlen(pointer);
 		ssorder cmp = ss_orderof(pointer, size);
@@ -102,22 +179,24 @@ se_document_setstring(so *o, const char *path, void *pointer, int size)
 		}
 		v->order = cmp;
 		v->orderset = 1;
-		return 0;
-	}
-	if (strcmp(path, "raw") == 0) {
+		break;
+	case SE_DOCUMENT_PREFIX:
+		v->prefix = pointer;
+		v->prefixsize = size;
+		break;
+	case SE_DOCUMENT_LOG:
+		v->log = pointer;
+		break;
+	case SE_DOCUMENT_RAW:
 		v->raw = pointer;
 		v->rawsize = size;
-		return 0;
-	}
-	if (strcmp(path, "arg") == 0) {
+		break;
+	case SE_DOCUMENT_ARG:
 		v->async_arg = pointer;
-		return 0;
-	}
-key_part:;
-	/* document keypart */
-	sfv *fv = se_document_setpart(v, path, pointer, size);
-	if (ssunlikely(fv == NULL))
+		break;
+	default:
 		return -1;
+	}
 	return 0;
 }
 
@@ -125,9 +204,29 @@ static void*
 se_document_getstring(so *o, const char *path, int *size)
 {
 	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
-	if (sslikely(strncmp(path, "key", 3)) == 0)
-		goto key_part;
-	if (sslikely(strcmp(path, "value")) == 0) {
+	switch (se_document_opt(path)) {
+	case SE_DOCUMENT_KEY: {
+		/* match key-part */
+		sedb *db = (sedb*)o->parent;
+		srkey *part = sr_schemefind(&db->scheme.scheme, (char*)path);
+		if (ssunlikely(part == NULL))
+			return NULL;
+		/* database result document */
+		if (v->v.v) {
+			if (size)
+				*size = sv_keysize(&v->v, &db->r, part->pos);
+			return sv_key(&v->v, &db->r, part->pos);
+		}
+		/* database key document */
+		assert(part->pos < (int)(sizeof(v->keyv) / sizeof(sfv)));
+		sfv *fv = &v->keyv[part->pos];
+		if (fv->key == NULL)
+			return NULL;
+		if (size)
+			*size = fv->r.size;
+		return fv->key;
+	}
+	case SE_DOCUMENT_VALUE: {
 		/* key document */
 		if (v->value) {
 			if (size)
@@ -150,31 +249,30 @@ se_document_getstring(so *o, const char *path, int *size)
 			return NULL;
 		return sv_value(&v->v, &db->r);
 	}
-	if (strcmp(path, "prefix") == 0) {
+	case SE_DOCUMENT_PREFIX: {
 		if (v->prefix == NULL)
 			return NULL;
 		if (size)
 			*size = v->prefixsize;
 		return v->prefix;
 	}
-	if (strcmp(path, "order") == 0) {
+	case SE_DOCUMENT_ORDER: {
 		char *order = ss_ordername(v->order);
 		if (size)
 			*size = strlen(order) + 1;
 		return order;
 	}
-	if (strcmp(path, "type") == 0) {
+	case SE_DOCUMENT_TYPE: {
 		char *type = se_reqof(v->async_operation);
 		if (size)
 			*size = strlen(type);
 		return type;
 	}
-	if (strcmp(path, "arg") == 0) {
+	case SE_DOCUMENT_ARG:
 		if (size)
 			*size = 0;
 		return v->async_arg;
-	}
-	if (strcmp(path, "raw") == 0) {
+	case SE_DOCUMENT_RAW:
 		if (v->raw) {
 			if (size)
 				*size = v->rawsize;
@@ -186,78 +284,55 @@ se_document_getstring(so *o, const char *path, int *size)
 			*size = sv_size(&v->v);
 		return sv_pointer(&v->v);
 	}
-key_part:;
-	/* match key-part */
-	sedb *db = (sedb*)o->parent;
-	srkey *part = sr_schemefind(&db->scheme.scheme, (char*)path);
-	if (ssunlikely(part == NULL))
-		return NULL;
-	/* database result document */
-	if (v->v.v) {
-		if (size)
-			*size = sv_keysize(&v->v, &db->r, part->pos);
-		return sv_key(&v->v, &db->r, part->pos);
-	}
-	/* database key document */
-	assert(part->pos < (int)(sizeof(v->keyv) / sizeof(sfv)));
-	sfv *fv = &v->keyv[part->pos];
-	if (fv->key == NULL)
-		return NULL;
-	if (size)
-		*size = fv->r.size;
-	return fv->key;
+	return NULL;
 }
+
 
 static int
 se_document_setint(so *o, const char *path, int64_t num)
 {
 	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
-	if (strcmp(path, "cache_only") == 0) {
+	switch (se_document_opt(path)) {
+	case SE_DOCUMENT_CACHE_ONLY:
 		v->cache_only = num;
-		return 0;
-	} else
-	if (strcmp(path, "immutable") == 0) {
+		break;
+	case SE_DOCUMENT_IMMUTABLE:
 		v->immutable = num;
-		return 0;
-	} else
-	if (strcmp(path, "async") == 0) {
+		break;
+	case SE_DOCUMENT_ASYNC:
 		v->async = num;
-		return 0;
+		break;
+	default:
+		return -1;
 	}
-	return -1;
+	return 0;
 }
 
 static int64_t
 se_document_getint(so *o, const char *path)
 {
 	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
-	se *e = se_of(o);
-	if (strcmp(path, "lsn") == 0) {
+	switch (se_document_opt(path)) {
+	case SE_DOCUMENT_LSN: {
 		uint64_t lsn = -1;
 		if (v->v.v)
 			lsn = ((svv*)(v->v.v))->lsn;
 		return lsn;
-	} else
-	if (strcmp(path, "status") == 0) {
+	}
+	case SE_DOCUMENT_STATUS:
 		return v->async_status;
-	} else
-	if (strcmp(path, "seq") == 0) {
+	case SE_DOCUMENT_SEQ:
 		return v->async_seq;
-	} else
-	if (strcmp(path, "cache_only") == 0) {
+	case SE_DOCUMENT_CACHE_ONLY:
 		return v->cache_only;
-	} else
-	if (strcmp(path, "immutable") == 0) {
+	case SE_DOCUMENT_IMMUTABLE:
 		return v->immutable;
-	} else
-	if (strcmp(path, "flags") == 0) {
+	case SE_DOCUMENT_FLAGS: {
 		uint64_t flags = -1;
 		if (v->v.v)
 			flags = ((svv*)(v->v.v))->flags;
 		return flags;
-	} else {
-		sr_error(&e->error, "unknown document field '%s'",
-		         path);
+	}
 	}
 	return -1;
 }
