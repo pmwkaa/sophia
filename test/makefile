@@ -84,13 +84,22 @@ SOPHIA_DIRS    = std format runtime object version log database \
                  environment \
                  sophia
 SOPHIA_INCLUDE = $(addprefix -I../sophia/, $(SOPHIA_DIRS))
+
 ifdef ENABLE_COVERAGE
 STS_COVERAGE   = --coverage
 else
 STS_COVERAGE   =
 endif
 STS_CFLAGS     = $(SOPHIA_INCLUDE) -g -O0 -Wall -I. -I../sophia -Isuite/ -pthread
-STS_LDFLAGS    = ../sophia.o suite/libst.a -pthread -lm $(STS_COVERAGE)
+STS_LDFLAGS    = ../sophia.o -pthread -lm $(STS_COVERAGE)
+STS_OBJECTS    = suite/st_r.o \
+                 suite/st_suite.o \
+                 suite/st_generator.o \
+                 suite/st.o \
+                 suite/st_document.o \
+                 suite/st_tools.o \
+                 suite/st_scenes.o \
+                 suite/st_phase.o
 STS_BINARY     = sophia-test
 STS_PROF       = sophia-prof
 STS_SOPHIA_DIR = _test_sophia
@@ -99,14 +108,12 @@ STS_LOG_DIR    = _test_log
 STS_DB_DIR     = _test_db
 
 all: banner sophia-test sophia-prof
-sophia-test: validate suite $(STS_TESTS)
+sophia-test: validate $(STS_OBJECTS) $(STS_TESTS)
 	@echo "ld $(STS_BINARY)"
-	@$(CC) $(STS_TESTS) sophia-test.c $(STS_CFLAGS) $(STS_LDFLAGS) -o $(STS_BINARY)
-sophia-prof: validate suite
+	@$(CC) $(STS_TESTS) sophia-test.c $(STS_CFLAGS) $(STS_LDFLAGS) $(STS_OBJECTS) -o $(STS_BINARY)
+sophia-prof: validate $(STS_OBJECTS)
 	@echo "ld $(STS_PROF)"
 	@$(CC) sophia-prof.c $(STS_CFLAGS) $(STS_LDFLAGS) -o $(STS_PROF)
-suite:
-	@(cd suite; make --silent --no-print-directory)
 banner:
 	@echo
 	@echo sophia test-suite.
@@ -121,10 +128,10 @@ validate:
 	@echo "cc $<"
 	@$(CC) $(STS_CFLAGS) -c $< -o $@
 clean:
-	@(cd suite; make --no-print-directory clean)
 	@rm -f $(STS_BINARY)
 	@rm -f $(STS_PROF)
 	@rm -f $(STS_TESTS)
+	@rm -f $(STS_OBJECTS)
 	@rm -fr $(STS_SOPHIA_DIR) \
 	        $(STS_BACKUP_DIR) \
 	        $(STS_DB_DIR) $(STS_LOG_DIR)
@@ -133,7 +140,7 @@ test_gdb:
 test:
 	@./$(STS_BINARY) -v
 
-.PHONY: all clean validate banner suite test
+.PHONY: all clean validate banner test
 .PHONY: sophia-test sophia-prof
 
 # vim: syntax=make

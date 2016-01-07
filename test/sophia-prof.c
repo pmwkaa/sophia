@@ -92,7 +92,6 @@ spr_cmd_stop(void)
 	pthread_join(spr_thread, NULL);
 	if (spr_env)
 		sp_destroy(spr_env);
-	spr_thread = -1;
 }
 
 static inline void

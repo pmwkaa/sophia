@@ -51,8 +51,6 @@ sr_schemeinit(srscheme *s)
 static inline void
 sr_schemefree(srscheme *s, ssa *a)
 {
-	if (s->parts == NULL)
-		return;
 	int i = 0;
 	while (i < s->count) {
 		if (s->parts[i].name)
