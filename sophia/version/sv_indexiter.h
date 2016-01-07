@@ -27,7 +27,7 @@ sv_indexiter_open(ssiter *i, sr *r, svindex *index, ssorder o, void *key, int ke
 	ii->order   = o;
 	ii->v       = NULL;
 	ii->vcur    = NULL;
-	memset(&ii->current, 0, sizeof(ii->current));
+	sv_init(&ii->current, &sv_refif, NULL, NULL);
 	int rc;
 	int eq = 0;
 	switch (ii->order) {
@@ -76,7 +76,7 @@ sv_indexiter_open(ssiter *i, sr *r, svindex *index, ssorder o, void *key, int ke
 	ii->vcur = NULL;
 	if (ii->v) {
 		ii->vcur = sscast(ii->v, svref, node);
-		sv_init(&ii->current, &sv_refif, ii->vcur, NULL);
+		ii->current.v = ii->vcur;
 	}
 	return eq;
 }
@@ -111,7 +111,7 @@ sv_indexiter_next(ssiter *i)
 	svref *v = ii->vcur->next;
 	if (v) {
 		ii->vcur = v;
-		sv_init(&ii->current, &sv_refif, ii->vcur, NULL);
+		ii->current.v = ii->vcur;
 		return;
 	}
 	switch (ii->order) {
@@ -125,10 +125,11 @@ sv_indexiter_next(ssiter *i)
 		break;
 	default: assert(0);
 	}
-	ii->vcur = NULL;
-	if (ii->v) {
+	if (sslikely(ii->v)) {
 		ii->vcur = sscast(ii->v, svref, node);
-		sv_init(&ii->current, &sv_refif, ii->vcur, NULL);
+		ii->current.v = ii->vcur;
+	} else {
+		ii->vcur = NULL;
 	}
 }
 
