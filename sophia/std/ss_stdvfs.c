@@ -81,7 +81,6 @@ ss_stdvfs_sync(ssvfs *f ssunused, int fd)
 #elif defined(__FreeBSD__) || defined(__DragonFly__)
 	return fsync(fd);
 #else
-    // at least Linux, OpenBSD and NetBSD have fdatasync().
 	return fdatasync(fd);
 #endif
 }
@@ -90,7 +89,10 @@ static int
 ss_stdvfs_advise(ssvfs *f ssunused, int fd, int hint, uint64_t off, uint64_t len)
 {
 	(void)hint;
-#if defined(__APPLE__)
+#if  defined(__APPLE__) || \
+     defined(__FreeBSD__) || \
+    (defined(__FreeBSD_kernel__) && defined(__GLIBC__)) || \
+     defined(__DragonFly__)
 	(void)fd;
 	(void)off;
 	(void)len;
@@ -229,7 +231,8 @@ ss_stdvfs_mremap(ssvfs *f ssunused, ssmmap *m, uint64_t size)
 	void *p;
 #if  defined(__APPLE__) || \
      defined(__FreeBSD__) || \
-	(defined(__FreeBSD_kernel__) && defined(__GLIBC__)) /* kFreeBSD */
+    (defined(__FreeBSD_kernel__) && defined(__GLIBC__)) || \
+     defined(__DragonFly__)
 	p = mmap(NULL, size, PROT_READ|PROT_WRITE,
 	         MAP_PRIVATE|MAP_ANON, -1, 0);
 	if (p == MAP_FAILED)
