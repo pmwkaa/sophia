@@ -36,6 +36,8 @@ struct slpool {
 struct sltx {
 	slpool *p;
 	sl *l;
+	int recover;
+	uint64_t lsn;
 	uint64_t svp;
 };
 
@@ -49,8 +51,7 @@ int sl_poolgc(slpool*);
 int sl_poolfiles(slpool*);
 int sl_poolcopy(slpool*, char*, ssbuf*);
 
-int sl_begin(slpool*, sltx*);
-int sl_prepare(slpool*, svlog*, uint64_t);
+int sl_begin(slpool*, sltx*, uint64_t, int);
 int sl_commit(sltx*);
 int sl_rollback(sltx*);
 int sl_write(sltx*, svlog*);

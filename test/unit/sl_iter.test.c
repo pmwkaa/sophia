@@ -17,14 +17,13 @@
 #include <libst.h>
 
 static void
-alloclogv(svlog *log, sr *r, uint64_t lsn, uint8_t flags, int key)
+alloclogv(svlog *log, sr *r, uint8_t flags, int key)
 {
 	sfv pv;
 	pv.key = (char*)&key;
 	pv.r.size = sizeof(uint32_t);
 	pv.r.offset = 0;
 	svv *v = sv_vbuild(r, &pv, 1, NULL, 0);
-	v->lsn = lsn;
 	v->flags = flags;
 	svlogv logv;
 	logv.id = 0;
@@ -62,10 +61,10 @@ sl_itertx(void)
 	svlog log;
 	sv_loginit(&log);
 
-	alloclogv(&log, &st_r.r, 0, 0, 7);
+	alloclogv(&log, &st_r.r, 0, 7);
 
 	sltx ltx;
-	t( sl_begin(&lp, &ltx) == 0 );
+	t( sl_begin(&lp, &ltx, 0, 0) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );
 
@@ -124,9 +123,9 @@ sl_itertx_read0(void)
 	t( sl_poolrotate(&lp) == 0 );
 	svlog log;
 	sv_loginit(&log);
-	alloclogv(&log, &st_r.r, 0, 0, 7);
+	alloclogv(&log, &st_r.r, 0, 7);
 	sltx ltx;
-	t( sl_begin(&lp, &ltx) == 0 );
+	t( sl_begin(&lp, &ltx, 0, 0) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );
 	freelog(&log, &st_r.r);
@@ -166,11 +165,11 @@ sl_itertx_read1(void)
 	t( sl_poolrotate(&lp) == 0 );
 	svlog log;
 	sv_loginit(&log);
-	alloclogv(&log, &st_r.r, 0, 0, 7);
-	alloclogv(&log, &st_r.r, 0, 0, 8);
-	alloclogv(&log, &st_r.r, 0, 0, 9);
+	alloclogv(&log, &st_r.r, 0, 7);
+	alloclogv(&log, &st_r.r, 0, 8);
+	alloclogv(&log, &st_r.r, 0, 9);
 	sltx ltx;
-	t( sl_begin(&lp, &ltx) == 0 );
+	t( sl_begin(&lp, &ltx, 0, 0) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );
 	freelog(&log, &st_r.r);
@@ -219,15 +218,15 @@ sl_itertx_read2(void)
 	t( sl_poolrotate(&lp) == 0 );
 	svlog log;
 	sv_loginit(&log);
-	alloclogv(&log, &st_r.r, 0, 0, 7);
-	alloclogv(&log, &st_r.r, 0, 0, 8);
-	alloclogv(&log, &st_r.r, 0, 0, 9);
+	alloclogv(&log, &st_r.r, 0, 7);
+	alloclogv(&log, &st_r.r, 0, 8);
+	alloclogv(&log, &st_r.r, 0, 9);
 	sltx ltx;
-	t( sl_begin(&lp, &ltx) == 0 );
+	t( sl_begin(&lp, &ltx, 0, 0) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );
 
-	t( sl_begin(&lp, &ltx) == 0 );
+	t( sl_begin(&lp, &ltx, 0, 0) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );
 	freelog(&log, &st_r.r);
@@ -277,34 +276,34 @@ sl_itertx_read3(void)
 	svlog log;
 
 	sv_loginit(&log);
-	alloclogv(&log, &st_r.r, 0, 0, 7); /* single stmt */
+	alloclogv(&log, &st_r.r, 0, 7); /* single stmt */
 	sltx ltx;
-	t( sl_begin(&lp, &ltx) == 0 );
+	t( sl_begin(&lp, &ltx, 0, 0) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );
 	freelog(&log, &st_r.r);
 
 	sv_loginit(&log);
-	alloclogv(&log, &st_r.r, 0, 0, 8); /* multi stmt */
-	alloclogv(&log, &st_r.r, 0, 0, 9);
-	alloclogv(&log, &st_r.r, 0, 0, 10);
-	t( sl_begin(&lp, &ltx) == 0 );
+	alloclogv(&log, &st_r.r, 0, 8); /* multi stmt */
+	alloclogv(&log, &st_r.r, 0, 9);
+	alloclogv(&log, &st_r.r, 0, 10);
+	t( sl_begin(&lp, &ltx, 0, 0) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );
 	freelog(&log, &st_r.r);
 
 	sv_loginit(&log);
-	alloclogv(&log, &st_r.r, 0, 0, 11); /* multi stmt */
-	alloclogv(&log, &st_r.r, 0, 0, 12);
-	alloclogv(&log, &st_r.r, 0, 0, 13);
-	t( sl_begin(&lp, &ltx) == 0 );
+	alloclogv(&log, &st_r.r, 0, 11); /* multi stmt */
+	alloclogv(&log, &st_r.r, 0, 12);
+	alloclogv(&log, &st_r.r, 0, 13);
+	t( sl_begin(&lp, &ltx, 0, 0) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );
 	freelog(&log, &st_r.r);
 
 	sv_loginit(&log);
-	alloclogv(&log, &st_r.r, 0, 0, 14); /* single stmt */
-	t( sl_begin(&lp, &ltx) == 0 );
+	alloclogv(&log, &st_r.r, 0, 14); /* single stmt */
+	t( sl_begin(&lp, &ltx, 0, 0) == 0 );
 	t( sl_write(&ltx, &log) == 0 );
 	t( sl_commit(&ltx) == 0 );
 	freelog(&log, &st_r.r);

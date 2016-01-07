@@ -369,11 +369,22 @@ int sl_poolcopy(slpool *p, char *dest, ssbuf *buf)
 	return 0;
 }
 
-int sl_begin(slpool *p, sltx *t)
+int sl_begin(slpool *p, sltx *t, uint64_t lsn, int recover)
 {
-	memset(t, 0, sizeof(*t));
 	ss_spinlock(&p->lock);
+	if (sslikely(lsn == 0)) {
+		lsn = sr_seq(p->r->seq, SR_LSNNEXT);
+	} else {
+		sr_seqlock(p->r->seq);
+		if (lsn > p->r->seq->lsn)
+			p->r->seq->lsn = lsn;
+		sr_sequnlock(p->r->seq);
+	}
+	t->lsn = lsn;
+	t->recover = recover;
+	t->svp = 0;
 	t->p = p;
+	t->l = NULL;
 	if (! p->conf->enable)
 		return 0;
 	assert(p->n > 0);
@@ -408,38 +419,11 @@ int sl_rollback(sltx *t)
 	return rc;
 }
 
-static inline int
-sl_follow(slpool *p, uint64_t lsn)
-{
-	sr_seqlock(p->r->seq);
-	if (lsn > p->r->seq->lsn)
-		p->r->seq->lsn = lsn;
-	sr_sequnlock(p->r->seq);
-	return 0;
-}
-
-int sl_prepare(slpool *p, svlog *vlog, uint64_t lsn)
-{
-	if (sslikely(lsn == 0))
-		lsn = sr_seq(p->r->seq, SR_LSNNEXT);
-	else
-		sl_follow(p, lsn);
-	ssiter i;
-	ss_iterinit(ss_bufiter, &i);
-	ss_iteropen(ss_bufiter, &i, &vlog->buf, sizeof(svlogv));
-	for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
-	{
-		svlogv *v = ss_iterof(ss_bufiter, &i);
-		sv_lsnset(&v->v, lsn);
-	}
-	return 0;
-}
-
 static inline void
-sl_write_prepare(slpool *p, sltx *t, slv *lv, svlogv *logv)
+sl_writeadd(slpool *p, sltx *t, slv *lv, svlogv *logv)
 {
 	sv *v = &logv->v;
-	lv->lsn   = sv_lsn(v);
+	lv->lsn   = t->lsn;
 	lv->dsn   = logv->id;
 	lv->flags = sv_flags(v);
 	lv->size  = sv_size(v);
@@ -451,23 +435,26 @@ sl_write_prepare(slpool *p, sltx *t, slv *lv, svlogv *logv)
 }
 
 static inline int
-sl_write_stmt(sltx *t, svlog *vlog)
+sl_writestmt(sltx *t, svlog *vlog)
 {
 	slpool *p = t->p;
-	svlogv *logv;
+	svlogv *stmt = NULL;
 	ssiter i;
 	ss_iterinit(ss_bufiter, &i);
 	ss_iteropen(ss_bufiter, &i, &vlog->buf, sizeof(svlogv));
 	for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i)) {
-		logv = ss_iterof(ss_bufiter, &i);
+		svlogv *logv = ss_iterof(ss_bufiter, &i);
 		sv *v = &logv->v;
-		if (! (sv_flags(v) & SVGET))
-			break;
+		assert(v->i == &sv_vif);
+		sv_lsnset(v, t->lsn);
+		if (sslikely(! (sv_is(v, SVGET)))) {
+			assert(stmt == NULL);
+			stmt = logv;
+		}
 	}
-	logv = ss_iterof(ss_bufiter, &i);
-	assert(logv != NULL);
+	assert(stmt != NULL);
 	slv lv;
-	sl_write_prepare(t->p, t, &lv, logv);
+	sl_writeadd(t->p, t, &lv, stmt);
 	int rc = ss_filewritev(&t->l->file, &p->iov);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(p->r->e, "log file '%s' write error: %s",
@@ -481,7 +468,7 @@ sl_write_stmt(sltx *t, svlog *vlog)
 }
 
 static int
-sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
+sl_writestmt_multi(sltx *t, svlog *vlog)
 {
 	slpool *p = t->p;
 	sl *l = t->l;
@@ -491,7 +478,7 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 	lvp = 0;
 	/* transaction header */
 	slv *lv = &lvbuf[0];
-	lv->lsn   = lsn;
+	lv->lsn   = t->lsn;
 	lv->dsn   = 0;
 	lv->flags = SVBEGIN;
 	lv->size  = sv_logcount_write(vlog);
@@ -516,11 +503,13 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 			lvp = 0;
 		}
 		svlogv *logv = ss_iterof(ss_bufiter, &i);
-		assert(logv->v.i == &sv_vif);
-		if (sv_flags(&logv->v) & SVGET)
+		sv *v = &logv->v;
+		assert(v->i == &sv_vif);
+		sv_lsnset(v, t->lsn);
+		if (sv_is(v, SVGET))
 			continue;
 		lv = &lvbuf[lvp];
-		sl_write_prepare(p, t, lv, logv);
+		sl_writeadd(p, t, lv, logv);
 		lvp++;
 	}
 	if (sslikely(ss_iovhas(&p->iov))) {
@@ -539,23 +528,35 @@ sl_write_multi_stmt(sltx *t, svlog *vlog, uint64_t lsn)
 
 int sl_write(sltx *t, svlog *vlog)
 {
-	/* assume transaction log is prepared
-	 * (lsn set) */
-	if (ssunlikely(sv_logcount_write(vlog) == 0))
-		return 0;
-	if (ssunlikely(! t->p->conf->enable))
-		return 0;
 	int count = sv_logcount_write(vlog);
+	/* fast path for log-disabled, recover or
+	 * ro-transactions
+	 */
+	if (t->recover || !t->p->conf->enable || count == 0)
+	{
+		ssiter i;
+		ss_iterinit(ss_bufiter, &i);
+		ss_iteropen(ss_bufiter, &i, &vlog->buf, sizeof(svlogv));
+		for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
+		{
+			svlogv *v = ss_iterof(ss_bufiter, &i);
+			sv_lsnset(&v->v, t->lsn);
+		}
+		return 0;
+	}
+
+	/* write single or multi-stmt transaction */
 	int rc;
 	if (sslikely(count == 1)) {
-		rc = sl_write_stmt(t, vlog);
+		rc = sl_writestmt(t, vlog);
 	} else {
-		svlogv *lv = (svlogv*)vlog->buf.s;
-		uint64_t lsn = sv_lsn(&lv->v);
-		rc = sl_write_multi_stmt(t, vlog, lsn);
+		rc = sl_writestmt_multi(t, vlog);
 	}
+	if (ssunlikely(rc == -1))
+		return -1;
+
 	/* sync */
-	if (t->p->conf->enable && t->p->conf->sync_on_write) {
+	if (t->p->conf->sync_on_write) {
 		rc = ss_filesync(&t->l->file);
 		if (ssunlikely(rc == -1)) {
 			sr_malfunction(t->p->r->e, "log file '%s' sync error: %s",

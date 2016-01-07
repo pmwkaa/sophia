@@ -106,22 +106,19 @@ int se_execute_write(sereq *r)
 	sereqarg *arg = &r->arg;
 	svlog *log = r->arg.log;
 	se *e = se_of(r->object);
-	/* set lsn */
-	sl_prepare(&e->lp, log, arg->lsn);
-	/* log write */
-	if (! arg->recover) {
-		sltx tl;
-		sl_begin(&e->lp, &tl);
-		int rc = sl_write(&tl, log);
-		if (ssunlikely(rc == -1)) {
-			sl_rollback(&tl);
-			r->rc = -1;
-			return -1;
-		}
-		sl_commit(&tl);
-	}
 
-	/* commit */
+	/* write-ahead log */
+	sltx tl;
+	sl_begin(&e->lp, &tl, arg->lsn, arg->recover);
+	int rc = sl_write(&tl, log);
+	if (ssunlikely(rc == -1)) {
+		sl_rollback(&tl);
+		r->rc = -1;
+		return -1;
+	}
+	sl_commit(&tl);
+
+	/* index */
 	uint64_t now = ss_utime();
 	svlogindex *i   = (svlogindex*)log->index.s;
 	svlogindex *end = (svlogindex*)log->index.p;
