@@ -21,20 +21,21 @@ SOPHIA_CFLAGS  = $(CFLAGS_DEBUG) \
                  $(CFLAGS_MISC) \
                  $(CFLAGS)
 SOPHIA_LDFLAGS = -shared $(LDFLAGS)
+SOPHIA_DEP     = $(wildcard sophia/*/*)
 
-all: static dynamic
+all: banner static dynamic
 banner:
 	@echo SOPHIA v2.1.1
 	@echo "cc: $(CC)"
 	@echo "cflags: $(CFLAGS_DEBUG) $(CFLAGS_COVERAGE)$(CFLAGS_OPT) $(CFLAGS_STRICT)"
 	@echo
-sophia.c:
+sophia.c: $(SOPHIA_DEP)
 	@echo build
 	@sh sophia/build sophia $@
 	@echo cc $@
-sophia.h:
-	@cp sophia/sophia/sophia.h .
-sophia.o: banner clean sophia.c sophia.h
+sophia.h: sophia/sophia/sophia.h
+	@cp $< .
+sophia.o: sophia.c sophia.h
 	@$(CC) $(SOPHIA_CFLAGS) -c sophia.c -o sophia.o
 libsophia.a: sophia.o
 	@echo "ar libsophia.a"
