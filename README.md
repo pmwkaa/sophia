@@ -1,6 +1,6 @@
 
 <p align="center">
-	<a href="http://sphia.org"><img src="http://sphia.org/logo.png" width="215px" height="95px" /></a>
+	<a href="http://sphia.org"><img src="http://sphia.org/sophia.png" /></a>
 </p>
 <br>
 <p align="center">
