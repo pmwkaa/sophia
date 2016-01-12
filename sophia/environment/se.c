@@ -191,7 +191,7 @@ static void*
 se_cursor(so *o)
 {
 	se *e = se_cast(o, se*, SE);
-	return se_cursornew(e, 0);
+	return se_cursornew(e, UINT64_MAX);
 }
 
 static soif seif =

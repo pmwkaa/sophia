@@ -152,7 +152,7 @@ sxstate sx_begin(sxmanager *m, sx *x, sxtype type, uint64_t vlsn)
 	sr_seqlock(m->r->seq);
 	x->csn = m->csn;
 	x->id = sr_seqdo(m->r->seq, SR_TSNNEXT);
-	if (sslikely(vlsn == 0))
+	if (sslikely(vlsn == UINT64_MAX))
 		x->vlsn = sr_seqdo(m->r->seq, SR_LSN);
 	else
 		x->vlsn = vlsn;

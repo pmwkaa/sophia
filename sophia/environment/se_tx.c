@@ -298,7 +298,7 @@ so *se_txnew(se *e)
 	sx_init(&e->xm, &t->t);
 	t->start = ss_utime();
 	t->lsn = -1;
-	sx_begin(&e->xm, &t->t, SXRW, 0);
+	sx_begin(&e->xm, &t->t, SXRW, UINT64_MAX);
 	se_dbbind(e);
 	so_listadd(&e->tx, &t->o);
 	return &t->o;
