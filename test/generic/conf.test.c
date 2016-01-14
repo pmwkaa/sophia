@@ -43,34 +43,6 @@ conf_error_injection(void)
 }
 
 static void
-conf_scheduler(void)
-{
-	void *env = sp_env();
-	t( env != NULL );
-
-	t( sp_setint(env, "scheduler.threads", 2) == 0 );
-	t( sp_setint(env, "log.enable", 0) == 0 );
-	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_getstring(env, "scheduler.0.trace", NULL) == NULL );
-	t( sp_open(env) == 0 );
-
-	char *v = sp_getstring(env, "scheduler.0.trace", NULL);
-	t( v != NULL );
-	t( strcmp(v, "malfunction") != 0 );
-	free(v);
-
-	v = sp_getstring(env, "scheduler.1.trace", NULL);
-	t( v != NULL );
-	t( strcmp(v, "malfunction") != 0 );
-	free(v);
-
-	v = sp_getstring(env, "scheduler.2.trace", NULL);
-	t( v == NULL );
-
-	t( sp_destroy(env) == 0 );
-}
-
-static void
 conf_compaction(void)
 {
 	void *env = sp_env();
@@ -276,7 +248,6 @@ stgroup *conf_group(void)
 	stgroup *group = st_group("conf");
 	st_groupadd(group, st_test("version", conf_version));
 	st_groupadd(group, st_test("error_injection", conf_error_injection));
-	st_groupadd(group, st_test("scheduler", conf_scheduler));
 	st_groupadd(group, st_test("compaction", conf_compaction));
 	st_groupadd(group, st_test("validation", conf_validation));
 	st_groupadd(group, st_test("validation_upsert", conf_validation_upsert));
