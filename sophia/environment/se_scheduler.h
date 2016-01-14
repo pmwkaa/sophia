@@ -59,6 +59,7 @@ struct sescheduler {
 	int           rr;
 	int           count;
 	void        **i;
+	ssthreadpool  tp;
 	seworkerpool  workers;
 	so           *env;
 };

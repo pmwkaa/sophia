@@ -52,8 +52,8 @@ lru_test0(void)
 	t( sp_setint(env, "scheduler.lru", 1) == 0 );
 	t( sp_getint(env, "scheduler.lru_active") == 1 );
 
-	t( sp_setint(env, "scheduler.run", 0) == 1 );
-	t( sp_setint(env, "scheduler.run", 0) == 0 );
+	t( sp_service(env) == 1 );
+	t( sp_service(env) == 0 );
 
 	t( sp_getint(env, "scheduler.lru_active") == 0 );
 

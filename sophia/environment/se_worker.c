@@ -20,7 +20,7 @@
 #include <libse.h>
 
 static inline seworker*
-se_workernew(sr *r, int id, ssthreadf f, void *arg)
+se_workernew(sr *r, int id)
 {
 	seworker *w = ss_malloc(r->a, sizeof(seworker));
 	if (ssunlikely(w == NULL)) {
@@ -28,67 +28,50 @@ se_workernew(sr *r, int id, ssthreadf f, void *arg)
 		return NULL;
 	}
 	snprintf(w->name, sizeof(w->name), "%d", id);
-	w->arg = arg;
 	sd_cinit(&w->dc);
 	ss_listinit(&w->link);
+	ss_listinit(&w->linkidle);
 	ss_traceinit(&w->trace);
 	ss_trace(&w->trace, "%s", "init");
-	int rc = ss_threadnew(&w->t, f, w);
-	if (ssunlikely(rc == -1)) {
-		sr_malfunction(r->e, "failed to create thread: %s",
-		               strerror(errno));
-		ss_free(r->a, w);
-		return NULL;
-	}
 	return w;
 }
 
-static inline int
-se_workershutdown(seworker *w, sr *r)
+static inline void
+se_workerfree(seworker *w, sr *r)
 {
-	int rc = ss_threadjoin(&w->t);
-	if (ssunlikely(rc == -1))
-		sr_malfunction(r->e, "failed to join a thread: %s",
-		               strerror(errno));
 	sd_cfree(&w->dc, r);
 	ss_tracefree(&w->trace);
 	ss_free(r->a, w);
-	return rc;
 }
 
-int se_workerpool_init(seworkerpool *w)
+int se_workerpool_init(seworkerpool *p)
 {
-	ss_listinit(&w->list);
-	w->n = 0;
+	ss_spinlockinit(&p->lock);
+	ss_listinit(&p->list);
+	ss_listinit(&p->listidle);
+	p->total = 0;
+	p->idle = 0;
 	return 0;
 }
 
-int se_workerpool_shutdown(seworkerpool *p, sr *r)
+int se_workerpool_free(seworkerpool *p, sr *r)
 {
-	int rcret = 0;
-	int rc;
 	sslist *i, *n;
 	ss_listforeach_safe(&p->list, i, n) {
 		seworker *w = sscast(i, seworker, link);
-		rc = se_workershutdown(w, r);
-		if (ssunlikely(rc == -1))
-			rcret = -1;
+		se_workerfree(w, r);
 	}
-	return rcret;
+	return 0;
 }
 
-int se_workerpool_new(seworkerpool *p, sr *r, int n, ssthreadf f, void *arg)
+int se_workerpool_new(seworkerpool *p, sr *r)
 {
-	int i = 0;
-	int id = 0;
-	while (i < n) {
-		seworker *w = se_workernew(r, id, f, arg);
-		if (ssunlikely(p == NULL))
-			return -1;
-		ss_listappend(&p->list, &w->link);
-		p->n++;
-		i++;
-		id++;
-	}
+	seworker *w = se_workernew(r, p->total);
+	if (ssunlikely(w == NULL))
+		return -1;
+	ss_listappend(&p->list, &w->link);
+	ss_listappend(&p->listidle, &w->linkidle);
+	p->total++;
+	p->idle++;
 	return 0;
 }

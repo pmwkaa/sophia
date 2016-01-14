@@ -32,6 +32,7 @@ SP_API int64_t  sp_getint(void*, const char*);
 SP_API int      sp_open(void*);
 SP_API int      sp_destroy(void*);
 SP_API int      sp_error(void*);
+SP_API int      sp_service(void*);
 SP_API void    *sp_poll(void*);
 SP_API int      sp_drop(void*);
 SP_API int      sp_set(void*, void*);

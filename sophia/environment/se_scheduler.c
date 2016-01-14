@@ -31,8 +31,9 @@ int se_scheduler_branch(void *arg)
 	sedb *db = arg;
 	se *e = se_of(&db->o);
 	srzone *z = se_zoneof(e);
-	seworker stub;
-	se_workerstub_init(&stub);
+	seworker *w = se_workerpool_pop(&e->sched.workers, &e->r);
+	if (ssunlikely(w == NULL))
+		return -1;
 	int rc;
 	while (1) {
 		uint64_t vlsn = sx_vlsn(&e->xm);
@@ -48,11 +49,11 @@ int se_scheduler_branch(void *arg)
 		rc = si_plan(&db->index, &plan);
 		if (rc == 0)
 			break;
-		rc = si_execute(&db->index, &stub.dc, &plan, vlsn, vlsn_lru);
+		rc = si_execute(&db->index, &w->dc, &plan, vlsn, vlsn_lru);
 		if (ssunlikely(rc == -1))
 			break;
 	}
-	se_workerstub_free(&stub, &db->r);
+	se_workerpool_push(&e->sched.workers, w);
 	return rc;
 }
 
@@ -61,8 +62,9 @@ int se_scheduler_compact(void *arg)
 	sedb *db = arg;
 	se *e = se_of(&db->o);
 	srzone *z = se_zoneof(e);
-	seworker stub;
-	se_workerstub_init(&stub);
+	seworker *w = se_workerpool_pop(&e->sched.workers, &e->r);
+	if (ssunlikely(w == NULL))
+		return -1;
 	int rc;
 	while (1) {
 		uint64_t vlsn = sx_vlsn(&e->xm);
@@ -78,11 +80,11 @@ int se_scheduler_compact(void *arg)
 		rc = si_plan(&db->index, &plan);
 		if (rc == 0)
 			break;
-		rc = si_execute(&db->index, &stub.dc, &plan, vlsn, vlsn_lru);
+		rc = si_execute(&db->index, &w->dc, &plan, vlsn, vlsn_lru);
 		if (ssunlikely(rc == -1))
 			break;
 	}
-	se_workerstub_free(&stub, &db->r);
+	se_workerpool_push(&e->sched.workers, w);
 	return rc;
 }
 
@@ -91,8 +93,9 @@ int se_scheduler_compact_index(void *arg)
 	sedb *db = arg;
 	se *e = se_of(&db->o);
 	srzone *z = se_zoneof(e);
-	seworker stub;
-	se_workerstub_init(&stub);
+	seworker *w = se_workerpool_pop(&e->sched.workers, &e->r);
+	if (ssunlikely(w == NULL))
+		return -1;
 	int rc;
 	while (1) {
 		uint64_t vlsn = sx_vlsn(&e->xm);
@@ -108,11 +111,11 @@ int se_scheduler_compact_index(void *arg)
 		rc = si_plan(&db->index, &plan);
 		if (rc == 0)
 			break;
-		rc = si_execute(&db->index, &stub.dc, &plan, vlsn, vlsn_lru);
+		rc = si_execute(&db->index, &w->dc, &plan, vlsn, vlsn_lru);
 		if (ssunlikely(rc == -1))
 			break;
 	}
-	se_workerstub_free(&stub, &db->r);
+	se_workerpool_push(&e->sched.workers, w);
 	return rc;
 }
 
@@ -312,10 +315,11 @@ int se_scheduler_call(void *arg)
 {
 	se *e = arg;
 	sescheduler *s = &e->sched;
-	seworker stub;
-	se_workerstub_init(&stub);
-	int rc = se_scheduler(s, &stub);
-	se_workerstub_free(&stub, &e->r);
+	seworker *w = se_workerpool_pop(&e->sched.workers, &e->r);
+	if (ssunlikely(w == NULL))
+		return -1;
+	int rc = se_scheduler(s, w);
+	se_workerpool_push(&e->sched.workers, w);
 	return rc;
 }
 
@@ -357,6 +361,7 @@ int se_scheduler_init(sescheduler *s, so *env)
 	s->gc_last                  = now;
 	s->lru                      = 0;
 	s->lru_last                 = now;
+	ss_threadpool_init(&s->tp);
 	se_workerpool_init(&s->workers);
 	return 0;
 }
@@ -366,7 +371,10 @@ int se_scheduler_shutdown(sescheduler *s)
 	se *e = (se*)s->env;
 	se_reqwakeup(e);
 	int rcret = 0;
-	int rc = se_workerpool_shutdown(&s->workers, &e->r);
+	int rc = ss_threadpool_shutdown(&s->tp, &e->a);
+	if (ssunlikely(rc == -1))
+		rcret = -1;
+	rc = se_workerpool_free(&s->workers, &e->r);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
 	if (s->i) {
@@ -440,19 +448,23 @@ int se_scheduler_del(sescheduler *s, void *db)
 
 static void *se_worker(void *arg)
 {
-	seworker *self = arg;
-	se *o = self->arg;
+	ssthread *self = arg;
+	se *e = self->arg;
+	seworker *worker = se_workerpool_pop(&e->sched.workers, &e->r);
+	if (ssunlikely(worker == NULL))
+		return NULL;
 	for (;;)
 	{
-		int rc = se_active(o);
+		int rc = se_active(e);
 		if (ssunlikely(rc == 0))
 			break;
-		rc = se_scheduler(&o->sched, self);
+		rc = se_scheduler(&e->sched, worker);
 		if (ssunlikely(rc == -1))
 			break;
 		if (ssunlikely(rc == 0))
 			ss_sleep(10000000); /* 10ms */
 	}
+	se_workerpool_push(&e->sched.workers, worker);
 	return NULL;
 }
 
@@ -460,7 +472,7 @@ int se_scheduler_run(sescheduler *s)
 {
 	se *e = (se*)s->env;
 	int rc;
-	rc = se_workerpool_new(&s->workers, &e->r, e->conf.threads,
+	rc = ss_threadpool_new(&s->tp, &e->a, e->conf.threads,
 	                       se_worker, e);
 	if (ssunlikely(rc == -1))
 		return -1;

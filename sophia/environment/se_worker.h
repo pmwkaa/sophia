@@ -13,37 +13,53 @@ typedef struct seworkerpool seworkerpool;
 typedef struct seworker seworker;
 
 struct seworker {
-	ssthread t;
 	char name[16];
 	sstrace trace;
-	void *arg;
 	sdc dc;
 	sslist link;
+	sslist linkidle;
 };
 
 struct seworkerpool {
+	ssspinlock lock;
 	sslist list;
-	int n;
+	sslist listidle;
+	int total;
+	int idle;
 };
 
 int se_workerpool_init(seworkerpool*);
-int se_workerpool_shutdown(seworkerpool*, sr*);
-int se_workerpool_new(seworkerpool*, sr*, int, ssthreadf, void*);
+int se_workerpool_free(seworkerpool*, sr*);
+int se_workerpool_new(seworkerpool*, sr*);
 
-static inline void
-se_workerstub_init(seworker *w)
+static inline seworker*
+se_workerpool_pop(seworkerpool *p, sr *r)
 {
-	sd_cinit(&w->dc);
-	ss_listinit(&w->link);
-	ss_traceinit(&w->trace);
-	ss_trace(&w->trace, "%s", "init");
+	ss_spinlock(&p->lock);
+	if (sslikely(p->idle >= 1))
+		goto pop_idle;
+	int rc = se_workerpool_new(p, r);
+	if (ssunlikely(rc == -1)) {
+		ss_spinunlock(&p->lock);
+		return NULL;
+	}
+	assert(p->idle >= 1);
+pop_idle:;
+	seworker *w =
+		sscast(ss_listpop(&p->listidle),
+		       seworker, linkidle);
+	p->idle--;
+	ss_spinunlock(&p->lock);
+	return w;
 }
 
 static inline void
-se_workerstub_free(seworker *w, sr *r)
+se_workerpool_push(seworkerpool *p, seworker *w)
 {
-	sd_cfree(&w->dc, r);
-	ss_tracefree(&w->trace);
+	ss_spinlock(&p->lock);
+	ss_listpush(&p->listidle, &w->linkidle);
+	p->idle++;
+	ss_spinunlock(&p->lock);
 }
 
 #endif

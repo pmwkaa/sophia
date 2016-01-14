@@ -23,7 +23,7 @@
 
 static inline void *single_stmt_thread(void *arg) 
 {
-	seworker *self = arg;
+	ssthread *self = arg;
 	void *db = self->arg;
 	int i = 0;
 	while (i < 20000) {
@@ -58,10 +58,10 @@ mt_single_stmt(void)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	seworkerpool p;
-	se_workerpool_init(&p);
-	t( se_workerpool_new(&p, &st_r.r, 5, single_stmt_thread, db) == 0 );
-	t( se_workerpool_shutdown(&p, &st_r.r) == 0 );
+	ssthreadpool p;
+	ss_threadpool_init(&p);
+	t( ss_threadpool_new(&p, &st_r.a, 5, single_stmt_thread, db) == 0 );
+	t( ss_threadpool_shutdown(&p, &st_r.a) == 0 );
 
 	t (sp_getint(env, "db.test.index.count") == 100000 );
 
@@ -70,7 +70,7 @@ mt_single_stmt(void)
 
 static inline void *multi_stmt_thread(void *arg) 
 {
-	seworker *self = arg;
+	ssthread *self = arg;
 	void *env = ((void**)self->arg)[0];
 	void *db  = ((void**)self->arg)[1];
 	int i = 0;
@@ -114,11 +114,11 @@ mt_multi_stmt(void)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	seworkerpool p;
-	se_workerpool_init(&p);
+	ssthreadpool p;
+	ss_threadpool_init(&p);
 	void *ptr[2] = { env, db };
-	t( se_workerpool_new(&p, &st_r.r, 5, multi_stmt_thread, ptr) == 0 );
-	t( se_workerpool_shutdown(&p, &st_r.r) == 0 );
+	t( ss_threadpool_new(&p, &st_r.a, 5, multi_stmt_thread, ptr) == 0 );
+	t( ss_threadpool_shutdown(&p, &st_r.a) == 0 );
 
 	t (sp_getint(env, "db.test.index.count") == 100000 );
 
@@ -127,7 +127,7 @@ mt_multi_stmt(void)
 
 static inline void *multi_stmt_conflict_thread(void *arg) 
 {
-	seworker *self = arg;
+	ssthread *self = arg;
 	void *env = ((void**)self->arg)[0];
 	void *db  = ((void**)self->arg)[1];
 	int i = 0;
@@ -173,11 +173,11 @@ mt_multi_stmt_conflict(void)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	seworkerpool p;
-	se_workerpool_init(&p);
+	ssthreadpool p;
+	ss_threadpool_init(&p);
 	void *ptr[2] = { env, db };
-	t( se_workerpool_new(&p, &st_r.r, 5, multi_stmt_conflict_thread, ptr) == 0 );
-	t( se_workerpool_shutdown(&p, &st_r.r) == 0 );
+	t( ss_threadpool_new(&p, &st_r.a, 5, multi_stmt_conflict_thread, ptr) == 0 );
+	t( ss_threadpool_shutdown(&p, &st_r.a) == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
