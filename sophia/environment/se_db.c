@@ -494,7 +494,7 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 	arg->log = &x.log;
 	se_execute_write(&q);
 	if (ssunlikely(q.rc == -1))
-		ss_quota(&e->quota, SS_QREMOVE, sv_vsize(v));
+		sx_rollback(&x);
 	se_reqend(&q);
 
 	sx_gc(&x);

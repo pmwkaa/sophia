@@ -318,7 +318,7 @@ int sl_poolcopy(slpool *p, char *dest, ssbuf *buf)
 	}
 	ss_spinunlock(&p->lock);
 
-	ss_bufinit(buf);
+	ss_bufreset(buf);
 	sslist *n;
 	ss_listforeach_safe(&list, i, n)
 	{

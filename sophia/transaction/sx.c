@@ -285,14 +285,18 @@ sxstate sx_rollback(sx *x)
 	ssiter i;
 	ss_iterinit(ss_bufiter, &i);
 	ss_iteropen(ss_bufiter, &i, &x->log.buf, sizeof(svlogv));
-	/* support half-commit mode */
+	/* support log free after commit and half-commit mode */
 	if (x->state == SXCOMMIT) {
+		int gc = 0;
 		for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
 		{
 			svlogv *lv = ss_iterof(ss_bufiter, &i);
 			svv *v = lv->v.v;
-			sv_vunref(m->r, v);
+			int size = sv_vsize(v);
+			if (sv_vunref(m->r, v))
+				gc += size;
 		}
+		ss_quota(m->r->quota, SS_QREMOVE, gc);
 		sx_promote(x, SXROLLBACK);
 		return SXROLLBACK;
 	}
@@ -524,6 +528,7 @@ sxstate sx_set_autocommit(sxmanager *m, sxindex *index, sx *x, svv *v)
 		sv_init(&lv.v, &sv_vif, v, NULL);
 		sv_logadd(&x->log, m->r->a, &lv, index->ptr);
 		sr_seq(m->r->seq, SR_TSNNEXT);
+		sx_promote(x, SXCOMMIT);
 		return SXCOMMIT;
 	}
 	sx_begin(m, x, SXRW, 0);

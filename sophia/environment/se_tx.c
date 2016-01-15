@@ -235,6 +235,8 @@ se_txcommit(so *o)
 		arg->vlsn = 0;
 	}
 	se_execute_write(&q);
+	if (ssunlikely(q.rc == -1))
+		sx_rollback(&t->t);
 	se_txend(t, 0, 0);
 	return q.rc;
 }

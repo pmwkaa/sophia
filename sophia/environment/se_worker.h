@@ -18,7 +18,7 @@ struct seworker {
 	sdc dc;
 	sslist link;
 	sslist linkidle;
-};
+} sspacked;
 
 struct seworkerpool {
 	ssspinlock lock;
