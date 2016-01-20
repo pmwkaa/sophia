@@ -1098,7 +1098,7 @@ int se_confinit(seconf *c, so *e)
 		.branch_age_period = 40,
 		.branch_age_wm     = 1 * 1024 * 1024,
 		.anticache_period  = 0,
-		.snapshot_period   = 60,
+		.snapshot_period   = 0,
 		.backup_prio       = 1,
 		.gc_db_prio        = 1,
 		.gc_prio           = 1,
