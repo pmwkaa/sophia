@@ -32,7 +32,6 @@ struct se {
 	seconf      conf;
 	ssquota     quota;
 	sspager     pager;
-	sspager     pager_ref;
 	ssvfs       vfs;
 	ssa         a_oom;
 	ssa         a;

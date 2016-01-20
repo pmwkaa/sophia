@@ -10,8 +10,5 @@
 */
 
 extern ssaif ss_slaba;
-extern ssaif ss_slaba_lock;
-
-void ss_slaba_info(ssa*, uint32_t*, uint32_t*);
 
 #endif

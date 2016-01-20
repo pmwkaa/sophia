@@ -14,27 +14,17 @@ typedef struct sssa sssa;
 
 struct sssachunk {
 	sssachunk *next;
-} sspacked;
+};
 
 struct sssa {
 	uint32_t chunk_max;
+	uint32_t chunk_count;
 	uint32_t chunk_used;
 	uint32_t chunk_size;
-	uint32_t chunk_q;
 	sssachunk *chunk;
 	sspage *pu;
 	sspager *pager;
-	ssspinlock lock;
 } sspacked;
-
-void ss_slaba_info(ssa *a, uint32_t *pools, uint32_t *pool_size)
-{
-	sssa *s = (sssa*)a->priv;
-	ss_spinlock(&s->lock);
-	*pools = s->pager->pools;
-	*pool_size = s->pager->pool_size;
-	ss_spinunlock(&s->lock);
-}
 
 static inline int
 ss_sagrow(sssa *s)
@@ -59,26 +49,23 @@ ss_slabaclose(ssa *a)
 		ss_pagerpush(s->pager, p);
 		p = p_next;
 	}
-	ss_spinlockfree(&s->lock);
 	return 0;
 }
 
 static inline int
-ss_slabaopen(ssa *a, va_list args)
-{
+ss_slabaopen(ssa *a, va_list args) {
 	assert(sizeof(sssa) <= sizeof(a->priv));
 	sssa *s = (sssa*)a->priv;
 	memset(s, 0, sizeof(*s));
-
-	s->pager      = va_arg(args, sspager*);
-	s->chunk_size = ss_align(32, va_arg(args, uint32_t));
-	s->chunk_max  = (s->pager->page_size - sizeof(sspage) - 32) /
-	                 s->chunk_size;
-	s->chunk_used = 0;
-	s->chunk_q    = 0;
-	s->chunk      = NULL;
-	s->pu         = NULL;
-	ss_spinlockinit(&s->lock);
+	s->pager       = va_arg(args, sspager*);
+	s->chunk_size  = va_arg(args, uint32_t);
+	s->chunk_count = 0;
+	s->chunk_max   =
+		(s->pager->page_size - sizeof(sspage)) /
+	     (sizeof(sssachunk) + s->chunk_size);
+	s->chunk_used  = 0;
+	s->chunk       = NULL;
+	s->pu          = NULL;
 	int rc = ss_sagrow(s);
 	if (ssunlikely(rc == -1)) {
 		ss_slabaclose(a);
@@ -93,8 +80,8 @@ ss_slabamalloc(ssa *a, int size ssunused)
 	sssa *s = (sssa*)a->priv;
 	if (sslikely(s->chunk)) {
 		register sssachunk *c = s->chunk;
-		s->chunk_q--;
 		s->chunk = c->next;
+		s->chunk_count++;
 		c->next = NULL;
 		return (char*)c + sizeof(sssachunk);
 	}
@@ -102,16 +89,14 @@ ss_slabamalloc(ssa *a, int size ssunused)
 		if (ssunlikely(ss_sagrow(s) == -1))
 			return NULL;
 	}
-
-	register sssachunk *ptr =
-		(sssachunk*)(ss_align(32,
-			(char*)s->pu + sizeof(sspage) +
-			       s->chunk_used * s->chunk_size));
-
-	assert(ss_align(32, ptr) == (uintptr_t)ptr);
+	register int off = sizeof(sspage) +
+		s->chunk_used * (sizeof(sssachunk) + s->chunk_size);
+	register sssachunk *n =
+		(sssachunk*)((char*)s->pu + off);
 	s->chunk_used++;
-	ptr->next = NULL;
-	return (char*)ptr + sizeof(sssachunk);
+	s->chunk_count++;
+	n->next = NULL;
+	return (char*)n + sizeof(sssachunk);
 }
 
 sshot static inline void
@@ -122,36 +107,7 @@ ss_slabafree(ssa *a, void *ptr)
 		(sssachunk*)((char*)ptr - sizeof(sssachunk));
 	c->next = s->chunk;
 	s->chunk = c;
-	s->chunk_q++;
-}
-
-sshot static inline int
-ss_slabaensure(ssa *a, int n, int size ssunused)
-{
-	sssa *s = (sssa*)a->priv;
-	if (sslikely(s->chunk_q >= (uint32_t)n))
-		return 0;
-	// XXX
-	return 0;
-}
-
-sshot static inline void*
-ss_slabamalloc_lock(ssa *a, int size)
-{
-	sssa *s = (sssa*)a->priv;
-	ss_spinlock(&s->lock);
-	void *ptr = ss_slabamalloc(a, size);
-	ss_spinunlock(&s->lock);
-	return ptr;
-}
-
-sshot static inline void
-ss_slabafree_lock(ssa *a, void *ptr)
-{
-	sssa *s = (sssa*)a->priv;
-	ss_spinlock(&s->lock);
-	ss_slabafree(a, ptr);
-	ss_spinunlock(&s->lock);
+	s->chunk_count--;
 }
 
 ssaif ss_slaba =
@@ -160,15 +116,5 @@ ssaif ss_slaba =
 	.close   = ss_slabaclose,
 	.malloc  = ss_slabamalloc,
 	.realloc = NULL,
-	.ensure  = ss_slabaensure,
 	.free    = ss_slabafree
-};
-
-ssaif ss_slaba_lock =
-{
-	.open    = ss_slabaopen,
-	.close   = ss_slabaclose,
-	.malloc  = ss_slabamalloc_lock,
-	.realloc = NULL,
-	.free    = ss_slabafree_lock
 };
