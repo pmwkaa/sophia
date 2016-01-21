@@ -16,12 +16,12 @@
 #include <libst.h>
 
 static void
-tpr_test0(void)
+npr_test0(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "sophia.recover", 2) == 0 );
+	t( sp_setint(env, "sophia.recover", 3) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setint(env, "log.enable", 0) == 0 );
@@ -38,35 +38,44 @@ tpr_test0(void)
 	t( sp_open(db) == 0 );
 
 	char *v = sp_getstring(env, "db.test.status", NULL);
-	t( strcmp(v, "recover") == 0 );
-	free(v);
-
-	t( sp_open(env) == 0 ); /* complete */
-
-	v = sp_getstring(env, "db.test.status", NULL);
 	t( strcmp(v, "online") == 0 );
 	free(v);
 
-	t( sp_open(db) == -1 );
+	t( sp_open(env) == 0 ); /* 2nd state */
+	/* recover */
+
+	t( sp_setstring(env, "db", "test2", 0) == 0 );
+	t( sp_setint(env, "db.test2.sync", 0) == 0 );
+	db = sp_getobject(env, "db.test2");
+	t( db != NULL );
+	t( sp_open(db) == 0 );
+	v = sp_getstring(env, "db.test2.status", NULL);
+	t( strcmp(v, "online") == 0 );
+	free(v);
+
+	t( sp_open(env) == 0 ); /* 3nd state */
+	/* online */
+	t( sp_open(env) == 0 ); /* N states */
+	/* recover */
+	t( sp_open(env) == 0 ); /* ... */
+	/* online */
 
 	t( sp_destroy(db) == 0 );
 	t( sp_destroy(env) == 0 );
 }
 
 static void
-tpr_test1(void)
+npr_test1(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "sophia.recover", 2) == 0 );
+	t( sp_setint(env, "sophia.recover", 1) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setint(env, "log.enable", 0) == 0 );
 	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
-
 	t( sp_open(env) == 0 );
-
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
@@ -74,8 +83,9 @@ tpr_test1(void)
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_open(db) == 0 );
-	t( sp_open(env) == 0 );
-
+	char *v = sp_getstring(env, "db.test.status", NULL);
+	t( strcmp(v, "online") == 0 );
+	free(v);
 	int key = 7;
 	int value = 8;
 	void *o = sp_document(db);
@@ -93,26 +103,31 @@ tpr_test1(void)
 	t( sp_set(db, o) == 0 );
 	t( sp_destroy(env) == 0 );
 
+	/* recover */
+
 	env = sp_env();
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "sophia.recover", 2) == 0 );
+	t( sp_setint(env, "sophia.recover", 3 /* << */) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setint(env, "log.enable", 0) == 0 );
 	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
-	t( sp_open(env) == 0 );
+	t( sp_open(env) == 0 ); /* online */
+
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	db = sp_getobject(env, "db.test");
 	t( db != NULL );
-	t( sp_open(db) == 0 );
+	t( sp_open(db) == 0 ); /* online */
 
-	char *v = sp_getstring(env, "db.test.status", NULL);
-	t( strcmp(v, "recover") == 0 );
+	v = sp_getstring(env, "db.test.status", NULL);
+	t( strcmp(v, "online") == 0 );
 	free(v);
+
+	t( sp_open(env) == 0 ); /* recover */
 
 	void *tx = sp_begin(env);
 	t( tx != NULL );
@@ -138,11 +153,30 @@ tpr_test1(void)
 	t( sp_setint(tx, "lsn", 2) == 0 );
 	t( sp_commit(tx) == 0 ); /* commit */
 
-	t( sp_open(env) == 0 );
+	/* retry duplicate */
+	tx = sp_begin(env);
+	t( tx != NULL );
+	o = sp_document(db);
+	t( o != NULL );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
+	t( sp_set(tx, o) == 0 );
+	t( sp_setint(tx, "lsn", 2) == 0 );
+	t( sp_commit(tx) == 0 ); /* skip from in-memory index */
 
-	v = sp_getstring(env, "db.test.status", NULL);
-	t( strcmp(v, "online") == 0 );
-	free(v);
+	/* retry duplicate with lower lsn */
+	tx = sp_begin(env);
+	t( tx != NULL );
+	o = sp_document(db);
+	t( o != NULL );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
+	t( sp_set(tx, o) == 0 );
+	t( sp_setint(tx, "lsn", 1) == 0 );
+	t( sp_commit(tx) == 0 ); /* skip from in-memory index */
+
+
+	t( sp_open(env) == 0 ); /* online */
 
 	o = sp_document(db);
 	t( o != NULL );
@@ -157,12 +191,12 @@ tpr_test1(void)
 }
 
 static void
-tpr_test2(void)
+npr_test2(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "sophia.recover", 2) == 0 );
+	t( sp_setint(env, "sophia.recover", 3) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setint(env, "log.enable", 0) == 0 );
@@ -182,12 +216,12 @@ tpr_test2(void)
 }
 
 static void
-tpr_test3(void)
+npr_test3(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "sophia.recover", 2) == 0 );
+	t( sp_setint(env, "sophia.recover", 3) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setint(env, "log.enable", 0) == 0 );
@@ -206,12 +240,61 @@ tpr_test3(void)
 	t( sp_destroy(env) == 0 );
 }
 
-stgroup *tpr_group(void)
+static void
+npr_test4(void)
 {
-	stgroup *group = st_group("two_phase_recover");
-	st_groupadd(group, st_test("recover_open", tpr_test0));
-	st_groupadd(group, st_test("recover_reply", tpr_test1));
-	st_groupadd(group, st_test("recover_shutdown0", tpr_test2));
-	st_groupadd(group, st_test("recover_shutdown1", tpr_test3));
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "sophia.recover", 3) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.enable", 0) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+
+	t( sp_open(env) == 0 );
+
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(db) == 0 );
+	t( sp_destroy(env) == 0 );
+}
+
+static void
+npr_test5(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "sophia.recover", 3) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.enable", 0) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+
+	t( sp_open(env) == 0 );
+
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_destroy(env) == 0 );
+}
+
+stgroup *npr_group(void)
+{
+	stgroup *group = st_group("n_phase_recover");
+	st_groupadd(group, st_test("recover_open", npr_test0));
+	st_groupadd(group, st_test("recover_reply", npr_test1));
+	st_groupadd(group, st_test("recover_shutdown0", npr_test2));
+	st_groupadd(group, st_test("recover_shutdown1", npr_test3));
+	st_groupadd(group, st_test("recover_shutdown2", npr_test4));
+	st_groupadd(group, st_test("recover_shutdown3", npr_test5));
 	return group;
 }

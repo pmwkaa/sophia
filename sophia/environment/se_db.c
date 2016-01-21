@@ -216,8 +216,10 @@ se_dbopen(so *o)
 	rc = se_recoverbegin(db);
 	if (ssunlikely(rc == -1))
 		return -1;
+
 	if (se_status(&e->status) == SE_RECOVER)
-		return 0;
+		if (e->conf.recover != SE_RECOVER_NP)
+			return 0;
 online:
 	se_recoverend(db);
 	rc = se_scheduler_add(&e->sched, db);

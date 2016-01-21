@@ -34,6 +34,7 @@ STS_TESTS = unit/ss_leb128.test.o \
             generic/ddl.test.o \
             generic/multipart.test.o \
             generic/tpr.test.o \
+            generic/npr.test.o \
             generic/document.test.o \
             generic/env.test.o \
             generic/deadlock.test.o \

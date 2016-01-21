@@ -51,4 +51,14 @@ sv_refvisible(svref *v, uint64_t vlsn) {
 	return v;
 }
 
+static inline int
+sv_refvisible_gte(svref *v, uint64_t vlsn) {
+	while (v) {
+		if (v->v->lsn >= vlsn)
+			return 1;
+		v = v->next;
+	}
+	return 0;
+}
+
 #endif

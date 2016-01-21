@@ -128,9 +128,9 @@ int se_execute_write(sereq *r)
 		si_begin(&x, &db->index, 0);
 		if (db->cache) {
 			si_begin(&xc, &db->cache->index, 0);
-			si_write(&xc, arg->recover, 1, now, log, i);
+			si_write(&xc, log, i, now, arg->recover, 1);
 		}
-		si_write(&x, arg->recover, 0, now, log, i);
+		si_write(&x, log, i, now, arg->recover, 0);
 		if (db->cache)
 			si_commit(&xc);
 		si_commit(&x);

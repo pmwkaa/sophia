@@ -21,7 +21,7 @@ SOPHIA_CFLAGS  = $(CFLAGS_DEBUG) \
                  $(CFLAGS_MISC) \
                  $(CFLAGS)
 SOPHIA_LDFLAGS = -shared $(LDFLAGS)
-SOPHIA_DEP     = $(wildcard sophia/*/*)
+SOPHIA_DEP     = $(wildcard sophia/*/*) makefile
 
 all: banner static dynamic
 banner:

@@ -41,6 +41,6 @@ void si_readcache_only(siread*);
 void si_readhas(siread*);
 void si_readupsert(siread*, sv*, int);
 int  si_read(siread*);
-int  si_readcommited(si*, sr*, sv*);
+int  si_readcommited(si*, sr*, sv*, int);
 
 #endif

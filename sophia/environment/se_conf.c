@@ -79,6 +79,7 @@ se_confsophia(se *e, seconfrt *rt, srconf **pc)
 	sr_C(&p, pc, se_confsophia_error, "error", SS_STRING, NULL, SR_RO, NULL);
 	sr_c(&p, pc, se_confv_offline, "path", SS_STRINGPTR, &e->conf.path);
 	sr_c(&p, pc, se_confv_offline, "path_create", SS_U32, &e->conf.path_create);
+	sr_c(&p, pc, se_confv_offline, "recover", SS_U32, &e->conf.recover);
 	return sr_C(NULL, pc, NULL, "sophia", SS_UNDEF, sophia, SR_NS, NULL);
 }
 
@@ -366,7 +367,6 @@ se_conflog(se *e, seconfrt *rt, srconf **pc)
 	sr_c(&p, pc, se_conflog_rotate, "rotate", SS_FUNCTION, NULL);
 	sr_c(&p, pc, se_conflog_gc, "gc", SS_FUNCTION, NULL);
 	sr_C(&p, pc, se_confv, "files", SS_U32, &rt->log_files, SR_RO, NULL);
-	sr_c(&p, pc, se_confv_offline, "two_phase_recover", SS_U32, &e->conf.two_phase_recover);
 	return sr_C(NULL, pc, NULL, "log", SS_UNDEF, log, SR_NS, NULL);
 }
 
@@ -1074,6 +1074,7 @@ int se_confinit(seconf *c, so *e)
 	c->env                 = e;
 	c->path                = NULL;
 	c->path_create         = 1;
+	c->recover             = 1;
 	c->memory_limit        = 0;
 	c->anticache           = 0;
 	c->threads             = 6;
@@ -1082,7 +1083,6 @@ int se_confinit(seconf *c, so *e)
 	c->log_rotate_wm       = 500000;
 	c->log_sync            = 0;
 	c->log_rotate_sync     = 1;
-	c->two_phase_recover   = 0;
 	c->on_recover.function = NULL;
 	c->on_recover.arg      = NULL;
 	ss_triggerinit(&c->on_event);

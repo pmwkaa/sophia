@@ -56,7 +56,8 @@ static inline int si_set(sitx *x, svv *v, uint64_t time)
 	return 0;
 }
 
-void si_write(sitx *x, int check, int ref, uint64_t time, svlog *l, svlogindex *li)
+void si_write(sitx *x, svlog *l, svlogindex *li, uint64_t time,
+              int recover, int ref)
 {
 	sr *r = x->index->r;
 	int cache_mode = x->index->scheme->cache_mode;
@@ -67,10 +68,12 @@ void si_write(sitx *x, int check, int ref, uint64_t time, svlog *l, svlogindex *
 		if (ref) {
 			sv_vref(v);
 		}
-		if (check && si_readcommited(x->index, r, &cv->v)) {
-			uint32_t gc = si_gcv(r, v);
-			ss_quota(r->quota, SS_QREMOVE, gc);
-			goto next;
+		if (recover) {
+			if (si_readcommited(x->index, r, &cv->v, recover)) {
+				uint32_t gc = si_gcv(r, v);
+				ss_quota(r->quota, SS_QREMOVE, gc);
+				goto next;
+			}
 		}
 		if (!cache_mode && v->flags & SVGET) {
 			assert(v->log == NULL);

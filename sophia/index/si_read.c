@@ -438,21 +438,9 @@ int si_read(siread *q)
 	return -1;
 }
 
-static int
-si_readcommited_branch(sr *r, sibranch *b, sv *v)
+int si_readcommited(si *index, sr *r, sv *v, int recover)
 {
-	ssiter i;
-	ss_iterinit(sd_indexiter, &i);
-	ss_iteropen(sd_indexiter, &i, r, &b->index, SS_GTE,
-	            sv_pointer(v), sv_size(v));
-	sdindexpage *page = ss_iterof(sd_indexiter, &i);
-	if (page == NULL)
-		return 0;
-	return page->lsnmax >= sv_lsn(v);
-}
-
-int si_readcommited(si *index, sr *r, sv *v)
-{
+	/* search node index */
 	ssiter i;
 	ss_iterinit(si_iter, &i);
 	ss_iteropen(si_iter, &i, r, index, SS_GTE,
@@ -460,14 +448,46 @@ int si_readcommited(si *index, sr *r, sv *v)
 	sinode *node;
 	node = ss_iterof(si_iter, &i);
 	assert(node != NULL);
-	sibranch *b = node->branch;
+
+	uint64_t lsn = sv_lsn(v);
 	int rc;
-	while (b) {
-		rc = si_readcommited_branch(r, b, v);
-		if (rc)
-			return 1;
-		b = b->next;
+	/* search in-memory */
+	if (recover == 2) {
+		svindex *second;
+		svindex *first = si_nodeindex_priority(node, &second);
+		ss_iterinit(sv_indexiter, &i);
+		if (sslikely(first->count > 0)) {
+			rc = ss_iteropen(sv_indexiter, &i, r, first, SS_GTE,
+			                 sv_pointer(v), sv_size(v));
+			if (rc) {
+				sv *ref = ss_iterof(sv_indexiter, &i);
+				if (sv_refvisible_gte((svref*)ref->v, lsn))
+					return 1;
+			}
+		}
+		if (second && !second->count) {
+			rc = ss_iteropen(sv_indexiter, &i, r, second, SS_GTE,
+			                 sv_pointer(v), sv_size(v));
+			if (rc) {
+				sv *ref = ss_iterof(sv_indexiter, &i);
+				if (sv_refvisible_gte((svref*)ref->v, lsn))
+					return 1;
+			}
+		}
 	}
-	rc = si_readcommited_branch(r, &node->self, v);
-	return rc;
+
+	/* search branches */
+	sibranch *b;
+	for (b = node->branch; b; b = b->next)
+	{
+		ss_iterinit(sd_indexiter, &i);
+		ss_iteropen(sd_indexiter, &i, r, &b->index, SS_GTE,
+		            sv_pointer(v), sv_size(v));
+		sdindexpage *page = ss_iterof(sd_indexiter, &i);
+		if (page == NULL)
+			continue;
+		if (page->lsnmax >= lsn)
+			return 1;
+	}
+	return 0;
 }
