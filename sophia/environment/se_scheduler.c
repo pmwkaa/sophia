@@ -30,11 +30,13 @@ int se_scheduler_branch(void *arg)
 {
 	sedb *db = arg;
 	se *e = se_of(&db->o);
+	int rc = se_active(e);
+	if (ssunlikely(rc == 0))
+		return 0;
 	srzone *z = se_zoneof(e);
 	seworker *w = se_workerpool_pop(&e->sched.workers, &e->r);
 	if (ssunlikely(w == NULL))
 		return -1;
-	int rc;
 	while (1) {
 		uint64_t vlsn = sx_vlsn(&e->xm);
 		uint64_t vlsn_lru = si_lru_vlsn(&db->index);
@@ -61,11 +63,13 @@ int se_scheduler_compact(void *arg)
 {
 	sedb *db = arg;
 	se *e = se_of(&db->o);
+	int rc = se_active(e);
+	if (ssunlikely(rc == 0))
+		return 0;
 	srzone *z = se_zoneof(e);
 	seworker *w = se_workerpool_pop(&e->sched.workers, &e->r);
 	if (ssunlikely(w == NULL))
 		return -1;
-	int rc;
 	while (1) {
 		uint64_t vlsn = sx_vlsn(&e->xm);
 		uint64_t vlsn_lru = si_lru_vlsn(&db->index);
@@ -92,11 +96,13 @@ int se_scheduler_compact_index(void *arg)
 {
 	sedb *db = arg;
 	se *e = se_of(&db->o);
+	int rc = se_active(e);
+	if (ssunlikely(rc == 0))
+		return 0;
 	srzone *z = se_zoneof(e);
 	seworker *w = se_workerpool_pop(&e->sched.workers, &e->r);
 	if (ssunlikely(w == NULL))
 		return -1;
-	int rc;
 	while (1) {
 		uint64_t vlsn = sx_vlsn(&e->xm);
 		uint64_t vlsn_lru = si_lru_vlsn(&db->index);
@@ -315,10 +321,13 @@ int se_scheduler_call(void *arg)
 {
 	se *e = arg;
 	sescheduler *s = &e->sched;
+	int rc = se_active(e);
+	if (ssunlikely(rc == 0))
+		return 0;
 	seworker *w = se_workerpool_pop(&e->sched.workers, &e->r);
 	if (ssunlikely(w == NULL))
 		return -1;
-	int rc = se_scheduler(s, w);
+	rc = se_scheduler(s, w);
 	se_workerpool_push(&e->sched.workers, w);
 	return rc;
 }

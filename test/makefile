@@ -57,7 +57,7 @@ STS_TESTS = unit/ss_leb128.test.o \
             generic/async.test.o \
             generic/get_cache.test.o \
             generic/amqf.test.o \
-            generic/github.test.o \
+            issues/github.test.o \
             compaction/branch.test.o \
             compaction/compact.test.o \
             compaction/compact_delete.test.o \

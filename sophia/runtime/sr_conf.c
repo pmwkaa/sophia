@@ -83,16 +83,15 @@ int sr_conf_read(srconf *m, srconfstmt *s)
 		s->valuesize = sizeof(void*);
 		break;
 	default:
-		assert(0);
-		return -1;
+		goto bad_type;
 	}
+
 	return 0;
 
 bad_type:
 	return sr_error(s->r->e, "configuration read bad type (%s) -> (%s) %s",
 	                ss_typeof(s->valuetype),
 	                ss_typeof(m->type), s->path);
-	return 0;
 }
 
 int sr_conf_write(srconf *m, srconfstmt *s)
@@ -147,8 +146,7 @@ int sr_conf_write(srconf *m, srconfstmt *s)
 		break;
 	}
 	default:
-		assert(0);
-		return -1;
+		goto bad_type;
 	}
 	return 0;
 
@@ -251,7 +249,8 @@ int sr_conf_serialize(srconf *m, srconfstmt *s)
 		v.valuesize = sizeof(name_function);
 		value = name_function;
 		break;
-	default: assert(0);
+	default:
+		return -1;
 	}
 	char name[128];
 	v.keysize  = snprintf(name, sizeof(name), "%s", s->path);

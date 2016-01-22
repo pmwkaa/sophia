@@ -78,6 +78,8 @@ extern stgroup *upsert_group(void);
 extern stgroup *async_group(void);
 extern stgroup *amqf_group(void);
 extern stgroup *get_cache_group(void);
+
+/* issues */
 extern stgroup *github_group(void);
 
 /* compaction */
@@ -265,6 +267,15 @@ main(int argc, char *argv[])
 	st_planadd(plan, async_group());
 	st_planadd(plan, amqf_group());
 	st_planadd(plan, get_cache_group());
+	st_suiteadd(&st_r.suite, plan);
+
+	plan = st_plan("issues");
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rmrf"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "init"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rt"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
 	st_planadd(plan, github_group());
 	st_suiteadd(&st_r.suite, plan);
 

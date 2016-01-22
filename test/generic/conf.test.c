@@ -65,7 +65,7 @@ conf_compaction(void)
 }
 
 static void
-conf_validation(void)
+conf_validation0(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -106,6 +106,26 @@ conf_validation(void)
 	t( sp_setstring(o, "key", key, (1 << 15)) == 0 );
 	t( sp_setstring(o, "value", key, (1 << 21) + 1 ) == -1 );
 	t( sp_setstring(o, "value", key, (1 << 21)) == 0 );
+
+	t( sp_destroy(env) == 0 );
+}
+
+static void
+conf_validation1(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "scheduler.threads", NULL, 0) == -1 );
+	t( sp_getobject(env, "scheduler.threads") == NULL );
+
+	t( sp_setint(env, "log.enable", 0) == 0 );
+	t( sp_setstring(env, "log.enable", NULL, 0) == -1 );
+	t( sp_getobject(env, "log.enable") == NULL );
+
+	t( sp_setstring(env, "scheduler.run", NULL, 0) == 0 );
+	t( sp_getobject(env, "scheduler.run") == NULL );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -249,7 +269,8 @@ stgroup *conf_group(void)
 	st_groupadd(group, st_test("version", conf_version));
 	st_groupadd(group, st_test("error_injection", conf_error_injection));
 	st_groupadd(group, st_test("compaction", conf_compaction));
-	st_groupadd(group, st_test("validation", conf_validation));
+	st_groupadd(group, st_test("validation0", conf_validation0));
+	st_groupadd(group, st_test("validation1", conf_validation1));
 	st_groupadd(group, st_test("validation_upsert", conf_validation_upsert));
 	st_groupadd(group, st_test("empty_key", conf_empty_key));
 	st_groupadd(group, st_test("db", conf_db));
