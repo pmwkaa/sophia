@@ -15,22 +15,24 @@
 
 **RAM-Disk Hybrid**
 
-Sophia has unique hybrid architecture that was specifically designed to efficiently store data using the combinations of Disk, Flash and RAM.
+Sophia has unique hybrid architecture that was specifically designed to efficiently store data using the combinations of Disk, Flash and RAM. Sophia allows to distinct Hot (read/write-intensive) and Cold data.
 
-Sophia allows to distinct Hot (read/write-intensive) and Cold data.
+Supported storage modes are:
 
-The MVCC Append-Only data storage engine was created as a result of research and reconsideration primary algorithmic constraints of Log-file based data structures.
+* **Disk Storage** Disk or Flash is the primary storage. Write requests are cached in RAM for futher compaction.
+* **Anti-Caching** RAM becomes the primary storage for Hot data. Cold data stored on Disk or Flash.
+* **Persistent Caching** Secondary storage used as an LRU cache for Hot data stored in RAM or Flash. Cold and Hot data persisted on Disk or Flash.
+* **Persistent RAM Storage** RAM is the primary storage. Data continiously persisted on Disk or Flash.
 
-Write and Range Scan optimized. It can efficiently work with terrabyte-sized datasets.
+The MVCC Append-Only data storage engine was created as a result of research and reconsideration primary algorithmic constraints of Log-file based data structures. It is *Write* and *Range Scan* optimized.
 
 **Quickstart**
 
-* Sophia Documentation is available [Here](http://sphia.org/documentation.html).
-* Quick GitHub examples are [Here](https://github.com/pmwkaa/sophia/tree/master/example).
-* Language bindings for the most common languages can be seen [Here](http://sphia.org/clients.html).
+* **Documentation** to get started, administration and API are available [Here](http://sphia.org/documentation.html).
+* **Examples** Quick GitHub examples are [Here](https://github.com/pmwkaa/sophia/tree/master/example).
+* **Bindings** for the most common languages supported by Community are [Here](http://sphia.org/clients.html).
 
 **Support**
 
-Please use Official Sophia Google [Group](http://groups.google.com/group/sophia-database) or [StackOverflow](http://stackoverflow.com/tags/sophia) to ask any general questions.
-
+Please use Official Sophia Google [Group](http://groups.google.com/group/sophia-database) or [StackOverflow](http://stackoverflow.com/tags/sophia) to ask any general questions.<br>
 More information are available [Here](http://sphia.org/community.html).
