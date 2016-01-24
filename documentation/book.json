@@ -1,0 +1,16 @@
+
+{
+	"plugins": [ "github", "ungrey", "collapsible-menu", "hide-published-with", "edit-link", "code_tomorrow_scheme"],
+	"pluginsConfig": {
+		"github": {
+			"url": "https://github.com/pmwkaa/sophia.git"
+        },
+		"edit-link": {
+			"base": "https://github.com/pmwkaa/sophia/edit/master/documentation",
+			"label": ""
+		}
+	},
+	"styles": {
+		"website": "style.css"
+	}
+}

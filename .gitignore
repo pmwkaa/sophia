@@ -23,3 +23,5 @@ example/transaction
 example/batch
 example/cursor
 example/view
+documentation/_book
+documentation/node_modules

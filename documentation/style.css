@@ -1,0 +1,22 @@
+
+h1 {
+	letter-spacing: 1px;
+	color: black;
+	margin-top: 20px;
+	margin-bottom: 20px;
+	/*border-bottom: 1px solid #eeeeee;*/
+	text-align: left;
+}
+
+h3 {
+	font-weight: 100;
+	color: #333;
+}
+
+.gitbook-link {
+	color: white;
+}
+
+pre {
+	border-radius: 5px;
+}
