@@ -1,13 +1,8 @@
 
-<center>
-<img src="sophia.png"></img>
-</center>
-
-<br>
-
-<center>
-<img src="title.png"></img>
-</center>
+<p align="center">
+	<img src="sophia.png" /><br>
+	<img src="title.png" />
+<p>
 
 <br>
 
