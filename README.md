@@ -4,10 +4,9 @@
 	<a href="http://sphia.org"><img src="http://sophia.systems/logo_title.png" /></a>
 </p>
 
-<br>
+**Sophia 2.1**
+----
 
-What is Sophia
---------------
 <a href="https://travis-ci.org/pmwkaa/sophia"><img src="https://travis-ci.org/pmwkaa/sophia.svg?branch=master" /></a>
 <a href="https://scan.coverity.com/projects/5109"><img src="https://scan.coverity.com/projects/5109/badge.svg" /></a>
 <a href="https://coveralls.io/r/pmwkaa/sophia?branch=master"><img src="https://coveralls.io/repos/pmwkaa/sophia/badge.svg?branch=master" /></a>
