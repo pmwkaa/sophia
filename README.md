@@ -35,4 +35,4 @@ The MVCC Append-Only data storage engine was created as a result of research and
 **Support**
 
 Please use Official Sophia Google [Group](http://groups.google.com/group/sophia-database) or [StackOverflow](http://stackoverflow.com/tags/sophia) to ask any general questions.<br>
-More information are available [Here](http://sphia.org/community.html).
+More information are available [Here](http://sphia.org/support.html).
