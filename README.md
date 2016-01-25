@@ -43,12 +43,10 @@ Write and Range Scan optimized. It can efficiently work with large data sets.
 Please use Official Sophia [Google Group](http://groups.google.com/group/sophia-database) or
 [StackOverflow](http://stackoverflow.com/tags/sophia) to ask any general questions.<br>
 More information is available [Here](http://sophia.systems/support.html).
+
+<br>
 <br>
 
----
-
-<p align="center">
 <a href="https://travis-ci.org/pmwkaa/sophia"><img src="https://travis-ci.org/pmwkaa/sophia.svg?branch=master" /></a>
 <a href="https://scan.coverity.com/projects/5109"><img src="https://scan.coverity.com/projects/5109/badge.svg" /></a>
 <a href="https://coveralls.io/r/pmwkaa/sophia?branch=master"><img src="https://coveralls.io/repos/pmwkaa/sophia/badge.svg?branch=master" /></a>
-</p>
