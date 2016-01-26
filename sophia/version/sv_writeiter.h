@@ -58,10 +58,8 @@ sv_writeiter_upsert(svwriteiter *i)
 			break;
 		/* stop forming upserts on a second non-upsert stmt,
 		 * but continue to iterate stream */
-		if (last_non_upd) {
-			assert(! sv_is(v, SVUPSERT));
+		if (last_non_upd)
 			continue;
-		}
 		last_non_upd = ! sv_isflags(flags, SVUPSERT);
 		int rc = sv_upsertpush(i->u, i->r, v);
 		if (ssunlikely(rc == -1))
@@ -106,6 +104,8 @@ sv_writeiter_next(ssiter *i)
 				} else {
 					continue;
 				}
+			} else {
+				im->upsert = 0;
 			}
 		} else {
 			im->upsert = 0;
@@ -139,6 +139,7 @@ sv_writeiter_next(ssiter *i)
 					rc = sv_writeiter_upsert(im);
 					if (ssunlikely(rc == -1))
 						return;
+					im->upsert = 0;
 					im->prevlsn = lsn;
 					im->v = &im->u->result;
 					im->vdup = dup;
