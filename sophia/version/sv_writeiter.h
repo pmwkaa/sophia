@@ -104,8 +104,6 @@ sv_writeiter_next(ssiter *i)
 				} else {
 					continue;
 				}
-			} else {
-				im->upsert = 0;
 			}
 		} else {
 			im->upsert = 0;
@@ -132,7 +130,7 @@ sv_writeiter_next(ssiter *i)
 		}
 
 		/* upsert */
-		if (im->upsert) {
+		if (sv_isflags(flags, SVUPSERT)) {
 			if (! im->save_upsert) {
 				if (lsn <= im->vlsn) {
 					int rc;
