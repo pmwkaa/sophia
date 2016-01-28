@@ -491,12 +491,13 @@ int se_scheduler_run(sescheduler *s)
 static int
 se_schedule_plan(sescheduler *s, siplan *plan, sedb **dbret)
 {
+	if (s->rr >= s->count)
+		s->rr = 0;
 	int start = s->rr;
 	int limit = s->count;
 	int i = start;
 	int rc_inprogress = 0;
 	int rc;
-	*dbret = NULL;
 first_half:
 	while (i < limit) {
 		sedb *db = s->i[i];
@@ -507,8 +508,8 @@ first_half:
 		rc = si_plan(&db->index, plan);
 		switch (rc) {
 		case 1:
-			s->rr = i;
 			*dbret = db;
+			s->rr = i + 1;
 			return 1;
 		case 2: rc_inprogress = rc;
 		case 0: break;
@@ -532,7 +533,7 @@ se_schedule(sescheduler *s, setask *task, seworker *w)
 
 	uint64_t now = ss_utime();
 	se *e = (se*)s->env;
-	sedb *db;
+	sedb *db = NULL;
 	srzone *zone = se_zoneof(e);
 	assert(zone != NULL);
 
