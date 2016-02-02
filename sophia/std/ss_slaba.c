@@ -29,7 +29,7 @@ struct sssa {
 static inline int
 ss_sagrow(sssa *s)
 {
-	register sspage *page = ss_pagerpop(s->pager);
+	sspage *page = ss_pagerpop(s->pager);
 	if (ssunlikely(page == NULL))
 		return -1;
 	page->next = s->pu;
@@ -79,7 +79,7 @@ ss_slabamalloc(ssa *a, int size ssunused)
 {
 	sssa *s = (sssa*)a->priv;
 	if (sslikely(s->chunk)) {
-		register sssachunk *c = s->chunk;
+		sssachunk *c = s->chunk;
 		s->chunk = c->next;
 		s->chunk_count++;
 		c->next = NULL;
@@ -89,10 +89,9 @@ ss_slabamalloc(ssa *a, int size ssunused)
 		if (ssunlikely(ss_sagrow(s) == -1))
 			return NULL;
 	}
-	register int off = sizeof(sspage) +
+	int off = sizeof(sspage) +
 		s->chunk_used * (sizeof(sssachunk) + s->chunk_size);
-	register sssachunk *n =
-		(sssachunk*)((char*)s->pu + off);
+	sssachunk *n = (sssachunk*)((char*)s->pu + off);
 	s->chunk_used++;
 	s->chunk_count++;
 	n->next = NULL;
@@ -103,8 +102,7 @@ sshot static inline void
 ss_slabafree(ssa *a, void *ptr)
 {
 	sssa *s = (sssa*)a->priv;
-	register sssachunk *c =
-		(sssachunk*)((char*)ptr - sizeof(sssachunk));
+	sssachunk *c = (sssachunk*)((char*)ptr - sizeof(sssachunk));
 	c->next = s->chunk;
 	s->chunk = c;
 	s->chunk_count--;

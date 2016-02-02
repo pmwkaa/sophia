@@ -245,7 +245,6 @@ so *se_new(void)
 	ss_pagerinit(&e->pager, &e->vfs, 10, 8192);
 	ss_aopen(&e->a, &ss_stda);
 	ss_aopen(&e->a_ref, &ss_stda);
-	/*ss_aopen(&e->a_ref, &ss_slaba_lock, &e->pager_ref, sizeof(svref));*/
 	ss_aopen(&e->a_db, &ss_slaba, &e->pager, sizeof(sedb));
 	ss_aopen(&e->a_document, &ss_slaba, &e->pager, sizeof(sedocument));
 	ss_aopen(&e->a_cursor, &ss_slaba, &e->pager, sizeof(secursor));

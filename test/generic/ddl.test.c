@@ -23,6 +23,8 @@ ddl_precreate(void)
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.sync", 0) == 0 );
+	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
@@ -41,6 +43,8 @@ ddl_create_online0(void)
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.sync", 0) == 0 );
+	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
@@ -60,6 +64,8 @@ ddl_create_online1(void)
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.sync", 0) == 0 );
+	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
@@ -84,6 +90,8 @@ ddl_create_online2(void)
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.sync", 0) == 0 );
+	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 
 	t( sp_setstring(env, "db", "s0", 0) == 0 );
@@ -138,6 +146,31 @@ ddl_create_online2(void)
 }
 
 static void
+ddl_create_online3(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.sync", 0) == 0 );
+	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
+	t( sp_open(env) == 0 );
+	int i = 0;
+	int max = 100;
+	while (i < max) {
+		char name[30];
+		snprintf(name, sizeof(name), "db.t_%d", i);
+		t( sp_setstring(env, "db", name + 3, 0) == 0 );
+		void *db = sp_getobject(env, name);
+		t( db != NULL );
+		t( sp_open(db) == 0 );
+		i++;
+	}
+	t( sp_destroy(env) == 0 );
+}
+
+static void
 ddl_open_online0(void)
 {
 	rmrf("./logdir");
@@ -149,6 +182,8 @@ ddl_open_online0(void)
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.sync", 0) == 0 );
+	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 
 	t( sp_setstring(env, "db", "s0", 0) == 0 );
@@ -198,6 +233,8 @@ ddl_constraint(void)
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.sync", 0) == 0 );
+	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
@@ -225,6 +262,7 @@ stgroup *ddl_group(void)
 	st_groupadd(group, st_test("create_online0", ddl_create_online0));
 	st_groupadd(group, st_test("create_online1", ddl_create_online1));
 	st_groupadd(group, st_test("create_online2", ddl_create_online2));
+	st_groupadd(group, st_test("create_online3", ddl_create_online3));
 	st_groupadd(group, st_test("open_online0", ddl_open_online0));
 	st_groupadd(group, st_test("constraint", ddl_constraint));
 	return group;

@@ -129,11 +129,37 @@ github_112(void)
 	t( sp_destroy(env) == 0 );
 }
 
+static void
+github_117(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.sync", 0) == 0 );
+	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
+	t( sp_open(env) == 0 );
+	int i = 0;
+	int max = 30;
+	while (i < max) {
+		char name[30];
+		snprintf(name, sizeof(name), "db.t_%d", i);
+		t( sp_setstring(env, "db", name + 3, 0) == 0 );
+		void *db = sp_getobject(env, name);
+		t( db != NULL );
+		t( sp_open(db) == 0 );
+		i++;
+	}
+	t( sp_destroy(env) == 0 );
+}
+
 stgroup *github_group(void)
 {
 	stgroup *group = st_group("github");
 	st_groupadd(group, st_test("ticket_97", github_97));
 	st_groupadd(group, st_test("ticket_104", github_104));
 	st_groupadd(group, st_test("ticket_112", github_112));
+	st_groupadd(group, st_test("ticket_117", github_117));
 	return group;
 }

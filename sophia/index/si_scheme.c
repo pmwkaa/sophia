@@ -153,7 +153,7 @@ int si_schemedeploy(sischeme *s, sr *r)
 		return -1;
 	char path[PATH_MAX];
 	snprintf(path, sizeof(path), "%s/scheme", s->path);
-	rc = sd_schemewrite(&c, r, path, s->sync);
+	rc = sd_schemewrite(&c, r, path, 0);
 	sd_schemefree(&c, r);
 	return rc;
 error:

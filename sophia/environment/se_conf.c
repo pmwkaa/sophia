@@ -963,8 +963,30 @@ se_confrt(se *e, seconfrt *rt)
 	return 0;
 }
 
+static inline int
+se_confensure(seconf *c)
+{
+	se *e = (se*)c->env;
+	int confmax = 2048 + (e->db.n * 100) + (e->view.n * 10) +
+	              c->threads;
+	confmax *= sizeof(srconf);
+	if (sslikely(confmax <= c->confmax))
+		return 0;
+	srconf *cptr = ss_malloc(&e->a, confmax);
+	if (ssunlikely(cptr == NULL))
+		return sr_oom(&e->error);
+	ss_free(&e->a, c->conf);
+	c->conf = cptr;
+	c->confmax = confmax;
+	return 0;
+}
+
 int se_confserialize(seconf *c, ssbuf *buf)
 {
+	int rc;
+	rc = se_confensure(c);
+	if (ssunlikely(rc == -1))
+		return -1;
 	se *e = (se*)c->env;
 	seconfrt rt;
 	se_confrt(e, &rt);
@@ -989,6 +1011,10 @@ se_confquery(se *e, int op, const char *path,
              sstype valuetype, void *value, int valuesize,
              int *size)
 {
+	int rc;
+	rc = se_confensure(&e->conf);
+	if (ssunlikely(rc == -1))
+		return -1;
 	seconfrt rt;
 	se_confrt(e, &rt);
 	srconf *conf = e->conf.conf;
@@ -1004,7 +1030,7 @@ se_confquery(se *e, int op, const char *path,
 		.ptr       = e,
 		.r         = &e->r
 	};
-	int rc = sr_confexec(root, &stmt);
+	rc = sr_confexec(root, &stmt);
 	if (size)
 		*size = stmt.valuesize;
 	return rc;
@@ -1064,7 +1090,8 @@ int64_t se_confget_int(so *o, const char *path)
 int se_confinit(seconf *c, so *e)
 {
 	se *o = se_of(e);
-	c->conf = ss_malloc(&o->a, sizeof(srconf) * 1024);
+	c->confmax = 2048;
+	c->conf = ss_malloc(&o->a, sizeof(srconf) * c->confmax);
 	if (ssunlikely(c->conf == NULL))
 		return -1;
 	sr_schemeinit(&c->scheme);

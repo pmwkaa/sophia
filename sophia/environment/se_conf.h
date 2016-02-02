@@ -86,6 +86,7 @@ struct seconf {
 	uint32_t      log_rotate_wm;
 	uint32_t      log_rotate_sync;
 	srscheme      scheme;
+	int           confmax;
 	srconf       *conf;
 	so           *env;
 };
