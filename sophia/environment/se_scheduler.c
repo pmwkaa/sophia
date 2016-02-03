@@ -982,8 +982,8 @@ se_rotate(sescheduler *s, seworker *w)
 static int
 se_run(setask *t, seworker *w)
 {
-	si_plannertrace(&t->plan, &w->trace);
 	sedb *db = sslikely(t->db) ? t->db->db : t->db_gc;
+	si_plannertrace(&t->plan, db->scheme.id, &w->trace);
 	se *e = (se*)db->o.env;
 	uint64_t vlsn = sx_vlsn(&e->xm);
 	uint64_t vlsn_lru = si_lru_vlsn(&db->index);

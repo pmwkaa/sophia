@@ -54,7 +54,7 @@ int si_plannerfree(siplanner *p, ssa *a)
 	return 0;
 }
 
-int si_plannertrace(siplan *p, sstrace *t)
+int si_plannertrace(siplan *p, uint32_t id, sstrace *t)
 {
 	char *plan = NULL;
 	switch (p->plan) {
@@ -101,11 +101,11 @@ int si_plannertrace(siplan *p, sstrace *t)
 		break;
 	}
 	if (p->node) {
-		ss_trace(t, "%s <#%" PRIu32 " explain: %s>",
-		         plan,
-		         p->node->self.id.id, explain);
+		ss_trace(t, "%s <%" PRIu32 ":%020" PRIu32 ".db explain: %s>",
+		         plan, id, p->node->self.id.id, explain);
 	} else {
-		ss_trace(t, "%s <explain: %s>", plan, explain);
+		ss_trace(t, "%s <%" PRIu32 " explain: %s>",
+		         plan, id, explain);
 	}
 	return 0;
 }

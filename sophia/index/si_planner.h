@@ -80,7 +80,7 @@ struct siplan {
 int si_planinit(siplan*);
 int si_plannerinit(siplanner*, ssa*, void*);
 int si_plannerfree(siplanner*, ssa*);
-int si_plannertrace(siplan*, sstrace*);
+int si_plannertrace(siplan*, uint32_t, sstrace*);
 int si_plannerupdate(siplanner*, int, sinode*);
 int si_plannerremove(siplanner*, int, sinode*);
 int si_planner(siplanner*, siplan*);
