@@ -230,7 +230,8 @@ se_backupstart(sescheduler *s)
 	}
 	int i = 0;
 	while (i < s->count) {
-		sedb *db = s->i[i];
+		seschedulerdb *sdb = &s->i[i];
+		sedb *db = sdb->db;
 		snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete/%s",
 		         e->conf.backup_path, s->backup_bsn,
 		         db->scheme.name);
@@ -336,11 +337,7 @@ int se_scheduler_init(sescheduler *s, so *env)
 {
 	uint64_t now = ss_utime();
 	ss_mutexinit(&s->lock);
-	s->workers_branch           = 0;
-	s->workers_backup           = 0;
-	s->workers_gc               = 0;
 	s->workers_gc_db            = 0;
-	s->workers_lru              = 0;
 	s->rotate                   = 0;
 	s->req                      = 0;
 	s->i                        = NULL;
@@ -351,7 +348,7 @@ int se_scheduler_init(sescheduler *s, so *env)
 	s->checkpoint_lsn_last      = 0;
 	s->checkpoint               = 0;
 	s->age                      = 0;
-	s->age_last                 = now;
+	s->age_time                 = now;
 	s->backup_bsn               = 0;
 	s->backup_bsn_last          = 0;
 	s->backup_bsn_last_complete = 0;
@@ -359,17 +356,17 @@ int se_scheduler_init(sescheduler *s, so *env)
 	s->backup                   = 0;
 	s->anticache_asn            = 0;
 	s->anticache_asn_last       = 0;
-	s->anticache_last           = now;
 	s->anticache_storage        = 0;
+	s->anticache_time           = now;
 	s->anticache                = 0;
 	s->snapshot_ssn             = 0;
 	s->snapshot_ssn_last        = 0;
-	s->snapshot_last            = now;
+	s->snapshot_time            = now;
 	s->snapshot                 = 0;
 	s->gc                       = 0;
-	s->gc_last                  = now;
+	s->gc_time                  = now;
 	s->lru                      = 0;
-	s->lru_last                 = now;
+	s->lru_time                 = now;
 	ss_threadpool_init(&s->tp);
 	se_workerpool_init(&s->workers);
 	return 0;
@@ -394,18 +391,25 @@ int se_scheduler_shutdown(sescheduler *s)
 	return rcret;
 }
 
+static inline void
+se_scheduler_prepare(seschedulerdb *db, void *dbptr)
+{
+	db->db = dbptr;
+	memset(db->workers, 0, sizeof(db->workers));
+}
+
 int se_scheduler_add(sescheduler *s , void *db)
 {
 	ss_mutexlock(&s->lock);
 	se *e = (se*)s->env;
 	int count = s->count + 1;
-	void **i = ss_malloc(&e->a, count * sizeof(void*));
+	seschedulerdb *i = ss_malloc(&e->a, count * sizeof(seschedulerdb));
 	if (ssunlikely(i == NULL)) {
 		ss_mutexunlock(&s->lock);
 		return -1;
 	}
-	memcpy(i, s->i, s->count * sizeof(void*));
-	i[s->count] = db;
+	memcpy(i, s->i, s->count * sizeof(seschedulerdb));
+	se_scheduler_prepare(&i[s->count], db);
 	void *iprev = s->i;
 	s->i = i;
 	s->count = count;
@@ -429,7 +433,7 @@ int se_scheduler_del(sescheduler *s, void *db)
 		ss_mutexunlock(&s->lock);
 		return 0;
 	}
-	void **i = ss_malloc(&e->a, count * sizeof(void*));
+	seschedulerdb *i = ss_malloc(&e->a, count * sizeof(seschedulerdb));
 	if (ssunlikely(i == NULL)) {
 		ss_mutexunlock(&s->lock);
 		return -1;
@@ -437,7 +441,7 @@ int se_scheduler_del(sescheduler *s, void *db)
 	int j = 0;
 	int k = 0;
 	while (j < s->count) {
-		if (s->i[j] == db) {
+		if (s->i[j].db == db) {
 			j++;
 			continue;
 		}
@@ -489,7 +493,9 @@ int se_scheduler_run(sescheduler *s)
 }
 
 static int
-se_schedule_plan(sescheduler *s, siplan *plan, sedb **dbret)
+se_schedule_plan(sescheduler *s, siplan *plan,
+                 uint32_t quota, uint32_t quota_limit,
+                 seschedulerdb **dbret)
 {
 	if (s->rr >= s->count)
 		s->rr = 0;
@@ -500,18 +506,25 @@ se_schedule_plan(sescheduler *s, siplan *plan, sedb **dbret)
 	int rc;
 first_half:
 	while (i < limit) {
-		sedb *db = s->i[i];
-		if (ssunlikely(! se_dbactive(db))) {
+		seschedulerdb *db = &s->i[i];
+		if (ssunlikely(! se_dbactive(db->db))) {
 			i++;
 			continue;
 		}
-		rc = si_plan(&db->index, plan);
+		if (quota != SE_SCHEDQ_NONE) {
+			if (db->workers[quota] >= quota_limit) {
+				rc_inprogress = 2;
+				i++;
+				continue;
+			}
+		}
+		rc = si_plan(&((sedb*)db->db)->index, plan);
 		switch (rc) {
 		case 1:
 			*dbret = db;
 			s->rr = i + 1;
 			return 1;
-		case 2: rc_inprogress = rc;
+		case 2: rc_inprogress = 2;
 		case 0: break;
 		}
 		i++;
@@ -529,14 +542,13 @@ static int
 se_schedule(sescheduler *s, setask *task, seworker *w)
 {
 	ss_trace(&w->trace, "%s", "schedule");
-	si_planinit(&task->plan);
-
 	uint64_t now = ss_utime();
-	se *e = (se*)s->env;
-	sedb *db = NULL;
-	srzone *zone = se_zoneof(e);
-	assert(zone != NULL);
 
+	se *e = (se*)s->env;
+	srzone *zone = se_zoneof(e);
+	seschedulerdb *sdb = NULL;
+
+	si_planinit(&task->plan);
 	task->checkpoint_complete = 0;
 	task->anticache_complete = 0;
 	task->snapshot_complete = 0;
@@ -545,6 +557,7 @@ se_schedule(sescheduler *s, setask *task, seworker *w)
 	task->req = 0;
 	task->gc = 0;
 	task->db = NULL;
+	task->db_gc = NULL;
 
 	ss_mutexlock(&s->lock);
 
@@ -576,12 +589,12 @@ checkpoint:
 	if (s->checkpoint) {
 		task->plan.plan = SI_CHECKPOINT;
 		task->plan.a = s->checkpoint_lsn;
-		rc = se_schedule_plan(s, &task->plan, &db);
+		rc = se_schedule_plan(s, &task->plan, SE_SCHEDQ_NONE, 0, &sdb);
 		switch (rc) {
 		case 1:
-			s->workers_branch++;
-			se_dbref(db, 1);
-			task->db = db;
+			sdb->workers[SE_SCHEDQ_BRANCH]++;
+			se_dbref(sdb->db, 1);
+			task->db = sdb;
 			task->gc = 1;
 			ss_mutexunlock(&s->lock);
 			return 1;
@@ -608,7 +621,7 @@ checkpoint:
 	{
 		if (in_progress) {
 			ss_mutexunlock(&s->lock);
-			return 0;
+			goto no_job;
 		}
 		uint64_t lsn = sr_seq(&e->seq, SR_LSN);
 		s->checkpoint_lsn = lsn;
@@ -622,24 +635,25 @@ checkpoint:
 	/* database shutdown-drop */
 	if (s->workers_gc_db < zone->gc_db_prio) {
 		ss_spinlock(&e->dblock);
-		db = NULL;
+		sedb *db_gc = NULL;
 		if (ssunlikely(e->db_shutdown.n > 0)) {
-			db = (sedb*)so_listfirst(&e->db_shutdown);
-			if (se_dbgarbage(db)) {
-				so_listdel(&e->db_shutdown, &db->o);
+			db_gc = (sedb*)so_listfirst(&e->db_shutdown);
+			if (se_dbgarbage(db_gc)) {
+				so_listdel(&e->db_shutdown, &db_gc->o);
 			} else {
-				db = NULL;
+				db_gc = NULL;
 			}
 		}
 		ss_spinunlock(&e->dblock);
-		if (ssunlikely(db)) {
-			if (db->dropped)
+		if (ssunlikely(db_gc)) {
+			if (db_gc->dropped)
 				task->plan.plan = SI_DROP;
 			else
 				task->plan.plan = SI_SHUTDOWN;
 			s->workers_gc_db++;
-			se_dbref(db, 1);
-			task->db = db;
+			se_dbref(db_gc, 1);
+			task->db = NULL;
+			task->db_gc = db_gc;
 			ss_mutexunlock(&s->lock);
 			return 1;
 		}
@@ -650,11 +664,11 @@ checkpoint:
 		task->plan.plan = SI_ANTICACHE;
 		task->plan.a = s->anticache_asn;
 		task->plan.b = s->anticache_storage;
-		rc = se_schedule_plan(s, &task->plan, &db);
+		rc = se_schedule_plan(s, &task->plan, SE_SCHEDQ_NONE, 0, &sdb);
 		switch (rc) {
 		case 1:
-			se_dbref(db, 1);
-			task->db = db;
+			se_dbref(sdb->db, 1);
+			task->db = sdb;
 			uint64_t size = task->plan.c;
 			if (size > 0) {
 				if (ssunlikely(size > s->anticache_storage))
@@ -672,13 +686,13 @@ checkpoint:
 			s->anticache_asn_last = s->anticache_asn;
 			s->anticache_asn = 0;
 			s->anticache_storage = 0;
-			s->anticache_last = now;
+			s->anticache_time = now;
 			task->anticache_complete = 1;
 			break;
 		}
 	} else {
 		if (zone->anticache_period) {
-			if ( (now - s->anticache_last) >= ((uint64_t)zone->anticache_period * 1000000) ) {
+			if ( (now - s->anticache_time) >= ((uint64_t)zone->anticache_period * 1000000) ) {
 				s->anticache = 1;
 				s->anticache_storage = e->conf.anticache;
 				s->anticache_asn = sr_seq(&e->seq, SR_ASNNEXT);
@@ -690,11 +704,11 @@ checkpoint:
 	if (s->snapshot) {
 		task->plan.plan = SI_SNAPSHOT;
 		task->plan.a = s->snapshot_ssn;
-		rc = se_schedule_plan(s, &task->plan, &db);
+		rc = se_schedule_plan(s, &task->plan, SE_SCHEDQ_NONE, 0, &sdb);
 		switch (rc) {
 		case 1:
-			se_dbref(db, 1);
-			task->db = db;
+			se_dbref(sdb->db, 1);
+			task->db = sdb;
 			ss_mutexunlock(&s->lock);
 			return 1;
 		case 2: /* work in progress */
@@ -704,13 +718,13 @@ checkpoint:
 			s->snapshot = 0;
 			s->snapshot_ssn_last = s->snapshot_ssn;
 			s->snapshot_ssn = 0;
-			s->snapshot_last = now;
+			s->snapshot_time = now;
 			task->snapshot_complete = 1;
 			break;
 		}
 	} else {
 		if (zone->snapshot_period) {
-			if ( (now - s->snapshot_last) >= ((uint64_t)zone->snapshot_period * 1000000) ) {
+			if ( (now - s->snapshot_time) >= ((uint64_t)zone->snapshot_period * 1000000) ) {
 				s->snapshot = 1;
 				s->snapshot_ssn = sr_seq(&e->seq, SR_SSNNEXT);
 			}
@@ -718,7 +732,7 @@ checkpoint:
 	}
 
 	/* backup */
-	if (s->backup && (s->workers_backup < zone->backup_prio))
+	if (s->backup)
 	{
 		/* backup procedure.
 		 *
@@ -764,12 +778,13 @@ checkpoint:
 		/* state 2 */
 		task->plan.plan = SI_BACKUP;
 		task->plan.a = s->backup_bsn;
-		rc = se_schedule_plan(s, &task->plan, &db);
+		rc = se_schedule_plan(s, &task->plan, SE_SCHEDQ_BACKUP,
+		                      zone->backup_prio, &sdb);
 		switch (rc) {
 		case 1:
-			s->workers_backup++;
-			se_dbref(db, 1);
-			task->db = db;
+			sdb->workers[SE_SCHEDQ_BACKUP]++;
+			se_dbref(sdb->db, 1);
+			task->db = sdb;
 			ss_mutexunlock(&s->lock);
 			return 1;
 		case 2: /* work in progress */
@@ -790,31 +805,29 @@ backup_error:;
 
 	/* garbage-collection */
 	if (s->gc) {
-		if (s->workers_gc < zone->gc_prio) {
-			task->plan.plan = SI_GC;
-			task->plan.a = sx_vlsn(&e->xm);
-			task->plan.b = zone->gc_wm;
-			rc = se_schedule_plan(s, &task->plan, &db);
-			switch (rc) {
-			case 1:
-				if (zone->mode == 0)
-					task->plan.plan = SI_COMPACT_INDEX;
-				s->workers_gc++;
-				se_dbref(db, 1);
-				task->db = db;
-				ss_mutexunlock(&s->lock);
-				return 1;
-			case 2: /* work in progress */
-				break;
-			case 0: /* state 3 */
-				s->gc = 0;
-				s->gc_last = now;
-				break;
-			}
+		task->plan.plan = SI_GC;
+		task->plan.a = sx_vlsn(&e->xm);
+		task->plan.b = zone->gc_wm;
+		rc = se_schedule_plan(s, &task->plan, SE_SCHEDQ_GC, zone->gc_prio, &sdb);
+		switch (rc) {
+		case 1:
+			if (zone->mode == 0)
+				task->plan.plan = SI_COMPACT_INDEX;
+			sdb->workers[SE_SCHEDQ_GC]++;
+			se_dbref(sdb->db, 1);
+			task->db = sdb;
+			ss_mutexunlock(&s->lock);
+			return 1;
+		case 2: /* work in progress */
+			break;
+		case 0: /* state 3 */
+			s->gc = 0;
+			s->gc_time = now;
+			break;
 		}
 	} else {
 		if (zone->gc_prio && zone->gc_period) {
-			if ( (now - s->gc_last) >= ((uint64_t)zone->gc_period * 1000000) ) {
+			if ( (now - s->gc_time) >= ((uint64_t)zone->gc_period * 1000000) ) {
 				s->gc = 1;
 			}
 		}
@@ -822,29 +835,27 @@ backup_error:;
 
 	/* lru */
 	if (s->lru) {
-		if (s->workers_lru < zone->lru_prio) {
-			task->plan.plan = SI_LRU;
-			rc = se_schedule_plan(s, &task->plan, &db);
-			switch (rc) {
-			case 1:
-				if (zone->mode == 0)
-					task->plan.plan = SI_COMPACT_INDEX;
-				s->workers_lru++;
-				se_dbref(db, 1);
-				task->db = db;
-				ss_mutexunlock(&s->lock);
-				return 1;
-			case 2: /* work in progress */
-				break;
-			case 0: /* state 3 */
-				s->lru = 0;
-				s->lru_last = now;
-				break;
-			}
+		task->plan.plan = SI_LRU;
+		rc = se_schedule_plan(s, &task->plan, SE_SCHEDQ_LRU, zone->lru_prio, &sdb);
+		switch (rc) {
+		case 1:
+			if (zone->mode == 0)
+				task->plan.plan = SI_COMPACT_INDEX;
+			sdb->workers[SE_SCHEDQ_LRU]++;
+			se_dbref(sdb->db, 1);
+			task->db = sdb;
+			ss_mutexunlock(&s->lock);
+			return 1;
+		case 2: /* work in progress */
+			break;
+		case 0: /* state 3 */
+			s->lru = 0;
+			s->lru_time = now;
+			break;
 		}
 	} else {
 		if (zone->lru_prio && zone->lru_period) {
-			if ( (now - s->lru_last) >= ((uint64_t)zone->lru_period * 1000000) ) {
+			if ( (now - s->lru_time) >= ((uint64_t)zone->lru_period * 1000000) ) {
 				s->lru = 1;
 			}
 		}
@@ -852,29 +863,28 @@ backup_error:;
 
 	/* index aging */
 	if (s->age) {
-		if (s->workers_branch < zone->branch_prio) {
-			task->plan.plan = SI_AGE;
-			task->plan.a = zone->branch_age * 1000000; /* ms */
-			task->plan.b = zone->branch_age_wm;
-			rc = se_schedule_plan(s, &task->plan, &db);
-			switch (rc) {
-			case 1:
-				if (zone->mode == 0)
-					task->plan.plan = SI_COMPACT_INDEX;
-				s->workers_branch++;
-				se_dbref(db, 1);
-				task->db = db;
-				ss_mutexunlock(&s->lock);
-				return 1;
-			case 0:
-				s->age = 0;
-				s->age_last = now;
-				break;
-			}
+		task->plan.plan = SI_AGE;
+		task->plan.a = zone->branch_age * 1000000; /* ms */
+		task->plan.b = zone->branch_age_wm;
+		rc = se_schedule_plan(s, &task->plan, SE_SCHEDQ_BRANCH,
+		                      zone->branch_prio, &sdb);
+		switch (rc) {
+		case 1:
+			if (zone->mode == 0)
+				task->plan.plan = SI_COMPACT_INDEX;
+			sdb->workers[SE_SCHEDQ_BRANCH]++;
+			se_dbref(sdb->db, 1);
+			task->db = sdb;
+			ss_mutexunlock(&s->lock);
+			return 1;
+		case 0:
+			s->age = 0;
+			s->age_time = now;
+			break;
 		}
 	} else {
 		if (zone->branch_prio && zone->branch_age_period) {
-			if ( (now - s->age_last) >= ((uint64_t)zone->branch_age_period * 1000000) ) {
+			if ( (now - s->age_time) >= ((uint64_t)zone->branch_age_period * 1000000) ) {
 				s->age = 1;
 			}
 		}
@@ -884,62 +894,63 @@ backup_error:;
 	if (zone->mode == 0) {
 		task->plan.plan = SI_COMPACT_INDEX;
 		task->plan.a = zone->branch_wm;
-		rc = se_schedule_plan(s, &task->plan, &db);
+		rc = se_schedule_plan(s, &task->plan, SE_SCHEDQ_NONE, 0, &sdb);
 		if (rc == 1) {
-			se_dbref(db, 1);
-			task->db = db;
+			se_dbref(sdb->db, 1);
+			task->db = sdb;
 			task->gc = 1;
 			ss_mutexunlock(&s->lock);
 			return 1;
 		}
 		ss_mutexunlock(&s->lock);
-		return 0;
+		goto no_job;
 	}
 
 	/* branching */
-	if (s->workers_branch < zone->branch_prio)
-	{
-		/* schedule branch task using following
-		 * priority:
-		 *
-		 * a. peek node with the largest in-memory index
-		 *    which is equal or greater then branch
-		 *    watermark.
-		 *    If nothing is found, stick to b.
-		 *
-		 * b. peek node with the largest in-memory index,
-		 *    which has oldest update time.
-		 *
-		 * c. if no branch work is needed, schedule a
-		 *    compaction job
-		 *
-		 */
-		task->plan.plan = SI_BRANCH;
-		task->plan.a = zone->branch_wm;
-		rc = se_schedule_plan(s, &task->plan, &db);
-		if (rc == 1) {
-			s->workers_branch++;
-			se_dbref(db, 1);
-			task->db = db;
-			task->gc = 1;
-			ss_mutexunlock(&s->lock);
-			return 1;
-		}
+
+	/* schedule branch task using following
+	 * priority:
+	 *
+	 * a. peek node with the largest in-memory index
+	 *    which is equal or greater then branch
+	 *    watermark.
+	 *    If nothing is found, stick to b.
+	 *
+	 * b. peek node with the largest in-memory index,
+	 *    which has oldest update time.
+	 *
+	 * c. if no branch work is needed, schedule a
+	 *    compaction job
+	 *
+	 */
+	task->plan.plan = SI_BRANCH;
+	task->plan.a = zone->branch_wm;
+	rc = se_schedule_plan(s, &task->plan, SE_SCHEDQ_BRANCH,
+	                      zone->branch_prio, &sdb);
+	if (rc == 1) {
+		sdb->workers[SE_SCHEDQ_BRANCH]++;
+		se_dbref(sdb->db, 1);
+		task->db = sdb;
+		task->gc = 1;
+		ss_mutexunlock(&s->lock);
+		return 1;
 	}
 
 	/* compaction */
 	task->plan.plan = SI_COMPACT;
 	task->plan.a = zone->compact_wm;
 	task->plan.b = zone->compact_mode;
-	rc = se_schedule_plan(s, &task->plan, &db);
+	rc = se_schedule_plan(s, &task->plan, SE_SCHEDQ_NONE, 0, &sdb);
 	if (rc == 1) {
-		se_dbref(db, 1);
-		task->db = db;
+		se_dbref(sdb->db, 1);
+		task->db = sdb;
 		ss_mutexunlock(&s->lock);
 		return 1;
 	}
 
 	ss_mutexunlock(&s->lock);
+no_job:
+	si_planinit(&task->plan);
 	return 0;
 }
 
@@ -972,7 +983,7 @@ static int
 se_run(setask *t, seworker *w)
 {
 	si_plannertrace(&t->plan, &w->trace);
-	sedb *db = t->db;
+	sedb *db = sslikely(t->db) ? t->db->db : t->db_gc;
 	se *e = (se*)db->o.env;
 	uint64_t vlsn = sx_vlsn(&e->xm);
 	uint64_t vlsn_lru = si_lru_vlsn(&db->index);
@@ -1007,37 +1018,39 @@ static int
 se_complete(sescheduler *s, setask *t)
 {
 	ss_mutexlock(&s->lock);
-	sedb *db = t->db;
-	if (db)
-		se_dbunref(db, 1);
+	seschedulerdb *sdb = t->db;
 	switch (t->plan.plan) {
 	case SI_BRANCH:
 	case SI_AGE:
 	case SI_CHECKPOINT:
-		s->workers_branch--;
+		sdb->workers[SE_SCHEDQ_BRANCH]--;
 		break;
 	case SI_COMPACT_INDEX:
 		break;
 	case SI_BACKUP:
 	case SI_BACKUPEND:
-		s->workers_backup--;
+		sdb->workers[SE_SCHEDQ_BACKUP]--;
 		break;
 	case SI_SNAPSHOT:
 		break;
 	case SI_ANTICACHE:
 		break;
 	case SI_GC:
-		s->workers_gc--;
+		sdb->workers[SE_SCHEDQ_GC]--;
 		break;
 	case SI_LRU:
-		s->workers_lru--;
+		sdb->workers[SE_SCHEDQ_LRU]--;
 		break;
 	case SI_SHUTDOWN:
 	case SI_DROP:
+		assert(t->db == NULL);
 		s->workers_gc_db--;
-		so_destroy(&db->o);
+		se_dbunref(t->db_gc, 1);
+		so_destroy((so*)t->db_gc);
 		break;
 	}
+	if (sdb && sdb->db)
+		se_dbunref(sdb->db, 1);
 	if (t->rotate == 1)
 		s->rotate = 0;
 	if (t->req)
@@ -1070,7 +1083,7 @@ int se_scheduler(sescheduler *s, seworker *w)
 		if (ssunlikely(rc == -1)) {
 			if (task.plan.plan != SI_BACKUP &&
 			    task.plan.plan != SI_BACKUPEND) {
-				se_dbmalfunction(task.db);
+				se_dbmalfunction(task.db->db);
 				goto error;
 			}
 			ss_mutexlock(&s->lock);
