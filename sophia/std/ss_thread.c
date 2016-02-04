@@ -55,13 +55,11 @@ int ss_threadpool_shutdown(ssthreadpool *p, ssa *a)
 
 int ss_threadpool_new(ssthreadpool *p, ssa *a, int n, ssthreadf f, void *arg)
 {
-	int id = 0;
 	int i;
 	for (i = 0; i < n; i++) {
 		ssthread *t = ss_malloc(a, sizeof(*t));
 		if (ssunlikely(t == NULL))
 			goto error;
-		t->id = id++;
 		ss_listappend(&p->list, &t->link);
 		p->n++;
 		int rc = ss_threadnew(t, f, arg);
