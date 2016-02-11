@@ -17,6 +17,7 @@
 #include <libsi.h>
 #include <libsx.h>
 #include <libsy.h>
+#include <libsc.h>
 #include <libse.h>
 
 static inline int
@@ -31,16 +32,17 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 	}
 
 	/* validate database status */
-	int status = se_status(&db->status);
+	int status = sr_status(&db->index.status);
 	switch (status) {
-	case SE_SHUTDOWN:
+	case SR_SHUTDOWN:
+	case SR_DROP:
 		if (ssunlikely(! se_dbvisible(db, t->t.id))) {
 			sr_error(&e->error, "%s", "database is invisible for the transaction");
 			goto error;
 		}
 		break;
-	case SE_RECOVER:
-	case SE_ONLINE: break;
+	case SR_RECOVER:
+	case SR_ONLINE: break;
 	default: goto error;
 	}
 	if (flags == SVUPSERT && !sf_upserthas(&db->scheme.fmt_upsert))
@@ -105,16 +107,17 @@ se_txget(so *o, so *v)
 	se *e = se_of(&t->o);
 	sedb *db = se_cast(key->o.parent, sedb*, SEDB);
 	/* validate database */
-	int status = se_status(&db->status);
+	int status = sr_status(&db->index.status);
 	switch (status) {
-	case SE_SHUTDOWN:
+	case SR_SHUTDOWN:
+	case SR_DROP:
 		if (ssunlikely(! se_dbvisible(db, t->t.id))) {
 			sr_error(&e->error, "%s", "database is invisible for the transaction");
 			goto error;
 		}
 		break;
-	case SE_ONLINE:
-	case SE_RECOVER:
+	case SR_ONLINE:
+	case SR_RECOVER:
 		break;
 	default: goto error;
 	}
@@ -147,14 +150,15 @@ se_txrollback(so *o)
 }
 
 static int
-se_txprepare(sx *x, sv *v, void *arg0, void *arg1)
+se_txprepare(sx *x, sv *v, so *o, void *ptr)
 {
-	sicache *cache = arg0;
-	sedb *db = arg1;
+	sicache *cache = ptr;
+	sedb *db = (sedb*)o;
 	se *e = se_of(&db->o);
-	sereq q;
-	se_reqinit(e, &q, SE_REQREAD, &db->o, &db->o);
-	sereqarg *arg = &q.arg;
+
+	scread q;
+	sc_readopen(&q, &db->r, &db->o, &db->index);
+	screadarg *arg = &q.arg;
 	arg->v             = *v;
 	arg->cache         = cache;
 	arg->cachegc       = 0;
@@ -162,9 +166,9 @@ se_txprepare(sx *x, sv *v, void *arg0, void *arg1)
 	arg->has           = 1;
 	arg->vlsn          = x->vlsn;
 	arg->vlsn_generate = 0;
-	se_execute_read(&q);
-	se_reqend(&q);
-	return q.rc;
+	int rc = sc_read(&q, &e->scheduler);
+	sc_readclose(&q);
+	return rc;
 }
 
 static int
@@ -172,10 +176,10 @@ se_txcommit(so *o)
 {
 	setx *t = se_cast(o, setx*, SETX);
 	se *e = se_of(o);
-	int status = se_status(&e->status);
-	if (ssunlikely(! se_statusactive_is(status)))
+	int status = sr_status(&e->status);
+	if (ssunlikely(! sr_statusactive_is(status)))
 		return -1;
-	int recover = (status == SE_RECOVER);
+	int recover = (status == SR_RECOVER);
 
 	/* prepare transaction */
 	if (t->t.state == SXREADY || t->t.state == SXLOCK)
@@ -219,6 +223,7 @@ se_txcommit(so *o)
 	assert(t->t.state == SXCOMMIT);
 
 	/* do wal write and backend commit */
+#if 0
 	sereq q;
 	se_reqinit(e, &q, SE_REQWRITE, &t->o, NULL);
 	sereqarg *arg = &q.arg;
@@ -239,6 +244,17 @@ se_txcommit(so *o)
 		sx_rollback(&t->t);
 	se_txend(t, 0, 0);
 	return q.rc;
+#endif
+
+	if (ssunlikely(recover))
+		recover = (e->conf.recover == 3) ? 2: 1;
+	int rc;
+	rc = sc_write(&e->scheduler, &t->t.log, t->lsn, recover);
+	if (ssunlikely(rc == -1))
+		sx_rollback(&t->t);
+
+	se_txend(t, 0, 0);
+	return rc;
 }
 
 static int
@@ -299,7 +315,7 @@ so *se_txnew(se *e)
 	so_init(&t->o, &se_o[SETX], &setxif, &e->o, &e->o);
 	sx_init(&e->xm, &t->t);
 	t->start = ss_utime();
-	t->lsn = -1;
+	t->lsn = 0;
 	sx_begin(&e->xm, &t->t, SXRW, UINT64_MAX);
 	se_dbbind(e);
 	so_listadd(&e->tx, &t->o);

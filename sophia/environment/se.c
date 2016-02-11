@@ -17,32 +17,56 @@
 #include <libsi.h>
 #include <libsx.h>
 #include <libsy.h>
+#include <libsc.h>
 #include <libse.h>
+
+static void*
+se_worker(void *arg)
+{
+	ssthread *self = arg;
+	se *e = self->arg;
+	scworker *w = sc_workerpool_pop(&e->scheduler.wp, &e->r);
+	if (ssunlikely(w == NULL))
+		return NULL;
+	for (;;)
+	{
+		int rc = se_active(e);
+		if (ssunlikely(rc == 0))
+			break;
+		rc = sc_step(&e->scheduler, w, sx_vlsn(&e->xm));
+		if (ssunlikely(rc == -1))
+			break;
+		if (ssunlikely(rc == 0))
+			ss_sleep(10000000); /* 10ms */
+	}
+	sc_workerpool_push(&e->scheduler.wp, w);
+	return NULL;
+}
 
 static int
 se_open(so *o)
 {
 	se *e = se_cast(o, se*, SE);
 	/* recover phases */
-	int status = se_status(&e->status);
+	int status = sr_status(&e->status);
 	switch (e->conf.recover) {
 	case SE_RECOVER_1P: break;
 	case SE_RECOVER_2P:
-		if (status == SE_RECOVER)
+		if (status == SR_RECOVER)
 			goto online;
 		break;
 	case SE_RECOVER_NP:
-		if (status == SE_RECOVER) {
-			se_statusset(&e->status, SE_ONLINE);
+		if (status == SR_RECOVER) {
+			sr_statusset(&e->status, SR_ONLINE);
 			return 0;
 		}
-		if (status == SE_ONLINE) {
-			se_statusset(&e->status, SE_RECOVER);
+		if (status == SR_ONLINE) {
+			sr_statusset(&e->status, SR_RECOVER);
 			return 0;
 		}
 		break;
 	}
-	if (status != SE_OFFLINE)
+	if (status != SR_OFFLINE)
 		return -1;
 
 	/* validate configuration */
@@ -50,7 +74,7 @@ se_open(so *o)
 	rc = se_confvalidate(&e->conf);
 	if (ssunlikely(rc == -1))
 		return -1;
-	se_statusset(&e->status, SE_RECOVER);
+	sr_statusset(&e->status, SR_RECOVER);
 
 	/* set memory quota (disable during recovery) */
 	ss_quotaset(&e->quota, e->conf.memory_limit);
@@ -85,9 +109,13 @@ online:
 	}
 	/* enable quota */
 	ss_quotaenable(&e->quota, 1);
-	se_statusset(&e->status, SE_ONLINE);
+	sr_statusset(&e->status, SR_ONLINE);
+
 	/* run thread-pool and scheduler */
-	rc = se_scheduler_run(&e->sched);
+	rc = sc_create(&e->scheduler, se_worker, e,
+	               e->conf.threads,
+	               e->conf.anticache,
+	               e->conf.backup_path);
 	if (ssunlikely(rc == -1))
 		return -1;
 	return 0;
@@ -99,17 +127,8 @@ se_destroy(so *o)
 	se *e = se_cast(o, se*, SE);
 	int rcret = 0;
 	int rc;
-	se_statusset(&e->status, SE_SHUTDOWN);
-	rc = se_scheduler_shutdown(&e->sched);
-	if (ssunlikely(rc == -1))
-		rcret = -1;
-	rc = so_listdestroy(&e->req);
-	if (ssunlikely(rc == -1))
-		rcret = -1;
-	rc = so_listdestroy(&e->reqactive);
-	if (ssunlikely(rc == -1))
-		rcret = -1;
-	rc = so_listdestroy(&e->reqready);
+	sr_statusset(&e->status, SR_SHUTDOWN);
+	rc = sc_shutdown(&e->scheduler);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
 	rc = so_listdestroy(&e->cursor);
@@ -130,7 +149,7 @@ se_destroy(so *o)
 	rc = so_listdestroy(&e->db);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_listdestroy(&e->db_shutdown);
+	rc = so_listdestroy(&e->dbshutdown);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
 	rc = sl_poolshutdown(&e->lp);
@@ -139,19 +158,17 @@ se_destroy(so *o)
 	rc = sy_close(&e->rep, &e->r);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
+	ss_spinlockfree(&e->dbshutdown_lock);
 	sx_managerfree(&e->xm);
 	ss_vfsfree(&e->vfs);
 	si_cachepool_free(&e->cachepool, &e->r);
 	se_conffree(&e->conf);
 	ss_quotafree(&e->quota);
 	ss_mutexfree(&e->apilock);
-	ss_mutexfree(&e->reqlock);
-	ss_condfree(&e->reqcond);
-	ss_spinlockfree(&e->dblock);
 	sr_statfree(&e->stat);
 	sr_seqfree(&e->seq);
 	ss_pagerfree(&e->pager);
-	se_statusfree(&e->status);
+	sr_statusfree(&e->status);
 	se_mark_destroyed(&e->o);
 	free(e);
 	return rcret;
@@ -170,22 +187,22 @@ se_poll(so *o)
 	se *e = se_cast(o, se*, SE);
 	so *result;
 	if (e->conf.event_on_backup) {
-		ss_mutexlock(&e->sched.lock);
-		if (ssunlikely(e->sched.backup_events > 0)) {
-			e->sched.backup_events--;
-			sereq r;
-			se_reqinit(e, &r, SE_REQON_BACKUP, &e->o, NULL);
-			result = se_reqresult(&r, 1);
-			ss_mutexunlock(&e->sched.lock);
+		int event = sc_ctl_backup_event(&e->scheduler);
+		if (event) {
+			sedocument *doc;
+			result = se_document_new(e, &e->o, NULL, 1);
+			if (ssunlikely(result == NULL))
+				return NULL;
+			doc = (sedocument*)result;
+			doc->async_operation = 1;
 			return result;
 		}
-		ss_mutexunlock(&e->sched.lock);
 	}
-	sereq *req = se_reqdispatch_ready(e);
-	if (req == NULL)
+	scread *r = (scread*)sc_readpool_popready(&e->scheduler.rp);
+	if (r == NULL)
 		return NULL;
-	result = se_reqresult(req, 1);
-	so_destroy(&req->o);
+	result = se_dbresult(e, r, 1);
+	so_destroy(&r->o);
 	return result;
 }
 
@@ -196,8 +213,8 @@ se_error(so *o)
 	int status = sr_errorof(&e->error);
 	if (status == SR_ERROR_MALFUNCTION)
 		return 1;
-	status = se_status(&e->status);
-	if (status == SE_MALFUNCTION)
+	status = sr_status(&e->status);
+	if (status == SR_MALFUNCTION)
 		return 1;
 	return 0;
 }
@@ -232,6 +249,12 @@ static soif seif =
 	.cursor       = se_cursor,
 };
 
+int se_service(so *o)
+{
+	se *e = se_cast(o, se*, SE);
+	return sc_ctl_call(&e->scheduler, sx_vlsn(&e->xm));
+}
+
 so *se_new(void)
 {
 	se *e = malloc(sizeof(*e));
@@ -239,13 +262,12 @@ so *se_new(void)
 		return NULL;
 	memset(e, 0, sizeof(*e));
 	so_init(&e->o, &se_o[SE], &seif, &e->o, &e->o /* self */);
-	se_statusinit(&e->status);
-	se_statusset(&e->status, SE_OFFLINE);
+	sr_statusinit(&e->status);
+	sr_statusset(&e->status, SR_OFFLINE);
 	ss_vfsinit(&e->vfs, &ss_stdvfs);
 	ss_pagerinit(&e->pager, &e->vfs, 10, 8192);
 	ss_aopen(&e->a, &ss_stda);
 	ss_aopen(&e->a_ref, &ss_stda);
-	ss_aopen(&e->a_db, &ss_slaba, &e->pager, sizeof(sedb));
 	ss_aopen(&e->a_document, &ss_slaba, &e->pager, sizeof(sedocument));
 	ss_aopen(&e->a_cursor, &ss_slaba, &e->pager, sizeof(secursor));
 	ss_aopen(&e->a_view, &ss_slaba, &e->pager, sizeof(seview));
@@ -255,42 +277,36 @@ so *se_new(void)
 	ss_aopen(&e->a_confcursor, &ss_slaba, &e->pager, sizeof(seconfcursor));
 	ss_aopen(&e->a_confkv, &ss_slaba, &e->pager, sizeof(seconfkv));
 	ss_aopen(&e->a_tx, &ss_slaba, &e->pager, sizeof(setx));
-	ss_aopen(&e->a_req, &ss_slaba, &e->pager, sizeof(sereq));
 	ss_aopen(&e->a_sxv, &ss_slaba, &e->pager, sizeof(sxv));
 	int rc;
 	rc = se_confinit(&e->conf, &e->o);
 	if (ssunlikely(rc == -1))
 		goto error;
+	ss_spinlockinit(&e->dbshutdown_lock);
 	so_listinit(&e->db);
-	so_listinit(&e->db_shutdown);
+	so_listinit(&e->dbshutdown);
 	so_listinit(&e->cursor);
 	so_listinit(&e->viewdb);
 	so_listinit(&e->view);
 	so_listinit(&e->tx);
 	so_listinit(&e->confcursor);
-	so_listinit(&e->req);
-	so_listinit(&e->reqready);
-	so_listinit(&e->reqactive);
 	ss_mutexinit(&e->apilock);
-	ss_mutexinit(&e->reqlock);
-	ss_condinit(&e->reqcond);
-	ss_spinlockinit(&e->dblock);
 	ss_quotainit(&e->quota);
 	sr_seqinit(&e->seq);
 	sr_errorinit(&e->error);
 	sr_statinit(&e->stat);
 	sscrcf crc = ss_crc32c_function();
-	sr_init(&e->r, &e->error, &e->a, &e->a_ref, &e->vfs, &e->quota, &e->seq,
-	        SF_KV, SF_SRAW, NULL,
+	sr_init(&e->r, &e->status, &e->error, &e->a, &e->a_ref, &e->vfs, &e->quota,
+	        &e->conf.zones, &e->seq, SF_KV, SF_SRAW, NULL,
 	        &e->conf.scheme, &e->ei, &e->stat, crc);
 	sy_init(&e->rep);
 	sl_poolinit(&e->lp, &e->r);
 	sx_managerinit(&e->xm, &e->r, &e->a_sxv);
 	si_cachepool_init(&e->cachepool, &e->a_cache, &e->a_cachebranch);
-	se_scheduler_init(&e->sched, &e->o);
+	sc_init(&e->scheduler, &e->r, &e->conf.on_event, &e->lp);
 	return &e->o;
 error:
-	se_statusfree(&e->status);
+	sr_statusfree(&e->status);
 	ss_pagerfree(&e->pager);
 	free(e);
 	return NULL;

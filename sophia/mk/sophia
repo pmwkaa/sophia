@@ -15,6 +15,7 @@ SOPHIA_DIRS     = std \
                   index \
                   transaction \
                   repository \
+                  scheduler \
                   environment \
                   sophia
 

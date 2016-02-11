@@ -32,6 +32,7 @@ struct str {
 	ssinjection  injection;
 	srstat       stat;
 	srscheme     scheme;
+	srstatus     status;
 	srerror      error;
 	srseq        seq;
 	sf           fmt;

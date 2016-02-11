@@ -17,6 +17,7 @@
 #include <libsi.h>
 #include <libsx.h>
 #include <libsy.h>
+#include <libsc.h>
 #include <libse.h>
 
 enum {
@@ -263,7 +264,9 @@ se_document_getstring(so *o, const char *path, int *size)
 		return order;
 	}
 	case SE_DOCUMENT_TYPE: {
-		char *type = se_reqof(v->async_operation);
+		char *type = "on_read";
+		if (v->async_operation == 1)
+			type = "on_backup";
 		if (size)
 			*size = strlen(type);
 		return type;

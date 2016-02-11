@@ -30,12 +30,13 @@ typedef enum {
 struct sxindex {
 	ssrb      i;
 	uint32_t  dsn;
+	so       *object;
 	void     *ptr;
 	sr       *r;
 	sslist    link;
 };
 
-typedef int (*sxpreparef)(sx*, sv*, void*, void*);
+typedef int (*sxpreparef)(sx*, sv*, so*, void*);
 
 struct sx {
 	sxtype     type;
@@ -65,7 +66,7 @@ struct sxmanager {
 
 int       sx_managerinit(sxmanager*, sr*, ssa*);
 int       sx_managerfree(sxmanager*);
-int       sx_indexinit(sxindex*, sxmanager*, sr*, void*);
+int       sx_indexinit(sxindex*, sxmanager*, sr*, so*, void*);
 int       sx_indexset(sxindex*, uint32_t);
 int       sx_indexfree(sxindex*, sxmanager*);
 sx       *sx_find(sxmanager*, uint64_t);

@@ -421,6 +421,27 @@ match:
 	return 1;
 }
 
+static inline int
+si_plannerpeek_shutdown(siplanner *p, siplan *plan)
+{
+	si *index = p->i;
+	if (ssunlikely(index->shutdown))
+		return 0;
+	int status = sr_status(&index->status);
+	int is_drop = (status == SR_DROP);
+	int shutdown_pending =
+		(status == SR_SHUTDOWN) || is_drop;
+	if (ssunlikely(shutdown_pending)) {
+		if (si_refs(index) > 0)
+			return 2;
+		index->shutdown = 1;
+		if (is_drop)
+			plan->plan = SI_DROP;
+		return 1;
+	}
+	return 0;
+}
+
 int si_planner(siplanner *p, siplan *plan)
 {
 	switch (plan->plan) {
@@ -445,6 +466,9 @@ int si_planner(siplanner *p, siplan *plan)
 		return si_plannerpeek_anticache(p, plan);
 	case SI_LRU:
 		return si_plannerpeek_lru(p, plan);
+	case SI_SHUTDOWN:
+	case SI_DROP:
+		return si_plannerpeek_shutdown(p, plan);
 	}
 	return -1;
 }

@@ -11,6 +11,7 @@
 #include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
+#include <libso.h>
 #include <libsx.h>
 
 static inline int

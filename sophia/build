@@ -72,6 +72,7 @@ process $root $output "libsl.h" "log"
 process $root $output "libsd.h" "database"
 process $root $output "libsi.h" "index"
 process $root $output "libsy.h" "repository"
+process $root $output "libsc.h" "scheduler"
 process $root $output "libse.h" "environment"
 process $root $output "libsp.h" "sophia"
 

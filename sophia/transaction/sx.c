@@ -11,6 +11,7 @@
 #include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
+#include <libso.h>
 #include <libsx.h>
 
 static inline int
@@ -40,11 +41,12 @@ int sx_managerfree(sxmanager *m)
 	return 0;
 }
 
-int sx_indexinit(sxindex *i, sxmanager *m, sr *r, void *ptr)
+int sx_indexinit(sxindex *i, sxmanager *m, sr *r, so *object, void *ptr)
 {
 	ss_rbinit(&i->i);
 	ss_listinit(&i->link);
 	i->dsn = 0;
+	i->object = object;
 	i->ptr = ptr;
 	i->r = r;
 	ss_listappend(&m->indexes, &i->link);
@@ -326,7 +328,7 @@ sxstate sx_prepare(sx *x, sxpreparef prepare, void *arg)
 		if (sslikely(v->prev == NULL)) {
 			if (prepare && lsn != x->vlsn) {
 				sxindex *i = v->index;
-				if (prepare(x, &lv->v, arg, i->ptr))
+				if (prepare(x, &lv->v, i->object, arg))
 					return sx_promote(x, SXROLLBACK);
 			}
 			continue;

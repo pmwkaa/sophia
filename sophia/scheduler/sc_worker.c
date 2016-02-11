@@ -12,17 +12,16 @@
 #include <libsr.h>
 #include <libso.h>
 #include <libsv.h>
-#include <libsl.h>
 #include <libsd.h>
+#include <libsl.h>
 #include <libsi.h>
-#include <libsx.h>
 #include <libsy.h>
-#include <libse.h>
+#include <libsc.h>
 
-static inline seworker*
-se_workernew(sr *r, int id)
+static inline scworker*
+sc_workernew(sr *r, int id)
 {
-	seworker *w = ss_malloc(r->a, sizeof(seworker));
+	scworker *w = ss_malloc(r->a, sizeof(scworker));
 	if (ssunlikely(w == NULL)) {
 		sr_oom_malfunction(r->e);
 		return NULL;
@@ -37,14 +36,14 @@ se_workernew(sr *r, int id)
 }
 
 static inline void
-se_workerfree(seworker *w, sr *r)
+sc_workerfree(scworker *w, sr *r)
 {
 	sd_cfree(&w->dc, r);
 	ss_tracefree(&w->trace);
 	ss_free(r->a, w);
 }
 
-int se_workerpool_init(seworkerpool *p)
+int sc_workerpool_init(scworkerpool *p)
 {
 	ss_spinlockinit(&p->lock);
 	ss_listinit(&p->list);
@@ -54,19 +53,19 @@ int se_workerpool_init(seworkerpool *p)
 	return 0;
 }
 
-int se_workerpool_free(seworkerpool *p, sr *r)
+int sc_workerpool_free(scworkerpool *p, sr *r)
 {
 	sslist *i, *n;
 	ss_listforeach_safe(&p->list, i, n) {
-		seworker *w = sscast(i, seworker, link);
-		se_workerfree(w, r);
+		scworker *w = sscast(i, scworker, link);
+		sc_workerfree(w, r);
 	}
 	return 0;
 }
 
-int se_workerpool_new(seworkerpool *p, sr *r)
+int sc_workerpool_new(scworkerpool *p, sr *r)
 {
-	seworker *w = se_workernew(r, p->total);
+	scworker *w = sc_workernew(r, p->total);
 	if (ssunlikely(w == NULL))
 		return -1;
 	ss_listappend(&p->list, &w->link);

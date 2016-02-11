@@ -16,6 +16,7 @@ OPLATFORM = $(LIBSS_OBJECTS) \
             $(LIBSI_OBJECTS) \
             $(LIBSX_OBJECTS) \
             $(LIBSY_OBJECTS) \
+            $(LIBSC_OBJECTS) \
             $(LIBSE_OBJECTS) \
             $(SOPHIA_OBJECTS)
 O = $(OPLATFORM)

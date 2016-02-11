@@ -210,7 +210,9 @@ async_free0(void)
 	t( c != NULL );
 	o = sp_document(db);
 	sp_setint(o, "async", 1);
-	sp_get(c, o);
+	o = sp_get(c, o);
+	t( o != NULL );
+	sp_destroy(o);
 	t( sp_setint(env, "scheduler.run", 0) == 0 );
 
 	t( sp_destroy(env) == 0 );

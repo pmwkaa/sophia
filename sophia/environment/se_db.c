@@ -17,6 +17,7 @@
 #include <libsi.h>
 #include <libsx.h>
 #include <libsy.h>
+#include <libsc.h>
 #include <libse.h>
 
 static int
@@ -188,8 +189,7 @@ se_dbscheme_set(sedb *db)
 			         s->cache_sz);
 			return -1;
 		}
-		se_dbref(cache, 0);
-		db->cache = cache;
+		si_cache(&db->index, &cache->index);
 	}
 
 	db->r.scheme = &s->scheme;
@@ -204,10 +204,10 @@ se_dbopen(so *o)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
 	se *e = se_of(&db->o);
-	int status = se_status(&db->status);
-	if (status == SE_RECOVER)
+	int status = sr_status(&db->index.status);
+	if (status == SR_RECOVER)
 		goto online;
-	if (status != SE_OFFLINE)
+	if (status != SR_OFFLINE)
 		return -1;
 	int rc = se_dbscheme_set(db);
 	if (ssunlikely(rc == -1))
@@ -217,15 +217,14 @@ se_dbopen(so *o)
 	if (ssunlikely(rc == -1))
 		return -1;
 
-	if (se_status(&e->status) == SE_RECOVER)
+	if (sr_status(&e->status) == SR_RECOVER)
 		if (e->conf.recover != SE_RECOVER_NP)
 			return 0;
 online:
 	se_recoverend(db);
-	rc = se_scheduler_add(&e->sched, db);
+	rc = sc_add(&e->scheduler, &db->o, &db->index);
 	if (ssunlikely(rc == -1))
 		return -1;
-	db->scheduled = 1;
 	return 0;
 }
 
@@ -236,59 +235,60 @@ se_dbdestroy(so *o)
 	se *e = se_of(&db->o);
 	int rcret = 0;
 	int rc;
-	int status = se_status(&e->status);
-	if (status == SE_SHUTDOWN)
+	int status = sr_status(&e->status);
+	if (status == SR_SHUTDOWN)
 		goto shutdown;
 
 	uint32_t ref;
-	status = se_status(&db->status);
+	status = sr_status(&db->index.status);
 	switch (status) {
-	case SE_MALFUNCTION:
-	case SE_ONLINE:
-	case SE_RECOVER:
-		ref = se_dbunref(db, 0);
+	case SR_MALFUNCTION:
+	case SR_ONLINE:
+	case SR_RECOVER:
+		ref = si_unref(&db->index, SI_REFFE);
 		if (ref > 0)
 			return 0;
 		/* set last visible transaction id */
 		db->txn_max = sx_max(&e->xm);
-		if (db->scheduled) {
-			rc = se_scheduler_del(&e->sched, o);
-			if (ssunlikely(rc == -1))
-				return -1;
-		}
+		/* schedule database for background drop/shutdown */
+		status = SR_SHUTDOWN;
+		if (db->dropped)
+			status = SR_DROP;
 		so_listdel(&e->db, &db->o);
-		ss_spinlock(&e->dblock);
-		so_listadd(&e->db_shutdown, &db->o);
-		ss_spinunlock(&e->dblock);
-		se_statusset(&db->status, SE_SHUTDOWN);
+		ss_spinlock(&e->dbshutdown_lock);
+		so_listadd(&e->dbshutdown, &db->o);
+		ss_spinunlock(&e->dbshutdown_lock);
+		sr_statusset(&db->index.status, status);
+		sc_ctl_shutdown(&e->scheduler);
 		return 0;
-	case SE_SHUTDOWN:
+	case SR_SHUTDOWN:
+	case SR_DROP:
 		/* this intended to be called from a
 		 * background gc task */
-		assert(se_dbrefof(db, 0) == 0);
-		ref = se_dbrefof(db, 1);
+		assert(si_refof(&db->index, SI_REFFE) == 0);
+		ref = si_refof(&db->index, SI_REFBE);
 		if (ref > 0)
 			return 0;
-		goto shutdown;
-	case SE_OFFLINE:
+		ss_spinlock(&e->dbshutdown_lock);
+		so_listdel(&e->dbshutdown, &db->o);
+		ss_spinunlock(&e->dbshutdown_lock);
+		break;
+	case SR_OFFLINE:
 		so_listdel(&e->db, &db->o);
-		goto shutdown;
+		break;
+
 	default: assert(0);
 	}
 
 shutdown:;
-	if (db->cache)
-		se_dbunref(db->cache, 0);
 	sx_indexfree(&db->coindex, &e->xm);
 	rc = si_close(&db->index);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
 	si_schemefree(&db->scheme, &db->r);
 	sd_cfree(&db->dc, &db->r);
-	se_statusfree(&db->status);
-	ss_spinlockfree(&db->reflock);
 	se_mark_destroyed(&db->o);
-	ss_free(&e->a_db, db);
+	ss_free(&e->a, db);
 	return rcret;
 }
 
@@ -296,8 +296,8 @@ static int
 se_dbdrop(so *o)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
-	int status = se_status(&db->status);
-	if (ssunlikely(! se_statusactive_is(status)))
+	int status = sr_status(&db->index.status);
+	if (ssunlikely(! sr_statusactive_is(status)))
 		return -1;
 	if (ssunlikely(db->dropped))
 		return 0;
@@ -306,6 +306,51 @@ se_dbdrop(so *o)
 		return -1;
 	db->dropped = 1;
 	return 0;
+}
+
+so *se_dbresult(se *e, scread *r, int async)
+{
+	sv result;
+	sv_init(&result, &sv_vif, r->result, NULL);
+	sedocument *v =
+		(sedocument*)se_document_new(e, r->db, &result, async);
+	if (ssunlikely(v == NULL))
+		return NULL;
+	r->result = NULL;
+	v->async_operation = 0;
+	v->async_status    = r->rc;
+	v->async_seq       = r->id;
+	v->async_arg       = r->arg.arg;
+	v->cache_only      = r->arg.cache_only;
+	v->read_disk       = r->read_disk;
+	v->read_cache      = r->read_cache;
+	v->read_latency    = 0;
+	if (result.v) {
+		v->read_latency = ss_utime() - r->start;
+		sr_statget(&e->stat,
+		           v->read_latency,
+		           v->read_disk,
+		           v->read_cache);
+	}
+
+	/* propagate current document settings to
+	 * the result one */
+	v->orderset = 1;
+	v->order = r->arg.order;
+	if (v->order == SS_GTE)
+		v->order = SS_GT;
+	else
+	if (v->order == SS_LTE)
+		v->order = SS_LT;
+	/* reuse prefix document */
+	v->vprefix.v = r->arg.vprefix.v;
+	if (v->vprefix.v) {
+		r->arg.vprefix.v = NULL;
+		void *vptr = sv_vpointer(v->vprefix.v);
+		v->prefix = sf_key(vptr, 0);
+		v->prefixsize = sf_keysize(vptr, 0);
+	}
+	return &v->o;
 }
 
 void*
@@ -318,7 +363,7 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 		sr_error(&e->error, "%s", "bad document parent");
 		return NULL;
 	}
-	if (ssunlikely(! se_online(&db->status)))
+	if (ssunlikely(! sr_online(&db->index.status)))
 		goto e0;
 	int cache_only  = o->cache_only;
 	int async       = o->async;
@@ -363,7 +408,7 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 				sv_vunref(&db->r, vup.v);
 			if (async) {
 				sedocument *match = (sedocument*)ret;
-				match->async_operation = SE_REQREAD;
+				match->async_operation = 0;
 				match->async_status    = 1;
 				match->async_arg       = async_arg;
 				match->async_seq       = 0;
@@ -392,10 +437,10 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 	}
 
 	/* prepare request */
-	sereq q;
-	se_reqinit(e, &q, SE_REQREAD, &db->o, &db->o);
+	scread q;
+	sc_readopen(&q, &db->r, &db->o, &db->index);
 	q.start = start;
-	sereqarg *arg = &q.arg;
+	screadarg *arg = &q.arg;
 	arg->v          = vp;
 	arg->vup        = vup;
 	arg->vprefix    = vprefix;
@@ -421,25 +466,26 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 
 	/* asynchronous */
 	if (async) {
-		o = (sedocument*)se_reqresult(&q, 1);
+		o = (sedocument*)se_dbresult(e, &q, 1);
 		if (ssunlikely(o == NULL)) {
-			se_reqend(&q);
+			sc_readclose(&q);
 			return NULL;
 		}
-		sereq *req = se_reqnew(e, &q, 1);
+		scread *req = (scread*)
+			sc_readpool_new(&e->scheduler.rp, &q.o, 1);
 		if (ssunlikely(req == NULL)) {
 			so_destroy(&o->o);
-			se_reqend(&q);
+			sc_readclose(&q);
 			return NULL;
 		}
 		return o;
 	}
 
 	/* synchronous */
-	rc = se_execute_read(&q);
+	rc = sc_read(&q, &e->scheduler);
 	if (rc == 1)
-		o = (sedocument*)se_reqresult(&q, async);
-	se_reqend(&q);
+		o = (sedocument*)se_dbresult(e, &q, async);
+	sc_readclose(&q);
 	return o;
 e2: if (vprf)
 		sv_vunref(&db->r, vprf);
@@ -459,7 +505,7 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 		sr_error(&e->error, "%s", "bad document parent");
 		return -1;
 	}
-	if (ssunlikely(! se_online(&db->status)))
+	if (ssunlikely(! sr_online(&db->index.status)))
 		goto error;
 	if (ssunlikely(db->scheme.cache_mode))
 		goto error;
@@ -486,21 +532,13 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 	default: break;
 	}
 
-	/* execute req */
-	sereq q;
-	se_reqinit(e, &q, SE_REQWRITE, &db->o, &db->o);
-	sereqarg *arg = &q.arg;
-	arg->vlsn_generate = 1;
-	arg->lsn = 0;
-	arg->recover = 0;
-	arg->log = &x.log;
-	se_execute_write(&q);
-	if (ssunlikely(q.rc == -1))
+	/* write wal and index */
+	rc = sc_write(&e->scheduler, &x.log, 0, 0);
+	if (ssunlikely(rc == -1))
 		sx_rollback(&x);
-	se_reqend(&q);
 
 	sx_gc(&x);
-	return q.rc;
+	return rc;
 error:
 	so_destroy(&o->o);
 	return -1;
@@ -612,36 +650,31 @@ static soif sedbif =
 
 so *se_dbnew(se *e, char *name)
 {
-	sedb *o = ss_malloc(&e->a_db, sizeof(sedb));
+	sedb *o = ss_malloc(&e->a, sizeof(sedb));
 	if (ssunlikely(o == NULL)) {
 		sr_oom(&e->error);
 		return NULL;
 	}
 	memset(o, 0, sizeof(*o));
 	so_init(&o->o, &se_o[SEDB], &sedbif, &e->o, &e->o);
-	se_statusinit(&o->status);
-	se_statusset(&o->status, SE_OFFLINE);
-	o->r         = e->r;
-	o->r.scheme  = &o->scheme.scheme;
-	o->created   = 0;
-	o->scheduled = 0;
-	o->dropped   = 0;
+	o->r        = e->r;
+	o->r.scheme = &o->scheme.scheme;
+	o->created  = 0;
+	o->dropped  = 0;
 	memset(&o->rtp, 0, sizeof(o->rtp));
 	int rc = se_dbscheme_init(o, name);
 	if (ssunlikely(rc == -1)) {
-		ss_free(&e->a_db, o);
+		ss_free(&e->a, o);
 		return NULL;
 	}
 	rc = si_init(&o->index, &o->r);
 	if (ssunlikely(rc == -1)) {
 		si_schemefree(&o->scheme, &o->r);
-		ss_free(&e->a_db, o);
+		ss_free(&e->a, o);
 		return NULL;
 	}
-	sx_indexinit(&o->coindex, &e->xm, &o->r, o);
-	ss_spinlockinit(&o->reflock);
-	o->ref_be = 0;
-	o->ref = 0;
+	sr_statusset(&o->index.status, SR_OFFLINE);
+	sx_indexinit(&o->coindex, &e->xm, &o->r, &o->o, &o->index);
 	o->txn_min = sx_min(&e->xm);
 	o->txn_max = o->txn_min;
 	sd_cinit(&o->dc);
@@ -670,53 +703,6 @@ so *se_dbmatch_id(se *e, uint32_t id)
 	return NULL;
 }
 
-void se_dbref(sedb *o, int be)
-{
-	ss_spinlock(&o->reflock);
-	if (be)
-		o->ref_be++;
-	else
-		o->ref++;
-	ss_spinunlock(&o->reflock);
-}
-
-uint32_t se_dbunref(sedb *o, int be)
-{
-	uint32_t prev_ref = 0;
-	ss_spinlock(&o->reflock);
-	if (be) {
-		prev_ref = o->ref_be;
-		if (o->ref_be > 0)
-			o->ref_be--;
-	} else {
-		prev_ref = o->ref;
-		if (o->ref > 0)
-			o->ref--;
-	}
-	ss_spinunlock(&o->reflock);
-	return prev_ref;
-}
-
-uint32_t se_dbrefof(sedb *o, int be)
-{
-	uint32_t ref = 0;
-	ss_spinlock(&o->reflock);
-	if (be)
-		ref = o->ref_be;
-	else
-		ref = o->ref;
-	ss_spinunlock(&o->reflock);
-	return ref;
-}
-
-int se_dbgarbage(sedb *o)
-{
-	ss_spinlock(&o->reflock);
-	int v = o->ref_be == 0 && o->ref == 0;
-	ss_spinunlock(&o->reflock);
-	return v;
-}
-
 int se_dbvisible(sedb *db, uint64_t txn)
 {
 	return db->txn_min < txn && txn <= db->txn_max;
@@ -727,9 +713,9 @@ void se_dbbind(se *e)
 	sslist *i;
 	ss_listforeach(&e->db.list, i) {
 		sedb *db = (sedb*)sscast(i, so, link);
-		int status = se_status(&db->status);
-		if (se_statusactive_is(status))
-			se_dbref(db, 1);
+		int status = sr_status(&db->index.status);
+		if (sr_statusactive_is(status))
+			si_ref(&db->index, SI_REFBE);
 	}
 }
 
@@ -738,25 +724,20 @@ void se_dbunbind(se *e, uint64_t txn)
 	sslist *i;
 	ss_listforeach(&e->db.list, i) {
 		sedb *db = (sedb*)sscast(i, so, link);
-		int status = se_status(&db->status);
-		if (status != SE_ONLINE)
+		int status = sr_status(&db->index.status);
+		if (status != SR_ONLINE)
 			continue;
-		if (txn > db->txn_min)
-			se_dbunref(db, 1);
+		if (se_dbvisible(db, txn))
+			si_unref(&db->index, SI_REFBE);
 	}
-	ss_spinlock(&e->dblock);
-	ss_listforeach(&e->db_shutdown.list, i) {
+
+	ss_spinlock(&e->dbshutdown_lock);
+	ss_listforeach(&e->dbshutdown.list, i) {
 		sedb *db = (sedb*)sscast(i, so, link);
 		if (se_dbvisible(db, txn))
-			se_dbunref(db, 1);
+			si_unref(&db->index, SI_REFBE);
 	}
-	ss_spinunlock(&e->dblock);
-}
-
-int se_dbmalfunction(sedb *o)
-{
-	se_statusset(&o->status, SE_MALFUNCTION);
-	return -1;
+	ss_spinunlock(&e->dbshutdown_lock);
 }
 
 int se_dbv(sedb *db, sedocument *o, int search, svv **v)

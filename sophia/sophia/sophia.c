@@ -17,6 +17,7 @@
 #include <libsi.h>
 #include <libsx.h>
 #include <libsy.h>
+#include <libsc.h>
 #include <libse.h>
 #include <libsp.h>
 
@@ -127,7 +128,7 @@ SP_API int sp_error(void *ptr)
 SP_API int sp_service(void *ptr)
 {
 	so *o = sp_cast(ptr, __func__);
-	return se_scheduler_call(o->env);
+	return se_service(o->env);
 }
 
 SP_API void *sp_poll(void *ptr)

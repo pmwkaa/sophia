@@ -17,6 +17,7 @@
 #include <libsi.h>
 #include <libsx.h>
 #include <libsy.h>
+#include <libsc.h>
 #include <libse.h>
 
 static inline int
@@ -36,7 +37,7 @@ se_confv_offline(srconf *c, srconfstmt *s)
 {
 	se *e = s->ptr;
 	if (s->op == SR_WRITE) {
-		if (se_status(&e->status)) {
+		if (sr_status(&e->status)) {
 			sr_error(s->r->e, "write to %s is offline-only", s->path);
 			return -1;
 		}
@@ -104,7 +105,7 @@ se_confcompaction_set(srconf *c ssunused, srconfstmt *s)
 		sr_error(&e->error, "%s", "bad operation");
 		return -1;
 	}
-	if (ssunlikely(se_statusactive(&e->status))) {
+	if (ssunlikely(sr_statusactive(&e->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
@@ -146,7 +147,6 @@ se_confcompaction(se *e, seconfrt *rt ssunused, srconf **pc)
 		sr_c(&p, pc, se_confv_offline, "snapshot_period", SS_U32, &z->snapshot_period);
 		sr_c(&p, pc, se_confv_offline, "backup_prio", SS_U32, &z->backup_prio);
 		sr_c(&p, pc, se_confv_offline, "gc_wm", SS_U32, &z->gc_wm);
-		sr_c(&p, pc, se_confv_offline, "gc_db_prio", SS_U32, &z->gc_db_prio);
 		sr_c(&p, pc, se_confv_offline, "gc_prio", SS_U32, &z->gc_prio);
 		sr_c(&p, pc, se_confv_offline, "gc_period", SS_U32, &z->gc_period);
 		sr_c(&p, pc, se_confv_offline, "lru_prio", SS_U32, &z->lru_prio);
@@ -163,7 +163,7 @@ se_confcompaction(se *e, seconfrt *rt ssunused, srconf **pc)
 static inline int
 se_confscheduler_trace(srconf *c, srconfstmt *s)
 {
-	seworker *w = c->value;
+	scworker *w = c->value;
 	char tracesz[128];
 	char *trace;
 	int tracelen = ss_tracecopy(&w->trace, tracesz, sizeof(tracesz));
@@ -189,7 +189,7 @@ se_confscheduler_checkpoint(srconf *c, srconfstmt *s)
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
 	se *e = s->ptr;
-	return se_scheduler_checkpoint(e);
+	return sc_ctl_checkpoint(&e->scheduler);
 }
 
 static inline int
@@ -198,7 +198,7 @@ se_confscheduler_snapshot(srconf *c, srconfstmt *s)
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
 	se *e = s->ptr;
-	return se_scheduler_snapshot(e);
+	return sc_ctl_snapshot(&e->scheduler);
 }
 
 static inline int
@@ -207,7 +207,7 @@ se_confscheduler_anticache(srconf *c, srconfstmt *s)
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
 	se *e = s->ptr;
-	return se_scheduler_anticache(e);
+	return sc_ctl_anticache(&e->scheduler);
 }
 
 static inline int
@@ -216,7 +216,7 @@ se_confscheduler_on_recover(srconf *c, srconfstmt *s)
 	se *e = s->ptr;
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
-	if (ssunlikely(se_statusactive(&e->status))) {
+	if (ssunlikely(sr_statusactive(&e->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
@@ -231,7 +231,7 @@ se_confscheduler_on_recover_arg(srconf *c, srconfstmt *s)
 	se *e = s->ptr;
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
-	if (ssunlikely(se_statusactive(&e->status))) {
+	if (ssunlikely(sr_statusactive(&e->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
@@ -245,7 +245,7 @@ se_confscheduler_on_event(srconf *c, srconfstmt *s)
 	se *e = s->ptr;
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
-	if (ssunlikely(se_statusactive(&e->status))) {
+	if (ssunlikely(sr_statusactive(&e->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
@@ -259,7 +259,7 @@ se_confscheduler_on_event_arg(srconf *c, srconfstmt *s)
 	se *e = s->ptr;
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
-	if (ssunlikely(se_statusactive(&e->status))) {
+	if (ssunlikely(sr_statusactive(&e->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
@@ -273,7 +273,7 @@ se_confscheduler_gc(srconf *c, srconfstmt *s)
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
 	se *e = s->ptr;
-	return se_scheduler_gc(e);
+	return sc_ctl_gc(&e->scheduler);
 }
 
 static inline int
@@ -282,7 +282,7 @@ se_confscheduler_lru(srconf *c, srconfstmt *s)
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
 	se *e = s->ptr;
-	return se_scheduler_lru(e);
+	return sc_ctl_lru(&e->scheduler);
 }
 
 static inline int
@@ -291,7 +291,8 @@ se_confscheduler_run(srconf *c, srconfstmt *s)
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
 	se *e = s->ptr;
-	return se_scheduler_call(e);
+	uint64_t vlsn = sx_vlsn(&e->xm);
+	return sc_ctl_call(&e->scheduler, vlsn);
 }
 
 static inline srconf*
@@ -326,8 +327,8 @@ se_confscheduler(se *e, seconfrt *rt, srconf **pc)
 	sr_c(&p, pc, se_confscheduler_run, "run", SS_FUNCTION, NULL);
 	prev = p;
 	sslist *i;
-	ss_listforeach(&e->sched.workers.list, i) {
-		seworker *w = sscast(i, seworker, link);
+	ss_listforeach(&e->scheduler.wp.list, i) {
+		scworker *w = sscast(i, scworker, link);
 		srconf *worker = *pc;
 		p = NULL;
 		sr_C(&p, pc, se_confscheduler_trace, "trace", SS_STRING, w, SR_RO, NULL);
@@ -470,7 +471,7 @@ se_confdb_get(srconf *c, srconfstmt *s)
 	}
 	assert(c->ptr != NULL);
 	sedb *db = c->ptr;
-	se_dbref(db, 0);
+	si_ref(&db->index, SI_REFFE);
 	*(void**)s->value = db;
 	return 0;
 }
@@ -481,7 +482,7 @@ se_confdb_upsert(srconf *c, srconfstmt *s)
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
 	sedb *db = c->ptr;
-	if (ssunlikely(se_statusactive(&db->status))) {
+	if (ssunlikely(se_dbactive(db))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
@@ -497,7 +498,7 @@ se_confdb_upsertarg(srconf *c, srconfstmt *s)
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
 	sedb *db = c->ptr;
-	if (ssunlikely(se_statusactive(&db->status))) {
+	if (ssunlikely(se_dbactive(db))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
@@ -509,7 +510,7 @@ static inline int
 se_confdb_status(srconf *c, srconfstmt *s)
 {
 	sedb *db = c->value;
-	char *status = se_statusof(&db->status);
+	char *status = sr_statusof(&db->index.status);
 	srconf conf = {
 		.key      = c->key,
 		.flags    = c->flags,
@@ -528,7 +529,9 @@ se_confdb_branch(srconf *c, srconfstmt *s)
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
 	sedb *db = c->value;
-	return se_scheduler_branch(db);
+	se *e = se_of(&db->o);
+	uint64_t vlsn = sx_vlsn(&e->xm);
+	return sc_ctl_branch(&e->scheduler, vlsn, &db->index);
 }
 
 static inline int
@@ -537,7 +540,9 @@ se_confdb_compact(srconf *c, srconfstmt *s)
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
 	sedb *db = c->value;
-	return se_scheduler_compact(db);
+	se *e = se_of(&db->o);
+	uint64_t vlsn = sx_vlsn(&e->xm);
+	return sc_ctl_compact(&e->scheduler, vlsn, &db->index);
 }
 
 static inline int
@@ -546,7 +551,9 @@ se_confdb_compact_index(srconf *c, srconfstmt *s)
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
 	sedb *db = c->value;
-	return se_scheduler_compact(db);
+	se *e = se_of(&db->o);
+	uint64_t vlsn = sx_vlsn(&e->xm);
+	return sc_ctl_compact_index(&e->scheduler, vlsn, &db->index);
 }
 
 static inline int
@@ -554,7 +561,7 @@ se_confv_dboffline(srconf *c, srconfstmt *s)
 {
 	sedb *db = c->ptr;
 	if (s->op == SR_WRITE) {
-		if (se_status(&db->status)) {
+		if (se_dbactive(db)) {
 			sr_error(s->r->e, "write to %s is offline-only", s->path);
 			return -1;
 		}
@@ -572,7 +579,7 @@ se_confdb_index(srconf *c ssunused, srconfstmt *s)
 		sr_error(&e->error, "%s", "bad operation");
 		return -1;
 	}
-	if (ssunlikely(se_statusactive(&db->status))) {
+	if (ssunlikely(se_dbactive(db))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
@@ -608,7 +615,7 @@ se_confdb_key(srconf *c, srconfstmt *s)
 	se *e = se_of(&db->o);
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
-	if (ssunlikely(se_statusactive(&db->status))) {
+	if (ssunlikely(se_dbactive(db))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
@@ -767,7 +774,7 @@ se_confbackup_run(srconf *c, srconfstmt *s)
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
 	se *e = s->ptr;
-	return se_scheduler_backup(e);
+	return sc_ctl_backup(&e->scheduler);
 }
 
 static inline srconf*
@@ -793,7 +800,6 @@ se_confdebug_oom(srconf *c, srconfstmt *s)
 		return rc;
 
 	ss_aclose(&e->a);
-	ss_aclose(&e->a_db);
 	ss_aclose(&e->a_document);
 	ss_aclose(&e->a_cursor);
 	ss_aclose(&e->a_viewdb);
@@ -803,12 +809,10 @@ se_confdebug_oom(srconf *c, srconfstmt *s)
 	ss_aclose(&e->a_confcursor);
 	ss_aclose(&e->a_confkv);
 	ss_aclose(&e->a_tx);
-	ss_aclose(&e->a_req);
 	ss_aclose(&e->a_sxv);
 
 	ss_aopen(&e->a_oom, &ss_ooma, e->ei.oom);
 	e->a = e->a_oom;
-	e->a_db = e->a_oom;
 	e->a_document = e->a_oom;
 	e->a_cursor = e->a_oom;
 	e->a_viewdb = e->a_oom;
@@ -817,7 +821,6 @@ se_confdebug_oom(srconf *c, srconfstmt *s)
 	e->a_cache = e->a_oom;
 	e->a_confkv = e->a_oom;
 	e->a_tx = e->a_oom;
-	e->a_req = e->a_oom;
 	e->a_sxv = e->a_oom;
 	return 0;
 }
@@ -915,22 +918,22 @@ se_confrt(se *e, seconfrt *rt)
 	rt->pager_pool_size = e->pager.pool_size;
 
 	/* scheduler */
-	ss_mutexlock(&e->sched.lock);
-	rt->checkpoint_active    = e->sched.checkpoint;
-	rt->checkpoint_lsn_last  = e->sched.checkpoint_lsn_last;
-	rt->checkpoint_lsn       = e->sched.checkpoint_lsn;
-	rt->snapshot_active      = e->sched.snapshot;
-	rt->snapshot_ssn         = e->sched.snapshot_ssn;
-	rt->snapshot_ssn_last    = e->sched.snapshot_ssn_last;
-	rt->anticache_active     = e->sched.anticache;
-	rt->anticache_asn        = e->sched.anticache_asn;
-	rt->anticache_asn_last   = e->sched.anticache_asn_last;
-	rt->backup_active        = e->sched.backup;
-	rt->backup_last          = e->sched.backup_bsn_last;
-	rt->backup_last_complete = e->sched.backup_bsn_last_complete;
-	rt->gc_active            = e->sched.gc;
-	rt->lru_active           = e->sched.lru;
-	ss_mutexunlock(&e->sched.lock);
+	ss_mutexlock(&e->scheduler.lock);
+	rt->checkpoint_active    = e->scheduler.checkpoint;
+	rt->checkpoint_lsn_last  = e->scheduler.checkpoint_lsn_last;
+	rt->checkpoint_lsn       = e->scheduler.checkpoint_lsn;
+	rt->snapshot_active      = e->scheduler.snapshot;
+	rt->snapshot_ssn         = e->scheduler.snapshot_ssn;
+	rt->snapshot_ssn_last    = e->scheduler.snapshot_ssn_last;
+	rt->anticache_active     = e->scheduler.anticache;
+	rt->anticache_asn        = e->scheduler.anticache_asn;
+	rt->anticache_asn_last   = e->scheduler.anticache_asn_last;
+	rt->backup_active        = e->scheduler.backup;
+	rt->backup_last          = e->scheduler.backup_bsn_last;
+	rt->backup_last_complete = e->scheduler.backup_bsn_last_complete;
+	rt->gc_active            = e->scheduler.gc;
+	rt->lru_active           = e->scheduler.lru;
+	ss_mutexunlock(&e->scheduler.lock);
 
 	int v = ss_quotaused_percent(&e->quota);
 	srzone *z = sr_zonemap(&e->conf.zones, v);
@@ -949,12 +952,12 @@ se_confrt(se *e, seconfrt *rt)
 	rt->tx_ro = e->xm.count_rd;
 	rt->tx_gc_queue = e->xm.count_gc;
 
-	ss_mutexlock(&e->reqlock);
-	rt->req_queue  = e->req.n;
-	rt->req_ready  = e->reqready.n;
-	rt->req_active = e->reqactive.n;
+	ss_mutexlock(&e->scheduler.rp.lock);
+	rt->req_queue  = e->scheduler.rp.list.n;
+	rt->req_ready  = e->scheduler.rp.list_ready.n;
+	rt->req_active = e->scheduler.rp.list_active.n;
 	rt->reqs = rt->req_queue + rt->req_ready + rt->req_active;
-	ss_mutexunlock(&e->reqlock);
+	ss_mutexunlock(&e->scheduler.rp.lock);
 
 	ss_spinlock(&e->stat.lock);
 	rt->stat = e->stat;
@@ -1127,7 +1130,6 @@ int se_confinit(seconf *c, so *e)
 		.anticache_period  = 0,
 		.snapshot_period   = 0,
 		.backup_prio       = 1,
-		.gc_db_prio        = 1,
 		.gc_prio           = 1,
 		.gc_period         = 60,
 		.gc_wm             = 30,
@@ -1148,7 +1150,6 @@ int se_confinit(seconf *c, so *e)
 		.anticache_period  = 0,
 		.snapshot_period   = 0,
 		.backup_prio       = 0,
-		.gc_db_prio        = 0,
 		.gc_prio           = 0,
 		.gc_period         = 0,
 		.gc_wm             = 0,

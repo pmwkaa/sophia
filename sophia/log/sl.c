@@ -208,14 +208,14 @@ int sl_poolrotate(slpool *p)
 	return 0;
 }
 
-int sl_poolrotate_ready(slpool *p, int wm)
+int sl_poolrotate_ready(slpool *p)
 {
 	if (ssunlikely(! p->conf->enable))
 		return 0;
 	ss_spinlock(&p->lock);
 	assert(p->n > 0);
 	sl *l = sscast(p->list.prev, sl, link);
-	int ready = ss_gcrotateready(&l->gc, wm);
+	int ready = ss_gcrotateready(&l->gc, p->conf->rotatewm);
 	ss_spinunlock(&p->lock);
 	return ready;
 }

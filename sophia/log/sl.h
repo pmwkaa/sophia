@@ -44,7 +44,7 @@ struct sltx {
 int sl_poolinit(slpool*, sr*);
 int sl_poolopen(slpool*, slconf*);
 int sl_poolrotate(slpool*);
-int sl_poolrotate_ready(slpool*, int);
+int sl_poolrotate_ready(slpool*);
 int sl_poolshutdown(slpool*);
 int sl_poolgc_enable(slpool*, int);
 int sl_poolgc(slpool*);

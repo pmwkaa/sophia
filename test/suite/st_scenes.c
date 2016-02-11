@@ -59,6 +59,7 @@ void st_scene_init(stscene *s ssunused)
 	sr_schemeinit(&st_r.scheme);
 	memset(&st_r.injection, 0, sizeof(st_r.injection));
 	memset(&st_r.stat, 0, sizeof(st_r.stat));
+	sr_statusinit(&st_r.status);
 	sr_errorinit(&st_r.error);
 	sr_seqinit(&st_r.seq);
 	st_r.crc = ss_crc32c_function();
@@ -81,11 +82,13 @@ void st_scene_scheme_u32(stscene *s ssunused)
 
 void st_scene_rt(stscene *s ssunused)
 {
-	sr_init(&st_r.r, &st_r.error,
+	sr_init(&st_r.r, &st_r.status,
+	        &st_r.error,
 	        &st_r.a,
 	        &st_r.aref,
 	        &st_r.vfs,
 	        NULL, /* quota */
+	        NULL, /* zonemap */
 	        &st_r.seq,
 	         st_r.fmt,
 	         st_r.fmt_storage,
@@ -109,6 +112,7 @@ void st_scene_gc(stscene *s ssunused)
 	ss_aclose(&st_r.aref);
 	ss_vfsfree(&st_r.vfs);
 	sr_errorfree(&st_r.error);
+	sr_statusfree(&st_r.status);
 	sr_seqfree(&st_r.seq);
 	sr_schemefree(&st_r.scheme, &st_r.a);
 }

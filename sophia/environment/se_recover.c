@@ -17,6 +17,7 @@
 #include <libsi.h>
 #include <libsx.h>
 #include <libsy.h>
+#include <libsc.h>
 #include <libse.h>
 
 static inline void
@@ -35,12 +36,12 @@ se_recoverf(se *e, char *fmt, ...)
 int se_recoverbegin(sedb *db)
 {
 	/* open and recover repository */
-	se_statusset(&db->status, SE_RECOVER);
+	sr_statusset(&db->index.status, SR_RECOVER);
 	se *e = se_of(&db->o);
 	/* do not allow to recover existing databases
 	 * during online (only create), since logpool
 	 * reply is required. */
-	if (se_status(&e->status) == SE_ONLINE)
+	if (sr_status(&e->status) == SR_ONLINE)
 		if (e->conf.recover != SE_RECOVER_NP)
 			db->scheme.path_fail_on_exists = 1;
 	se_recoverf(e, "loading database '%s'", db->scheme.path);
@@ -50,13 +51,13 @@ int se_recoverbegin(sedb *db)
 	db->created = rc;
 	return 0;
 error:
-	se_dbmalfunction(db);
+	sr_statusset(&db->index.status, SR_MALFUNCTION);
 	return -1;
 }
 
 int se_recoverend(sedb *db)
 {
-	se_statusset(&db->status, SE_ONLINE);
+	sr_statusset(&db->index.status, SR_ONLINE);
 	return 0;
 }
 
@@ -179,7 +180,7 @@ int se_recover(se *e)
 		goto error;
 	return 0;
 error:
-	se_statusset(&e->status, SE_MALFUNCTION);
+	sr_statusset(&e->status, SR_MALFUNCTION);
 	return -1;
 }
 

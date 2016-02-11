@@ -10,21 +10,15 @@
 */
 
 #include <se_o.h>
-#include <se_worker.h>
-#include <se_status.h>
 #include <se_conf.h>
 #include <se_confcursor.h>
-#include <se_scheduler.h>
 #include <se.h>
-#include <se_req.h>
 #include <se_document.h>
 #include <se_db.h>
 #include <se_tx.h>
 #include <se_viewdb.h>
 #include <se_view.h>
 #include <se_cursor.h>
-#include <se_execute.h>
 #include <se_recover.h>
-#include <se_scheduler.h>
 
 #endif

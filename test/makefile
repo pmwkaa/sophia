@@ -82,6 +82,7 @@ SOPHIA_DIRS    = std format runtime object version log database \
                  index \
                  transaction \
                  repository \
+                 scheduler \
                  environment \
                  sophia
 SOPHIA_INCLUDE = $(addprefix -I../sophia/, $(SOPHIA_DIRS))

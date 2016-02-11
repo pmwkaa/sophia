@@ -1,5 +1,5 @@
-#ifndef SE_WORKER_H_
-#define SE_WORKER_H_
+#ifndef SC_WORKER_H_
+#define SC_WORKER_H_
 
 /*
  * sophia database
@@ -9,10 +9,10 @@
  * BSD License
 */
 
-typedef struct seworkerpool seworkerpool;
-typedef struct seworker seworker;
+typedef struct scworkerpool scworkerpool;
+typedef struct scworker scworker;
 
-struct seworker {
+struct scworker {
 	char name[16];
 	sstrace trace;
 	sdc dc;
@@ -20,7 +20,7 @@ struct seworker {
 	sslist linkidle;
 } sspacked;
 
-struct seworkerpool {
+struct scworkerpool {
 	ssspinlock lock;
 	sslist list;
 	sslist listidle;
@@ -28,33 +28,33 @@ struct seworkerpool {
 	int idle;
 };
 
-int se_workerpool_init(seworkerpool*);
-int se_workerpool_free(seworkerpool*, sr*);
-int se_workerpool_new(seworkerpool*, sr*);
+int sc_workerpool_init(scworkerpool*);
+int sc_workerpool_free(scworkerpool*, sr*);
+int sc_workerpool_new(scworkerpool*, sr*);
 
-static inline seworker*
-se_workerpool_pop(seworkerpool *p, sr *r)
+static inline scworker*
+sc_workerpool_pop(scworkerpool *p, sr *r)
 {
 	ss_spinlock(&p->lock);
 	if (sslikely(p->idle >= 1))
 		goto pop_idle;
-	int rc = se_workerpool_new(p, r);
+	int rc = sc_workerpool_new(p, r);
 	if (ssunlikely(rc == -1)) {
 		ss_spinunlock(&p->lock);
 		return NULL;
 	}
 	assert(p->idle >= 1);
 pop_idle:;
-	seworker *w =
+	scworker *w =
 		sscast(ss_listpop(&p->listidle),
-		       seworker, linkidle);
+		       scworker, linkidle);
 	p->idle--;
 	ss_spinunlock(&p->lock);
 	return w;
 }
 
 static inline void
-se_workerpool_push(seworkerpool *p, seworker *w)
+sc_workerpool_push(scworkerpool *p, scworker *w)
 {
 	ss_spinlock(&p->lock);
 	ss_listpush(&p->listidle, &w->linkidle);

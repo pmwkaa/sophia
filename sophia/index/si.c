@@ -16,6 +16,7 @@
 
 int si_init(si *i, sr *r)
 {
+	sr_statusinit(&i->status);
 	int rc = si_plannerinit(&i->p, r->a, i);
 	if (ssunlikely(rc == -1))
 		return -1;
@@ -37,7 +38,12 @@ int si_init(si *i, sr *r)
 	i->snapshot_run = 0;
 	i->snapshot     = 0;
 	i->destroyed    = 0;
+	i->cache        = NULL;
 	i->r            = r;
+	i->shutdown     = 0;
+	ss_spinlockinit(&i->ref_lock);
+	i->ref_fe       = 0;
+	i->ref_be       = 0;
 	return 0;
 }
 
@@ -62,7 +68,11 @@ int si_close(si *i)
 	ss_buffree(&i->readbuf, i->r->a);
 	si_plannerfree(&i->p, i->r->a);
 	ss_mutexfree(&i->lock);
+	ss_spinlockfree(&i->ref_lock);
+	sr_statusfree(&i->status);
 	i->destroyed = 1;
+	if (i->cache)
+		si_unref(i->cache, SI_REFBE);
 	return rcret;
 }
 
@@ -96,6 +106,62 @@ int si_remove(si *i, sinode *n)
 int si_replace(si *i, sinode *o, sinode *n)
 {
 	ss_rbreplace(&i->i, &o->node, &n->node);
+	return 0;
+}
+
+int si_refs(si *i)
+{
+	ss_spinlock(&i->ref_lock);
+	int v = i->ref_be + i->ref_fe;
+	ss_spinunlock(&i->ref_lock);
+	return v;
+}
+
+int si_refof(si *i, siref ref)
+{
+	int v = 0;
+	ss_spinlock(&i->ref_lock);
+	if (ref == SI_REFBE)
+		v = i->ref_be;
+	else
+		v = i->ref_fe;
+	ss_spinunlock(&i->ref_lock);
+	return v;
+}
+
+int si_ref(si *i, siref ref)
+{
+	ss_spinlock(&i->ref_lock);
+	if (ref == SI_REFBE)
+		i->ref_be++;
+	else
+		i->ref_fe++;
+	ss_spinunlock(&i->ref_lock);
+	return 0;
+}
+
+int si_unref(si *i, siref ref)
+{
+	int prev_ref = 0;
+	ss_spinlock(&i->ref_lock);
+	if (ref == SI_REFBE) {
+		prev_ref = i->ref_be;
+		if (i->ref_be > 0)
+			i->ref_be--;
+	} else {
+		prev_ref = i->ref_fe;
+		if (i->ref_fe > 0)
+			i->ref_fe--;
+	}
+	ss_spinunlock(&i->ref_lock);
+	return prev_ref;
+}
+
+int si_cache(si *i, si *cache)
+{
+	si_ref(cache, SI_REFBE);
+	assert(i->cache == NULL);
+	i->cache = cache;
 	return 0;
 }
 

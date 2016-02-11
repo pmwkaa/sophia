@@ -17,6 +17,7 @@
 #include <libsi.h>
 #include <libsx.h>
 #include <libsy.h>
+#include <libsc.h>
 #include <libse.h>
 
 static int
@@ -82,25 +83,25 @@ se_viewdb_open(seviewdb *c)
 	sslist *i;
 	ss_listforeach(&e->db.list, i) {
 		sedb *db = (sedb*)sscast(i, so, link);
-		int status = se_status(&db->status);
-		if (status != SE_ONLINE)
+		int status = sr_status(&db->index.status);
+		if (status != SR_ONLINE)
 			continue;
-		if (c->txn_id > db->txn_min) {
+		if (se_dbvisible(db, c->txn_id)) {
 			rc = ss_bufadd(&c->list, &e->a, &db, sizeof(db));
 			if (ssunlikely(rc == -1))
 				return -1;
 		}
 	}
-	ss_spinlock(&e->dblock);
-	ss_listforeach(&e->db_shutdown.list, i) {
+	ss_spinlock(&e->dbshutdown_lock);
+	ss_listforeach(&e->dbshutdown.list, i) {
 		sedb *db = (sedb*)sscast(i, so, link);
-		if (db->txn_min < c->txn_id && c->txn_id <= db->txn_max) {
+		if (se_dbvisible(db, c->txn_id)) {
 			rc = ss_bufadd(&c->list, &e->a, &db, sizeof(db));
 			if (ssunlikely(rc == -1))
 				return -1;
 		}
 	}
-	ss_spinunlock(&e->dblock);
+	ss_spinunlock(&e->dbshutdown_lock);
 	if (ss_bufsize(&c->list) == 0)
 		return 0;
 	c->ready = 1;
