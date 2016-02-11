@@ -37,7 +37,6 @@ drop_test(void)
 
 	sp_destroy(db); /* unref */
 	t( sp_drop(db) == 0); /* scheduler drop */
-	sp_destroy(db); /* schedule shutdown, unlink */
 
 	void *dbp = sp_getobject(env, "db.test");
 	t( dbp == NULL );

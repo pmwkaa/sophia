@@ -21,7 +21,7 @@
 #include <libse.h>
 
 static int
-se_viewdb_destroy(so *o)
+se_viewdb_destroy(so *o, int fe ssunused)
 {
 	seviewdb *c = se_cast(o, seviewdb*, SEDBCURSOR);
 	se *e = se_of(&c->o);
@@ -55,6 +55,7 @@ se_viewdb_get(so *o, so *v ssunused)
 static soif seviewdbif =
 {
 	.open         = NULL,
+	.close        = NULL,
 	.destroy      = se_viewdb_destroy,
 	.error        = NULL,
 	.document     = NULL,
@@ -92,16 +93,6 @@ se_viewdb_open(seviewdb *c)
 				return -1;
 		}
 	}
-	ss_spinlock(&e->dbshutdown_lock);
-	ss_listforeach(&e->dbshutdown.list, i) {
-		sedb *db = (sedb*)sscast(i, so, link);
-		if (se_dbvisible(db, c->txn_id)) {
-			rc = ss_bufadd(&c->list, &e->a, &db, sizeof(db));
-			if (ssunlikely(rc == -1))
-				return -1;
-		}
-	}
-	ss_spinunlock(&e->dbshutdown_lock);
 	if (ss_bufsize(&c->list) == 0)
 		return 0;
 	c->ready = 1;
@@ -126,7 +117,7 @@ so *se_viewdb_new(se *e, uint64_t txn_id)
 	ss_bufinit(&c->list);
 	int rc = se_viewdb_open(c);
 	if (ssunlikely(rc == -1)) {
-		so_destroy(&c->o);
+		so_destroy(&c->o, 1);
 		sr_oom(&e->error);
 		return NULL;
 	}

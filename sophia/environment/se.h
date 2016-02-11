@@ -16,9 +16,6 @@ struct se {
 	srstatus    status;
 	ssmutex     apilock;
 	solist      db;
-	ssspinlock  dbshutdown_lock;
-	solist      dbshutdown;
-
 	solist      cursor;
 	solist      viewdb;
 	solist      view;

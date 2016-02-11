@@ -102,7 +102,7 @@ se_document_opt(const char *path)
 }
 
 static int
-se_document_destroy(so *o)
+se_document_destroy(so *o, int fe ssunused)
 {
 	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
 	if (ssunlikely(v->immutable))
@@ -343,6 +343,7 @@ se_document_getint(so *o, const char *path)
 static soif sedocumentif =
 {
 	.open         = NULL,
+	.close        = NULL,
 	.destroy      = se_document_destroy,
 	.error        = NULL,
 	.document     = NULL,

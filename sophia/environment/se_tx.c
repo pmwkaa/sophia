@@ -34,8 +34,8 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 	/* validate database status */
 	int status = sr_status(&db->index.status);
 	switch (status) {
-	case SR_SHUTDOWN:
-	case SR_DROP:
+	case SR_SHUTDOWN_PENDING:
+	case SR_DROP_PENDING:
 		if (ssunlikely(! se_dbvisible(db, t->t.id))) {
 			sr_error(&e->error, "%s", "database is invisible for the transaction");
 			goto error;
@@ -57,7 +57,7 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 	v->log = o->log;
 	sv vp;
 	sv_init(&vp, &sv_vif, v, NULL);
-	so_destroy(&o->o);
+	so_destroy(&o->o, 1);
 
 	/* ensure quota */
 	int size = sv_vsize(v);
@@ -71,7 +71,7 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 	}
 	return 0;
 error:
-	so_destroy(&o->o);
+	so_destroy(&o->o, 1);
 	return -1;
 }
 
@@ -109,8 +109,8 @@ se_txget(so *o, so *v)
 	/* validate database */
 	int status = sr_status(&db->index.status);
 	switch (status) {
-	case SR_SHUTDOWN:
-	case SR_DROP:
+	case SR_SHUTDOWN_PENDING:
+	case SR_DROP_PENDING:
 		if (ssunlikely(! se_dbvisible(db, t->t.id))) {
 			sr_error(&e->error, "%s", "database is invisible for the transaction");
 			goto error;
@@ -123,7 +123,7 @@ se_txget(so *o, so *v)
 	}
 	return se_dbread(db, key, &t->t, 1, NULL, key->order);
 error:
-	so_destroy(&key->o);
+	so_destroy(&key->o, 1);
 	return NULL;
 }
 
@@ -141,7 +141,7 @@ se_txend(setx *t, int rlb, int conflict)
 }
 
 static int
-se_txrollback(so *o)
+se_txrollback(so *o, int fe ssunused)
 {
 	setx *t = se_cast(o, setx*, SETX);
 	sx_rollback(&t->t);
@@ -223,29 +223,6 @@ se_txcommit(so *o)
 	assert(t->t.state == SXCOMMIT);
 
 	/* do wal write and backend commit */
-#if 0
-	sereq q;
-	se_reqinit(e, &q, SE_REQWRITE, &t->o, NULL);
-	sereqarg *arg = &q.arg;
-	arg->log = &t->t.log;
-	arg->lsn = 0;
-	if (t->lsn >= 0)
-		arg->lsn = t->lsn;
-	if (ssunlikely(recover)) {
-		arg->recover = (e->conf.recover == 3) ? 2: 1;
-		arg->vlsn_generate = 0;
-		arg->vlsn = sr_seq(e->r.seq, SR_LSN);
-	} else {
-		arg->vlsn_generate = 1;
-		arg->vlsn = 0;
-	}
-	se_execute_write(&q);
-	if (ssunlikely(q.rc == -1))
-		sx_rollback(&t->t);
-	se_txend(t, 0, 0);
-	return q.rc;
-#endif
-
 	if (ssunlikely(recover))
 		recover = (e->conf.recover == 3) ? 2: 1;
 	int rc;
@@ -284,6 +261,7 @@ se_txget_int(so *o, const char *path)
 static soif setxif =
 {
 	.open         = NULL,
+	.close        = NULL,
 	.destroy      = se_txrollback,
 	.error        = NULL,
 	.document     = NULL,

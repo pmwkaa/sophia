@@ -36,11 +36,11 @@ se_viewfree(seview *s)
 }
 
 static int
-se_viewdestroy(so *o)
+se_viewdestroy(so *o, int fe ssunused)
 {
 	seview *s = se_cast(o, seview*, SEVIEW);
 	se *e = se_of(o);
-	so_listdestroy(&s->cursor);
+	so_listdestroy(&s->cursor, 1);
 	uint32_t id = s->t.id;
 	so_listdel(&e->view, &s->o);
 	se_dbunbind(e, id);
@@ -100,6 +100,7 @@ se_viewset_int(so *o, const char *path, int64_t v ssunused)
 static soif seviewif =
 {
 	.open         = NULL,
+	.close        = NULL,
 	.destroy      = se_viewdestroy,
 	.error        = NULL,
 	.document     = NULL,

@@ -71,8 +71,6 @@ int si_close(si *i)
 	ss_spinlockfree(&i->ref_lock);
 	sr_statusfree(&i->status);
 	i->destroyed = 1;
-	if (i->cache)
-		si_unref(i->cache, SI_REFBE);
 	return rcret;
 }
 
@@ -155,14 +153,6 @@ int si_unref(si *i, siref ref)
 	}
 	ss_spinunlock(&i->ref_lock);
 	return prev_ref;
-}
-
-int si_cache(si *i, si *cache)
-{
-	si_ref(cache, SI_REFBE);
-	assert(i->cache == NULL);
-	i->cache = cache;
-	return 0;
 }
 
 int si_plan(si *i, siplan *plan)

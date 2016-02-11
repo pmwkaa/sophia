@@ -21,7 +21,7 @@
 #include <libse.h>
 
 static int
-se_confkv_destroy(so *o)
+se_confkv_destroy(so *o, int fe ssunused)
 {
 	seconfkv *v = se_cast(o, seconfkv*, SECONFKV);
 	se *e = se_of(o);
@@ -52,6 +52,7 @@ void *se_confkv_getstring(so *o, const char *path, int *size)
 static soif seconfkvif =
 {
 	.open         = NULL,
+	.close        = NULL,
 	.destroy      = se_confkv_destroy,
 	.error        = NULL,
 	.document     = NULL,
@@ -105,7 +106,7 @@ static inline so *se_confkv_new(se *e, srconfdump *vp)
 }
 
 static int
-se_confcursor_destroy(so *o)
+se_confcursor_destroy(so *o, int fe ssunused)
 {
 	seconfcursor *c = se_cast(o, seconfcursor*, SECONFCURSOR);
 	se *e = se_of(o);
@@ -128,7 +129,7 @@ se_confcursor_get(so *o, so *v)
 {
 	seconfcursor *c = se_cast(o, seconfcursor*, SECONFCURSOR);
 	if (v) {
-		so_destroy(v);
+		so_destroy(v, 1);
 	}
 	if (c->first) {
 		assert( ss_bufsize(&c->dump) >= (int)sizeof(srconfdump) );
@@ -182,7 +183,7 @@ so *se_confcursor_new(void *o)
 	ss_bufinit(&c->dump);
 	int rc = se_confserialize(&e->conf, &c->dump);
 	if (ssunlikely(rc == -1)) {
-		so_destroy(&c->o);
+		so_destroy(&c->o, 1);
 		return NULL;
 	}
 	so_listadd(&e->confcursor, &c->o);

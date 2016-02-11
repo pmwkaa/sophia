@@ -24,14 +24,14 @@ so_listinit(solist *i)
 }
 
 static inline int
-so_listdestroy(solist *i)
+so_listdestroy(solist *i, int fe)
 {
 	int rcret = 0;
 	int rc;
 	sslist *p, *n;
 	ss_listforeach_safe(&i->list, p, n) {
 		so *o = sscast(p, so, link);
-		rc = so_destroy(o);
+		rc = so_destroy(o, fe);
 		if (ssunlikely(rc == -1))
 			rcret = -1;
 	}

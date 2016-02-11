@@ -82,7 +82,19 @@ int sc_shutdown(sc *s)
 	if (ssunlikely(rc == -1))
 		rcret = -1;
 	sc_readpool_free(&s->rp);
+	/* destroy databases which are ready for
+	 * shutdown or drop */
 	if (s->i) {
+		int i = 0;
+		while (i < s->count) {
+			scdb *db = &s->i[i];
+			int status = sr_status(&db->index->status);
+			if (status == SR_SHUTDOWN ||
+			    status == SR_DROP) {
+				so_destroy(db->db, 0);
+			}
+			i++;
+		}
 		ss_free(r->a, s->i);
 		s->i = NULL;
 	}

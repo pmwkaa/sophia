@@ -14,7 +14,6 @@ typedef struct sedb sedb;
 struct sedb {
 	so         o;
 	uint32_t   created;
-	uint32_t   dropped;
 	siprofiler rtp;
 	sdc        dc;
 	sischeme   scheme;

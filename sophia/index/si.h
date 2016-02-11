@@ -71,7 +71,6 @@ int si_refs(si*);
 int si_refof(si*, siref);
 int si_ref(si*, siref);
 int si_unref(si*, siref);
-int si_cache(si*, si*);
 int si_plan(si*, siplan*);
 int si_execute(si*, sdc*, siplan*, uint64_t, uint64_t);
 

@@ -37,7 +37,7 @@ void sc_readclose(scread *r)
 }
 
 static int
-sc_readdestroy(so *o)
+sc_readdestroy(so *o, int fe ssunused)
 {
 	scread *r = (scread*)o;
 	sc_readclose(r);
@@ -48,6 +48,7 @@ sc_readdestroy(so *o)
 static soif screadif =
 {
 	.open         = NULL,
+	.close        = NULL,
 	.destroy      = sc_readdestroy,
 	.error        = NULL,
 	.document     = NULL,

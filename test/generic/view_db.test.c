@@ -38,7 +38,6 @@ view_db_test0(void)
 
 	t( sp_drop(db) == 0 );
 	t( sp_destroy(db) == 0 ); /* unref */
-	t( sp_destroy(db) == 0 ); /* shutdown */
 
 	t( sp_setstring(env, "db", "test2", 0) == 0 );
 	void *db2 = sp_getobject(env, "db.test2");

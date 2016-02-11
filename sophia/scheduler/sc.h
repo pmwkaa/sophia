@@ -65,7 +65,7 @@ struct sc {
 	uint32_t       backup_bsn_last_complete;
 	uint32_t       backup_events;
 	uint32_t       backup;
-	uint32_t       shutdown_pending;
+	int            shutdown_pending;
 	int            rotate;
 	int            read;
 	int            rr;

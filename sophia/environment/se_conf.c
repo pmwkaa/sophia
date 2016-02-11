@@ -471,6 +471,12 @@ se_confdb_get(srconf *c, srconfstmt *s)
 	}
 	assert(c->ptr != NULL);
 	sedb *db = c->ptr;
+	int status = sr_status(&db->index.status);
+	if (status == SR_SHUTDOWN_PENDING ||
+	    status == SR_DROP_PENDING) {
+		sr_error(&e->error, "%s", "database has been scheduled for shutdown/drop");
+		return -1;
+	}
 	si_ref(&db->index, SI_REFFE);
 	*(void**)s->value = db;
 	return 0;

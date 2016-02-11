@@ -16,7 +16,7 @@
 #include <libst.h>
 
 static void
-shutdown_destroy(void)
+shutdown_destroy0(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -32,8 +32,8 @@ shutdown_destroy(void)
 	t( db != NULL );
 	t( sp_open(db) == 0 );
 
-	sp_destroy(db); /* unref */
-	sp_destroy(db); /* schedule shutdown, unlink */
+	sp_close(db);
+	sp_destroy(db); /* unref and schedule shutdown */
 
 	void *dbp = sp_getobject(env, "db.test");
 	t( dbp == NULL );
@@ -41,6 +41,29 @@ shutdown_destroy(void)
 	t( sp_setint(env, "scheduler.run", 0) == 1 ); /* proceed shutdown */
 
 	t( sp_destroy(env) == 0 );
+}
+
+static void
+shutdown_destroy1(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_open(env) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(db) == 0 );
+
+	sp_close(db);
+	sp_destroy(db); /* unref and schedule shutdown */
+
+	t( sp_destroy(env) == 0 ); /* ensure db is destroyed by scheduler */
 }
 
 static void
@@ -64,7 +87,7 @@ shutdown_transaction0(void)
 	t( txn != NULL );
 
 	sp_destroy(db); /* unref */
-	sp_destroy(db); /* schedule shutdown, unlink */
+	sp_close(db); /* schedule shutdown, unlink */
 
 	void *dbp = sp_getobject(env, "db.test");
 	t( dbp == NULL );
@@ -98,7 +121,7 @@ shutdown_transaction1(void)
 	t( sp_open(db) == 0 );
 
 	sp_destroy(db); /* unref */
-	sp_destroy(db); /* schedule shutdown, unlink */
+	sp_close(db); /* schedule shutdown, unlink */
 
 	void *dbp = sp_getobject(env, "db.test");
 	t( dbp == NULL );
@@ -158,8 +181,8 @@ shutdown_transaction3(void)
 	void *b = sp_begin(env);
 	t( b != NULL );
 
+	sp_close(db); /* schedule shutdown, unlink */
 	sp_destroy(db); /* unref */
-	sp_destroy(db); /* schedule shutdown, unlink */
 
 	void *v = sp_begin(env);
 	t( v != NULL );
@@ -200,7 +223,7 @@ shutdown_transaction4(void)
 	t( sp_open(db) == 0 );
 
 	sp_destroy(db); /* unref */
-	sp_destroy(db); /* schedule shutdown, unlink */
+	sp_close(db); /* schedule shutdown, unlink */
 
 	void *o = sp_document(db);
 	t( o != NULL );
@@ -237,7 +260,7 @@ shutdown_transaction5(void)
 	t( a != NULL );
 
 	sp_destroy(db); /* unref */
-	sp_destroy(db); /* schedule shutdown, unlink */
+	sp_close(db); /* schedule shutdown, unlink */
 
 	void *o = sp_document(db);
 	t( o != NULL );
@@ -274,7 +297,7 @@ shutdown_transaction6(void)
 	t( a != NULL );
 
 	sp_destroy(db); /* unref */
-	sp_destroy(db); /* schedule shutdown, unlink */
+	sp_close(db); /* schedule shutdown, unlink */
 
 	void *o = sp_document(db);
 	t( o != NULL );
@@ -298,7 +321,8 @@ shutdown_transaction6(void)
 stgroup *shutdown_group(void)
 {
 	stgroup *group = st_group("shutdown");
-	st_groupadd(group, st_test("destroy", shutdown_destroy));
+	st_groupadd(group, st_test("destroy0", shutdown_destroy0));
+	st_groupadd(group, st_test("destroy1", shutdown_destroy1));
 	st_groupadd(group, st_test("transaction0", shutdown_transaction0));
 	st_groupadd(group, st_test("transaction1", shutdown_transaction1));
 	st_groupadd(group, st_test("transaction2", shutdown_transaction2));

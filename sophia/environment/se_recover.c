@@ -136,7 +136,7 @@ se_recoverlog(se *e, sl *log)
 	ss_iteratorclose(&i);
 	return 0;
 rlb:
-	so_destroy(tx);
+	so_destroy(tx, 1);
 error:
 	ss_iteratorclose(&i);
 	return -1;

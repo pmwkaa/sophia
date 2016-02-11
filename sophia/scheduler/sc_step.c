@@ -543,7 +543,7 @@ sc_complete(sc *s, sctask *t)
 		break;
 	case SI_SHUTDOWN:
 	case SI_DROP:
-		so_destroy(sdb->db);
+		so_destroy(sdb->db, 0);
 		sc_del(s, sdb->db, 0);
 		sdb = NULL;
 		break;

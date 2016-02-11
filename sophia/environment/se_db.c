@@ -189,7 +189,8 @@ se_dbscheme_set(sedb *db)
 			         s->cache_sz);
 			return -1;
 		}
-		si_cache(&db->index, &cache->index);
+		si_ref(&cache->index, SI_REFBE);
+		db->index.cache = &cache->index;
 	}
 
 	db->r.scheme = &s->scheme;
@@ -228,57 +229,62 @@ online:
 	return 0;
 }
 
+static inline void
+se_dbunref(sedb *db)
+{
+	se *e = se_of(&db->o);
+	/* do nothing during env shutdown */
+	int status = sr_status(&e->status);
+	if (status == SR_SHUTDOWN)
+		return;
+	/* reduce reference counter */
+	int ref;
+	ref = si_unref(&db->index, SI_REFFE);
+	if (ref > 1)
+		return;
+	/* drop/shutdown pending:
+	 *
+	 * switch state and transfer job to
+	 * the scheduler.
+	*/
+	status = sr_status(&db->index.status);
+	switch (status) {
+	case SR_SHUTDOWN_PENDING:
+		status = SR_SHUTDOWN;
+		break;
+	case SR_DROP_PENDING:
+		status = SR_DROP;
+		break;
+	default:
+		return;
+	}
+	so_listdel(&e->db, &db->o);
+	if (db->index.cache)
+		si_unref(db->index.cache, SI_REFBE);
+	/* schedule database shutdown or drop */
+	sr_statusset(&db->index.status, status);
+	sc_ctl_shutdown(&e->scheduler);
+}
+
 static int
-se_dbdestroy(so *o)
+se_dbdestroy(so *o, int fe)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
 	se *e = se_of(&db->o);
 	int rcret = 0;
 	int rc;
 	int status = sr_status(&e->status);
-	if (status == SR_SHUTDOWN)
+	if (status == SR_SHUTDOWN ||
+	    status == SR_OFFLINE)
 		goto shutdown;
 
-	uint32_t ref;
-	status = sr_status(&db->index.status);
-	switch (status) {
-	case SR_MALFUNCTION:
-	case SR_ONLINE:
-	case SR_RECOVER:
-		ref = si_unref(&db->index, SI_REFFE);
-		if (ref > 0)
-			return 0;
-		/* set last visible transaction id */
-		db->txn_max = sx_max(&e->xm);
-		/* schedule database for background drop/shutdown */
-		status = SR_SHUTDOWN;
-		if (db->dropped)
-			status = SR_DROP;
-		so_listdel(&e->db, &db->o);
-		ss_spinlock(&e->dbshutdown_lock);
-		so_listadd(&e->dbshutdown, &db->o);
-		ss_spinunlock(&e->dbshutdown_lock);
-		sr_statusset(&db->index.status, status);
-		sc_ctl_shutdown(&e->scheduler);
+	if (fe) {
+		se_dbunref(db);
 		return 0;
-	case SR_SHUTDOWN:
-	case SR_DROP:
-		/* this intended to be called from a
-		 * background gc task */
-		assert(si_refof(&db->index, SI_REFFE) == 0);
-		ref = si_refof(&db->index, SI_REFBE);
-		if (ref > 0)
-			return 0;
-		ss_spinlock(&e->dbshutdown_lock);
-		so_listdel(&e->dbshutdown, &db->o);
-		ss_spinunlock(&e->dbshutdown_lock);
-		break;
-	case SR_OFFLINE:
-		so_listdel(&e->db, &db->o);
-		break;
-
-	default: assert(0);
 	}
+	/* backend: call from scheduler */
+	if (si_refs(&db->index) > 0)
+		return 0;
 
 shutdown:;
 	sx_indexfree(&db->coindex, &e->xm);
@@ -293,18 +299,43 @@ shutdown:;
 }
 
 static int
-se_dbdrop(so *o)
+se_dbclose(so *o)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
+	se *e = se_of(&db->o);
 	int status = sr_status(&db->index.status);
 	if (ssunlikely(! sr_statusactive_is(status)))
 		return -1;
-	if (ssunlikely(db->dropped))
-		return 0;
+	/* set last visible transaction id */
+	db->txn_max = sx_max(&e->xm);
+	sr_statusset(&db->index.status, SR_SHUTDOWN_PENDING);
+	/* maybe schedule shutdown right-away */
+	int ref;
+	ref = si_refof(&db->index, SI_REFFE);
+	if (ref == 0)
+		se_dbunref(db);
+	return 0;
+}
+
+static int
+se_dbdrop(so *o)
+{
+	sedb *db = se_cast(o, sedb*, SEDB);
+	se *e = se_of(&db->o);
+	int status = sr_status(&db->index.status);
+	if (ssunlikely(! sr_statusactive_is(status)))
+		return -1;
 	int rc = si_dropmark(&db->index);
 	if (ssunlikely(rc == -1))
 		return -1;
-	db->dropped = 1;
+	/* set last visible transaction id */
+	db->txn_max = sx_max(&e->xm);
+	sr_statusset(&db->index.status, SR_DROP_PENDING);
+	/* maybe schedule drop right-away */
+	int ref;
+	ref = si_refof(&db->index, SI_REFFE);
+	if (ref == 0)
+		se_dbunref(db);
 	return 0;
 }
 
@@ -392,7 +423,7 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 	}
 	sv vup;
 	memset(&vup, 0, sizeof(vup));
-	so_destroy(&o->o);
+	so_destroy(&o->o, 1);
 	o = NULL;
 
 	/* concurrent */
@@ -474,7 +505,7 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 		scread *req = (scread*)
 			sc_readpool_new(&e->scheduler.rp, &q.o, 1);
 		if (ssunlikely(req == NULL)) {
-			so_destroy(&o->o);
+			so_destroy(&o->o, 1);
 			sc_readclose(&q);
 			return NULL;
 		}
@@ -492,7 +523,7 @@ e2: if (vprf)
 e1: if (v)
 		sv_vunref(&db->r, v);
 e0: if (o)
-		so_destroy(&o->o);
+		so_destroy(&o->o, 1);
 	return NULL;
 }
 
@@ -517,7 +548,7 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 	int rc = se_dbv(db, o, 0, &v);
 	if (ssunlikely(rc == -1))
 		goto error;
-	so_destroy(&o->o);
+	so_destroy(&o->o, 1);
 	v->flags = flags;
 
 	/* ensure quota */
@@ -540,7 +571,7 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 	sx_gc(&x);
 	return rc;
 error:
-	so_destroy(&o->o);
+	so_destroy(&o->o, 1);
 	return -1;
 }
 
@@ -628,6 +659,7 @@ se_dbget_int(so *o, const char *path)
 static soif sedbif =
 {
 	.open         = se_dbopen,
+	.close        = se_dbclose,
 	.destroy      = se_dbdestroy,
 	.error        = NULL,
 	.document     = se_dbdocument,
@@ -660,7 +692,6 @@ so *se_dbnew(se *e, char *name)
 	o->r        = e->r;
 	o->r.scheme = &o->scheme.scheme;
 	o->created  = 0;
-	o->dropped  = 0;
 	memset(&o->rtp, 0, sizeof(o->rtp));
 	int rc = se_dbscheme_init(o, name);
 	if (ssunlikely(rc == -1)) {
@@ -715,7 +746,7 @@ void se_dbbind(se *e)
 		sedb *db = (sedb*)sscast(i, so, link);
 		int status = sr_status(&db->index.status);
 		if (sr_statusactive_is(status))
-			si_ref(&db->index, SI_REFBE);
+			si_ref(&db->index, SI_REFFE);
 	}
 }
 
@@ -724,20 +755,9 @@ void se_dbunbind(se *e, uint64_t txn)
 	sslist *i;
 	ss_listforeach(&e->db.list, i) {
 		sedb *db = (sedb*)sscast(i, so, link);
-		int status = sr_status(&db->index.status);
-		if (status != SR_ONLINE)
-			continue;
 		if (se_dbvisible(db, txn))
-			si_unref(&db->index, SI_REFBE);
+			se_dbunref(db);
 	}
-
-	ss_spinlock(&e->dbshutdown_lock);
-	ss_listforeach(&e->dbshutdown.list, i) {
-		sedb *db = (sedb*)sscast(i, so, link);
-		if (se_dbvisible(db, txn))
-			si_unref(&db->index, SI_REFBE);
-	}
-	ss_spinunlock(&e->dbshutdown_lock);
 }
 
 int se_dbv(sedb *db, sedocument *o, int search, svv **v)

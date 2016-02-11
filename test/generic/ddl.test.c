@@ -206,8 +206,9 @@ ddl_open_online0(void)
 	o = sp_document(s0);
 	sp_setstring(o, "key", &key, sizeof(key));
 	t( sp_set(s0, o) == 0 );
+	t( sp_close(s0) == 0 );   /* shutdown */
 	t( sp_destroy(s0) == 0 );
-	t( sp_destroy(s0) == 0 ); /* shutdown */
+	t( sp_setint(env, "scheduler.run", 0) == 1 ); /* proceed shutdown */
 
 	t( sp_setstring(env, "db", "s0", 0) == 0 );
 	t( sp_setstring(env, "db.s0.path", "dir0", 0) == 0 );

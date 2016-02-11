@@ -122,7 +122,7 @@ online:
 }
 
 static int
-se_destroy(so *o)
+se_destroy(so *o, int fe ssunused)
 {
 	se *e = se_cast(o, se*, SE);
 	int rcret = 0;
@@ -131,25 +131,22 @@ se_destroy(so *o)
 	rc = sc_shutdown(&e->scheduler);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_listdestroy(&e->cursor);
+	rc = so_listdestroy(&e->cursor, 1);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_listdestroy(&e->view);
+	rc = so_listdestroy(&e->view, 1);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_listdestroy(&e->viewdb);
+	rc = so_listdestroy(&e->viewdb, 1);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_listdestroy(&e->tx);
+	rc = so_listdestroy(&e->tx, 1);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_listdestroy(&e->confcursor);
+	rc = so_listdestroy(&e->confcursor, 1);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_listdestroy(&e->db);
-	if (ssunlikely(rc == -1))
-		rcret = -1;
-	rc = so_listdestroy(&e->dbshutdown);
+	rc = so_listdestroy(&e->db, 1);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
 	rc = sl_poolshutdown(&e->lp);
@@ -158,7 +155,6 @@ se_destroy(so *o)
 	rc = sy_close(&e->rep, &e->r);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
-	ss_spinlockfree(&e->dbshutdown_lock);
 	sx_managerfree(&e->xm);
 	ss_vfsfree(&e->vfs);
 	si_cachepool_free(&e->cachepool, &e->r);
@@ -172,6 +168,12 @@ se_destroy(so *o)
 	se_mark_destroyed(&e->o);
 	free(e);
 	return rcret;
+}
+
+static int
+se_close(so *o)
+{
+	return se_destroy(o, 1);
 }
 
 static void*
@@ -202,7 +204,7 @@ se_poll(so *o)
 	if (r == NULL)
 		return NULL;
 	result = se_dbresult(e, r, 1);
-	so_destroy(&r->o);
+	so_destroy(&r->o, 1);
 	return result;
 }
 
@@ -229,6 +231,7 @@ se_cursor(so *o)
 static soif seif =
 {
 	.open         = se_open,
+	.close        = se_close,
 	.destroy      = se_destroy,
 	.error        = se_error,
 	.document     = NULL,
@@ -282,9 +285,7 @@ so *se_new(void)
 	rc = se_confinit(&e->conf, &e->o);
 	if (ssunlikely(rc == -1))
 		goto error;
-	ss_spinlockinit(&e->dbshutdown_lock);
 	so_listinit(&e->db);
-	so_listinit(&e->dbshutdown);
 	so_listinit(&e->cursor);
 	so_listinit(&e->viewdb);
 	so_listinit(&e->view);

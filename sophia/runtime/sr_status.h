@@ -13,7 +13,9 @@ enum {
 	SR_OFFLINE,
 	SR_ONLINE,
 	SR_RECOVER,
+	SR_SHUTDOWN_PENDING,
 	SR_SHUTDOWN,
+	SR_DROP_PENDING,
 	SR_DROP,
 	SR_MALFUNCTION
 };
@@ -72,12 +74,14 @@ sr_statusof(srstatus *s)
 {
 	int status = sr_status(s);
 	switch (status) {
-	case SR_OFFLINE:     return "offline";
-	case SR_ONLINE:      return "online";
-	case SR_RECOVER:     return "recover";
-	case SR_SHUTDOWN:    return "shutdown";
-	case SR_DROP:        return "drop";
-	case SR_MALFUNCTION: return "malfunction";
+	case SR_OFFLINE:          return "offline";
+	case SR_ONLINE:           return "online";
+	case SR_RECOVER:          return "recover";
+	case SR_SHUTDOWN_PENDING: return "shutdown_pending";
+	case SR_SHUTDOWN:         return "shutdown";
+	case SR_DROP_PENDING:     return "drop";
+	case SR_DROP:             return "drop";
+	case SR_MALFUNCTION:      return "malfunction";
 	}
 	assert(0);
 	return NULL;
@@ -90,7 +94,9 @@ sr_statusactive_is(int status)
 	case SR_ONLINE:
 	case SR_RECOVER:
 		return 1;
+	case SR_SHUTDOWN_PENDING:
 	case SR_SHUTDOWN:
+	case SR_DROP_PENDING:
 	case SR_DROP:
 	case SR_OFFLINE:
 	case SR_MALFUNCTION:
