@@ -81,7 +81,8 @@ struct sc {
 };
 
 int sc_init(sc*, sr*, sstrigger*, slpool*);
-int sc_create(sc *s, ssthreadf, void*, int, uint64_t, char*);
+int sc_set(sc *s, uint64_t, char*);
+int sc_create(sc *s, ssthreadf, void*, int);
 int sc_shutdown(sc*);
 int sc_add(sc*, so*, si*);
 int sc_del(sc*, so*, int);

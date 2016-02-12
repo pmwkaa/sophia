@@ -295,13 +295,33 @@ se_confscheduler_run(srconf *c, srconfstmt *s)
 	return sc_ctl_call(&e->scheduler, vlsn);
 }
 
+static inline int
+se_confscheduler_threads(srconf *c, srconfstmt *s)
+{
+	if (s->op != SR_WRITE)
+		return se_confv(c, s);
+	se *e = s->ptr;
+	uint32_t threads = e->conf.threads;
+	if (ssunlikely(se_confv(c, s) == -1))
+		return -1;
+	if (sslikely(! sr_online(&e->status)))
+		return 0;
+	/* run more threads during run-time */
+	if (e->conf.threads <= threads) {
+		e->conf.threads = threads;
+		return 0;
+	}
+	int n_more = e->conf.threads - threads;
+	return se_service_threads(e, n_more);
+}
+
 static inline srconf*
 se_confscheduler(se *e, seconfrt *rt, srconf **pc)
 {
 	srconf *scheduler = *pc;
 	srconf *prev;
 	srconf *p = NULL;
-	sr_c(&p, pc, se_confv_offline, "threads", SS_U32, &e->conf.threads);
+	sr_c(&p, pc, se_confscheduler_threads, "threads", SS_U32, &e->conf.threads);
 	sr_C(&p, pc, se_confv, "zone", SS_STRING, rt->zone, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "checkpoint_active", SS_U32, &rt->checkpoint_active, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "checkpoint_lsn", SS_U64, &rt->checkpoint_lsn, SR_RO, NULL);

@@ -77,7 +77,6 @@ conf_validation0(void)
 
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == -1 );
 	t( sp_setint(env, "memory.limit", 0) == -1 );
-	t( sp_setint(env, "scheduler.threads", 0) == -1 );
 
 	t( sp_setint(env, "log.enable", 0) == -1 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == -1 );
@@ -161,6 +160,25 @@ conf_validation_upsert(void)
 	t( sp_setstring(env, "db.test.index.upsert", conf_validation_upsert_op, 0) == 0 );
 	t( sp_setstring(env, "db.test.format", "document", 0) == 0 );
 	t( sp_open(env) == -1 );
+	t( sp_destroy(env) == 0 );
+}
+
+static void
+conf_threads(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "log.enable", 0) == 0 );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_open(env) == 0 );
+
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	/* run more threads */
+	t( sp_setint(env, "scheduler.threads", 2) == 0 );
+	t( sp_setint(env, "scheduler.threads", 3) == 0 );
+
 	t( sp_destroy(env) == 0 );
 }
 
@@ -272,6 +290,7 @@ stgroup *conf_group(void)
 	st_groupadd(group, st_test("validation0", conf_validation0));
 	st_groupadd(group, st_test("validation1", conf_validation1));
 	st_groupadd(group, st_test("validation_upsert", conf_validation_upsert));
+	st_groupadd(group, st_test("threads", conf_threads));
 	st_groupadd(group, st_test("empty_key", conf_empty_key));
 	st_groupadd(group, st_test("db", conf_db));
 	st_groupadd(group, st_test("cursor", conf_cursor));

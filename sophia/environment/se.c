@@ -43,6 +43,12 @@ se_worker(void *arg)
 	return NULL;
 }
 
+int se_service_threads(se *e, int n)
+{
+	/* run more threads */
+	return sc_create(&e->scheduler, se_worker, e, n);
+}
+
 static int
 se_open(so *o)
 {
@@ -112,10 +118,9 @@ online:
 	sr_statusset(&e->status, SR_ONLINE);
 
 	/* run thread-pool and scheduler */
-	rc = sc_create(&e->scheduler, se_worker, e,
-	               e->conf.threads,
-	               e->conf.anticache,
-	               e->conf.backup_path);
+	sc_set(&e->scheduler, e->conf.anticache,
+	        e->conf.backup_path);
+	rc = se_service_threads(e, e->conf.threads);
 	if (ssunlikely(rc == -1))
 		return -1;
 	return 0;

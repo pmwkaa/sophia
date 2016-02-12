@@ -62,11 +62,15 @@ int sc_init(sc *s, sr *r, sstrigger *on_event, slpool *lp)
 	return 0;
 }
 
-int sc_create(sc *s, ssthreadf function, void *arg, int n,
-              uint64_t anticache, char *backup_path)
+int sc_set(sc *s, uint64_t anticache, char *backup_path)
 {
 	s->anticache_limit = anticache;
 	s->backup_path = backup_path;
+	return 0;
+}
+
+int sc_create(sc *s, ssthreadf function, void *arg, int n)
+{
 	return ss_threadpool_new(&s->tp, s->r->a, n, function, arg);
 }
 
