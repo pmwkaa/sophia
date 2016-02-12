@@ -568,6 +568,8 @@ sc_reader(sc *s, scworker *w, sctask *t)
 		if (ssunlikely(rc == 0))
 			break;
 		scread *r = (scread*)sc_readpool_pop(&s->rp, block);
+		if (ssunlikely(r == NULL))
+			continue;
 		sc_read(r, s);
 		sc_readpool_ready(&s->rp, &r->o);
 		/* trigger ready event */

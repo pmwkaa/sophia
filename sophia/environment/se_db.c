@@ -206,7 +206,8 @@ se_dbopen(so *o)
 	sedb *db = se_cast(o, sedb*, SEDB);
 	se *e = se_of(&db->o);
 	int status = sr_status(&db->index.status);
-	if (status == SR_RECOVER)
+	if (status == SR_RECOVER ||
+	    status == SR_DROP_PENDING)
 		goto online;
 	if (status != SR_OFFLINE)
 		return -1;
@@ -707,7 +708,7 @@ so *se_dbnew(se *e, char *name)
 	sr_statusset(&o->index.status, SR_OFFLINE);
 	sx_indexinit(&o->coindex, &e->xm, &o->r, &o->o, &o->index);
 	o->txn_min = sx_min(&e->xm);
-	o->txn_max = o->txn_min;
+	o->txn_max = UINT32_MAX;
 	sd_cinit(&o->dc);
 	return &o->o;
 }
@@ -736,7 +737,7 @@ so *se_dbmatch_id(se *e, uint32_t id)
 
 int se_dbvisible(sedb *db, uint64_t txn)
 {
-	return db->txn_min < txn && txn <= db->txn_max;
+	return txn > db->txn_min && txn <= db->txn_max;
 }
 
 void se_dbbind(se *e)
