@@ -62,7 +62,7 @@ int sc_backupbegin(sc *s)
 	}
 	int i = 0;
 	while (i < s->count) {
-		scdb *db = &s->i[i];
+		scdb *db = s->i[i];
 		snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete/%s",
 		         s->backup_path, s->backup_bsn,
 		         db->index->scheme->name);

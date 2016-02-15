@@ -46,7 +46,6 @@ int sc_init(sc *s, sr *r, sstrigger *on_event, slpool *lp)
 	s->gc_time                  = now;
 	s->lru                      = 0;
 	s->lru_time                 = now;
-	s->shutdown_pending         = 0;
 	s->rotate                   = 0;
 	s->read                     = 0;
 	s->i                        = NULL;
@@ -59,6 +58,7 @@ int sc_init(sc *s, sr *r, sstrigger *on_event, slpool *lp)
 	ss_threadpool_init(&s->tp);
 	sc_workerpool_init(&s->wp);
 	sc_readpool_init(&s->rp, r);
+	so_listinit(&s->shutdown);
 	return 0;
 }
 
@@ -88,16 +88,17 @@ int sc_shutdown(sc *s)
 	sc_readpool_free(&s->rp);
 	/* destroy databases which are ready for
 	 * shutdown or drop */
+	sslist *p, *n;
+	ss_listforeach_safe(&s->shutdown.list, p, n) {
+		so *o = sscast(p, so, link);
+		si *index = sscast(o, si, link);
+		so_destroy(index->object, 0);
+	}
 	if (s->i) {
-		int i = 0;
-		while (i < s->count) {
-			scdb *db = &s->i[i];
-			int status = sr_status(&db->index->status);
-			if (status == SR_SHUTDOWN ||
-			    status == SR_DROP) {
-				so_destroy(db->db, 0);
-			}
-			i++;
+		int j = 0;
+		while (j < s->count) {
+			ss_free(r->a, s->i[j]);
+			j++;
 		}
 		ss_free(r->a, s->i);
 		s->i = NULL;
@@ -108,18 +109,25 @@ int sc_shutdown(sc *s)
 
 int sc_add(sc *s, so *dbo, si *index)
 {
-	ss_mutexlock(&s->lock);
-	int count = s->count + 1;
-	scdb *i = ss_malloc(s->r->a, count * sizeof(scdb));
-	if (ssunlikely(i == NULL)) {
+	scdb *db = ss_malloc(s->r->a, sizeof(scdb));
+	if (ssunlikely(db == NULL)) {
 		ss_mutexunlock(&s->lock);
 		return -1;
 	}
-	memcpy(i, s->i, s->count * sizeof(scdb));
-	scdb *db = &i[s->count];
 	db->db = dbo;
 	db->index = index;
 	memset(db->workers, 0, sizeof(db->workers));
+
+	ss_mutexlock(&s->lock);
+	int count = s->count + 1;
+	scdb **i = ss_malloc(s->r->a, count * sizeof(scdb*));
+	if (ssunlikely(i == NULL)) {
+		ss_mutexunlock(&s->lock);
+		ss_free(s->r->a, db);
+		return -1;
+	}
+	memcpy(i, s->i, s->count * sizeof(scdb*));
+	i[s->count] = db;
 	void *iprev = s->i;
 	s->i = i;
 	s->count = count;
@@ -135,15 +143,17 @@ int sc_del(sc *s, so *dbo, int lock)
 		return 0;
 	if (lock)
 		ss_mutexlock(&s->lock);
+	scdb *db = NULL;
+	scdb **iprev;
 	int count = s->count - 1;
 	if (ssunlikely(count == 0)) {
+		iprev = s->i;
+		db = s->i[0];
 		s->count = 0;
-		ss_free(s->r->a, s->i);
 		s->i = NULL;
-		ss_mutexunlock(&s->lock);
-		return 0;
+		goto free;
 	}
-	scdb *i = ss_malloc(s->r->a, count * sizeof(scdb));
+	scdb **i = ss_malloc(s->r->a, count * sizeof(scdb*));
 	if (ssunlikely(i == NULL)) {
 		ss_mutexunlock(&s->lock);
 		return -1;
@@ -151,7 +161,8 @@ int sc_del(sc *s, so *dbo, int lock)
 	int j = 0;
 	int k = 0;
 	while (j < s->count) {
-		if (s->i[j].db == dbo) {
+		if (s->i[j]->db == dbo) {
+			db = s->i[j];
 			j++;
 			continue;
 		}
@@ -159,13 +170,15 @@ int sc_del(sc *s, so *dbo, int lock)
 		k++;
 		j++;
 	}
-	void *iprev = s->i;
+	iprev = s->i;
 	s->i = i;
 	s->count = count;
 	if (ssunlikely(s->rr >= s->count))
 		s->rr = 0;
+free:
 	if (lock)
 		ss_mutexunlock(&s->lock);
 	ss_free(s->r->a, iprev);
+	ss_free(s->r->a, db);
 	return 0;
 }

@@ -10,6 +10,7 @@
 #include <libss.h>
 #include <libsf.h>
 #include <libsr.h>
+#include <libso.h>
 #include <libsv.h>
 #include <libsd.h>
 #include <libsi.h>
@@ -425,18 +426,17 @@ static inline int
 si_plannerpeek_shutdown(siplanner *p, siplan *plan)
 {
 	si *index = p->i;
-	if (ssunlikely(index->shutdown))
-		return 0;
 	int status = sr_status(&index->status);
-	int is_drop = (status == SR_DROP);
-	int shutdown_pending =
-		(status == SR_SHUTDOWN) || is_drop;
-	if (ssunlikely(shutdown_pending)) {
+	switch (status) {
+	case SR_DROP:
 		if (si_refs(index) > 0)
 			return 2;
-		index->shutdown = 1;
-		if (is_drop)
-			plan->plan = SI_DROP;
+		plan->plan = SI_DROP;
+		return 1;
+	case SR_SHUTDOWN:
+		if (si_refs(index) > 0)
+			return 2;
+		plan->plan = SI_SHUTDOWN;
 		return 1;
 	}
 	return 0;

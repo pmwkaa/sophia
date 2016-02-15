@@ -264,7 +264,7 @@ se_dbunref(sedb *db)
 		si_unref(db->index.cache, SI_REFBE);
 	/* schedule database shutdown or drop */
 	sr_statusset(&db->index.status, status);
-	sc_ctl_shutdown(&e->scheduler);
+	sc_ctl_shutdown(&e->scheduler, &db->index);
 }
 
 static int
@@ -699,7 +699,7 @@ so *se_dbnew(se *e, char *name)
 		ss_free(&e->a, o);
 		return NULL;
 	}
-	rc = si_init(&o->index, &o->r);
+	rc = si_init(&o->index, &o->r, &o->o);
 	if (ssunlikely(rc == -1)) {
 		si_schemefree(&o->scheme, &o->r);
 		ss_free(&e->a, o);

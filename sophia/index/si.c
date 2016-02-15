@@ -10,11 +10,12 @@
 #include <libss.h>
 #include <libsf.h>
 #include <libsr.h>
+#include <libso.h>
 #include <libsv.h>
 #include <libsd.h>
 #include <libsi.h>
 
-int si_init(si *i, sr *r)
+int si_init(si *i, sr *r, so *object)
 {
 	sr_statusinit(&i->status);
 	int rc = si_plannerinit(&i->p, r->a, i);
@@ -39,11 +40,12 @@ int si_init(si *i, sr *r)
 	i->snapshot     = 0;
 	i->destroyed    = 0;
 	i->cache        = NULL;
-	i->r            = r;
-	i->shutdown     = 0;
 	ss_spinlockinit(&i->ref_lock);
 	i->ref_fe       = 0;
 	i->ref_be       = 0;
+	i->r            = r;
+	i->object       = object;
+	so_init(&i->link, NULL, NULL, object, object->env);
 	return 0;
 }
 

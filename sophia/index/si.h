@@ -23,7 +23,6 @@ struct si {
 	ssrb       i;
 	int        n;
 	int        destroyed;
-	uint64_t   shutdown;
 	uint64_t   update_time;
 	uint32_t   backup;
 	uint32_t   snapshot_run;
@@ -43,6 +42,8 @@ struct si {
 	svupsert   u;
 	sischeme  *scheme;
 	si        *cache;
+	so        *object;
+	so         link;
 	sr        *r;
 };
 
@@ -61,7 +62,7 @@ si_unlock(si *i) {
 	ss_mutexunlock(&i->lock);
 }
 
-int si_init(si*, sr*);
+int si_init(si*, sr*, so*);
 int si_open(si*, sischeme*);
 int si_close(si*);
 int si_insert(si*, sinode*);

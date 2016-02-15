@@ -30,6 +30,7 @@ struct scdb {
 struct sctask {
 	siplan plan;
 	scdb  *db;
+	si    *shutdown;
 	int    rotate;
 	int    read;
 	int    gc;
@@ -70,7 +71,8 @@ struct sc {
 	int            read;
 	int            rr;
 	int            count;
-	scdb          *i;
+	scdb         **i;
+	solist         shutdown;
 	ssthreadpool   tp;
 	scworkerpool   wp;
 	screadpool     rp;
