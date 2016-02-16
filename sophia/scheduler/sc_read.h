@@ -23,6 +23,7 @@ struct screadarg {
 	int       upsert;
 	int       upsert_eq;
 	int       cache_only;
+	int       oldest_only;
 	uint64_t  vlsn;
 	int       vlsn_generate;
 	void     *arg;

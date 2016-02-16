@@ -103,6 +103,8 @@ sc_readindex(scread *r, si *index, void *key, uint32_t keysize,
 		si_readupsert(&q, &arg->vup, arg->upsert_eq);
 	if (arg->cache_only)
 		si_readcache_only(&q);
+	if (arg->oldest_only)
+		si_readoldest_only(&q);
 	if (arg->has)
 		si_readhas(&q);
 	r->rc = si_read(&q);

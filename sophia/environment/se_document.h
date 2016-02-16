@@ -30,6 +30,7 @@ struct sedocument {
 	/* async */
 	int       immutable;
 	int       cache_only;
+	int       oldest_only;
 	int       async;
 	int       async_status;
 	uint32_t  async_operation;

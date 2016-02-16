@@ -78,6 +78,7 @@ extern stgroup *upsert_group(void);
 extern stgroup *async_group(void);
 extern stgroup *amqf_group(void);
 extern stgroup *get_cache_group(void);
+extern stgroup *get_oldest_group(void);
 
 /* issues */
 extern stgroup *github_group(void);
@@ -267,6 +268,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, async_group());
 	st_planadd(plan, amqf_group());
 	st_planadd(plan, get_cache_group());
+	st_planadd(plan, get_oldest_group());
 	st_suiteadd(&st_r.suite, plan);
 
 	plan = st_plan("issues");

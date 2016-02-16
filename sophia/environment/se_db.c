@@ -354,6 +354,7 @@ so *se_dbresult(se *e, scread *r, int async)
 	v->async_seq       = r->id;
 	v->async_arg       = r->arg.arg;
 	v->cache_only      = r->arg.cache_only;
+	v->oldest_only     = r->arg.oldest_only;
 	v->read_disk       = r->read_disk;
 	v->read_cache      = r->read_cache;
 	v->read_latency    = 0;
@@ -398,6 +399,7 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 	if (ssunlikely(! sr_online(&db->index.status)))
 		goto e0;
 	int cache_only  = o->cache_only;
+	int oldest_only = o->oldest_only;
 	int async       = o->async;
 	void *async_arg = o->async_arg;
 
@@ -445,6 +447,7 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 				match->async_arg       = async_arg;
 				match->async_seq       = 0;
 				match->cache_only      = cache_only;
+				match->oldest_only     = oldest_only;
 			}
 			if (vprf)
 				sv_vunref(&db->r, vprf);
@@ -473,14 +476,15 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 	sc_readopen(&q, &db->r, &db->o, &db->index);
 	q.start = start;
 	screadarg *arg = &q.arg;
-	arg->v          = vp;
-	arg->vup        = vup;
-	arg->vprefix    = vprefix;
-	arg->cache      = cache;
-	arg->cachegc    = cachegc;
-	arg->order      = order;
-	arg->arg        = async_arg;
-	arg->cache_only = cache_only;
+	arg->v           = vp;
+	arg->vup         = vup;
+	arg->vprefix     = vprefix;
+	arg->cache       = cache;
+	arg->cachegc     = cachegc;
+	arg->order       = order;
+	arg->arg         = async_arg;
+	arg->cache_only  = cache_only;
+	arg->oldest_only = oldest_only;
 	if (x) {
 		arg->vlsn = x->vlsn;
 		arg->vlsn_generate = 0;

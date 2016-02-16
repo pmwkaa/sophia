@@ -20,22 +20,23 @@ int si_readopen(siread *q, sitx *x, sicache *c, ssorder o,
                 void *prefix, uint32_t prefixsize,
                 void *key, uint32_t keysize)
 {
-	q->order      = o;
-	q->key        = key;
-	q->keysize    = keysize;
-	q->vlsn       = vlsn;
-	q->x          = x;
-	q->index      = x->index;
-	q->r          = x->index->r;
-	q->cache      = c;
-	q->prefix     = prefix;
-	q->prefixsize = prefixsize;
-	q->has        = 0;
-	q->upsert_v   = NULL;
-	q->upsert_eq  = 0;
-	q->cache_only = 0;
-	q->read_disk  = 0;
-	q->read_cache = 0;
+	q->order       = o;
+	q->key         = key;
+	q->keysize     = keysize;
+	q->vlsn        = vlsn;
+	q->x           = x;
+	q->index       = x->index;
+	q->r           = x->index->r;
+	q->cache       = c;
+	q->prefix      = prefix;
+	q->prefixsize  = prefixsize;
+	q->has         = 0;
+	q->upsert_v    = NULL;
+	q->upsert_eq   = 0;
+	q->cache_only  = 0;
+	q->oldest_only = 0;
+	q->read_disk   = 0;
+	q->read_cache  = 0;
 	memset(&q->result, 0, sizeof(q->result));
 	sv_mergeinit(&q->merge);
 	return 0;
@@ -44,6 +45,11 @@ int si_readopen(siread *q, sitx *x, sicache *c, ssorder o,
 void si_readcache_only(siread *q)
 {
 	q->cache_only = 1;
+}
+
+void si_readoldest_only(siread *q)
+{
+	q->oldest_only = 1;
 }
 
 void si_readhas(siread *q)
@@ -155,7 +161,7 @@ result:;
 static inline int
 si_getbranch(siread *q, sinode *n, sibranch *b)
 {
-	sicachebranch *c = si_cachefollow(q->cache);
+	sicachebranch *c = si_cachefollow(q->cache, b);
 	assert(c->branch == b);
 	/* amqf */
 	sischeme *scheme = q->index->scheme;
@@ -247,6 +253,8 @@ si_get(siread *q)
 	rc = sv_mergeprepare(m, q->r, 1);
 	assert(rc == 0);
 	/* search on disk */
+	if (q->oldest_only)
+		return si_getbranch(q, node, &node->self);
 	sibranch *b = node->branch;
 	while (b) {
 		rc = si_getbranch(q, node, b);
@@ -260,7 +268,7 @@ si_get(siread *q)
 static inline int
 si_rangebranch(siread *q, sinode *n, sibranch *b, svmerge *m)
 {
-	sicachebranch *c = si_cachefollow(q->cache);
+	sicachebranch *c = si_cachefollow(q->cache, b);
 	assert(c->branch == b);
 	/* iterate cache */
 	if (ss_iterhas(sd_read, &c->i)) {
@@ -378,12 +386,19 @@ next_node:
 		sr_oom(q->r->e);
 		return -1;
 	}
-	sibranch *b = node->branch;
-	while (b) {
-		rc = si_rangebranch(q, node, b, m);
+
+	if (q->oldest_only) {
+		rc = si_rangebranch(q, node, &node->self, m);
 		if (ssunlikely(rc == -1 || rc == 2))
 			return rc;
-		b = b->next;
+	} else {
+		sibranch *b = node->branch;
+		while (b) {
+			rc = si_rangebranch(q, node, b, m);
+			if (ssunlikely(rc == -1 || rc == 2))
+				return rc;
+			b = b->next;
+		}
 	}
 
 	/* merge and filter data stream */

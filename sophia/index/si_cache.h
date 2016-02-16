@@ -175,11 +175,15 @@ si_cachevalidate(sicache *c, sinode *n)
 }
 
 static inline sicachebranch*
-si_cachefollow(sicache *c)
+si_cachefollow(sicache *c, sibranch *seek)
 {
-	sicachebranch *b = c->branch;
-	c->branch = c->branch->next;
-	return b;
+	while (c->branch) {
+		sicachebranch *cb = c->branch;
+		c->branch = c->branch->next;
+		if (sslikely(cb->branch == seek))
+			return cb;
+	}
+	return NULL;
 }
 
 static inline void
