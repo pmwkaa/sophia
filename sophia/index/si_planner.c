@@ -102,7 +102,7 @@ int si_plannertrace(siplan *p, uint32_t id, sstrace *t)
 		break;
 	}
 	if (p->node) {
-		ss_trace(t, "%s <%" PRIu32 ":%020" PRIu32 ".db explain: %s>",
+		ss_trace(t, "%s <%" PRIu32 ":%020" PRIu64 ".db explain: %s>",
 		         plan, id, p->node->self.id.id, explain);
 	} else {
 		ss_trace(t, "%s <%" PRIu32 " explain: %s>",
