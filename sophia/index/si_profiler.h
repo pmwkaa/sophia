@@ -31,9 +31,9 @@ struct siprofiler {
 	uint64_t  read_cache;
 	int       histogram_branch[20];
 	int       histogram_branch_20plus;
-	char      histogram_branch_sz[512];
+	char      histogram_branch_sz[256];
 	char     *histogram_branch_ptr;
-	char      histogram_temperature_sz[512];
+	char      histogram_temperature_sz[256];
 	char     *histogram_temperature_ptr;
 	si       *i;
 } sspacked;

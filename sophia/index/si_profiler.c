@@ -64,7 +64,7 @@ static void
 si_profiler_histogram_temperature(siprofiler *p)
 {
 	/* build histogram */
-	struct {
+	static struct {
 		int nodes;
 		int branches;
 	} h[100];
