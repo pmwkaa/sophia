@@ -294,7 +294,7 @@ shutdown:;
 		rcret = -1;
 	si_schemefree(&db->scheme, &db->r);
 	sd_cfree(&db->dc, &db->r);
-	se_mark_destroyed(&db->o);
+	so_mark_destroyed(&db->o);
 	ss_free(&e->a, db);
 	return rcret;
 }
@@ -666,6 +666,7 @@ static soif sedbif =
 	.open         = se_dbopen,
 	.close        = se_dbclose,
 	.destroy      = se_dbdestroy,
+	.free         = NULL,
 	.error        = NULL,
 	.document     = se_dbdocument,
 	.poll         = NULL,

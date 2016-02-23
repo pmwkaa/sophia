@@ -14,10 +14,8 @@ typedef struct seconfcursor seconfcursor;
 
 struct seconfkv {
 	so    o;
-	char *key;
-	char *value;
-	int   keysize;
-	int   valuesize;
+	ssbuf key;
+	ssbuf value;
 };
 
 struct seconfcursor {
@@ -27,6 +25,6 @@ struct seconfcursor {
 	srconfdump *pos;
 };
 
-so *se_confcursor_new(void*);
+so *se_confcursor_new(so*);
 
 #endif

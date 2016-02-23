@@ -20,15 +20,23 @@
 #include <libsc.h>
 #include <libse.h>
 
+static void
+se_viewdb_free(so *o)
+{
+	seviewdb *c = (seviewdb*)o;
+	se *e = se_of(&c->o);
+	ss_buffree(&c->list, &e->a);
+	ss_free(&e->a, c);
+}
+
 static int
 se_viewdb_destroy(so *o, int fe ssunused)
 {
 	seviewdb *c = se_cast(o, seviewdb*, SEDBCURSOR);
 	se *e = se_of(&c->o);
-	ss_buffree(&c->list, &e->a);
-	so_listdel(&e->viewdb, &c->o);
-	se_mark_destroyed(&c->o);
-	ss_free(&e->a_viewdb, c);
+	ss_bufreset(&c->list);
+	so_mark_destroyed(&c->o);
+	so_poolgc(&e->viewdb, &c->o);
 	return 0;
 }
 
@@ -57,6 +65,7 @@ static soif seviewdbif =
 	.open         = NULL,
 	.close        = NULL,
 	.destroy      = se_viewdb_destroy,
+	.free         = se_viewdb_free,
 	.error        = NULL,
 	.document     = NULL,
 	.poll         = NULL,
@@ -103,7 +112,16 @@ se_viewdb_open(seviewdb *c)
 
 so *se_viewdb_new(se *e, uint64_t txn_id)
 {
-	seviewdb *c = ss_malloc(&e->a_viewdb, sizeof(seviewdb));
+	int cache;
+	seviewdb *c = (seviewdb*)so_poolpop(&e->viewdb);
+	if (! c) {
+		cache = 0;
+		c = ss_malloc(&e->a, sizeof(seviewdb));
+	} else {
+		cache = 1;
+	}
+	if (c == NULL)
+		c = ss_malloc(&e->a, sizeof(seviewdb));
 	if (ssunlikely(c == NULL)) {
 		sr_oom(&e->error);
 		return NULL;
@@ -114,13 +132,15 @@ so *se_viewdb_new(se *e, uint64_t txn_id)
 	c->v      = NULL;
 	c->pos    = NULL;
 	c->ready  = 0;
-	ss_bufinit(&c->list);
+	if (! cache)
+		ss_bufinit(&c->list);
 	int rc = se_viewdb_open(c);
 	if (ssunlikely(rc == -1)) {
-		so_destroy(&c->o, 1);
+		so_mark_destroyed(&c->o);
+		so_poolpush(&e->viewdb, &c->o);
 		sr_oom(&e->error);
 		return NULL;
 	}
-	so_listadd(&e->viewdb, &c->o);
+	so_pooladd(&e->viewdb, &c->o);
 	return &c->o;
 }

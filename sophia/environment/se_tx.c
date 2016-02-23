@@ -128,6 +128,14 @@ error:
 }
 
 static inline void
+se_txfree(so *o)
+{
+	assert(o->destroyed);
+	se *e = se_of(o);
+	ss_free(&e->a, o);
+}
+
+static inline void
 se_txend(setx *t, int rlb, int conflict)
 {
 	se *e = se_of(&t->o);
@@ -135,9 +143,8 @@ se_txend(setx *t, int rlb, int conflict)
 	sx_gc(&t->t);
 	sr_stattx(&e->stat, t->start, count, rlb, conflict);
 	se_dbunbind(e, t->t.id);
-	so_listdel(&e->tx, &t->o);
-	se_mark_destroyed(&t->o);
-	ss_free(&e->a_tx, t);
+	so_mark_destroyed(&t->o);
+	so_poolgc(&e->tx, &t->o);
 }
 
 static int
@@ -263,6 +270,7 @@ static soif setxif =
 	.open         = NULL,
 	.close        = NULL,
 	.destroy      = se_txrollback,
+	.free         = se_txfree,
 	.error        = NULL,
 	.document     = NULL,
 	.poll         = NULL,
@@ -284,7 +292,9 @@ static soif setxif =
 
 so *se_txnew(se *e)
 {
-	setx *t = ss_malloc(&e->a_tx, sizeof(setx));
+	setx *t = (setx*)so_poolpop(&e->tx);
+	if (t == NULL)
+		t = ss_malloc(&e->a, sizeof(setx));
 	if (ssunlikely(t == NULL)) {
 		sr_oom(&e->error);
 		return NULL;
@@ -296,6 +306,6 @@ so *se_txnew(se *e)
 	t->lsn = 0;
 	sx_begin(&e->xm, &t->t, SXRW, UINT64_MAX);
 	se_dbbind(e);
-	so_listadd(&e->tx, &t->o);
+	so_pooladd(&e->tx, &t->o);
 	return &t->o;
 }

@@ -41,6 +41,18 @@ so_listdestroy(solist *i, int fe)
 }
 
 static inline void
+so_listfree(solist *i)
+{
+	sslist *p, *n;
+	ss_listforeach_safe(&i->list, p, n) {
+		so *o = sscast(p, so, link);
+		so_free(o);
+	}
+	i->n = 0;
+	ss_listinit(&i->list);
+}
+
+static inline void
 so_listadd(solist *i, so *o)
 {
 	ss_listappend(&i->list, &o->link);

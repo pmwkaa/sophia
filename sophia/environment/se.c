@@ -136,22 +136,28 @@ se_destroy(so *o, int fe ssunused)
 	rc = sc_shutdown(&e->scheduler);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_listdestroy(&e->cursor, 1);
+	rc = so_pooldestroy(&e->cursor);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_listdestroy(&e->view, 1);
+	rc = so_pooldestroy(&e->view);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_listdestroy(&e->viewdb, 1);
+	rc = so_pooldestroy(&e->viewdb);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_listdestroy(&e->tx, 1);
+	rc = so_pooldestroy(&e->tx);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_listdestroy(&e->confcursor, 1);
+	rc = so_pooldestroy(&e->confcursor_kv);
+	if (ssunlikely(rc == -1))
+		rcret = -1;
+	rc = so_pooldestroy(&e->confcursor);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
 	rc = so_listdestroy(&e->db, 1);
+	if (ssunlikely(rc == -1))
+		rcret = -1;
+	rc = so_pooldestroy(&e->document);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
 	rc = sl_poolshutdown(&e->lp);
@@ -170,7 +176,7 @@ se_destroy(so *o, int fe ssunused)
 	sr_seqfree(&e->seq);
 	ss_pagerfree(&e->pager);
 	sr_statusfree(&e->status);
-	se_mark_destroyed(&e->o);
+	so_mark_destroyed(&e->o);
 	free(e);
 	return rcret;
 }
@@ -238,6 +244,7 @@ static soif seif =
 	.open         = se_open,
 	.close        = se_close,
 	.destroy      = se_destroy,
+	.free         = NULL,
 	.error        = se_error,
 	.document     = NULL,
 	.poll         = se_poll,
@@ -276,26 +283,21 @@ so *se_new(void)
 	ss_pagerinit(&e->pager, &e->vfs, 10, 8192);
 	ss_aopen(&e->a, &ss_stda);
 	ss_aopen(&e->a_ref, &ss_stda);
-	ss_aopen(&e->a_document, &ss_slaba, &e->pager, sizeof(sedocument));
-	ss_aopen(&e->a_cursor, &ss_slaba, &e->pager, sizeof(secursor));
-	ss_aopen(&e->a_view, &ss_slaba, &e->pager, sizeof(seview));
-	ss_aopen(&e->a_viewdb, &ss_slaba, &e->pager, sizeof(seviewdb));
 	ss_aopen(&e->a_cachebranch, &ss_slaba, &e->pager, sizeof(sicachebranch));
 	ss_aopen(&e->a_cache, &ss_slaba, &e->pager, sizeof(sicache));
-	ss_aopen(&e->a_confcursor, &ss_slaba, &e->pager, sizeof(seconfcursor));
-	ss_aopen(&e->a_confkv, &ss_slaba, &e->pager, sizeof(seconfkv));
-	ss_aopen(&e->a_tx, &ss_slaba, &e->pager, sizeof(setx));
 	ss_aopen(&e->a_sxv, &ss_slaba, &e->pager, sizeof(sxv));
 	int rc;
 	rc = se_confinit(&e->conf, &e->o);
 	if (ssunlikely(rc == -1))
 		goto error;
+	so_poolinit(&e->document, 1024);
+	so_poolinit(&e->cursor, 512);
+	so_poolinit(&e->tx, 512);
+	so_poolinit(&e->confcursor, 2);
+	so_poolinit(&e->confcursor_kv, 1);
+	so_poolinit(&e->view, 1);
+	so_poolinit(&e->viewdb, 1);
 	so_listinit(&e->db);
-	so_listinit(&e->cursor);
-	so_listinit(&e->viewdb);
-	so_listinit(&e->view);
-	so_listinit(&e->tx);
-	so_listinit(&e->confcursor);
 	ss_mutexinit(&e->apilock);
 	ss_quotainit(&e->quota);
 	sr_seqinit(&e->seq);

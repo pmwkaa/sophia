@@ -365,6 +365,7 @@ main(int argc, char *argv[])
 		st_suiteadd(&st_r.suite, plan);
 	}
 
+
 #if 0
 	plan = st_plan("functional_full");
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rmrf"));

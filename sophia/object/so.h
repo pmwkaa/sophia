@@ -17,6 +17,7 @@ struct soif {
 	int      (*open)(so*);
 	int      (*close)(so*);
 	int      (*destroy)(so*, int);
+	void     (*free)(so*);
 	int      (*error)(so*);
 	void    *(*document)(so*);
 	void    *(*poll)(so*);
@@ -42,21 +43,29 @@ struct sotype {
 };
 
 struct so {
-	sotype *type;
 	soif *i;
+	sotype *type;
 	so *parent;
 	so *env;
+	uint8_t destroyed;
 	sslist link;
 };
 
 static inline void
 so_init(so *o, sotype *type, soif *i, so *parent, so *env)
 {
-	o->type   = type;
-	o->i      = i;
-	o->parent = parent;
-	o->env    = env;
+	o->type      = type;
+	o->i         = i;
+	o->parent    = parent;
+	o->env       = env;
+	o->destroyed = 0;
 	ss_listinit(&o->link);
+}
+
+static inline void
+so_mark_destroyed(so *o)
+{
+	o->destroyed = 1;
 }
 
 static inline void*
@@ -79,6 +88,7 @@ so_cast_dynamic(void *ptr, sotype *type,
 #define so_open(o)        (o)->i->open(o)
 #define so_close(o)       (o)->i->close(o)
 #define so_destroy(o, fe) (o)->i->destroy(o, fe)
+#define so_free(o)        (o)->i->free(o)
 #define so_error(o)       (o)->i->error(o)
 #define so_document(o)    (o)->i->document(o)
 #define so_poll(o)        (o)->i->poll(o)

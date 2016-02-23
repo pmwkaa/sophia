@@ -245,7 +245,7 @@ cursor_pos_gte0(void)
 	t( sp_setstring(pos, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
-	o = sp_get(c, o);
+	o = sp_get(c, pos);
 	t( o != NULL );
 	st_document_is(o, 7, 7);
 	o = sp_get(c, o);
@@ -282,7 +282,7 @@ cursor_pos_gte1(void)
 	t( sp_setstring(pos, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
-	o = sp_get(c, o);
+	o = sp_get(c, pos);
 	t( o != NULL );
 	st_document_is(o, 8, 8);
 	o = sp_get(c, o);
@@ -316,7 +316,7 @@ cursor_pos_gte2(void)
 	t( sp_setstring(pos, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
-	o = sp_get(c, o);
+	o = sp_get(c, pos);
 	t( o != NULL );
 	st_document_is(o, 9, 9);
 	o = sp_get(c, o);
@@ -347,7 +347,7 @@ cursor_pos_gte3(void)
 	t( sp_setstring(pos, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
-	o = sp_get(c, o);
+	o = sp_get(c, pos);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
 	st_phase();
@@ -375,7 +375,7 @@ cursor_pos_gte4(void)
 	t( sp_setstring(pos, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
-	o = sp_get(c, o);
+	o = sp_get(c, pos);
 	t( o != NULL );
 	st_document_is(o, 80, 80);
 	o = sp_get(c, o);
@@ -409,7 +409,7 @@ cursor_pos_gte5(void)
 	t( sp_setstring(pos, "order", ">=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
-	o = sp_get(c, o);
+	o = sp_get(c, pos);
 	t( o != NULL );
 	st_document_is(o, 7, 7);
 	o = sp_get(c, o);
@@ -446,7 +446,7 @@ cursor_pos_gt0(void)
 	t( sp_setstring(pos, "order", ">", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
-	o = sp_get(c, o);
+	o = sp_get(c, pos);
 	t( o != NULL );
 	st_document_is(o, 8, 8);
 	o = sp_get(c, o);
@@ -480,7 +480,7 @@ cursor_pos_gt1(void)
 	t( sp_setstring(pos, "order", ">", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
-	o = sp_get(c, o);
+	o = sp_get(c, pos);
 	t( o != NULL );
 	st_document_is(o, 9, 9);
 	o = sp_get(c, o);
@@ -511,7 +511,7 @@ cursor_pos_gt2(void)
 	t( sp_setstring(pos, "order", ">", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
-	o = sp_get(c, o);
+	o = sp_get(c, pos);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
 	st_phase();
@@ -539,7 +539,7 @@ cursor_pos_lte0(void)
 	t( sp_setstring(pos, "order", "<=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
-	o = sp_get(c, o);
+	o = sp_get(c, pos);
 	t( o != NULL );
 	st_document_is(o, 9, 9);
 	o = sp_get(c, o);
@@ -576,7 +576,7 @@ cursor_pos_lte1(void)
 	t( sp_setstring(pos, "order", "<=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
-	o = sp_get(c, o);
+	o = sp_get(c, pos);
 	t( o != NULL );
 	st_document_is(o, 8, 8);
 	o = sp_get(c, o);
@@ -610,7 +610,7 @@ cursor_pos_lte2(void)
 	t( sp_setstring(pos, "order", "<=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
-	o = sp_get(c, o);
+	o = sp_get(c, pos);
 	t( o != NULL );
 	st_document_is(o, 7, 7);
 	o = sp_get(c, o);
@@ -641,7 +641,7 @@ cursor_pos_lte3(void)
 	t( sp_setstring(pos, "order", "<=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
-	o = sp_get(c, o);
+	o = sp_get(c, pos);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
 	st_phase();
@@ -669,7 +669,7 @@ cursor_pos_lte4(void)
 	t( sp_setstring(pos, "order", "<=", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
-	o = sp_get(c, o);
+	o = sp_get(c, pos);
 	t( o != NULL );
 	st_document_is(o, 9, 9);
 	o = sp_get(c, o);
@@ -706,7 +706,7 @@ cursor_pos_lt0(void)
 	t( sp_setstring(pos, "order", "<", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
-	o = sp_get(c, o);
+	o = sp_get(c, pos);
 	t( o != NULL );
 	st_document_is(o, 8, 8);
 	o = sp_get(c, o);
@@ -740,7 +740,7 @@ cursor_pos_lt1(void)
 	t( sp_setstring(pos, "order", "<", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
-	o = sp_get(c, o);
+	o = sp_get(c, pos);
 	t( o != NULL );
 	st_document_is(o, 7, 7);
 	o = sp_get(c, o);
@@ -771,7 +771,7 @@ cursor_pos_lt2(void)
 	t( sp_setstring(pos, "order", "<", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
-	o = sp_get(c, o);
+	o = sp_get(c, pos);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
 	st_phase();
@@ -799,7 +799,7 @@ cursor_pos_lt3(void)
 	t( sp_setstring(pos, "order", "<", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
-	o = sp_get(c, o);
+	o = sp_get(c, pos);
 	t( o == NULL );
 	t( sp_destroy(c) == 0 );
 	st_phase();
@@ -827,7 +827,7 @@ cursor_pos_lt4(void)
 	t( sp_setstring(pos, "order", "<", 0) == 0 );
 	void *c = sp_cursor(st_r.env);
 	t( c != NULL );
-	o = sp_get(c, o);
+	o = sp_get(c, pos);
 	t( o != NULL );
 	st_document_is(o, 9, 9);
 	o = sp_get(c, o);
@@ -1158,7 +1158,7 @@ cursor_consistency2(void)
 	t( co != NULL );
 	t( sp_setstring(co, "order", ">=", 0) == 0 );
 
-	co = sp_get(c, o);
+	co = sp_get(c, co);
 	t( co != NULL );
 	st_document_is(co, 1, 2);
 	co = sp_get(c, co);
@@ -1774,7 +1774,7 @@ cursor_consistencyN(void)
 	t( co != NULL );
 	st_document_is(co, 1, 2);
 
-	o = sp_get(c2, co);
+	co = sp_get(c2, co);
 	t( co != NULL );
 	st_document_is(co, 2, 2);
 	st_phase();

@@ -14,7 +14,7 @@ typedef struct seview seview;
 struct seview {
 	so        o;
 	uint64_t  vlsn;
-	char     *name;
+	ssbuf     name;
 	sx        t;
 	int       db_view_only;
 	solist    cursor;

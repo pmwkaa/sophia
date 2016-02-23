@@ -20,19 +20,13 @@
 #include <libsc.h>
 #include <libse.h>
 
-static int
-se_viewfree(seview *s)
+static void
+se_viewfree(so *o)
 {
-	se *e = se_of(&s->o);
-	if (sslikely(! s->db_view_only))
-		sx_rollback(&s->t);
-	if (sslikely(s->name)) {
-		ss_free(&e->a, s->name);
-		s->name = NULL;
-	}
-	se_mark_destroyed(&s->o);
-	ss_free(&e->a_view, s);
-	return 0;
+	se *e = se_of(o);
+	seview *s = (seview*)o;
+	ss_buffree(&s->name, &e->a);
+	ss_free(&e->a, o);
 }
 
 static int
@@ -40,11 +34,13 @@ se_viewdestroy(so *o, int fe ssunused)
 {
 	seview *s = se_cast(o, seview*, SEVIEW);
 	se *e = se_of(o);
-	so_listdestroy(&s->cursor, 1);
 	uint32_t id = s->t.id;
-	so_listdel(&e->view, &s->o);
 	se_dbunbind(e, id);
-	se_viewfree(s);
+	if (sslikely(! s->db_view_only))
+		sx_rollback(&s->t);
+	ss_bufreset(&s->name);
+	so_mark_destroyed(&s->o);
+	so_poolgc(&e->view, o);
 	return 0;
 }
 
@@ -102,6 +98,7 @@ static soif seviewif =
 	.open         = NULL,
 	.close        = NULL,
 	.destroy      = se_viewdestroy,
+	.free         = se_viewfree,
 	.error        = NULL,
 	.document     = NULL,
 	.poll         = NULL,
@@ -124,30 +121,44 @@ static soif seviewif =
 so *se_viewnew(se *e, uint64_t vlsn, char *name)
 {
 	sslist *i;
-	ss_listforeach(&e->view.list, i) {
+	ss_listforeach(&e->view.list.list, i) {
 		seview *s = (seview*)sscast(i, so, link);
-		if (ssunlikely(strcmp(s->name, name) == 0)) {
+		if (ssunlikely(strcmp(s->name.s, name) == 0)) {
 			sr_error(&e->error, "view '%s' already exists", name);
 			return NULL;
 		}
 	}
-	seview *s = ss_malloc(&e->a_view, sizeof(seview));
+	seview *s = (seview*)so_poolpop(&e->view);
+	int cache;
+	if (! s) {
+		s = ss_malloc(&e->a, sizeof(seview));
+		cache = 0;
+	} else {
+		cache = 1;
+	}
 	if (ssunlikely(s == NULL)) {
 		sr_oom(&e->error);
 		return NULL;
 	}
 	so_init(&s->o, &se_o[SEVIEW], &seviewif, &e->o, &e->o);
-	so_listinit(&s->cursor);
 	s->vlsn = vlsn;
-	s->name = ss_strdup(&e->a, name);
-	if (ssunlikely(s->name == NULL)) {
-		ss_free(&e->a_view, s);
+	if (! cache)
+		ss_bufinit(&s->name);
+	int rc;
+	int len = strlen(name) + 1;
+	rc = ss_bufensure(&s->name, &e->a, len);
+	if (ssunlikely(rc == -1)) {
+		so_mark_destroyed(&s->o);
+		so_poolpush(&e->view, &s->o);
 		sr_oom(&e->error);
 		return NULL;
 	}
+	memcpy(s->name.s, name, len);
+	ss_bufadvance(&s->name, len);
 	sx_begin(&e->xm, &s->t, SXRO, vlsn);
 	s->db_view_only = 0;
 	se_dbbind(e);
+	so_pooladd(&e->view, &s->o);
 	return &s->o;
 }
 

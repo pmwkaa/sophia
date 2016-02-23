@@ -105,6 +105,7 @@ conf_validation0(void)
 	t( sp_setstring(o, "key", key, (1 << 15)) == 0 );
 	t( sp_setstring(o, "value", key, (1 << 21) + 1 ) == -1 );
 	t( sp_setstring(o, "value", key, (1 << 21)) == 0 );
+	sp_destroy(o);
 
 	t( sp_destroy(env) == 0 );
 }

@@ -27,8 +27,7 @@ enum {
 
 extern sotype se_o[];
 
-#define se_cast(ptr, cast, id) \
-	so_cast(ptr, cast, &se_o[id])
+#define se_cast(ptr, cast, id) so_cast(ptr, cast, &se_o[id])
 
 static inline so*
 se_cast_validate(void *ptr)
@@ -38,12 +37,6 @@ se_cast_validate(void *ptr)
 	    (char*)o->type <= (char*)&se_o[SECURSOR])
 		return ptr;
 	return NULL;
-}
-
-static inline void
-se_mark_destroyed(so *o)
-{
-	so_init(o, &se_o[SEDESTROYED], NULL, NULL, NULL);
 }
 
 #endif

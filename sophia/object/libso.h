@@ -11,5 +11,6 @@
 
 #include <so.h>
 #include <so_list.h>
+#include <so_pool.h>
 
 #endif

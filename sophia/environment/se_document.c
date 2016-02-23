@@ -104,6 +104,14 @@ se_document_opt(const char *path)
 	return SE_DOCUMENT_UNKNOWN;
 }
 
+static void
+se_document_free(so *o)
+{
+	assert(o->destroyed);
+	se *e = se_of(o);
+	ss_free(&e->a, o);
+}
+
 static int
 se_document_destroy(so *o, int fe ssunused)
 {
@@ -114,8 +122,8 @@ se_document_destroy(so *o, int fe ssunused)
 	if (v->v.v)
 		sv_vunref(&e->r, (svv*)v->v.v);
 	v->v.v = NULL;
-	se_mark_destroyed(&v->o);
-	ss_free(&e->a_document, v);
+	so_mark_destroyed(&v->o);
+	so_poolgc(&e->document, &v->o);
 	return 0;
 }
 
@@ -351,6 +359,7 @@ static soif sedocumentif =
 	.open         = NULL,
 	.close        = NULL,
 	.destroy      = se_document_destroy,
+	.free         = se_document_free,
 	.error        = NULL,
 	.document     = NULL,
 	.poll         = NULL,
@@ -372,7 +381,9 @@ static soif sedocumentif =
 
 so *se_document_new(se *e, so *parent, sv *vp, int async)
 {
-	sedocument *v = ss_malloc(&e->a_document, sizeof(sedocument));
+	sedocument *v = (sedocument*)so_poolpop(&e->document);
+	if (v == NULL)
+		v = ss_malloc(&e->a, sizeof(sedocument));
 	if (ssunlikely(v == NULL)) {
 		sr_oom(&e->error);
 		return NULL;
@@ -384,5 +395,6 @@ so *se_document_new(se *e, so *parent, sv *vp, int async)
 	if (vp) {
 		v->v = *vp;
 	}
+	so_pooladd(&e->document, &v->o);
 	return &v->o;
 }

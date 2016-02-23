@@ -20,31 +20,45 @@
 #include <libsc.h>
 #include <libse.h>
 
+static void
+se_confkv_free(so *o)
+{
+	seconfkv *v = (seconfkv*)o;
+	se *e = se_of(o);
+	ss_buffree(&v->key, &e->a);
+	ss_buffree(&v->value, &e->a);
+	ss_free(&e->a, v);
+}
+
 static int
 se_confkv_destroy(so *o, int fe ssunused)
 {
 	seconfkv *v = se_cast(o, seconfkv*, SECONFKV);
 	se *e = se_of(o);
-	ss_free(&e->a, v->key);
-	if (v->value)
-		ss_free(&e->a, v->value);
-	se_mark_destroyed(&v->o);
-	ss_free(&e->a_confkv, v);
+	ss_bufreset(&v->key);
+	ss_bufreset(&v->value);
+	so_mark_destroyed(&v->o);
+	so_poolgc(&e->confcursor_kv, &v->o);
 	return 0;
 }
 
 void *se_confkv_getstring(so *o, const char *path, int *size)
 {
 	seconfkv *v = se_cast(o, seconfkv*, SECONFKV);
+	int len;
 	if (strcmp(path, "key") == 0) {
+		len = ss_bufused(&v->key);
 		if (size)
-			*size = v->keysize;
-		return v->key;
+			*size = len;
+		return v->key.s;
 	} else
 	if (strcmp(path, "value") == 0) {
+		len = ss_bufused(&v->value);
 		if (size)
-			*size = v->valuesize;
-		return v->value;
+			*size = len;
+		if (len == 0)
+			return NULL;
+		return v->value.s;
 	}
 	return NULL;
 }
@@ -54,6 +68,7 @@ static soif seconfkvif =
 	.open         = NULL,
 	.close        = NULL,
 	.destroy      = se_confkv_destroy,
+	.free         = se_confkv_free,
 	.error        = NULL,
 	.document     = NULL,
 	.poll         = NULL,
@@ -75,34 +90,54 @@ static soif seconfkvif =
 
 static inline so *se_confkv_new(se *e, srconfdump *vp)
 {
-	seconfkv *v =
-		ss_malloc(&e->a_confkv, sizeof(seconfkv));
+	int cache;
+	seconfkv *v = (seconfkv*)so_poolpop(&e->confcursor_kv);
+	if (! v) {
+		v = ss_malloc(&e->a, sizeof(seconfkv));
+		cache = 0;
+	} else {
+		cache = 1;
+	}
 	if (ssunlikely(v == NULL)) {
 		sr_oom(&e->error);
 		return NULL;
 	}
 	so_init(&v->o, &se_o[SECONFKV], &seconfkvif, &e->o, &e->o);
-	v->keysize = vp->keysize;
-	v->key = ss_malloc(&e->a, v->keysize);
-	if (ssunlikely(v->key == NULL)) {
-		se_mark_destroyed(&v->o);
-		ss_free(&e->a_confkv, v);
+	if (! cache) {
+		ss_bufinit(&v->key);
+		ss_bufinit(&v->value);
+	}
+	int rc;
+	rc = ss_bufensure(&v->key, &e->a, vp->keysize);
+	if (ssunlikely(rc == -1)) {
+		so_mark_destroyed(&v->o);
+		so_poolpush(&e->confcursor_kv, &v->o);
+		sr_oom(&e->error);
 		return NULL;
 	}
-	memcpy(v->key, sr_confkey(vp), v->keysize);
-	v->valuesize = vp->valuesize;
-	v->value = NULL;
-	if (v->valuesize > 0) {
-		v->value = ss_malloc(&e->a, v->valuesize);
-		if (ssunlikely(v->key == NULL)) {
-			ss_free(&e->a, v->key);
-			se_mark_destroyed(&v->o);
-			ss_free(&e->a_confkv, v);
-			return NULL;
-		}
+	rc = ss_bufensure(&v->value, &e->a, vp->valuesize);
+	if (ssunlikely(rc == -1)) {
+		so_mark_destroyed(&v->o);
+		so_poolpush(&e->confcursor_kv, &v->o);
+		sr_oom(&e->error);
+		return NULL;
 	}
-	memcpy(v->value, sr_confvalue(vp), v->valuesize);
+	memcpy(v->key.s, sr_confkey(vp), vp->keysize);
+	memcpy(v->value.s, sr_confvalue(vp), vp->valuesize);
+	ss_bufadvance(&v->key, vp->keysize);
+	ss_bufadvance(&v->value, vp->valuesize);
+	so_pooladd(&e->confcursor_kv, &v->o);
 	return &v->o;
+}
+
+static void
+se_confcursor_free(so *o)
+{
+	assert(o->destroyed);
+	se *e = se_of(o);
+	seconfcursor *c = (seconfcursor*)o;
+	ss_buffree(&c->dump, &e->a);
+	ss_free(&e->a, o);
 }
 
 static int
@@ -110,18 +145,10 @@ se_confcursor_destroy(so *o, int fe ssunused)
 {
 	seconfcursor *c = se_cast(o, seconfcursor*, SECONFCURSOR);
 	se *e = se_of(o);
-	ss_buffree(&c->dump, &e->a);
-	so_listdel(&e->confcursor, &c->o);
-	se_mark_destroyed(&c->o);
-	ss_free(&e->a_confcursor, c);
+	ss_bufreset(&c->dump);
+	so_mark_destroyed(&c->o);
+	so_poolgc(&e->confcursor, &c->o);
 	return 0;
-}
-
-static inline so*
-se_confcursor_document(seconfcursor *c)
-{
-	se *e = se_of(&c->o);
-	return se_confkv_new(e, c->pos);
 }
 
 static void*
@@ -143,13 +170,15 @@ se_confcursor_get(so *o, so *v)
 	}
 	if (ssunlikely(c->pos == NULL))
 		return NULL;
-	return se_confcursor_document(c);
+	se *e = se_of(&c->o);
+	return se_confkv_new(e, c->pos);
 }
 
 static soif seconfcursorif =
 {
 	.open         = NULL,
 	.destroy      = se_confcursor_destroy,
+	.free         = se_confcursor_free,
 	.error        = NULL,
 	.document     = NULL,
 	.poll         = NULL,
@@ -169,10 +198,17 @@ static soif seconfcursorif =
 	.cursor       = NULL,
 };
 
-so *se_confcursor_new(void *o)
+so *se_confcursor_new(so *o)
 {
-	se *e = o;
-	seconfcursor *c = ss_malloc(&e->a_confcursor, sizeof(seconfcursor));
+	se *e = (se*)o;
+	int cache;
+	seconfcursor *c = (seconfcursor*)so_poolpop(&e->confcursor);
+	if (! c) {
+		c = ss_malloc(&e->a, sizeof(seconfcursor));
+		cache = 0;
+	} else {
+		cache = 1;
+	}
 	if (ssunlikely(c == NULL)) {
 		sr_oom(&e->error);
 		return NULL;
@@ -180,12 +216,15 @@ so *se_confcursor_new(void *o)
 	so_init(&c->o, &se_o[SECONFCURSOR], &seconfcursorif, &e->o, &e->o);
 	c->pos = NULL;
 	c->first = 1;
-	ss_bufinit(&c->dump);
+	if (! cache)
+		ss_bufinit(&c->dump);
 	int rc = se_confserialize(&e->conf, &c->dump);
 	if (ssunlikely(rc == -1)) {
-		so_destroy(&c->o, 1);
+		so_mark_destroyed(&c->o);
+		so_poolpush(&e->confcursor, &c->o);
+		sr_oom(&e->error);
 		return NULL;
 	}
-	so_listadd(&e->confcursor, &c->o);
+	so_pooladd(&e->confcursor, &c->o);
 	return &c->o;
 }

@@ -37,7 +37,7 @@ sp_cast(void *ptr, const char *method)
 		fprintf(stderr, "\n%s(%p): bad object\n", method, ptr);
 		abort();
 	}
-	if (ssunlikely(o->type == &se_o[SEDESTROYED])) {
+	if (ssunlikely(o->destroyed)) {
 		fprintf(stderr, "\n%s(%p): attempt to use destroyed object\n",
 		        method, ptr);
 		abort();

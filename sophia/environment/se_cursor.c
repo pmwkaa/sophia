@@ -20,6 +20,14 @@
 #include <libsc.h>
 #include <libse.h>
 
+static void
+se_cursorfree(so *o)
+{
+	assert(o->destroyed);
+	se *e = se_of(o);
+	ss_free(&e->a, o);
+}
+
 static int
 se_cursordestroy(so *o, int fe ssunused)
 {
@@ -30,14 +38,13 @@ se_cursordestroy(so *o, int fe ssunused)
 		sx_rollback(&c->t);
 	if (c->cache)
 		si_cachepool_push(c->cache);
-	so_listdel(&e->cursor, &c->o);
 	se_dbunbind(e, id);
 	sr_statcursor(&e->stat, c->start,
 	              c->read_disk,
 	              c->read_cache,
 	              c->ops);
-	se_mark_destroyed(&c->o);
-	ss_free(&e->a_cursor, c);
+	so_mark_destroyed(&c->o);
+	so_poolgc(&e->cursor, &c->o);
 	return 0;
 }
 
@@ -82,6 +89,7 @@ static soif secursorif =
 	.open         = NULL,
 	.close        = NULL,
 	.destroy      = se_cursordestroy,
+	.free         = se_cursorfree,
 	.error        = NULL,
 	.document     = NULL,
 	.poll         = NULL,
@@ -103,7 +111,9 @@ static soif secursorif =
 
 so *se_cursornew(se *e, uint64_t vlsn)
 {
-	secursor *c = ss_malloc(&e->a_cursor, sizeof(secursor));
+	secursor *c = (secursor*)so_poolpop(&e->cursor);
+	if (c == NULL)
+		c = ss_malloc(&e->a, sizeof(secursor));
 	if (ssunlikely(c == NULL)) {
 		sr_oom(&e->error);
 		return NULL;
@@ -117,12 +127,14 @@ so *se_cursornew(se *e, uint64_t vlsn)
 	c->t.state = SXUNDEF;
 	c->cache = si_cachepool_pop(&e->cachepool);
 	if (ssunlikely(c->cache == NULL)) {
-		ss_free(&e->a_cursor, c);
+		so_mark_destroyed(&c->o);
+		so_poolpush(&e->cursor, &c->o);
+		sr_oom(&e->error);
 		return NULL;
 	}
 	c->read_commited = 0;
 	sx_begin(&e->xm, &c->t, SXRO, vlsn);
 	se_dbbind(e);
-	so_listadd(&e->cursor, &c->o);
+	so_pooladd(&e->cursor, &c->o);
 	return &c->o;
 }
