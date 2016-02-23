@@ -10,6 +10,7 @@
 */
 
 typedef struct sxv sxv;
+typedef struct sxvpool sxvpool;
 
 struct sxv {
 	uint64_t id;
@@ -23,40 +24,87 @@ struct sxv {
 	ssrbnode node;
 } sspacked;
 
-extern svif sx_vif;
+struct sxvpool {
+	sxv *head;
+	int n;
+	sr *r;
+};
+
+static inline void
+sx_vpool_init(sxvpool *p, sr *r)
+{
+	p->head = NULL;
+	p->n = 0;
+	p->r = r;
+}
+
+static inline void
+sx_vpool_free(sxvpool *p)
+{
+	sxv *n, *c = p->head;
+	while (c) {
+		n = c->next;
+		ss_free(p->r->a, c);
+		c = n;
+	}
+}
 
 static inline sxv*
-sx_valloc(ssa *asxv, svv *v)
+sx_vpool_pop(sxvpool *p)
 {
-	sxv *vv = ss_malloc(asxv, sizeof(sxv));
-	if (ssunlikely(vv == NULL))
+	if (ssunlikely(p->n == 0))
 		return NULL;
-	vv->index = NULL;
-	vv->id    = 0;
-	vv->lo    = 0;
-	vv->csn   = 0;
-	vv->v     = v;
-	vv->next  = NULL;
-	vv->prev  = NULL;
-	vv->gc    = NULL;
-	memset(&vv->node, 0, sizeof(vv->node));
-	return vv;
+	sxv *v = p->head;
+	p->head = v->next;
+	p->n--;
+	return v;
 }
 
 static inline void
-sx_vfree(sr *r, ssa *asxv, sxv *v)
+sx_vpool_push(sxvpool *p, sxv *v)
 {
-	sv_vunref(r, v->v);
-	ss_free(asxv, v);
+	v->v    = NULL;
+	v->next = NULL;
+	v->prev = NULL;
+	v->next = p->head;
+	p->head = v;
+	p->n++;
+}
+
+static inline sxv*
+sx_valloc(sxvpool *p, svv *ref)
+{
+	sxv *v = sx_vpool_pop(p);
+	if (ssunlikely(v == NULL)) {
+		v = ss_malloc(p->r->a, sizeof(sxv));
+		if (ssunlikely(v == NULL))
+			return NULL;
+	}
+	v->index = NULL;
+	v->id    = 0;
+	v->lo    = 0;
+	v->csn   = 0;
+	v->v     = ref;
+	v->next  = NULL;
+	v->prev  = NULL;
+	v->gc    = NULL;
+	memset(&v->node, 0, sizeof(v->node));
+	return v;
 }
 
 static inline void
-sx_vfreeall(sr *r, ssa *asxv, sxv *v)
+sx_vfree(sxvpool *p, sxv *v)
+{
+	sv_vunref(p->r, v->v);
+	sx_vpool_push(p, v);
+}
+
+static inline void
+sx_vfreeall(sxvpool *p, sxv *v)
 {
 	while (v) {
 		sxv *next = v->next;
-		sv_vunref(r, v->v);
-		ss_free(asxv, v);
+		sx_vfree(p, v);
 		v = next;
 	}
 }
@@ -140,5 +188,7 @@ sx_vaborted(sxv *v)
 {
 	return v->v->flags & SVCONFLICT;
 }
+
+extern svif sx_vif;
 
 #endif

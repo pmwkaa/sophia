@@ -26,14 +26,10 @@ struct se {
 	srseq       seq;
 	seconf      conf;
 	ssquota     quota;
-	sspager     pager;
 	ssvfs       vfs;
 	ssa         a_oom;
 	ssa         a;
 	ssa         a_ref;
-	ssa         a_cachebranch;
-	ssa         a_cache;
-	ssa         a_sxv;
 	sicachepool cachepool;
 	syconf      repconf;
 	sy          rep;

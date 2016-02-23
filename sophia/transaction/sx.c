@@ -19,7 +19,7 @@ sx_count(sxmanager *m) {
 	return m->count_rd + m->count_rw;
 }
 
-int sx_managerinit(sxmanager *m, sr *r, ssa *asxv)
+int sx_managerinit(sxmanager *m, sr *r)
 {
 	ss_rbinit(&m->i);
 	m->count_rd = 0;
@@ -29,14 +29,15 @@ int sx_managerinit(sxmanager *m, sr *r, ssa *asxv)
 	m->gc  = NULL;
 	ss_spinlockinit(&m->lock);
 	ss_listinit(&m->indexes);
+	sx_vpool_init(&m->pool, r);
 	m->r = r;
-	m->asxv = asxv;
 	return 0;
 }
 
 int sx_managerfree(sxmanager *m)
 {
 	assert(sx_count(m) == 0);
+	sx_vpool_free(&m->pool);
 	ss_spinlockfree(&m->lock);
 	return 0;
 }
@@ -59,17 +60,14 @@ int sx_indexset(sxindex *i, uint32_t dsn)
 	return 0;
 }
 
-ss_rbtruncate(sx_truncate,
-              sx_vfreeall(((sr** )arg)[0],
-                          ((ssa**)arg)[1], sscast(n, sxv, node)))
+ss_rbtruncate(sx_truncate, sx_vfreeall(arg, sscast(n, sxv, node)))
 
 static inline void
 sx_indextruncate(sxindex *i, sxmanager *m)
 {
 	if (i->i.root == NULL)
 		return;
-	void *argv[2] = { m->r, m->asxv };
-	sx_truncate(i->i.root, argv);
+	sx_truncate(i->i.root, &m->pool);
 	ss_rbinit(&i->i);
 }
 
@@ -229,7 +227,7 @@ sx_garbage_collect(sxmanager *m)
 			continue;
 		}
 		sx_untrack(v);
-		sx_vfree(m->r, m->asxv, v);
+		sx_vfree(&m->pool, v);
 	}
 	m->count_gc = count;
 	m->gc = gc;
@@ -273,10 +271,11 @@ sx_rollback_svp(sx *x, ssiter *i, int free)
 		/* translate log version from sxv to svv */
 		sv_init(&lv->v, &sv_vif, v->v, NULL);
 		if (free) {
-			if (sslikely(! (v->v->flags & SVGET)))
-				gc += sv_vsize((svv*)v->v);
-			sx_vfree(m->r, m->asxv, v);
+			int size = sv_vsize((svv*)v->v);
+			if (sv_vunref(m->r, v->v))
+				gc += size;
 		}
+		sx_vpool_push(&m->pool, v);
 	}
 	ss_quota(m->r->quota, SS_QREMOVE, gc);
 }
@@ -380,7 +379,7 @@ sxstate sx_commit(sx *x)
 			m->count_gc++;
 		} else {
 			sx_untrack(v);
-			ss_free(m->asxv, v);
+			sx_vpool_push(&m->pool, v);
 		}
 	}
 
@@ -405,7 +404,7 @@ int sx_set(sx *x, sxindex *index, svv *version)
 		x->log_read = -1;
 	}
 	/* allocate mvcc container */
-	sxv *v = sx_valloc(m->asxv, version);
+	sxv *v = sx_valloc(&m->pool, version);
 	if (ssunlikely(v == NULL)) {
 		ss_quota(r->quota, SS_QREMOVE, sv_vsize(version));
 		sv_vunref(r, version);
@@ -460,7 +459,7 @@ int sx_set(sx *x, sxindex *index, svv *version)
 		sv_logreplace(&x->log, v->lo, &lv);
 
 		ss_quota(r->quota, SS_QREMOVE, sv_vsize(own->v));
-		sx_vfree(r, m->asxv, own);
+		sx_vfree(&m->pool, own);
 		return 0;
 	}
 	/* update log */
@@ -475,7 +474,7 @@ int sx_set(sx *x, sxindex *index, svv *version)
 	return 0;
 error:
 	ss_quota(r->quota, SS_QREMOVE, sv_vsize(v->v));
-	sx_vfree(r, m->asxv, v);
+	sx_vfree(&m->pool, v);
 	return -1;
 }
 

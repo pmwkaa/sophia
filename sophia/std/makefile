@@ -1,8 +1,6 @@
 LIBSS_O = ss_time.o \
           ss_trigger.o \
-          ss_pager.o \
           ss_stda.o \
-          ss_slaba.o \
           ss_ooma.o \
           ss_quota.o \
           ss_rb.o \

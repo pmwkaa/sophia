@@ -39,8 +39,7 @@ struct sicache {
 struct sicachepool {
 	sicache *head;
 	int n;
-	ssa *ac;
-	ssa *acb;
+	sr *r;
 };
 
 static inline void
@@ -56,15 +55,16 @@ si_cacheinit(sicache *c, sicachepool *pool)
 }
 
 static inline void
-si_cachefree(sicache *c, sr *r)
+si_cachefree(sicache *c)
 {
+	ssa *a = c->pool->r->a;
 	sicachebranch *next;
 	sicachebranch *cb = c->path;
 	while (cb) {
 		next = cb->next;
-		ss_buffree(&cb->buf_a, r->a);
-		ss_buffree(&cb->buf_b, r->a);
-		ss_free(c->pool->acb, cb);
+		ss_buffree(&cb->buf_a, a);
+		ss_buffree(&cb->buf_b, a);
+		ss_free(a, cb);
 		cb = next;
 	}
 }
@@ -91,7 +91,8 @@ si_cachereset(sicache *c)
 static inline sicachebranch*
 si_cacheadd(sicache *c, sibranch *b)
 {
-	sicachebranch *nb = ss_malloc(c->pool->acb, sizeof(sicachebranch));
+	sicachebranch *nb =
+		ss_malloc(c->pool->r->a, sizeof(sicachebranch));
 	if (ssunlikely(nb == NULL))
 		return NULL;
 	nb->branch  = b;
@@ -187,23 +188,22 @@ si_cachefollow(sicache *c, sibranch *seek)
 }
 
 static inline void
-si_cachepool_init(sicachepool *p, ssa *ac, ssa *acb)
+si_cachepool_init(sicachepool *p, sr *r)
 {
 	p->head = NULL;
 	p->n    = 0;
-	p->ac   = ac;
-	p->acb  = acb;
+	p->r    = r;
 }
 
 static inline void
-si_cachepool_free(sicachepool *p, sr *r)
+si_cachepool_free(sicachepool *p)
 {
 	sicache *next;
 	sicache *c = p->head;
 	while (c) {
 		next = c->next;
-		si_cachefree(c, r);
-		ss_free(p->ac, c);
+		si_cachefree(c);
+		ss_free(p->r->a, c);
 		c = next;
 	}
 }
@@ -220,7 +220,7 @@ si_cachepool_pop(sicachepool *p)
 		c->pool = p;
 		return c;
 	}
-	c = ss_malloc(p->ac, sizeof(sicache));
+	c = ss_malloc(p->r->a, sizeof(sicache));
 	if (ssunlikely(c == NULL))
 		return NULL;
 	si_cacheinit(c, p);

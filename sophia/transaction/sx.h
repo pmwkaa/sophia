@@ -60,11 +60,11 @@ struct sxmanager {
 	uint32_t    count_gc;
 	uint64_t    csn;
 	sxv        *gc;
-	ssa        *asxv;
+	sxvpool     pool;
 	sr         *r;
 };
 
-int       sx_managerinit(sxmanager*, sr*, ssa*);
+int       sx_managerinit(sxmanager*, sr*);
 int       sx_managerfree(sxmanager*);
 int       sx_indexinit(sxindex*, sxmanager*, sr*, so*, void*);
 int       sx_indexset(sxindex*, uint32_t);

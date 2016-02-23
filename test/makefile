@@ -2,9 +2,7 @@
 # sophia test-suite
 
 STS_TESTS = unit/ss_leb128.test.o \
-            unit/ss_pager.test.o \
             unit/ss_a.test.o \
-            unit/ss_aslab.test.o \
             unit/ss_order.test.o \
             unit/ss_rq.test.o \
             unit/ss_qf.test.o \

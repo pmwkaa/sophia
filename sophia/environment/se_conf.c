@@ -92,8 +92,6 @@ se_confmemory(se *e, seconfrt *rt, srconf **pc)
 	sr_c(&p, pc, se_confv_offline, "limit", SS_U64, &e->conf.memory_limit);
 	sr_C(&p, pc, se_confv, "used", SS_U64, &rt->memory_used, SR_RO, NULL);
 	sr_c(&p, pc, se_confv_offline, "anticache", SS_U64, &e->conf.anticache);
-	sr_C(&p, pc, se_confv, "pager_pools", SS_U32, &rt->pager_pools, SR_RO, NULL);
-	sr_C(&p, pc, se_confv, "pager_pool_size", SS_U32, &rt->pager_pool_size, SR_RO, NULL);
 	return sr_C(NULL, pc, NULL, "memory", SS_UNDEF, memory, SR_NS, NULL);
 }
 
@@ -823,17 +821,9 @@ se_confdebug_oom(srconf *c, srconfstmt *s)
 	int rc = se_confv(c, s);
 	if (ssunlikely(rc == -1))
 		return rc;
-
 	ss_aclose(&e->a);
-	ss_aclose(&e->a_cachebranch);
-	ss_aclose(&e->a_cache);
-	ss_aclose(&e->a_sxv);
-
 	ss_aopen(&e->a_oom, &ss_ooma, e->ei.oom);
 	e->a = e->a_oom;
-	e->a_cachebranch = e->a_oom;
-	e->a_cache = e->a_oom;
-	e->a_sxv = e->a_oom;
 	return 0;
 }
 
@@ -926,8 +916,6 @@ se_confrt(se *e, seconfrt *rt)
 
 	/* memory */
 	rt->memory_used     = ss_quotaused(&e->quota);
-	rt->pager_pools     = e->pager.pools;
-	rt->pager_pool_size = e->pager.pool_size;
 
 	/* scheduler */
 	ss_mutexlock(&e->scheduler.lock);

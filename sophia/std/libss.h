@@ -21,10 +21,8 @@
 #include <ss_stdvfs.h>
 #include <ss_testvfs.h>
 #include <ss_file.h>
-#include <ss_pager.h>
 #include <ss_a.h>
 #include <ss_stda.h>
-#include <ss_slaba.h>
 #include <ss_ooma.h>
 #include <ss_trace.h>
 #include <ss_gc.h>
