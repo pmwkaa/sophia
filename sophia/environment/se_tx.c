@@ -132,6 +132,8 @@ se_txfree(so *o)
 {
 	assert(o->destroyed);
 	se *e = se_of(o);
+	setx *t = (setx*)o;
+	sv_logfree(&t->log, &e->a);
 	ss_free(&e->a, o);
 }
 
@@ -139,8 +141,9 @@ static inline void
 se_txend(setx *t, int rlb, int conflict)
 {
 	se *e = se_of(&t->o);
-	uint32_t count = sv_logcount(&t->t.log);
+	uint32_t count = sv_logcount(&t->log);
 	sx_gc(&t->t);
+	sv_logreset(&t->log);
 	sr_stattx(&e->stat, t->start, count, rlb, conflict);
 	se_dbunbind(e, t->t.id);
 	so_mark_destroyed(&t->o);
@@ -233,7 +236,7 @@ se_txcommit(so *o)
 	if (ssunlikely(recover))
 		recover = (e->conf.recover == 3) ? 2: 1;
 	int rc;
-	rc = sc_write(&e->scheduler, &t->t.log, t->lsn, recover);
+	rc = sc_write(&e->scheduler, &t->log, t->lsn, recover);
 	if (ssunlikely(rc == -1))
 		sx_rollback(&t->t);
 
@@ -292,19 +295,26 @@ static soif setxif =
 
 so *se_txnew(se *e)
 {
+	int cache;
 	setx *t = (setx*)so_poolpop(&e->tx);
-	if (t == NULL)
+	if (! t) {
 		t = ss_malloc(&e->a, sizeof(setx));
+		cache = 0;
+	} else {
+		cache = 1;
+	}
 	if (ssunlikely(t == NULL)) {
 		sr_oom(&e->error);
 		return NULL;
 	}
-	memset(t, 0, sizeof(*t));
 	so_init(&t->o, &se_o[SETX], &setxif, &e->o, &e->o);
-	sx_init(&e->xm, &t->t);
+	if (! cache)
+		sv_loginit(&t->log);
+	sx_init(&e->xm, &t->t, &t->log);
 	t->start = ss_utime();
 	t->lsn = 0;
-	sx_begin(&e->xm, &t->t, SXRW, UINT64_MAX);
+	t->half_commit = 0;
+	sx_begin(&e->xm, &t->t, SXRW, &t->log, UINT64_MAX);
 	se_dbbind(e);
 	so_pooladd(&e->tx, &t->o);
 	return &t->o;

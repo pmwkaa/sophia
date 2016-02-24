@@ -16,6 +16,7 @@ struct seview {
 	uint64_t  vlsn;
 	ssbuf     name;
 	sx        t;
+	svlog     log;
 	int       db_view_only;
 	solist    cursor;
 } sspacked;

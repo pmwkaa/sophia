@@ -388,7 +388,7 @@ so *se_document_new(se *e, so *parent, sv *vp, int async)
 		sr_oom(&e->error);
 		return NULL;
 	}
-	memset(v, 0, sizeof(*v));
+	memset(v, 0, sizeof(*v)); /* xxx */
 	so_init(&v->o, &se_o[SEDOCUMENT], &sedocumentif, parent, &e->o);
 	v->order = SS_EQ;
 	v->async = async;

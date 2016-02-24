@@ -430,7 +430,6 @@ main(int argc, char *argv[])
 	st_planadd(plan, recover_loop_group());
 	st_suiteadd(&st_r.suite, plan);
 
-
 	plan = st_plan("multithread");
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rmrf"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "init"));

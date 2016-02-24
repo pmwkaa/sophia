@@ -28,8 +28,8 @@ struct svlogv {
 
 struct svlog {
 	int count_write;
-	svlogindex reserve_i[4];
-	svlogv reserve_v[16];
+	svlogindex reserve_i[2];
+	svlogv reserve_v[1];
 	ssbuf index;
 	ssbuf buf;
 };
@@ -56,6 +56,15 @@ sv_logfree(svlog *l, ssa *a)
 {
 	ss_buffree(&l->buf, a);
 	ss_buffree(&l->index, a);
+	l->count_write = 0;
+}
+
+static inline void
+sv_logreset(svlog *l)
+{
+	ss_bufreset(&l->buf);
+	ss_bufreset(&l->index);
+	l->count_write = 0;
 }
 
 static inline int

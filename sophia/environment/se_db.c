@@ -560,8 +560,10 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 	ss_quota(&e->quota, SS_QADD, sv_vsize(v));
 
 	/* single-statement transaction */
+	svlog log;
+	sv_loginit(&log);
 	sx x;
-	sxstate state = sx_set_autocommit(&e->xm, &db->coindex, &x, v);
+	sxstate state = sx_set_autocommit(&e->xm, &db->coindex, &x, &log, v);
 	switch (state) {
 	case SXLOCK: return 2;
 	case SXROLLBACK: return 1;
@@ -569,7 +571,7 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 	}
 
 	/* write wal and index */
-	rc = sc_write(&e->scheduler, &x.log, 0, 0);
+	rc = sc_write(&e->scheduler, &log, 0, 0);
 	if (ssunlikely(rc == -1))
 		sx_rollback(&x);
 

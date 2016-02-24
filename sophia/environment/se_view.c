@@ -155,7 +155,8 @@ so *se_viewnew(se *e, uint64_t vlsn, char *name)
 	}
 	memcpy(s->name.s, name, len);
 	ss_bufadvance(&s->name, len);
-	sx_begin(&e->xm, &s->t, SXRO, vlsn);
+	sv_loginit(&s->log);
+	sx_begin(&e->xm, &s->t, SXRO, &s->log, vlsn);
 	s->db_view_only = 0;
 	se_dbbind(e);
 	so_pooladd(&e->view, &s->o);
@@ -168,7 +169,7 @@ int se_viewupdate(seview *s)
 	uint32_t id = s->t.id;
 	if (! s->db_view_only) {
 		sx_rollback(&s->t);
-		sx_begin(&e->xm, &s->t, SXRO, s->vlsn);
+		sx_begin(&e->xm, &s->t, SXRO, &s->log, s->vlsn);
 	}
 	s->t.id = id;
 	return 0;

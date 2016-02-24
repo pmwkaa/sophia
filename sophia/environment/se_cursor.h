@@ -13,6 +13,7 @@ typedef struct secursor secursor;
 
 struct secursor {
 	so o;
+	svlog log;
 	sx t;
 	uint64_t start;
 	int ops;

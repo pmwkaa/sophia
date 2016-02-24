@@ -119,7 +119,8 @@ so *se_cursornew(se *e, uint64_t vlsn)
 		return NULL;
 	}
 	so_init(&c->o, &se_o[SECURSOR], &secursorif, &e->o, &e->o);
-	sx_init(&e->xm, &c->t);
+	sv_loginit(&c->log);
+	sx_init(&e->xm, &c->t, &c->log);
 	c->start = ss_utime();
 	c->ops = 0;
 	c->read_disk = 0;
@@ -133,7 +134,7 @@ so *se_cursornew(se *e, uint64_t vlsn)
 		return NULL;
 	}
 	c->read_commited = 0;
-	sx_begin(&e->xm, &c->t, SXRO, vlsn);
+	sx_begin(&e->xm, &c->t, SXRO, &c->log, vlsn);
 	se_dbbind(e);
 	so_pooladd(&e->cursor, &c->o);
 	return &c->o;

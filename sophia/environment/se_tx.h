@@ -16,6 +16,7 @@ struct setx {
 	int64_t lsn;
 	int half_commit;
 	uint64_t start;
+	svlog log;
 	sx t;
 };
 
