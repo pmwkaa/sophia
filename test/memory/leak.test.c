@@ -77,7 +77,7 @@ leak_set_get(void)
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
-	t( sp_getint(env, "performance.documents") == 2 );
+	t( sp_getint(env, "performance.documents") == 1 ); /* reuse same object */
 	sp_destroy(o);
 	t( sp_getint(env, "performance.documents") == 1 );
 

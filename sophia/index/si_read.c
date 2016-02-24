@@ -72,9 +72,15 @@ int si_readclose(siread *q)
 static inline int
 si_readdup(siread *q, sv *result)
 {
-	svv *v = sv_vdup(q->r, result);
-	if (ssunlikely(v == NULL))
-		return sr_oom(q->r->e);
+	svv *v;
+	if (sslikely(result->i == &sv_vif)) {
+		v = result->v;
+		sv_vref(v);
+	} else {
+		v = sv_vdup(q->r, result);
+		if (ssunlikely(v == NULL))
+			return sr_oom(q->r->e);
+	}
 	sv_init(&q->result, &sv_vif, v, NULL);
 	return 1;
 }

@@ -507,6 +507,7 @@ int sx_get(sx *x, sxindex *index, sv *key, sv *result)
 		rc = 1;
 	}
 	return rc;
+
 add:
 	/* track a start of the latest read sequence in the
 	 * transactional log */
