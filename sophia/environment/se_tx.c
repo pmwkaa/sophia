@@ -45,7 +45,7 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 	case SR_ONLINE: break;
 	default: goto error;
 	}
-	if (flags == SVUPSERT && !sf_upserthas(&db->scheme.fmt_upsert))
+	if (flags == SVUPSERT && !sf_upserthas(&db->scheme->fmt_upsert))
 		flags = 0;
 
 	/* prepare document */

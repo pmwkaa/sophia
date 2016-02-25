@@ -51,12 +51,12 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		.stream          = vindex->count,
 		.size_stream     = UINT32_MAX,
 		.size_node       = UINT64_MAX,
-		.size_page       = index->scheme->node_page_size,
-		.checksum        = index->scheme->node_page_checksum,
-		.compression_key = index->scheme->compression_key,
-		.compression     = index->scheme->compression_branch,
-		.compression_if  = index->scheme->compression_branch_if,
-		.amqf            = index->scheme->amqf,
+		.size_page       = index->scheme.node_page_size,
+		.checksum        = index->scheme.node_page_checksum,
+		.compression_key = index->scheme.compression_key,
+		.compression     = index->scheme.compression_branch,
+		.compression_if  = index->scheme.compression_branch_if,
+		.amqf            = index->scheme.amqf,
 		.vlsn            = vlsn,
 		.vlsn_lru        = 0,
 		.save_delete     = 1,
@@ -103,7 +103,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		rc = sd_writeindex(r, &parent->file, blob, &merge.index);
 		if (ssunlikely(rc == -1))
 			goto e0;
-		if (index->scheme->sync) {
+		if (index->scheme.sync) {
 			rc = ss_filesync(&parent->file);
 			if (ssunlikely(rc == -1)) {
 				sr_malfunction(r->e, "file '%s' sync error: %s",
@@ -122,7 +122,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		rc = sd_seal(r, &parent->file, blob, &merge.index, seal);
 		if (ssunlikely(rc == -1))
 			goto e0;
-		if (index->scheme->sync == 2) {
+		if (index->scheme.sync == 2) {
 			rc = ss_filesync(&parent->file);
 			if (ssunlikely(rc == -1)) {
 				sr_malfunction(r->e, "file '%s' sync error: %s",
@@ -156,7 +156,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		branch->copy = copy;
 	}
 	/* mmap support */
-	if (index->scheme->mmap) {
+	if (index->scheme.mmap) {
 		ss_mmapinit(&parent->map_swap);
 		rc = ss_vfsmmap(r->vfs, &parent->map_swap, parent->file.fd,
 		              parent->file.size, 1);
@@ -221,7 +221,7 @@ int si_branch(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 	si_unlock(index);
 
 	/* gc */
-	if (index->scheme->mmap) {
+	if (index->scheme.mmap) {
 		int rc = ss_vfsmunmap(r->vfs, &swap_map);
 		if (ssunlikely(rc == -1)) {
 			sr_malfunction(r->e, "db file '%s' munmap error: %s",
@@ -256,10 +256,10 @@ int si_compact(si *index, sdc *c, siplan *plan,
 		return -1;
 
 	/* read node file into memory */
-	int use_mmap = index->scheme->mmap;
+	int use_mmap = index->scheme.mmap;
 	ssmmap *map = &node->map;
 	ssmmap  preload;
-	if (index->scheme->node_compact_load) {
+	if (index->scheme.node_compact_load) {
 		rc = si_noderead(node, r, &c->c);
 		if (ssunlikely(rc == -1))
 			return -1;
@@ -286,11 +286,11 @@ int si_compact(si *index, sdc *c, siplan *plan,
 		int compression;
 		ssfilterif *compression_if;
 		if (! si_branchis_root(b)) {
-			compression    = index->scheme->compression_branch;
-			compression_if = index->scheme->compression_branch_if;
+			compression    = index->scheme.compression_branch;
+			compression_if = index->scheme.compression_branch_if;
 		} else {
-			compression    = index->scheme->compression;
-			compression_if = index->scheme->compression_if;
+			compression    = index->scheme.compression;
+			compression_if = index->scheme.compression_if;
 		}
 		sdreadarg arg = {
 			.index           = &b->index,

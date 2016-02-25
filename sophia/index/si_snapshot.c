@@ -68,7 +68,7 @@ int si_snapshot(si *index, siplan *plan)
 	/* create snapshot.inprogress */
 	char path[PATH_MAX];
 	snprintf(path, sizeof(path), "%s/index.incomplete",
-	         index->scheme->path);
+	         index->scheme.path);
 	rc = ss_filenew(&file, path);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "index file '%s' create error: %s",
@@ -89,7 +89,7 @@ int si_snapshot(si *index, siplan *plan)
 				 return -1);
 
 	/* sync snapshot file */
-	if (index->scheme->sync) {
+	if (index->scheme.sync) {
 		rc = ss_filesync(&file);
 		if (ssunlikely(rc == -1)) {
 			sr_malfunction(r->e, "index file '%s' sync error: %s",
@@ -99,7 +99,7 @@ int si_snapshot(si *index, siplan *plan)
 	}
 
 	/* remove old snapshot file (if exists) */
-	snprintf(path, sizeof(path), "%s/index", index->scheme->path);
+	snprintf(path, sizeof(path), "%s/index", index->scheme.path);
 	ss_vfsunlink(r->vfs, path);
 
 	SS_INJECTION(r->i, SS_INJECTION_SI_SNAPSHOT_1,

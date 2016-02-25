@@ -43,9 +43,9 @@ int se_recoverbegin(sedb *db)
 	 * reply is required. */
 	if (sr_status(&e->status) == SR_ONLINE)
 		if (e->conf.recover != SE_RECOVER_NP)
-			db->scheme.path_fail_on_exists = 1;
-	se_recoverf(e, "loading database '%s'", db->scheme.path);
-	int rc = si_open(&db->index, &db->scheme);
+			db->scheme->path_fail_on_exists = 1;
+	se_recoverf(e, "loading database '%s'", db->scheme->path);
+	int rc = si_open(&db->index);
 	if (ssunlikely(rc == -1))
 		goto error;
 	db->created = rc;
@@ -92,7 +92,7 @@ se_recoverlog(se *e, sl *log)
 			assert(sv_lsn(v) == lsn);
 			/* match a database */
 			uint32_t dsn = sl_vdsn(v);
-			if (db == NULL || db->scheme.id != dsn)
+			if (db == NULL || db->scheme->id != dsn)
 				db = (sedb*)se_dbmatch_id(e, dsn);
 			if (ssunlikely(db == NULL)) {
 				sr_malfunction(&e->error, "database id %" PRIu32

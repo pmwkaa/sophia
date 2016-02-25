@@ -40,7 +40,7 @@ struct si {
 	uint32_t   ref_be;
 	ssbuf      readbuf;
 	svupsert   u;
-	sischeme  *scheme;
+	sischeme   scheme;
 	si        *cache;
 	so        *object;
 	so         link;
@@ -62,8 +62,13 @@ si_unlock(si *i) {
 	ss_mutexunlock(&i->lock);
 }
 
+static inline sischeme*
+si_scheme(si *i) {
+	return &i->scheme;
+}
+
 int si_init(si*, sr*, so*);
-int si_open(si*, sischeme*);
+int si_open(si*);
 int si_close(si*);
 int si_insert(si*, sinode*);
 int si_remove(si*, sinode*);

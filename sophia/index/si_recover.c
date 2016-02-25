@@ -55,7 +55,7 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 		.id     = sr_seq(r->seq, SR_NSNNEXT)
 	};
 	int rc;
-	rc = si_nodecreate(n, r, i->scheme, &id);
+	rc = si_nodecreate(n, r, &i->scheme, &id);
 	if (ssunlikely(rc == -1))
 		goto e0;
 	n->branch = &n->self;
@@ -63,7 +63,7 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 
 	/* in-memory mode support */
 	ssblob *blob = NULL;
-	if (i->scheme->storage == SI_SIN_MEMORY) {
+	if (i->scheme.storage == SI_SIN_MEMORY) {
 		blob = &n->self.copy;
 		rc = ss_blobensure(blob, 4096);
 		if (ssunlikely(rc == -1))
@@ -84,10 +84,10 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 	sdbuild build;
 	sd_buildinit(&build);
 	rc = sd_buildbegin(&build, r,
-	                   i->scheme->node_page_checksum,
-	                   i->scheme->compression_key,
-	                   i->scheme->compression,
-	                   i->scheme->compression_if);
+	                   i->scheme.node_page_checksum,
+	                   i->scheme.compression_key,
+	                   i->scheme.compression,
+	                   i->scheme.compression_if);
 	if (ssunlikely(rc == -1))
 		goto e1;
 	sd_buildend(&build, r);
@@ -105,7 +105,7 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 	if (ssunlikely(rc == -1))
 		goto e1;
 	/* amqf */
-	if (i->scheme->amqf) {
+	if (i->scheme.amqf) {
 		rc = ss_qfensure(&f, r->a, 0);
 		if (ssunlikely(rc == -1))
 			goto e1;
@@ -128,7 +128,7 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 		if (ssunlikely(rc == -1))
 			goto e1;
 	}
-	if (i->scheme->mmap) {
+	if (i->scheme.mmap) {
 		rc = si_nodemap(n, r);
 		if (ssunlikely(rc == -1))
 			goto e1;
@@ -153,15 +153,15 @@ si_deploy(si *i, sr *r, int create_directory)
 	/* create directory */
 	int rc;
 	if (sslikely(create_directory)) {
-		rc = ss_vfsmkdir(r->vfs, i->scheme->path, 0755);
+		rc = ss_vfsmkdir(r->vfs, i->scheme.path, 0755);
 		if (ssunlikely(rc == -1)) {
 			sr_malfunction(r->e, "directory '%s' create error: %s",
-			               i->scheme->path, strerror(errno));
+			               i->scheme.path, strerror(errno));
 			return -1;
 		}
 	}
 	/* create scheme file */
-	rc = si_schemedeploy(i->scheme, r);
+	rc = si_schemedeploy(&i->scheme, r);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction_set(r->e);
 		return -1;
@@ -174,7 +174,7 @@ si_deploy(si *i, sr *r, int create_directory)
 	             si_nodefree(n, r, 0);
 	             sr_malfunction(r->e, "%s", "error injection");
 	             return -1);
-	rc = si_nodecomplete(n, r, i->scheme);
+	rc = si_nodecomplete(n, r, &i->scheme);
 	if (ssunlikely(rc == -1)) {
 		si_nodefree(n, r, 1);
 		return -1;
@@ -232,10 +232,10 @@ si_process(char *name, uint64_t *nsn, uint64_t *parent)
 static inline int
 si_trackdir(sitrack *track, sr *r, si *i)
 {
-	DIR *dir = opendir(i->scheme->path);
+	DIR *dir = opendir(i->scheme.path);
 	if (ssunlikely(dir == NULL)) {
 		sr_malfunction(r->e, "directory '%s' open error: %s",
-		               i->scheme->path, strerror(errno));
+		               i->scheme.path, strerror(errno));
 		return -1;
 	}
 	struct dirent *de;
@@ -269,7 +269,7 @@ si_trackdir(sitrack *track, sr *r, si *i)
 			head->recover |= rc;
 			/* remove any incomplete file made during compaction */
 			if (rc == SI_RDB_DBI) {
-				ss_pathcompound(&path, i->scheme->path, id_parent, id,
+				ss_pathcompound(&path, i->scheme.path, id_parent, id,
 				                ".db.incomplete");
 				rc = ss_vfsunlink(r->vfs, path.path);
 				if (ssunlikely(rc == -1)) {
@@ -285,9 +285,9 @@ si_trackdir(sitrack *track, sr *r, si *i)
 			if (ssunlikely(node == NULL))
 				goto error;
 			node->recover = SI_RDB_DBSEAL;
-			ss_pathcompound(&path, i->scheme->path, id_parent, id,
+			ss_pathcompound(&path, i->scheme.path, id_parent, id,
 			                ".db.seal");
-			rc = si_nodeopen(node, r, i->scheme, &path, NULL);
+			rc = si_nodeopen(node, r, &i->scheme, &path, NULL);
 			if (ssunlikely(rc == -1)) {
 				si_nodefree(node, r, 0);
 				goto error;
@@ -310,8 +310,8 @@ si_trackdir(sitrack *track, sr *r, si *i)
 		if (ssunlikely(node == NULL))
 			goto error;
 		node->recover = SI_RDB;
-		ss_path(&path, i->scheme->path, id, ".db");
-		rc = si_nodeopen(node, r, i->scheme, &path, NULL);
+		ss_path(&path, i->scheme.path, id, ".db");
+		rc = si_nodeopen(node, r, &i->scheme, &path, NULL);
 		if (ssunlikely(rc == -1)) {
 			si_nodefree(node, r, 0);
 			goto error;
@@ -372,7 +372,7 @@ si_trackvalidate(sitrack *track, ssbuf *buf, sr *r, si *i)
 			}
 			if (! (n->recover & SI_RDB_REMOVE)) {
 				/* complete node */
-				int rc = si_nodecomplete(n, r, i->scheme);
+				int rc = si_nodecomplete(n, r, &i->scheme);
 				if (ssunlikely(rc == -1))
 					return -1;
 				n->recover = SI_RDB;
@@ -382,7 +382,7 @@ si_trackvalidate(sitrack *track, ssbuf *buf, sr *r, si *i)
 		default:
 			/* corrupted states */
 			return sr_malfunction(r->e, "corrupted database repository: %s",
-			                      i->scheme->path);
+			                      i->scheme.path);
 		}
 		p = ss_rbprev(&track->i, p);
 	}
@@ -439,7 +439,7 @@ si_tracksnapshot(sitrack *track, sr *r, si *i, sdsnapshot *s)
 		sdsnapshotnode *n = ss_iterof(sd_snapshotiter, &iter);
 		/* skip updated nodes */
 		sspath path;
-		ss_path(&path, i->scheme->path, n->id, ".db");
+		ss_path(&path, i->scheme.path, n->id, ".db");
 		rc = ss_vfsexists(r->vfs, path.path);
 		if (! rc)
 			continue;
@@ -451,7 +451,7 @@ si_tracksnapshot(sitrack *track, sr *r, si *i, sdsnapshot *s)
 		if (ssunlikely(node == NULL))
 			return -1;
 		node->recover = SI_RDB;
-		rc = si_nodeopen(node, r, i->scheme, &path, n);
+		rc = si_nodeopen(node, r, &i->scheme, &path, n);
 		if (ssunlikely(rc == -1)) {
 			si_nodefree(node, r, 0);
 			return -1;
@@ -521,16 +521,16 @@ static inline int
 si_recoverdrop(si *i, sr *r)
 {
 	char path[1024];
-	snprintf(path, sizeof(path), "%s/drop", i->scheme->path);
+	snprintf(path, sizeof(path), "%s/drop", i->scheme.path);
 	int rc = ss_vfsexists(r->vfs, path);
 	if (sslikely(! rc))
 		return 0;
-	if (i->scheme->path_fail_on_drop) {
+	if (i->scheme.path_fail_on_drop) {
 		sr_malfunction(r->e, "attempt to recover a dropped database: %s:",
-		               i->scheme->path);
+		               i->scheme.path);
 		return -1;
 	}
-	rc = si_droprepository(i->scheme, r, 0);
+	rc = si_droprepository(r, i->scheme.path, 0);
 	if (ssunlikely(rc == -1))
 		return -1;
 	return 1;
@@ -552,9 +552,9 @@ si_recoversnapshot(si *i, sr *r, sdsnapshot *s)
 	int snapshot_incomplete = 0;
 
 	char path[1024];
-	snprintf(path, sizeof(path), "%s/index", i->scheme->path);
+	snprintf(path, sizeof(path), "%s/index", i->scheme.path);
 	snapshot = ss_vfsexists(r->vfs, path);
-	snprintf(path, sizeof(path), "%s/index.incomplete", i->scheme->path);
+	snprintf(path, sizeof(path), "%s/index.incomplete", i->scheme.path);
 	snapshot_incomplete = ss_vfsexists(r->vfs, path);
 
 	int rc;
@@ -570,7 +570,7 @@ si_recoversnapshot(si *i, sr *r, sdsnapshot *s)
 		return 0;
 
 	/* read snapshot file */
-	snprintf(path, sizeof(path), "%s/index", i->scheme->path);
+	snprintf(path, sizeof(path), "%s/index", i->scheme.path);
 
 	ssize_t size = ss_vfssize(r->vfs, path);
 	if (ssunlikely(size == -1)) {
@@ -604,11 +604,11 @@ si_recoversnapshot(si *i, sr *r, sdsnapshot *s)
 int si_recover(si *i)
 {
 	sr *r = i->r;
-	int exist = ss_vfsexists(r->vfs, i->scheme->path);
+	int exist = ss_vfsexists(r->vfs, i->scheme.path);
 	if (exist == 0)
 		goto deploy;
-	if (i->scheme->path_fail_on_exists) {
-		sr_error(r->e, "directory '%s' already exists", i->scheme->path);
+	if (i->scheme.path_fail_on_exists) {
+		sr_error(r->e, "directory '%s' already exists", i->scheme.path);
 		return -1;
 	}
 	int rc = si_recoverdrop(i, r);
@@ -616,12 +616,12 @@ int si_recover(si *i)
 	case -1: return -1;
 	case  1: goto deploy;
 	}
-	rc = si_schemerecover(i->scheme, r);
+	rc = si_schemerecover(&i->scheme, r);
 	if (ssunlikely(rc == -1))
 		return -1;
-	r->scheme = &i->scheme->scheme;
-	r->fmt = i->scheme->fmt;
-	r->fmt_storage = i->scheme->fmt_storage;
+	r->scheme = &i->scheme.scheme;
+	r->fmt = i->scheme.fmt;
+	r->fmt_storage = i->scheme.fmt_storage;
 	sdsnapshot snapshot;
 	sd_snapshot_init(&snapshot);
 	rc = si_recoversnapshot(i, r, &snapshot);

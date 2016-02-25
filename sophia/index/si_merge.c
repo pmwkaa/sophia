@@ -153,17 +153,17 @@ si_split(si *index, sdc *c, ssbuf *result,
 		.stream          = stream,
 		.size_stream     = size_stream,
 		.size_node       = size_node,
-		.size_page       = index->scheme->node_page_size,
-		.checksum        = index->scheme->node_page_checksum,
-		.compression_key = index->scheme->compression_key,
-		.compression     = index->scheme->compression,
-		.compression_if  = index->scheme->compression_if,
-		.amqf            = index->scheme->amqf,
+		.size_page       = index->scheme.node_page_size,
+		.checksum        = index->scheme.node_page_checksum,
+		.compression_key = index->scheme.compression_key,
+		.compression     = index->scheme.compression,
+		.compression_if  = index->scheme.compression_if,
+		.amqf            = index->scheme.amqf,
 		.vlsn            = vlsn,
 		.vlsn_lru        = vlsn_lru,
 		.save_delete     = 0,
 		.save_upsert     = 0,
-		.save_set        = !index->scheme->cache_mode
+		.save_set        = !index->scheme.cache_mode
 	};
 	sinode *n = NULL;
 	sdmerge merge;
@@ -181,7 +181,7 @@ si_split(si *index, sdc *c, ssbuf *result,
 			.flags  = 0,
 			.id     = sr_seq(index->r->seq, SR_NSNNEXT)
 		};
-		rc = si_nodecreate(n, r, index->scheme, &id);
+		rc = si_nodecreate(n, r, &index->scheme, &id);
 		if (ssunlikely(rc == -1))
 			goto error;
 		n->branch = &n->self;
@@ -190,7 +190,7 @@ si_split(si *index, sdc *c, ssbuf *result,
 		ssblob *blob = NULL;
 		if (parent->in_memory) {
 			blob = &n->self.copy;
-			rc = ss_blobensure(blob, index->scheme->node_size);
+			rc = ss_blobensure(blob, index->scheme.node_size);
 			if (ssunlikely(rc == -1))
 				goto error;
 			n->in_memory = 1;
@@ -234,7 +234,7 @@ si_split(si *index, sdc *c, ssbuf *result,
 				goto error;
 		}
 		/* mmap mode */
-		if (index->scheme->mmap) {
+		if (index->scheme.mmap) {
 			rc = si_nodemap(n, r);
 			if (ssunlikely(rc == -1))
 				goto error;
@@ -279,7 +279,7 @@ int si_merge(si *index, sdc *c, sinode *node,
 	int rc;
 	rc = si_split(index, c, result,
 	              node, stream,
-	              index->scheme->node_size,
+	              index->scheme.node_size,
 	              size_stream,
 	              n_stream,
 	              vlsn,
@@ -378,7 +378,7 @@ int si_merge(si *index, sdc *c, sinode *node,
 	while (ss_iterhas(ss_bufiterref, &i))
 	{
 		n  = ss_iterof(ss_bufiterref, &i);
-		rc = si_nodeseal(n, r, index->scheme);
+		rc = si_nodeseal(n, r, &index->scheme);
 		if (ssunlikely(rc == -1)) {
 			si_nodefree(node, r, 0);
 			return -1;
@@ -410,7 +410,7 @@ int si_merge(si *index, sdc *c, sinode *node,
 	while (ss_iterhas(ss_bufiterref, &i))
 	{
 		n = ss_iterof(ss_bufiterref, &i);
-		rc = si_nodecomplete(n, r, index->scheme);
+		rc = si_nodecomplete(n, r, &index->scheme);
 		if (ssunlikely(rc == -1))
 			return -1;
 		SS_INJECTION(r->i, SS_INJECTION_SI_COMPACTION_4,

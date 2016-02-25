@@ -11,6 +11,6 @@
 
 int si_drop(si*);
 int si_dropmark(si*);
-int si_droprepository(sischeme*, sr*, int);
+int si_droprepository(sr*, char*, int);
 
 #endif

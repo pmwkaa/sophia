@@ -15,12 +15,12 @@
 #include <libsd.h>
 #include <libsi.h>
 
-int si_droprepository(sischeme *scheme, sr *r, int drop_directory)
+int si_droprepository(sr *r, char *repo, int drop_directory)
 {
-	DIR *dir = opendir(scheme->path);
+	DIR *dir = opendir(repo);
 	if (dir == NULL) {
 		sr_malfunction(r->e, "directory '%s' open error: %s",
-		               scheme->path, strerror(errno));
+		               repo, strerror(errno));
 		return -1;
 	}
 	char path[1024];
@@ -32,7 +32,7 @@ int si_droprepository(sischeme *scheme, sr *r, int drop_directory)
 		/* skip drop file */
 		if (ssunlikely(strcmp(de->d_name, "drop") == 0))
 			continue;
-		snprintf(path, sizeof(path), "%s/%s", scheme->path, de->d_name);
+		snprintf(path, sizeof(path), "%s/%s", repo, de->d_name);
 		rc = ss_vfsunlink(r->vfs, path);
 		if (ssunlikely(rc == -1)) {
 			sr_malfunction(r->e, "db file '%s' unlink error: %s",
@@ -43,7 +43,7 @@ int si_droprepository(sischeme *scheme, sr *r, int drop_directory)
 	}
 	closedir(dir);
 
-	snprintf(path, sizeof(path), "%s/drop", scheme->path);
+	snprintf(path, sizeof(path), "%s/drop", repo);
 	rc = ss_vfsunlink(r->vfs, path);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' unlink error: %s",
@@ -51,10 +51,10 @@ int si_droprepository(sischeme *scheme, sr *r, int drop_directory)
 		return -1;
 	}
 	if (drop_directory) {
-		rc = ss_vfsrmdir(r->vfs, scheme->path);
+		rc = ss_vfsrmdir(r->vfs, repo);
 		if (ssunlikely(rc == -1)) {
 			sr_malfunction(r->e, "directory '%s' unlink error: %s",
-			               scheme->path, strerror(errno));
+			               repo, strerror(errno));
 			return -1;
 		}
 	}
@@ -65,7 +65,7 @@ int si_dropmark(si *i)
 {
 	/* create drop file */
 	char path[1024];
-	snprintf(path, sizeof(path), "%s/drop", i->scheme->path);
+	snprintf(path, sizeof(path), "%s/drop", i->scheme.path);
 	ssfile drop;
 	ss_fileinit(&drop, i->r->vfs);
 	int rc = ss_filenew(&drop, path);
@@ -81,13 +81,15 @@ int si_dropmark(si *i)
 int si_drop(si *i)
 {
 	sr *r = i->r;
-	sischeme *scheme = i->scheme;
+	sspath path;
+	ss_pathinit(&path);
+	ss_pathset(&path, "%s", i->scheme.path);
 	/* drop file must exists at this point */
 	/* shutdown */
 	int rc = si_close(i);
 	if (ssunlikely(rc == -1))
 		return -1;
 	/* remove directory */
-	rc = si_droprepository(scheme, r, 1);
+	rc = si_droprepository(r, path.path, 1);
 	return rc;
 }

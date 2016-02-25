@@ -132,7 +132,7 @@ se_document_setpart(sedocument *v, const char *path, void *pointer, int size)
 {
 	se *e = se_of(&v->o);
 	sedb *db = (sedb*)v->o.parent;
-	srkey *part = sr_schemefind(&db->scheme.scheme, (char*)path);
+	srkey *part = sr_schemefind(&db->scheme->scheme, (char*)path);
 	if (ssunlikely(part == NULL))
 		return NULL;
 	assert(part->pos < (int)(sizeof(v->keyv) / sizeof(sfv)));
@@ -220,7 +220,7 @@ se_document_getstring(so *o, const char *path, int *size)
 	case SE_DOCUMENT_KEY: {
 		/* match key-part */
 		sedb *db = (sedb*)o->parent;
-		srkey *part = sr_schemefind(&db->scheme.scheme, (char*)path);
+		srkey *part = sr_schemefind(&db->scheme->scheme, (char*)path);
 		if (ssunlikely(part == NULL))
 			return NULL;
 		/* database result document */

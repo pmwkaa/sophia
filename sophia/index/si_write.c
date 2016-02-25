@@ -20,7 +20,7 @@ static inline int si_set(sitx *x, svv *v, uint64_t time)
 {
 	int rc;
 	si *index = x->index;
-	sischeme *scheme = index->scheme;
+	sischeme *scheme = &index->scheme;
 	index->update_time = time;
 	/* match node */
 	ssiter i;
@@ -51,7 +51,7 @@ static inline int si_set(sitx *x, svv *v, uint64_t time)
 	/* update node */
 	node->update_time = index->update_time;
 	node->used += sv_vsize(v);
-	if (index->scheme->lru)
+	if (index->scheme.lru)
 		si_lru_add(index, ref);
 	si_txtrack(x, node);
 	return 0;
@@ -61,7 +61,7 @@ void si_write(sitx *x, svlog *l, svlogindex *li, uint64_t time,
               int recover, int ref)
 {
 	sr *r = x->index->r;
-	int cache_mode = x->index->scheme->cache_mode;
+	int cache_mode = x->index->scheme.cache_mode;
 	svlogv *cv = sv_logat(l, li->head);
 	int c = li->count;
 	while (c) {

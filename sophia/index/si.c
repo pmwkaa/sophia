@@ -25,7 +25,7 @@ int si_init(si *i, sr *r, so *object)
 	sv_upsertinit(&i->u);
 	ss_rbinit(&i->i);
 	ss_mutexinit(&i->lock);
-	i->scheme       = NULL;
+	si_schemeinit(&i->scheme);
 	i->update_time  = 0;
 	i->lru_run_lsn  = 0;
 	i->lru_v        = 0;
@@ -49,9 +49,8 @@ int si_init(si *i, sr *r, so *object)
 	return 0;
 }
 
-int si_open(si *i, sischeme *scheme)
+int si_open(si *i)
 {
-	i->scheme = scheme;
 	return si_recover(i);
 }
 
@@ -72,6 +71,7 @@ int si_close(si *i)
 	ss_mutexfree(&i->lock);
 	ss_spinlockfree(&i->ref_lock);
 	sr_statusfree(&i->status);
+	si_schemefree(&i->scheme, i->r);
 	i->destroyed = 1;
 	return rcret;
 }
@@ -202,6 +202,6 @@ int si_execute(si *i, sdc *c, siplan *plan,
 		break;
 	}
 	/* garbage collect buffers */
-	sd_cgc(c, i->r, i->scheme->buf_gc_wm);
+	sd_cgc(c, i->r, i->scheme.buf_gc_wm);
 	return rc;
 }

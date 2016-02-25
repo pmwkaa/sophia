@@ -50,7 +50,7 @@ sc_execute(sctask *t, scworker *w, uint64_t vlsn)
 	else
 		index = t->db->index;
 
-	si_plannertrace(&t->plan, index->scheme->id, &w->trace);
+	si_plannertrace(&t->plan, index->scheme.id, &w->trace);
 	uint64_t vlsn_lru = si_lru_vlsn(index);
 	int rcret = 0;
 	int rc = si_execute(index, &w->dc, &t->plan, vlsn, vlsn_lru);

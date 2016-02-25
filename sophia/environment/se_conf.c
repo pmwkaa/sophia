@@ -512,7 +512,7 @@ se_confdb_upsert(srconf *c, srconfstmt *s)
 	}
 	/* set upsert function */
 	sfupsertf upsert = (sfupsertf)(uintptr_t)s->value;
-	sf_upsertset(&db->scheme.fmt_upsert, upsert);
+	sf_upsertset(&db->scheme->fmt_upsert, upsert);
 	return 0;
 }
 
@@ -526,7 +526,7 @@ se_confdb_upsertarg(srconf *c, srconfstmt *s)
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
-	sf_upsertset_arg(&db->scheme.fmt_upsert, s->value);
+	sf_upsertset_arg(&db->scheme->fmt_upsert, s->value);
 	return 0;
 }
 
@@ -608,13 +608,13 @@ se_confdb_index(srconf *c ssunused, srconfstmt *s)
 		return -1;
 	}
 	char *name = s->value;
-	srkey *part = sr_schemefind(&db->scheme.scheme, name);
+	srkey *part = sr_schemefind(&db->scheme->scheme, name);
 	if (ssunlikely(part)) {
 		sr_error(&e->error, "keypart '%s' already exists", name);
 		return -1;
 	}
 	/* create new key-part */
-	part = sr_schemeadd(&db->scheme.scheme);
+	part = sr_schemeadd(&db->scheme->scheme);
 	if (ssunlikely(part == NULL)) {
 		sr_error(&e->error, "number of index parts reached limit (%d limit)",
 		         SR_SCHEME_MAXKEY);
@@ -628,7 +628,7 @@ se_confdb_index(srconf *c ssunused, srconfstmt *s)
 		goto error;
 	return 0;
 error:
-	sr_schemepop(&db->scheme.scheme, &e->a);
+	sr_schemepop(&db->scheme->scheme, &e->a);
 	return -1;
 }
 
@@ -645,7 +645,7 @@ se_confdb_key(srconf *c, srconfstmt *s)
 	}
 	char *path = s->value;
 	/* update key-part path */
-	srkey *part = sr_schemefind(&db->scheme.scheme, c->key);
+	srkey *part = sr_schemefind(&db->scheme->scheme, c->key);
 	assert(part != NULL);
 	return sr_keyset(part, &e->a, path);
 }
@@ -689,41 +689,41 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc)
 		sr_C(&p, pc, se_confdb_upsertarg, "upsert_arg", SS_STRING, NULL, 0, o);
 		/* index keys */
 		int i = 0;
-		while (i < o->scheme.scheme.count) {
-			srkey *part = sr_schemeof(&o->scheme.scheme, i);
+		while (i < o->scheme->scheme.count) {
+			srkey *part = sr_schemeof(&o->scheme->scheme, i);
 			sr_C(&p, pc, se_confdb_key, part->name, SS_STRING, part->path, 0, o);
 			i++;
 		}
 		/* database */
 		srconf *database = *pc;
 		p = NULL;
-		sr_C(&p, pc, se_confv, "name", SS_STRINGPTR, &o->scheme.name, SR_RO, NULL);
-		sr_C(&p, pc, se_confv_dboffline, "id", SS_U32, &o->scheme.id, 0, o);
+		sr_C(&p, pc, se_confv, "name", SS_STRINGPTR, &o->scheme->name, SR_RO, NULL);
+		sr_C(&p, pc, se_confv_dboffline, "id", SS_U32, &o->scheme->id, 0, o);
 		sr_C(&p, pc, se_confdb_status,   "status", SS_STRING, o, SR_RO, NULL);
-		sr_C(&p, pc, se_confv_dboffline, "storage", SS_STRINGPTR, &o->scheme.storage_sz, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "format", SS_STRINGPTR, &o->scheme.fmt_sz, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "amqf", SS_U32, &o->scheme.amqf, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "path", SS_STRINGPTR, &o->scheme.path, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "path_fail_on_exists", SS_U32, &o->scheme.path_fail_on_exists, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "path_fail_on_drop", SS_U32, &o->scheme.path_fail_on_drop, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "cache_mode", SS_U32, &o->scheme.cache_mode, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "cache", SS_STRINGPTR, &o->scheme.cache_sz, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "mmap", SS_U32, &o->scheme.mmap, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "sync", SS_U32, &o->scheme.sync, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "node_preload", SS_U32, &o->scheme.node_compact_load, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "node_size", SS_U64, &o->scheme.node_size, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "page_size", SS_U32, &o->scheme.node_page_size, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "page_checksum", SS_U32, &o->scheme.node_page_checksum, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "compression_key", SS_U32, &o->scheme.compression_key, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "compression_branch", SS_STRINGPTR, &o->scheme.compression_branch_sz, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "compression", SS_STRINGPTR, &o->scheme.compression_sz, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "lru", SS_U64, &o->scheme.lru, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "lru_step", SS_U32, &o->scheme.lru_step, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "storage", SS_STRINGPTR, &o->scheme->storage_sz, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "format", SS_STRINGPTR, &o->scheme->fmt_sz, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "amqf", SS_U32, &o->scheme->amqf, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "path", SS_STRINGPTR, &o->scheme->path, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "path_fail_on_exists", SS_U32, &o->scheme->path_fail_on_exists, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "path_fail_on_drop", SS_U32, &o->scheme->path_fail_on_drop, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "cache_mode", SS_U32, &o->scheme->cache_mode, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "cache", SS_STRINGPTR, &o->scheme->cache_sz, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "mmap", SS_U32, &o->scheme->mmap, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "sync", SS_U32, &o->scheme->sync, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "node_preload", SS_U32, &o->scheme->node_compact_load, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "node_size", SS_U64, &o->scheme->node_size, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "page_size", SS_U32, &o->scheme->node_page_size, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "page_checksum", SS_U32, &o->scheme->node_page_checksum, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "compression_key", SS_U32, &o->scheme->compression_key, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "compression_branch", SS_STRINGPTR, &o->scheme->compression_branch_sz, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "compression", SS_STRINGPTR, &o->scheme->compression_sz, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "lru", SS_U64, &o->scheme->lru, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "lru_step", SS_U32, &o->scheme->lru_step, 0, o);
 		sr_c(&p, pc, se_confdb_branch, "branch", SS_FUNCTION, o);
 		sr_c(&p, pc, se_confdb_compact, "compact", SS_FUNCTION, o);
 		sr_c(&p, pc, se_confdb_compact_index, "compact_index", SS_FUNCTION, o);
 		sr_C(&p, pc, se_confdb_index, "index", SS_UNDEF, index, SR_NS, o);
-		sr_C(&prev, pc, se_confdb_get, o->scheme.name, SS_STRING, database, SR_NS, o);
+		sr_C(&prev, pc, se_confdb_get, o->scheme->name, SS_STRING, database, SR_NS, o);
 		if (db == NULL)
 			db = prev;
 	}

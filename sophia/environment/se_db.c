@@ -25,10 +25,10 @@ se_dbscheme_init(sedb *db, char *name)
 {
 	se *e = se_of(&db->o);
 	/* prepare index scheme */
-	sischeme *scheme = &db->scheme;
+	sischeme *scheme = db->scheme;
 	scheme->name = ss_strdup(&e->a, name);
 	if (ssunlikely(scheme->name == NULL))
-		goto e0;
+		goto error;
 	scheme->id                    = sr_seq(&e->seq, SR_DSNNEXT);
 	scheme->sync                  = 2;
 	scheme->mmap                  = 0;
@@ -54,33 +54,31 @@ se_dbscheme_init(sedb *db, char *name)
 	scheme->buf_gc_wm             = 1024 * 1024;
 	scheme->storage_sz = ss_strdup(&e->a, "cache");
 	if (ssunlikely(scheme->storage_sz == NULL))
-		goto e1;
+		goto error;
 	scheme->compression_sz =
 		ss_strdup(&e->a, scheme->compression_if->name);
 	if (ssunlikely(scheme->compression_sz == NULL))
-		goto e1;
+		goto error;
 	scheme->compression_branch_sz =
 		ss_strdup(&e->a, scheme->compression_branch_if->name);
 	if (ssunlikely(scheme->compression_branch_sz == NULL))
-		goto e1;
+		goto error;
 	sf_upsertinit(&scheme->fmt_upsert);
 	scheme->fmt_sz = ss_strdup(&e->a, "kv");
 	if (ssunlikely(scheme->fmt_sz == NULL))
-		goto e1;
+		goto error;
 	/* init single key part as string */
 	int rc;
 	sr_schemeinit(&scheme->scheme);
 	srkey *part = sr_schemeadd(&scheme->scheme);
 	rc = sr_keysetname(part, &e->a, "key");
 	if (ssunlikely(rc == -1))
-		goto e1;
+		goto error;
 	rc = sr_keyset(part, &e->a, "string");
 	if (ssunlikely(rc == -1))
-		goto e1;
+		goto error;
 	return 0;
-e1:
-	si_schemefree(&db->scheme, &db->r);
-e0:
+error:
 	sr_oom(&e->error);
 	return -1;
 }
@@ -89,7 +87,7 @@ static int
 se_dbscheme_set(sedb *db)
 {
 	se *e = se_of(&db->o);
-	sischeme *s = &db->scheme;
+	sischeme *s = si_scheme(&db->index);
 	/* storage */
 	if (strcmp(s->storage_sz, "cache") == 0) {
 		s->storage = SI_SCACHE;
@@ -179,12 +177,12 @@ se_dbscheme_set(sedb *db)
 			         s->cache_sz);
 			return -1;
 		}
-		if (! cache->scheme.cache_mode) {
+		if (! cache->scheme->cache_mode) {
 			sr_error(&e->error, "database '%s' is not in cache mode",
 			         s->cache_sz);
 			return -1;
 		}
-		if (! sr_schemeeq(&db->scheme.scheme, &cache->scheme.scheme)) {
+		if (! sr_schemeeq(&db->scheme->scheme, &cache->scheme->scheme)) {
 			sr_error(&e->error, "database and cache '%s' scheme mismatch",
 			         s->cache_sz);
 			return -1;
@@ -214,7 +212,7 @@ se_dbopen(so *o)
 	int rc = se_dbscheme_set(db);
 	if (ssunlikely(rc == -1))
 		return -1;
-	sx_indexset(&db->coindex, db->scheme.id);
+	sx_indexset(&db->coindex, db->scheme->id);
 	rc = se_recoverbegin(db);
 	if (ssunlikely(rc == -1))
 		return -1;
@@ -292,7 +290,6 @@ shutdown:;
 	rc = si_close(&db->index);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
-	si_schemefree(&db->scheme, &db->r);
 	so_mark_destroyed(&db->o);
 	ss_free(&e->a, db);
 	return rcret;
@@ -491,7 +488,7 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 		arg->vlsn = 0;
 		arg->vlsn_generate = 1;
 	}
-	if (sf_upserthas(&db->scheme.fmt_upsert)) {
+	if (sf_upserthas(&db->scheme->fmt_upsert)) {
 		arg->upsert = 1;
 		if (arg->order == SS_EQ) {
 			arg->order = SS_GTE;
@@ -542,9 +539,9 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 	}
 	if (ssunlikely(! sr_online(&db->index.status)))
 		goto error;
-	if (ssunlikely(db->scheme.cache_mode))
+	if (ssunlikely(db->scheme->cache_mode))
 		goto error;
-	if (flags == SVUPSERT && !sf_upserthas(&db->scheme.fmt_upsert))
+	if (flags == SVUPSERT && !sf_upserthas(&db->scheme->fmt_upsert))
 		flags = 0;
 
 	/* prepare document */
@@ -638,13 +635,13 @@ se_dbget_string(so *o, const char *path, int *size)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
 	if (strcmp(path, "name") == 0) {
-		int namesize = strlen(db->scheme.name) + 1;
+		int namesize = strlen(db->scheme->name) + 1;
 		if (size)
 			*size = namesize;
 		char *name = malloc(namesize);
 		if (name == NULL)
 			return NULL;
-		memcpy(name, db->scheme.name, namesize);
+		memcpy(name, db->scheme->name, namesize);
 		return name;
 	}
 	return NULL;
@@ -655,10 +652,10 @@ se_dbget_int(so *o, const char *path)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
 	if (strcmp(path, "id") == 0)
-		return db->scheme.id;
+		return db->scheme->id;
 	else
 	if (strcmp(path, "key-count") == 0)
-		return db->scheme.scheme.count;
+		return db->scheme->scheme.count;
 	return -1;
 }
 
@@ -696,18 +693,16 @@ so *se_dbnew(se *e, char *name)
 	}
 	memset(o, 0, sizeof(*o));
 	so_init(&o->o, &se_o[SEDB], &sedbif, &e->o, &e->o);
-	o->r        = e->r;
-	o->r.scheme = &o->scheme.scheme;
-	o->created  = 0;
-	memset(&o->rtp, 0, sizeof(o->rtp));
-	int rc = se_dbscheme_init(o, name);
+	o->r = e->r;
+	int rc;
+	rc = si_init(&o->index, &o->r, &o->o);
 	if (ssunlikely(rc == -1)) {
 		ss_free(&e->a, o);
 		return NULL;
 	}
-	rc = si_init(&o->index, &o->r, &o->o);
+	o->scheme = si_scheme(&o->index);
+	rc = se_dbscheme_init(o, name);
 	if (ssunlikely(rc == -1)) {
-		si_schemefree(&o->scheme, &o->r);
 		ss_free(&e->a, o);
 		return NULL;
 	}
@@ -723,7 +718,7 @@ so *se_dbmatch(se *e, char *name)
 	sslist *i;
 	ss_listforeach(&e->db.list, i) {
 		sedb *db = (sedb*)sscast(i, so, link);
-		if (strcmp(db->scheme.name, name) == 0)
+		if (strcmp(db->scheme->name, name) == 0)
 			return &db->o;
 	}
 	return NULL;
@@ -734,7 +729,7 @@ so *se_dbmatch_id(se *e, uint32_t id)
 	sslist *i;
 	ss_listforeach(&e->db.list, i) {
 		sedb *db = (sedb*)sscast(i, so, link);
-		if (db->scheme.id == id)
+		if (db->scheme->id == id)
 			return &db->o;
 	}
 	return NULL;
@@ -801,7 +796,7 @@ int se_dbv(sedb *db, sedocument *o, int search, svv **v)
 
 	/* create document using current format, supplied
 	 * key-chain and value */
-	if (ssunlikely(o->keyc != db->scheme.scheme.count))
+	if (ssunlikely(o->keyc != db->scheme->scheme.count))
 		return sr_error(&e->error, "%s", "bad document key");
 
 	*v = sv_vbuild(runtime, o->keyv, o->keyc,
@@ -826,7 +821,7 @@ int se_dbvprefix(sedb *db, sedocument *o, svv **v)
 	if (o->prefix == NULL)
 		return 0;
 	/* validate index type */
-	if (sr_schemeof(&db->scheme.scheme, 0)->type != SS_STRING)
+	if (sr_schemeof(&db->scheme->scheme, 0)->type != SS_STRING)
 		return sr_error(&e->error, "%s", "prefix search is only "
 		                "supported for a string key");
 	/* create prefix document */

@@ -343,7 +343,7 @@ static inline int
 si_plannerpeek_anticache(siplanner *p, siplan *plan)
 {
 	si *index = p->i;
-	if (index->scheme->storage != SI_SANTI_CACHE)
+	if (index->scheme.storage != SI_SANTI_CACHE)
 		return 0;
 	int rc_inprogress = 0;
 	sinode *n;
@@ -389,7 +389,7 @@ static inline int
 si_plannerpeek_lru(siplanner *p, siplan *plan)
 {
 	si *index = p->i;
-	if (sslikely(! index->scheme->lru))
+	if (sslikely(! index->scheme.lru))
 		return 0;
 	if (! index->lru_run_lsn) {
 		index->lru_run_lsn = si_lru_vlsn_of(index);
