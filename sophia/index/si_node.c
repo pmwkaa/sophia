@@ -187,7 +187,8 @@ int si_nodeopen(sinode *n, sr *r, sischeme *scheme, sspath *path,
 {
 	int rc = ss_fileopen(&n->file, path->path);
 	if (ssunlikely(rc == -1)) {
-		sr_malfunction(r->e, "db file '%s' open error: %s",
+		sr_malfunction(r->e, "db file '%s' open error: %s "
+		               "(please ensure storage version compatibility)",
 		               ss_pathof(&n->file.path),
 		               strerror(errno));
 		return -1;
