@@ -15,7 +15,6 @@ struct sedb {
 	so         o;
 	uint32_t   created;
 	siprofiler rtp;
-	sdc        dc;
 	sischeme   scheme;
 	si         index;
 	sxindex    coindex;

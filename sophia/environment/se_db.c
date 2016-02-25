@@ -293,7 +293,6 @@ shutdown:;
 	if (ssunlikely(rc == -1))
 		rcret = -1;
 	si_schemefree(&db->scheme, &db->r);
-	sd_cfree(&db->dc, &db->r);
 	so_mark_destroyed(&db->o);
 	ss_free(&e->a, db);
 	return rcret;
@@ -716,7 +715,6 @@ so *se_dbnew(se *e, char *name)
 	sx_indexinit(&o->coindex, &e->xm, &o->r, &o->o, &o->index);
 	o->txn_min = sx_min(&e->xm);
 	o->txn_max = UINT32_MAX;
-	sd_cinit(&o->dc);
 	return &o->o;
 }
 

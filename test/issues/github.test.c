@@ -154,6 +154,42 @@ github_117(void)
 	t( sp_destroy(env) == 0 );
 }
 
+static void
+github_118(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_open(env) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+
+	unsigned key = 123456;
+
+	void *o = sp_document(db);
+	t( o != NULL );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	t( sp_set(db, o) == 0 );
+
+	o = sp_document(db);
+	t( o != NULL );
+	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+	o = sp_get(db, o);
+	t( o != NULL );
+	sp_destroy(o);
+
+	t( sp_getint(env, "db.test.index.count") == 1 );
+	char *sz = sp_getstring(env, "db.test.index.temperature_histogram", NULL);
+	t( strcmp(sz, "[100]:1-1 ") == 0 );
+	free(sz);
+
+	t( sp_destroy(db) == 0 );
+	t( sp_destroy(env) == 0 );
+}
+
 stgroup *github_group(void)
 {
 	stgroup *group = st_group("github");
@@ -161,5 +197,6 @@ stgroup *github_group(void)
 	st_groupadd(group, st_test("ticket_104", github_104));
 	st_groupadd(group, st_test("ticket_112", github_112));
 	st_groupadd(group, st_test("ticket_117", github_117));
+	st_groupadd(group, st_test("ticket_118", github_118));
 	return group;
 }

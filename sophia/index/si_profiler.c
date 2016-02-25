@@ -67,7 +67,7 @@ si_profiler_histogram_temperature(siprofiler *p)
 	static struct {
 		int nodes;
 		int branches;
-	} h[100];
+	} h[101];
 	memset(h, 0, sizeof(h));
 	sinode *n;
 	ssrqnode *pn = NULL;
@@ -80,7 +80,7 @@ si_profiler_histogram_temperature(siprofiler *p)
 
 	/* prepare histogram string */
 	int count = 0;
-	int i = 99;
+	int i = 100;
 	int size = 0;
 	while (i >= 0 && count < 10) {
 		if (h[i].nodes == 0) {
