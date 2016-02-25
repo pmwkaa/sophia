@@ -36,7 +36,7 @@ se_recoverf(se *e, char *fmt, ...)
 int se_recoverbegin(sedb *db)
 {
 	/* open and recover repository */
-	sr_statusset(&db->index.status, SR_RECOVER);
+	sr_statusset(&db->index->status, SR_RECOVER);
 	se *e = se_of(&db->o);
 	/* do not allow to recover existing databases
 	 * during online (only create), since logpool
@@ -45,22 +45,22 @@ int se_recoverbegin(sedb *db)
 		if (e->conf.recover != SE_RECOVER_NP)
 			db->scheme->path_fail_on_exists = 1;
 	se_recoverf(e, "loading database '%s'", db->scheme->path);
-	int rc = si_open(&db->index);
+	int rc = si_open(db->index);
 	if (ssunlikely(rc == -1))
 		goto error;
 	db->created = rc;
 	return 0;
 error:
-	sr_statusset(&db->index.status, SR_MALFUNCTION);
+	sr_statusset(&db->index->status, SR_MALFUNCTION);
 	return -1;
 }
 
 int se_recoverend(sedb *db)
 {
-	int status = sr_status(&db->index.status);
+	int status = sr_status(&db->index->status);
 	if (ssunlikely(status == SR_DROP_PENDING))
 		return 0;
-	sr_statusset(&db->index.status, SR_ONLINE);
+	sr_statusset(&db->index->status, SR_ONLINE);
 	return 0;
 }
 

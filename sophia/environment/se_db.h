@@ -16,7 +16,7 @@ struct sedb {
 	uint32_t   created;
 	siprofiler rtp;
 	sischeme  *scheme;
-	si         index;
+	si        *index;
 	sxindex    coindex;
 	uint64_t   txn_min;
 	uint64_t   txn_max;
@@ -25,7 +25,7 @@ struct sedb {
 
 static inline int
 se_dbactive(sedb *o) {
-	return si_active(&o->index);
+	return si_active(o->index);
 }
 
 so   *se_dbnew(se*, char*);

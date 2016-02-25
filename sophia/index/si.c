@@ -39,6 +39,7 @@ int si_init(si *i, sr *r, so *object)
 	i->snapshot_run = 0;
 	i->snapshot     = 0;
 	i->destroyed    = 0;
+	i->n            = 0;
 	i->cache        = NULL;
 	ss_spinlockinit(&i->ref_lock);
 	i->ref_fe       = 0;

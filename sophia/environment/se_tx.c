@@ -32,7 +32,7 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 	}
 
 	/* validate database status */
-	int status = sr_status(&db->index.status);
+	int status = sr_status(&db->index->status);
 	switch (status) {
 	case SR_SHUTDOWN_PENDING:
 	case SR_DROP_PENDING:
@@ -107,7 +107,7 @@ se_txget(so *o, so *v)
 	se *e = se_of(&t->o);
 	sedb *db = se_cast(key->o.parent, sedb*, SEDB);
 	/* validate database */
-	int status = sr_status(&db->index.status);
+	int status = sr_status(&db->index->status);
 	switch (status) {
 	case SR_SHUTDOWN_PENDING:
 	case SR_DROP_PENDING:
@@ -167,7 +167,7 @@ se_txprepare(sx *x, sv *v, so *o, void *ptr)
 	se *e = se_of(&db->o);
 
 	scread q;
-	sc_readopen(&q, &db->r, &db->o, &db->index);
+	sc_readopen(&q, &db->r, &db->o, db->index);
 	screadarg *arg = &q.arg;
 	arg->v             = *v;
 	arg->cache         = cache;

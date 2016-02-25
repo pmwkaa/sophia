@@ -489,13 +489,13 @@ se_confdb_get(srconf *c, srconfstmt *s)
 	}
 	assert(c->ptr != NULL);
 	sedb *db = c->ptr;
-	int status = sr_status(&db->index.status);
+	int status = sr_status(&db->index->status);
 	if (status == SR_SHUTDOWN_PENDING ||
 	    status == SR_DROP_PENDING) {
 		sr_error(&e->error, "%s", "database has been scheduled for shutdown/drop");
 		return -1;
 	}
-	si_ref(&db->index, SI_REFFE);
+	si_ref(db->index, SI_REFFE);
 	*(void**)s->value = db;
 	return 0;
 }
@@ -534,7 +534,7 @@ static inline int
 se_confdb_status(srconf *c, srconfstmt *s)
 {
 	sedb *db = c->value;
-	char *status = sr_statusof(&db->index.status);
+	char *status = sr_statusof(&db->index->status);
 	srconf conf = {
 		.key      = c->key,
 		.flags    = c->flags,
@@ -555,7 +555,7 @@ se_confdb_branch(srconf *c, srconfstmt *s)
 	sedb *db = c->value;
 	se *e = se_of(&db->o);
 	uint64_t vlsn = sx_vlsn(&e->xm);
-	return sc_ctl_branch(&e->scheduler, vlsn, &db->index);
+	return sc_ctl_branch(&e->scheduler, vlsn, db->index);
 }
 
 static inline int
@@ -566,7 +566,7 @@ se_confdb_compact(srconf *c, srconfstmt *s)
 	sedb *db = c->value;
 	se *e = se_of(&db->o);
 	uint64_t vlsn = sx_vlsn(&e->xm);
-	return sc_ctl_compact(&e->scheduler, vlsn, &db->index);
+	return sc_ctl_compact(&e->scheduler, vlsn, db->index);
 }
 
 static inline int
@@ -577,7 +577,7 @@ se_confdb_compact_index(srconf *c, srconfstmt *s)
 	sedb *db = c->value;
 	se *e = se_of(&db->o);
 	uint64_t vlsn = sx_vlsn(&e->xm);
-	return sc_ctl_compact_index(&e->scheduler, vlsn, &db->index);
+	return sc_ctl_compact_index(&e->scheduler, vlsn, db->index);
 }
 
 static inline int
@@ -660,7 +660,7 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc)
 	ss_listforeach(&e->db.list, i)
 	{
 		sedb *o = (sedb*)sscast(i, so, link);
-		si_profilerbegin(&o->rtp, &o->index);
+		si_profilerbegin(&o->rtp, o->index);
 		si_profiler(&o->rtp);
 		si_profilerend(&o->rtp);
 		/* database index */
