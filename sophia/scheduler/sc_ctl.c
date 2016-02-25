@@ -191,7 +191,8 @@ int sc_ctl_backup_event(sc *s)
 int sc_ctl_shutdown(sc *s, si *i)
 {
 	ss_mutexlock(&s->lock);
-	so_listadd(&s->shutdown, &i->link);
+	s->shutdown_pending++;
+	ss_listappend(&s->shutdown, &i->link);
 	ss_mutexunlock(&s->lock);
 	return 0;
 }

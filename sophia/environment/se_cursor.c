@@ -29,7 +29,7 @@ se_cursorfree(so *o)
 }
 
 static int
-se_cursordestroy(so *o, int fe ssunused)
+se_cursordestroy(so *o)
 {
 	secursor *c = se_cast(o, secursor*, SECURSOR);
 	se *e = se_of(&c->o);

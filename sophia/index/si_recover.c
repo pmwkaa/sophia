@@ -44,7 +44,7 @@
 
 sinode *si_bootstrap(si *i, uint64_t parent)
 {
-	sr *r = i->r;
+	sr *r = &i->r;
 	/* create node */
 	sinode *n = si_nodenew(r);
 	if (ssunlikely(n == NULL))
@@ -603,7 +603,7 @@ si_recoversnapshot(si *i, sr *r, sdsnapshot *s)
 
 int si_recover(si *i)
 {
-	sr *r = i->r;
+	sr *r = &i->r;
 	int exist = ss_vfsexists(r->vfs, i->scheme.path);
 	if (exist == 0)
 		goto deploy;

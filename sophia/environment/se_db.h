@@ -17,10 +17,10 @@ struct sedb {
 	siprofiler rtp;
 	sischeme  *scheme;
 	si        *index;
+	sr        *r;
 	sxindex    coindex;
 	uint64_t   txn_min;
 	uint64_t   txn_max;
-	sr         r;
 };
 
 static inline int

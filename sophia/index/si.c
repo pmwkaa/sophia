@@ -15,17 +15,24 @@
 #include <libsd.h>
 #include <libsi.h>
 
-int si_init(si *i, sr *r, so *object)
+si *si_init(sr *r, so *object)
 {
+	si *i = ss_malloc(r->a, sizeof(si));
+	if (ssunlikely(i == NULL))
+		return NULL;
+	i->r = *r;
 	sr_statusinit(&i->status);
 	int rc = si_plannerinit(&i->p, r->a, i);
-	if (ssunlikely(rc == -1))
-		return -1;
+	if (ssunlikely(rc == -1)) {
+		ss_free(r->a, i);
+		return NULL;
+	}
 	ss_bufinit(&i->readbuf);
 	sv_upsertinit(&i->u);
 	ss_rbinit(&i->i);
 	ss_mutexinit(&i->lock);
 	si_schemeinit(&i->scheme);
+	ss_listinit(&i->link);
 	i->update_time  = 0;
 	i->lru_run_lsn  = 0;
 	i->lru_v        = 0;
@@ -38,16 +45,13 @@ int si_init(si *i, sr *r, so *object)
 	i->backup       = 0;
 	i->snapshot_run = 0;
 	i->snapshot     = 0;
-	i->destroyed    = 0;
 	i->n            = 0;
 	i->cache        = NULL;
 	ss_spinlockinit(&i->ref_lock);
 	i->ref_fe       = 0;
 	i->ref_be       = 0;
-	i->r            = r;
 	i->object       = object;
-	so_init(&i->link, NULL, NULL, object, object->env);
-	return 0;
+	return i;
 }
 
 int si_open(si *i)
@@ -60,21 +64,18 @@ ss_rbtruncate(si_truncate,
 
 int si_close(si *i)
 {
-	if (i->destroyed)
-		return 0;
-	int rcret = 0;
 	if (i->i.root)
-		si_truncate(i->i.root, i->r);
+		si_truncate(i->i.root, &i->r);
 	i->i.root = NULL;
-	sv_upsertfree(&i->u, i->r);
-	ss_buffree(&i->readbuf, i->r->a);
-	si_plannerfree(&i->p, i->r->a);
+	sv_upsertfree(&i->u, &i->r);
+	ss_buffree(&i->readbuf, i->r.a);
+	si_plannerfree(&i->p, i->r.a);
 	ss_mutexfree(&i->lock);
 	ss_spinlockfree(&i->ref_lock);
 	sr_statusfree(&i->status);
-	si_schemefree(&i->scheme, i->r);
-	i->destroyed = 1;
-	return rcret;
+	si_schemefree(&i->scheme, &i->r);
+	ss_free(i->r.a, i);
+	return 0;
 }
 
 ss_rbget(si_match,
@@ -88,7 +89,7 @@ int si_insert(si *i, sinode *n)
 {
 	sdindexpage *min = sd_indexmin(&n->self.index);
 	ssrbnode *p = NULL;
-	int rc = si_match(&i->i, i->r->scheme,
+	int rc = si_match(&i->i, i->r.scheme,
 	                  sd_indexpage_min(&n->self.index, min),
 	                  min->sizemin, &p);
 	assert(! (rc == 0 && p));
@@ -203,6 +204,9 @@ int si_execute(si *i, sdc *c, siplan *plan,
 		break;
 	}
 	/* garbage collect buffers */
-	sd_cgc(c, i->r, i->scheme.buf_gc_wm);
+	if (plan->plan != SI_SHUTDOWN &&
+	    plan->plan != SI_DROP) {
+		sd_cgc(c, &i->r, i->scheme.buf_gc_wm);
+	}
 	return rc;
 }

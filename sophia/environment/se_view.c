@@ -30,7 +30,7 @@ se_viewfree(so *o)
 }
 
 static int
-se_viewdestroy(so *o, int fe ssunused)
+se_viewdestroy(so *o)
 {
 	seview *s = se_cast(o, seview*, SEVIEW);
 	se *e = se_of(o);

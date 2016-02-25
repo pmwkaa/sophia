@@ -86,8 +86,8 @@ shutdown_transaction0(void)
 	void *txn = sp_begin(env);
 	t( txn != NULL );
 
-	sp_destroy(db); /* unref */
-	sp_close(db); /* schedule shutdown, unlink */
+	sp_close(db); /* schedule shutdown */
+	sp_destroy(db); /* unref, unlink */
 
 	void *dbp = sp_getobject(env, "db.test");
 	t( dbp == NULL );
@@ -120,8 +120,8 @@ shutdown_transaction1(void)
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(db) == 0 );
 
-	sp_destroy(db); /* unref */
-	sp_close(db); /* schedule shutdown, unlink */
+	sp_close(db); /* schedule shutdown */
+	sp_destroy(db); /* unref, unlink */
 
 	void *dbp = sp_getobject(env, "db.test");
 	t( dbp == NULL );
@@ -181,8 +181,8 @@ shutdown_transaction3(void)
 	void *b = sp_begin(env);
 	t( b != NULL );
 
-	sp_close(db); /* schedule shutdown, unlink */
-	sp_destroy(db); /* unref */
+	sp_close(db); /* schedule shutdown */
+	sp_destroy(db); /* unref, unlink */
 
 	void *v = sp_begin(env);
 	t( v != NULL );
@@ -222,8 +222,7 @@ shutdown_transaction4(void)
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(db) == 0 );
 
-	sp_destroy(db); /* unref */
-	sp_close(db); /* schedule shutdown, unlink */
+	sp_close(db); /* schedule shutdown */
 
 	void *o = sp_document(db);
 	t( o != NULL );
@@ -231,6 +230,8 @@ shutdown_transaction4(void)
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
 	t( sp_set(a, o) == -1 );
+
+	sp_destroy(db); /* unref, unlink */
 
 	t( sp_setint(env, "scheduler.run", 0) == 1 );
 	t( sp_destroy(a) == 0 );
@@ -259,8 +260,8 @@ shutdown_transaction5(void)
 	void *a = sp_begin(env);
 	t( a != NULL );
 
-	sp_destroy(db); /* unref */
-	sp_close(db); /* schedule shutdown, unlink */
+	sp_close(db); /* schedule shutdown */
+	sp_destroy(db); /* unref, unlink */
 
 	void *o = sp_document(db);
 	t( o != NULL );
@@ -296,8 +297,8 @@ shutdown_transaction6(void)
 	void *a = sp_begin(env);
 	t( a != NULL );
 
-	sp_destroy(db); /* unref */
-	sp_close(db); /* schedule shutdown, unlink */
+	sp_close(db); /* schedule shutdown */
+	sp_destroy(db); /* unref, unlink */
 
 	void *o = sp_document(db);
 	t( o != NULL );

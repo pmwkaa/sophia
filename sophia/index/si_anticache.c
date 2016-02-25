@@ -18,7 +18,7 @@
 int si_anticache(si *index, siplan *plan)
 {
 	sinode *n = plan->node;
-	sr *r = index->r;
+	sr *r = &index->r;
 
 	/* promote */
 	if (n->flags & SI_PROMOTE) {

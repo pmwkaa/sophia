@@ -32,7 +32,7 @@ so_pooldestroy(sopool *p)
 {
 	ss_spinlockfree(&p->lock);
 	int rcret = 0;
-	int rc = so_listdestroy(&p->list, 1);
+	int rc = so_listdestroy(&p->list);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
 	so_listfree(&p->free);

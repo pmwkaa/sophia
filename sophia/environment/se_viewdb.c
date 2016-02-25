@@ -30,7 +30,7 @@ se_viewdb_free(so *o)
 }
 
 static int
-se_viewdb_destroy(so *o, int fe ssunused)
+se_viewdb_destroy(so *o)
 {
 	seviewdb *c = se_cast(o, seviewdb*, SEDBCURSOR);
 	se *e = se_of(&c->o);

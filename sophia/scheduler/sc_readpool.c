@@ -30,9 +30,9 @@ void sc_readpool_init(screadpool *p, sr *r)
 
 void sc_readpool_free(screadpool *p)
 {
-	so_listdestroy(&p->list, 0);
-	so_listdestroy(&p->list_active, 0);
-	so_listdestroy(&p->list_ready, 0);
+	so_listdestroy(&p->list);
+	so_listdestroy(&p->list_active);
+	so_listdestroy(&p->list_ready);
 	ss_mutexfree(&p->lock);
 	ss_condfree(&p->cond);
 }

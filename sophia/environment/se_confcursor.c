@@ -31,7 +31,7 @@ se_confkv_free(so *o)
 }
 
 static int
-se_confkv_destroy(so *o, int fe ssunused)
+se_confkv_destroy(so *o)
 {
 	seconfkv *v = se_cast(o, seconfkv*, SECONFKV);
 	se *e = se_of(o);
@@ -141,7 +141,7 @@ se_confcursor_free(so *o)
 }
 
 static int
-se_confcursor_destroy(so *o, int fe ssunused)
+se_confcursor_destroy(so *o)
 {
 	seconfcursor *c = se_cast(o, seconfcursor*, SECONFCURSOR);
 	se *e = se_of(o);
@@ -156,7 +156,7 @@ se_confcursor_get(so *o, so *v)
 {
 	seconfcursor *c = se_cast(o, seconfcursor*, SECONFCURSOR);
 	if (v) {
-		so_destroy(v, 1);
+		so_destroy(v);
 	}
 	if (c->first) {
 		assert( ss_bufsize(&c->dump) >= (int)sizeof(srconfdump) );

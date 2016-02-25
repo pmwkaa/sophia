@@ -37,7 +37,7 @@ void sc_readclose(scread *r)
 }
 
 static int
-sc_readdestroy(so *o, int fe ssunused)
+sc_readdestroy(so *o)
 {
 	scread *r = (scread*)o;
 	sc_readclose(r);

@@ -17,7 +17,7 @@
 
 int si_snapshot(si *index, siplan *plan)
 {
-	sr *r = index->r;
+	sr *r = &index->r;
 
 	ssfile file;
 	ss_fileinit(&file, r->vfs);

@@ -113,7 +113,7 @@ se_document_free(so *o)
 }
 
 static int
-se_document_destroy(so *o, int fe ssunused)
+se_document_destroy(so *o)
 {
 	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
 	if (ssunlikely(v->immutable))
@@ -226,8 +226,8 @@ se_document_getstring(so *o, const char *path, int *size)
 		/* database result document */
 		if (v->v.v) {
 			if (size)
-				*size = sv_keysize(&v->v, &db->r, part->pos);
-			return sv_key(&v->v, &db->r, part->pos);
+				*size = sv_keysize(&v->v, db->r, part->pos);
+			return sv_key(&v->v, db->r, part->pos);
 		}
 		/* database key document */
 		assert(part->pos < (int)(sizeof(v->keyv) / sizeof(sfv)));
@@ -254,12 +254,12 @@ se_document_getstring(so *o, const char *path, int *size)
 		}
 		/* result document */
 		sedb *db = (sedb*)o->parent;
-		int vsize = sv_valuesize(&v->v, &db->r);
+		int vsize = sv_valuesize(&v->v, db->r);
 		if (size)
 			*size = vsize;
 		if (vsize == 0)
 			return NULL;
-		return sv_value(&v->v, &db->r);
+		return sv_value(&v->v, db->r);
 	}
 	case SE_DOCUMENT_PREFIX: {
 		if (v->prefix == NULL)

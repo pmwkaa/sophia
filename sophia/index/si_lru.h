@@ -15,7 +15,7 @@ si_lru_add(si *i, svref *ref)
 	i->lru_intr_sum += ref->v->size;
 	if (ssunlikely(i->lru_intr_sum >= i->scheme.lru_step))
 	{
-		uint64_t lsn = sr_seq(i->r->seq, SR_LSN);
+		uint64_t lsn = sr_seq(i->r.seq, SR_LSN);
 		i->lru_v += (lsn - i->lru_intr_lsn);
 		i->lru_steps++;
 		i->lru_intr_lsn = lsn;

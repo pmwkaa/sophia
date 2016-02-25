@@ -52,17 +52,7 @@ sc_execute(sctask *t, scworker *w, uint64_t vlsn)
 
 	si_plannertrace(&t->plan, index->scheme.id, &w->trace);
 	uint64_t vlsn_lru = si_lru_vlsn(index);
-	int rcret = 0;
-	int rc = si_execute(index, &w->dc, &t->plan, vlsn, vlsn_lru);
-	if (ssunlikely(rc == -1))
-		rcret = -1;
-
-	if (t->shutdown) {
-		rc = so_destroy(index->object, 0);
-		if (ssunlikely(rc == -1))
-			rcret = -1;
-	}
-	return rcret;
+	return si_execute(index, &w->dc, &t->plan, vlsn, vlsn_lru);
 }
 
 static int
@@ -206,17 +196,18 @@ checkpoint:
 	}
 
 	/* database shutdown-drop */
-	if (s->shutdown.n > 0) {
+	if (s->shutdown_pending > 0) {
 		sslist *p, *n;
-		ss_listforeach_safe(&s->shutdown.list, p, n) {
-			so *o = sscast(p, so, link);
-			si *index = sscast(o, si, link);
+		ss_listforeach_safe(&s->shutdown, p, n) {
+			si *index = sscast(p, si, link);
 			task->plan.plan = SI_SHUTDOWN;
 			rc = si_plan(index, &task->plan);
 			if (rc == 1) {
-				so_listdel(&s->shutdown, &index->link);
-				sc_del(s, index->object, 0);
+				s->shutdown_pending--;
+				ss_listunlink(&index->link);
+				sc_del(s, index, 0);
 				task->shutdown = index;
+				task->db = NULL;
 				task->gc = 1;
 				ss_mutexunlock(&s->lock);
 				return 1;
@@ -544,7 +535,7 @@ sc_complete(sc *s, sctask *t)
 		sdb->workers[SC_QLRU]--;
 		break;
 	}
-	if (sdb && sdb->db)
+	if (sdb)
 		si_unref(sdb->index, SI_REFBE);
 	if (t->rotate == 1)
 		s->rotate = 0;

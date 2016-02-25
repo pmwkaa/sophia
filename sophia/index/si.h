@@ -22,7 +22,6 @@ struct si {
 	siplanner  p;
 	ssrb       i;
 	int        n;
-	int        destroyed;
 	uint64_t   update_time;
 	uint32_t   backup;
 	uint32_t   snapshot_run;
@@ -43,8 +42,8 @@ struct si {
 	sischeme   scheme;
 	si        *cache;
 	so        *object;
-	so         link;
-	sr        *r;
+	sr         r;
+	sslist     link;
 };
 
 static inline int
@@ -62,12 +61,17 @@ si_unlock(si *i) {
 	ss_mutexunlock(&i->lock);
 }
 
+static inline sr*
+si_r(si *i) {
+	return &i->r;
+}
+
 static inline sischeme*
 si_scheme(si *i) {
 	return &i->scheme;
 }
 
-int si_init(si*, sr*, so*);
+si *si_init(sr*, so*);
 int si_open(si*);
 int si_close(si*);
 int si_insert(si*, sinode*);

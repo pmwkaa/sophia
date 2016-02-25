@@ -18,7 +18,7 @@
 static inline sibranch*
 si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vlsn)
 {
-	sr *r = index->r;
+	sr *r = &index->r;
 	sibranch *branch = NULL;
 
 	/* in-memory mode blob */
@@ -181,7 +181,7 @@ e1:
 
 int si_branch(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 {
-	sr *r = index->r;
+	sr *r = &index->r;
 	sinode *n = plan->node;
 	assert(n->flags & SI_LOCK);
 
@@ -240,7 +240,7 @@ int si_compact(si *index, sdc *c, siplan *plan,
                ssiter *vindex,
                uint64_t vindex_used)
 {
-	sr *r = index->r;
+	sr *r = &index->r;
 	sinode *node = plan->node;
 	assert(node->flags & SI_LOCK);
 
@@ -348,6 +348,6 @@ int si_compact_index(si *index, sdc *c, siplan *plan,
 	uint64_t size_stream = sv_indexused(vindex);
 	ssiter i;
 	ss_iterinit(sv_indexiter, &i);
-	ss_iteropen(sv_indexiter, &i, index->r, vindex, SS_GTE, NULL, 0);
+	ss_iteropen(sv_indexiter, &i, &index->r, vindex, SS_GTE, NULL, 0);
 	return si_compact(index, c, plan, vlsn, vlsn_lru, &i, size_stream);
 }

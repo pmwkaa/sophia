@@ -18,7 +18,7 @@
 static inline int
 si_backupend(si *index, sdc *c, siplan *plan)
 {
-	sr *r = index->r;
+	sr *r = &index->r;
 	/* copy index scheme file */
 	char src[PATH_MAX];
 	snprintf(src, sizeof(src), "%s/scheme", index->scheme.path);
@@ -90,7 +90,7 @@ si_backupend(si *index, sdc *c, siplan *plan)
 
 int si_backup(si *index, sdc *c, siplan *plan)
 {
-	sr *r = index->r;
+	sr *r = &index->r;
 	if (ssunlikely(plan->plan == SI_BACKUPEND))
 		return si_backupend(index, c, plan);
 

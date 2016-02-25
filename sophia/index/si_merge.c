@@ -147,7 +147,7 @@ si_split(si *index, sdc *c, ssbuf *result,
          uint64_t  vlsn,
          uint64_t  vlsn_lru)
 {
-	sr *r = index->r;
+	sr *r = &index->r;
 	int rc;
 	sdmergeconf mergeconf = {
 		.stream          = stream,
@@ -179,7 +179,7 @@ si_split(si *index, sdc *c, ssbuf *result,
 		sdid id = {
 			.parent = parent->self.id.id,
 			.flags  = 0,
-			.id     = sr_seq(index->r->seq, SR_NSNNEXT)
+			.id     = sr_seq(index->r.seq, SR_NSNNEXT)
 		};
 		rc = si_nodecreate(n, r, &index->scheme, &id);
 		if (ssunlikely(rc == -1))
@@ -241,9 +241,9 @@ si_split(si *index, sdc *c, ssbuf *result,
 		}
 
 		/* add node to the list */
-		rc = ss_bufadd(result, index->r->a, &n, sizeof(sinode*));
+		rc = ss_bufadd(result, index->r.a, &n, sizeof(sinode*));
 		if (ssunlikely(rc == -1)) {
-			sr_oom_malfunction(index->r->e);
+			sr_oom_malfunction(index->r.e);
 			goto error;
 		}
 
@@ -267,7 +267,7 @@ int si_merge(si *index, sdc *c, sinode *node,
              uint64_t size_stream,
              uint32_t n_stream)
 {
-	sr *r = index->r;
+	sr *r = &index->r;
 	ssbuf *result = &c->a;
 	ssiter i;
 

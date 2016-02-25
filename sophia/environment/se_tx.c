@@ -57,7 +57,7 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 	v->log = o->log;
 	sv vp;
 	sv_init(&vp, &sv_vif, v, NULL);
-	so_destroy(&o->o, 1);
+	so_destroy(&o->o);
 
 	/* ensure quota */
 	int size = sv_vsize(v);
@@ -71,7 +71,7 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 	}
 	return 0;
 error:
-	so_destroy(&o->o, 1);
+	so_destroy(&o->o);
 	return -1;
 }
 
@@ -123,7 +123,7 @@ se_txget(so *o, so *v)
 	}
 	return se_dbread(db, key, &t->t, 1, NULL, key->order);
 error:
-	so_destroy(&key->o, 1);
+	so_destroy(&key->o);
 	return NULL;
 }
 
@@ -151,7 +151,7 @@ se_txend(setx *t, int rlb, int conflict)
 }
 
 static int
-se_txrollback(so *o, int fe ssunused)
+se_txrollback(so *o)
 {
 	setx *t = se_cast(o, setx*, SETX);
 	sx_rollback(&t->t);
@@ -167,7 +167,7 @@ se_txprepare(sx *x, sv *v, so *o, void *ptr)
 	se *e = se_of(&db->o);
 
 	scread q;
-	sc_readopen(&q, &db->r, &db->o, db->index);
+	sc_readopen(&q, db->r, &db->o, db->index);
 	screadarg *arg = &q.arg;
 	arg->v             = *v;
 	arg->cache         = cache;

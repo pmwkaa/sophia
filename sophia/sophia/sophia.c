@@ -116,11 +116,11 @@ SP_API int sp_destroy(void *ptr)
 	so *e = o->env;
 	int rc;
 	if (ssunlikely(e == o)) {
-		rc = o->i->destroy(o, 1);
+		rc = o->i->destroy(o);
 		return rc;
 	}
 	se_apilock(e);
-	rc = o->i->destroy(o, 1);
+	rc = o->i->destroy(o);
 	se_apiunlock(e);
 	return rc;
 }

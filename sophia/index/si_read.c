@@ -26,7 +26,7 @@ int si_readopen(siread *q, sitx *x, sicache *c, ssorder o,
 	q->vlsn        = vlsn;
 	q->x           = x;
 	q->index       = x->index;
-	q->r           = x->index->r;
+	q->r           = &x->index->r;
 	q->cache       = c;
 	q->prefix      = prefix;
 	q->prefixsize  = prefixsize;

@@ -67,10 +67,10 @@ int si_dropmark(si *i)
 	char path[1024];
 	snprintf(path, sizeof(path), "%s/drop", i->scheme.path);
 	ssfile drop;
-	ss_fileinit(&drop, i->r->vfs);
+	ss_fileinit(&drop, i->r.vfs);
 	int rc = ss_filenew(&drop, path);
 	if (ssunlikely(rc == -1)) {
-		sr_malfunction(i->r->e, "drop file '%s' create error: %s",
+		sr_malfunction(i->r.e, "drop file '%s' create error: %s",
 		               path, strerror(errno));
 		return -1;
 	}
@@ -80,7 +80,7 @@ int si_dropmark(si *i)
 
 int si_drop(si *i)
 {
-	sr *r = i->r;
+	sr r = i->r;
 	sspath path;
 	ss_pathinit(&path);
 	ss_pathset(&path, "%s", i->scheme.path);
@@ -90,6 +90,6 @@ int si_drop(si *i)
 	if (ssunlikely(rc == -1))
 		return -1;
 	/* remove directory */
-	rc = si_droprepository(r, path.path, 1);
+	rc = si_droprepository(&r, path.path, 1);
 	return rc;
 }
