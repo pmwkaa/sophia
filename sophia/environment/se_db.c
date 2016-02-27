@@ -311,7 +311,6 @@ se_dbclose(so *o)
 	/* set last visible transaction id */
 	db->txn_max = sx_max(&e->xm);
 	sr_statusset(&db->index->status, SR_SHUTDOWN_PENDING);
-	/* maybe schedule shutdown right-away */
 	return 0;
 }
 
@@ -329,11 +328,6 @@ se_dbdrop(so *o)
 	/* set last visible transaction id */
 	db->txn_max = sx_max(&e->xm);
 	sr_statusset(&db->index->status, SR_DROP_PENDING);
-	/* maybe schedule drop right-away */
-	int ref;
-	ref = si_refof(db->index, SI_REFFE);
-	if (ref == 0)
-		se_dbunref(db);
 	return 0;
 }
 
