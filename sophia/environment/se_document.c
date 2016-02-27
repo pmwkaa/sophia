@@ -28,15 +28,11 @@ enum {
 	SE_DOCUMENT_LSN,
 	SE_DOCUMENT_LOG,
 	SE_DOCUMENT_RAW,
-	SE_DOCUMENT_ARG,
 	SE_DOCUMENT_FLAGS,
-	SE_DOCUMENT_TYPE,
 	SE_DOCUMENT_CACHE_ONLY,
 	SE_DOCUMENT_OLDEST_ONLY,
 	SE_DOCUMENT_IMMUTABLE,
-	SE_DOCUMENT_ASYNC,
-	SE_DOCUMENT_STATUS,
-	SE_DOCUMENT_SEQ,
+	SE_DOCUMENT_EVENT,
 	SE_DOCUMENT_UNKNOWN
 };
 
@@ -68,12 +64,6 @@ se_document_opt(const char *path)
 		if (sslikely(strcmp(path, "prefix") == 0))
 			return SE_DOCUMENT_PREFIX;
 		break;
-	case 'a':
-		if (sslikely(strcmp(path, "arg") == 0))
-			return SE_DOCUMENT_ARG;
-		if (strcmp(path, "async") == 0)
-			return SE_DOCUMENT_ASYNC;
-		break;
 	case 'r':
 		if (sslikely(strcmp(path, "raw") == 0))
 			return SE_DOCUMENT_RAW;
@@ -81,10 +71,6 @@ se_document_opt(const char *path)
 	case 'f':
 		if (sslikely(strcmp(path, "flags") == 0))
 			return SE_DOCUMENT_FLAGS;
-		break;
-	case 't':
-		if (sslikely(strcmp(path, "type") == 0))
-			return SE_DOCUMENT_TYPE;
 		break;
 	case 'c':
 		if (sslikely(strcmp(path, "cache_only") == 0))
@@ -94,11 +80,9 @@ se_document_opt(const char *path)
 		if (sslikely(strcmp(path, "immutable") == 0))
 			return SE_DOCUMENT_IMMUTABLE;
 		break;
-	case 's':
-		if (sslikely(strcmp(path, "status") == 0))
-			return SE_DOCUMENT_STATUS;
-		if (strcmp(path, "seq") == 0)
-			return SE_DOCUMENT_SEQ;
+	case 'e':
+		if (sslikely(strcmp(path, "event") == 0))
+			return SE_DOCUMENT_EVENT;
 		break;
 	}
 	return SE_DOCUMENT_UNKNOWN;
@@ -203,9 +187,6 @@ se_document_setstring(so *o, const char *path, void *pointer, int size)
 		v->raw = pointer;
 		v->rawsize = size;
 		break;
-	case SE_DOCUMENT_ARG:
-		v->async_arg = pointer;
-		break;
 	default:
 		return -1;
 	}
@@ -274,18 +255,14 @@ se_document_getstring(so *o, const char *path, int *size)
 			*size = strlen(order) + 1;
 		return order;
 	}
-	case SE_DOCUMENT_TYPE: {
-		char *type = "on_read";
-		if (v->async_operation == 1)
+	case SE_DOCUMENT_EVENT: {
+		char *type = "none";
+		if (v->event == 1)
 			type = "on_backup";
 		if (size)
 			*size = strlen(type);
 		return type;
 	}
-	case SE_DOCUMENT_ARG:
-		if (size)
-			*size = 0;
-		return v->async_arg;
 	case SE_DOCUMENT_RAW:
 		if (v->raw) {
 			if (size)
@@ -316,9 +293,6 @@ se_document_setint(so *o, const char *path, int64_t num)
 	case SE_DOCUMENT_IMMUTABLE:
 		v->immutable = num;
 		break;
-	case SE_DOCUMENT_ASYNC:
-		v->async = num;
-		break;
 	default:
 		return -1;
 	}
@@ -336,10 +310,8 @@ se_document_getint(so *o, const char *path)
 			lsn = ((svv*)(v->v.v))->lsn;
 		return lsn;
 	}
-	case SE_DOCUMENT_STATUS:
-		return v->async_status;
-	case SE_DOCUMENT_SEQ:
-		return v->async_seq;
+	case SE_DOCUMENT_EVENT:
+		return v->event;
 	case SE_DOCUMENT_CACHE_ONLY:
 		return v->cache_only;
 	case SE_DOCUMENT_IMMUTABLE:
@@ -379,7 +351,7 @@ static soif sedocumentif =
 	.cursor       = NULL,
 };
 
-so *se_document_new(se *e, so *parent, sv *vp, int async)
+so *se_document_new(se *e, so *parent, sv *vp)
 {
 	sedocument *v = (sedocument*)so_poolpop(&e->document);
 	if (v == NULL)
@@ -388,10 +360,9 @@ so *se_document_new(se *e, so *parent, sv *vp, int async)
 		sr_oom(&e->error);
 		return NULL;
 	}
-	memset(v, 0, sizeof(*v)); /* xxx */
+	memset(v, 0, sizeof(*v));
 	so_init(&v->o, &se_o[SEDOCUMENT], &sedocumentif, parent, &e->o);
 	v->order = SS_EQ;
-	v->async = async;
 	if (vp) {
 		v->v = *vp;
 	}

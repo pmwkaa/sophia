@@ -10,7 +10,6 @@
 */
 
 #include <sc_worker.h>
-#include <sc_readpool.h>
 #include <sc.h>
 #include <sc_step.h>
 #include <sc_ctl.h>

@@ -202,20 +202,15 @@ se_poll(so *o)
 		int event = sc_ctl_backup_event(&e->scheduler);
 		if (event) {
 			sedocument *doc;
-			result = se_document_new(e, &e->o, NULL, 1);
+			result = se_document_new(e, &e->o, NULL);
 			if (ssunlikely(result == NULL))
 				return NULL;
 			doc = (sedocument*)result;
-			doc->async_operation = 1;
+			doc->event = 1;
 			return result;
 		}
 	}
-	scread *r = (scread*)sc_readpool_popready(&e->scheduler.rp);
-	if (r == NULL)
-		return NULL;
-	result = se_dbresult(e, r, 1);
-	so_destroy(&r->o);
-	return result;
+	return NULL;
 }
 
 static int

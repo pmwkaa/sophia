@@ -27,21 +27,19 @@ struct sedocument {
 	void     *raw;
 	uint32_t  rawsize;
 	void     *log;
-	/* async */
+	/* misc */
 	int       immutable;
+	/* read tweaks */
 	int       cache_only;
 	int       oldest_only;
-	int       async;
-	int       async_status;
-	uint32_t  async_operation;
-	uint64_t  async_seq;
-	void     *async_arg;
 	/* stats */
 	int       read_disk;
 	int       read_cache;
 	int       read_latency;
+	/* events */
+	int       event;
 };
 
-so *se_document_new(se*, so*, sv*, int);
+so *se_document_new(se*, so*, sv*);
 
 #endif

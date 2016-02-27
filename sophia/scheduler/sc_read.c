@@ -33,50 +33,12 @@ void sc_readclose(scread *r)
 	/* free read cache */
 	if (sslikely(r->arg.cachegc && r->arg.cache))
 		si_cachepool_push(r->arg.cache);
-	si_unref(r->index, SI_REFBE);
 }
-
-static int
-sc_readdestroy(so *o)
-{
-	scread *r = (scread*)o;
-	sc_readclose(r);
-	ss_free(r->r->a, r);
-	return 0;
-}
-
-static soif screadif =
-{
-	.open         = NULL,
-	.close        = NULL,
-	.destroy      = sc_readdestroy,
-	.error        = NULL,
-	.document     = NULL,
-	.poll         = NULL,
-	.drop         = NULL,
-	.setstring    = NULL,
-	.setint       = NULL,
-	.getobject    = NULL,
-	.getstring    = NULL,
-	.getint       = NULL,
-	.set          = NULL,
-	.upsert       = NULL,
-	.del          = NULL,
-	.get          = NULL,
-	.begin        = NULL,
-	.prepare      = NULL,
-	.commit       = NULL,
-	.cursor       = NULL,
-};
 
 void sc_readopen(scread *r, sr *rt, so *db, si *index)
 {
-	so_init(&r->o, NULL, &screadif, NULL, NULL);
-	r->id = sr_seq(rt->seq, SR_RSNNEXT);
-	si_ref(index, SI_REFBE);
 	r->db = db;
 	r->index = index;
-	memset(&r->arg, 0, sizeof(r->arg));
 	r->start = 0;
 	r->read_disk = 0;
 	r->read_cache = 0;

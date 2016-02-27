@@ -149,7 +149,6 @@ se_confcompaction(se *e, seconfrt *rt ssunused, srconf **pc)
 		sr_c(&p, pc, se_confv_offline, "gc_period", SS_U32, &z->gc_period);
 		sr_c(&p, pc, se_confv_offline, "lru_prio", SS_U32, &z->lru_prio);
 		sr_c(&p, pc, se_confv_offline, "lru_period", SS_U32, &z->lru_period);
-		sr_c(&p, pc, se_confv_offline, "async", SS_U32, &z->async);
 		prev = sr_C(&prev, pc, NULL, z->name, SS_UNDEF, zone, SR_NS, NULL);
 		if (compaction == NULL)
 			compaction = prev;
@@ -422,10 +421,6 @@ se_confperformance(se *e ssunused, seconfrt *rt, srconf **pc)
 	sr_C(&p, pc, se_confv, "cursor_read_disk", SS_STRING, rt->stat.cursor_read_disk.sz, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "cursor_read_cache", SS_STRING, rt->stat.cursor_read_cache.sz, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "cursor_ops", SS_STRING, rt->stat.cursor_ops.sz, SR_RO, NULL);
-	sr_C(&p, pc, se_confv, "req_queue", SS_U32, &rt->req_queue, SR_RO, NULL);
-	sr_C(&p, pc, se_confv, "req_ready", SS_U32, &rt->req_ready, SR_RO, NULL);
-	sr_C(&p, pc, se_confv, "req_active", SS_U32, &rt->req_active, SR_RO, NULL);
-	sr_C(&p, pc, se_confv, "reqs", SS_U32, &rt->reqs, SR_RO, NULL);
 	return sr_C(NULL, pc, NULL, "performance", SS_UNDEF, perf, SR_NS, NULL);
 }
 
@@ -952,13 +947,6 @@ se_confrt(se *e, seconfrt *rt)
 	rt->tx_ro = e->xm.count_rd;
 	rt->tx_gc_queue = e->xm.count_gc;
 
-	ss_mutexlock(&e->scheduler.rp.lock);
-	rt->req_queue  = e->scheduler.rp.list.n;
-	rt->req_ready  = e->scheduler.rp.list_ready.n;
-	rt->req_active = e->scheduler.rp.list_active.n;
-	rt->reqs = rt->req_queue + rt->req_ready + rt->req_active;
-	ss_mutexunlock(&e->scheduler.rp.lock);
-
 	ss_spinlock(&e->stat.lock);
 	rt->stat = e->stat;
 	ss_spinunlock(&e->stat.lock);
@@ -1134,8 +1122,7 @@ int se_confinit(seconf *c, so *e)
 		.gc_period         = 60,
 		.gc_wm             = 30,
 		.lru_prio          = 0,
-		.lru_period        = 0,
-		.async             = 2 /* do not own thread */
+		.lru_period        = 0
 	};
 	srzone redzone = {
 		.enable            = 1,
@@ -1154,8 +1141,7 @@ int se_confinit(seconf *c, so *e)
 		.gc_period         = 0,
 		.gc_wm             = 0,
 		.lru_prio          = 0,
-		.lru_period        = 0,
-		.async             = 2
+		.lru_period        = 0
 	};
 	sr_zonemap_set(&o->conf.zones,  0, &def);
 	sr_zonemap_set(&o->conf.zones, 80, &redzone);

@@ -51,10 +51,6 @@ struct seconfrt {
 	/* metric */
 	srseq     seq;
 	/* performance */
-	uint32_t  reqs;
-	uint32_t  req_queue;
-	uint32_t  req_ready;
-	uint32_t  req_active;
 	uint32_t  tx_rw;
 	uint32_t  tx_ro;
 	uint32_t  tx_gc_queue;

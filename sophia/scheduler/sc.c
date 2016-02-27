@@ -47,7 +47,6 @@ int sc_init(sc *s, sr *r, sstrigger *on_event, slpool *lp)
 	s->lru                      = 0;
 	s->lru_time                 = now;
 	s->rotate                   = 0;
-	s->read                     = 0;
 	s->i                        = NULL;
 	s->count                    = 0;
 	s->rr                       = 0;
@@ -57,7 +56,6 @@ int sc_init(sc *s, sr *r, sstrigger *on_event, slpool *lp)
 	s->lp                       = lp;
 	ss_threadpool_init(&s->tp);
 	sc_workerpool_init(&s->wp);
-	sc_readpool_init(&s->rp, r);
 	ss_listinit(&s->shutdown);
 	s->shutdown_pending = 0;
 	return 0;
@@ -78,7 +76,6 @@ int sc_create(sc *s, ssthreadf function, void *arg, int n)
 int sc_shutdown(sc *s)
 {
 	sr *r = s->r;
-	sc_readpool_wakeup(&s->rp);
 	int rcret = 0;
 	int rc = ss_threadpool_shutdown(&s->tp, r->a);
 	if (ssunlikely(rc == -1))
@@ -86,7 +83,6 @@ int sc_shutdown(sc *s)
 	rc = sc_workerpool_free(&s->wp, r);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
-	sc_readpool_free(&s->rp);
 	/* destroy databases which are ready for
 	 * shutdown or drop */
 	sslist *p, *n;

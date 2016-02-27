@@ -331,24 +331,21 @@ se_dbdrop(so *o)
 	return 0;
 }
 
-so *se_dbresult(se *e, scread *r, int async)
+so *se_dbresult(se *e, scread *r)
 {
 	sv result;
 	sv_init(&result, &sv_vif, r->result, NULL);
+	r->result = NULL;
+
 	sedocument *v =
-		(sedocument*)se_document_new(e, r->db, &result, async);
+		(sedocument*)se_document_new(e, r->db, &result);
 	if (ssunlikely(v == NULL))
 		return NULL;
-	r->result = NULL;
-	v->async_operation = 0;
-	v->async_status    = r->rc;
-	v->async_seq       = r->id;
-	v->async_arg       = r->arg.arg;
-	v->cache_only      = r->arg.cache_only;
-	v->oldest_only     = r->arg.oldest_only;
-	v->read_disk       = r->read_disk;
-	v->read_cache      = r->read_cache;
-	v->read_latency    = 0;
+	v->cache_only   = r->arg.cache_only;
+	v->oldest_only  = r->arg.oldest_only;
+	v->read_disk    = r->read_disk;
+	v->read_cache   = r->read_cache;
+	v->read_latency = 0;
 	if (result.v) {
 		v->read_latency = ss_utime() - r->start;
 		sr_statget(&e->stat,
@@ -391,8 +388,6 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 		goto e0;
 	int cache_only  = o->cache_only;
 	int oldest_only = o->oldest_only;
-	int async       = o->async;
-	void *async_arg = o->async_arg;
 
 	uint64_t start  = ss_utime();
 	/* prepare search key */
@@ -428,18 +423,14 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 		if (ssunlikely(rc == -1 || rc == 2 /* delete */))
 			goto e2;
 		if (rc == 1 && !sv_is(&vup, SVUPSERT)) {
-			so *ret = se_document_new(e, &db->o, &vup, async);
+			so *ret = se_document_new(e, &db->o, &vup);
 			if (ssunlikely(ret == NULL))
 				sv_vunref(db->r, vup.v);
-			if (async) {
-				sedocument *match = (sedocument*)ret;
-				match->async_operation = 0;
-				match->async_status    = 1;
-				match->async_arg       = async_arg;
-				match->async_seq       = 0;
-				match->cache_only      = cache_only;
-				match->oldest_only     = oldest_only;
-			}
+
+			sedocument *match = (sedocument*)ret;
+			match->cache_only  = cache_only;
+			match->oldest_only = oldest_only;
+
 			if (vprf)
 				sv_vunref(db->r, vprf);
 			sv_vunref(db->r, v);
@@ -468,12 +459,14 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 	q.start = start;
 	screadarg *arg = &q.arg;
 	arg->v           = vp;
-	arg->vup         = vup;
 	arg->vprefix     = vprefix;
+	arg->vup         = vup;
 	arg->cache       = cache;
 	arg->cachegc     = cachegc;
 	arg->order       = order;
-	arg->arg         = async_arg;
+	arg->has         = 0;
+	arg->upsert      = 0;
+	arg->upsert_eq   = 0;
 	arg->cache_only  = cache_only;
 	arg->oldest_only = oldest_only;
 	if (x) {
@@ -491,27 +484,10 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 		}
 	}
 
-	/* asynchronous */
-	if (async) {
-		o = (sedocument*)se_dbresult(e, &q, 1);
-		if (ssunlikely(o == NULL)) {
-			sc_readclose(&q);
-			return NULL;
-		}
-		scread *req = (scread*)
-			sc_readpool_new(&e->scheduler.rp, &q.o, 1);
-		if (ssunlikely(req == NULL)) {
-			so_destroy(&o->o);
-			sc_readclose(&q);
-			return NULL;
-		}
-		return o;
-	}
-
-	/* synchronous */
+	/* read index */
 	rc = sc_read(&q, &e->scheduler);
 	if (rc == 1)
-		o = (sedocument*)se_dbresult(e, &q, async);
+		o = (sedocument*)se_dbresult(e, &q);
 	sc_readclose(&q);
 	return o;
 e2: if (vprf)
@@ -622,7 +598,7 @@ se_dbdocument(so *o)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
 	se *e = se_of(&db->o);
-	return se_document_new(e, &db->o, NULL, 0);
+	return se_document_new(e, &db->o, NULL);
 }
 
 static void*

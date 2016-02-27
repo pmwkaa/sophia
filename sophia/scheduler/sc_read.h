@@ -26,12 +26,9 @@ struct screadarg {
 	int       oldest_only;
 	uint64_t  vlsn;
 	int       vlsn_generate;
-	void     *arg;
 };
 
 struct scread {
-	so          o;
-	uint64_t    id;
 	so         *db;
 	si         *index;
 	screadarg   arg;

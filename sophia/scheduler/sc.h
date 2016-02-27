@@ -31,7 +31,6 @@ struct sctask {
 	scdb  *db;
 	si    *shutdown;
 	int    rotate;
-	int    read;
 	int    gc;
 	int    checkpoint_complete;
 	int    anticache_complete;
@@ -66,7 +65,6 @@ struct sc {
 	uint32_t       backup_events;
 	uint32_t       backup;
 	int            rotate;
-	int            read;
 	int            rr;
 	int            count;
 	scdb         **i;
@@ -74,7 +72,6 @@ struct sc {
 	int            shutdown_pending;
 	ssthreadpool   tp;
 	scworkerpool   wp;
-	screadpool     rp;
 	slpool        *lp;
 	char          *backup_path;
 	sstrigger     *on_event;

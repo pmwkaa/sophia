@@ -170,10 +170,16 @@ se_txprepare(sx *x, sv *v, so *o, void *ptr)
 	sc_readopen(&q, db->r, &db->o, db->index);
 	screadarg *arg = &q.arg;
 	arg->v             = *v;
+	arg->vprefix.v     = NULL;
+	arg->vup.v         = NULL;
 	arg->cache         = cache;
 	arg->cachegc       = 0;
 	arg->order         = SS_EQ;
 	arg->has           = 1;
+	arg->upsert        = 0;
+	arg->upsert_eq     = 0;
+	arg->cache_only    = 0;
+	arg->oldest_only   = 0;
 	arg->vlsn          = x->vlsn;
 	arg->vlsn_generate = 0;
 	int rc = sc_read(&q, &e->scheduler);

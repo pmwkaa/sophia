@@ -52,7 +52,6 @@ STS_TESTS = unit/ss_leb128.test.o \
             generic/cursor_rc.test.o \
             generic/half_commit.test.o \
             generic/upsert.test.o \
-            generic/async.test.o \
             generic/get_cache.test.o \
             generic/get_oldest.test.o \
             generic/amqf.test.o \

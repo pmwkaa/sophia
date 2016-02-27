@@ -535,63 +535,6 @@ mt_set_get_document_multipart_cursor(void)
 }
 
 static void
-mt_async_read(void)
-{
-	void *env = sp_env();
-	t( env != NULL );
-	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "scheduler.threads", 5) == 0 );
-	t( sp_setint(env, "compaction.0.async", 1) == 0 );
-	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
-	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setint(env, "db.test.sync", 0) == 0 );
-	t( sp_setstring(env, "db.test.format", "kv", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
-	void *db = sp_getobject(env, "db.test");
-	t( db != NULL );
-	t( sp_open(env) == 0 );
-
-	int i = 0;
-	while (i < 100000) {
-		void *o = sp_document(db);
-		assert(o != NULL);
-		sp_setstring(o, "key", &i, sizeof(i));
-		int rc = sp_set(db, o);
-		t( rc == 0 );
-		print_current(i);
-		i++;
-	}
-	fprintf(st_r.output, " (insert done..iterate) ");
-
-	/* trigger iteration */
-	void *o = sp_document(db);
-	sp_setint(o, "async", 1);
-	sp_setstring(o, "order", ">=", 0);
-	o = sp_get(db, o);
-	t( o != NULL );
-	sp_destroy(o);
-
-	i = 0;
-	while (i < 100000) {
-		o = sp_poll(env);
-		if (o == NULL)
-			continue;
-		t( strcmp(sp_getstring(o, "type", 0), "on_read") == 0 );
-		t( sp_getint(o, "status") == 1 );
-		t( *(int*)sp_getstring(o, "key", NULL) == i );
-		o = sp_get(db, o);
-		t( o != NULL );
-		sp_destroy(o);
-		print_current(i);
-		i++;
-	}
-	t( i == 100000 );
-	fprintf(st_r.output, "(complete)");
-	t( sp_destroy(env) == 0 );
-}
-
-static void
 mt_set_get_anticache(void)
 {
 	void *env = sp_env();
@@ -763,7 +706,6 @@ stgroup *multithread_be_group(void)
 	st_groupadd(group, st_test("set_get_anticache", mt_set_get_anticache));
 	st_groupadd(group, st_test("set_get_cache", mt_set_get_cache));
 	st_groupadd(group, st_test("set_lru", mt_set_lru));
-	st_groupadd(group, st_test("async_read", mt_async_read));
 	return group;
 }
 
