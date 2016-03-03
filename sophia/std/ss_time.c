@@ -19,7 +19,7 @@ void ss_sleep(uint64_t ns)
 
 uint64_t ss_utime(void)
 {
-	struct timeval t;
-	gettimeofday(&t, NULL);
-	return t.tv_sec * 1000000ULL + t.tv_usec;
+	struct timespec t;
+	clock_gettime(CLOCK_MONOTONIC, &t);
+	return t.tv_sec * 1000000ULL + t.tv_nsec / 1000;
 }
