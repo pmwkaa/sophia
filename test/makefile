@@ -91,7 +91,7 @@ else
 STS_COVERAGE   =
 endif
 STS_CFLAGS     = $(SOPHIA_INCLUDE) -g -O0 -Wall -I. -I../sophia -Isuite/ -pthread
-STS_LDFLAGS    = ../sophia.o -pthread -lm $(STS_COVERAGE)
+STS_LDFLAGS    = ../sophia.o -pthread -lm -lrt $(STS_COVERAGE)
 STS_OBJECTS    = suite/st_r.o \
                  suite/st_suite.o \
                  suite/st_generator.o \
