@@ -161,6 +161,8 @@ se_document_setstring(so *o, const char *path, void *pointer, int size)
 			return -1;
 		}
 		v->value = pointer;
+		if (ssunlikely(size == 0 && pointer))
+			size = strlen(pointer);
 		v->valuesize = size;
 		sr_statvalue(&e->stat, size);
 		break;

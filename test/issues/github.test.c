@@ -190,6 +190,63 @@ github_118(void)
 	t( sp_destroy(env) == 0 );
 }
 
+static void
+github_120(void)
+{
+	/* open or create environment and database */
+	void *env = sp_env();
+	sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0);
+	sp_setstring(env, "db", "test", 0);
+	void *db = sp_getobject(env, "db.test");
+	int rc = sp_open(env);
+	if (rc == -1)
+		goto error;
+
+	/* set */
+	void *o = sp_document(db);
+	sp_setstring(o, "key", "hello", 0);
+	sp_setstring(o, "value", "world", 0);
+	rc = sp_set(db, o);
+	if (rc == -1)
+		goto error;
+
+	/* get */
+	o = sp_document(db);
+	sp_setstring(o, "key", "hello", 0);
+	o = sp_get(db, o);
+	if (o) {
+		/* ensure key and value are correct */
+		int size;
+		char *ptr = sp_getstring(o, "key", &size);
+		t( size == 5 );
+		t( strncmp(ptr, "hello", 5) == 0 );
+
+		ptr = sp_getstring(o, "value", &size);
+		t( size == 5 );
+		t( strncmp(ptr, "world", 5) == 0 );
+
+		sp_destroy(o);
+	}
+
+	/* delete */
+	o = sp_document(db);
+	sp_setstring(o, "key", "hello", 0);
+	rc = sp_delete(db, o);
+	if (rc == -1)
+		goto error;
+
+	/* finish work */
+	sp_destroy(env);
+	return;
+
+error:;
+	int size;
+	char *error = sp_getstring(env, "sophia.error", &size);
+	printf("error: %s\n", error);
+	free(error);
+	sp_destroy(env);
+}
+
 stgroup *github_group(void)
 {
 	stgroup *group = st_group("github");
@@ -198,5 +255,6 @@ stgroup *github_group(void)
 	st_groupadd(group, st_test("ticket_112", github_112));
 	st_groupadd(group, st_test("ticket_117", github_117));
 	st_groupadd(group, st_test("ticket_118", github_118));
+	st_groupadd(group, st_test("ticket_120", github_120));
 	return group;
 }
