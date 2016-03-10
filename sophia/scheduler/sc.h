@@ -18,11 +18,11 @@ enum {
 	SC_QGC      = 1,
 	SC_QLRU     = 2,
 	SC_QBACKUP  = 3,
-	SC_QNONE
+	SC_QMAX
 };
 
 struct scdb {
-	uint32_t workers[SC_QNONE];
+	uint32_t workers[SC_QMAX];
 	si *index;
 };
 

@@ -55,18 +55,14 @@ sc_execute(sctask *t, scworker *w, uint64_t vlsn)
 	return si_execute(index, &w->dc, &t->plan, vlsn, vlsn_lru);
 }
 
-static int
-sc_plan(sc *s, siplan *plan,
-        uint32_t quota, uint32_t quota_limit,
-        scdb **dbret)
+static inline scdb*
+sc_peek(sc *s)
 {
 	if (s->rr >= s->count)
 		s->rr = 0;
 	int start = s->rr;
 	int limit = s->count;
 	int i = start;
-	int rc_inprogress = 0;
-	int rc;
 first_half:
 	while (i < limit) {
 		scdb *db = s->i[i];
@@ -74,23 +70,8 @@ first_half:
 			i++;
 			continue;
 		}
-		if (quota != SC_QNONE) {
-			if (db->workers[quota] >= quota_limit) {
-				rc_inprogress = 2;
-				i++;
-				continue;
-			}
-		}
-		rc = si_plan(db->index, plan);
-		switch (rc) {
-		case 1:
-			*dbret = db;
-			s->rr = i + 1;
-			return 1;
-		case 2: rc_inprogress = 2;
-		case 0: break;
-		}
-		i++;
+		s->rr = i;
+		return db;
 	}
 	if (i > start) {
 		i = 0;
@@ -98,37 +79,62 @@ first_half:
 		goto first_half;
 	}
 	s->rr = 0;
-	return rc_inprogress;
+	return NULL;
+}
+
+static inline void
+sc_next(sc *s)
+{
+	s->rr++;
+	if (s->rr >= s->count)
+		s->rr = 0;
+}
+
+static inline int
+sc_plan(sc *s, siplan *plan)
+{
+	scdb *db = s->i[s->rr];
+	return si_plan(db->index, plan);
+}
+
+static inline int
+sc_planquota(sc *s, siplan *plan, uint32_t quota, uint32_t quota_limit)
+{
+	scdb *db = s->i[s->rr];
+	if (db->workers[quota] >= quota_limit)
+		return 2;
+	return si_plan(db->index, plan);
+}
+
+static inline int
+sc_do_shutdown(sc *s, sctask *task)
+{
+	if (sslikely(s->shutdown_pending == 0))
+		return 0;
+	sslist *p, *n;
+	ss_listforeach_safe(&s->shutdown, p, n) {
+		si *index = sscast(p, si, link);
+		task->plan.plan = SI_SHUTDOWN;
+		int rc;
+		rc = si_plan(index, &task->plan);
+		if (rc == 1) {
+			s->shutdown_pending--;
+			ss_listunlink(&index->link);
+			sc_del(s, index, 0);
+			task->shutdown = index;
+			task->db = NULL;
+			task->gc = 1;
+			return 1;
+		}
+	}
+	return 0;
 }
 
 static int
-sc_do(sc *s, sctask *task, scworker *w, uint64_t vlsn)
+sc_do(sc *s, sctask *task, scworker *w, srzone *zone,
+      scdb *sdb, uint64_t vlsn, uint64_t now)
 {
 	ss_trace(&w->trace, "%s", "schedule");
-	uint64_t now = ss_utime();
-
-	srzone *zone = sr_zoneof(s->r);
-	scdb *sdb = NULL;
-
-	si_planinit(&task->plan);
-
-	task->checkpoint_complete = 0;
-	task->anticache_complete = 0;
-	task->snapshot_complete = 0;
-	task->backup_complete = 0;
-	task->rotate = 0;
-	task->gc = 0;
-	task->db = NULL;
-	task->shutdown = NULL;
-
-	ss_mutexlock(&s->lock);
-
-	/* log gc and rotation */
-	if (s->rotate == 0)
-	{
-		task->rotate = 1;
-		s->rotate = 1;
-	}
 
 	/* checkpoint */
 	int in_progress = 0;
@@ -137,14 +143,13 @@ checkpoint:
 	if (s->checkpoint) {
 		task->plan.plan = SI_CHECKPOINT;
 		task->plan.a = s->checkpoint_lsn;
-		rc = sc_plan(s, &task->plan, SC_QNONE, 0, &sdb);
+		rc = sc_plan(s, &task->plan);
 		switch (rc) {
 		case 1:
 			sdb->workers[SC_QBRANCH]++;
 			si_ref(sdb->index, SI_REFBE);
 			task->db = sdb;
 			task->gc = 1;
-			ss_mutexunlock(&s->lock);
 			return 1;
 		case 2: /* work in progress */
 			in_progress = 1;
@@ -167,10 +172,8 @@ checkpoint:
 		break;
 	case 2:  /* checkpoint */
 	{
-		if (in_progress) {
-			ss_mutexunlock(&s->lock);
+		if (in_progress)
 			goto no_job;
-		}
 		uint64_t lsn = sr_seq(s->r->seq, SR_LSN);
 		s->checkpoint_lsn = lsn;
 		s->checkpoint = 1;
@@ -180,32 +183,12 @@ checkpoint:
 		assert(zone->mode == 3);
 	}
 
-	/* database shutdown-drop */
-	if (s->shutdown_pending > 0) {
-		sslist *p, *n;
-		ss_listforeach_safe(&s->shutdown, p, n) {
-			si *index = sscast(p, si, link);
-			task->plan.plan = SI_SHUTDOWN;
-			rc = si_plan(index, &task->plan);
-			if (rc == 1) {
-				s->shutdown_pending--;
-				ss_listunlink(&index->link);
-				sc_del(s, index, 0);
-				task->shutdown = index;
-				task->db = NULL;
-				task->gc = 1;
-				ss_mutexunlock(&s->lock);
-				return 1;
-			}
-		}
-	}
-
 	/* anti-cache */
 	if (s->anticache) {
 		task->plan.plan = SI_ANTICACHE;
 		task->plan.a = s->anticache_asn;
 		task->plan.b = s->anticache_storage;
-		rc = sc_plan(s, &task->plan, SC_QNONE, 0, &sdb);
+		rc = sc_plan(s, &task->plan);
 		switch (rc) {
 		case 1:
 			si_ref(sdb->index, SI_REFBE);
@@ -217,7 +200,6 @@ checkpoint:
 				else
 					s->anticache_storage -= size;
 			}
-			ss_mutexunlock(&s->lock);
 			return 1;
 		case 2: /* work in progress */
 			in_progress = 1;
@@ -245,12 +227,11 @@ checkpoint:
 	if (s->snapshot) {
 		task->plan.plan = SI_SNAPSHOT;
 		task->plan.a = s->snapshot_ssn;
-		rc = sc_plan(s, &task->plan, SC_QNONE, 0, &sdb);
+		rc = sc_plan(s, &task->plan);
 		switch (rc) {
 		case 1:
 			si_ref(sdb->index, SI_REFBE);
 			task->db = sdb;
-			ss_mutexunlock(&s->lock);
 			return 1;
 		case 2: /* work in progress */
 			in_progress = 1;
@@ -319,13 +300,12 @@ checkpoint:
 		/* state 2 */
 		task->plan.plan = SI_BACKUP;
 		task->plan.a = s->backup_bsn;
-		rc = sc_plan(s, &task->plan, SC_QBACKUP, zone->backup_prio, &sdb);
+		rc = sc_planquota(s, &task->plan, SC_QBACKUP, zone->backup_prio);
 		switch (rc) {
 		case 1:
 			sdb->workers[SC_QBACKUP]++;
 			si_ref(sdb->index, SI_REFBE);
 			task->db = sdb;
-			ss_mutexunlock(&s->lock);
 			return 1;
 		case 2: /* work in progress */
 			break;
@@ -348,7 +328,7 @@ backup_error:;
 		task->plan.plan = SI_GC;
 		task->plan.a = vlsn;
 		task->plan.b = zone->gc_wm;
-		rc = sc_plan(s, &task->plan, SC_QGC, zone->gc_prio, &sdb);
+		rc = sc_planquota(s, &task->plan, SC_QGC, zone->gc_prio);
 		switch (rc) {
 		case 1:
 			if (zone->mode == 0)
@@ -356,7 +336,6 @@ backup_error:;
 			si_ref(sdb->index, SI_REFBE);
 			sdb->workers[SC_QGC]++;
 			task->db = sdb;
-			ss_mutexunlock(&s->lock);
 			return 1;
 		case 2: /* work in progress */
 			break;
@@ -376,7 +355,7 @@ backup_error:;
 	/* lru */
 	if (s->lru) {
 		task->plan.plan = SI_LRU;
-		rc = sc_plan(s, &task->plan, SC_QLRU, zone->lru_prio, &sdb);
+		rc = sc_planquota(s, &task->plan, SC_QLRU, zone->lru_prio);
 		switch (rc) {
 		case 1:
 			if (zone->mode == 0)
@@ -384,7 +363,6 @@ backup_error:;
 			si_ref(sdb->index, SI_REFBE);
 			sdb->workers[SC_QLRU]++;
 			task->db = sdb;
-			ss_mutexunlock(&s->lock);
 			return 1;
 		case 2: /* work in progress */
 			break;
@@ -406,7 +384,7 @@ backup_error:;
 		task->plan.plan = SI_AGE;
 		task->plan.a = zone->branch_age * 1000000; /* ms */
 		task->plan.b = zone->branch_age_wm;
-		rc = sc_plan(s, &task->plan, SC_QBRANCH, zone->branch_prio, &sdb);
+		rc = sc_planquota(s, &task->plan, SC_QBRANCH, zone->branch_prio);
 		switch (rc) {
 		case 1:
 			if (zone->mode == 0)
@@ -414,7 +392,6 @@ backup_error:;
 			si_ref(sdb->index, SI_REFBE);
 			sdb->workers[SC_QBRANCH]++;
 			task->db = sdb;
-			ss_mutexunlock(&s->lock);
 			return 1;
 		case 0:
 			s->age = 0;
@@ -433,44 +410,25 @@ backup_error:;
 	if (zone->mode == 0) {
 		task->plan.plan = SI_COMPACT_INDEX;
 		task->plan.a = zone->branch_wm;
-		rc = sc_plan(s, &task->plan, SC_QNONE, 0, &sdb);
+		rc = sc_plan(s, &task->plan);
 		if (rc == 1) {
 			si_ref(sdb->index, SI_REFBE);
 			task->db = sdb;
 			task->gc = 1;
-			ss_mutexunlock(&s->lock);
 			return 1;
 		}
-		ss_mutexunlock(&s->lock);
 		goto no_job;
 	}
 
 	/* branching */
-
-	/* schedule branch task using following
-	 * priority:
-	 *
-	 * a. peek node with the largest in-memory index
-	 *    which is equal or greater then branch
-	 *    watermark.
-	 *    If nothing is found, stick to b.
-	 *
-	 * b. peek node with the largest in-memory index,
-	 *    which has oldest update time.
-	 *
-	 * c. if no branch work is needed, schedule a
-	 *    compaction job
-	 *
-	 */
 	task->plan.plan = SI_BRANCH;
 	task->plan.a = zone->branch_wm;
-	rc = sc_plan(s, &task->plan, SC_QBRANCH, zone->branch_prio, &sdb);
+	rc = sc_planquota(s, &task->plan, SC_QBRANCH, zone->branch_prio);
 	if (rc == 1) {
 		sdb->workers[SC_QBRANCH]++;
 		si_ref(sdb->index, SI_REFBE);
 		task->db = sdb;
 		task->gc = 1;
-		ss_mutexunlock(&s->lock);
 		return 1;
 	}
 
@@ -478,18 +436,47 @@ backup_error:;
 	task->plan.plan = SI_COMPACT;
 	task->plan.a = zone->compact_wm;
 	task->plan.b = zone->compact_mode;
-	rc = sc_plan(s, &task->plan, SC_QNONE, 0, &sdb);
+	rc = sc_plan(s, &task->plan);
 	if (rc == 1) {
 		si_ref(sdb->index, SI_REFBE);
 		task->db = sdb;
-		ss_mutexunlock(&s->lock);
 		return 1;
 	}
 
-	ss_mutexunlock(&s->lock);
 no_job:
 	si_planinit(&task->plan);
 	return 0;
+}
+
+static int
+sc_schedule(sc *s, sctask *task, scworker *w, uint64_t vlsn)
+{
+	srzone *zone = sr_zoneof(s->r);
+	uint64_t now = ss_utime();
+	int rc;
+	ss_mutexlock(&s->lock);
+	/* log gc and rotation */
+	if (s->rotate == 0) {
+		task->rotate = 1;
+		s->rotate = 1;
+	}
+	/* database shutdown-drop */
+	rc = sc_do_shutdown(s, task);
+	if (rc) {
+		ss_mutexunlock(&s->lock);
+		return rc;
+	}
+	/* peek a database */
+	scdb *db = sc_peek(s);
+	if (ssunlikely(db == NULL)) {
+		ss_mutexunlock(&s->lock);
+		return 0;
+	}
+	rc = sc_do(s, task, w, zone, db, vlsn, now);
+	/* schedule next database */
+	sc_next(s);
+	ss_mutexunlock(&s->lock);
+	return rc;
 }
 
 static inline int
@@ -528,10 +515,25 @@ sc_complete(sc *s, sctask *t)
 	return 0;
 }
 
+static inline void
+sc_taskinit(sctask *task)
+{
+	si_planinit(&task->plan);
+	task->checkpoint_complete = 0;
+	task->anticache_complete = 0;
+	task->snapshot_complete = 0;
+	task->backup_complete = 0;
+	task->rotate = 0;
+	task->gc = 0;
+	task->db = NULL;
+	task->shutdown = NULL;
+}
+
 int sc_step(sc *s, scworker *w, uint64_t vlsn)
 {
 	sctask task;
-	int rc = sc_do(s, &task, w, vlsn);
+	sc_taskinit(&task);
+	int rc = sc_schedule(s, &task, w, vlsn);
 	int rc_job = rc;
 	if (task.rotate) {
 		rc = sc_rotate(s, w);
