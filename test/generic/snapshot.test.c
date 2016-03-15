@@ -219,6 +219,7 @@ snapshot_test2(void)
 	t( sp_setint(env, "scheduler.run", 0) == 1 );
 	t( sp_setint(env, "scheduler.run", 0) == 1 );
 	t( sp_setint(env, "scheduler.run", 0) == 0 );
+	t( sp_setint(env, "scheduler.run", 0) == 0 );
 
 	t( sp_getint(env, "scheduler.snapshot_active") == 0 );
 	t( sp_getint(env, "scheduler.snapshot_ssn") == 0 );

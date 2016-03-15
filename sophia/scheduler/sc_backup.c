@@ -40,6 +40,7 @@ int sc_backupstart(sc *s)
 	uint64_t bsn = sr_seq(s->r->seq, SR_BSNNEXT);
 	s->backup = 1;
 	s->backup_bsn = bsn;
+	sc_start(s, SI_BACKUP);
 	ss_mutexunlock(&s->lock);
 	return 0;
 }

@@ -108,11 +108,10 @@ int sc_shutdown(sc *s)
 int sc_add(sc *s, si *index)
 {
 	scdb *db = ss_malloc(s->r->a, sizeof(scdb));
-	if (ssunlikely(db == NULL)) {
-		ss_mutexunlock(&s->lock);
+	if (ssunlikely(db == NULL))
 		return -1;
-	}
-	db->index = index;
+	db->index  = index;
+	db->active = 0;
 	memset(db->workers, 0, sizeof(db->workers));
 
 	ss_mutexlock(&s->lock);

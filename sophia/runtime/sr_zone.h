@@ -22,15 +22,20 @@ struct srzone {
 	uint32_t branch_wm;
 	uint32_t branch_age;
 	uint32_t branch_age_period;
+	uint64_t branch_age_period_us;
 	uint32_t branch_age_wm;
 	uint32_t backup_prio;
 	uint32_t snapshot_period;
+	uint64_t snapshot_period_us;
 	uint32_t anticache_period;
+	uint64_t anticache_period_us;
 	uint32_t gc_prio;
 	uint32_t gc_period;
+	uint64_t gc_period_us;
 	uint32_t gc_wm;
 	uint32_t lru_prio;
 	uint32_t lru_period;
+	uint64_t lru_period_us;
 };
 
 struct srzonemap {

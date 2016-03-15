@@ -95,6 +95,8 @@ sc_plan(sc *s, siplan *plan)
 {
 	scdb *db = s->i[s->rr];
 	return si_plan(db->index, plan);
+
+
 }
 
 static inline int
@@ -132,55 +134,31 @@ sc_do_shutdown(sc *s, sctask *task)
 
 static int
 sc_do(sc *s, sctask *task, scworker *w, srzone *zone,
-      scdb *sdb, uint64_t vlsn, uint64_t now)
+      scdb *db, uint64_t vlsn, uint64_t now)
 {
 	ss_trace(&w->trace, "%s", "schedule");
 
 	/* checkpoint */
-	int in_progress = 0;
 	int rc;
-checkpoint:
 	if (s->checkpoint) {
 		task->plan.plan = SI_CHECKPOINT;
 		task->plan.a = s->checkpoint_lsn;
 		rc = sc_plan(s, &task->plan);
 		switch (rc) {
 		case 1:
-			sdb->workers[SC_QBRANCH]++;
-			si_ref(sdb->index, SI_REFBE);
-			task->db = sdb;
+			db->workers[SC_QBRANCH]++;
+			si_ref(db->index, SI_REFBE);
+			task->db = db;
 			task->gc = 1;
 			return 1;
-		case 2: /* work in progress */
-			in_progress = 1;
-			break;
-		case 0: /* complete checkpoint */
-			s->checkpoint = 0;
-			s->checkpoint_lsn_last = s->checkpoint_lsn;
-			s->checkpoint_lsn = 0;
-			task->checkpoint_complete = 1;
+		case 0: /* complete */
+			if (sc_end(s, db, SI_CHECKPOINT)) {
+				s->checkpoint = 0;
+				s->checkpoint_lsn_last = s->checkpoint_lsn;
+				s->checkpoint_lsn = 0;
+			}
 			break;
 		}
-	}
-
-	/* apply zone policy */
-	switch (zone->mode) {
-	case 0:  /* compact_index */
-		break;
-	case 1:  /* compact_index + branch_count prio */
-		assert(0);
-		break;
-	case 2:  /* checkpoint */
-	{
-		if (in_progress)
-			goto no_job;
-		uint64_t lsn = sr_seq(s->r->seq, SR_LSN);
-		s->checkpoint_lsn = lsn;
-		s->checkpoint = 1;
-		goto checkpoint;
-	}
-	default: /* branch + compact */
-		assert(zone->mode == 3);
 	}
 
 	/* anti-cache */
@@ -191,8 +169,8 @@ checkpoint:
 		rc = sc_plan(s, &task->plan);
 		switch (rc) {
 		case 1:
-			si_ref(sdb->index, SI_REFBE);
-			task->db = sdb;
+			si_ref(db->index, SI_REFBE);
+			task->db = db;
 			uint64_t size = task->plan.c;
 			if (size > 0) {
 				if (ssunlikely(size > s->anticache_storage))
@@ -201,25 +179,15 @@ checkpoint:
 					s->anticache_storage -= size;
 			}
 			return 1;
-		case 2: /* work in progress */
-			in_progress = 1;
-			break;
 		case 0: /* complete */
-			s->anticache = 0;
-			s->anticache_asn_last = s->anticache_asn;
-			s->anticache_asn = 0;
-			s->anticache_storage = 0;
-			s->anticache_time = now;
-			task->anticache_complete = 1;
-			break;
-		}
-	} else {
-		if (zone->anticache_period) {
-			if ( (now - s->anticache_time) >= ((uint64_t)zone->anticache_period * 1000000) ) {
-				s->anticache = 1;
-				s->anticache_storage = s->anticache_limit;
-				s->anticache_asn = sr_seq(s->r->seq, SR_ASNNEXT);
+			if (sc_end(s, db, SI_ANTICACHE)) {
+				s->anticache = 0;
+				s->anticache_asn_last = s->anticache_asn;
+				s->anticache_asn = 0;
+				s->anticache_storage = 0;
+				s->anticache_time = now;
 			}
+			break;
 		}
 	}
 
@@ -230,26 +198,17 @@ checkpoint:
 		rc = sc_plan(s, &task->plan);
 		switch (rc) {
 		case 1:
-			si_ref(sdb->index, SI_REFBE);
-			task->db = sdb;
+			si_ref(db->index, SI_REFBE);
+			task->db = db;
 			return 1;
-		case 2: /* work in progress */
-			in_progress = 1;
-			break;
 		case 0: /* complete */
-			s->snapshot = 0;
-			s->snapshot_ssn_last = s->snapshot_ssn;
-			s->snapshot_ssn = 0;
-			s->snapshot_time = now;
-			task->snapshot_complete = 1;
-			break;
-		}
-	} else {
-		if (zone->snapshot_period) {
-			if ( (now - s->snapshot_time) >= ((uint64_t)zone->snapshot_period * 1000000) ) {
-				s->snapshot = 1;
-				s->snapshot_ssn = sr_seq(s->r->seq, SR_SSNNEXT);
+			if (sc_end(s, db, SI_SNAPSHOT)) {
+				s->snapshot = 0;
+				s->snapshot_ssn_last = s->snapshot_ssn;
+				s->snapshot_ssn = 0;
+				s->snapshot_time = now;
 			}
+			break;
 		}
 	}
 
@@ -303,21 +262,21 @@ checkpoint:
 		rc = sc_planquota(s, &task->plan, SC_QBACKUP, zone->backup_prio);
 		switch (rc) {
 		case 1:
-			sdb->workers[SC_QBACKUP]++;
-			si_ref(sdb->index, SI_REFBE);
-			task->db = sdb;
+			db->workers[SC_QBACKUP]++;
+			si_ref(db->index, SI_REFBE);
+			task->db = db;
 			return 1;
-		case 2: /* work in progress */
-			break;
 		case 0: /* state 3 */
-			rc = sc_backupend(s, w);
-			if (ssunlikely(rc == -1)) {
-				sc_backuperror(s);
-				goto backup_error;
+			if (sc_end(s, db, SI_BACKUP)) {
+				rc = sc_backupend(s, w);
+				if (ssunlikely(rc == -1)) {
+					sc_backuperror(s);
+					goto backup_error;
+				}
+				s->backup_events++;
+				task->gc = 1;
+				task->on_backup = 1;
 			}
-			s->backup_events++;
-			task->gc = 1;
-			task->backup_complete = 1;
 			break;
 		}
 backup_error:;
@@ -333,22 +292,16 @@ backup_error:;
 		case 1:
 			if (zone->mode == 0)
 				task->plan.plan = SI_COMPACT_INDEX;
-			si_ref(sdb->index, SI_REFBE);
-			sdb->workers[SC_QGC]++;
-			task->db = sdb;
+			si_ref(db->index, SI_REFBE);
+			db->workers[SC_QGC]++;
+			task->db = db;
 			return 1;
-		case 2: /* work in progress */
-			break;
-		case 0: /* state 3 */
-			s->gc = 0;
-			s->gc_time = now;
-			break;
-		}
-	} else {
-		if (zone->gc_prio && zone->gc_period) {
-			if ( (now - s->gc_time) >= ((uint64_t)zone->gc_period * 1000000) ) {
-				s->gc = 1;
+		case 0: /* complete */
+			if (sc_end(s, db, SI_GC)) {
+				s->gc = 0;
+				s->gc_time = now;
 			}
+			break;
 		}
 	}
 
@@ -360,22 +313,16 @@ backup_error:;
 		case 1:
 			if (zone->mode == 0)
 				task->plan.plan = SI_COMPACT_INDEX;
-			si_ref(sdb->index, SI_REFBE);
-			sdb->workers[SC_QLRU]++;
-			task->db = sdb;
+			si_ref(db->index, SI_REFBE);
+			db->workers[SC_QLRU]++;
+			task->db = db;
 			return 1;
-		case 2: /* work in progress */
-			break;
-		case 0: /* state 3 */
-			s->lru = 0;
-			s->lru_time = now;
-			break;
-		}
-	} else {
-		if (zone->lru_prio && zone->lru_period) {
-			if ( (now - s->lru_time) >= ((uint64_t)zone->lru_period * 1000000) ) {
-				s->lru = 1;
+		case 0: /* complete */
+			if (sc_end(s, db, SI_LRU)) {
+				s->lru = 0;
+				s->lru_time = now;
 			}
+			break;
 		}
 	}
 
@@ -389,20 +336,16 @@ backup_error:;
 		case 1:
 			if (zone->mode == 0)
 				task->plan.plan = SI_COMPACT_INDEX;
-			si_ref(sdb->index, SI_REFBE);
-			sdb->workers[SC_QBRANCH]++;
-			task->db = sdb;
+			si_ref(db->index, SI_REFBE);
+			db->workers[SC_QBRANCH]++;
+			task->db = db;
 			return 1;
-		case 0:
-			s->age = 0;
-			s->age_time = now;
-			break;
-		}
-	} else {
-		if (zone->branch_prio && zone->branch_age_period) {
-			if ( (now - s->age_time) >= ((uint64_t)zone->branch_age_period * 1000000) ) {
-				s->age = 1;
+		case 0: /* complete */
+			if (sc_end(s, db, SI_AGE)) {
+				s->age = 0;
+				s->age_time = now;
 			}
+			break;
 		}
 	}
 
@@ -412,8 +355,8 @@ backup_error:;
 		task->plan.a = zone->branch_wm;
 		rc = sc_plan(s, &task->plan);
 		if (rc == 1) {
-			si_ref(sdb->index, SI_REFBE);
-			task->db = sdb;
+			si_ref(db->index, SI_REFBE);
+			task->db = db;
 			task->gc = 1;
 			return 1;
 		}
@@ -425,9 +368,9 @@ backup_error:;
 	task->plan.a = zone->branch_wm;
 	rc = sc_planquota(s, &task->plan, SC_QBRANCH, zone->branch_prio);
 	if (rc == 1) {
-		sdb->workers[SC_QBRANCH]++;
-		si_ref(sdb->index, SI_REFBE);
-		task->db = sdb;
+		db->workers[SC_QBRANCH]++;
+		si_ref(db->index, SI_REFBE);
+		task->db = db;
 		task->gc = 1;
 		return 1;
 	}
@@ -438,8 +381,8 @@ backup_error:;
 	task->plan.b = zone->compact_mode;
 	rc = sc_plan(s, &task->plan);
 	if (rc == 1) {
-		si_ref(sdb->index, SI_REFBE);
-		task->db = sdb;
+		si_ref(db->index, SI_REFBE);
+		task->db = db;
 		return 1;
 	}
 
@@ -448,18 +391,82 @@ no_job:
 	return 0;
 }
 
-static int
-sc_schedule(sc *s, sctask *task, scworker *w, uint64_t vlsn)
+static inline void
+sc_schedule_periodic(sc *s, sctask *task, srzone *zone, uint64_t now)
 {
-	srzone *zone = sr_zoneof(s->r);
-	uint64_t now = ss_utime();
-	int rc;
-	ss_mutexlock(&s->lock);
 	/* log gc and rotation */
 	if (s->rotate == 0) {
 		task->rotate = 1;
 		s->rotate = 1;
 	}
+	/* checkpoint */
+	switch (zone->mode) {
+	case 0:  /* compact_index */
+		break;
+	case 1:  /* compact_index + branch_count prio */
+		assert(0);
+		break;
+	case 2:  /* checkpoint */
+	{
+		if (s->checkpoint == 0) {
+			uint64_t lsn = sr_seq(s->r->seq, SR_LSN);
+			s->checkpoint_lsn = lsn;
+			s->checkpoint = 1;
+			sc_start(s, SI_CHECKPOINT);
+		}
+		break;
+	}
+	default: /* branch + compact */
+		assert(zone->mode == 3);
+	}
+	/* anti-cache */
+	if (s->anticache == 0 && zone->anticache_period) {
+		if ((now - s->anticache_time) >= zone->anticache_period_us) {
+			s->anticache = 1;
+			s->anticache_storage = s->anticache_limit;
+			s->anticache_asn = sr_seq(s->r->seq, SR_ASNNEXT);
+			sc_start(s, SI_ANTICACHE);
+		}
+	}
+	/* snapshot */
+	if (s->snapshot == 0 && zone->snapshot_period) {
+		if ((now - s->snapshot_time) >= zone->snapshot_period_us) {
+			s->snapshot = 1;
+			s->snapshot_ssn = sr_seq(s->r->seq, SR_SSNNEXT);
+			sc_start(s, SI_SNAPSHOT);
+		}
+	}
+	/* gc */
+	if (s->gc == 0 && zone->gc_prio && zone->gc_period) {
+		if ((now - s->gc_time) >= zone->gc_period_us) {
+			s->gc = 1;
+			sc_start(s, SI_GC);
+		}
+	}
+	/* lru */
+	if (s->lru == 0 && zone->lru_prio && zone->lru_period) {
+		if ((now - s->lru_time) >= zone->lru_period_us) {
+			s->lru = 1;
+			sc_start(s, SI_LRU);
+		}
+	}
+	/* aging */
+	if (s->age == 0 && zone->branch_prio && zone->branch_age_period) {
+		if ((now - s->age_time) >= zone->branch_age_period_us) {
+			s->age = 1;
+			sc_start(s, SI_AGE);
+		}
+	}
+}
+
+static int
+sc_schedule(sc *s, sctask *task, scworker *w, uint64_t vlsn)
+{
+	uint64_t now = ss_utime();
+	srzone *zone = sr_zoneof(s->r);
+	int rc;
+	ss_mutexlock(&s->lock);
+	sc_schedule_periodic(s, task, zone, now);
 	/* database shutdown-drop */
 	rc = sc_do_shutdown(s, task);
 	if (rc) {
@@ -519,10 +526,7 @@ static inline void
 sc_taskinit(sctask *task)
 {
 	si_planinit(&task->plan);
-	task->checkpoint_complete = 0;
-	task->anticache_complete = 0;
-	task->snapshot_complete = 0;
-	task->backup_complete = 0;
+	task->on_backup = 0;
 	task->rotate = 0;
 	task->gc = 0;
 	task->db = NULL;
@@ -541,7 +545,7 @@ int sc_step(sc *s, scworker *w, uint64_t vlsn)
 			goto error;
 	}
 	/* trigger backup competion */
-	if (task.backup_complete)
+	if (task.on_backup)
 		ss_triggerrun(s->on_event);
 	if (rc_job > 0) {
 		rc = sc_execute(&task, w, vlsn);

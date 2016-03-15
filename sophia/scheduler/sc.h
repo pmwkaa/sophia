@@ -24,18 +24,16 @@ enum {
 struct scdb {
 	uint32_t workers[SC_QMAX];
 	si *index;
+	uint32_t active;
 };
 
 struct sctask {
 	siplan plan;
 	scdb  *db;
 	si    *shutdown;
+	int    on_backup;
 	int    rotate;
 	int    gc;
-	int    checkpoint_complete;
-	int    anticache_complete;
-	int    snapshot_complete;
-	int    backup_complete;
 };
 
 struct sc {
@@ -84,5 +82,29 @@ int sc_create(sc *s, ssthreadf, void*, int);
 int sc_shutdown(sc*);
 int sc_add(sc*, si*);
 int sc_del(sc*, si*, int);
+
+static inline void
+sc_start(sc *s, int task)
+{
+	int i = 0;
+	while (i < s->count) {
+		s->i[i]->active |= task;
+		i++;
+	}
+}
+
+static inline int
+sc_end(sc *s, scdb *db, int task)
+{
+	db->active &= ~task;
+	int complete = 1;
+	int i = 0;
+	while (i < s->count) {
+		if (s->i[i]->active & task)
+			complete = 0;
+		i++;
+	}
+	return complete;
+}
 
 #endif

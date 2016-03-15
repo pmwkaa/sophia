@@ -1195,6 +1195,12 @@ int se_confvalidate(seconf *c)
 			sr_error(&e->error, "bad %d.compact_wm value", i * 10);
 			return -1;
 		}
+		/* convert periodic times from sec to usec */
+		z->branch_age_period_us = z->branch_age_period * 1000000;
+		z->snapshot_period_us   = z->snapshot_period * 1000000;
+		z->anticache_period_us  = z->anticache_period * 1000000;
+		z->gc_period_us         = z->gc_period * 1000000;
+		z->lru_period_us        = z->lru_period * 1000000;
 	}
 	return 0;
 }

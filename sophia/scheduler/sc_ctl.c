@@ -131,6 +131,7 @@ int sc_ctl_anticache(sc *s)
 	s->anticache_asn = asn;
 	s->anticache_storage = s->anticache_limit;
 	s->anticache = 1;
+	sc_start(s, SI_ANTICACHE);
 	ss_mutexunlock(&s->lock);
 	return 0;
 }
@@ -141,6 +142,7 @@ int sc_ctl_snapshot(sc *s)
 	ss_mutexlock(&s->lock);
 	s->snapshot_ssn = ssn;
 	s->snapshot = 1;
+	sc_start(s, SI_SNAPSHOT);
 	ss_mutexunlock(&s->lock);
 	return 0;
 }
@@ -151,6 +153,7 @@ int sc_ctl_checkpoint(sc *s)
 	ss_mutexlock(&s->lock);
 	s->checkpoint_lsn = lsn;
 	s->checkpoint = 1;
+	sc_start(s, SI_CHECKPOINT);
 	ss_mutexunlock(&s->lock);
 	return 0;
 }
@@ -159,6 +162,7 @@ int sc_ctl_gc(sc *s)
 {
 	ss_mutexlock(&s->lock);
 	s->gc = 1;
+	sc_start(s, SI_GC);
 	ss_mutexunlock(&s->lock);
 	return 0;
 }
@@ -167,6 +171,7 @@ int sc_ctl_lru(sc *s)
 {
 	ss_mutexlock(&s->lock);
 	s->lru = 1;
+	sc_start(s, SI_LRU);
 	ss_mutexunlock(&s->lock);
 	return 0;
 }
