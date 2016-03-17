@@ -44,6 +44,7 @@ se_dbscheme_init(sedb *db, char *name)
 	scheme->compression_if        = &ss_nonefilter;
 	scheme->compression_branch    = 0;
 	scheme->compression_branch_if = &ss_nonefilter;
+	scheme->temperature           = 0;
 	scheme->amqf                  = 0;
 	scheme->fmt                   = SF_KV;
 	scheme->fmt_storage           = SF_SRAW;

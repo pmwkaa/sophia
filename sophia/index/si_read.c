@@ -97,14 +97,15 @@ si_readstat(siread *q, int cache, sinode *n, uint32_t reads)
 		i->read_disk += reads;
 		q->read_disk += reads;
 	}
-	n->temperature_reads += reads;
-
-	/* set temperature */
-	uint64_t total = i->read_disk + i->read_cache;
-	if (ssunlikely(total == 0))
-		return;
-	n->temperature = (n->temperature_reads * 100ULL) / total;
-	si_plannerupdate(&q->index->p, SI_TEMP, n);
+	/* update temperature */
+	if (i->scheme.temperature) {
+		n->temperature_reads += reads;
+		uint64_t total = i->read_disk + i->read_cache;
+		if (ssunlikely(total == 0))
+			return;
+		n->temperature = (n->temperature_reads * 100ULL) / total;
+		si_plannerupdate(&q->index->p, SI_TEMP, n);
+	}
 }
 
 static inline int

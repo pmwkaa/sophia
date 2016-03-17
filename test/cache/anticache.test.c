@@ -33,6 +33,7 @@ anticache_promote0(void)
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setstring(env, "db.test.storage", "anti-cache", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_setint(env, "db.test.temperature", 1) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_open(db) == 0 );
@@ -98,6 +99,7 @@ anticache_promote1(void)
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setstring(env, "db.test.storage", "anti-cache", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_setint(env, "db.test.temperature", 1) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_open(db) == 0 );

@@ -183,7 +183,7 @@ github_118(void)
 
 	t( sp_getint(env, "db.test.index.count") == 1 );
 	char *sz = sp_getstring(env, "db.test.index.temperature_histogram", NULL);
-	t( strcmp(sz, "[100]:1-1 ") == 0 );
+	t( strcmp(sz, "[0]:1-1 ") == 0 );
 	free(sz);
 
 	t( sp_destroy(db) == 0 );

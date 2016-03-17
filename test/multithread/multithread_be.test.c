@@ -548,6 +548,7 @@ mt_set_get_anticache(void)
 	t( sp_setstring(env, "db.test.storage", "anti-cache", 0) == 0 );
 	t( sp_setint(env, "db.test.compression_key", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_setint(env, "db.test.temperature", 1) == 0 );
 	t( sp_setint(env, "db.test.node_size", 100 * 1024) == 0 );
 	t( sp_setint(env, "db.test.page_size", 8 * 1024) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
