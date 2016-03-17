@@ -37,9 +37,9 @@ int sc_write(sc *s, svlog *log, uint64_t lsn, int recover)
 	while (i < end) {
 		si *index = i->ptr;
 		sitx x, xc;
-		si_begin(&x, index, 0);
+		si_begin(&x, index);
 		if (index->cache) {
-			si_begin(&xc, index->cache, 0);
+			si_begin(&xc, index->cache);
 			si_write(&xc, log, i, now, recover, 1);
 		}
 		si_write(&x, log, i, now, recover, 0);

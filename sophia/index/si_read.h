@@ -30,10 +30,9 @@ struct siread {
 	sicache  *cache;
 	sr       *r;
 	si       *index;
-	sitx     *x;
 };
 
-int  si_readopen(siread*, sitx*, sicache*, ssorder,
+int  si_readopen(siread*, si*, sicache*, ssorder,
                  uint64_t,
                  void*, uint32_t,
                  void*, uint32_t);

@@ -54,9 +54,7 @@ sc_readindex(scread *r, si *index, void *key, uint32_t keysize,
 {
 	screadarg *arg = &r->arg;
 	siread q;
-	sitx x;
-	si_begin(&x, index, 1);
-	si_readopen(&q, &x, arg->cache,
+	si_readopen(&q, index, arg->cache,
 	            arg->order,
 	            arg->vlsn,
 	            prefix,
@@ -74,7 +72,6 @@ sc_readindex(scread *r, si *index, void *key, uint32_t keysize,
 	r->read_cache += q.read_cache;
 	r->result = q.result.v;
 	si_readclose(&q);
-	si_commit(&x);
 	return r->rc;
 }
 

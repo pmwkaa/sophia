@@ -17,7 +17,7 @@ struct sitx {
 	si *index;
 };
 
-void si_begin(sitx*, si*, int);
+void si_begin(sitx*, si*);
 void si_commit(sitx*);
 
 static inline void

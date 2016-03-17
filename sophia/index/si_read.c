@@ -15,7 +15,7 @@
 #include <libsd.h>
 #include <libsi.h>
 
-int si_readopen(siread *q, sitx *x, sicache *c, ssorder o,
+int si_readopen(siread *q, si *i, sicache *c, ssorder o,
                 uint64_t vlsn,
                 void *prefix, uint32_t prefixsize,
                 void *key, uint32_t keysize)
@@ -24,9 +24,8 @@ int si_readopen(siread *q, sitx *x, sicache *c, ssorder o,
 	q->key         = key;
 	q->keysize     = keysize;
 	q->vlsn        = vlsn;
-	q->x           = x;
-	q->index       = x->index;
-	q->r           = &x->index->r;
+	q->index       = i;
+	q->r           = &i->r;
 	q->cache       = c;
 	q->prefix      = prefix;
 	q->prefixsize  = prefixsize;
@@ -39,6 +38,7 @@ int si_readopen(siread *q, sitx *x, sicache *c, ssorder o,
 	q->read_cache  = 0;
 	memset(&q->result, 0, sizeof(q->result));
 	sv_mergeinit(&q->merge);
+	si_lock(i);
 	return 0;
 }
 
@@ -65,6 +65,7 @@ void si_readupsert(siread *q, sv *v, int eq)
 
 int si_readclose(siread *q)
 {
+	si_unlock(q->index);
 	sv_mergefree(&q->merge, q->r->a);
 	return 0;
 }
@@ -97,6 +98,13 @@ si_readstat(siread *q, int cache, sinode *n, uint32_t reads)
 		q->read_disk += reads;
 	}
 	n->temperature_reads += reads;
+
+	/* set temperature */
+	uint64_t total = i->read_disk + i->read_cache;
+	if (ssunlikely(total == 0))
+		return;
+	n->temperature = (n->temperature_reads * 100ULL) / total;
+	si_plannerupdate(&q->index->p, SI_TEMP, n);
 }
 
 static inline int
@@ -241,7 +249,6 @@ si_get(siread *q)
 	sinode *node;
 	node = ss_iterof(si_iter, &i);
 	assert(node != NULL);
-	si_txtrack(q->x, node);
 	/* search in memory */
 	int rc;
 	rc = si_getindex(q, node);
@@ -259,16 +266,18 @@ si_get(siread *q)
 	rc = sv_mergeprepare(m, q->r, 1);
 	assert(rc == 0);
 	/* search on disk */
-	if (q->oldest_only)
-		return si_getbranch(q, node, &node->self);
-	sibranch *b = node->branch;
-	while (b) {
-		rc = si_getbranch(q, node, b);
-		if (rc != 0)
-			return rc;
-		b = b->next;
+	if (q->oldest_only) {
+		rc = si_getbranch(q, node, &node->self);
+	} else {
+		sibranch *b = node->branch;
+		while (b) {
+			rc = si_getbranch(q, node, b);
+			if (rc != 0)
+				break;
+			b = b->next;
+		}
 	}
-	return 0;
+	return rc;
 }
 
 static inline int
@@ -347,7 +356,6 @@ next_node:
 	node = ss_iterof(si_iter, &i);
 	if (ssunlikely(node == NULL))
 		return 0;
-	si_txtrack(q->x, node);
 
 	/* prepare sources */
 	svmerge *m = &q->merge;
