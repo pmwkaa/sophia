@@ -34,6 +34,7 @@ struct siplanner {
 #define SI_SNAPSHOT      2048
 #define SI_ANTICACHE     4096
 #define SI_LRU           8192
+#define SI_NODEGC        16384
 
 /* explain */
 #define SI_ENONE         0
@@ -57,6 +58,7 @@ struct siplan {
 	 *   a: index_size
 	 * checkpoint:
 	 *   a: lsn
+	 * nodegc:
 	 * gc:
 	 *   a: lsn
 	 *   b: percent

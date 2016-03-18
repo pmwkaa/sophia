@@ -14,46 +14,50 @@ typedef struct sinode sinode;
 #define SI_NONE       0
 #define SI_LOCK       1
 #define SI_ROTATE     2
-#define SI_PROMOTE    4
-#define SI_REVOKE     8
-
-#define SI_RDB        16
-#define SI_RDB_DBI    32
-#define SI_RDB_DBSEAL 64
-#define SI_RDB_UNDEF  128
-#define SI_RDB_REMOVE 256
+#define SI_SPLIT      4
+#define SI_PROMOTE    8
+#define SI_REVOKE     16
+#define SI_RDB        32
+#define SI_RDB_DBI    64
+#define SI_RDB_DBSEAL 128
+#define SI_RDB_UNDEF  256
+#define SI_RDB_REMOVE 512
 
 struct sinode {
-	uint32_t  recover;
-	uint8_t   flags;
-	uint64_t  update_time;
-	uint32_t  used;
-	uint32_t  backup;
-	uint64_t  lru;
-	uint64_t  ac;
-	uint32_t  in_memory;
-	sibranch  self;
-	sibranch *branch;
-	uint32_t  branch_count;
-	uint32_t  temperature;
-	uint64_t  temperature_reads;
-	svindex   i0, i1;
-	ssfile    file;
-	ssmmap    map, map_swap;
-	ssrbnode  node;
-	ssrqnode  nodecompact;
-	ssrqnode  nodebranch;
-	ssrqnode  nodetemp;
-	sslist    commit;
+	uint32_t   recover;
+	uint16_t   flags;
+	uint64_t   update_time;
+	uint32_t   used;
+	uint32_t   backup;
+	uint64_t   lru;
+	uint64_t   ac;
+	uint32_t   in_memory;
+	sibranch   self;
+	sibranch  *branch;
+	uint32_t   branch_count;
+	uint32_t   temperature;
+	uint64_t   temperature_reads;
+	uint16_t   refs;
+	ssspinlock reflock;
+	svindex    i0, i1;
+	ssfile     file;
+	ssmmap     map, map_swap;
+	ssrbnode   node;
+	ssrqnode   nodecompact;
+	ssrqnode   nodebranch;
+	ssrqnode   nodetemp;
+	sslist     gc;
+	sslist     commit;
 } sspacked;
 
 sinode *si_nodenew(sr*);
 int si_nodeopen(sinode*, sr*, sischeme*, sspath*, sdsnapshotnode*);
 int si_nodecreate(sinode*, sr*, sischeme*, sdid*);
 int si_nodefree(sinode*, sr*, int);
-int si_nodegc_index(sr*, svindex*);
 int si_nodemap(sinode*, sr*);
 int si_noderead(sinode*, sr*, ssbuf*);
+int si_nodegc_index(sr*, svindex*);
+int si_nodegc(sinode*, sr*, sischeme*);
 int si_nodeseal(sinode*, sr*, sischeme*);
 int si_nodecomplete(sinode*, sr*, sischeme*);
 
@@ -67,6 +71,38 @@ static inline void
 si_nodeunlock(sinode *node) {
 	assert((node->flags & SI_LOCK) > 0);
 	node->flags &= ~SI_LOCK;
+}
+
+static inline void
+si_nodesplit(sinode *node) {
+	node->flags |= SI_SPLIT;
+}
+
+static inline void
+si_noderef(sinode *node)
+{
+	ss_spinlock(&node->reflock);
+	node->refs++;
+	ss_spinunlock(&node->reflock);
+}
+
+static inline uint16_t
+si_nodeunref(sinode *node)
+{
+	ss_spinlock(&node->reflock);
+	assert(node->refs > 0);
+	uint16_t v = node->refs--;
+	ss_spinunlock(&node->reflock);
+	return v;
+}
+
+static inline uint16_t
+si_noderefof(sinode *node)
+{
+	ss_spinlock(&node->reflock);
+	uint16_t v = node->refs;
+	ss_spinunlock(&node->reflock);
+	return v;
 }
 
 static inline svindex*

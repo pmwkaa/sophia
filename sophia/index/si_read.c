@@ -174,10 +174,9 @@ result:;
 }
 
 static inline int
-si_getbranch(siread *q, sinode *n, sibranch *b)
+si_getbranch(siread *q, sinode *n, sicachebranch *c)
 {
-	sicachebranch *c = si_cachefollow(q->cache, b);
-	assert(c->branch == b);
+	sibranch *b = c->branch;
 	/* amqf */
 	sischeme *scheme = &q->index->scheme;
 	int rc;
@@ -250,6 +249,7 @@ si_get(siread *q)
 	sinode *node;
 	node = ss_iterof(si_iter, &i);
 	assert(node != NULL);
+
 	/* search in memory */
 	int rc;
 	rc = si_getindex(q, node);
@@ -257,27 +257,36 @@ si_get(siread *q)
 		return rc;
 	if (q->cache_only)
 		return 2;
-	/* */
+	sinodeview view;
+	si_nodeview_open(&view, node);
 	rc = si_cachevalidate(q->cache, node);
 	if (ssunlikely(rc == -1)) {
 		sr_oom(q->r->e);
 		return -1;
 	}
+	si_unlock(q->index);
+
+	/* search on disk */
 	svmerge *m = &q->merge;
 	rc = sv_mergeprepare(m, q->r, 1);
 	assert(rc == 0);
-	/* search on disk */
+	sicachebranch *b;
 	if (q->oldest_only) {
-		rc = si_getbranch(q, node, &node->self);
+		b = si_cacheseek(q->cache, &node->self);
+		assert(b != NULL);
+		rc = si_getbranch(q, node, b);
 	} else {
-		sibranch *b = node->branch;
-		while (b) {
+		b = q->cache->branch;
+		while (b && b->branch) {
 			rc = si_getbranch(q, node, b);
 			if (rc != 0)
 				break;
 			b = b->next;
 		}
 	}
+
+	si_lock(q->index);
+	si_nodeview_close(&view);
 	return rc;
 }
 

@@ -56,9 +56,9 @@ snapshot_test0(void)
 	t( sp_getint(env, "scheduler.snapshot_ssn") == 1 );
 	t( sp_getint(env, "scheduler.snapshot_ssn_last") == 0 );
 
-	t( sp_setint(env, "scheduler.run", 0) == 1 );
-	t( sp_setint(env, "scheduler.run", 0) == 1 );
-	t( sp_setint(env, "scheduler.run", 0) == 0 );
+	int rc;
+	while ( (rc = sp_setint(env, "scheduler.run", 0)) > 0 );
+	t( rc == 0 );
 
 	t( sp_getint(env, "scheduler.snapshot_active") == 0 );
 	t( sp_getint(env, "scheduler.snapshot_ssn") == 0 );
@@ -135,9 +135,9 @@ snapshot_test1(void)
 	t( sp_getint(env, "scheduler.snapshot_ssn") == 1 );
 	t( sp_getint(env, "scheduler.snapshot_ssn_last") == 0 );
 
-	t( sp_setint(env, "scheduler.run", 0) == 1 );
-	t( sp_setint(env, "scheduler.run", 0) == 1 );
-	t( sp_setint(env, "scheduler.run", 0) == 0 );
+	int rc;
+	while ( (rc = sp_setint(env, "scheduler.run", 0)) > 0 );
+	t( rc == 0 );
 
 	t( sp_getint(env, "scheduler.snapshot_active") == 0 );
 	t( sp_getint(env, "scheduler.snapshot_ssn") == 0 );
@@ -218,6 +218,7 @@ snapshot_test2(void)
 
 	t( sp_setint(env, "scheduler.run", 0) == 1 );
 	t( sp_setint(env, "scheduler.run", 0) == 1 );
+	t( sp_setint(env, "scheduler.run", 0) == 0 );
 	t( sp_setint(env, "scheduler.run", 0) == 0 );
 	t( sp_setint(env, "scheduler.run", 0) == 0 );
 

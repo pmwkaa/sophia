@@ -37,6 +37,8 @@ struct si {
 	ssspinlock ref_lock;
 	uint32_t   ref_fe;
 	uint32_t   ref_be;
+	uint32_t   gc_count;
+	sslist     gc;
 	ssbuf      readbuf;
 	svupsert   u;
 	sischeme   scheme;

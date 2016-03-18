@@ -33,6 +33,8 @@ si *si_init(sr *r, so *object)
 	ss_mutexinit(&i->lock);
 	si_schemeinit(&i->scheme);
 	ss_listinit(&i->link);
+	ss_listinit(&i->gc);
+	i->gc_count     = 0;
 	i->update_time  = 0;
 	i->lru_run_lsn  = 0;
 	i->lru_v        = 0;
@@ -64,6 +66,17 @@ ss_rbtruncate(si_truncate,
 
 int si_close(si *i)
 {
+	int rc_ret = 0;
+	int rc = 0;
+	sslist *p, *n;
+	ss_listforeach_safe(&i->gc, p, n) {
+		sinode *node = sscast(p, sinode, gc);
+		rc = si_nodefree(node, &i->r, 1);
+		if (ssunlikely(rc == -1))
+			rc_ret = -1;
+	}
+	ss_listinit(&i->gc);
+	i->gc_count = 0;
 	if (i->i.root)
 		si_truncate(i->i.root, &i->r);
 	i->i.root = NULL;
@@ -75,7 +88,7 @@ int si_close(si *i)
 	sr_statusfree(&i->status);
 	si_schemefree(&i->scheme, &i->r);
 	ss_free(i->r.a, i);
-	return 0;
+	return rc_ret;
 }
 
 ss_rbget(si_match,
@@ -173,6 +186,9 @@ int si_execute(si *i, sdc *c, siplan *plan,
 {
 	int rc = -1;
 	switch (plan->plan) {
+	case SI_NODEGC:
+		rc = si_nodefree(plan->node, &i->r, 1);
+		break;
 	case SI_CHECKPOINT:
 	case SI_BRANCH:
 	case SI_AGE:

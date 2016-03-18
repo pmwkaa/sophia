@@ -10,6 +10,7 @@
 */
 
 int exists(char*, char*);
+int touch(char*, char*);
 int rmrf(char*);
 
 #endif

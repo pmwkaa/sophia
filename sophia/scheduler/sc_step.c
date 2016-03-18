@@ -136,10 +136,19 @@ static int
 sc_do(sc *s, sctask *task, scworker *w, srzone *zone,
       scdb *db, uint64_t vlsn, uint64_t now)
 {
+	int rc;
 	ss_trace(&w->trace, "%s", "schedule");
 
+	/* node gc */
+	task->plan.plan = SI_NODEGC;
+	rc = sc_plan(s, &task->plan);
+	if (rc == 1) {
+		si_ref(db->index, SI_REFBE);
+		task->db = db;
+		return 1;
+	}
+
 	/* checkpoint */
-	int rc;
 	if (s->checkpoint) {
 		task->plan.plan = SI_CHECKPOINT;
 		task->plan.a = s->checkpoint_lsn;
@@ -490,32 +499,32 @@ static inline int
 sc_complete(sc *s, sctask *t)
 {
 	ss_mutexlock(&s->lock);
-	scdb *sdb = t->db;
+	scdb *db = t->db;
 	switch (t->plan.plan) {
 	case SI_BRANCH:
 	case SI_AGE:
 	case SI_CHECKPOINT:
-		sdb->workers[SC_QBRANCH]--;
+		db->workers[SC_QBRANCH]--;
 		break;
 	case SI_COMPACT_INDEX:
 		break;
 	case SI_BACKUP:
 	case SI_BACKUPEND:
-		sdb->workers[SC_QBACKUP]--;
+		db->workers[SC_QBACKUP]--;
 		break;
 	case SI_SNAPSHOT:
 		break;
 	case SI_ANTICACHE:
 		break;
 	case SI_GC:
-		sdb->workers[SC_QGC]--;
+		db->workers[SC_QGC]--;
 		break;
 	case SI_LRU:
-		sdb->workers[SC_QLRU]--;
+		db->workers[SC_QLRU]--;
 		break;
 	}
-	if (sdb)
-		si_unref(sdb->index, SI_REFBE);
+	if (db)
+		si_unref(db->index, SI_REFBE);
 	if (t->rotate == 1)
 		s->rotate = 0;
 	ss_mutexunlock(&s->lock);

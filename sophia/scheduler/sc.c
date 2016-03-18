@@ -151,7 +151,8 @@ int sc_del(sc *s, si *index, int lock)
 	}
 	scdb **i = ss_malloc(s->r->a, count * sizeof(scdb*));
 	if (ssunlikely(i == NULL)) {
-		ss_mutexunlock(&s->lock);
+		if (lock)
+			ss_mutexunlock(&s->lock);
 		return -1;
 	}
 	int j = 0;

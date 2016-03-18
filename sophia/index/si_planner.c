@@ -67,6 +67,8 @@ int si_plannertrace(siplan *p, uint32_t id, sstrace *t)
 		break;
 	case SI_CHECKPOINT: plan = "checkpoint";
 		break;
+	case SI_NODEGC: plan = "node gc";
+		break;
 	case SI_GC: plan = "gc";
 		break;
 	case SI_TEMP: plan = "temperature";
@@ -442,6 +444,29 @@ si_plannerpeek_shutdown(siplanner *p, siplan *plan)
 	return 0;
 }
 
+static inline int
+si_plannerpeek_nodegc(siplanner *p, siplan *plan)
+{
+	si *index = p->i;
+	if (sslikely(index->gc_count == 0))
+		return 0;
+	int rc_inprogress = 0;
+	sslist *i;
+	ss_listforeach(&index->gc, i) {
+		sinode *n = sscast(i, sinode, gc);
+		if (sslikely(si_noderefof(n) == 0)) {
+			ss_listunlink(&n->gc);
+			index->gc_count--;
+			plan->explain = SI_ENONE;
+			plan->node = n;
+			return 1;
+		} else {
+			rc_inprogress = 2;
+		}
+	}
+	return rc_inprogress;
+}
+
 int si_planner(siplanner *p, siplan *plan)
 {
 	switch (plan->plan) {
@@ -452,6 +477,8 @@ int si_planner(siplanner *p, siplan *plan)
 		if (plan->b == 1)
 			return si_plannerpeek_compact_temperature(p, plan);
 		return si_plannerpeek_compact(p, plan);
+	case SI_NODEGC:
+		return si_plannerpeek_nodegc(p, plan);
 	case SI_GC:
 		return si_plannerpeek_gc(p, plan);
 	case SI_CHECKPOINT:

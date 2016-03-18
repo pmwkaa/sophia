@@ -59,9 +59,9 @@ anticache_promote0(void)
 	t( sp_getint(env, "scheduler.anticache_asn") == 1 );
 	t( sp_getint(env, "scheduler.anticache_asn_last") == 0 );
 
-	t( sp_setint(env, "scheduler.run", 0) == 1 );
-	t( sp_setint(env, "scheduler.run", 0) == 1 );
-	t( sp_setint(env, "scheduler.run", 0) == 0 );
+	int rc;
+	while ( (rc = sp_setint(env, "scheduler.run", 0)) > 0 );
+	t( rc == 0 );
 
 	t( sp_getint(env, "scheduler.anticache_active") == 0 );
 	t( sp_getint(env, "scheduler.anticache_asn") == 0 );
@@ -122,9 +122,11 @@ anticache_promote1(void)
 	t( sp_getint(env, "scheduler.anticache_active") == 1 );
 	t( sp_getint(env, "scheduler.anticache_asn") == 1 );
 	t( sp_getint(env, "scheduler.anticache_asn_last") == 0 );
-	t( sp_setint(env, "scheduler.run", 0) == 1 );
-	t( sp_setint(env, "scheduler.run", 0) == 1 );
-	t( sp_setint(env, "scheduler.run", 0) == 0 );
+
+	int rc;
+	while ( (rc = sp_setint(env, "scheduler.run", 0)) > 0 );
+	t( rc == 0 );
+
 	t( sp_getint(env, "scheduler.anticache_active") == 0 );
 	t( sp_getint(env, "scheduler.anticache_asn") == 0 );
 	t( sp_getint(env, "scheduler.anticache_asn_last") == 1 );

@@ -21,6 +21,16 @@ int exists(char *path, char *name) {
 	return ss_vfsexists(&st_r.vfs, file);
 }
 
+int touch(char *path, char *name) {
+	char file[1024];
+	snprintf(file, sizeof(file), "%s/%s", path, name);
+	ssfile f;
+	ss_fileinit(&f, &st_r.vfs);
+	int rc = ss_filenew(&f, file);
+	ss_fileclose(&f);
+	return rc;
+}
+
 int rmrf(char *path)
 {
 	DIR *d = opendir(path);

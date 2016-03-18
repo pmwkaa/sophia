@@ -157,6 +157,15 @@ si_cachevalidate(sicache *c, sinode *n)
 		cb = cb->next;
 		b  = b->next;
 	}
+	while (cb) {
+		cb->branch = NULL;
+		cb->ref = NULL;
+		cb->open = 0;
+		ss_iterclose(sd_read, &cb->i);
+		ss_bufreset(&cb->buf_a);
+		ss_bufreset(&cb->buf_b);
+		cb = cb->next;
+	}
 	while (b) {
 		cb = si_cacheadd(c, b);
 		if (ssunlikely(cb == NULL))
@@ -173,6 +182,18 @@ si_cachevalidate(sicache *c, sinode *n)
 	c->nsn    = n->self.id.id;
 	c->branch = c->path;
 	return 0;
+}
+
+static inline sicachebranch*
+si_cacheseek(sicache *c, sibranch *seek)
+{
+	while (c->branch) {
+		sicachebranch *cb = c->branch;
+		c->branch = c->branch->next;
+		if (sslikely(cb->branch == seek))
+			return cb;
+	}
+	return NULL;
 }
 
 static inline sicachebranch*

@@ -149,6 +149,7 @@ backup_test1(void)
 	/* state 0 */
 	t( sp_getint(env, "backup.active") == 1 );
 
+#if 0
 	/* state 1 + 2 */
 	t( sp_setint(env, "scheduler.run", 0) == 1 );
 	/* index backup completion */
@@ -156,6 +157,11 @@ backup_test1(void)
 	/* state 3 + branch */
 	t( sp_setint(env, "scheduler.run", 0) == 1 );
 	t( sp_setint(env, "scheduler.run", 0) == 0 );
+#endif
+
+	int rc;
+	while ( (rc = sp_setint(env, "scheduler.run", 0)) > 0 );
+	t( rc == 0 );
 
 	t( trigger_called == 1 );
 

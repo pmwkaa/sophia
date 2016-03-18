@@ -206,6 +206,7 @@ si_process(char *name, uint64_t *nsn, uint64_t *parent)
 	/* id.db */
 	/* id.id.db.incomplete */
 	/* id.id.db.seal */
+	/* id.id.db.gc */
 	char *token = name;
 	int64_t id = si_processid(&token);
 	if (ssunlikely(id == -1))
@@ -214,6 +215,9 @@ si_process(char *name, uint64_t *nsn, uint64_t *parent)
 	*nsn = id;
 	if (strcmp(token, ".db") == 0)
 		return SI_RDB;
+	else
+	if (strcmp(token, ".db.gc") == 0)
+		return SI_RDB_REMOVE;
 	if (ssunlikely(*token != '.'))
 		return -1;
 	token++;
@@ -296,6 +300,15 @@ si_trackdir(sitrack *track, sr *r, si *i)
 			si_trackmetrics(track, node);
 			continue;
 		}
+		case SI_RDB_REMOVE:
+			ss_path(&path, i->scheme.path, id, ".db.gc");
+			rc = ss_vfsunlink(r->vfs, ss_pathof(&path));
+			if (ssunlikely(rc == -1)) {
+				sr_malfunction(r->e, "db file '%s' unlink error: %s",
+				               ss_pathof(&path), strerror(errno));
+				goto error;
+			}
+			continue;
 		}
 		assert(rc == SI_RDB);
 

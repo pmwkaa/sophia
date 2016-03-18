@@ -320,6 +320,7 @@ int si_merge(si *index, sdc *c, sinode *node,
 	si_lock(index);
 	svindex *j = si_nodeindex(node);
 	si_plannerremove(&index->p, SI_COMPACT|SI_BRANCH|SI_TEMP, node);
+	si_nodesplit(node);
 	index->size -= si_nodesize(node);
 	switch (count) {
 	case 0: /* delete */
@@ -395,10 +396,21 @@ int si_merge(si *index, sdc *c, sinode *node,
 	             sr_malfunction(r->e, "%s", "error injection");
 	             return -1);
 
-	/* gc old node */
-	rc = si_nodefree(node, r, 1);
-	if (ssunlikely(rc == -1))
-		return -1;
+	/* gc node */
+	uint16_t refs = si_noderefof(node);
+	if (sslikely(refs == 0)) {
+		rc = si_nodefree(node, r, 1);
+		if (ssunlikely(rc == -1))
+			return -1;
+	} else {
+		/* node concurrently being read, schedule for
+		 * delayed removal */
+		si_nodegc(node, r, &index->scheme);
+		si_lock(index);
+		ss_listappend(&index->gc, &node->gc);
+		index->gc_count++;
+		si_unlock(index);
+	}
 
 	SS_INJECTION(r->i, SS_INJECTION_SI_COMPACTION_2,
 	             sr_malfunction(r->e, "%s", "error injection");

@@ -12,6 +12,7 @@
 #include <si_scheme.h>
 #include <si_branch.h>
 #include <si_node.h>
+#include <si_nodeview.h>
 #include <si_planner.h>
 #include <si_amqf.h>
 #include <si.h>

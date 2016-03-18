@@ -304,8 +304,9 @@ gc_test3(void)
 	t( sp_setint(env, "scheduler.gc", 0) == 0 );
 	t( sp_getint(env, "scheduler.gc_active") == 1 );
 
-	t( sp_service(env) == 1 );
-	t( sp_service(env) == 0 ); /* execute */
+	int rc;
+	while ( (rc = sp_service(env)) > 0 );
+	t( rc == 0 );
 
 	t( sp_getint(env, "scheduler.gc_active") == 0 );
 
