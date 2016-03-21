@@ -118,10 +118,43 @@ checkpoint_test1(void)
 	t( sp_destroy(env) == 0 );
 }
 
+static void
+checkpoint_test2(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.sync", 0) == 0 );
+	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
+	t( sp_open(env) == 0 );
+
+	t( sp_getint(env, "scheduler.checkpoint_active") == 0 );
+	t( sp_getint(env, "scheduler.checkpoint_lsn") == 0 );
+	t( sp_getint(env, "scheduler.checkpoint_lsn_last") == 0 );
+
+	t( sp_setint(env, "scheduler.checkpoint", 0) == 0 );
+
+	t( sp_getint(env, "scheduler.checkpoint_active") == 1 );
+	t( sp_getint(env, "scheduler.checkpoint_lsn") == 0 );
+	t( sp_getint(env, "scheduler.checkpoint_lsn_last") == 0 );
+
+	t( sp_setint(env, "scheduler.run", 0) == 0 );
+	t( sp_setint(env, "scheduler.run", 0) == 0 );
+
+	t( sp_getint(env, "scheduler.checkpoint_active") == 0 );
+	t( sp_getint(env, "scheduler.checkpoint_lsn") == 0 );
+	t( sp_getint(env, "scheduler.checkpoint_lsn_last") == 0 );
+
+	t( sp_destroy(env) == 0 );
+}
+
 stgroup *checkpoint_group(void)
 {
 	stgroup *group = st_group("checkpoint");
 	st_groupadd(group, st_test("test0", checkpoint_test0));
 	st_groupadd(group, st_test("test1", checkpoint_test1));
+	st_groupadd(group, st_test("test2", checkpoint_test2));
 	return group;
 }

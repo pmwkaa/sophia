@@ -126,34 +126,24 @@ int sc_ctl_compact_index(sc *s, uint64_t vlsn, si *index)
 
 int sc_ctl_anticache(sc *s)
 {
-	uint64_t asn = sr_seq(s->r->seq, SR_ASNNEXT);
 	ss_mutexlock(&s->lock);
-	s->anticache_asn = asn;
-	s->anticache_storage = s->anticache_limit;
-	s->anticache = 1;
-	sc_start(s, SI_ANTICACHE);
+	sc_task_anticache(s);
 	ss_mutexunlock(&s->lock);
 	return 0;
 }
 
 int sc_ctl_snapshot(sc *s)
 {
-	uint64_t ssn = sr_seq(s->r->seq, SR_SSNNEXT);
 	ss_mutexlock(&s->lock);
-	s->snapshot_ssn = ssn;
-	s->snapshot = 1;
-	sc_start(s, SI_SNAPSHOT);
+	sc_task_snapshot(s);
 	ss_mutexunlock(&s->lock);
 	return 0;
 }
 
 int sc_ctl_checkpoint(sc *s)
 {
-	uint64_t lsn = sr_seq(s->r->seq, SR_LSN);
 	ss_mutexlock(&s->lock);
-	s->checkpoint_lsn = lsn;
-	s->checkpoint = 1;
-	sc_start(s, SI_CHECKPOINT);
+	sc_task_checkpoint(s);
 	ss_mutexunlock(&s->lock);
 	return 0;
 }
@@ -161,8 +151,7 @@ int sc_ctl_checkpoint(sc *s)
 int sc_ctl_gc(sc *s)
 {
 	ss_mutexlock(&s->lock);
-	s->gc = 1;
-	sc_start(s, SI_GC);
+	sc_task_gc(s);
 	ss_mutexunlock(&s->lock);
 	return 0;
 }
@@ -170,8 +159,7 @@ int sc_ctl_gc(sc *s)
 int sc_ctl_lru(sc *s)
 {
 	ss_mutexlock(&s->lock);
-	s->lru = 1;
-	sc_start(s, SI_LRU);
+	sc_task_lru(s);
 	ss_mutexunlock(&s->lock);
 	return 0;
 }

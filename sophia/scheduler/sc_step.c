@@ -161,11 +161,8 @@ sc_do(sc *s, sctask *task, scworker *w, srzone *zone,
 			task->gc = 1;
 			return 1;
 		case 0: /* complete */
-			if (sc_end(s, db, SI_CHECKPOINT)) {
-				s->checkpoint = 0;
-				s->checkpoint_lsn_last = s->checkpoint_lsn;
-				s->checkpoint_lsn = 0;
-			}
+			if (sc_end(s, db, SI_CHECKPOINT))
+				sc_task_checkpoint_done(s);
 			break;
 		}
 	}
@@ -189,13 +186,8 @@ sc_do(sc *s, sctask *task, scworker *w, srzone *zone,
 			}
 			return 1;
 		case 0: /* complete */
-			if (sc_end(s, db, SI_ANTICACHE)) {
-				s->anticache = 0;
-				s->anticache_asn_last = s->anticache_asn;
-				s->anticache_asn = 0;
-				s->anticache_storage = 0;
-				s->anticache_time = now;
-			}
+			if (sc_end(s, db, SI_ANTICACHE))
+				sc_task_anticache_done(s, now);
 			break;
 		}
 	}
@@ -211,12 +203,8 @@ sc_do(sc *s, sctask *task, scworker *w, srzone *zone,
 			task->db = db;
 			return 1;
 		case 0: /* complete */
-			if (sc_end(s, db, SI_SNAPSHOT)) {
-				s->snapshot = 0;
-				s->snapshot_ssn_last = s->snapshot_ssn;
-				s->snapshot_ssn = 0;
-				s->snapshot_time = now;
-			}
+			if (sc_end(s, db, SI_SNAPSHOT))
+				sc_task_snapshot_done(s, now);
 			break;
 		}
 	}
@@ -306,10 +294,8 @@ backup_error:;
 			task->db = db;
 			return 1;
 		case 0: /* complete */
-			if (sc_end(s, db, SI_GC)) {
-				s->gc = 0;
-				s->gc_time = now;
-			}
+			if (sc_end(s, db, SI_GC))
+				sc_task_gc_done(s, now);
 			break;
 		}
 	}
@@ -327,10 +313,8 @@ backup_error:;
 			task->db = db;
 			return 1;
 		case 0: /* complete */
-			if (sc_end(s, db, SI_LRU)) {
-				s->lru = 0;
-				s->lru_time = now;
-			}
+			if (sc_end(s, db, SI_LRU))
+				sc_task_lru_done(s, now);
 			break;
 		}
 	}
@@ -350,10 +334,8 @@ backup_error:;
 			task->db = db;
 			return 1;
 		case 0: /* complete */
-			if (sc_end(s, db, SI_AGE)) {
-				s->age = 0;
-				s->age_time = now;
-			}
+			if (sc_end(s, db, SI_AGE))
+				sc_task_age_done(s, now);
 			break;
 		}
 	}
@@ -401,8 +383,33 @@ no_job:
 }
 
 static inline void
-sc_schedule_periodic(sc *s, sctask *task, srzone *zone, uint64_t now)
+sc_periodic_done(sc *s, uint64_t now)
 {
+	/* checkpoint */
+	if (ssunlikely(s->checkpoint))
+		sc_task_checkpoint_done(s);
+	/* anti-cache */
+	if (ssunlikely(s->anticache))
+		sc_task_anticache_done(s, now);
+	/* snapshot */
+	if (ssunlikely(s->snapshot))
+		sc_task_snapshot_done(s, now);
+	/* gc */
+	if (ssunlikely(s->gc))
+		sc_task_gc_done(s, now);
+	/* lru */
+	if (ssunlikely(s->lru))
+		sc_task_lru_done(s, now);
+	/* age */
+	if (ssunlikely(s->age))
+		sc_task_age_done(s, now);
+}
+
+static inline void
+sc_periodic(sc *s, sctask *task, srzone *zone, uint64_t now)
+{
+	if (ssunlikely(s->count == 0))
+		return;
 	/* log gc and rotation */
 	if (s->rotate == 0) {
 		task->rotate = 1;
@@ -417,12 +424,8 @@ sc_schedule_periodic(sc *s, sctask *task, srzone *zone, uint64_t now)
 		break;
 	case 2:  /* checkpoint */
 	{
-		if (s->checkpoint == 0) {
-			uint64_t lsn = sr_seq(s->r->seq, SR_LSN);
-			s->checkpoint_lsn = lsn;
-			s->checkpoint = 1;
-			sc_start(s, SI_CHECKPOINT);
-		}
+		if (s->checkpoint == 0)
+			sc_task_checkpoint(s);
 		break;
 	}
 	default: /* branch + compact */
@@ -430,41 +433,28 @@ sc_schedule_periodic(sc *s, sctask *task, srzone *zone, uint64_t now)
 	}
 	/* anti-cache */
 	if (s->anticache == 0 && zone->anticache_period) {
-		if ((now - s->anticache_time) >= zone->anticache_period_us) {
-			s->anticache = 1;
-			s->anticache_storage = s->anticache_limit;
-			s->anticache_asn = sr_seq(s->r->seq, SR_ASNNEXT);
-			sc_start(s, SI_ANTICACHE);
-		}
+		if ((now - s->anticache_time) >= zone->anticache_period_us)
+			sc_task_anticache(s);
 	}
 	/* snapshot */
 	if (s->snapshot == 0 && zone->snapshot_period) {
-		if ((now - s->snapshot_time) >= zone->snapshot_period_us) {
-			s->snapshot = 1;
-			s->snapshot_ssn = sr_seq(s->r->seq, SR_SSNNEXT);
-			sc_start(s, SI_SNAPSHOT);
-		}
+		if ((now - s->snapshot_time) >= zone->snapshot_period_us)
+			sc_task_snapshot(s);
 	}
 	/* gc */
 	if (s->gc == 0 && zone->gc_prio && zone->gc_period) {
-		if ((now - s->gc_time) >= zone->gc_period_us) {
-			s->gc = 1;
-			sc_start(s, SI_GC);
-		}
+		if ((now - s->gc_time) >= zone->gc_period_us)
+			sc_task_gc(s);
 	}
 	/* lru */
 	if (s->lru == 0 && zone->lru_prio && zone->lru_period) {
-		if ((now - s->lru_time) >= zone->lru_period_us) {
-			s->lru = 1;
-			sc_start(s, SI_LRU);
-		}
+		if ((now - s->lru_time) >= zone->lru_period_us)
+			sc_task_lru(s);
 	}
 	/* aging */
 	if (s->age == 0 && zone->branch_prio && zone->branch_age_period) {
-		if ((now - s->age_time) >= zone->branch_age_period_us) {
-			s->age = 1;
-			sc_start(s, SI_AGE);
-		}
+		if ((now - s->age_time) >= zone->branch_age_period_us)
+			sc_task_age(s);
 	}
 }
 
@@ -475,7 +465,8 @@ sc_schedule(sc *s, sctask *task, scworker *w, uint64_t vlsn)
 	srzone *zone = sr_zoneof(s->r);
 	int rc;
 	ss_mutexlock(&s->lock);
-	sc_schedule_periodic(s, task, zone, now);
+	/* start periodic tasks */
+	sc_periodic(s, task, zone, now);
 	/* database shutdown-drop */
 	rc = sc_do_shutdown(s, task);
 	if (rc) {
@@ -485,6 +476,9 @@ sc_schedule(sc *s, sctask *task, scworker *w, uint64_t vlsn)
 	/* peek a database */
 	scdb *db = sc_peek(s);
 	if (ssunlikely(db == NULL)) {
+		/* complete on-going periodic tasks when there
+		 * are no active databases left */
+		sc_periodic_done(s, now);
 		ss_mutexunlock(&s->lock);
 		return 0;
 	}
