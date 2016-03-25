@@ -118,7 +118,7 @@ static soif seviewif =
 	.cursor       = se_viewcursor
 };
 
-so *se_viewnew(se *e, uint64_t vlsn, char *name)
+so *se_viewnew(se *e, uint64_t vlsn, char *name, int size)
 {
 	sslist *i;
 	ss_listforeach(&e->view.list.list, i) {
@@ -145,16 +145,18 @@ so *se_viewnew(se *e, uint64_t vlsn, char *name)
 	if (! cache)
 		ss_bufinit(&s->name);
 	int rc;
-	int len = strlen(name) + 1;
-	rc = ss_bufensure(&s->name, &e->a, len);
+	if (size == 0)
+		size = strlen(name);
+	rc = ss_bufensure(&s->name, &e->a, size + 1);
 	if (ssunlikely(rc == -1)) {
 		so_mark_destroyed(&s->o);
 		so_poolpush(&e->view, &s->o);
 		sr_oom(&e->error);
 		return NULL;
 	}
-	memcpy(s->name.s, name, len);
-	ss_bufadvance(&s->name, len);
+	memcpy(s->name.s, name, size);
+	s->name.s[size] = 0;
+	ss_bufadvance(&s->name, size + 1);
 	sv_loginit(&s->log);
 	sx_begin(&e->xm, &s->t, SXRO, &s->log, vlsn);
 	s->db_view_only = 0;

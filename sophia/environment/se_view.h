@@ -21,7 +21,7 @@ struct seview {
 	solist    cursor;
 } sspacked;
 
-so  *se_viewnew(se*, uint64_t, char*);
+so  *se_viewnew(se*, uint64_t, char*, int);
 int  se_viewupdate(seview*);
 
 #endif

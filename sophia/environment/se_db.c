@@ -21,14 +21,18 @@
 #include <libse.h>
 
 static int
-se_dbscheme_init(sedb *db, char *name)
+se_dbscheme_init(sedb *db, char *name, int size)
 {
 	se *e = se_of(&db->o);
 	/* prepare index scheme */
 	sischeme *scheme = db->scheme;
-	scheme->name = ss_strdup(&e->a, name);
+	if (size == 0)
+		size = strlen(name);
+	scheme->name = ss_malloc(&e->a, size + 1);
 	if (ssunlikely(scheme->name == NULL))
 		goto error;
+	memcpy(scheme->name, name, size);
+	scheme->name[size] = 0;
 	scheme->id                    = sr_seq(&e->seq, SR_DSNNEXT);
 	scheme->sync                  = 2;
 	scheme->mmap                  = 0;
@@ -656,7 +660,7 @@ static soif sedbif =
 	.cursor       = NULL,
 };
 
-so *se_dbnew(se *e, char *name)
+so *se_dbnew(se *e, char *name, int size)
 {
 	sedb *o = ss_malloc(&e->a, sizeof(sedb));
 	if (ssunlikely(o == NULL)) {
@@ -673,7 +677,7 @@ so *se_dbnew(se *e, char *name)
 	o->r = si_r(o->index);
 	o->scheme = si_scheme(o->index);
 	int rc;
-	rc = se_dbscheme_init(o, name);
+	rc = se_dbscheme_init(o, name, size);
 	if (ssunlikely(rc == -1)) {
 		si_close(o->index);
 		ss_free(&e->a, o);

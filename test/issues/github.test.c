@@ -247,6 +247,40 @@ error:;
 	sp_destroy(env);
 }
 
+static void
+github_123(void)
+{
+	rmrf("./abc");
+	rmrf("./abc_log");
+
+	void *env = sp_env();
+	t( env != NULL );
+
+	char path[] = { '.', '/', 'a', 'b', 'c' };
+	char path_log[] = { '.', '/', 'a', 'b', 'c', '_', 'l', 'o', 'g' };
+	char name[] = { 't', 'e', 's', 't' };
+
+	t( sp_setstring(env, "sophia.path", path, sizeof(path)) == 0 );
+	t( sp_setstring(env, "db", name, sizeof(name)) == 0 );
+	t( sp_setstring(env, "log.path", path_log, sizeof(path_log)) == 0 );
+	t( sp_setstring(env, "view", name, sizeof(name)) == 0 );
+	t( sp_open(env) == 0 );
+
+	t( exists("./", "abc") == 1 );
+	t( exists("./", "abc_log") == 1 );
+
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+
+	void *view = sp_getobject(env, "view.test");
+	t( view != NULL );
+
+	t( sp_destroy(env) == 0 );
+
+	rmrf("./abc");
+	rmrf("./abc_log");
+}
+
 stgroup *github_group(void)
 {
 	stgroup *group = st_group("github");
@@ -256,5 +290,6 @@ stgroup *github_group(void)
 	st_groupadd(group, st_test("ticket_117", github_117));
 	st_groupadd(group, st_test("ticket_118", github_118));
 	st_groupadd(group, st_test("ticket_120", github_120));
+	st_groupadd(group, st_test("ticket_123", github_123));
 	return group;
 }

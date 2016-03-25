@@ -28,7 +28,7 @@ se_dbactive(sedb *o) {
 	return si_active(o->index);
 }
 
-so   *se_dbnew(se*, char*);
+so   *se_dbnew(se*, char*, int);
 so   *se_dbmatch(se*, char*);
 so   *se_dbmatch_id(se*, uint32_t);
 so   *se_dbresult(se*, scread*);

@@ -452,7 +452,7 @@ se_confdb_set(srconf *c ssunused, srconfstmt *s)
 			sr_error(&e->error, "database '%s' already exists", name);
 			return -1;
 		}
-		db = (sedb*)se_dbnew(e, name);
+		db = (sedb*)se_dbnew(e, name, s->valuesize);
 		if (ssunlikely(db == NULL))
 			return -1;
 		so_listadd(&e->db, &db->o);
@@ -732,10 +732,9 @@ se_confview_set(srconf *c, srconfstmt *s)
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
 	se *e = s->ptr;
-	char *name = s->value;
 	uint64_t lsn = sr_seq(&e->seq, SR_LSN);
 	/* create view object */
-	seview *view = (seview*)se_viewnew(e, lsn, name);
+	seview *view = (seview*)se_viewnew(e, lsn, s->value, s->valuesize);
 	if (ssunlikely(view == NULL))
 		return -1;
 	return 0;

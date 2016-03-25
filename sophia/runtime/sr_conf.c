@@ -130,13 +130,13 @@ int sr_conf_write(srconf *m, srconfstmt *s)
 	case SS_STRINGPTR: {
 		char **string = m->value;
 		if (s->valuetype == SS_STRING) {
-			char *sz = s->value;
-			if (s->valuesize > 0) {
-				sz = ss_malloc(s->r->a, s->valuesize);
-				if (ssunlikely(sz == NULL))
-					return sr_oom(s->r->e);
-				memcpy(sz, s->value, s->valuesize);
-			}
+			int len = s->valuesize + 1;
+			char *sz;
+			sz = ss_malloc(s->r->a, len);
+			if (ssunlikely(sz == NULL))
+				return sr_oom(s->r->e);
+			memcpy(sz, s->value, s->valuesize);
+			sz[s->valuesize] = 0;
 			if (*string)
 				ss_free(s->r->a, *string);
 			*string = sz;
