@@ -16,8 +16,9 @@ typedef struct sc sc;
 enum {
 	SC_QBRANCH  = 0,
 	SC_QGC      = 1,
-	SC_QLRU     = 2,
-	SC_QBACKUP  = 3,
+	SC_QEXPIRE  = 2,
+	SC_QLRU     = 3,
+	SC_QBACKUP  = 4,
 	SC_QMAX
 };
 
@@ -43,6 +44,8 @@ struct sc {
 	uint32_t       checkpoint;
 	uint32_t       age;
 	uint64_t       age_time;
+	uint32_t       expire;
+	uint64_t       expire_time;
 	uint64_t       anticache_asn;
 	uint64_t       anticache_asn_last;
 	uint64_t       anticache_storage;

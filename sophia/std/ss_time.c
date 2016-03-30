@@ -29,3 +29,8 @@ uint64_t ss_utime(void)
 	return t.tv_sec * 1000000ULL + t.tv_nsec / 1000;
 #endif
 }
+
+uint32_t ss_timestamp(void)
+{
+	return time(NULL);
+}

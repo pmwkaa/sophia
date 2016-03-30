@@ -31,7 +31,7 @@ int sd_indexbegin(sdindex *i, sr *r)
 	h->extensions  = 0;
 	h->lsnmin      = UINT64_MAX;
 	h->lsnmax      = 0;
-	h->tsmin       = 0;
+	h->tsmin       = UINT32_MAX;
 	h->offset      = 0;
 	h->dupkeys     = 0;
 	h->dupmin      = UINT64_MAX;
@@ -182,12 +182,20 @@ int sd_indexadd(sdindex *i, sr *r, sdbuild *build, uint64_t offset)
 	{
 		char *min;
 		char *max;
+		sdv *v;
+		v    = sd_buildmin(build);
 		min  = sd_buildminkey(build);
 		min += ss_leb128skip(min);
 		min += ss_leb128skip(min);
+		if (sv_isflags(v->flags, SVTIMESTAMP))
+			min += ss_leb128skip(min);
+		v    = sd_buildmax(build);
 		max  = sd_buildmaxkey(build);
 		max += ss_leb128skip(max);
 		max += ss_leb128skip(max);
+		if (sv_isflags(v->flags, SVTIMESTAMP))
+			max += ss_leb128skip(max);
+
 		switch (r->fmt_storage) {
 		case SF_SRAW:
 			rc = sd_indexadd_raw(i, r, p, min, max);
@@ -213,6 +221,8 @@ int sd_indexadd(sdindex *i, sr *r, sdbuild *build, uint64_t offset)
 		h->lsnmin = ph->lsnmin;
 	if (ph->lsnmax > h->lsnmax)
 		h->lsnmax = ph->lsnmax;
+	if (ph->tsmin < h->tsmin)
+		h->tsmin = ph->tsmin;
 	h->dupkeys += ph->countdup;
 	if (ph->lsnmindup < h->dupmin)
 		h->dupmin = ph->lsnmindup;

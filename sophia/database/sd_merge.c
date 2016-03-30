@@ -34,6 +34,8 @@ int sd_mergeinit(sdmerge *m, sr *r, ssiter *i, sdbuild *build, ssqf *qf,
 	ss_iterinit(sv_writeiter, &m->i);
 	ss_iteropen(sv_writeiter, &m->i, r, i, upsert,
 	            (uint64_t)conf->size_page, sizeof(sdv),
+	            conf->expire,
+	            conf->timestamp,
 	            conf->vlsn,
 	            conf->vlsn_lru,
 	            conf->save_delete,
@@ -97,6 +99,7 @@ int sd_mergepage(sdmerge *m, uint64_t offset)
 		return 0;
 	int rc;
 	rc = sd_buildbegin(m->build, m->r, conf->checksum,
+	                   conf->expire,
 	                   conf->compression_key,
 	                   conf->compression,
 	                   conf->compression_if);

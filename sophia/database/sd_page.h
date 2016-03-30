@@ -23,7 +23,8 @@ struct sdpageheader {
 	uint64_t lsnmin;
 	uint64_t lsnmindup;
 	uint64_t lsnmax;
-	char     reserve[8];
+	uint32_t tsmin;
+	uint32_t reserve;
 } sspacked;
 
 struct sdpage {
@@ -77,12 +78,31 @@ sd_pagelsnof(sdpage *p, sdv *v)
 	return val;
 }
 
+static inline uint32_t
+sd_pagetimestampof(sdpage *p, sdv *v)
+{
+	if (! sv_isflags(v->flags, SVTIMESTAMP))
+		return UINT32_MAX;
+	char *ptr = sd_pagepointer(p, v);
+	ptr += ss_leb128skip(ptr);
+	ptr += ss_leb128skip(ptr);
+	uint64_t ts;
+	ss_leb128read(ptr, &ts);
+	return ts;
+}
+
 static inline char*
-sd_pagemetaof(sdpage *p, sdv *v, uint64_t *size, uint64_t *lsn)
+sd_pagemetaof(sdpage *p, sdv *v, uint64_t *size, uint64_t *lsn,
+             uint64_t *timestamp)
 {
 	char *ptr = sd_pagepointer(p, v);
 	ptr += ss_leb128read(ptr, size);
 	ptr += ss_leb128read(ptr, lsn);
+	if (! sv_isflags(v->flags, SVTIMESTAMP)) {
+		*timestamp = UINT32_MAX;
+		return ptr;
+	}
+	ptr += ss_leb128read(ptr, timestamp);
 	return ptr;
 }
 

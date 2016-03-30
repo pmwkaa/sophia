@@ -16,6 +16,7 @@ int sc_ctl_compact_index(sc*, uint64_t, si*);
 int sc_ctl_anticache(sc*);
 int sc_ctl_snapshot(sc*);
 int sc_ctl_checkpoint(sc*);
+int sc_ctl_expire(sc*);
 int sc_ctl_gc(sc*);
 int sc_ctl_lru(sc*);
 int sc_ctl_backup(sc*);

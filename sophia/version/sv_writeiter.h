@@ -17,6 +17,8 @@ struct svwriteiter {
 	uint64_t  limit;
 	uint64_t  size;
 	uint32_t  sizev;
+	uint32_t  expire;
+	uint32_t  now;
 	int       save_delete;
 	int       save_upsert;
 	int       save_set;
@@ -86,6 +88,11 @@ sv_writeiter_next(ssiter *i)
 	for (; ss_iterhas(sv_mergeiter, im->merge); ss_iternext(sv_mergeiter, im->merge))
 	{
 		sv *v = ss_iterof(sv_mergeiter, im->merge);
+		if (im->expire > 0) {
+			uint32_t timestamp = sv_timestamp(v);
+			if ((im->now - timestamp) >= im->expire)
+				 continue;
+		}
 		uint64_t lsn = sv_lsn(v);
 		if (lsn < im->vlsn_lru)
 			continue;
@@ -159,6 +166,8 @@ static inline int
 sv_writeiter_open(ssiter *i, sr *r, ssiter *merge, svupsert *u,
                   uint64_t limit,
                   uint32_t sizev,
+                  uint32_t expire,
+                  uint32_t timestamp,
                   uint64_t vlsn,
                   uint64_t vlsn_lru,
                   int save_delete,
@@ -172,6 +181,8 @@ sv_writeiter_open(ssiter *i, sr *r, ssiter *merge, svupsert *u,
 	im->limit       = limit;
 	im->size        = 0;
 	im->sizev       = sizev;
+	im->expire      = expire;
+	im->now         = timestamp;
 	im->vlsn        = vlsn;
 	im->vlsn_lru    = vlsn_lru;
 	im->save_delete = save_delete;

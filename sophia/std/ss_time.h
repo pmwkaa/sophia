@@ -11,5 +11,6 @@
 
 void     ss_sleep(uint64_t);
 uint64_t ss_utime(void);
+uint32_t ss_timestamp(void);
 
 #endif

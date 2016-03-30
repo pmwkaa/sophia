@@ -31,7 +31,8 @@ enum {
 	SI_SCHEME_COMPRESSION_RESERVED0,
 	SI_SCHEME_COMPRESSION_RESERVED1,
 	SI_SCHEME_AMQF,
-	SI_SCHEME_CACHE_MODE
+	SI_SCHEME_CACHE_MODE,
+	SI_SCHEME_EXPIRE
 };
 
 void si_schemeinit(sischeme *s)
@@ -149,6 +150,10 @@ int si_schemedeploy(sischeme *s, sr *r)
 	                  &s->cache_mode, sizeof(s->cache_mode));
 	if (ssunlikely(rc == -1))
 		goto error;
+	rc = sd_schemeadd(&c, r, SI_SCHEME_EXPIRE, SS_U32,
+	                  &s->expire, sizeof(s->expire));
+	if (ssunlikely(rc == -1))
+		goto error;
 	rc = sd_schemecommit(&c, r);
 	if (ssunlikely(rc == -1))
 		return -1;
@@ -251,6 +256,9 @@ int si_schemerecover(sischeme *s, sr *r)
 			break;
 		case SI_SCHEME_CACHE_MODE:
 			s->cache_mode = sd_schemeu32(opt);
+			break;
+		case SI_SCHEME_EXPIRE:
+			s->expire = sd_schemeu32(opt);
 			break;
 		default: /* skip unknown */
 			break;

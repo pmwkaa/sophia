@@ -15,8 +15,9 @@
 #include <libsd.h>
 #include <libsi.h>
 
-static inline sibranch*
-si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vlsn)
+static inline int
+si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vlsn,
+                sibranch **result)
 {
 	sr *r = &index->r;
 	sibranch *branch = NULL;
@@ -27,10 +28,8 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 	if (parent->in_memory) {
 		ss_blobinit(&copy, r->vfs);
 		rc = ss_blobensure(&copy, 10ULL * 1024 * 1024);
-		if (ssunlikely(rc == -1)) {
-			sr_oom_malfunction(r->e);
-			return NULL;
-		}
+		if (ssunlikely(rc == -1))
+			return sr_oom_malfunction(r->e);
 		blob = &copy;
 	}
 
@@ -38,7 +37,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 	sv_mergeinit(&vmerge);
 	rc = sv_mergeprepare(&vmerge, r, 1);
 	if (ssunlikely(rc == -1))
-		return NULL;
+		return -1;
 	svmergesrc *s = sv_mergeadd(&vmerge, NULL);
 	ss_iterinit(sv_indexiter, &s->src);
 	ss_iteropen(sv_indexiter, &s->src, r, vindex, SS_GTE, NULL, 0);
@@ -47,12 +46,15 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 	ss_iteropen(sv_mergeiter, &i, r, &vmerge, SS_GTE);
 
 	/* merge iter is not used */
+	uint32_t timestamp = ss_timestamp();
 	sdmergeconf mergeconf = {
 		.stream          = vindex->count,
 		.size_stream     = UINT32_MAX,
 		.size_node       = UINT64_MAX,
 		.size_page       = index->scheme.node_page_size,
 		.checksum        = index->scheme.node_page_checksum,
+		.expire          = index->scheme.expire,
+		.timestamp       = timestamp,
 		.compression_key = index->scheme.compression_key,
 		.compression     = index->scheme.compression_branch,
 		.compression_if  = index->scheme.compression_branch_if,
@@ -67,7 +69,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 	rc = sd_mergeinit(&merge, r, &i, &c->build, &c->qf,
 	                  &c->upsert, &mergeconf);
 	if (ssunlikely(rc == -1))
-		return NULL;
+		return -1;
 
 	while ((rc = sd_merge(&merge)) > 0)
 	{
@@ -116,7 +118,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		SS_INJECTION(r->i, SS_INJECTION_SI_BRANCH_0,
 		             sd_mergefree(&merge);
 		             sr_malfunction(r->e, "%s", "error injection");
-		             return NULL);
+		             return -1);
 
 		/* seal the branch */
 		rc = sd_seal(r, &parent->file, blob, &merge.index, seal);
@@ -144,7 +146,11 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		sr_oom_malfunction(r->e);
 		goto e0;
 	}
-	assert(branch != NULL);
+
+	/* in case of expire, branch may not be created if there
+	 * are no keys left */
+	if (ssunlikely(branch == NULL))
+		return 0;
 
 	/* in-memory mode support */
 	if (blob) {
@@ -167,16 +173,18 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 			goto e1;
 		}
 	}
-	return branch;
+
+	*result = branch;
+	return 0;
 e0:
 	sd_mergefree(&merge);
 	if (blob)
 		ss_blobfree(blob);
 		sv_mergefree(&vmerge, r->a);
-	return NULL;
+	return -1;
 e1:
 	si_branchfree(branch, r);
-	return NULL;
+	return -1;
 }
 
 int si_branch(si *index, sdc *c, siplan *plan, uint64_t vlsn)
@@ -195,9 +203,23 @@ int si_branch(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 	i = si_noderotate(n);
 	si_unlock(index);
 
-	sibranch *branch = si_branchcreate(index, c, n, i, vlsn);
-	if (ssunlikely(branch == NULL))
+	sibranch *branch = NULL;
+	int rc = si_branchcreate(index, c, n, i, vlsn, &branch);
+	if (ssunlikely(rc == -1))
 		return -1;
+	if (ssunlikely(branch == NULL)) {
+		si_lock(index);
+		uint32_t used = sv_indexused(i);
+		n->used -= used;
+		ss_quota(r->quota, SS_QREMOVE, used);
+		svindex swap = *i;
+		si_nodeunrotate(n);
+		si_nodeunlock(n);
+		si_plannerupdate(&index->p, SI_BRANCH|SI_COMPACT, n);
+		si_unlock(index);
+		si_nodegc_index(r, &swap);
+		return 0;
+	}
 
 	/* commit */
 	si_lock(index);

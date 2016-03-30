@@ -26,6 +26,7 @@ enum {
 	SE_DOCUMENT_ORDER,
 	SE_DOCUMENT_PREFIX,
 	SE_DOCUMENT_LSN,
+	SE_DOCUMENT_TIMESTAMP,
 	SE_DOCUMENT_LOG,
 	SE_DOCUMENT_RAW,
 	SE_DOCUMENT_FLAGS,
@@ -59,6 +60,10 @@ se_document_opt(const char *path)
 			return SE_DOCUMENT_LSN;
 		if (sslikely(strcmp(path, "log") == 0))
 			return SE_DOCUMENT_LOG;
+		break;
+	case 't':
+		if (sslikely(strcmp(path, "timestamp") == 0))
+			return SE_DOCUMENT_TIMESTAMP;
 		break;
 	case 'p':
 		if (sslikely(strcmp(path, "prefix") == 0))
@@ -286,6 +291,9 @@ se_document_setint(so *o, const char *path, int64_t num)
 {
 	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
 	switch (se_document_opt(path)) {
+	case SE_DOCUMENT_TIMESTAMP:
+		v->timestamp = num;
+		break;
 	case SE_DOCUMENT_CACHE_ONLY:
 		v->cache_only = num;
 		break;

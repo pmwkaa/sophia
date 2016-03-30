@@ -27,6 +27,8 @@ int sc_init(sc *s, sr *r, sstrigger *on_event, slpool *lp)
 	s->checkpoint               = 0;
 	s->age                      = 0;
 	s->age_time                 = now;
+	s->expire                   = 0;
+	s->expire_time              = now;
 	s->backup_bsn               = 0;
 	s->backup_bsn_last          = 0;
 	s->backup_bsn_last_complete = 0;

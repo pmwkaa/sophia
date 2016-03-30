@@ -49,6 +49,7 @@ se_dbscheme_init(sedb *db, char *name, int size)
 	scheme->compression_branch    = 0;
 	scheme->compression_branch_if = &ss_nonefilter;
 	scheme->temperature           = 0;
+	scheme->expire                = 0;
 	scheme->amqf                  = 0;
 	scheme->fmt                   = SF_KV;
 	scheme->fmt_storage           = SF_SRAW;
@@ -740,6 +741,14 @@ void se_dbunbind(se *e, uint64_t txn)
 
 int se_dbv(sedb *db, sedocument *o, int search, svv **v)
 {
+	uint32_t timestamp = UINT32_MAX;
+	if (db->scheme->expire > 0) {
+		if (ssunlikely(o->timestamp > 0))
+			timestamp = o->timestamp;
+		else
+			timestamp = ss_timestamp();
+	}
+
 	se *e = se_of(&db->o);
 	*v = NULL;
 	/* reuse document */
@@ -749,12 +758,12 @@ int se_dbv(sedb *db, sedocument *o, int search, svv **v)
 			o->v.v = NULL;
 			return 0;
 		}
-		*v = sv_vbuildraw(db->r, sv_pointer(&o->v), sv_size(&o->v));
+		*v = sv_vbuildraw(db->r, sv_pointer(&o->v), sv_size(&o->v), timestamp);
 		goto ret;
 	}
 	/* create document from raw data */
 	if (o->raw) {
-		*v = sv_vbuildraw(db->r, o->raw, o->rawsize);
+		*v = sv_vbuildraw(db->r, o->raw, o->rawsize, timestamp);
 		goto ret;
 	}
 	sr *runtime = db->r;
@@ -778,7 +787,7 @@ int se_dbv(sedb *db, sedocument *o, int search, svv **v)
 
 	*v = sv_vbuild(runtime, o->keyv, o->keyc,
 	               o->value,
-	               o->valuesize);
+	               o->valuesize, timestamp);
 ret:
 	if (ssunlikely(*v == NULL))
 		return sr_oom(&e->error);
@@ -806,7 +815,7 @@ int se_dbvprefix(sedb *db, sedocument *o, svv **v)
 	fv.key      = o->prefix;
 	fv.r.size   = o->prefixsize;
 	fv.r.offset = 0;
-	*v = sv_vbuild(&e->r, &fv, 1, NULL, 0);
+	*v = sv_vbuild(&e->r, &fv, 1, NULL, 0, 0);
 	if (ssunlikely(*v == NULL))
 		return -1;
 	return 0;

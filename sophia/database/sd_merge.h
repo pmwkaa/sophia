@@ -19,6 +19,8 @@ struct sdmergeconf {
 	uint64_t    size_node;
 	uint32_t    size_page;
 	uint32_t    checksum;
+	uint32_t    expire;
+	uint32_t    timestamp;
 	uint32_t    compression_key;
 	uint32_t    compression;
 	ssfilterif *compression_if;

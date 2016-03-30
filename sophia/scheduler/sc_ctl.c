@@ -148,6 +148,14 @@ int sc_ctl_checkpoint(sc *s)
 	return 0;
 }
 
+int sc_ctl_expire(sc *s)
+{
+	ss_mutexlock(&s->lock);
+	sc_task_expire(s);
+	ss_mutexunlock(&s->lock);
+	return 0;
+}
+
 int sc_ctl_gc(sc *s)
 {
 	ss_mutexlock(&s->lock);

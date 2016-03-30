@@ -71,6 +71,8 @@ int si_plannertrace(siplan *p, uint32_t id, sstrace *t)
 		break;
 	case SI_GC: plan = "gc";
 		break;
+	case SI_EXPIRE: plan = "expire";
+		break;
 	case SI_TEMP: plan = "temperature";
 		break;
 	case SI_BACKUP:
@@ -327,6 +329,38 @@ match:
 }
 
 static inline int
+si_plannerpeek_expire(siplanner *p, siplan *plan)
+{
+	/* full scan */
+	int rc_inprogress = 0;
+	uint32_t now = ss_timestamp();
+	sinode *n = NULL;
+	ssrqnode *pn = NULL;
+	while ((pn = ss_rqprev(&p->branch, pn))) {
+		n = sscast(pn, sinode, nodebranch);
+		sdindexheader *h = n->self.index.h;
+		if (h->tsmin == UINT32_MAX)
+			continue;
+		uint32_t diff = now - h->tsmin;
+		if (sslikely(diff >= plan->a)) {
+			if (n->flags & SI_LOCK) {
+				rc_inprogress = 2;
+				continue;
+			}
+			goto match;
+		}
+	}
+	if (rc_inprogress)
+		plan->explain = SI_ERETRY;
+	return rc_inprogress;
+match:
+	si_nodelock(n);
+	plan->node = n;
+	return 1;
+}
+
+
+static inline int
 si_plannerpeek_snapshot(siplanner *p, siplan *plan)
 {
 	si *index = p->i;
@@ -481,6 +515,8 @@ int si_planner(siplanner *p, siplan *plan)
 		return si_plannerpeek_nodegc(p, plan);
 	case SI_GC:
 		return si_plannerpeek_gc(p, plan);
+	case SI_EXPIRE:
+		return si_plannerpeek_expire(p, plan);
 	case SI_CHECKPOINT:
 		return si_plannerpeek_checkpoint(p, plan);
 	case SI_AGE:

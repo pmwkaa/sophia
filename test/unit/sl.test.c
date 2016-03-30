@@ -23,7 +23,7 @@ alloclogv(svlog *log, sr *r, uint64_t lsn, uint8_t flags, int key)
 	pv.key = (char*)&key;
 	pv.r.size = sizeof(uint32_t);
 	pv.r.offset = 0;
-	svv *v = sv_vbuild(r, &pv, 1, NULL, 0);
+	svv *v = sv_vbuild(r, &pv, 1, NULL, 0, 0);
 	v->lsn = lsn;
 	v->flags = flags;
 	svlogv logv;

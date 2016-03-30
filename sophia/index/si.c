@@ -195,6 +195,7 @@ int si_execute(si *i, sdc *c, siplan *plan,
 		rc = si_branch(i, c, plan, vlsn);
 		break;
 	case SI_LRU:
+	case SI_EXPIRE:
 	case SI_GC:
 	case SI_COMPACT:
 		rc = si_compact(i, c, plan, vlsn, vlsn_lru, NULL, 0);

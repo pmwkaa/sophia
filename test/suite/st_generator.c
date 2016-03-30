@@ -68,7 +68,7 @@ st_generator_kv(stgenerator *g, va_list args)
 			return NULL;
 		memset(value, 'x', valuesize);
 	}
-	v = sv_vbuild(g->r, parts, scheme->count, value, valuesize);
+	v = sv_vbuild(g->r, parts, scheme->count, value, valuesize, 0);
 	if (value)
 		ss_free(g->r->a, value);
 	return v;
@@ -235,7 +235,7 @@ svv *st_svv_seed(stgenerator *g, uint32_t seed, uint32_t seed_value)
 		memset(value + sizeof(seed_value), 0,
 		       valuesize - sizeof(seed_value));
 	}
-	v = sv_vbuild(g->r, parts, scheme->count, value, valuesize);
+	v = sv_vbuild(g->r, parts, scheme->count, value, valuesize, 0);
 	i = 0;
 	while (i < scheme->count) {
 		sfv *fv = &parts[i];

@@ -35,6 +35,7 @@ struct siplanner {
 #define SI_ANTICACHE     4096
 #define SI_LRU           8192
 #define SI_NODEGC        16384
+#define SI_EXPIRE        32768
 
 /* explain */
 #define SI_ENONE         0
@@ -62,6 +63,8 @@ struct siplan {
 	 * gc:
 	 *   a: lsn
 	 *   b: percent
+	 * expire:
+	 *   a: ttl
 	 * lru:
 	 * temperature:
 	 * anticache:

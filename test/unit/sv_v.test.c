@@ -26,7 +26,7 @@ sv_v_kv(void)
 	pv.r.size = sizeof(key);
 	pv.r.offset = 0;
 
-	svv *vv = sv_vbuild(&st_r.r, &pv, 1, (char*)&value, sizeof(value));
+	svv *vv = sv_vbuild(&st_r.r, &pv, 1, (char*)&value, sizeof(value), 0);
 	t( vv != NULL );
 	vv->flags = 0;
 	vv->lsn = 10;

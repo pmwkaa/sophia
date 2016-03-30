@@ -29,15 +29,21 @@ sl_vifpointer(sv *v) {
 }
 
 static uint32_t
+sl_viftimestamp(sv *v) {
+	return ((slv*)v->v)->size;
+}
+
+static uint32_t
 sl_vifsize(sv *v) {
 	return ((slv*)v->v)->size;
 }
 
 svif sl_vif =
 {
-	.flags   = sl_vifflags,
-	.lsn     = sl_viflsn,
-	.lsnset  = NULL,
-	.pointer = sl_vifpointer,
-	.size    = sl_vifsize
+	.flags     = sl_vifflags,
+	.lsn       = sl_viflsn,
+	.lsnset    = NULL,
+	.timestamp = sl_viftimestamp,
+	.pointer   = sl_vifpointer,
+	.size      = sl_vifsize
 };

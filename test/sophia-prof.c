@@ -31,27 +31,24 @@ void *spr_worker(void *arg)
 {
 	char value[80];
 	memset(value, 0, sizeof(value));
+	int seq = 0;
 	while (spr_start)
 	{
 		if (spr_pause) {
 			sleep(1);
 			continue;
 		}
-		uint32_t key = rand() % 100000000;
+		char key[32];
+		int key_size = snprintf(key, sizeof(key), "key:%d", seq);
 		void *o = sp_document(spr_db);
-		sp_setstring(o, "key", &key, sizeof(key));
+		sp_setstring(o, "key", key, key_size);
 		sp_setstring(o, "value", value, sizeof(value));
 		int rc = sp_set(spr_db, o);
 		if (rc == -1) {
+			printf("sp_set() error\n");
+			return NULL;
 		}
-		/*
-		o = sp_document(spr_db);
-		sp_setstring(o, "key", &key, sizeof(key));
-		o = sp_get(spr_db, o);
-		if (o) {
-			sp_destroy(o);
-		}
-		*/
+		seq++;
 	}
 	return NULL;
 }
@@ -64,12 +61,11 @@ spr_cmd_start(void)
 	sp_setstring(spr_env, "sophia.path", "_test_sophia", 0);
 	sp_setstring(spr_env, "backup.path", "_test_backup", 0);
 	sp_setstring(spr_env, "db", "test", 0);
-	sp_setstring(spr_env, "db", "cache", 0);
-	/*sp_setint(spr_env, "db.test.amqf", 1);*/
-	/*sp_setint(spr_env, "db.test.lru", 500 * 1024 * 1024);*/
 
-	sp_setint(spr_env, "db.cache.cache_mode", 1);
-	sp_setstring(spr_env, "db.test.cache", "cache", 0);
+	/*sp_setstring(spr_env, "db.test.index.key", "u32", 0);*/
+	sp_setint(spr_env, "compaction.0.expire_prio", 1);
+	sp_setint(spr_env, "db.test.expire", 10);
+
 	spr_db = sp_getobject(spr_env, "db.test");
 	int rc;
 	rc = sp_open(spr_env);
@@ -135,6 +131,14 @@ spr_cmd_gc(void)
 }
 
 static inline void
+spr_cmd_expire(void)
+{
+	if (! spr_start)
+		return;
+	sp_setint(spr_env, "scheduler.expire", 0);
+}
+
+static inline void
 spr_cmd_lru(void)
 {
 	if (! spr_start)
@@ -168,6 +172,7 @@ static inline void spr_cmd_help(void)
 	printf(" checkpoint -- schedule checkpoint operation\n");
 	printf(" snapshot   -- schedule snapshot operation\n");
 	printf(" gc         -- schedule garbage collection\n");
+	printf(" expire     -- schedule expire operation\n");
 	printf(" lru        -- schedule lru operation\n");
 	printf(" anticache  -- schedule anticache operation\n");
 	printf(" backup     -- schedule backup operation\n");
@@ -221,6 +226,10 @@ spr_execute(char *cmd, int size)
 	if (strcmp(argv[0], "gc") == 0) {
 		spr_cmd_gc();
 		printf("gc is in progress\n");
+	} else
+	if (strcmp(argv[0], "expire") == 0) {
+		spr_cmd_expire();
+		printf("expire is in progress\n");
 	} else
 	if (strcmp(argv[0], "lru") == 0) {
 		spr_cmd_lru();

@@ -279,6 +279,26 @@ sc_do(sc *s, sctask *task, scworker *w, srzone *zone,
 backup_error:;
 	}
 
+	/* expire */
+	if (s->expire) {
+		task->plan.plan = SI_EXPIRE;
+		task->plan.a = db->index->scheme.expire;
+		rc = sc_planquota(s, &task->plan, SC_QEXPIRE, zone->expire_prio);
+		switch (rc) {
+		case 1:
+			if (zone->mode == 0)
+				task->plan.plan = SI_COMPACT_INDEX;
+			si_ref(db->index, SI_REFBE);
+			db->workers[SC_QEXPIRE]++;
+			task->db = db;
+			return 1;
+		case 0: /* complete */
+			if (sc_end(s, db, SI_EXPIRE))
+				sc_task_expire_done(s, now);
+			break;
+		}
+	}
+
 	/* garbage-collection */
 	if (s->gc) {
 		task->plan.plan = SI_GC;
@@ -394,6 +414,9 @@ sc_periodic_done(sc *s, uint64_t now)
 	/* snapshot */
 	if (ssunlikely(s->snapshot))
 		sc_task_snapshot_done(s, now);
+	/* expire */
+	if (ssunlikely(s->expire))
+		sc_task_expire_done(s, now);
 	/* gc */
 	if (ssunlikely(s->gc))
 		sc_task_gc_done(s, now);
@@ -440,6 +463,11 @@ sc_periodic(sc *s, sctask *task, srzone *zone, uint64_t now)
 	if (s->snapshot == 0 && zone->snapshot_period) {
 		if ((now - s->snapshot_time) >= zone->snapshot_period_us)
 			sc_task_snapshot(s);
+	}
+	/* expire */
+	if (s->expire == 0 && zone->expire_prio && zone->expire_period) {
+		if ((now - s->expire_time) >= zone->expire_period_us)
+			sc_task_expire(s);
 	}
 	/* gc */
 	if (s->gc == 0 && zone->gc_prio && zone->gc_period) {
@@ -509,6 +537,9 @@ sc_complete(sc *s, sctask *t)
 	case SI_SNAPSHOT:
 		break;
 	case SI_ANTICACHE:
+		break;
+	case SI_EXPIRE:
+		db->workers[SC_QEXPIRE]--;
 		break;
 	case SI_GC:
 		db->workers[SC_QGC]--;

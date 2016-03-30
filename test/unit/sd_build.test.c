@@ -22,7 +22,7 @@ addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 	pv.key = (char*)key;
 	pv.r.size = sizeof(uint32_t);
 	pv.r.offset = 0;
-	svv *v = sv_vbuild(r, &pv, 1, NULL, 0);
+	svv *v = sv_vbuild(r, &pv, 1, NULL, 0, 0);
 	v->lsn = lsn;
 	v->flags = flags;
 	sv vv;
@@ -36,7 +36,7 @@ sd_build_empty(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, 0, NULL) == 0);
 	sd_buildend(&b, &st_r.r);
 	sdpageheader *h = sd_buildheader(&b);
 	t( h->count == 0 );
@@ -48,7 +48,7 @@ sd_build_page0(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, 0, NULL) == 0);
 	int i = 7;
 	int j = 8;
 	int k = 15;
@@ -68,7 +68,7 @@ sd_build_page1(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, 0, NULL) == 0);
 	int i = 7;
 	int j = 8;
 	int k = 15;
@@ -88,14 +88,14 @@ sd_build_page1(void)
 	sdpage page;
 	sd_pageinit(&page, h);
 
-	uint64_t size, lsn;
+	uint64_t size, lsn, ts;
 	sdv *min = sd_pagemin(&page);
-	t( *(int*)sf_key( sd_pagemetaof(&page, min, &size, &lsn), 0) == i );
+	t( *(int*)sf_key( sd_pagemetaof(&page, min, &size, &lsn, &ts), 0) == i );
 	sdv *max = sd_pagemax(&page);
-	t( *(int*)sf_key( sd_pagemetaof(&page, max, &size, &lsn), 0) == k );
+	t( *(int*)sf_key( sd_pagemetaof(&page, max, &size, &lsn, &ts), 0) == k );
 	sd_buildcommit(&b, &st_r.r);
 
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, 0, NULL) == 0);
 	j = 19; 
 	k = 20;
 	addv(&b, &st_r.r, 4, 0, &j);
@@ -110,9 +110,9 @@ sd_build_page1(void)
 	h = (sdpageheader*)buf.s;
 	sd_pageinit(&page, h);
 	min = sd_pagemin(&page);
-	t( *(int*)sf_key( sd_pagemetaof(&page, min, &size, &lsn), 0) == j );
+	t( *(int*)sf_key( sd_pagemetaof(&page, min, &size, &lsn, &ts), 0) == j );
 	max = sd_pagemax(&page);
-	t( *(int*)sf_key( sd_pagemetaof(&page, max, &size, &lsn), 0) == k );
+	t( *(int*)sf_key( sd_pagemetaof(&page, max, &size, &lsn, &ts), 0) == k );
 	sd_buildcommit(&b, &st_r.r);
 
 	sd_buildfree(&b, &st_r.r);
@@ -148,7 +148,7 @@ sd_build_compression_zstd(void)
 
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &r, 1, 0, 1, &ss_zstdfilter) == 0);
+	t( sd_buildbegin(&b, &r, 1, 0, 0, 1, &ss_zstdfilter) == 0);
 	int i = 7;
 	int j = 8;
 	int k = 15;
@@ -162,7 +162,7 @@ sd_build_compression_zstd(void)
 	t( h->lsnmax == 3 );
 	sd_buildcommit(&b, &r);
 
-	t( sd_buildbegin(&b, &r, 1, 0, 1, &ss_zstdfilter) == 0);
+	t( sd_buildbegin(&b, &r, 1, 0, 0, 1, &ss_zstdfilter) == 0);
 	addv(&b, &r, 3, 0, &i);
 	addv(&b, &r, 2, 0, &j);
 	addv(&b, &r, 1, 0, &k);
@@ -206,7 +206,7 @@ sd_build_compression_lz4(void)
 
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &r, 1, 0, 1, &ss_zstdfilter) == 0);
+	t( sd_buildbegin(&b, &r, 1, 0, 0, 1, &ss_zstdfilter) == 0);
 	int i = 7;
 	int j = 8;
 	int k = 15;
@@ -220,7 +220,7 @@ sd_build_compression_lz4(void)
 	t( h->lsnmax == 3 );
 	sd_buildcommit(&b, &r);
 
-	t( sd_buildbegin(&b, &r, 1, 0, 1, &ss_zstdfilter) == 0);
+	t( sd_buildbegin(&b, &r, 1, 0, 0, 1, &ss_zstdfilter) == 0);
 	addv(&b, &r, 3, 0, &i);
 	addv(&b, &r, 2, 0, &j);
 	addv(&b, &r, 1, 0, &k);

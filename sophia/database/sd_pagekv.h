@@ -24,6 +24,8 @@ sd_pagekv_key(sdpage *p, sdv *v, uint64_t *size, int part)
 	char *ptr = sd_pagepointer(p, v);
 	ptr += ss_leb128skip(ptr);
 	ptr += ss_leb128skip(ptr);
+	if (sv_isflags(v->flags, SVTIMESTAMP))
+		ptr += ss_leb128skip(ptr);
 	uint64_t offset;
 	int current = 0;
 	do {
@@ -41,6 +43,8 @@ sd_pagekv_value(sdpage *p, sr *r, sdv *v, uint64_t *ret)
 	char *ptr = sd_pagepointer(p, v);
 	ptr += ss_leb128read(ptr, &size);
 	ptr += ss_leb128skip(ptr);
+	if (sv_isflags(v->flags, SVTIMESTAMP))
+		ptr += ss_leb128skip(ptr);
 	int i = 0;
 	while (i < r->scheme->count) {
 		uint64_t offset, v;
@@ -56,8 +60,8 @@ sd_pagekv_value(sdpage *p, sr *r, sdv *v, uint64_t *ret)
 static inline void
 sd_pagekv_convert(sdpage *p, sr *r, sdv *v, char *dest)
 {
-	uint64_t size, lsn;
-	sd_pagemetaof(p, v, &size, &lsn);
+	uint64_t size, lsn, timestamp;
+	sd_pagemetaof(p, v, &size, &lsn, &timestamp);
 	size += sizeof(sfref) * r->scheme->count;
 
 	char *ptr = dest;
@@ -65,6 +69,8 @@ sd_pagekv_convert(sdpage *p, sr *r, sdv *v, char *dest)
 	ptr += sizeof(sdv);
 	ptr += ss_leb128write(ptr, size);
 	ptr += ss_leb128write(ptr, lsn);
+	if (sv_isflags(v->flags, SVTIMESTAMP))
+		ptr += ss_leb128write(ptr, timestamp);
 
 	assert(r->scheme->count <= 8);
 	sfv kv[8];

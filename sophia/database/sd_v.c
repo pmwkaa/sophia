@@ -35,7 +35,17 @@ sd_vifpointer(sv *v)
 	char *ptr = sd_pagepointer(&p, (sdv*)v->v);
 	ptr += ss_leb128skip(ptr);
 	ptr += ss_leb128skip(ptr);
+	if (sv_isflags(((sdv*)v->v)->flags, SVTIMESTAMP))
+		ptr += ss_leb128skip(ptr);
 	return ptr;
+}
+
+static uint32_t
+sd_viftimestamp(sv *v) {
+	sdpage p = {
+		.h = (sdpageheader*)v->arg
+	};
+	return sd_pagetimestampof(&p, (sdv*)v->v);
 }
 
 static uint32_t
@@ -48,11 +58,12 @@ sd_vifsize(sv *v) {
 
 svif sd_vif =
 {
-	.flags   = sd_vifflags,
-	.lsn     = sd_viflsn,
-	.lsnset  = NULL,
-	.pointer = sd_vifpointer,
-	.size    = sd_vifsize
+	.flags     = sd_vifflags,
+	.lsn       = sd_viflsn,
+	.lsnset    = NULL,
+	.timestamp = sd_viftimestamp,
+	.pointer   = sd_vifpointer,
+	.size      = sd_vifsize
 };
 
 static uint64_t
@@ -65,6 +76,19 @@ sd_vrawiflsn(sv *v) {
 	return val;
 }
 
+static uint32_t
+sd_vrawiftimestamp(sv *v) {
+	sdv *dv = v->v;
+	if (! sv_isflags(dv->flags, SVTIMESTAMP))
+		return UINT32_MAX;
+	char *ptr = (char*)dv + sizeof(sdv);
+	ptr += ss_leb128skip(ptr);
+	ptr += ss_leb128skip(ptr);
+	uint64_t ts;
+	ss_leb128read(ptr, &ts);
+	return ts;
+}
+
 static char*
 sd_vrawifpointer(sv *v)
 {
@@ -72,6 +96,8 @@ sd_vrawifpointer(sv *v)
 	char *ptr = (char*)dv + sizeof(sdv);
 	ptr += ss_leb128skip(ptr);
 	ptr += ss_leb128skip(ptr);
+	if (sv_isflags(dv->flags, SVTIMESTAMP))
+		ptr += ss_leb128skip(ptr);
 	return ptr;
 }
 
@@ -85,9 +111,10 @@ sd_vrawifsize(sv *v) {
 
 svif sd_vrawif =
 {
-	.flags   = sd_vifflags,
-	.lsn     = sd_vrawiflsn,
-	.lsnset  = NULL,
-	.pointer = sd_vrawifpointer,
-	.size    = sd_vrawifsize
+	.flags     = sd_vifflags,
+	.lsn       = sd_vrawiflsn,
+	.lsnset    = NULL,
+	.timestamp = sd_vrawiftimestamp,
+	.pointer   = sd_vrawifpointer,
+	.size      = sd_vrawifsize
 };

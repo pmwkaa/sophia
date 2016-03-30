@@ -148,6 +148,7 @@ si_split(si *index, sdc *c, ssbuf *result,
          uint64_t  vlsn_lru)
 {
 	sr *r = &index->r;
+	uint32_t timestamp = ss_timestamp();
 	int rc;
 	sdmergeconf mergeconf = {
 		.stream          = stream,
@@ -155,6 +156,8 @@ si_split(si *index, sdc *c, ssbuf *result,
 		.size_node       = size_node,
 		.size_page       = index->scheme.node_page_size,
 		.checksum        = index->scheme.node_page_checksum,
+		.expire          = index->scheme.expire,
+		.timestamp       = timestamp,
 		.compression_key = index->scheme.compression_key,
 		.compression     = index->scheme.compression,
 		.compression_if  = index->scheme.compression_if,

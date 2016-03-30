@@ -46,9 +46,9 @@ sd_pageiter_end(sdpageiter *i)
 static inline int
 sd_pageiter_cmp(sdpageiter *i, sr *r, sdv *v)
 {
-	uint64_t size, lsn;
+	uint64_t size, lsn, ts;
 	if (sslikely(r->fmt_storage == SF_SRAW)) {
-		char *key = sd_pagemetaof(i->page, v, &size, &lsn);
+		char *key = sd_pagemetaof(i->page, v, &size, &lsn, &ts);
 		return sr_compare(r->scheme, key, size, i->key, i->keysize);
 	}
 	/* key-value */

@@ -26,6 +26,7 @@ struct sedocument {
 	/* recover */
 	void     *raw;
 	uint32_t  rawsize;
+	uint32_t  timestamp;
 	void     *log;
 	/* misc */
 	int       immutable;

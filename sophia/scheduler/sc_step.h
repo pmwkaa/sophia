@@ -63,6 +63,20 @@ sc_task_snapshot_done(sc *s, uint64_t now)
 }
 
 static inline void
+sc_task_expire(sc *s)
+{
+	s->expire = 1;
+	sc_start(s, SI_EXPIRE);
+}
+
+static inline void
+sc_task_expire_done(sc *s, uint64_t now)
+{
+	s->expire = 0;
+	s->expire_time = now;
+}
+
+static inline void
 sc_task_gc(sc *s)
 {
 	s->gc = 1;

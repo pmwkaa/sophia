@@ -22,7 +22,7 @@ addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 	pv.key = (char*)key;
 	pv.r.size = sizeof(uint32_t);
 	pv.r.offset = 0;
-	svv *v = sv_vbuild(r, &pv, 1, (char*)key, sizeof(uint32_t));
+	svv *v = sv_vbuild(r, &pv, 1, (char*)key, sizeof(uint32_t), 0);
 	v->lsn = lsn;
 	v->flags = flags;
 	sv vv;
@@ -36,7 +36,7 @@ sd_v_test(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, 0, NULL) == 0);
 	int i = 7;
 	int j = 8;
 	addv(&b, &st_r.r, 3, 0, &i);

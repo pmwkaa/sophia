@@ -143,12 +143,14 @@ se_confcompaction(se *e, seconfrt *rt ssunused, srconf **pc)
 		sr_c(&p, pc, se_confv_offline, "branch_age_wm", SS_U32, &z->branch_age_wm);
 		sr_c(&p, pc, se_confv_offline, "anticache_period", SS_U32, &z->anticache_period);
 		sr_c(&p, pc, se_confv_offline, "snapshot_period", SS_U32, &z->snapshot_period);
-		sr_c(&p, pc, se_confv_offline, "backup_prio", SS_U32, &z->backup_prio);
+		sr_c(&p, pc, se_confv_offline, "expire_prio", SS_U32, &z->expire_prio);
+		sr_c(&p, pc, se_confv_offline, "expire_period", SS_U32, &z->expire_period);
 		sr_c(&p, pc, se_confv_offline, "gc_wm", SS_U32, &z->gc_wm);
 		sr_c(&p, pc, se_confv_offline, "gc_prio", SS_U32, &z->gc_prio);
 		sr_c(&p, pc, se_confv_offline, "gc_period", SS_U32, &z->gc_period);
 		sr_c(&p, pc, se_confv_offline, "lru_prio", SS_U32, &z->lru_prio);
 		sr_c(&p, pc, se_confv_offline, "lru_period", SS_U32, &z->lru_period);
+		sr_c(&p, pc, se_confv_offline, "backup_prio", SS_U32, &z->backup_prio);
 		prev = sr_C(&prev, pc, NULL, z->name, SS_UNDEF, zone, SR_NS, NULL);
 		if (compaction == NULL)
 			compaction = prev;
@@ -274,6 +276,15 @@ se_confscheduler_gc(srconf *c, srconfstmt *s)
 }
 
 static inline int
+se_confscheduler_expire(srconf *c, srconfstmt *s)
+{
+	if (s->op != SR_WRITE)
+		return se_confv(c, s);
+	se *e = s->ptr;
+	return sc_ctl_expire(&e->scheduler);
+}
+
+static inline int
 se_confscheduler_lru(srconf *c, srconfstmt *s)
 {
 	if (s->op != SR_WRITE)
@@ -339,6 +350,8 @@ se_confscheduler(se *e, seconfrt *rt, srconf **pc)
 	sr_c(&p, pc, se_confv_offline, "event_on_backup", SS_U32, &e->conf.event_on_backup);
 	sr_C(&p, pc, se_confv, "gc_active", SS_U32, &rt->gc_active, SR_RO, NULL);
 	sr_c(&p, pc, se_confscheduler_gc, "gc", SS_FUNCTION, NULL);
+	sr_C(&p, pc, se_confv, "expire_active", SS_U32, &rt->expire_active, SR_RO, NULL);
+	sr_c(&p, pc, se_confscheduler_expire, "expire", SS_FUNCTION, NULL);
 	sr_C(&p, pc, se_confv, "lru_active", SS_U32, &rt->lru_active, SR_RO, NULL);
 	sr_c(&p, pc, se_confscheduler_lru, "lru", SS_FUNCTION, NULL);
 	sr_c(&p, pc, se_confscheduler_run, "run", SS_FUNCTION, NULL);
@@ -698,6 +711,7 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc)
 		sr_C(&p, pc, se_confv_dboffline, "storage", SS_STRINGPTR, &o->scheme->storage_sz, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "format", SS_STRINGPTR, &o->scheme->fmt_sz, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "temperature", SS_U32, &o->scheme->temperature, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "expire", SS_U32, &o->scheme->expire, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "amqf", SS_U32, &o->scheme->amqf, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "path", SS_STRINGPTR, &o->scheme->path, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "path_fail_on_exists", SS_U32, &o->scheme->path_fail_on_exists, 0, o);
@@ -926,6 +940,7 @@ se_confrt(se *e, seconfrt *rt)
 	rt->backup_active        = e->scheduler.backup;
 	rt->backup_last          = e->scheduler.backup_bsn_last;
 	rt->backup_last_complete = e->scheduler.backup_bsn_last_complete;
+	rt->expire_active        = e->scheduler.expire;
 	rt->gc_active            = e->scheduler.gc;
 	rt->lru_active           = e->scheduler.lru;
 	ss_mutexunlock(&e->scheduler.lock);
@@ -1118,6 +1133,8 @@ int se_confinit(seconf *c, so *e)
 		.anticache_period  = 0,
 		.snapshot_period   = 0,
 		.backup_prio       = 1,
+		.expire_prio       = 0,
+		.expire_period     = 0,
 		.gc_prio           = 1,
 		.gc_period         = 60,
 		.gc_wm             = 30,
@@ -1137,6 +1154,8 @@ int se_confinit(seconf *c, so *e)
 		.anticache_period  = 0,
 		.snapshot_period   = 0,
 		.backup_prio       = 0,
+		.expire_prio       = 0,
+		.expire_period     = 0,
 		.gc_prio           = 0,
 		.gc_period         = 0,
 		.gc_wm             = 0,
@@ -1200,6 +1219,7 @@ int se_confvalidate(seconf *c)
 		z->snapshot_period_us   = z->snapshot_period * 1000000;
 		z->anticache_period_us  = z->anticache_period * 1000000;
 		z->gc_period_us         = z->gc_period * 1000000;
+		z->expire_period_us     = z->expire_period * 1000000;
 		z->lru_period_us        = z->lru_period * 1000000;
 	}
 	return 0;

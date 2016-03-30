@@ -29,6 +29,9 @@ struct srzone {
 	uint64_t snapshot_period_us;
 	uint32_t anticache_period;
 	uint64_t anticache_period_us;
+	uint32_t expire_prio;
+	uint32_t expire_period;
+	uint64_t expire_period_us;
 	uint32_t gc_prio;
 	uint32_t gc_period;
 	uint64_t gc_period_us;
