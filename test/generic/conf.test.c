@@ -99,10 +99,10 @@ conf_validation0(void)
 	void *o = sp_document(db);
 	t( o != NULL );
 
-	char key[65000];
+	char key[1025];
 	memset(key, 0, sizeof(key));
+	t( sp_setstring(o, "key", key, 1024) == 0 );
 	t( sp_setstring(o, "key", key, sizeof(key)) == -1 );
-	t( sp_setstring(o, "key", key, (1 << 15)) == 0 );
 	t( sp_setstring(o, "value", key, (1 << 21) + 1 ) == -1 );
 	t( sp_setstring(o, "value", key, (1 << 21)) == 0 );
 	sp_destroy(o);

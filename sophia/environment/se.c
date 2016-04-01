@@ -172,6 +172,7 @@ se_destroy(so *o)
 	se_conffree(&e->conf);
 	ss_quotafree(&e->quota);
 	ss_mutexfree(&e->apilock);
+	sr_limitfree(&e->limit, &e->a);
 	sr_statfree(&e->stat);
 	sr_seqfree(&e->seq);
 	sr_statusfree(&e->status);
@@ -293,6 +294,7 @@ so *se_new(void)
 	sr_seqinit(&e->seq);
 	sr_errorinit(&e->error);
 	sr_statinit(&e->stat);
+	sr_limitinit(&e->limit, &e->a);
 	sscrcf crc = ss_crc32c_function();
 	sr_init(&e->r, &e->status, &e->error, &e->a, &e->a_ref, &e->vfs, &e->quota,
 	        &e->conf.zones, &e->seq, SF_KV, SF_SRAW, NULL,

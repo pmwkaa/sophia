@@ -50,7 +50,7 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 
 	/* prepare document */
 	svv *v;
-	int rc = se_dbv(db, o, 0, &v);
+	int rc = se_dbv(db, o, 0, SS_STOP, &v);
 	if (ssunlikely(rc == -1))
 		goto error;
 	v->flags = flags;

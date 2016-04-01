@@ -36,7 +36,7 @@ void *se_dbread(sedb*, sedocument*, sx*, int, sicache*, ssorder);
 int   se_dbvisible(sedb*, uint64_t);
 void  se_dbbind(se*);
 void  se_dbunbind(se*, uint64_t);
-int   se_dbv(sedb*, sedocument*, int, svv**);
+int   se_dbv(sedb*, sedocument*, int, ssorder, svv**);
 int   se_dbvprefix(sedb*, sedocument*, svv**);
 
 #endif

@@ -397,8 +397,11 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 
 	uint64_t start  = ss_utime();
 	/* prepare search key */
+	if (ssunlikely(order == SS_EQ && o->keyc == 0))
+		order = SS_GTE;
+
 	svv *v;
-	int rc = se_dbv(db, o, 1, &v);
+	int rc = se_dbv(db, o, 1, order, &v);
 	if (ssunlikely(rc == -1))
 		goto e0;
 	if (v) {
@@ -422,7 +425,7 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 	o = NULL;
 
 	/* concurrent */
-	if (x_search && order == SS_EQ && v) {
+	if (x_search && order == SS_EQ) {
 		/* note: prefix is ignored during concurrent
 		 * index search */
 		int rc = sx_get(x, &db->coindex, &vp, &vup);
@@ -445,8 +448,6 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 	} else {
 		sx_get_autocommit(&e->xm, &db->coindex);
 	}
-	if (ssunlikely(order == SS_EQ && v == NULL))
-		order = SS_GTE;
 
 	/* prepare read cache */
 	int cachegc = 0;
@@ -523,7 +524,7 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 
 	/* prepare document */
 	svv *v;
-	int rc = se_dbv(db, o, 0, &v);
+	int rc = se_dbv(db, o, 0, SS_STOP, &v);
 	if (ssunlikely(rc == -1))
 		goto error;
 	so_destroy(&o->o);
@@ -739,7 +740,7 @@ void se_dbunbind(se *e, uint64_t txn)
 	}
 }
 
-int se_dbv(sedb *db, sedocument *o, int search, svv **v)
+int se_dbv(sedb *db, sedocument *o, int search, ssorder order, svv **v)
 {
 	uint32_t timestamp = UINT32_MAX;
 	if (db->scheme->expire > 0) {
@@ -782,8 +783,16 @@ int se_dbv(sedb *db, sedocument *o, int search, svv **v)
 
 	/* create document using current format, supplied
 	 * key-chain and value */
-	if (ssunlikely(o->keyc != db->scheme->scheme.count))
-		return sr_error(&e->error, "%s", "bad document key");
+	if (ssunlikely(o->keyc != db->scheme->scheme.count)) {
+		if (!search || (search && order == SS_EQ))
+			return sr_error(&e->error, "%s", "incomplete key");
+		/* set unspecified min/max keys, depending on
+		 * iteration order */
+		o->keyc = db->scheme->scheme.count;
+		sr_limitset(&e->limit, &db->scheme->scheme,
+		            o->keyv,
+		            db->scheme->scheme.count, order);
+	}
 
 	*v = sv_vbuild(runtime, o->keyv, o->keyc,
 	               o->value,

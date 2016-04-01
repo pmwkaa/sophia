@@ -125,7 +125,7 @@ se_document_setpart(sedocument *v, const char *path, void *pointer, int size)
 	if (ssunlikely(part == NULL))
 		return NULL;
 	assert(part->pos < (int)(sizeof(v->keyv) / sizeof(sfv)));
-	const int keysize_max = 1 << 15;
+	const int keysize_max = 1024;
 	if (size == 0)
 		size = strlen(pointer);
 	if (ssunlikely(size > keysize_max)) {
