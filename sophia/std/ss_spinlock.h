@@ -37,6 +37,8 @@ typedef uint8_t ssspinlock;
 
 #if defined(__x86_64__) || defined(__i386) || defined(_X86_)
 # define CPU_PAUSE __asm__ ("pause")
+#elif defined(__powerpc__)
+# define CPU_PAUSE __asm__ ("ori 27, 27, 27")
 #else
 # define CPU_PAUSE do { } while(0)
 #endif
