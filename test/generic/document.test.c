@@ -26,6 +26,7 @@ document_db(void)
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
@@ -50,6 +51,7 @@ document_set_get(void)
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
@@ -82,6 +84,7 @@ document_lsn0(void)
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
@@ -125,6 +128,7 @@ document_readonly0(void)
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
@@ -160,6 +164,7 @@ document_readonly1(void)
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
@@ -196,6 +201,7 @@ document_reuse(void)
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
@@ -236,6 +242,7 @@ document_immutable(void)
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");

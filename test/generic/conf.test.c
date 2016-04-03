@@ -90,7 +90,10 @@ conf_validation0(void)
 	t( db != NULL );
 
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
+
 	t( sp_open(db) == 0 );
+
 	t( sp_setint(env, "db.test.page_size", 0) == -1 );
 	t( sp_setint(env, "db.test.node_size", 0) == -1 );
 	t( sp_setstring(env, "db.test.path", "path", 0) == -1 );
@@ -225,6 +228,7 @@ conf_db(void)
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
 	t( sp_setint(env, "db.test.id", 777) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
@@ -256,6 +260,7 @@ conf_cursor(void)
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key_a", 0) == 0 );
 	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );

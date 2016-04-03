@@ -25,6 +25,7 @@ upsert_no_operator(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
@@ -110,6 +111,7 @@ upsert_upsert_get_index(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator_orphan, 0) == 0 );
@@ -149,6 +151,7 @@ upsert_upsert_get_branch0(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator_orphan, 0) == 0 );
@@ -191,6 +194,7 @@ upsert_upsert_get_compact(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator_orphan, 0) == 0 );
@@ -235,6 +239,7 @@ upsert_set_upsert_get_index(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator, 0) == 0 );
@@ -279,6 +284,7 @@ upsert_set_upsert_get_branch0(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator, 0) == 0 );
@@ -325,6 +331,7 @@ upsert_set_upsert_get_branch1(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator, 0) == 0 );
@@ -373,6 +380,7 @@ upsert_set_upsert_get_compact(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator, 0) == 0 );
@@ -422,6 +430,7 @@ upsert_set_upsert_upsert_get_index(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator, 0) == 0 );
@@ -472,6 +481,7 @@ upsert_set_upsert_upsert_get_branch0(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator, 0) == 0 );
@@ -524,6 +534,7 @@ upsert_set_upsert_upsert_get_branch1(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator, 0) == 0 );
@@ -578,6 +589,7 @@ upsert_set_upsert_upsert_get_branch2(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator, 0) == 0 );
@@ -634,6 +646,7 @@ upsert_set_upsert_upsert_get_compact(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator, 0) == 0 );
@@ -691,6 +704,7 @@ upsert_set_upsert_upsert_get_cursor(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator, 0) == 0 );
@@ -769,6 +783,7 @@ upsert_set_delete_upsert_get_index(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator_delete, 0) == 0 );
@@ -817,6 +832,7 @@ upsert_set_delete_upsert_get_branch0(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator_delete, 0) == 0 );
@@ -867,6 +883,7 @@ upsert_set_delete_upsert_get_branch1(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator_delete, 0) == 0 );
@@ -919,6 +936,7 @@ upsert_set_delete_upsert_get_compact(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator_delete, 0) == 0 );
@@ -972,6 +990,7 @@ upsert_delete_upsert_get_index(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator_delete, 0) == 0 );
@@ -1016,6 +1035,7 @@ upsert_delete_upsert_get_branch0(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator_delete, 0) == 0 );
@@ -1062,6 +1082,7 @@ upsert_delete_upsert_get_branch1(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator_delete, 0) == 0 );
@@ -1110,6 +1131,7 @@ upsert_delete_upsert_get_compact(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator_delete, 0) == 0 );
@@ -1159,6 +1181,7 @@ upsert_sx_set_upsert_get(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator, 0) == 0 );
@@ -1200,6 +1223,7 @@ upsert_sx_upsert_upsert(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator, 0) == 0 );
@@ -1244,6 +1268,7 @@ upsert_cursor0(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator, 0) == 0 );
@@ -1296,6 +1321,7 @@ upsert_cursor1(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator, 0) == 0 );
@@ -1349,6 +1375,7 @@ upsert_cursor2(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator, 0) == 0 );
@@ -1402,6 +1429,7 @@ upsert_cursor3(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator_orphan, 0) == 0 );
@@ -1473,6 +1501,7 @@ upsert_cursor4(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator2, 0) == 0 );
@@ -1529,6 +1558,7 @@ upsert_cursor5(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator2, 0) == 0 );
@@ -1588,6 +1618,7 @@ upsert_cursor6(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator2, 0) == 0 );
@@ -1641,6 +1672,7 @@ upsert_test0(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator2, 0) == 0 );
@@ -1693,6 +1725,7 @@ upsert_test1(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", upsert_operator2, 0) == 0 );

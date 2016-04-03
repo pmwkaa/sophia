@@ -27,6 +27,7 @@ scheme_test0(void)
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.compression", "zstd", 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key_b", "string", 0) == 0 );
@@ -83,6 +84,7 @@ scheme_test1(void)
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.compression", "none", 0) == 0 );
 	t( sp_setint(env, "db.test.compression_key", 1) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key_b", "string", 0) == 0 );
@@ -101,6 +103,7 @@ scheme_test1(void)
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.compression", "zstd", 0) == 0 );
 	t( sp_setint(env, "db.test.compression_key", 1) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "string", 0) == 0 );
 	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key_b", "u64", 0) == 0 );

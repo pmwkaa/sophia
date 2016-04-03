@@ -26,6 +26,7 @@ cursor_read_commited(void)
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 

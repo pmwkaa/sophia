@@ -74,15 +74,7 @@ se_dbscheme_init(sedb *db, char *name, int size)
 	if (ssunlikely(scheme->fmt_sz == NULL))
 		goto error;
 	/* init single key part as string */
-	int rc;
 	sr_schemeinit(&scheme->scheme);
-	srkey *part = sr_schemeadd(&scheme->scheme);
-	rc = sr_keysetname(part, &e->a, "key");
-	if (ssunlikely(rc == -1))
-		goto error;
-	rc = sr_keyset(part, &e->a, "string");
-	if (ssunlikely(rc == -1))
-		goto error;
 	return 0;
 error:
 	sr_oom(&e->error);
@@ -94,6 +86,17 @@ se_dbscheme_set(sedb *db)
 {
 	se *e = se_of(&db->o);
 	sischeme *s = si_scheme(db->index);
+	/* set default key, if it were not previosly defined */
+	if (s->scheme.count == 0) {
+		srkey *part = sr_schemeadd(&s->scheme);
+		int rc;
+		rc = sr_keysetname(part, &e->a, "key");
+		if (ssunlikely(rc == -1))
+			return sr_oom(&e->error);
+		rc = sr_keyset(part, &e->a, "string");
+		if (ssunlikely(rc == -1))
+			return sr_oom(&e->error);
+	}
 	/* storage */
 	if (strcmp(s->storage_sz, "cache") == 0) {
 		s->storage = SI_SCACHE;

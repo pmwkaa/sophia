@@ -25,6 +25,7 @@ multipart_cmp_eq_key(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 
@@ -46,6 +47,7 @@ multipart_schema(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 
@@ -79,9 +81,10 @@ multipart_set_get0(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "string", 0) == 0 );
 	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key_b", "u32", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "string", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 
@@ -116,9 +119,10 @@ multipart_set_get1(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "string", 0) == 0 );
 	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key_b", "u32", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "string", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 
@@ -169,9 +173,10 @@ multipart_cursor0(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "string", 0) == 0 );
 	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key_b", "u32", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "string", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 
@@ -220,9 +225,10 @@ multipart_cursor1(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "string", 0) == 0 );
 	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key_b", "u32", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "string", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 
@@ -275,9 +281,10 @@ multipart_set_get_incomplete0(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "string", 0) == 0 );
 	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key_b", "u32", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "string", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 
@@ -321,9 +328,10 @@ multipart_set_get_incomplete1(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "string", 0) == 0 );
 	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key_b", "u32", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "string", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 
@@ -390,9 +398,10 @@ multipart_set_get_incomplete2(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "string", 0) == 0 );
 	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key_b", "string", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "string", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 

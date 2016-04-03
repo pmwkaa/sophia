@@ -145,6 +145,7 @@ void st_scene_env(stscene *s ssunused)
 	t( sp_setint(env, "db.test.page_checksum", 1) == 0 );
 	t( sp_setstring(env, "db.test.compression", "none", 0) == 0 );
 	t( sp_setstring(env, "db.test.compression_branch", "none", 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
 
 	st_r.db = sp_getobject(env, "db.test");

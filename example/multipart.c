@@ -24,6 +24,7 @@ int main(int argc, char *argv[])
 	void *env = sp_env();
 	sp_setstring(env, "sophia.path", "_test", 0);
 	sp_setstring(env, "db", "test", 0);
+	sp_setstring(env, "db.test.index", "key", 0);
 	sp_setstring(env, "db.test.index", "key_j", 0);
 	sp_setstring(env, "db.test.index", "key_k", 0);
 	sp_setstring(env, "db.test.index.key",   "u32", 0);

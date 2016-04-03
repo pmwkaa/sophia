@@ -22,6 +22,7 @@ amqf_test0(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32",0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "db.test.amqf", 0) == 0 );
@@ -66,6 +67,7 @@ amqf_test1(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32",0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "db.test.amqf", 0) == 0 );
@@ -119,6 +121,7 @@ amqf_test2(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32",0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "db.test.amqf", 1) == 0 );
@@ -172,6 +175,7 @@ amqf_test3(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.key", "u32",0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "db.test.amqf", 1) == 0 );

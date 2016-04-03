@@ -72,6 +72,9 @@ workflow_open(void *env)
 	rc = sp_setstring(env, "db.test.storage", "in-memory", 0);
 	if (rc == -1)
 		return NULL;
+	rc = sp_setstring(env, "db.test.index", "key", 0);
+	if (rc == -1)
+		return NULL;
 	rc = sp_setstring(env, "db.test.index.key", "u32", 0);
 	if (rc == -1)
 		return NULL;
