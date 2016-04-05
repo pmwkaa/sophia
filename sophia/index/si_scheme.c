@@ -66,10 +66,6 @@ void si_schemefree(sischeme *s, sr *r)
 		ss_free(r->a, s->compression_branch_sz);
 		s->compression_branch_sz = NULL;
 	}
-	if (s->fmt_sz) {
-		ss_free(r->a, s->fmt_sz);
-		s->fmt_sz = NULL;
-	}
 	if (s->cache_sz) {
 		ss_free(r->a, s->cache_sz);
 		s->cache_sz = NULL;
@@ -189,18 +185,7 @@ int si_schemerecover(sischeme *s, sr *r)
 		switch (opt->id) {
 		case SI_SCHEME_FORMAT:
 			s->fmt = sd_schemeu32(opt);
-			char *name;
-			if (s->fmt == SF_KV)
-				name = "kv";
-			else
-			if (s->fmt == SF_DOCUMENT)
-				name = "document";
-			else
-				goto error;
-			ss_free(r->a, s->fmt_sz);
-			s->fmt_sz = ss_strdup(r->a, name);
-			if (ssunlikely(s->fmt_sz == NULL))
-				goto error;
+			assert(s->fmt == SF_KV);
 			break;
 		case SI_SCHEME_FORMAT_STORAGE:
 			s->fmt_storage = sd_schemeu32(opt);

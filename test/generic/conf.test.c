@@ -162,7 +162,7 @@ conf_validation_upsert(void)
 	t( db != NULL );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.index.upsert", conf_validation_upsert_op, 0) == 0 );
-	t( sp_setstring(env, "db.test.format", "document", 0) == 0 );
+	t( sp_setstring(env, "db.test.storage", "bad", 0) == 0 );
 	t( sp_open(env) == -1 );
 	t( sp_destroy(env) == 0 );
 }

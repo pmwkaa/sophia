@@ -185,7 +185,6 @@ main(int argc, char *argv[])
 	st_suiteadd_scene(&st_r.suite, st_scene("phase_scheme", st_scene_phase_scheme, 5));
 	st_suiteadd_scene(&st_r.suite, st_scene("phase_scheme_int", st_scene_phase_scheme_int, 3));
 	st_suiteadd_scene(&st_r.suite, st_scene("phase_storage", st_scene_phase_storage, 15));
-	st_suiteadd_scene(&st_r.suite, st_scene("phase_format", st_scene_phase_format, 2));
 	st_suiteadd_scene(&st_r.suite, st_scene("phase_size", st_scene_phase_size, 3));
 	st_suiteadd_scene(&st_r.suite, st_scene("open", st_scene_open, 1));
 	st_suiteadd_scene(&st_r.suite, st_scene("destroy", st_scene_destroy, 1));
@@ -310,7 +309,6 @@ main(int argc, char *argv[])
 		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rt"));
 		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "env"));
 		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "branch_wm_1"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_format"));
 		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_storage"));
 		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_compaction"));
 		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "open"));
@@ -339,7 +337,6 @@ main(int argc, char *argv[])
 		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "env"));
 		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "branch_wm_1"));
 		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_scheme_int"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_format"));
 		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_storage"));
 		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_compaction"));
 		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "open"));
@@ -370,7 +367,6 @@ main(int argc, char *argv[])
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "env"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "branch_wm_1"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_scheme_int"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_format"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_storage"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_compaction"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "open"));
@@ -390,7 +386,6 @@ main(int argc, char *argv[])
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "env"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "branch_wm_1"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_scheme_int"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_format"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_storage"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_compaction"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "open"));

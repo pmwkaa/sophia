@@ -49,20 +49,6 @@ void *st_document_generate(stgenerator *g, sf fmt, stlist *l, void *db,
 		}
 		break;
 	}
-	case SF_DOCUMENT: {
-		char *vpointer = sv_vpointer(v);
-		int i = 0;
-		while (i < g->r->scheme->count) {
-			rc = sp_setstring(o, g->r->scheme->parts[i].name,
-			                  sf_key(vpointer, i),
-			                  sf_keysize(vpointer, i));
-			t( rc == 0 );
-			i++;
-		}
-		rc = sp_setstring(o, "value", vpointer, v->size);
-		t( rc == 0 );
-		break;
-	}
 	}
 	return o;
 }
@@ -96,28 +82,6 @@ void st_document_eq(stgenerator *g, sf fmt, void *o,
 			          size) == 0 );
 		} else {
 			t( ptr == NULL );
-		}
-		break;
-	}
-	case SF_DOCUMENT: {
-		int i = 0;
-		int size = 0;
-		while (i < g->r->scheme->count) {
-			void *ptr = sp_getstring(o, g->r->scheme->parts[i].name, &size);
-			t( ptr != NULL );
-			t( size == sf_keysize(sv_vpointer(v), i) );
-			t( memcmp(ptr, sf_key(sv_vpointer(v), i), size) == 0 );
-			i++;
-		}
-		void *ptr = sp_getstring(o, "value", &size);
-		t( ptr != NULL );
-		if ((g->value_start + g->value_end) > 0) {
-			int vsize = sf_valuesize(g->r->fmt, ptr, size, g->r->scheme->count);
-			t( vsize == sf_valuesize(g->r->fmt, sv_vpointer(v), v->size,
-			                         g->r->scheme->count) );
-			ptr = sf_value(g->r->fmt, ptr, g->r->scheme->count);
-			t( memcmp(ptr, sf_value(g->r->fmt, sv_vpointer(v),
-			          g->r->scheme->count), vsize) == 0 );
 		}
 		break;
 	}

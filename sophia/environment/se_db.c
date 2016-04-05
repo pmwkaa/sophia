@@ -70,10 +70,6 @@ se_dbscheme_init(sedb *db, char *name, int size)
 	if (ssunlikely(scheme->compression_branch_sz == NULL))
 		goto error;
 	sf_upsertinit(&scheme->fmt_upsert);
-	scheme->fmt_sz = ss_strdup(&e->a, "kv");
-	if (ssunlikely(scheme->fmt_sz == NULL))
-		goto error;
-	/* init single key part as string */
 	sr_schemeinit(&scheme->scheme);
 	return 0;
 error:
@@ -110,23 +106,8 @@ se_dbscheme_set(sedb *db)
 		sr_error(&e->error, "unknown storage type '%s'", s->storage_sz);
 		return -1;
 	}
-	/* format */
-	if (strcmp(s->fmt_sz, "kv") == 0) {
-		s->fmt = SF_KV;
-	} else
-	if (strcmp(s->fmt_sz, "document") == 0) {
-		s->fmt = SF_DOCUMENT;
-	} else {
-		sr_error(&e->error, "unknown format type '%s'", s->fmt_sz);
-		return -1;
-	}
 	/* upsert and format */
 	if (sf_upserthas(&s->fmt_upsert)) {
-		if (s->fmt == SF_DOCUMENT) {
-			sr_error(&e->error, "%s", "incompatible options: format=document "
-			         "and upsert function");
-			return -1;
-		}
 		if (s->cache_mode) {
 			sr_error(&e->error, "%s", "incompatible options: cache_mode=1 "
 			         "and upsert function");
@@ -135,11 +116,6 @@ se_dbscheme_set(sedb *db)
 	}
 	/* compression_key */
 	if (s->compression_key) {
-		if (s->fmt == SF_DOCUMENT) {
-			sr_error(&e->error, "%s", "incompatible options: format=document "
-			         "and compression_key=1");
-			return -1;
-		}
 		s->fmt_storage = SF_SKEYVALUE;
 	}
 	/* compression */
@@ -770,19 +746,8 @@ int se_dbv(sedb *db, sedocument *o, int search, ssorder order, svv **v)
 		*v = sv_vbuildraw(db->r, o->raw, o->rawsize, timestamp);
 		goto ret;
 	}
-	sr *runtime = db->r;
-	sr  runtime_search;
-	if (search) {
-		if (o->keyc == 0)
-			return 0;
-		/* switch to key-value format to avoid value
-		 * copy during search operations */
-		if (db->r->fmt == SF_DOCUMENT) {
-			runtime_search = *db->r;
-			runtime_search.fmt = SF_KV;
-			runtime = &runtime_search;
-		}
-	}
+	if (search && o->keyc == 0)
+		return 0;
 
 	/* create document using current format, supplied
 	 * key-chain and value */
@@ -797,7 +762,7 @@ int se_dbv(sedb *db, sedocument *o, int search, ssorder order, svv **v)
 		            db->scheme->scheme.count, order);
 	}
 
-	*v = sv_vbuild(runtime, o->keyv, o->keyc,
+	*v = sv_vbuild(db->r, o->keyv, o->keyc,
 	               o->value,
 	               o->valuesize, timestamp);
 ret:

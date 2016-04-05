@@ -29,8 +29,7 @@ typedef enum {
 } sfstorage;
 
 typedef enum {
-	SF_KV,
-	SF_DOCUMENT
+	SF_KV
 } sf;
 
 static inline char*
@@ -76,80 +75,54 @@ sf_keycopy(char *dest, char *src, int count)
 static inline char*
 sf_value(sf format, char *data, int count)
 {
+	(void)format;
+
 	assert(count > 0);
 	sfref *ref = ((sfref*)data) + (count - 1);
-	switch (format) {
-	case SF_KV:
-		return data + ref->offset + ref->size;
-	case SF_DOCUMENT:
-		return data + (sizeof(sfref) * count);
-	}
-	return NULL;
+	return data + ref->offset + ref->size;
 }
 
 static inline int
 sf_valuesize(sf format, char *data, int size, int count)
 {
+	(void)format;
+
 	assert(count > 0);
-	switch (format) {
-	case SF_KV: {
-		sfref *ref = ((sfref*)data) + (count - 1);
-		return size - (ref->offset + ref->size);
-	}
-	case SF_DOCUMENT:
-		return size - (sizeof(sfref) * count);
-	}
-	return 0;
+	sfref *ref = ((sfref*)data) + (count - 1);
+	return size - (ref->offset + ref->size);
 }
 
 static inline int
 sf_size(sf format, sfv *keys, int count, int vsize)
 {
-	switch (format) {
-	case SF_KV: {
-		int sum = 0;
-		int i = 0;
-		while (i < count) {
-			sum += keys[i].r.size;
-			i++;
-		}
-		return sizeof(sfref) * count + sum + vsize;
+	(void)format;
+
+	int sum = 0;
+	int i = 0;
+	while (i < count) {
+		sum += keys[i].r.size;
+		i++;
 	}
-	case SF_DOCUMENT:
-		return sizeof(sfref) * count + vsize;
-	}
-	assert(0);
-	return 0;
+	return sizeof(sfref) * count + sum + vsize;
 }
 
 static inline void
 sf_write(sf format, char *dest, sfv *keys, int count,
          char *v, int vsize)
 {
+	(void)format;
+
 	sfref *ref = (sfref*)dest;
 	int offset = sizeof(sfref) * count;
 	int i = 0;
-	switch (format) {
-	case SF_KV:
-		while (i < count) {
-			sfv *ptr = &keys[i];
-			ref->offset = offset;
-			ref->size = ptr->r.size;
-			memcpy(dest + offset, ptr->key, ptr->r.size);
-			offset += ptr->r.size;
-			ref++;
-			i++;
-		}
-		break;
-	case SF_DOCUMENT:
-		while (i < count) {
-			sfv *ptr = &keys[i];
-			ref->offset = offset + (uint32_t)(ptr->key - v);
-			ref->size = ptr->r.size;
-			ref++;
-			i++;
-		}
-		break;
+	while (i < count) {
+		sfv *ptr = &keys[i];
+		ref->offset = offset;
+		ref->size = ptr->r.size;
+		memcpy(dest + offset, ptr->key, ptr->r.size);
+		offset += ptr->r.size;
+		ref++;
+		i++;
 	}
 	memcpy(dest + offset, v, vsize);
 }

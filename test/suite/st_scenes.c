@@ -139,7 +139,6 @@ void st_scene_env(stscene *s ssunused)
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.format", "kv", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "db.test.mmap", 0) == 0 );
 	t( sp_setint(env, "db.test.page_checksum", 1) == 0 );
@@ -364,33 +363,8 @@ void st_scene_phase_scheme(stscene *s)
 	}
 }
 
-void st_scene_phase_format(stscene *s)
-{
-	switch (s->state) {
-	case 0:
-		if (st_r.verbose) {
-			fprintf(st_r.output, ".fmt_kv");
-			fflush(st_r.output);
-		}
-		st_r.fmt = SF_KV;
-		t( sp_setstring(st_r.env, "db.test.format", "kv", 0) == 0 );
-		break;
-	case 1:
-		if (st_r.verbose) {
-			fprintf(st_r.output, ".fmt_doc");
-			fflush(st_r.output);
-		}
-		st_r.fmt = SF_DOCUMENT;
-		t( sp_setstring(st_r.env, "db.test.format", "document", 0) == 0 );
-		break;
-	default: assert(0);
-	}
-}
-
 void st_scene_phase_storage(stscene *s)
 {
-	if (st_r.fmt == SF_DOCUMENT)
-		s->statemax = 4;
 	switch (s->state) {
 	case 0:
 		if (st_r.verbose) {

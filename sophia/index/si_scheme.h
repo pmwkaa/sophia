@@ -47,7 +47,6 @@ struct sischeme {
 	uint64_t    lru;
 	uint32_t    lru_step;
 	uint32_t    buf_gc_wm;
-	char       *fmt_sz;
 	sf          fmt;
 	sfstorage   fmt_storage;
 	sfupsert    fmt_upsert;

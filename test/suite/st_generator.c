@@ -81,7 +81,7 @@ st_svv_va(stgenerator *g, stlist *l, uint64_t lsn, uint8_t flags, va_list args)
 	switch (g->r->fmt) {
 	case SF_KV: v = st_generator_kv(g, args);
 		break;
-	case SF_DOCUMENT:
+	default:
 		assert(0);
 		break;
 	}
