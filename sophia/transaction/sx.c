@@ -307,6 +307,19 @@ sxstate sx_rollback(sx *x)
 	return SXROLLBACK;
 }
 
+static inline int
+sx_preparecb(sx *x, svlogv *v, uint64_t lsn, sxpreparef prepare, void *arg)
+{
+	if (sslikely(lsn == x->vlsn))
+		return 0;
+	if (prepare) {
+		sxindex *i = ((sxv*)v->v.v)->index;
+		if (prepare(x, &v->v, i->object, arg))
+			return 1;
+	}
+	return 0;
+}
+
 sxstate sx_prepare(sx *x, sxpreparef prepare, void *arg)
 {
 	uint64_t lsn = sr_seq(x->manager->r->seq, SR_LSN);
@@ -316,6 +329,7 @@ sxstate sx_prepare(sx *x, sxpreparef prepare, void *arg)
 	ssiter i;
 	ss_iterinit(ss_bufiter, &i);
 	ss_iteropen(ss_bufiter, &i, &x->log->buf, sizeof(svlogv));
+	sxstate rc;
 	for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
 	{
 		svlogv *lv = ss_iterof(ss_bufiter, &i);
@@ -325,11 +339,9 @@ sxstate sx_prepare(sx *x, sxpreparef prepare, void *arg)
 		if (sx_vaborted(v))
 			return sx_promote(x, SXROLLBACK);
 		if (sslikely(v->prev == NULL)) {
-			if (prepare && lsn != x->vlsn) {
-				sxindex *i = v->index;
-				if (prepare(x, &lv->v, i->object, arg))
-					return sx_promote(x, SXROLLBACK);
-			}
+			rc = sx_preparecb(x, lv, lsn, prepare, arg);
+			if (ssunlikely(rc != 0))
+				return sx_promote(x, SXROLLBACK);
 			continue;
 		}
 		if (sx_vcommitted(v->prev)) {
@@ -338,8 +350,12 @@ sxstate sx_prepare(sx *x, sxpreparef prepare, void *arg)
 			continue;
 		}
 		/* force commit for read-only conflicts */
-		if (v->prev->v->flags & SVGET)
+		if (v->prev->v->flags & SVGET) {
+			rc = sx_preparecb(x, lv, lsn, prepare, arg);
+			if (ssunlikely(rc != 0))
+				return sx_promote(x, SXROLLBACK);
 			continue;
+		}
 		return sx_promote(x, SXLOCK);
 	}
 	return sx_promote(x, SXPREPARE);

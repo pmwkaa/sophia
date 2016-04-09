@@ -126,7 +126,7 @@ mt_multi_stmt(void)
 	t( sp_destroy(env) == 0 );
 }
 
-static inline void *multi_stmt_conflict_thread(void *arg) 
+static inline void *multi_stmt_conflict_thread0(void *arg)
 {
 	ssthread *self = arg;
 	void *env = ((void**)self->arg)[0];
@@ -156,7 +156,7 @@ static inline void *multi_stmt_conflict_thread(void *arg)
 }
 
 static void
-mt_multi_stmt_conflict(void)
+mt_multi_stmt_conflict0(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -178,8 +178,83 @@ mt_multi_stmt_conflict(void)
 	ssthreadpool p;
 	ss_threadpool_init(&p);
 	void *ptr[2] = { env, db };
-	t( ss_threadpool_new(&p, &st_r.a, 5, multi_stmt_conflict_thread, ptr) == 0 );
+	t( ss_threadpool_new(&p, &st_r.a, 5, multi_stmt_conflict_thread0, ptr) == 0 );
 	t( ss_threadpool_shutdown(&p, &st_r.a) == 0 );
+
+	t( sp_destroy(env) == 0 );
+}
+
+static inline void *multi_stmt_conflict_thread1(void *arg)
+{
+	ssthread *self = arg;
+	void *env = ((void**)self->arg)[0];
+	void *db  = ((void**)self->arg)[1];
+	int id = 1;
+	int rc;
+	int i = 0;
+	while (i < 100) {
+		rc = 0;
+		do {
+			void *tx = sp_begin(env);
+			void *o = sp_document(db);
+			sp_setstring(o, "key", &id, sizeof(id));
+			o = sp_get(tx, o);
+			int v = 0;
+			if (o) {
+				v = *(int*)sp_getstring(o, "value", NULL);
+				sp_destroy(o);
+			}
+			v++;
+
+			o = sp_document(db);
+			sp_setstring(o, "key", &id, sizeof(id));
+			sp_setstring(o, "value", &v, sizeof(v));
+			rc = sp_set(tx, o);
+			assert(rc == 0);
+
+			rc = sp_commit(tx);
+			if (2 == rc) sp_destroy(tx);
+			assert(rc != -1);
+		} while (rc != 0);
+		i++;
+	}
+	return NULL;
+}
+
+static void
+mt_multi_stmt_conflict1(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 3) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
+	t( sp_setint(env, "log.sync", 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	/* conflict source */
+	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(env) == 0 );
+
+	ssthreadpool p;
+	ss_threadpool_init(&p);
+	void *ptr[2] = { env, db };
+	t( ss_threadpool_new(&p, &st_r.a, 3, multi_stmt_conflict_thread1, ptr) == 0 );
+	t( ss_threadpool_shutdown(&p, &st_r.a) == 0 );
+
+	int id = 1;
+	void *o = sp_document(db);
+	sp_setstring(o, "key", &id, sizeof(id));
+	o = sp_get(db, o);
+	t( o != NULL );
+	int v = *(int*)sp_getstring(o, "value", NULL);
+	t( v == 300 );
+	sp_destroy(o);
 
 	t( sp_destroy(env) == 0 );
 }
@@ -308,7 +383,8 @@ stgroup *multithread_group(void)
 	stgroup *group = st_group("mt");
 	st_groupadd(group, st_test("single_stmt", mt_single_stmt));
 	st_groupadd(group, st_test("multi_stmt", mt_multi_stmt));
-	st_groupadd(group, st_test("multi_stmt_conflict", mt_multi_stmt_conflict));
+	st_groupadd(group, st_test("multi_stmt_conflict0", mt_multi_stmt_conflict0));
+	st_groupadd(group, st_test("multi_stmt_conflict1", mt_multi_stmt_conflict1));
 	st_groupadd(group, st_test("quota", mt_quota));
 	st_groupadd(group, st_test("quota_checkpoint", mt_quota_checkpoint));
 	st_groupadd(group, st_test("quota_age", mt_quota_age));
