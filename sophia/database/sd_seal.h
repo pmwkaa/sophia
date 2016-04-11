@@ -24,7 +24,7 @@ struct sdseal {
 static inline void
 sd_sealset_open(sdseal *s, sr *r)
 {
-	sr_version(&s->version);
+	sr_version_storage(&s->version);
 	s->flags = 0;
 	s->index_crc = 0;
 	s->index_offset = 0;
@@ -34,7 +34,7 @@ sd_sealset_open(sdseal *s, sr *r)
 static inline void
 sd_sealset_close(sdseal *s, sr *r, sdindexheader *h)
 {
-	sr_version(&s->version);
+	sr_version_storage(&s->version);
 	s->flags = SD_SEALED;
 	s->index_crc = h->crc;
 	s->index_offset = h->offset;
@@ -51,7 +51,7 @@ sd_sealvalidate(sdseal *s, sr *r, sdindexheader *h)
 		return -1;
 	if (ssunlikely(h->offset != s->index_offset))
 		return -1;
-	if (ssunlikely(! sr_versioncheck(&s->version)))
+	if (ssunlikely(! sr_versionstorage_check(&s->version)))
 		return -1;
 	if (ssunlikely(s->flags != SD_SEALED))
 		return -1;

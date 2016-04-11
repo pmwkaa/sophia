@@ -119,7 +119,7 @@ static inline int
 sl_iterprepare(sliter *i)
 {
 	srversion *ver = (srversion*)i->map.p;
-	if (! sr_versioncheck(ver))
+	if (! sr_versionstorage_check(ver))
 		return sr_malfunction(i->r->e, "bad log file '%s' version",
 		                      ss_pathof(&i->log->path));
 	if (ssunlikely(i->log->size < (sizeof(srversion))))

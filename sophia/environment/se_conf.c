@@ -929,7 +929,7 @@ se_confrt(se *e, seconfrt *rt)
 	         SR_VERSION_COMMIT);
 
 	/* memory */
-	rt->memory_used     = ss_quotaused(&e->quota);
+	rt->memory_used = ss_quotaused(&e->quota);
 
 	/* scheduler */
 	ss_mutexlock(&e->scheduler.lock);

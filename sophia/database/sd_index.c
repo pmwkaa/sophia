@@ -19,7 +19,7 @@ int sd_indexbegin(sdindex *i, sr *r)
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
 	sdindexheader *h = sd_indexheader(i);
-	sr_version(&h->version);
+	sr_version_storage(&h->version);
 	h->crc         = 0;
 	h->size        = 0;
 	h->sizevmax    = 0;

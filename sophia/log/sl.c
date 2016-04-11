@@ -82,7 +82,7 @@ sl_new(slpool *p, uint64_t id)
 		goto error;
 	}
 	srversion v;
-	sr_version(&v);
+	sr_version_storage(&v);
 	rc = ss_filewrite(&l->file, &v, sizeof(v));
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(p->r->e, "log file '%s' header write error: %s",

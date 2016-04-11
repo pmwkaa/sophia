@@ -50,6 +50,8 @@ struct sischeme {
 	sfstorage   fmt_storage;
 	sfupsert    fmt_upsert;
 	sfscheme    scheme;
+	srversion   version;
+	srversion   version_storage;
 };
 
 void si_schemeinit(sischeme*);
