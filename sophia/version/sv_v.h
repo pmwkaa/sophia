@@ -33,25 +33,24 @@ sv_vsize(svv *v) {
 }
 
 static inline svv*
-sv_vbuild(sr *r, sfv *keys, int count, char *data, int size, uint32_t ts)
+sv_vbuild(sr *r, sfv *fields, uint32_t ts)
 {
-	assert(r->scheme->count == count);
-	int total = sf_size(r->fmt, keys, count, size);
-	svv *v = ss_malloc(r->a, sizeof(svv) + total);
+	int size = sf_writesize(r->scheme, fields);
+	svv *v = ss_malloc(r->a, sizeof(svv) + size);
 	if (ssunlikely(v == NULL))
 		return NULL;
-	v->size      = total;
+	v->size      = size;
 	v->lsn       = 0;
 	v->timestamp = ts;
 	v->flags     = 0;
 	v->refs      = 1;
 	v->log       = NULL;
 	char *ptr = sv_vpointer(v);
-	sf_write(r->fmt, ptr, keys, count, data, size);
+	sf_write(r->scheme, fields, ptr);
 	/* update runtime statistics */
 	ss_spinlock(&r->stat->lock);
 	r->stat->v_count++;
-	r->stat->v_allocated += sizeof(svv) + total;
+	r->stat->v_allocated += sizeof(svv) + size;
 	ss_spinunlock(&r->stat->lock);
 	return v;
 }

@@ -31,11 +31,10 @@ struct str {
 	ssvfs        vfs;
 	ssinjection  injection;
 	srstat       stat;
-	srscheme     scheme;
+	sfscheme     scheme;
 	srstatus     status;
 	srerror      error;
 	srseq        seq;
-	sf           fmt;
 	sfstorage    fmt_storage;
 	sscrcf       crc;
 	ssfilterif  *compression;

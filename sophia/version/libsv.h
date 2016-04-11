@@ -12,7 +12,6 @@
 #include <sv.h>
 #include <sv_v.h>
 #include <sv_ref.h>
-#include <sv_compare.h>
 #include <sv_upsertv.h>
 #include <sv_upsert.h>
 #include <sv_log.h>

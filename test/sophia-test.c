@@ -16,7 +16,6 @@
 #include <libst.h>
 
 /* std */
-extern stgroup *ss_leb128_group(void);
 extern stgroup *ss_a_group(void);
 extern stgroup *ss_order_group(void);
 extern stgroup *ss_rq_group(void);
@@ -25,9 +24,11 @@ extern stgroup *ss_ht_group(void);
 extern stgroup *ss_zstdfilter_group(void);
 extern stgroup *ss_lz4filter_group(void);
 
+/* format */
+extern stgroup *sf_scheme_group(void);
+
 /* runtime */
 extern stgroup *sr_conf_group(void);
-extern stgroup *sr_scheme_group(void);
 
 /* version */
 extern stgroup *sv_v_group(void);
@@ -182,7 +183,6 @@ main(int argc, char *argv[])
 	st_suiteadd_scene(&st_r.suite, st_scene("branch_wm_1", st_scene_branch_wm_1, 1));
 	st_suiteadd_scene(&st_r.suite, st_scene("thread_5", st_scene_thread_5, 1));
 	st_suiteadd_scene(&st_r.suite, st_scene("phase_compaction", st_scene_phase_compaction, 5));
-	st_suiteadd_scene(&st_r.suite, st_scene("phase_scheme", st_scene_phase_scheme, 5));
 	st_suiteadd_scene(&st_r.suite, st_scene("phase_scheme_int", st_scene_phase_scheme_int, 3));
 	st_suiteadd_scene(&st_r.suite, st_scene("phase_storage", st_scene_phase_storage, 15));
 	st_suiteadd_scene(&st_r.suite, st_scene("phase_size", st_scene_phase_size, 3));
@@ -200,7 +200,6 @@ main(int argc, char *argv[])
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
-	st_planadd(plan, ss_leb128_group());
 	st_planadd(plan, ss_a_group());
 	st_planadd(plan, ss_order_group());
 	st_planadd(plan, ss_rq_group());
@@ -209,7 +208,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, ss_zstdfilter_group());
 	st_planadd(plan, ss_lz4filter_group());
 	st_planadd(plan, sr_conf_group());
-	st_planadd(plan, sr_scheme_group());
+	st_planadd(plan, sf_scheme_group());
 	st_planadd(plan, sv_v_group());
 	st_planadd(plan, sv_index_group());
 	st_planadd(plan, sv_indexiter_group());

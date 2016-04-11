@@ -1,5 +1,5 @@
-#ifndef SR_BOUND_H_
-#define SR_BOUND_H_
+#ifndef SF_LIMIT_H_
+#define SF_LIMIT_H_
 
 /*
  * sophia database
@@ -9,9 +9,9 @@
  * BSD License
 */
 
-typedef struct srlimit srlimit;
+typedef struct sflimit sflimit;
 
-struct srlimit {
+struct sflimit {
 	uint32_t u32_min;
 	uint32_t u32_max;
 	uint64_t u64_min;
@@ -25,7 +25,7 @@ struct srlimit {
 };
 
 static inline int
-sr_limitinit(srlimit *b, ssa *a)
+sf_limitinit(sflimit *b, ssa *a)
 {
 	b->u32_min = 0;
 	b->u32_max = UINT32_MAX;
@@ -44,58 +44,56 @@ sr_limitinit(srlimit *b, ssa *a)
 }
 
 static inline void
-sr_limitfree(srlimit *b, ssa *a)
+sf_limitfree(sflimit *b, ssa *a)
 {
 	if (b->string_max)
 		ss_free(a, b->string_max);
 }
 
 static inline void
-sr_limitset(srlimit *b, srscheme *s, sfv *keyv, int keyc, ssorder order)
+sf_limitset(sflimit *b, sfscheme *s, sfv *fields, ssorder order)
 {
-	int i = 0;
-	while (i < keyc) {
-		sfv *v = &keyv[i];
-		if (v->key) {
-			i++;
+	int i;
+	for (i = 0; i < s->keys_count; i++) {
+		sfv *v = &fields[i];
+		if (v->pointer)
 			continue;
-		}
-		srkey *part = &s->parts[i];
+		sffield *part = s->keys[i];
 		switch (part->type) {
 		case SS_U32:
 			if (order == SS_LT || order == SS_LTE) {
-				v->key = (char*)&b->u32_max;
-				v->r.size = sizeof(uint32_t);
+				v->pointer = (char*)&b->u32_max;
+				v->size = sizeof(uint32_t);
 			} else {
-				v->key = (char*)&b->u32_min;
-				v->r.size = sizeof(uint32_t);
+				v->pointer = (char*)&b->u32_min;
+				v->size = sizeof(uint32_t);
 			}
 			break;
 		case SS_U64:
 			if (order == SS_LT || order == SS_LTE) {
-				v->key = (char*)&b->u64_max;
-				v->r.size = sizeof(uint64_t);
+				v->pointer = (char*)&b->u64_max;
+				v->size = sizeof(uint64_t);
 			} else {
-				v->key = (char*)&b->u64_min;
-				v->r.size = sizeof(uint64_t);
+				v->pointer = (char*)&b->u64_min;
+				v->size = sizeof(uint64_t);
 			}
 			break;
 		case SS_I64:
 			if (order == SS_LT || order == SS_LTE) {
-				v->key = (char*)&b->i64_max;
-				v->r.size = sizeof(int64_t);
+				v->pointer = (char*)&b->i64_max;
+				v->size = sizeof(int64_t);
 			} else {
-				v->key = (char*)&b->i64_min;
-				v->r.size = sizeof(int64_t);
+				v->pointer = (char*)&b->i64_min;
+				v->size = sizeof(int64_t);
 			}
 			break;
 		case SS_STRING:
 			if (order == SS_LT || order == SS_LTE) {
-				v->key = b->string_max;
-				v->r.size = b->string_max_size;
+				v->pointer = b->string_max;
+				v->size = b->string_max_size;
 			} else {
-				v->key = b->string_min;
-				v->r.size = b->string_min_size;
+				v->pointer = b->string_min;
+				v->size = b->string_min_size;
 			}
 			break;
 		default: assert(0);

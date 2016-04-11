@@ -31,12 +31,24 @@ print_current(int i) {
 }
 
 static int
-upsert_op(char **result,
-          char **key, int *key_size, int key_count,
-          char *src, int src_size,
-          char *upsert, int upsert_size,
+upsert_op(int count,
+          char **src,    uint32_t *src_size,
+          char **upsert, uint32_t *upsert_size,
+          char **result, uint32_t *result_size,
           void *arg)
 {
+	(void)arg;
+	if (src == NULL) {
+		/* result fields are set to upsert */
+		return 0;
+	}
+	uint32_t v = *(uint32_t*)src[1];
+	v += *(uint32_t*)upsert[1];
+	result[1] = malloc(sizeof(uint32_t));
+	memcpy(result[1], &v, sizeof(v));
+	return 0;
+
+#if 0
 	(void)key;
 	(void)key_size;
 	(void)key_count;
@@ -54,6 +66,7 @@ upsert_op(char **result,
 	memcpy(c, src, src_size);
 	*(uint32_t*)c += *(uint32_t*)upsert;
 	return upsert_size;
+#endif
 }
 
 static void
@@ -66,10 +79,11 @@ mt_upsert0(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.upsert", upsert_op, 0) == 0 );
+	t( sp_setstring(env, "db.test.upsert", upsert_op, 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
@@ -110,10 +124,11 @@ mt_upsert1(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.upsert", upsert_op, 0) == 0 );
+	t( sp_setstring(env, "db.test.upsert", upsert_op, 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
@@ -161,10 +176,11 @@ mt_upsert2(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.upsert", upsert_op, 0) == 0 );
+	t( sp_setstring(env, "db.test.upsert", upsert_op, 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
@@ -217,10 +233,11 @@ mt_upsert3(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.upsert", upsert_op, 0) == 0 );
+	t( sp_setstring(env, "db.test.upsert", upsert_op, 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );

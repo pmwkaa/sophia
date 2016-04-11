@@ -147,75 +147,86 @@ sv_upsertpop(svupsert *u)
 static inline int
 sv_upsertdo(svupsert *u, sr *r, svupsertnode *a, svupsertnode *b)
 {
-	int rc;
-	int key_count = r->scheme->count;
+	assert(r->scheme->fields_count <= 16);
+	assert(b->flags & SVUPSERT);
 
-	/* source record */
-	char *src_value;
-	int   src_size;
+	uint32_t  src_size[16];
+	char     *src[16];
+	void     *src_ptr;
+	uint32_t *src_size_ptr;
+
+	uint32_t  upsert_size[16];
+	char     *upsert[16];
+	uint32_t  result_size[16];
+	char     *result[16];
+
+	int i = 0;
 	if (sslikely(a && !(a->flags & SVDELETE)))
 	{
-		/* convert delete to orphan upsert case */
-		src_value = sf_value(r->fmt, a->buf.s, key_count);
-		src_size  = sf_valuesize(r->fmt,
-		                         a->buf.s,
-		                         ss_bufused(&a->buf),
-		                         key_count);
+		src_ptr = src;
+		src_size_ptr = src_size;
+		for (; i < r->scheme->fields_count; i++) {
+			src[i]    = sf_fieldof(r->scheme, i, a->buf.s, &src_size[i]);
+			upsert[i] = sf_fieldof(r->scheme, i, b->buf.s, &upsert_size[i]);
+			result[i] = src[i];
+			result_size[i] = src_size[i];
+		}
 	} else {
-		src_value = NULL;
-		src_size  = 0;
+		src_ptr = NULL;
+		src_size_ptr = NULL;
+		for (; i < r->scheme->fields_count; i++) {
+			upsert[i] = sf_fieldof(r->scheme, i, b->buf.s, &upsert_size[i]);
+			result[i] = upsert[i];
+			result_size[i] = upsert_size[i];
+		}
 	}
-
-	/* upsert record */
-	assert(b->flags & SVUPSERT);
-	int   key_size[SR_SCHEME_MAXKEY];
-	char *key[SR_SCHEME_MAXKEY];
-	int i;
-	for (i = 0; i < key_count; i++) {
-		key[i] = sf_key(b->buf.s, i);
-		key_size[i] = sf_keysize(b->buf.s, i);
-	}
-	char *upsert_value;
-	int   upsert_size;
-	upsert_value = sf_value(r->fmt, b->buf.s, key_count);
-	upsert_size  = sf_valuesize(r->fmt,
-	                            b->buf.s,
-	                            ss_bufused(&b->buf),
-	                            key_count);
 
 	/* execute */
-	sfupsertf upsert = r->fmt_upsert->function;
-	char *result;
-	int   result_size;
-	result_size  = upsert(&result, key, key_size, key_count,
-	                      src_value,
-	                      src_size,
-	                      upsert_value,
-	                      upsert_size,
-	                      r->fmt_upsert->arg);
-	if (ssunlikely(result_size == -1))
+	int rc;
+	rc = r->fmt_upsert->function(r->scheme->fields_count,
+	                             src_ptr,
+	                             src_size_ptr,
+	                             upsert,
+	                             upsert_size,
+	                             result,
+	                             result_size,
+	                             r->fmt_upsert->arg);
+	if (ssunlikely(rc == -1))
 		return -1;
-	assert(result != NULL);
 
-	/* rebuild record with new value */
-	int v_size = (upsert_value - b->buf.s) + result_size;
-	ss_bufreset(&u->tmp);
-	rc = ss_bufensure(&u->tmp, r->a, v_size);
-	if (ssunlikely(rc == -1)) {
-		free(result);
-		return -1;
+	/* validate and create new record */
+	sfv v[16];
+	i = 0;
+	for ( ; i < r->scheme->fields_count; i++) {
+		v[i].pointer = result[i];
+		v[i].size = result_size[i];
 	}
-	int off = sf_keycopy(u->tmp.p, b->buf.s, key_count);
-	ss_bufadvance(&u->tmp, off);
-	memcpy(u->tmp.p, result, result_size);
-	ss_bufadvance(&u->tmp, result_size);
-	free(result);
+	int size = sf_writesize(r->scheme, v);
+	ss_bufreset(&u->tmp);
+	rc = ss_bufensure(&u->tmp, r->a, size);
+	if (ssunlikely(rc == -1))
+		goto cleanup;
+	sf_write(r->scheme, v, u->tmp.s);
+	ss_bufadvance(&u->tmp, size);
 
-	/* push result */
-	return sv_upsertpush_raw(u, r, u->tmp.s, ss_bufused(&u->tmp),
-	                         b->flags & ~SVUPSERT,
-	                         b->lsn,
-	                         b->timestamp);
+	/* save result */
+	rc = sv_upsertpush_raw(u, r, u->tmp.s, ss_bufused(&u->tmp),
+	                       b->flags & ~SVUPSERT,
+	                       b->lsn,
+	                       b->timestamp);
+cleanup:
+	/* free fields */
+	i = 0;
+	for ( ; i < r->scheme->fields_count; i++) {
+		if (src_ptr == NULL) {
+			if (v[i].pointer != upsert[i])
+				free(v[i].pointer);
+		} else {
+			if (v[i].pointer != src[i])
+				free(v[i].pointer);
+		}
+	}
+	return rc;
 }
 
 static inline int

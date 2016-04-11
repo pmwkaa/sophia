@@ -2045,14 +2045,11 @@ cursor_consistency_delete1(void)
 	while ((co1 = sp_get(c1, co1))) {
 		void *k = sp_document(st_r.db);
 		t( k != NULL );
-		int valuesize;
-		void *value = sp_getstring(co1, "value", &valuesize);
-		sp_setstring(k, "value", value, valuesize);
 		int i = 0;
-		while (i < st_r.r.scheme->count) {
+		while (i < st_r.r.scheme->fields_count) {
 			int keysize;
-			void *key = sp_getstring(co1, st_r.r.scheme->parts[i].name, &keysize);
-			sp_setstring(k, st_r.r.scheme->parts[i].name, key, keysize);
+			void *key = sp_getstring(co1, st_r.r.scheme->fields[i]->name, &keysize);
+			sp_setstring(k, st_r.r.scheme->fields[i]->name, key, keysize);
 			i++;
 		}
 		t( sp_delete(st_r.db, k) == 0 );

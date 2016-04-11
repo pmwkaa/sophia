@@ -26,8 +26,9 @@ shutdown_destroy0(void)
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
@@ -55,8 +56,9 @@ shutdown_destroy1(void)
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
@@ -79,8 +81,9 @@ shutdown_transaction0(void)
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
@@ -117,8 +120,9 @@ shutdown_transaction1(void)
 
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
@@ -148,8 +152,9 @@ shutdown_transaction2(void)
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
@@ -158,7 +163,7 @@ shutdown_transaction2(void)
 	void *txn = sp_begin(env);
 	t( txn != NULL );
 
-	/* shutdown properly closes used index */
+	/* shutdown properly closes used scheme */
 	t( sp_destroy(env) == 0 );
 }
 
@@ -177,8 +182,9 @@ shutdown_transaction3(void)
 
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
@@ -222,8 +228,9 @@ shutdown_transaction4(void)
 
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
@@ -258,8 +265,9 @@ shutdown_transaction5(void)
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
@@ -296,8 +304,9 @@ shutdown_transaction6(void)
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );

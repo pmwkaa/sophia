@@ -80,78 +80,81 @@ int sd_indexcommit(sdindex *i, sr *r, sdid *id, ssqf *qf, uint64_t offset)
 static inline int
 sd_indexadd_raw(sdindex *i, sr *r, sdindexpage *p, char *min, char *max)
 {
-	/* calculate sizes */
-	p->sizemin = sf_keytotal(min, r->scheme->count);
-	p->sizemax = sf_keytotal(max, r->scheme->count);
-	/* prepare buffer */
+	/* reformat document to exclude non-key fields */
+	p->sizemin = sf_comparable_size(r->scheme, min);
+	p->sizemax = sf_comparable_size(r->scheme, max);
 	int rc = ss_bufensure(&i->v, r->a, p->sizemin + p->sizemax);
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
-	/* reformat key document to exclude value */
-	rc = sf_keycopy(i->v.p, min, r->scheme->count);
-	assert(rc == p->sizemin);
-	(void)rc;
+	sf_comparable_write(r->scheme, min, i->v.p);
 	ss_bufadvance(&i->v, p->sizemin);
-	rc = sf_keycopy(i->v.p, max, r->scheme->count);
-	assert(rc == p->sizemax);
-	(void)rc;
+	sf_comparable_write(r->scheme, max, i->v.p);
 	ss_bufadvance(&i->v, p->sizemax);
 	return 0;
 }
 
 static inline int
-sd_indexadd_keyvalue(sdindex *i, sr *r, sdbuild *build, sdindexpage *p, char *min, char *max)
+sd_indexadd_sparse(sdindex *i, sr *r, sdbuild *build, sdindexpage *p, char *min, char *max)
 {
-	assert(r->scheme->count <= 8);
+	sfv fields[16];
 
 	/* min */
-	sfv kv[8];
-	uint64_t offset;
-	int total = 0;
 	int part = 0;
-	while (part < r->scheme->count) {
-		/* read keytab offset */
-		min += ss_leb128read(min, &offset);
-		/* read key */
-		sfv *k = &kv[part];
-		char *key = build->k.s + sd_buildref(build)->k + offset;
-		uint64_t keysize;
-		key += ss_leb128read(key, &keysize);
-		k->key = key;
-		k->r.size = keysize;
-		k->r.offset = 0;
-		total += keysize;
+	while (part < r->scheme->fields_count)
+	{
+		/* read field offset */
+		uint32_t offset = *(uint32_t*)min;
+		min += sizeof(uint32_t);
+		/* read field */
+		char *field = build->k.s + sd_buildref(build)->k + offset;
+		int fieldsize = *(uint32_t*)field;
+		field += sizeof(uint32_t);
+		/* copy only key fields, others are set to zero */
+		sfv *k = &fields[part];
+		if (r->scheme->fields[part]->key) {
+			k->pointer = field;
+			k->size = fieldsize;
+		} else {
+			k->pointer = NULL;
+			k->size = 0;
+		}
 		part++;
 	}
-	p->sizemin = total + (r->scheme->count * sizeof(sfref));
+	p->sizemin = sf_writesize(r->scheme, fields);
 	int rc = ss_bufensure(&i->v, r->a, p->sizemin);
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
-	sf_write(SF_KV, i->v.p, kv, r->scheme->count, NULL, 0);
+	sf_write(r->scheme, fields, i->v.p);
 	ss_bufadvance(&i->v, p->sizemin);
 
 	/* max */
-	total = 0;
 	part = 0;
-	while (part < r->scheme->count) {
-		/* read keytab offset */
-		max += ss_leb128read(max, &offset);
-		/* read key */
-		sfv *k = &kv[part];
-		char *key = build->k.s + sd_buildref(build)->k + offset;
-		uint64_t keysize;
-		key += ss_leb128read(key, &keysize);
-		k->key = key;
-		k->r.size = keysize;
-		k->r.offset = 0;
-		total += keysize;
+	while (part < r->scheme->fields_count)
+	{
+		/* read field offset */
+		uint32_t offset = *(uint32_t*)max;
+		max += sizeof(uint32_t);
+
+		/* read field */
+		char *field = build->k.s + sd_buildref(build)->k + offset;
+		int fieldsize = *(uint32_t*)field;
+		field += sizeof(uint32_t);
+
+		sfv *k = &fields[part];
+		if (r->scheme->fields[part]->key) {
+			k->pointer = field;
+			k->size = fieldsize;
+		} else {
+			k->pointer = NULL;
+			k->size = 0;
+		}
 		part++;
 	}
-	p->sizemax = total + (r->scheme->count * sizeof(sfref));
+	p->sizemax = sf_writesize(r->scheme, fields);
 	rc = ss_bufensure(&i->v, r->a, p->sizemax);
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
-	sf_write(SF_KV, i->v.p, kv, r->scheme->count, NULL, 0);
+	sf_write(r->scheme, fields, i->v.p);
 	ss_bufadvance(&i->v, p->sizemax);
 	return 0;
 }
@@ -180,28 +183,14 @@ int sd_indexadd(sdindex *i, sr *r, sdbuild *build, uint64_t offset)
 	/* copy keys */
 	if (ssunlikely(ph->count > 0))
 	{
-		char *min;
-		char *max;
-		sdv *v;
-		v    = sd_buildmin(build);
-		min  = sd_buildminkey(build);
-		min += ss_leb128skip(min);
-		min += ss_leb128skip(min);
-		if (sv_isflags(v->flags, SVTIMESTAMP))
-			min += ss_leb128skip(min);
-		v    = sd_buildmax(build);
-		max  = sd_buildmaxkey(build);
-		max += ss_leb128skip(max);
-		max += ss_leb128skip(max);
-		if (sv_isflags(v->flags, SVTIMESTAMP))
-			max += ss_leb128skip(max);
-
+		char *min = sd_buildminkey(build);
+		char *max = sd_buildmaxkey(build);
 		switch (r->fmt_storage) {
-		case SF_SRAW:
+		case SF_RAW:
 			rc = sd_indexadd_raw(i, r, p, min, max);
 			break;
-		case SF_SKEYVALUE:
-			rc = sd_indexadd_keyvalue(i, r, build, p, min, max);
+		case SF_SPARSE:
+			rc = sd_indexadd_sparse(i, r, build, p, min, max);
 			break;
 		}
 		if (ssunlikely(rc == -1))

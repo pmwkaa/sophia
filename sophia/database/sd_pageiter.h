@@ -28,11 +28,11 @@ sd_pageiter_result(sdpageiter *i)
 {
 	if (ssunlikely(i->v == NULL))
 		return;
-	if (sslikely(i->r->fmt_storage == SF_SRAW)) {
+	if (sslikely(i->r->fmt_storage == SF_RAW)) {
 		sv_init(&i->current, &sd_vif, i->v, i->page->h);
 		return;
 	}
-	sd_pagekv_convert(i->page, i->r, i->v, i->xfbuf->s);
+	sd_pagesparse_convert(i->page, i->r, i->v, i->xfbuf->s);
 	sv_init(&i->current, &sd_vrawif, i->xfbuf->s, NULL);
 }
 
@@ -46,21 +46,20 @@ sd_pageiter_end(sdpageiter *i)
 static inline int
 sd_pageiter_cmp(sdpageiter *i, sr *r, sdv *v)
 {
-	uint64_t size, lsn, ts;
-	if (sslikely(r->fmt_storage == SF_SRAW)) {
-		char *key = sd_pagemetaof(i->page, v, &size, &lsn, &ts);
-		return sr_compare(r->scheme, key, size, i->key, i->keysize);
+	if (sslikely(r->fmt_storage == SF_RAW)) {
+		return sf_compare(r->scheme, sd_pagepointer(i->page, v),
+		                  v->size, i->key, i->keysize);
 	}
-	/* key-value */
-	srkey *part = r->scheme->parts;
-	srkey *last = part + r->scheme->count;
+	sffield **part = r->scheme->keys;
+	sffield **last = part + r->scheme->keys_count;
 	int rc;
 	while (part < last) {
-		char *key = sd_pagekv_key(i->page, v, &size, part->pos);
-		rc = part->cmpraw(key, size,
-		                  sf_key(i->key, part->pos),
-		                  sf_keysize(i->key, part->pos),
-		                  NULL);
+		sffield *key = *part;
+		uint32_t a_fieldsize;
+		char *a_field = sd_pagesparse_field(i->page, v, key->position, &a_fieldsize);
+		uint32_t b_fieldsize;
+		char *b_field = sf_fieldof_ptr(r->scheme, key, i->key, &b_fieldsize);
+		rc = key->cmp(a_field, a_fieldsize, b_field, b_fieldsize, NULL);
 		if (rc != 0)
 			return rc;
 		part++;

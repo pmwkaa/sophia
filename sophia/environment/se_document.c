@@ -21,8 +21,7 @@
 #include <libse.h>
 
 enum {
-	SE_DOCUMENT_KEY,
-	SE_DOCUMENT_VALUE,
+	SE_DOCUMENT_FIELD,
 	SE_DOCUMENT_ORDER,
 	SE_DOCUMENT_PREFIX,
 	SE_DOCUMENT_LSN,
@@ -41,14 +40,6 @@ static inline int
 se_document_opt(const char *path)
 {
 	switch (path[0]) {
-	case 'v':
-		if (sslikely(strcmp(path, "value") == 0))
-			return SE_DOCUMENT_VALUE;
-		break;
-	case 'k':
-		if (sslikely(strncmp(path, "key", 3) == 0))
-			return SE_DOCUMENT_KEY;
-		break;
 	case 'o':
 		if (sslikely(strcmp(path, "order") == 0))
 			return SE_DOCUMENT_ORDER;
@@ -90,7 +81,7 @@ se_document_opt(const char *path)
 			return SE_DOCUMENT_EVENT;
 		break;
 	}
-	return SE_DOCUMENT_UNKNOWN;
+	return SE_DOCUMENT_FIELD;
 }
 
 static void
@@ -117,29 +108,35 @@ se_document_destroy(so *o)
 }
 
 static sfv*
-se_document_setpart(sedocument *v, const char *path, void *pointer, int size)
+se_document_setfield(sedocument *v, const char *path, void *pointer, int size)
 {
 	se *e = se_of(&v->o);
 	sedb *db = (sedb*)v->o.parent;
-	srkey *part = sr_schemefind(&db->scheme->scheme, (char*)path);
-	if (ssunlikely(part == NULL))
+	sffield *field = sf_schemefind(&db->scheme->scheme, (char*)path);
+	if (ssunlikely(field == NULL))
 		return NULL;
-	assert(part->pos < (int)(sizeof(v->keyv) / sizeof(sfv)));
-	const int keysize_max = 1024;
+	assert(field->position < (int)(sizeof(v->fields) / sizeof(sfv)));
+	sfv *fv = &v->fields[field->position];
 	if (size == 0)
 		size = strlen(pointer);
-	if (ssunlikely(size > keysize_max)) {
-		sr_error(&e->error, "key '%s' is too big (%d limit)",
-		         pointer, keysize_max);
+	int fieldsize_max;
+	if (field->key) {
+		fieldsize_max = 1024;
+	} else {
+		fieldsize_max = 2 * 1024 * 1024;
+	}
+	if (ssunlikely(size > fieldsize_max)) {
+		sr_error(&e->error, "field '%s' is too big (%d limit)",
+		         pointer, fieldsize_max);
 		return NULL;
 	}
-	sfv *fv = &v->keyv[part->pos];
-	fv->r.offset = 0;
-	fv->key = pointer;
-	fv->r.size = size;
-	if (fv->part == NULL)
-		v->keyc++;
-	fv->part = part;
+	if (fv->pointer == NULL) {
+		v->fields_count++;
+		if (field->key)
+			v->fields_count_keys++;
+	}
+	fv->pointer = pointer;
+	fv->size = size;
 	sr_statkey(&e->stat, size);
 	return fv;
 }
@@ -152,24 +149,10 @@ se_document_setstring(so *o, const char *path, void *pointer, int size)
 	if (ssunlikely(v->v.v))
 		return sr_error(&e->error, "%s", "document is read-only");
 	switch (se_document_opt(path)) {
-	case SE_DOCUMENT_KEY: {
-		sfv *fv = se_document_setpart(v, path, pointer, size);
+	case SE_DOCUMENT_FIELD: {
+		sfv *fv = se_document_setfield(v, path, pointer, size);
 		if (ssunlikely(fv == NULL))
 			return -1;
-		break;
-	}
-	case SE_DOCUMENT_VALUE: {
-		const int valuesize_max = 1 << 21;
-		if (ssunlikely(size > valuesize_max)) {
-			sr_error(&e->error, "value is too big (%d limit)",
-			         valuesize_max);
-			return -1;
-		}
-		v->value = pointer;
-		if (ssunlikely(size == 0 && pointer))
-			size = strlen(pointer);
-		v->valuesize = size;
-		sr_statvalue(&e->stat, size);
 		break;
 	}
 	case SE_DOCUMENT_ORDER:
@@ -205,49 +188,23 @@ se_document_getstring(so *o, const char *path, int *size)
 {
 	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
 	switch (se_document_opt(path)) {
-	case SE_DOCUMENT_KEY: {
-		/* match key-part */
+	case SE_DOCUMENT_FIELD: {
+		/* match field */
 		sedb *db = (sedb*)o->parent;
-		srkey *part = sr_schemefind(&db->scheme->scheme, (char*)path);
-		if (ssunlikely(part == NULL))
+		sffield *field = sf_schemefind(&db->scheme->scheme, (char*)path);
+		if (ssunlikely(field == NULL))
 			return NULL;
 		/* database result document */
-		if (v->v.v) {
-			if (size)
-				*size = sv_keysize(&v->v, db->r, part->pos);
-			return sv_key(&v->v, db->r, part->pos);
-		}
-		/* database key document */
-		assert(part->pos < (int)(sizeof(v->keyv) / sizeof(sfv)));
-		sfv *fv = &v->keyv[part->pos];
-		if (fv->key == NULL)
+		if (v->v.v)
+			return sv_field(&v->v, db->r, field->position, (uint32_t*)size);
+		/* database field document */
+		assert(field->position < (int)(sizeof(v->fields) / sizeof(sfv)));
+		sfv *fv = &v->fields[field->position];
+		if (fv->pointer == NULL)
 			return NULL;
 		if (size)
-			*size = fv->r.size;
-		return fv->key;
-	}
-	case SE_DOCUMENT_VALUE: {
-		/* key document */
-		if (v->value) {
-			if (size)
-				*size = v->valuesize;
-			if (v->valuesize == 0)
-				return NULL;
-			return v->value;
-		}
-		if (v->v.v == NULL) {
-			if (size)
-				*size = 0;
-			return NULL;
-		}
-		/* result document */
-		sedb *db = (sedb*)o->parent;
-		int vsize = sv_valuesize(&v->v, db->r);
-		if (size)
-			*size = vsize;
-		if (vsize == 0)
-			return NULL;
-		return sv_value(&v->v, db->r);
+			*size = fv->size;
+		return fv->pointer;
 	}
 	case SE_DOCUMENT_PREFIX: {
 		if (v->prefix == NULL)

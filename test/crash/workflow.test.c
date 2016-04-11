@@ -18,24 +18,22 @@
 static int workflow_upsert_n = 0;
 
 static int
-workflow_upsert_operator(char **result,
-                         char **key, int *key_size, int key_count,
-                         char *src, int src_size,
-                         char *upsert, int upsert_size,
+workflow_upsert_operator(int count,
+                         char **src,    uint32_t *src_size,
+                         char **upsert, uint32_t *upsert_size,
+                         char **result, uint32_t *result_size,
                          void *arg)
 {
-	(void)key;
-	(void)key_size;
-	(void)key_count;
-	assert(upsert != NULL);
 	(void)arg;
 	workflow_upsert_n++;
 	if (workflow_upsert_n == 1)
 		return -1;
-	char *c = malloc(upsert_size);
-	memcpy(c, upsert, upsert_size);
-	*result = c;
-	return upsert_size;
+	assert(upsert != NULL);
+	/* copy value field from upsert */
+	result_size[1] = upsert_size[1];
+	result[1] = malloc(upsert_size[1]);
+	memcpy(result[1], upsert[1], upsert_size[1]);
+	return 0;
 }
 
 static inline void*
@@ -72,13 +70,16 @@ workflow_open(void *env)
 	rc = sp_setstring(env, "db.test.storage", "in-memory", 0);
 	if (rc == -1)
 		return NULL;
-	rc = sp_setstring(env, "db.test.index", "key", 0);
+	rc = sp_setstring(env, "db.test.scheme", "key", 0);
 	if (rc == -1)
 		return NULL;
-	rc = sp_setstring(env, "db.test.index.key", "u32", 0);
+	rc = sp_setstring(env, "db.test.scheme.key", "u32,key", 0);
 	if (rc == -1)
 		return NULL;
-	rc = sp_setstring(env, "db.test.index.upsert", workflow_upsert_operator, 0);
+	rc = sp_setstring(env, "db.test.scheme", "value", 0);
+	if (rc == -1)
+		return NULL;
+	rc = sp_setstring(env, "db.test.upsert", workflow_upsert_operator, 0);
 	if (rc == -1)
 		return NULL;
 	rc = sp_setint(env, "db.test.sync", 0);

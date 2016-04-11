@@ -25,7 +25,7 @@ struct svindex {
 } sspacked;
 
 ss_rbget(sv_indexmatch,
-         sr_compare(scheme, sv_vpointer((sscast(n, svref, node))->v),
+         sf_compare(scheme, sv_vpointer((sscast(n, svref, node))->v),
                     (sscast(n, svref, node))->v->size,
                     key, keysize))
 

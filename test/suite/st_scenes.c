@@ -56,15 +56,14 @@ void st_scene_init(stscene *s ssunused)
 	ss_aopen(&st_r.a, &ss_stda);
 	ss_aopen(&st_r.aref, &ss_stda);
 	ss_vfsinit(&st_r.vfs, &ss_stdvfs);
-	sr_schemeinit(&st_r.scheme);
+	sf_schemeinit(&st_r.scheme);
 	memset(&st_r.injection, 0, sizeof(st_r.injection));
 	memset(&st_r.stat, 0, sizeof(st_r.stat));
 	sr_statusinit(&st_r.status);
 	sr_errorinit(&st_r.error);
 	sr_seqinit(&st_r.seq);
 	st_r.crc = ss_crc32c_function();
-	st_r.fmt = SF_KV;
-	st_r.fmt_storage = SF_SRAW;
+	st_r.fmt_storage = SF_RAW;
 	st_r.compression = NULL;
 	memset(&st_r.r, 0, sizeof(st_r.r));
 	st_r.key_start = 8;
@@ -75,13 +74,21 @@ void st_scene_init(stscene *s ssunused)
 
 void st_scene_scheme_u32(stscene *s ssunused)
 {
-	srkey *part = sr_schemeadd(&st_r.scheme);
-	t( sr_keysetname(part, &st_r.a, "key") == 0 );
-	t( sr_keyset(part, &st_r.a, "u32") == 0 );
+	sffield *field = sf_fieldnew(&st_r.a, "key");
+	t( field != NULL );
+	t( sf_fieldoptions(field, &st_r.a, "u32,key") == 0 );
+	t( sf_schemeadd(&st_r.scheme, &st_r.a, field) == 0 );
+
+	field = sf_fieldnew(&st_r.a, "value");
+	t( field != NULL );
+	t( sf_fieldoptions(field, &st_r.a, "string") == 0 );
+	t( sf_schemeadd(&st_r.scheme, &st_r.a, field) == 0 );
 }
 
 void st_scene_rt(stscene *s ssunused)
 {
+	sf_schemevalidate(&st_r.scheme, &st_r.a);
+
 	sr_init(&st_r.r, &st_r.status,
 	        &st_r.error,
 	        &st_r.a,
@@ -90,7 +97,6 @@ void st_scene_rt(stscene *s ssunused)
 	        NULL, /* quota */
 	        NULL, /* zonemap */
 	        &st_r.seq,
-	         st_r.fmt,
 	         st_r.fmt_storage,
 	         NULL, /* update */
 	        &st_r.scheme,
@@ -114,7 +120,7 @@ void st_scene_gc(stscene *s ssunused)
 	sr_errorfree(&st_r.error);
 	sr_statusfree(&st_r.status);
 	sr_seqfree(&st_r.seq);
-	sr_schemefree(&st_r.scheme, &st_r.a);
+	sf_schemefree(&st_r.scheme, &st_r.a);
 }
 
 void st_scene_env(stscene *s ssunused)
@@ -144,8 +150,10 @@ void st_scene_env(stscene *s ssunused)
 	t( sp_setint(env, "db.test.page_checksum", 1) == 0 );
 	t( sp_setstring(env, "db.test.compression", "none", 0) == 0 );
 	t( sp_setstring(env, "db.test.compression_branch", "none", 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.value", "string", 0) == 0 );
 
 	st_r.db = sp_getobject(env, "db.test");
 	t( st_r.db != NULL );
@@ -200,14 +208,11 @@ void st_scene_truncate(stscene *s ssunused)
 	while ((o = sp_get(c, o))) {
 		void *k = sp_document(st_r.db);
 		t( k != NULL );
-		int valuesize;
-		void *value = sp_getstring(o, "value", &valuesize);
-		sp_setstring(k, "value", value, valuesize);
 		int i = 0;
-		while (i < st_r.r.scheme->count) {
-			int keysize;
-			void *key = sp_getstring(o, st_r.r.scheme->parts[i].name, &keysize);
-			sp_setstring(k, st_r.r.scheme->parts[i].name, key, keysize);
+		while (i < st_r.r.scheme->fields_count) {
+			int size;
+			void *field = sp_getstring(o, st_r.r.scheme->fields[i]->name, &size);
+			sp_setstring(k, st_r.r.scheme->fields[i]->name, field, size);
 			i++;
 		}
 		t( sp_delete(st_r.db, k) == 0 );
@@ -254,47 +259,80 @@ void st_scene_phase_compaction(stscene *s)
 
 void st_scene_phase_scheme_int(stscene *s)
 {
-	srkey *part;
+	sffield *field;
 	switch (s->state) {
 	case 0:
 		if (st_r.verbose) {
 			fprintf(st_r.output, ".scheme_u32");
 			fflush(st_r.output);
 		}
-		part = sr_schemeadd(&st_r.scheme);
-		t( sr_keysetname(part, &st_r.a, "key") == 0 );
-		t( sr_keyset(part, &st_r.a, "u32") == 0 );
-		t( sp_setstring(st_r.env, "db.test.index.key", "u32", 0) == 0 );
+		field = sf_fieldnew(&st_r.a, "key");
+		t( field != NULL );
+		t( sf_fieldoptions(field, &st_r.a, "u32,key") == 0);
+		t( sf_schemeadd(&st_r.scheme, &st_r.a, field) == 0);
+
+		field = sf_fieldnew(&st_r.a, "value");
+		t( field != NULL );
+		t( sf_fieldoptions(field, &st_r.a, "string") == 0);
+		t( sf_schemeadd(&st_r.scheme, &st_r.a, field) == 0);
+
+		t( sp_setstring(st_r.env, "db.test.scheme", "key", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.scheme.key", "u32,key", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.scheme", "value", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.scheme.value", "string", 0) == 0 );
 		break;
 	case 1:
 		if (st_r.verbose) {
 			fprintf(st_r.output, ".scheme_u64");
 			fflush(st_r.output);
 		}
-		part = sr_schemeadd(&st_r.scheme);
-		t( sr_keysetname(part, &st_r.a, "key") == 0 );
-		t( sr_keyset(part, &st_r.a, "u64") == 0 );
-		t( sp_setstring(st_r.env, "db.test.index.key", "u64", 0) == 0 );
+		field = sf_fieldnew(&st_r.a, "key");
+		t( field != NULL );
+		t( sf_fieldoptions(field, &st_r.a, "u64,key") == 0);
+		t( sf_schemeadd(&st_r.scheme, &st_r.a, field) == 0);
+
+		field = sf_fieldnew(&st_r.a, "value");
+		t( field != NULL );
+		t( sf_fieldoptions(field, &st_r.a, "string") == 0);
+		t( sf_schemeadd(&st_r.scheme, &st_r.a, field) == 0);
+
+		t( sp_setstring(st_r.env, "db.test.scheme", "key", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.scheme.key", "u64,key", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.scheme", "value", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.scheme.value", "string", 0) == 0 );
 		break;
 	case 2:
 		if (st_r.verbose) {
 			fprintf(st_r.output, ".scheme_u32_u32");
 			fflush(st_r.output);
 		}
-		part = sr_schemeadd(&st_r.scheme);
-		t( sr_keysetname(part, &st_r.a, "key") == 0 );
-		t( sr_keyset(part, &st_r.a, "u32") == 0 );
-		part = sr_schemeadd(&st_r.scheme);
-		t( sr_keysetname(part, &st_r.a, "key_b") == 0 );
-		t( sr_keyset(part, &st_r.a, "u32") == 0 );
-		t( sp_setstring(st_r.env, "db.test.index.key", "u32", 0) == 0 );
-		t( sp_setstring(st_r.env, "db.test.index", "key_b", 0) == 0 );
-		t( sp_setstring(st_r.env, "db.test.index.key_b", "u32", 0) == 0 );
+		field = sf_fieldnew(&st_r.a, "key");
+		t( field != NULL );
+		t( sf_fieldoptions(field, &st_r.a, "u32,key") == 0);
+		t( sf_schemeadd(&st_r.scheme, &st_r.a, field) == 0);
+
+		field = sf_fieldnew(&st_r.a, "key_b");
+		t( field != NULL );
+		t( sf_fieldoptions(field, &st_r.a, "u32,key") == 0);
+		t( sf_schemeadd(&st_r.scheme, &st_r.a, field) == 0);
+
+		field = sf_fieldnew(&st_r.a, "value");
+		t( field != NULL );
+		t( sf_fieldoptions(field, &st_r.a, "string") == 0);
+		t( sf_schemeadd(&st_r.scheme, &st_r.a, field) == 0);
+
+		t( sp_setstring(st_r.env, "db.test.scheme", "key", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.scheme.key", "u32,key", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.scheme", "key_b", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.scheme.key_b", "u32,key", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.scheme", "value", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.scheme.value", "string", 0) == 0 );
 		break;
 	default: assert(0);
 	}
 }
 
+#if 0
 void st_scene_phase_scheme(stscene *s)
 {
 	srkey *part;
@@ -362,6 +400,7 @@ void st_scene_phase_scheme(stscene *s)
 	default: assert(0);
 	}
 }
+#endif
 
 void st_scene_phase_storage(stscene *s)
 {

@@ -16,8 +16,7 @@ struct sr {
 	srerror *e;
 	sfupsert *fmt_upsert;
 	sfstorage fmt_storage;
-	sf fmt;
-	srscheme *scheme;
+	sfscheme *scheme;
 	srseq *seq;
 	ssa *a;
 	ssa *aref;
@@ -39,10 +38,9 @@ sr_init(sr *r,
         ssquota *quota,
         srzonemap *zonemap,
         srseq *seq,
-        sf fmt,
         sfstorage fmt_storage,
         sfupsert *fmt_upsert,
-        srscheme *scheme,
+        sfscheme *scheme,
         ssinjection *i,
 		srstat *stat,
         sscrcf crc)
@@ -56,7 +54,6 @@ sr_init(sr *r,
 	r->zonemap     = zonemap;
 	r->seq         = seq;
 	r->scheme      = scheme;
-	r->fmt         = fmt;
 	r->fmt_storage = fmt_storage;
 	r->fmt_upsert  = fmt_upsert;
 	r->i           = i;

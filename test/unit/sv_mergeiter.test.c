@@ -24,7 +24,7 @@ sv_mergeiter_merge_a(void)
 	int i = 0;
 	while (i < 10)
 	{
-		st_sv(&st_r.g, &vlista, i, 0, i);
+		st_sv(&st_r.g, &vlista, i, 0, i, NULL, 0);
 		i++;
 	}
 	ssiter ita;
@@ -50,7 +50,7 @@ sv_mergeiter_merge_a(void)
 	i = 0;
 	while (ss_iteratorhas(&merge)) {
 		sv *v = (sv*)ss_iteratorof(&merge);
-		t( *(int*)sv_key(v, &st_r.r, 0) == i );
+		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
 		t( sv_lsn(v) == i );
 		t( sv_flags(v) == 0 );
 		ss_iteratornext(&merge);
@@ -75,7 +75,7 @@ sv_mergeiter_merge_b(void)
 	int i = 0;
 	while (i < 10)
 	{
-		st_sv(&st_r.g, &vlistb, i, 0, i);
+		st_sv(&st_r.g, &vlistb, i, 0, i, NULL, 0);
 		i++;
 	}
 	ssiter ita;
@@ -101,7 +101,7 @@ sv_mergeiter_merge_b(void)
 	i = 0;
 	while (ss_iteratorhas(&merge)) {
 		sv *v = (sv*)ss_iteratorof(&merge);
-		t( *(int*)sv_key(v, &st_r.r, 0) == i );
+		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
 		t( sv_lsn(v) == i );
 		t( sv_flags(v) == 0 );
 		ss_iteratornext(&merge);
@@ -126,12 +126,12 @@ sv_mergeiter_merge_ab(void)
 	int i = 0;
 	while (i < 5)
 	{
-		st_sv(&st_r.g, &vlista, i, 0, i);
+		st_sv(&st_r.g, &vlista, i, 0, i, NULL, 0);
 		i++;
 	}
 	while (i < 10)
 	{
-		st_sv(&st_r.g, &vlistb, i, 0, i);
+		st_sv(&st_r.g, &vlistb, i, 0, i, NULL, 0);
 		i++;
 	}
 
@@ -158,7 +158,7 @@ sv_mergeiter_merge_ab(void)
 	i = 0;
 	while (ss_iteratorhas(&merge)) {
 		sv *v = (sv*)ss_iteratorof(&merge);
-		t( *(int*)sv_key(v, &st_r.r, 0) == i );
+		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
 		t( sv_lsn(v) == i );
 		t( sv_flags(v) == 0 );
 		ss_iteratornext(&merge);
@@ -185,17 +185,17 @@ sv_mergeiter_merge_abc(void)
 	int i = 0;
 	while (i < 5)
 	{
-		st_sv(&st_r.g, &vlista, i, 0, i);
+		st_sv(&st_r.g, &vlista, i, 0, i, NULL, 0);
 		i++;
 	}
 	while (i < 10)
 	{
-		st_sv(&st_r.g, &vlistb, i, 0, i);
+		st_sv(&st_r.g, &vlistb, i, 0, i, NULL, 0);
 		i++;
 	}
 	while (i < 15)
 	{
-		st_sv(&st_r.g, &vlistc, i, 0, i);
+		st_sv(&st_r.g, &vlistc, i, 0, i, NULL, 0);
 		i++;
 	}
 
@@ -228,7 +228,7 @@ sv_mergeiter_merge_abc(void)
 	i = 0;
 	while (ss_iteratorhas(&merge)) {
 		sv *v = (sv*)ss_iteratorof(&merge);
-		t( *(int*)sv_key(v, &st_r.r, 0) == i );
+		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
 		t( sv_lsn(v) == i );
 		t( sv_flags(v) == 0 );
 		ss_iteratornext(&merge);
@@ -254,12 +254,12 @@ sv_mergeiter_merge_ba(void)
 	int i = 0;
 	while (i < 5)
 	{
-		st_sv(&st_r.g, &vlista, i, 0, i);
+		st_sv(&st_r.g, &vlista, i, 0, i, NULL, 0);
 		i++;
 	}
 	while (i < 10)
 	{
-		st_sv(&st_r.g, &vlistb, i, 0, i);
+		st_sv(&st_r.g, &vlistb, i, 0, i, NULL, 0);
 		i++;
 	}
 
@@ -286,7 +286,7 @@ sv_mergeiter_merge_ba(void)
 	i = 0;
 	while (ss_iteratorhas(&merge)) {
 		sv *v = (sv*)ss_iteratorof(&merge);
-		t( *(int*)sv_key(v, &st_r.r, 0) == i );
+		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
 		t( sv_lsn(v) == i );
 		t( sv_flags(v) == 0 );
 		ss_iteratornext(&merge);
@@ -312,14 +312,14 @@ sv_mergeiter_merge_dup_ab(void)
 	int lsn = 10;
 	while (i < 5)
 	{
-		st_sv(&st_r.g, &vlista, lsn, 0, i);
+		st_sv(&st_r.g, &vlista, lsn, 0, i, NULL, 0);
 		i++;
 		lsn--;
 	}
 	i = 0;
 	while (i < 5)
 	{
-		st_sv(&st_r.g, &vlistb, lsn, 0, i);
+		st_sv(&st_r.g, &vlistb, lsn, 0, i, NULL, 0);
 		i++;
 		lsn--;
 	}
@@ -349,11 +349,11 @@ sv_mergeiter_merge_dup_ab(void)
 	while (ss_iteratorhas(&merge)) {
 		sv *v = (sv*)ss_iteratorof(&merge);
 		if ((i % 2) == 0) {
-			t( *(int*)sv_key(v, &st_r.r, 0) == key );
+			t( *(int*)sv_field(v, &st_r.r, 0, NULL) == key );
 			t( sv_flags(v) == 0 );
 			key++;
 		} else {
-			t( *(int*)sv_key(v, &st_r.r, 0) == key - 1);
+			t( *(int*)sv_field(v, &st_r.r, 0, NULL) == key - 1);
 			t( (sv_flags(v) | sv_mergeisdup(&merge)) == (0|SVDUP) );
 		}
 		ss_iteratornext(&merge);
@@ -380,7 +380,7 @@ sv_mergeiter_merge_dup_a_chain(void)
 	int lsn = 5;
 	while (i < 5)
 	{
-		st_sv(&st_r.g, &vlista, lsn, 0 | ((i > 0) ? SVDUP: 0), key);
+		st_sv(&st_r.g, &vlista, lsn, 0 | ((i > 0) ? SVDUP: 0), key, NULL, 0);
 		i++;
 		lsn--;
 	}
@@ -408,7 +408,7 @@ sv_mergeiter_merge_dup_a_chain(void)
 	i = 0;
 	while (ss_iteratorhas(&merge)) {
 		sv *v = (sv*)ss_iteratorof(&merge);
-		t( *(int*)sv_key(v, &st_r.r, 0) == key );
+		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == key );
 		if (i == 0) {
 			t( sv_flags(v) == 0 );
 		} else {
@@ -438,14 +438,14 @@ sv_mergeiter_merge_dup_ab_chain(void)
 	int lsn = 10;
 	while (i < 5)
 	{
-		st_sv(&st_r.g, &vlista, lsn, 0 | ((i > 0) ? SVDUP: 0), key);
+		st_sv(&st_r.g, &vlista, lsn, 0 | ((i > 0) ? SVDUP: 0), key, NULL, 0);
 		i++;
 		lsn--;
 	}
 	i = 0;
 	while (i < 5)
 	{
-		st_sv(&st_r.g, &vlistb, lsn, 0 | ((i > 0) ? SVDUP: 0), key);
+		st_sv(&st_r.g, &vlistb, lsn, 0 | ((i > 0) ? SVDUP: 0), key, NULL, 0);
 		i++;
 		lsn--;
 	}
@@ -473,7 +473,7 @@ sv_mergeiter_merge_dup_ab_chain(void)
 	i = 0;
 	while (ss_iteratorhas(&merge)) {
 		sv *v = (sv*)ss_iteratorof(&merge);
-		t( *(int*)sv_key(v, &st_r.r, 0) == key );
+		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == key );
 		if (i == 0) {
 			t( sv_flags(v) == 0 );
 		} else {
@@ -505,21 +505,21 @@ sv_mergeiter_merge_dup_abc_chain(void)
 	int lsn = 10;
 	while (i < 5)
 	{
-		st_sv(&st_r.g, &vlista, lsn, 0 | ((i > 0) ? SVDUP: 0), key);
+		st_sv(&st_r.g, &vlista, lsn, 0 | ((i > 0) ? SVDUP: 0), key, NULL, 0);
 		i++;
 		lsn--;
 	}
 	i = 0;
 	while (i < 5)
 	{
-		st_sv(&st_r.g, &vlistb, lsn, 0 | ((i > 0) ? SVDUP: 0), key);
+		st_sv(&st_r.g, &vlistb, lsn, 0 | ((i > 0) ? SVDUP: 0), key, NULL, 0);
 		i++;
 		lsn--;
 	}
 	i = 0;
 	while (i < 5)
 	{
-		st_sv(&st_r.g, &vlistc, lsn, 0 | ((i > 0) ? SVDUP: 0), key);
+		st_sv(&st_r.g, &vlistc, lsn, 0 | ((i > 0) ? SVDUP: 0), key, NULL, 0);
 		i++;
 		lsn--;
 	}
@@ -553,7 +553,7 @@ sv_mergeiter_merge_dup_abc_chain(void)
 	i = 0;
 	while (ss_iteratorhas(&merge)) {
 		sv *v = (sv*)ss_iteratorof(&merge);
-		t( *(int*)sv_key(v, &st_r.r, 0) == key );
+		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == key );
 		if (i == 0) {
 			t( sv_flags(v) == 0 );
 		} else {

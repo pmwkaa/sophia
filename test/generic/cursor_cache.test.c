@@ -22,8 +22,9 @@ cursor_cache_test0(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32",0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
@@ -67,8 +68,9 @@ cursor_cache_test1(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32",0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
@@ -121,8 +123,9 @@ cursor_cache_invalidate(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32",0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );

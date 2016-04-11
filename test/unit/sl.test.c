@@ -19,11 +19,12 @@
 static void
 alloclogv(svlog *log, sr *r, uint64_t lsn, uint8_t flags, int key)
 {
-	sfv pv;
-	pv.key = (char*)&key;
-	pv.r.size = sizeof(uint32_t);
-	pv.r.offset = 0;
-	svv *v = sv_vbuild(r, &pv, 1, NULL, 0, 0);
+	sfv pv[2];
+	pv[0].pointer = (char*)&key;
+	pv[0].size = sizeof(uint32_t);
+	pv[1].pointer = NULL;
+	pv[1].size = 0;
+	svv *v = sv_vbuild(r, pv, 0);
 	v->lsn = lsn;
 	v->flags = flags;
 	svlogv logv;

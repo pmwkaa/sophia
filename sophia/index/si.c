@@ -92,7 +92,7 @@ int si_close(si *i)
 }
 
 ss_rbget(si_match,
-         sr_compare(scheme,
+         sf_compare(scheme,
                     sd_indexpage_min(&(sscast(n, sinode, node))->self.index,
                                      sd_indexmin(&(sscast(n, sinode, node))->self.index)),
                     sd_indexmin(&(sscast(n, sinode, node))->self.index)->sizemin,

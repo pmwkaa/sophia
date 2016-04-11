@@ -32,11 +32,11 @@ static inline void
 sd_iterresult(sditer *i, int pos)
 {
 	i->dv = sd_pagev(&i->pagev, pos);
-	if (sslikely(i->r->fmt_storage == SF_SRAW)) {
+	if (sslikely(i->r->fmt_storage == SF_RAW)) {
 		sv_init(&i->v, &sd_vif, i->dv, i->pagev.h);
 		return;
 	}
-	sd_pagekv_convert(&i->pagev, i->r, i->dv, i->transform_buf->s);
+	sd_pagesparse_convert(&i->pagev, i->r, i->dv, i->transform_buf->s);
 	sv_init(&i->v, &sd_vrawif, i->transform_buf->s, NULL);
 }
 

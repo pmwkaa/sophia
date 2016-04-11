@@ -29,7 +29,7 @@ sd_indexiter_route(sdindexiter *i)
 	while (begin != end) {
 		int mid = begin + (end - begin) / 2;
 		sdindexpage *page = sd_indexpage(i->index, mid);
-		int rc = sr_compare(i->r->scheme,
+		int rc = sf_compare(i->r->scheme,
 		                    sd_indexpage_max(i->index, page),
 		                    page->sizemax,
 		                    i->key,
@@ -85,14 +85,14 @@ sd_indexiter_open(ssiter *i, sr *r, sdindex *index, ssorder o, void *key, int ke
 	switch (ii->cmp) {
 	case SS_LTE:
 	case SS_LT:
-		rc = sr_compare(ii->r->scheme, sd_indexpage_min(ii->index, p),
+		rc = sf_compare(ii->r->scheme, sd_indexpage_min(ii->index, p),
 		                p->sizemin, ii->key, ii->keysize);
 		if (rc ==  1 || (rc == 0 && ii->cmp == SS_LT))
 			ii->pos--;
 		break;
 	case SS_GTE:
 	case SS_GT:
-		rc = sr_compare(ii->r->scheme, sd_indexpage_max(ii->index, p),
+		rc = sf_compare(ii->r->scheme, sd_indexpage_max(ii->index, p),
 		                p->sizemax, ii->key, ii->keysize);
 		if (rc == -1 || (rc == 0 && ii->cmp == SS_GT))
 			ii->pos++;

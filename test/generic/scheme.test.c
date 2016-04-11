@@ -27,10 +27,11 @@ scheme_test0(void)
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.compression", "zstd", 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key_b", "string", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key_b", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key_b", "string,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
@@ -56,12 +57,17 @@ scheme_test0(void)
 	t( strcmp(v, "zstd") == 0 );
 	free(v);
 
-	v = sp_getstring(env, "db.test.index.key", 0);
+	v = sp_getstring(env, "db.test.scheme.key", 0);
 	t( v != NULL );
-	t( strcmp(v, "u32") == 0 );
+	t( strcmp(v, "u32,key") == 0 );
 	free(v);
 
-	v = sp_getstring(env, "db.test.index.key_b", 0);
+	v = sp_getstring(env, "db.test.scheme.key_b", 0);
+	t( v != NULL );
+	t( strcmp(v, "string,key") == 0 );
+	free(v);
+
+	v = sp_getstring(env, "db.test.scheme.value", 0);
 	t( v != NULL );
 	t( strcmp(v, "string") == 0 );
 	free(v);
@@ -84,10 +90,11 @@ scheme_test1(void)
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.compression", "none", 0) == 0 );
 	t( sp_setint(env, "db.test.compression_key", 1) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key_b", "string", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key_b", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key_b", "string,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
@@ -103,10 +110,11 @@ scheme_test1(void)
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.compression", "zstd", 0) == 0 );
 	t( sp_setint(env, "db.test.compression_key", 1) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "string", 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key_b", "u64", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "string,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key_b", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key_b", "u64,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
@@ -121,14 +129,14 @@ scheme_test1(void)
 
 	t( sp_getint(env, "db.test.compression_key") == 1 );
 
-	v = sp_getstring(env, "db.test.index.key", 0);
+	v = sp_getstring(env, "db.test.scheme.key", 0);
 	t( v != NULL );
-	t( strcmp(v, "u32") == 0 );
+	t( strcmp(v, "u32,key") == 0 );
 	free(v);
 
-	v = sp_getstring(env, "db.test.index.key_b", 0);
+	v = sp_getstring(env, "db.test.scheme.key_b", 0);
 	t( v != NULL );
-	t( strcmp(v, "string") == 0 );
+	t( strcmp(v, "string,key") == 0 );
 	free(v);
 
 	t( sp_destroy(env) == 0 );

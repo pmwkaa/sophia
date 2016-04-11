@@ -9,20 +9,20 @@
  * BSD License
 */
 
-void *st_document_generate(stgenerator*, sf, stlist*, void*, uint32_t, uint32_t);
-void  st_document_eq(stgenerator*, sf, void*, uint32_t, uint32_t);
+void *st_document_generate(stgenerator*, stlist*, void*, uint32_t, uint32_t);
+void  st_document_eq(stgenerator*, void*, uint32_t, uint32_t);
 
 static inline void*
 st_document(uint32_t seed, uint32_t seed_value)
 {
-	return st_document_generate(&st_r.g, st_r.fmt, &st_r.gc, st_r.db,
-	                          seed, seed_value);
+	return st_document_generate(&st_r.g, &st_r.gc, st_r.db,
+	                            seed, seed_value);
 }
 
 static inline void
 st_document_is(void *o, uint32_t seed, uint32_t seed_value)
 {
-	st_document_eq(&st_r.g, st_r.fmt, o, seed, seed_value);
+	st_document_eq(&st_r.g, o, seed, seed_value);
 }
 
 #endif

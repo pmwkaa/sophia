@@ -602,9 +602,9 @@ se_confv_dboffline(srconf *c, srconfstmt *s)
 }
 
 static inline int
-se_confdb_index(srconf *c ssunused, srconfstmt *s)
+se_confdb_scheme(srconf *c ssunused, srconfstmt *s)
 {
-	/* set(index, key) */
+	/* set(scheme, field) */
 	sedb *db = c->ptr;
 	se *e = se_of(&db->o);
 	if (s->op != SR_WRITE) {
@@ -615,33 +615,36 @@ se_confdb_index(srconf *c ssunused, srconfstmt *s)
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
+	if (ssunlikely(db->scheme->scheme.fields_count == 8)) {
+		sr_error(s->r->e, "%s", "fields number limit reached");
+		return -1;
+	}
 	char *name = s->value;
-	srkey *part = sr_schemefind(&db->scheme->scheme, name);
-	if (ssunlikely(part)) {
-		sr_error(&e->error, "keypart '%s' already exists", name);
+	sffield *field = sf_schemefind(&db->scheme->scheme, name);
+	if (ssunlikely(field)) {
+		sr_error(&e->error, "field '%s' is already set", name);
 		return -1;
 	}
-	/* create new key-part */
-	part = sr_schemeadd(&db->scheme->scheme);
-	if (ssunlikely(part == NULL)) {
-		sr_error(&e->error, "number of index parts reached limit (%d limit)",
-		         SR_SCHEME_MAXKEY);
-		return -1;
+	/* create new field */
+	field = sf_fieldnew(&e->a, name);
+	if (ssunlikely(field == NULL))
+		return sr_oom(&e->error);
+	int rc;
+	rc = sf_fieldoptions(field, &e->a, "string");
+	if (ssunlikely(rc == -1)) {
+		sf_fieldfree(field, &e->a);
+		return sr_oom(&e->error);
 	}
-	int rc = sr_keysetname(part, &e->a, name);
-	if (ssunlikely(rc == -1))
-		goto error;
-	rc = sr_keyset(part, &e->a, "string");
-	if (ssunlikely(rc == -1))
-		goto error;
+	rc = sf_schemeadd(&db->scheme->scheme, &e->a, field);
+	if (ssunlikely(rc == -1)) {
+		sf_fieldfree(field, &e->a);
+		return sr_oom(&e->error);
+	}
 	return 0;
-error:
-	sr_schemepop(&db->scheme->scheme, &e->a);
-	return -1;
 }
 
 static inline int
-se_confdb_key(srconf *c, srconfstmt *s)
+se_confdb_field(srconf *c, srconfstmt *s)
 {
 	sedb *db = c->ptr;
 	se *e = se_of(&db->o);
@@ -653,9 +656,9 @@ se_confdb_key(srconf *c, srconfstmt *s)
 	}
 	char *path = s->value;
 	/* update key-part path */
-	srkey *part = sr_schemefind(&db->scheme->scheme, c->key);
-	assert(part != NULL);
-	return sr_keyset(part, &e->a, path);
+	sffield *field = sf_schemefind(&db->scheme->scheme, c->key);
+	assert(field != NULL);
+	return sf_fieldoptions(field, &e->a, path);
 }
 
 static inline srconf*
@@ -693,13 +696,13 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc)
 		sr_C(&p, pc, se_confv, "branch_max", SS_U32, &o->rtp.total_branch_max, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "branch_histogram", SS_STRINGPTR, &o->rtp.histogram_branch_ptr, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "page_count", SS_U32, &o->rtp.total_page_count, SR_RO, NULL);
-		sr_C(&p, pc, se_confdb_upsert, "upsert", SS_STRING, NULL, 0, o);
-		sr_C(&p, pc, se_confdb_upsertarg, "upsert_arg", SS_STRING, NULL, 0, o);
-		/* index keys */
+		/* scheme */
+		srconf *scheme = *pc;
+		p = NULL;
 		int i = 0;
-		while (i < o->scheme->scheme.count) {
-			srkey *part = sr_schemeof(&o->scheme->scheme, i);
-			sr_C(&p, pc, se_confdb_key, part->name, SS_STRING, part->path, 0, o);
+		while (i < o->scheme->scheme.fields_count) {
+			sffield *field = o->scheme->scheme.fields[i];
+			sr_C(&p, pc, se_confdb_field, field->name, SS_STRING, field->options, 0, o);
 			i++;
 		}
 		/* database */
@@ -728,10 +731,13 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc)
 		sr_C(&p, pc, se_confv_dboffline, "compression", SS_STRINGPTR, &o->scheme->compression_sz, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "lru", SS_U64, &o->scheme->lru, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "lru_step", SS_U32, &o->scheme->lru_step, 0, o);
+		sr_C(&p, pc, se_confdb_upsert, "upsert", SS_STRING, NULL, 0, o);
+		sr_C(&p, pc, se_confdb_upsertarg, "upsert_arg", SS_STRING, NULL, 0, o);
 		sr_c(&p, pc, se_confdb_branch, "branch", SS_FUNCTION, o);
 		sr_c(&p, pc, se_confdb_compact, "compact", SS_FUNCTION, o);
 		sr_c(&p, pc, se_confdb_compact_index, "compact_index", SS_FUNCTION, o);
-		sr_C(&p, pc, se_confdb_index, "index", SS_UNDEF, index, SR_NS, o);
+		sr_C(&p, pc, NULL, "index", SS_UNDEF, index, SR_NS, o);
+		sr_C(&p, pc, se_confdb_scheme, "scheme", SS_UNDEF, scheme, SR_NS, o);
 		sr_C(&prev, pc, se_confdb_get, o->scheme->name, SS_STRING, database, SR_NS, o);
 		if (db == NULL)
 			db = prev;
@@ -1099,10 +1105,7 @@ int se_confinit(seconf *c, so *e)
 	c->conf = ss_malloc(&o->a, sizeof(srconf) * c->confmax);
 	if (ssunlikely(c->conf == NULL))
 		return -1;
-	sr_schemeinit(&c->scheme);
-	srkey *part = sr_schemeadd(&c->scheme);
-	sr_keysetname(part, &o->a, "key");
-	sr_keyset(part, &o->a, "string");
+	sf_schemeinit(&c->scheme);
 	c->env                 = e;
 	c->path                = NULL;
 	c->path_create         = 1;
@@ -1186,7 +1189,7 @@ void se_conffree(seconf *c)
 		ss_free(&e->a, c->backup_path);
 		c->backup_path = NULL;
 	}
-	sr_schemefree(&c->scheme, &e->a);
+	sf_schemefree(&c->scheme, &e->a);
 }
 
 int se_confvalidate(seconf *c)

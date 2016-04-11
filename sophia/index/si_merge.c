@@ -58,7 +58,7 @@ si_redistribute(si *index, sr *r, sdc *c, sinode *node, ssbuf *result)
 			svref *v = ss_iterof(ss_bufiterref, &i);
 			v->next = NULL;
 			sdindexpage *page = sd_indexmin(&p->self.index);
-			int rc = sr_compare(r->scheme, sv_vpointer(v->v), v->v->size,
+			int rc = sf_compare(r->scheme, sv_vpointer(v->v), v->v->size,
 			                    sd_indexpage_min(&p->self.index, page),
 			                    page->sizemin);
 			if (ssunlikely(rc >= 0))

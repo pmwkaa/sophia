@@ -14,8 +14,6 @@
 #include <sr_status.h>
 #include <sr_stat.h>
 #include <sr_seq.h>
-#include <sr_scheme.h>
-#include <sr_limit.h>
 #include <sr_zone.h>
 #include <sr.h>
 #include <sr_conf.h>

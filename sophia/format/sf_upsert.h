@@ -9,10 +9,10 @@
  * BSD License
 */
 
-typedef int (*sfupsertf)(char **result,
-                         char **key, int *key_size, int key_count,
-                         char *src, int src_size,
-                         char *upsert, int upsert_size,
+typedef int (*sfupsertf)(int count,
+                         char **src,    uint32_t *src_size,
+                         char **upsert, uint32_t *upsert_size,
+                         char **result, uint32_t *result_size,
                          void *arg);
 
 typedef struct {

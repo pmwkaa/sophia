@@ -72,7 +72,7 @@ mt_set_checkpoint_get(void)
 
 	/* This works only with thread = 1.
 	 *
-	 * Real data flush can happed before index got
+	 * Real data flush can happed before scheme got
 	 * collected and any other worker trigger
 	 * checkpoint complete.
 	*/
@@ -197,11 +197,14 @@ mt_create_set_close(void)
 		snprintf(path, sizeof(path), "db.%d.sync", i);
 		t( sp_setint(env, path, 0) == 0 );
 
-		snprintf(path, sizeof(path), "db.%d.index", i);
+		snprintf(path, sizeof(path), "db.%d.scheme", i);
 		t( sp_setstring(env, path, "key", 0) == 0 );
 
-		snprintf(path, sizeof(path), "db.%d.index.key", i);
-		t( sp_setstring(env, path, "u32", 0) == 0 );
+		snprintf(path, sizeof(path), "db.%d.scheme", i);
+		t( sp_setstring(env, path, "value", 0) == 0 );
+
+		snprintf(path, sizeof(path), "db.%d.scheme.key", i);
+		t( sp_setstring(env, path, "u32,key", 0) == 0 );
 
 		snprintf(path, sizeof(path), "db.%d", i);
 		void *db = sp_getobject(env, path);
@@ -255,11 +258,14 @@ mt_create_set_drop(void)
 		snprintf(path, sizeof(path), "db.%d.sync", i);
 		t( sp_setint(env, path, 0) == 0 );
 
-		snprintf(path, sizeof(path), "db.%d.index", i);
+		snprintf(path, sizeof(path), "db.%d.scheme", i);
 		t( sp_setstring(env, path, "key", 0) == 0 );
 
-		snprintf(path, sizeof(path), "db.%d.index.key", i);
-		t( sp_setstring(env, path, "u32", 0) == 0 );
+		snprintf(path, sizeof(path), "db.%d.scheme", i);
+		t( sp_setstring(env, path, "value", 0) == 0 );
+
+		snprintf(path, sizeof(path), "db.%d.scheme.key", i);
+		t( sp_setstring(env, path, "u32,key", 0) == 0 );
 
 		snprintf(path, sizeof(path), "db.%d", i);
 		void *db = sp_getobject(env, path);
@@ -299,8 +305,9 @@ mt_set_delete_get(void)
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
@@ -357,10 +364,11 @@ mt_set_get_kv_multipart(void)
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setint(env, "db.test.compression_key", 1) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "string", 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key_b", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key_b", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "string,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key_b", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key_b", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -419,8 +427,9 @@ mt_set_get_anticache(void)
 	t( sp_setint(env, "db.test.temperature", 1) == 0 );
 	t( sp_setint(env, "db.test.node_size", 100 * 1024) == 0 );
 	t( sp_setint(env, "db.test.page_size", 8 * 1024) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -472,8 +481,9 @@ mt_set_lru(void)
 	t( sp_setint(env, "db.test.compression_key", 0) == 0 );
 	t( sp_setint(env, "db.test.lru", 1 * 1024 * 1024) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -511,16 +521,18 @@ mt_set_get_cache(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 
 	t( sp_setstring(env, "db", "cache", 0) == 0 );
-	t( sp_setstring(env, "db.cache.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.cache.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.cache.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.cache.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.cache.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.cache.sync", 0) == 0 );
 	t( sp_setint(env, "db.cache.cache_mode", 1) == 0 );
 	t( sp_setint(env, "db.cache.lru", 10 * 1024 * 1024) == 0 );
 	t( sp_setint(env, "db.cache.amqf", 1) == 0 );
 
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.cache", "cache", 0) == 0 );
 
@@ -578,8 +590,9 @@ mt_set_expire(void)
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setint(env, "db.test.compression_key", 1) == 0 );
 	t( sp_setint(env, "db.test.expire", 1) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );

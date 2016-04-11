@@ -94,8 +94,8 @@ int sc_read(scread *r, sc *s)
 	uint32_t prefixsize;
 	if (arg->vprefix.v) {
 		void *vptr = sv_vpointer(arg->vprefix.v);
-		prefix = sf_key(vptr, 0);
-		prefixsize = sf_keysize(vptr, 0);
+		sfscheme *s = &index->scheme.scheme;
+		prefix = sf_fieldof_ptr(s, s->keys[0], vptr, &prefixsize);
 	} else {
 		prefix = NULL;
 		prefixsize = 0;

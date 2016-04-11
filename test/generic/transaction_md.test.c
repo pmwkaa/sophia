@@ -25,10 +25,12 @@ transaction_md_set_commit(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "t0", 0) == 0 );
 	t( sp_setstring(env, "db", "t1", 0) == 0 );
-	t( sp_setstring(env, "db.t0.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.t1.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.t0.index.key", "u32", 0) == 0 );
-	t( sp_setstring(env, "db.t1.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.t0.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.t1.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.t0.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.t1.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.t0.scheme", "value", 0) == 0 );
+	t( sp_setstring(env, "db.t1.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.t0.sync", 0) == 0 );
 	t( sp_setint(env, "db.t1.sync", 0) == 0 );
 
@@ -80,10 +82,12 @@ transaction_md_set_rollback(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "t0", 0) == 0 );
 	t( sp_setstring(env, "db", "t1", 0) == 0 );
-	t( sp_setstring(env, "db.t0.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.t1.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.t0.index.key", "u32", 0) == 0 );
-	t( sp_setstring(env, "db.t1.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.t0.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.t1.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.t0.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.t1.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.t0.scheme", "value", 0) == 0 );
+	t( sp_setstring(env, "db.t1.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.t0.sync", 0) == 0 );
 	t( sp_setint(env, "db.t1.sync", 0) == 0 );
 

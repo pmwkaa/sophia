@@ -113,13 +113,13 @@ si_getresult(siread *q, sv *v, int compare)
 {
 	int rc;
 	if (compare) {
-		rc = sr_compare(q->r->scheme, sv_pointer(v), sv_size(v),
+		rc = sf_compare(q->r->scheme, sv_pointer(v), sv_size(v),
 		                q->key, q->keysize);
 		if (ssunlikely(rc != 0))
 			return 0;
 	}
 	if (q->prefix) {
-		rc = sr_compareprefix(q->r->scheme,
+		rc = sf_compareprefix(q->r->scheme,
 		                      q->prefix,
 		                      q->prefixsize,
 		                      sv_pointer(v), sv_size(v));
@@ -442,13 +442,13 @@ next_node:
 	rc = 1;
 	/* convert upsert search to SS_EQ */
 	if (q->upsert_eq) {
-		rc = sr_compare(q->r->scheme, sv_pointer(v), sv_size(v),
+		rc = sf_compare(q->r->scheme, sv_pointer(v), sv_size(v),
 		                q->key, q->keysize);
 		rc = rc == 0;
 	}
 	/* do prefix search */
 	if (q->prefix && rc) {
-		rc = sr_compareprefix(q->r->scheme, q->prefix, q->prefixsize,
+		rc = sf_compareprefix(q->r->scheme, q->prefix, q->prefixsize,
 		                      sv_pointer(v),
 		                      sv_size(v));
 	}

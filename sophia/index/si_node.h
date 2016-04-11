@@ -143,13 +143,13 @@ si_nodeof(ssrbnode *node) {
 }
 
 static inline int
-si_nodecmp(sinode *n, void *key, int size, srscheme *s)
+si_nodecmp(sinode *n, void *key, int size, sfscheme *s)
 {
 	sdindexpage *min = sd_indexmin(&n->self.index);
 	sdindexpage *max = sd_indexmax(&n->self.index);
-	int l = sr_compare(s, sd_indexpage_min(&n->self.index, min),
+	int l = sf_compare(s, sd_indexpage_min(&n->self.index, min),
 	                   min->sizemin, key, size);
-	int r = sr_compare(s, sd_indexpage_max(&n->self.index, max),
+	int r = sf_compare(s, sd_indexpage_max(&n->self.index, max),
 	                   max->sizemax, key, size);
 	/* inside range */
 	if (l <= 0 && r >= 0)

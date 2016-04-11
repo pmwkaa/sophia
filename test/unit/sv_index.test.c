@@ -32,13 +32,13 @@ sv_index_replace0(void)
 	t( sv_indexinit(&i) == 0 );
 
 	uint32_t key = 7;
-	svref *h = st_svref(&st_r.g, NULL, 0, 0, key);
-	svref *n = st_svref(&st_r.g, NULL, 1, 0, key);
+	svref *h = st_svref(&st_r.g, NULL, 0, 0, key, NULL, 0);
+	svref *n = st_svref(&st_r.g, NULL, 1, 0, key, NULL, 0);
 
 	t( sv_indexset(&i, &st_r.r, h) == 0 );
 	t( sv_indexset(&i, &st_r.r, n) == 0 );
 
-	svv *keyv = st_svv(&st_r.g, &st_r.gc, 0, 0, key);
+	svv *keyv = st_svv(&st_r.g, &st_r.gc, 0, 0, key, NULL, 0);
 
 	svref *p = getv(&i, &st_r.r, 0, keyv);
 	t( p == h );

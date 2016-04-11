@@ -14,9 +14,8 @@
 #define SVUPSERT     2
 #define SVGET        4
 #define SVDUP        8
-#define SVTIMESTAMP 16
-#define SVBEGIN     32
-#define SVCONFLICT  64
+#define SVBEGIN     16
+#define SVCONFLICT  32
 
 typedef struct svif svif;
 typedef struct sv sv;
@@ -83,28 +82,13 @@ sv_size(sv *v) {
 }
 
 static inline char*
-sv_key(sv *v, sr *r ssunused, int part) {
-	return sf_key(v->i->pointer(v), part);
-}
-
-static inline int
-sv_keysize(sv *v, sr *r ssunused, int part) {
-	return sf_keysize(v->i->pointer(v), part);
-}
-
-static inline char*
-sv_value(sv *v, sr *r) {
-	return sf_value(r->fmt, sv_pointer(v), r->scheme->count);
-}
-
-static inline int
-sv_valuesize(sv *v, sr *r) {
-	return sf_valuesize(r->fmt, sv_pointer(v), sv_size(v), r->scheme->count);
+sv_field(sv *v, sr *r, int pos, uint32_t *size) {
+	return sf_fieldof(r->scheme, pos, v->i->pointer(v), size);
 }
 
 static inline uint64_t
-sv_hash(sv *v, sr *r ssunused) {
-	return sf_hash(sv_pointer(v), r->scheme->count);
+sv_hash(sv *v, sr *r) {
+	return sf_hash(r->scheme, sv_pointer(v));
 }
 
 #endif

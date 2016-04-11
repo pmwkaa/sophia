@@ -15,7 +15,7 @@ si_amqfhas_branch(sr *r, sibranch *b, char *key)
 	sdindexamqf *qh = sd_indexamqf(&b->index);
 	ssqf qf;
 	ss_qfrecover(&qf, qh->q, qh->r, qh->size, qh->table);
-	return ss_qfhas(&qf, sf_hash(key, r->scheme->count));
+	return ss_qfhas(&qf, sf_hash(r->scheme, key));
 }
 
 static inline int

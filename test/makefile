@@ -1,16 +1,15 @@
 
 # sophia test-suite
 
-STS_TESTS = unit/ss_leb128.test.o \
-            unit/ss_a.test.o \
+STS_TESTS = unit/ss_a.test.o \
             unit/ss_order.test.o \
             unit/ss_rq.test.o \
             unit/ss_qf.test.o \
             unit/ss_ht.test.o \
             unit/ss_zstdfilter.test.o \
             unit/ss_lz4filter.test.o \
+            unit/sf_scheme.test.o \
             unit/sr_conf.test.o \
-            unit/sr_scheme.test.o \
             unit/sv_v.test.o \
             unit/sv_index.test.o \
             unit/sv_indexiter.test.o \

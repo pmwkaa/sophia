@@ -139,51 +139,24 @@ ss_htsearch(sd_buildsearch,
                     sscast(t->i[pos], sdbuildkey, node)->offsetstart, key, size) == 0))
 
 static inline int
-sd_buildadd_keyvalue(sdbuild *b, sr *r, sv *v,
-                     uint32_t timestamp,
-                     uint64_t lsn)
+sd_buildadd_sparse(sdbuild *b, sr *r, sv *v)
 {
-	/* calculate key size */
-	uint32_t keysize = 0;
 	int i = 0;
-	while (i < r->scheme->count) {
-		keysize += sv_keysize(v, r, i);
-		i++;
-	}
-	uint32_t valuesize = sv_valuesize(v, r);
-	uint32_t size = keysize + valuesize;
-
-	/* prepare buffer */
-	uint32_t sizemeta = ss_leb128size(size) + ss_leb128size(lsn);
-	if (b->timestamp)
-		sizemeta += ss_leb128size(timestamp);
-	int rc = ss_bufensure(&b->v, r->a, sizemeta);
-	if (ssunlikely(rc == -1))
-		return sr_oom(r->e);
-
-	/* write meta */
-	ss_bufadvance(&b->v, ss_leb128write(b->v.p, size));
-	ss_bufadvance(&b->v, ss_leb128write(b->v.p, lsn));
-	if (b->timestamp)
-		ss_bufadvance(&b->v, ss_leb128write(b->v.p, timestamp));
-
-	/* write key-parts */
-	i = 0;
-	for (; i < r->scheme->count; i++)
+	for (; i < r->scheme->fields_count; i++)
 	{
-		uint32_t partsize = sv_keysize(v, r, i);
-		char *part = sv_key(v, r, i);
+		uint32_t fieldsize;
+		char *field = sv_field(v, r, i, &fieldsize);
 
 		int offsetstart = ss_bufused(&b->k);
 		int offset = (offsetstart - sd_buildref(b)->k);
 
-		/* match a key copy */
+		/* match a field copy */
 		int is_duplicate = 0;
 		uint32_t hash = 0;
 		int pos = 0;
 		if (b->compress_dup) {
-			hash = ss_fnv(part, partsize);
-			pos = sd_buildsearch(&b->tracker, hash, part, partsize, b);
+			hash = ss_fnv(field, fieldsize);
+			pos = sd_buildsearch(&b->tracker, hash, field, fieldsize, b);
 			if (b->tracker.i[pos]) {
 				is_duplicate = 1;
 				sdbuildkey *ref = sscast(b->tracker.i[pos], sdbuildkey, node);
@@ -192,23 +165,25 @@ sd_buildadd_keyvalue(sdbuild *b, sr *r, sv *v,
 		}
 
 		/* offset */
-		rc = ss_bufensure(&b->v, r->a, ss_leb128size(offset));
+		int rc;
+		rc = ss_bufensure(&b->v, r->a, sizeof(uint32_t));
 		if (ssunlikely(rc == -1))
 			return sr_oom(r->e);
-		ss_bufadvance(&b->v, ss_leb128write(b->v.p, offset));
+		*(uint32_t*)b->v.p = offset;
+		ss_bufadvance(&b->v, sizeof(uint32_t));
 		if (is_duplicate)
 			continue;
 
-		/* copy key */
-		int partsize_meta = ss_leb128size(partsize);
-		rc = ss_bufensure(&b->k, r->a, partsize_meta + partsize);
+		/* copy field */
+		rc = ss_bufensure(&b->k, r->a, sizeof(uint32_t) + fieldsize);
 		if (ssunlikely(rc == -1))
 			return sr_oom(r->e);
-		ss_bufadvance(&b->k, ss_leb128write(b->k.p, partsize));
-		memcpy(b->k.p, part, partsize);
-		ss_bufadvance(&b->k, partsize);
+		*(uint32_t*)b->k.p = fieldsize;
+		ss_bufadvance(&b->k, sizeof(uint32_t));
+		memcpy(b->k.p, field, fieldsize);
+		ss_bufadvance(&b->k, fieldsize);
 
-		/* add key reference */
+		/* add field reference */
 		if (b->compress_dup) {
 			if (ssunlikely(ss_htisfull(&b->tracker))) {
 				rc = ss_htresize(&b->tracker, r->a);
@@ -220,37 +195,21 @@ sd_buildadd_keyvalue(sdbuild *b, sr *r, sv *v,
 				return sr_oom(r->e);
 			ref->node.hash = hash;
 			ref->offset = offset;
-			ref->offsetstart = offsetstart + partsize_meta;
-			ref->size = partsize;
+			ref->offsetstart = offsetstart + sizeof(uint32_t);
+			ref->size = fieldsize;
 			ss_htset(&b->tracker, pos, &ref->node);
 		}
 	}
 
-	/* write value */
-	rc = ss_bufensure(&b->v, r->a, valuesize);
-	if (ssunlikely(rc == -1))
-		return sr_oom(r->e);
-	memcpy(b->v.p, sv_value(v, r), valuesize);
-	ss_bufadvance(&b->v, valuesize);
 	return 0;
 }
 
 static inline int
-sd_buildadd_raw(sdbuild *b, sr *r, sv *v,
-                uint32_t size,
-                uint32_t timestamp,
-                uint64_t lsn)
+sd_buildadd_raw(sdbuild *b, sr *r, sv *v, uint32_t size)
 {
-	uint32_t sizemeta = ss_leb128size(size) + ss_leb128size(lsn);
-	if (b->timestamp)
-		sizemeta += ss_leb128size(timestamp);
-	int rc = ss_bufensure(&b->v, r->a, sizemeta + size);
+	int rc = ss_bufensure(&b->v, r->a, size);
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
-	ss_bufadvance(&b->v, ss_leb128write(b->v.p, size));
-	ss_bufadvance(&b->v, ss_leb128write(b->v.p, lsn));
-	if (b->timestamp)
-		ss_bufadvance(&b->v, ss_leb128write(b->v.p, timestamp));
 	memcpy(b->v.p, sv_pointer(v), size);
 	ss_bufadvance(&b->v, size);
 	return 0;
@@ -268,24 +227,25 @@ int sd_buildadd(sdbuild *b, sr *r, sv *v, uint32_t flags)
 	sdpageheader *h = sd_buildheader(b);
 	sdv *sv = (sdv*)b->m.p;
 	sv->flags = flags;
-	if (b->timestamp)
-		sv->flags |= SVTIMESTAMP;
 	sv->offset = ss_bufused(&b->v) - sd_buildref(b)->v;
+	sv->size = size;
+	sv->lsn = lsn;
+	sv->timestamp = timestamp;
 	ss_bufadvance(&b->m, sizeof(sdv));
 	/* copy document */
 	switch (r->fmt_storage) {
-	case SF_SKEYVALUE:
-		rc = sd_buildadd_keyvalue(b, r, v, timestamp, lsn);
+	case SF_RAW:
+		rc = sd_buildadd_raw(b, r, v, size);
 		break;
-	case SF_SRAW:
-		rc = sd_buildadd_raw(b, r, v, size, timestamp, lsn);
+	case SF_SPARSE:
+		rc = sd_buildadd_sparse(b, r, v);
 		break;
 	}
 	if (ssunlikely(rc == -1))
 		return -1;
 	/* update page header */
 	h->count++;
-	size += sizeof(sdv) + 20 + sizeof(sfref) * r->scheme->count;
+	size += sizeof(sdv) + size;
 	if (size > b->vmax)
 		b->vmax = size;
 	if (lsn > h->lsnmax)

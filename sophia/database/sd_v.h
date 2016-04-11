@@ -14,6 +14,9 @@ typedef struct sdv sdv;
 struct sdv {
 	uint32_t offset;
 	uint8_t  flags;
+	uint64_t lsn;
+	uint32_t timestamp;
+	uint32_t size;
 } sspacked;
 
 extern svif sd_vif;

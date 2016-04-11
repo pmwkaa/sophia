@@ -9,134 +9,151 @@
  * BSD License
 */
 
-typedef struct sfref sfref;
-typedef struct sfv   sfv;
+typedef struct sfvar sfvar;
+typedef struct sfv sfv;
 
-struct sfref {
+typedef enum {
+	SF_RAW,
+	SF_SPARSE
+} sfstorage;
+
+struct sfvar {
 	uint32_t offset;
-	uint16_t size;
+	uint32_t size;
 } sspacked;
 
 struct sfv {
-	void *part;
-	char *key;
-	sfref r;
+	char     *pointer;
+	uint32_t  size;
 };
 
-typedef enum {
-	SF_SKEYVALUE,
-	SF_SRAW
-} sfstorage;
-
-typedef enum {
-	SF_KV
-} sf;
-
 static inline char*
-sf_key(char *data, int pos) {
-	return data + ((sfref*)data)[pos].offset;
-}
-
-static inline int
-sf_keysize(char *data, int pos) {
-	return ((sfref*)data)[pos].size;
-}
-
-static inline int
-sf_keytotal(char *data, int count)
+sf_fieldof_ptr(sfscheme *s, sffield *f, char *data, uint32_t *size)
 {
-	int total = 0;
-	int i = 0;
-	while (i < count) {
-		total += sf_keysize(data, i);
-		i++;
+	if (sslikely(f->fixed_size > 0)) {
+		if (sslikely(size))
+			*size = f->fixed_size;
+		return data + f->fixed_offset;
 	}
-	return total + sizeof(sfref) * count;
-}
-
-static inline int
-sf_keycopy(char *dest, char *src, int count)
-{
-	sfref *ref = (sfref*)dest;
-	int offset = sizeof(sfref) * count;
-	int i = 0;
-	while (i < count) {
-		int size = sf_keysize(src, i);
-		ref->offset = offset;
-		ref->size = size;
-		memcpy(sf_key(dest, i), sf_key(src, i), size);
-		offset += size;
-		ref++;
-		i++;
-	}
-	return offset;
+	register sfvar *v =
+		&((sfvar*)(data + s->var_offset))[f->position_ref];
+	if (sslikely(size))
+		*size = v->size;
+	return data + v->offset;
 }
 
 static inline char*
-sf_value(sf format, char *data, int count)
+sf_fieldof(sfscheme *s, int pos, char *data, uint32_t *size)
 {
-	(void)format;
+	return sf_fieldof_ptr(s, s->fields[pos], data, size);
+}
 
-	assert(count > 0);
-	sfref *ref = ((sfref*)data) + (count - 1);
-	return data + ref->offset + ref->size;
+static inline char*
+sf_field(sfscheme *s, int pos, char *data)
+{
+	register sffield *f = s->fields[pos];
+	if (sslikely(f->fixed_size > 0))
+		return data + f->fixed_offset;
+	register sfvar *v =
+		&((sfvar*)(data + s->var_offset))[f->position_ref];
+	return data + v->offset;
 }
 
 static inline int
-sf_valuesize(sf format, char *data, int size, int count)
+sf_fieldsize(sfscheme *s, int pos, char *data)
 {
-	(void)format;
-
-	assert(count > 0);
-	sfref *ref = ((sfref*)data) + (count - 1);
-	return size - (ref->offset + ref->size);
+	register sffield *f = s->fields[pos];
+	if (sslikely(f->fixed_size > 0))
+		return f->fixed_size;
+	register sfvar *v =
+		&((sfvar*)(data + s->var_offset))[f->position_ref];
+	return v->size;
 }
 
 static inline int
-sf_size(sf format, sfv *keys, int count, int vsize)
+sf_writesize(sfscheme *s, sfv *v)
 {
-	(void)format;
-
-	int sum = 0;
-	int i = 0;
-	while (i < count) {
-		sum += keys[i].r.size;
-		i++;
+	int sum = s->var_offset;
+	int i;
+	for (i = 0; i < s->fields_count; i++) {
+		sffield *f = s->fields[i];
+		if (f->fixed_size != 0)
+			continue;
+		sum += sizeof(sfvar)+ v[i].size;
 	}
-	return sizeof(sfref) * count + sum + vsize;
+	return sum;
 }
 
 static inline void
-sf_write(sf format, char *dest, sfv *keys, int count,
-         char *v, int vsize)
+sf_write(sfscheme *s, sfv *v, char *dest)
 {
-	(void)format;
-
-	sfref *ref = (sfref*)dest;
-	int offset = sizeof(sfref) * count;
-	int i = 0;
-	while (i < count) {
-		sfv *ptr = &keys[i];
-		ref->offset = offset;
-		ref->size = ptr->r.size;
-		memcpy(dest + offset, ptr->key, ptr->r.size);
-		offset += ptr->r.size;
-		ref++;
-		i++;
+	int var_value_offset =
+		s->var_offset + sizeof(sfvar) * s->var_count;
+	sfvar *var = (sfvar*)(dest + s->var_offset);
+	int i;
+	for (i = 0; i < s->fields_count; i++) {
+		sffield *f = s->fields[i];
+		if (f->fixed_size) {
+			assert(f->fixed_size == v[i].size);
+			memcpy(dest + f->fixed_offset, v[i].pointer, f->fixed_size);
+			continue;
+		}
+		sfvar *current = &var[f->position_ref];
+		current->offset = var_value_offset;
+		current->size   = v[i].size;
+		memcpy(dest + var_value_offset, v[i].pointer, v[i].size);
+		var_value_offset += current->size;
 	}
-	memcpy(dest + offset, v, vsize);
 }
 
 static inline uint64_t
-sf_hash(char *data, int count)
+sf_hash(sfscheme *s, char *data)
 {
 	uint64_t hash = 0;
-	int i = 0;
-	while (i < count) {
-		hash ^= ss_fnv(sf_key(data, i), sf_keysize(data, i));
-		i++;
-	}
+	int i;
+	for (i = 0; i < s->keys_count; i++)
+		hash ^= ss_fnv(sf_field(s, i, data), sf_fieldsize(s, i, data));
 	return hash;
+}
+
+static inline int
+sf_comparable_size(sfscheme *s, char *data)
+{
+	int sum = s->var_offset;
+	int i;
+	for (i = 0; i < s->fields_count; i++) {
+		sffield *f = s->fields[i];
+		if (f->fixed_size != 0)
+			continue;
+		if (f->key)
+			sum += sf_fieldsize(s, i, data);
+		sum += sizeof(sfvar);
+	}
+	return sum;
+}
+
+static inline void
+sf_comparable_write(sfscheme *s, char *src, char *dest)
+{
+	int var_value_offset =
+		s->var_offset + sizeof(sfvar) * s->var_count;
+	memcpy(dest, src, s->var_offset);
+	sfvar *var = (sfvar*)(dest + s->var_offset);
+	int i;
+	for (i = 0; i < s->fields_count; i++) {
+		sffield *f = s->fields[i];
+		if (f->fixed_size != 0)
+			continue;
+		sfvar *current = &var[f->position_ref];
+		current->offset = var_value_offset;
+		if (! f->key) {
+			current->size = 0;
+			continue;
+		}
+		char *ptr = sf_fieldof_ptr(s, f, src, &current->size);
+		memcpy(dest + var_value_offset, ptr, current->size);
+		var_value_offset += current->size;
+	}
 }
 
 #endif

@@ -27,8 +27,9 @@ ddl_precreate(void)
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
@@ -49,8 +50,9 @@ ddl_create_online0(void)
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
@@ -71,8 +73,9 @@ ddl_create_online1(void)
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
@@ -99,8 +102,9 @@ ddl_create_online2(void)
 
 	t( sp_setstring(env, "db", "s0", 0) == 0 );
 	t( sp_setstring(env, "db.s0.path", "dir0", 0) == 0 );
-	t( sp_setstring(env, "db.s0.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.s0.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.s0.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.s0.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.s0.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.s0.sync", 0) == 0 );
 	void *s0 = sp_getobject(env, "db.s0");
 	t( s0 != NULL );
@@ -121,8 +125,9 @@ ddl_create_online2(void)
 
 	t( sp_setstring(env, "db", "s1", 0) == 0 );
 	t( sp_setstring(env, "db.s1.path", "dir1", 0) == 0 );
-	t( sp_setstring(env, "db.s1.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.s1.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.s1.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.s1.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.s1.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.s1.sync", 0) == 0 );
 	void *s1 = sp_getobject(env, "db.s1");
 	t( s1 != NULL );
@@ -193,8 +198,9 @@ ddl_open_online0(void)
 
 	t( sp_setstring(env, "db", "s0", 0) == 0 );
 	t( sp_setstring(env, "db.s0.path", "dir0", 0) == 0 );
-	t( sp_setstring(env, "db.s0.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.s0.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.s0.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.s0.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.s0.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.s0.sync", 0) == 0 );
 	void *s0 = sp_getobject(env, "db.s0");
 	t( s0 != NULL );
@@ -218,8 +224,9 @@ ddl_open_online0(void)
 
 	t( sp_setstring(env, "db", "s0", 0) == 0 );
 	t( sp_setstring(env, "db.s0.path", "dir0", 0) == 0 );
-	t( sp_setstring(env, "db.s0.index", "key", 0) == 0 );
-	t( sp_setstring(env, "db.s0.index.key", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.s0.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.s0.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.s0.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.s0.sync", 0) == 0 );
 	/* ban open existing databases */
 	s0 = sp_getobject(env, "db.s0");
@@ -246,15 +253,16 @@ ddl_constraint(void)
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key-1", 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key-2", 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key-3", 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key-4", 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key-5", 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key-6", 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key-7", 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key-8", 0) == 0 );
-	t( sp_setstring(env, "db.test.index", "key-9", 0) == -1 );
+	t( sp_setstring(env, "db.test.scheme", "key-1", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key-2", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key-3", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key-4", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key-5", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key-6", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key-7", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key-8", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key-9", 0) == -1 );
+	t( sp_setstring(env, "db.test.scheme.key-1", "u32,key", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );

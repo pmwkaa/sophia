@@ -38,11 +38,11 @@ sv_indexiter_lte_eq(void)
 	int keya = 7;
 	int keyb = 5;
 	int keyc = 2;
-	svref *va = st_svref(&st_r.g, NULL, 0, 0, keya);
+	svref *va = st_svref(&st_r.g, NULL, 0, 0, keya, NULL, 0);
 	t( sv_indexset(&i, &st_r.r, va) == 0 );
-	svref *vb = st_svref(&st_r.g, NULL, 0, 0, keyb);
+	svref *vb = st_svref(&st_r.g, NULL, 0, 0, keyb, NULL, 0);
 	t( sv_indexset(&i, &st_r.r, vb) == 0 );
-	svref *vc = st_svref(&st_r.g, NULL, 0, 0, keyc);
+	svref *vc = st_svref(&st_r.g, NULL, 0, 0, keyc, NULL, 0);
 	t( sv_indexset(&i, &st_r.r, vc) == 0 );
 
 	ssiter it;
@@ -76,11 +76,11 @@ sv_indexiter_lt_eq(void)
 	int keya = 7;
 	int keyb = 5;
 	int keyc = 2;
-	svref *va = st_svref(&st_r.g, NULL, 0, 0, keya);
+	svref *va = st_svref(&st_r.g, NULL, 0, 0, keya, NULL, 0);
 	t( sv_indexset(&i, &st_r.r, va) == 0 );
-	svref *vb = st_svref(&st_r.g, NULL, 0, 0, keyb);
+	svref *vb = st_svref(&st_r.g, NULL, 0, 0, keyb, NULL, 0);
 	t( sv_indexset(&i, &st_r.r, vb) == 0 );
-	svref *vc = st_svref(&st_r.g, NULL, 0, 0, keyc);
+	svref *vc = st_svref(&st_r.g, NULL, 0, 0, keyc, NULL, 0);
 	t( sv_indexset(&i, &st_r.r, vc) == 0 );
 
 	ssiter it;
@@ -111,7 +111,7 @@ sv_indexiter_gte_empty(void)
 	svindex i;
 	t( sv_indexinit(&i) == 0 );
 
-	svref *key = st_svref(&st_r.g, NULL, 0, 0, 7);
+	svref *key = st_svref(&st_r.g, NULL, 0, 0, 7, NULL, 0);
 	ssiter it;
 	ss_iterinit(sv_indexiter, &it);
 	ss_iteropen(sv_indexiter, &it, &st_r.r, &i, SS_GTE, sv_vpointer(key->v), key->v->size);
@@ -132,11 +132,11 @@ sv_indexiter_gte_eq(void)
 	int keya = 7;
 	int keyb = 5;
 	int keyc = 2;
-	svref *va = st_svref(&st_r.g, NULL, 0, 0, keya);
+	svref *va = st_svref(&st_r.g, NULL, 0, 0, keya, NULL, 0);
 	t( sv_indexset(&i, &st_r.r, va) == 0 );
-	svref *vb = st_svref(&st_r.g, NULL, 0, 0, keyb);
+	svref *vb = st_svref(&st_r.g, NULL, 0, 0, keyb, NULL, 0);
 	t( sv_indexset(&i, &st_r.r, vb) == 0 );
-	svref *vc = st_svref(&st_r.g, NULL, 0, 0, keyc);
+	svref *vc = st_svref(&st_r.g, NULL, 0, 0, keyc, NULL, 0);
 	t( sv_indexset(&i, &st_r.r, vc) == 0 );
 
 	ssiter it;
@@ -170,11 +170,11 @@ sv_indexiter_gt_eq(void)
 	int keya = 7;
 	int keyb = 5;
 	int keyc = 2;
-	svref *va = st_svref(&st_r.g, NULL, 0, 0, keya);
+	svref *va = st_svref(&st_r.g, NULL, 0, 0, keya, NULL, 0);
 	t( sv_indexset(&i, &st_r.r, va) == 0 );
-	svref *vb = st_svref(&st_r.g, NULL, 0, 0, keyb);
+	svref *vb = st_svref(&st_r.g, NULL, 0, 0, keyb, NULL, 0);
 	t( sv_indexset(&i, &st_r.r, vb) == 0 );
-	svref *vc = st_svref(&st_r.g, NULL, 0, 0, keyc);
+	svref *vc = st_svref(&st_r.g, NULL, 0, 0, keyc, NULL, 0);
 	t( sv_indexset(&i, &st_r.r, vc) == 0 );
 
 	ssiter it;
@@ -209,16 +209,16 @@ sv_indexiter_iterate0(void)
 	int keya = 7;
 	int keyc = 15;
 
-	svref *h = st_svref(&st_r.g, NULL, 0, 0, keyb);
+	svref *h = st_svref(&st_r.g, NULL, 0, 0, keyb, NULL, 0);
 	t( sv_indexset(&i, &st_r.r, h) == 0 );
-	svref *p = st_svref(&st_r.g, NULL, 2, 0, keyc);
+	svref *p = st_svref(&st_r.g, NULL, 2, 0, keyc, NULL, 0);
 	t( sv_indexset(&i, &st_r.r, p) == 0 );
 
-	svref *va = st_svref(&st_r.g, NULL, 1, 0, keya);
+	svref *va = st_svref(&st_r.g, NULL, 1, 0, keya, NULL, 0);
 	t( sv_indexset(&i, &st_r.r, va) == 0 );
-	svref *vb = st_svref(&st_r.g, NULL, 2, 0, keya);
+	svref *vb = st_svref(&st_r.g, NULL, 2, 0, keya, NULL, 0);
 	t( sv_indexset(&i, &st_r.r, vb) == 0 );
-	svref *vc = st_svref(&st_r.g, NULL, 3, 0, keya);
+	svref *vc = st_svref(&st_r.g, NULL, 3, 0, keya, NULL, 0);
 	t( sv_indexset(&i, &st_r.r, vc) == 0 );
 
 	ssiter it;
@@ -260,7 +260,7 @@ sv_indexiter_iterate1(void)
 
 	int j = 0;
 	while (j < 16) {
-		svref *v = st_svref(&st_r.g, NULL, j, 0, j);
+		svref *v = st_svref(&st_r.g, NULL, j, 0, j, NULL, 0);
 		t( sv_indexset(&i, &st_r.r, v) == 0 );
 		j++;
 	}

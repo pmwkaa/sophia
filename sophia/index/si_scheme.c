@@ -18,7 +18,6 @@
 enum {
 	SI_SCHEME_NONE,
 	SI_SCHEME_NAME,
-	SI_SCHEME_FORMAT,
 	SI_SCHEME_FORMAT_STORAGE,
 	SI_SCHEME_SCHEME,
 	SI_SCHEME_NODE_SIZE,
@@ -70,7 +69,7 @@ void si_schemefree(sischeme *s, sr *r)
 		ss_free(r->a, s->cache_sz);
 		s->cache_sz = NULL;
 	}
-	sr_schemefree(&s->scheme, r->a);
+	sf_schemefree(&s->scheme, r->a);
 }
 
 int si_schemedeploy(sischeme *s, sr *r)
@@ -87,7 +86,7 @@ int si_schemedeploy(sischeme *s, sr *r)
 	                  strlen(s->name) + 1);
 	if (ssunlikely(rc == -1))
 		goto error;
-	rc = sr_schemesave(&s->scheme, r->a, &buf);
+	rc = sf_schemesave(&s->scheme, r->a, &buf);
 	if (ssunlikely(rc == -1))
 		goto error;
 	rc = sd_schemeadd(&c, r, SI_SCHEME_SCHEME, SS_STRING, buf.s,
@@ -95,10 +94,7 @@ int si_schemedeploy(sischeme *s, sr *r)
 	if (ssunlikely(rc == -1))
 		goto error;
 	ss_buffree(&buf, r->a);
-	uint32_t v = s->fmt;
-	rc = sd_schemeadd(&c, r, SI_SCHEME_FORMAT, SS_U32, &v, sizeof(v));
-	if (ssunlikely(rc == -1))
-		goto error;
+	uint32_t v;
 	v = s->fmt_storage;
 	rc = sd_schemeadd(&c, r, SI_SCHEME_FORMAT_STORAGE, SS_U32, &v, sizeof(v));
 	if (ssunlikely(rc == -1))
@@ -183,19 +179,18 @@ int si_schemerecover(sischeme *s, sr *r)
 	{
 		sdschemeopt *opt = ss_iterof(sd_schemeiter, &i);
 		switch (opt->id) {
-		case SI_SCHEME_FORMAT:
-			s->fmt = sd_schemeu32(opt);
-			assert(s->fmt == SF_KV);
-			break;
 		case SI_SCHEME_FORMAT_STORAGE:
 			s->fmt_storage = sd_schemeu32(opt);
 			break;
 		case SI_SCHEME_SCHEME: {
-			sr_schemefree(&s->scheme, r->a);
-			sr_schemeinit(&s->scheme);
+			sf_schemefree(&s->scheme, r->a);
+			sf_schemeinit(&s->scheme);
 			ssbuf buf;
 			ss_bufinit(&buf);
-			rc = sr_schemeload(&s->scheme, r->a, sd_schemesz(opt), opt->size);
+			rc = sf_schemeload(&s->scheme, r->a, sd_schemesz(opt), opt->size);
+			if (ssunlikely(rc == -1))
+				goto error;
+			rc = sf_schemevalidate(&s->scheme, r->a);
 			if (ssunlikely(rc == -1))
 				goto error;
 			ss_buffree(&buf, r->a);

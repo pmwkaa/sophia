@@ -30,61 +30,38 @@ void st_generator_init(stgenerator *g, sr *r,
 static svv*
 st_generator_kv(stgenerator *g, va_list args)
 {
-	srscheme *scheme = g->r->scheme;
-	uint32_t u32parts[16];
-	uint64_t u64parts[16];
-	sfv parts[16];
-	assert(scheme->count <= 16);
+	sfscheme *scheme = g->r->scheme;
+	uint32_t u32fields[16];
+	uint64_t u64fields[16];
+	sfv fields[16];
+	assert(scheme->fields_count <= 16);
 	int i = 0;
-	while (i < scheme->count)
+	while (i < scheme->fields_count)
 	{
-		sfv *fv = &parts[i];
-		fv->r.offset = 0;
-		if (scheme->parts[i].type == SS_U32) {
-			u32parts[i] = va_arg(args, uint32_t);
-			fv->key = (void*)&u32parts[i];
-			fv->r.size = sizeof(uint32_t);
+		sfv *fv = &fields[i];
+		if (scheme->fields[i]->type == SS_U32) {
+			u32fields[i] = va_arg(args, uint32_t);
+			fv->pointer = (void*)&u32fields[i];
+			fv->size = sizeof(uint32_t);
 		} else
-		if (scheme->parts[i].type == SS_U64) {
-			u64parts[i] = va_arg(args, uint64_t);
-			fv->key = (void*)&u64parts[i];
-			fv->r.size = sizeof(uint64_t);
+		if (scheme->fields[i]->type == SS_U64) {
+			u64fields[i] = va_arg(args, uint64_t);
+			fv->pointer = (void*)&u64fields[i];
+			fv->size = sizeof(uint64_t);
 		} else
-		if (scheme->parts[i].type == SS_STRING) {
-			fv->key = va_arg(args, void*);
-			fv->r.size = va_arg(args, int);
+		if (scheme->fields[i]->type == SS_STRING) {
+			fv->pointer = va_arg(args, void*);
+			fv->size = va_arg(args, int);
 		}
 		i++;
 	}
-	svv *v = NULL;
-	int valuesize = 0;
-	void *value = NULL;
-	if ((g->value_start + g->value_end) > 0) {
-		valuesize = rand() % g->value_end;
-		if (valuesize < g->value_start)
-			valuesize = g->value_start;
-		value = ss_malloc(g->r->a, valuesize);
-		if (ssunlikely(value == NULL))
-			return NULL;
-		memset(value, 'x', valuesize);
-	}
-	v = sv_vbuild(g->r, parts, scheme->count, value, valuesize, 0);
-	if (value)
-		ss_free(g->r->a, value);
-	return v;
+	return sv_vbuild(g->r, fields, 0);
 }
 
 static inline svv*
 st_svv_va(stgenerator *g, stlist *l, uint64_t lsn, uint8_t flags, va_list args)
 {
-	svv *v = NULL;
-	switch (g->r->fmt) {
-	case SF_KV: v = st_generator_kv(g, args);
-		break;
-	default:
-		assert(0);
-		break;
-	}
+	svv *v = st_generator_kv(g, args);
 	v->lsn = lsn;
 	v->flags = flags;
 	if (v == NULL || l == NULL)
@@ -176,74 +153,55 @@ st_generator_key(char *key, int size, int seed)
 	key[size - 1] = 0;
 }
 
-static uint32_t u32parts[16];
-static uint64_t u64parts[16];
+static uint32_t u32fields[16];
+static uint64_t u64fields[16];
 
 svv *st_svv_seed(stgenerator *g, uint32_t seed, uint32_t seed_value)
 {
-	assert(g->r->fmt == SF_KV);
-	srscheme *scheme = g->r->scheme;
-	sfv parts[16];
-	assert(scheme->count <= 16);
+	sfscheme *scheme = g->r->scheme;
+	sfv fields[16];
+	assert(scheme->fields_count <= 16);
 	int keysize = 0;
 	void *key = NULL;
 	int i = 0;
-	while (i < scheme->count)
+	while (i < scheme->fields_count)
 	{
-		sfv *fv = &parts[i];
-		fv->r.offset = 0;
-		if (scheme->parts[i].type == SS_U32) {
-			u32parts[i] = seed;
-			fv->key = (void*)&u32parts[i];
-			fv->r.size = sizeof(uint32_t);
+		sfv *fv = &fields[i];
+		if (scheme->fields[i]->type == SS_U32) {
+			u32fields[i] = seed;
+			fv->pointer = (void*)&u32fields[i];
+			fv->size = sizeof(uint32_t);
 		} else
-		if (scheme->parts[i].type == SS_U64) {
-			u64parts[i] = seed;
-			fv->key = (void*)&u64parts[i];
-			fv->r.size = sizeof(uint64_t);
+		if (scheme->fields[i]->type == SS_U64) {
+			u64fields[i] = seed;
+			fv->pointer = (void*)&u64fields[i];
+			fv->size = sizeof(uint64_t);
 		} else
-		if (scheme->parts[i].type == SS_STRING) {
+		if (scheme->fields[i]->type == SS_STRING) {
 			keysize = seed % g->key_end;
 			if (keysize < g->key_start)
 				keysize = g->key_start;
 			key = ss_malloc(g->r->a, keysize);
 			if (ssunlikely(key == NULL)) {
 				while (--i >= 0) {
-					sfv *fv = &parts[i];
-					ss_free(g->r->a, fv->key);
+					sfv *fv = &fields[i];
+					ss_free(g->r->a, fv->pointer);
 				}
 				return NULL;
 			}
 			st_generator_key(key, keysize, seed);
-			fv->key = key;
-			fv->r.size = keysize;
+			fv->pointer = key;
+			fv->size = keysize;
 		}
 		i++;
 	}
-	svv *v = NULL;
-	int valuesize = 0;
-	void *value = NULL;
-	if ((g->value_start + g->value_end) > 0) {
-		valuesize = seed_value % g->value_end;
-		if (valuesize < g->value_start)
-			valuesize = g->value_start;
-		value = ss_malloc(g->r->a, valuesize);
-		if (ssunlikely(value == NULL))
-			return NULL;
-		assert(valuesize >= sizeof(seed_value));
-		memcpy(value, &seed_value, sizeof(seed_value));
-		memset(value + sizeof(seed_value), 0,
-		       valuesize - sizeof(seed_value));
-	}
-	v = sv_vbuild(g->r, parts, scheme->count, value, valuesize, 0);
+	svv *v = sv_vbuild(g->r, fields, 0);
 	i = 0;
-	while (i < scheme->count) {
-		sfv *fv = &parts[i];
-		if (scheme->parts[i].type == SS_STRING)
-			ss_free(g->r->a, fv->key);
+	while (i < scheme->fields_count) {
+		sfv *fv = &fields[i];
+		if (scheme->fields[i]->type == SS_STRING)
+			ss_free(g->r->a, fv->pointer);
 		i++;
 	}
-	if (value)
-		ss_free(g->r->a, value);
 	return v;
 }

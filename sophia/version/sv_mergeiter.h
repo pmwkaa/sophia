@@ -61,7 +61,10 @@ sv_mergeiter_gt(svmergeiter *i)
 			min = src;
 			continue;
 		}
-		int rc = sv_compare(minv, v, i->r->scheme);
+		int rc;
+		rc = sf_compare(i->r->scheme,
+		                sv_pointer(minv), sv_size(minv),
+		                sv_pointer(v), sv_size(v));
 		switch (rc) {
 		case 0:
 			/*
@@ -104,7 +107,10 @@ sv_mergeiter_lt(svmergeiter *i)
 			max = src;
 			continue;
 		}
-		int rc = sv_compare(maxv, v, i->r->scheme);
+		int rc;
+		rc = sf_compare(i->r->scheme,
+		                sv_pointer(maxv), sv_size(maxv),
+		                sv_pointer(v), sv_size(v));
 		switch (rc) {
 		case  0:
 			/*

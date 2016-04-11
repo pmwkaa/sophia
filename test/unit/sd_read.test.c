@@ -18,11 +18,12 @@
 static void
 addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 {
-	sfv pv;
-	pv.key = (char*)key;
-	pv.r.size = sizeof(uint32_t);
-	pv.r.offset = 0;
-	svv *v = sv_vbuild(r, &pv, 1, NULL, 0, 0);
+	sfv pv[2];
+	pv[0].pointer = (char*)key;
+	pv[0].size = sizeof(uint32_t);
+	pv[1].pointer = NULL;
+	pv[1].size = 0;
+	svv *v = sv_vbuild(r, pv, 0);
 	v->lsn = lsn;
 	v->flags = flags;
 	sv vv;
@@ -105,13 +106,13 @@ sd_read_gt0(void)
 	t( ss_iteratorhas(&it) == 1 );
 
 	sv *v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &st_r.r, 0) == 7);
+	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 7);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &st_r.r, 0) == 8);
+	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 8);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &st_r.r, 0) == 9);
+	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 9);
 	ss_iteratornext(&it);
 	t( ss_iteratorhas(&it) == 0 );
 	ss_iteratorclose(&it);
@@ -235,35 +236,35 @@ sd_read_gt1(void)
 	/* page 0 */
 	t( ss_iteratorhas(&it) != 0 );
 	sv *v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &st_r.r, 0) == 7);
+	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 7);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &st_r.r, 0) == 8);
+	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 8);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &st_r.r, 0) == 9);
+	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 9);
 	ss_iteratornext(&it);
 
 	/* page 1 */
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &st_r.r, 0) == 10);
+	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 10);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &st_r.r, 0) == 11);
+	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 11);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &st_r.r, 0) == 13);
+	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 13);
 	ss_iteratornext(&it);
 
 	/* page 2 */
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &st_r.r, 0) == 15);
+	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 15);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &st_r.r, 0) == 18);
+	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 18);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &st_r.r, 0) == 20);
+	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 20);
 	ss_iteratornext(&it);
 	t( ss_iteratorhas(&it) == 0 );
 	ss_iteratorclose(&it);
@@ -287,11 +288,15 @@ sd_read_gt0_compression_zstd(void)
 	ss_aopen(&aref, &ss_stda);
 	ssvfs vfs;
 	ss_vfsinit(&vfs, &ss_stdvfs);
-	srscheme cmp;
-	sr_schemeinit(&cmp);
-	srkey *part = sr_schemeadd(&cmp);
-	t( sr_keysetname(part, &a, "key") == 0 );
-	t( sr_keyset(part, &a, "u32") == 0 );
+	sfscheme cmp;
+	sf_schemeinit(&cmp);
+	sffield *field = sf_fieldnew(&a, "key");
+	t( sf_fieldoptions(field, &a, "u32,key") == 0 );
+	t( sf_schemeadd(&cmp, &a, field) == 0 );
+	field = sf_fieldnew(&a, "value");
+	t( sf_fieldoptions(field, &a, "string") == 0 );
+	t( sf_schemeadd(&cmp, &a, field) == 0 );
+	t( sf_schemevalidate(&cmp, &a) == 0 );
 	ssinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srstat stat;
@@ -302,7 +307,7 @@ sd_read_gt0_compression_zstd(void)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, NULL, &error, &a, &aref, &vfs, NULL, NULL, &seq, SF_KV, SF_SRAW,
+	sr_init(&r, NULL, &error, &a, &aref, &vfs, NULL, NULL, &seq, SF_RAW,
 	        NULL, &cmp, &ij, &stat, crc);
 
 	sdbuild b;
@@ -378,13 +383,13 @@ sd_read_gt0_compression_zstd(void)
 	t( ss_iteratorhas(&it) == 1 );
 
 	sv *v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == 7);
+	t( *(int*)sv_field(v, &r, 0, NULL) == 7);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == 8);
+	t( *(int*)sv_field(v, &r, 0, NULL) == 8);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == 9);
+	t( *(int*)sv_field(v, &r, 0, NULL) == 9);
 	ss_iteratornext(&it);
 	t( ss_iteratorhas(&it) == 0 );
 	ss_iteratorclose(&it);
@@ -398,7 +403,7 @@ sd_read_gt0_compression_zstd(void)
 
 	ss_buffree(&xfbuf, &a);
 	ss_buffree(&buf, &a);
-	sr_schemefree(&cmp, &a);
+	sf_schemefree(&cmp, &a);
 }
 
 static void
@@ -410,11 +415,15 @@ sd_read_gt0_compression_lz4(void)
 	ss_aopen(&aref, &ss_stda);
 	ssvfs vfs;
 	ss_vfsinit(&vfs, &ss_stdvfs);
-	srscheme cmp;
-	sr_schemeinit(&cmp);
-	srkey *part = sr_schemeadd(&cmp);
-	t( sr_keysetname(part, &a, "key") == 0 );
-	t( sr_keyset(part, &a, "u32") == 0 );
+	sfscheme cmp;
+	sf_schemeinit(&cmp);
+	sffield *field = sf_fieldnew(&a, "key");
+	t( sf_fieldoptions(field, &a, "u32,key") == 0 );
+	t( sf_schemeadd(&cmp, &a, field) == 0 );
+	field = sf_fieldnew(&a, "value");
+	t( sf_fieldoptions(field, &a, "string") == 0 );
+	t( sf_schemeadd(&cmp, &a, field) == 0 );
+	t( sf_schemevalidate(&cmp, &a) == 0 );
 	ssinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srstat stat;
@@ -425,7 +434,7 @@ sd_read_gt0_compression_lz4(void)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, NULL, &error, &a, &aref, &vfs, NULL, NULL, &seq, SF_KV, SF_SRAW,
+	sr_init(&r, NULL, &error, &a, &aref, &vfs, NULL, NULL, &seq, SF_RAW,
 	        NULL, &cmp, &ij, &stat, crc);
 
 	sdbuild b;
@@ -503,13 +512,13 @@ sd_read_gt0_compression_lz4(void)
 	t( ss_iteratorhas(&it) == 1 );
 
 	sv *v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == 7);
+	t( *(int*)sv_field(v, &r, 0, NULL) == 7);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == 8);
+	t( *(int*)sv_field(v, &r, 0, NULL) == 8);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == 9);
+	t( *(int*)sv_field(v, &r, 0, NULL) == 9);
 	ss_iteratornext(&it);
 	t( ss_iteratorhas(&it) == 0 );
 	ss_iteratorclose(&it);
@@ -523,7 +532,7 @@ sd_read_gt0_compression_lz4(void)
 
 	ss_buffree(&xfbuf, &a);
 	ss_buffree(&buf, &a);
-	sr_schemefree(&cmp, &a);
+	sf_schemefree(&cmp, &a);
 }
 
 static void
@@ -535,11 +544,15 @@ sd_read_gt1_compression_zstd(void)
 	ss_aopen(&aref, &ss_stda);
 	ssvfs vfs;
 	ss_vfsinit(&vfs, &ss_stdvfs);
-	srscheme cmp;
-	sr_schemeinit(&cmp);
-	srkey *part = sr_schemeadd(&cmp);
-	t( sr_keysetname(part, &a, "key") == 0 );
-	t( sr_keyset(part, &a, "u32") == 0 );
+	sfscheme cmp;
+	sf_schemeinit(&cmp);
+	sffield *field = sf_fieldnew(&a, "key");
+	t( sf_fieldoptions(field, &a, "u32,key") == 0 );
+	t( sf_schemeadd(&cmp, &a, field) == 0 );
+	field = sf_fieldnew(&a, "value");
+	t( sf_fieldoptions(field, &a, "string") == 0 );
+	t( sf_schemeadd(&cmp, &a, field) == 0 );
+	t( sf_schemevalidate(&cmp, &a) == 0 );
 	ssinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srstat stat;
@@ -550,7 +563,7 @@ sd_read_gt1_compression_zstd(void)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, NULL, &error, &a, &aref, &vfs, NULL, NULL, &seq, SF_KV, SF_SRAW,
+	sr_init(&r, NULL, &error, &a, &aref, &vfs, NULL, NULL, &seq, SF_RAW,
 	        NULL, &cmp, &ij, &stat, crc);
 
 	ssfile f;
@@ -661,35 +674,35 @@ sd_read_gt1_compression_zstd(void)
 	/* page 0 */
 	t( ss_iteratorhas(&it) != 0 );
 	sv *v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == 7);
+	t( *(int*)sv_field(v, &r, 0, NULL) == 7);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == 8);
+	t( *(int*)sv_field(v, &r, 0, NULL) == 8);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == 9);
+	t( *(int*)sv_field(v, &r, 0, NULL) == 9);
 	ss_iteratornext(&it);
 
 	/* page 1 */
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == 10);
+	t( *(int*)sv_field(v, &r, 0, NULL) == 10);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == 11);
+	t( *(int*)sv_field(v, &r, 0, NULL) == 11);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == 13);
+	t( *(int*)sv_field(v, &r, 0, NULL) == 13);
 	ss_iteratornext(&it);
 
 	/* page 2 */
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == 15);
+	t( *(int*)sv_field(v, &r, 0, NULL) == 15);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == 18);
+	t( *(int*)sv_field(v, &r, 0, NULL) == 18);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == 20);
+	t( *(int*)sv_field(v, &r, 0, NULL) == 20);
 	ss_iteratornext(&it);
 	t( ss_iteratorhas(&it) == 0 );
 	ss_iteratorclose(&it);
@@ -702,7 +715,7 @@ sd_read_gt1_compression_zstd(void)
 	sd_buildfree(&b, &r);
 	ss_buffree(&buf, &a);
 	ss_buffree(&xfbuf, &a);
-	sr_schemefree(&cmp, &a);
+	sf_schemefree(&cmp, &a);
 }
 
 static void
@@ -714,11 +727,15 @@ sd_read_gt1_compression_lz4(void)
 	ss_aopen(&aref, &ss_stda);
 	ssvfs vfs;
 	ss_vfsinit(&vfs, &ss_stdvfs);
-	srscheme cmp;
-	sr_schemeinit(&cmp);
-	srkey *part = sr_schemeadd(&cmp);
-	t( sr_keysetname(part, &a, "key") == 0 );
-	t( sr_keyset(part, &a, "u32") == 0 );
+	sfscheme cmp;
+	sf_schemeinit(&cmp);
+	sffield *field = sf_fieldnew(&a, "key");
+	t( sf_fieldoptions(field, &a, "u32,key") == 0 );
+	t( sf_schemeadd(&cmp, &a, field) == 0 );
+	field = sf_fieldnew(&a, "value");
+	t( sf_fieldoptions(field, &a, "string") == 0 );
+	t( sf_schemeadd(&cmp, &a, field) == 0 );
+	t( sf_schemevalidate(&cmp, &a) == 0 );
 	ssinjection ij;
 	memset(&ij, 0, sizeof(ij));
 	srstat stat;
@@ -729,7 +746,7 @@ sd_read_gt1_compression_lz4(void)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, NULL, &error, &a, &aref, &vfs, NULL, NULL, &seq, SF_KV, SF_SRAW,
+	sr_init(&r, NULL, &error, &a, &aref, &vfs, NULL, NULL, &seq, SF_RAW,
 	        NULL, &cmp, &ij, &stat, crc);
 
 	ssfile f;
@@ -840,35 +857,35 @@ sd_read_gt1_compression_lz4(void)
 	/* page 0 */
 	t( ss_iteratorhas(&it) != 0 );
 	sv *v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == 7);
+	t( *(int*)sv_field(v, &r, 0, NULL) == 7);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == 8);
+	t( *(int*)sv_field(v, &r, 0, NULL) == 8);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == 9);
+	t( *(int*)sv_field(v, &r, 0, NULL) == 9);
 	ss_iteratornext(&it);
 
 	/* page 1 */
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == 10);
+	t( *(int*)sv_field(v, &r, 0, NULL) == 10);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == 11);
+	t( *(int*)sv_field(v, &r, 0, NULL) == 11);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == 13);
+	t( *(int*)sv_field(v, &r, 0, NULL) == 13);
 	ss_iteratornext(&it);
 
 	/* page 2 */
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == 15);
+	t( *(int*)sv_field(v, &r, 0, NULL) == 15);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == 18);
+	t( *(int*)sv_field(v, &r, 0, NULL) == 18);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_key(v, &r, 0) == 20);
+	t( *(int*)sv_field(v, &r, 0, NULL) == 20);
 	ss_iteratornext(&it);
 	t( ss_iteratorhas(&it) == 0 );
 	ss_iteratorclose(&it);
@@ -881,7 +898,7 @@ sd_read_gt1_compression_lz4(void)
 	sd_buildfree(&b, &r);
 	ss_buffree(&buf, &a);
 	ss_buffree(&xfbuf, &a);
-	sr_schemefree(&cmp, &a);
+	sf_schemefree(&cmp, &a);
 }
 
 stgroup *sd_read_group(void)

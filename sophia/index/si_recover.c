@@ -634,7 +634,6 @@ int si_recover(si *i)
 	if (ssunlikely(rc == -1))
 		return -1;
 	r->scheme = &i->scheme.scheme;
-	r->fmt = i->scheme.fmt;
 	r->fmt_storage = i->scheme.fmt_storage;
 	sdsnapshot snapshot;
 	sd_snapshot_init(&snapshot);

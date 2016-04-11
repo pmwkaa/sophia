@@ -51,8 +51,7 @@ se_dbscheme_init(sedb *db, char *name, int size)
 	scheme->temperature           = 0;
 	scheme->expire                = 0;
 	scheme->amqf                  = 0;
-	scheme->fmt                   = SF_KV;
-	scheme->fmt_storage           = SF_SRAW;
+	scheme->fmt_storage           = SF_RAW;
 	scheme->path_fail_on_exists   = 0;
 	scheme->path_fail_on_drop     = 1;
 	scheme->lru                   = 0;
@@ -70,7 +69,7 @@ se_dbscheme_init(sedb *db, char *name, int size)
 	if (ssunlikely(scheme->compression_branch_sz == NULL))
 		goto error;
 	sf_upsertinit(&scheme->fmt_upsert);
-	sr_schemeinit(&scheme->scheme);
+	sf_schemeinit(&scheme->scheme);
 	return 0;
 error:
 	sr_oom(&e->error);
@@ -82,16 +81,42 @@ se_dbscheme_set(sedb *db)
 {
 	se *e = se_of(&db->o);
 	sischeme *s = si_scheme(db->index);
-	/* set default key, if it were not previosly defined */
-	if (s->scheme.count == 0) {
-		srkey *part = sr_schemeadd(&s->scheme);
-		int rc;
-		rc = sr_keysetname(part, &e->a, "key");
-		if (ssunlikely(rc == -1))
+	/* set default scheme */
+	int rc;
+	if (s->scheme.fields_count == 0)
+	{
+		sffield *field = sf_fieldnew(&e->a, "key");
+		if (ssunlikely(field == NULL))
 			return sr_oom(&e->error);
-		rc = sr_keyset(part, &e->a, "string");
-		if (ssunlikely(rc == -1))
+		rc = sf_fieldoptions(field, &e->a, "string,key");
+		if (ssunlikely(rc == -1)) {
+			sf_fieldfree(field, &e->a);
 			return sr_oom(&e->error);
+		}
+		rc = sf_schemeadd(&s->scheme, &e->a, field);
+		if (ssunlikely(rc == -1)) {
+			sf_fieldfree(field, &e->a);
+			return sr_oom(&e->error);
+		}
+		field = sf_fieldnew(&e->a, "value");
+		if (ssunlikely(field == NULL))
+			return sr_oom(&e->error);
+		rc = sf_fieldoptions(field, &e->a, "string");
+		if (ssunlikely(rc == -1)) {
+			sf_fieldfree(field, &e->a);
+			return sr_oom(&e->error);
+		}
+		rc = sf_schemeadd(&s->scheme, &e->a, field);
+		if (ssunlikely(rc == -1)) {
+			sf_fieldfree(field, &e->a);
+			return sr_oom(&e->error);
+		}
+	}
+	/* validate scheme and set keys */
+	rc = sf_schemevalidate(&s->scheme, &e->a);
+	if (ssunlikely(rc == -1)) {
+		sr_error(&e->error, "incomplete scheme", s->name);
+		return -1;
 	}
 	/* storage */
 	if (strcmp(s->storage_sz, "cache") == 0) {
@@ -116,7 +141,7 @@ se_dbscheme_set(sedb *db)
 	}
 	/* compression_key */
 	if (s->compression_key) {
-		s->fmt_storage = SF_SKEYVALUE;
+		s->fmt_storage = SF_SPARSE;
 	}
 	/* compression */
 	s->compression_if = ss_filterof(s->compression_sz);
@@ -167,7 +192,7 @@ se_dbscheme_set(sedb *db)
 			         s->cache_sz);
 			return -1;
 		}
-		if (! sr_schemeeq(&db->scheme->scheme, &cache->scheme->scheme)) {
+		if (! sf_schemeeq(&db->scheme->scheme, &cache->scheme->scheme)) {
 			sr_error(&e->error, "database and cache '%s' scheme mismatch",
 			         s->cache_sz);
 			return -1;
@@ -177,7 +202,6 @@ se_dbscheme_set(sedb *db)
 	}
 
 	db->r->scheme = &s->scheme;
-	db->r->fmt = s->fmt;
 	db->r->fmt_storage = s->fmt_storage;
 	db->r->fmt_upsert = &s->fmt_upsert;
 	return 0;
@@ -353,8 +377,8 @@ so *se_dbresult(se *e, scread *r)
 	if (v->vprefix.v) {
 		r->arg.vprefix.v = NULL;
 		void *vptr = sv_vpointer(v->vprefix.v);
-		v->prefix = sf_key(vptr, 0);
-		v->prefixsize = sf_keysize(vptr, 0);
+		sfscheme *s = &r->index->scheme.scheme;
+		v->prefix = sf_fieldof_ptr(s, s->keys[0], vptr, &v->prefixsize);
 	}
 	return &v->o;
 }
@@ -376,7 +400,7 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 
 	uint64_t start  = ss_utime();
 	/* prepare search key */
-	if (ssunlikely(order == SS_EQ && o->keyc == 0))
+	if (ssunlikely(order == SS_EQ && o->fields_count == 0))
 		order = SS_GTE;
 
 	svv *v;
@@ -612,7 +636,7 @@ se_dbget_int(so *o, const char *path)
 		return db->scheme->id;
 	else
 	if (strcmp(path, "key-count") == 0)
-		return db->scheme->scheme.count;
+		return db->scheme->scheme.keys_count;
 	return -1;
 }
 
@@ -746,25 +770,24 @@ int se_dbv(sedb *db, sedocument *o, int search, ssorder order, svv **v)
 		*v = sv_vbuildraw(db->r, o->raw, o->rawsize, timestamp);
 		goto ret;
 	}
-	if (search && o->keyc == 0)
+	if (search && o->fields_count_keys == 0)
 		return 0;
 
 	/* create document using current format, supplied
 	 * key-chain and value */
-	if (ssunlikely(o->keyc != db->scheme->scheme.count)) {
+	if (ssunlikely(o->fields_count_keys != db->scheme->scheme.keys_count))
+	{
 		if (!search || (search && order == SS_EQ))
 			return sr_error(&e->error, "%s", "incomplete key");
 		/* set unspecified min/max keys, depending on
 		 * iteration order */
-		o->keyc = db->scheme->scheme.count;
-		sr_limitset(&e->limit, &db->scheme->scheme,
-		            o->keyv,
-		            db->scheme->scheme.count, order);
+		sf_limitset(&e->limit, &db->scheme->scheme,
+		            o->fields, order);
+		o->fields_count = db->scheme->scheme.fields_count;
+		o->fields_count_keys = db->scheme->scheme.keys_count;
 	}
 
-	*v = sv_vbuild(db->r, o->keyv, o->keyc,
-	               o->value,
-	               o->valuesize, timestamp);
+	*v = sv_vbuild(db->r, o->fields, timestamp);
 ret:
 	if (ssunlikely(*v == NULL))
 		return sr_oom(&e->error);
@@ -781,18 +804,19 @@ int se_dbvprefix(sedb *db, sedocument *o, svv **v)
 		o->vprefix.v = NULL;
 		return 0;
 	}
-	if (o->prefix == NULL)
+	if (sslikely(o->prefix == NULL))
 		return 0;
 	/* validate index type */
-	if (sr_schemeof(&db->scheme->scheme, 0)->type != SS_STRING)
+	if (db->scheme->scheme.keys[0]->type != SS_STRING)
 		return sr_error(&e->error, "%s", "prefix search is only "
 		                "supported for a string key");
 	/* create prefix document */
-	sfv fv;
-	fv.key      = o->prefix;
-	fv.r.size   = o->prefixsize;
-	fv.r.offset = 0;
-	*v = sv_vbuild(&e->r, &fv, 1, NULL, 0, 0);
+	memset(o->fields, 0, sizeof(o->fields));
+	o->fields[0].pointer = o->prefix;
+	o->fields[0].size = o->prefixsize;
+	sf_limitset(&e->limit, &db->scheme->scheme,
+	            o->fields, SS_GTE);
+	*v = sv_vbuild(db->r, o->fields, 0);
 	if (ssunlikely(*v == NULL))
 		return -1;
 	return 0;

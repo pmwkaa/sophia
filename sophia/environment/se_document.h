@@ -17,8 +17,9 @@ struct sedocument {
 	sv        vprefix;
 	ssorder   order;
 	int       orderset;
-	sfv       keyv[8];
-	int       keyc;
+	sfv       fields[8];
+	int       fields_count;
+	int       fields_count_keys;
 	void     *prefix;
 	uint32_t  prefixsize;
 	void     *value;
