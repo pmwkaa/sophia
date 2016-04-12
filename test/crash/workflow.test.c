@@ -73,7 +73,7 @@ workflow_open(void *env)
 	rc = sp_setstring(env, "db.test.scheme", "key", 0);
 	if (rc == -1)
 		return NULL;
-	rc = sp_setstring(env, "db.test.scheme.key", "u32,key", 0);
+	rc = sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0);
 	if (rc == -1)
 		return NULL;
 	rc = sp_setstring(env, "db.test.scheme", "value", 0);

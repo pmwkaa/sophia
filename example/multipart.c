@@ -24,12 +24,12 @@ int main(int argc, char *argv[])
 	void *env = sp_env();
 	sp_setstring(env, "sophia.path", "_test", 0);
 	sp_setstring(env, "db", "test", 0);
-	sp_setstring(env, "db.test.index", "key", 0);
-	sp_setstring(env, "db.test.index", "key_j", 0);
-	sp_setstring(env, "db.test.index", "key_k", 0);
-	sp_setstring(env, "db.test.index.key",   "u32", 0);
-	sp_setstring(env, "db.test.index.key_j", "u32", 0);
-	sp_setstring(env, "db.test.index.key_k", "u32", 0);
+	sp_setstring(env, "db.test.scheme", "key", 0);
+	sp_setstring(env, "db.test.scheme", "key_j", 0);
+	sp_setstring(env, "db.test.scheme", "key_k", 0);
+	sp_setstring(env, "db.test.scheme.key",   "u32,key(0)", 0);
+	sp_setstring(env, "db.test.scheme.key_j", "u32,key(1)", 0);
+	sp_setstring(env, "db.test.scheme.key_k", "u32,key(2)", 0);
 	void *db = sp_getobject(env, "db.test");
 	int rc = sp_open(env);
 	if (rc == -1)

@@ -88,7 +88,7 @@ se_dbscheme_set(sedb *db)
 		sffield *field = sf_fieldnew(&e->a, "key");
 		if (ssunlikely(field == NULL))
 			return sr_oom(&e->error);
-		rc = sf_fieldoptions(field, &e->a, "string,key");
+		rc = sf_fieldoptions(field, &e->a, "string,key(0)");
 		if (ssunlikely(rc == -1)) {
 			sf_fieldfree(field, &e->a);
 			return sr_oom(&e->error);

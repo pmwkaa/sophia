@@ -91,7 +91,7 @@ conf_validation0(void)
 
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "string,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "string,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 
 	t( sp_open(db) == 0 );
@@ -236,8 +236,8 @@ conf_db(void)
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key_b", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "string,key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key_b", "string,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "string,key(0)", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key_b", "string,key(1)", 0) == 0 );
 	t( sp_setint(env, "db.test.id", 777) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
@@ -250,11 +250,11 @@ conf_db(void)
 	t( sp_getint(db, "key-count") == 2 );
 	s = sp_getstring(env, "db.test.scheme.key", 0);
 	t( s != NULL );
-	t( strcmp(s, "string,key") == 0 );
+	t( strcmp(s, "string,key(0)") == 0 );
 	free(s);
 	s = sp_getstring(env, "db.test.scheme.key_b", 0);
 	t( s != NULL );
-	t( strcmp(s, "string,key") == 0 );
+	t( strcmp(s, "string,key(1)") == 0 );
 	free(s);
 	t( sp_destroy(env) == 0 );
 }
@@ -271,8 +271,8 @@ conf_cursor(void)
 	t( sp_setstring(env, "db.test.scheme", "key_a", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key_b", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key_a", "string,key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key_b", "string,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key_a", "string,key(0)", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key_b", "string,key(1)", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "view", "test_view0", 0) == 0 );

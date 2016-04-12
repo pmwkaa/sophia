@@ -23,7 +23,7 @@ cache_validate(void)
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "db.test.cache_mode", 1) == 0 );
@@ -57,10 +57,10 @@ cache_assign0(void)
 	t( sp_setstring(env, "db", "cache", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.cache.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.cache.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "value", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "db.cache.sync", 0) == 0 );
@@ -81,10 +81,10 @@ cache_assign1(void)
 	t( sp_setstring(env, "db", "cache", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.cache.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.cache.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "value", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "string,key",0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "string,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "db.cache.sync", 0) == 0 );
@@ -104,14 +104,14 @@ cache_set(void)
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "db", "cache", 0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.cache.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.cache.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.cache.sync", 0) == 0 );
 	t( sp_setint(env, "db.cache.cache_mode", 1) == 0 );
 
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.cache", "cache", 0) == 0 );
@@ -153,14 +153,14 @@ cache_set_get(void)
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "db", "cache", 0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.cache.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.cache.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.cache.sync", 0) == 0 );
 	t( sp_setint(env, "db.cache.cache_mode", 1) == 0 );
 
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.cache", "cache", 0) == 0 );
@@ -229,14 +229,14 @@ cache_set_get_get(void)
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "db", "cache", 0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.cache.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.cache.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.cache.sync", 0) == 0 );
 	t( sp_setint(env, "db.cache.cache_mode", 1) == 0 );
 
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.cache", "cache", 0) == 0 );
@@ -311,14 +311,14 @@ cache_set_get_set(void)
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "db", "cache", 0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.cache.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.cache.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.cache.sync", 0) == 0 );
 	t( sp_setint(env, "db.cache.cache_mode", 1) == 0 );
 
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.cache", "cache", 0) == 0 );
@@ -398,14 +398,14 @@ cache_set_get_set_get(void)
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "db", "cache", 0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.cache.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.cache.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.cache.sync", 0) == 0 );
 	t( sp_setint(env, "db.cache.cache_mode", 1) == 0 );
 
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.cache", "cache", 0) == 0 );
@@ -504,14 +504,14 @@ cache_set_get_set_set(void)
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "db", "cache", 0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.cache.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.cache.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.cache.sync", 0) == 0 );
 	t( sp_setint(env, "db.cache.cache_mode", 1) == 0 );
 
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.cache", "cache", 0) == 0 );
@@ -580,7 +580,7 @@ cache_set_get_set_set_amqf(void)
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "db", "cache", 0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.cache.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.cache.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.cache.sync", 0) == 0 );
 	t( sp_setint(env, "db.cache.cache_mode", 1) == 0 );
@@ -588,7 +588,7 @@ cache_set_get_set_set_amqf(void)
 
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.cache", "cache", 0) == 0 );
@@ -657,14 +657,14 @@ cache_delete(void)
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "db", "cache", 0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.cache.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.cache.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.cache.sync", 0) == 0 );
 	t( sp_setint(env, "db.cache.cache_mode", 1) == 0 );
 
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.cache", "cache", 0) == 0 );
@@ -706,14 +706,14 @@ cache_set_get_delete(void)
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "db", "cache", 0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.cache.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.cache.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.cache.sync", 0) == 0 );
 	t( sp_setint(env, "db.cache.cache_mode", 1) == 0 );
 
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.cache", "cache", 0) == 0 );
@@ -778,13 +778,13 @@ cache_recover0(void)
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "db", "cache", 0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.cache.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.cache.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.cache.sync", 0) == 0 );
 	t( sp_setint(env, "db.cache.cache_mode", 1) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.cache", "cache", 0) == 0 );
@@ -839,13 +839,13 @@ cache_recover0(void)
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "db", "cache", 0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.cache.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.cache.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.cache.sync", 0) == 0 );
 	t( sp_setint(env, "db.cache.cache_mode", 1) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.cache", "cache", 0) == 0 );
@@ -876,13 +876,13 @@ cache_recover1(void)
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "db", "cache", 0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.cache.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.cache.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.cache.sync", 0) == 0 );
 	t( sp_setint(env, "db.cache.cache_mode", 1) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.cache", "cache", 0) == 0 );
@@ -942,13 +942,13 @@ cache_recover1(void)
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "db", "cache", 0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.cache.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.cache.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.cache.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.cache.sync", 0) == 0 );
 	t( sp_setint(env, "db.cache.cache_mode", 1) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key",0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)",0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.cache", "cache", 0) == 0 );

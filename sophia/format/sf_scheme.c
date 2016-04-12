@@ -134,6 +134,7 @@ int sf_schemeadd(sfscheme *s, ssa *a, sffield *f)
 	memcpy(fields, s->fields, size - sizeof(sffield*));
 	fields[s->fields_count] = f;
 	f->position = s->fields_count;
+	f->position_key = -1;
 	if (s->fields)
 		ss_free(a, s->fields);
 	s->fields = fields;
@@ -170,7 +171,22 @@ sf_schemeset(sfscheme *s, sffield *f, char *opt)
 		f->fixed_size = sizeof(uint64_t);
 		f->cmp = sf_cmpu64_reverse;
 	} else
-	if (strcmp(opt, "key") == 0) {
+	if (strncmp(opt, "key", 3) == 0) {
+		char *p = opt + 3;
+		if (ssunlikely(*p != '('))
+			return -1;
+		p++;
+		if (ssunlikely(! isdigit(*p)))
+			return -1;
+		int v = 0;
+		while (isdigit(*p)) {
+			v = (v * 10) + *p - '0';
+			p++;
+		}
+		if (ssunlikely(*p != ')'))
+			return -1;
+		p++;
+		f->position_key = v;
 		f->key = 1;
 	} else {
 		return -1;
@@ -222,25 +238,37 @@ sf_schemevalidate(sfscheme *s, ssa *a)
 	s->var_offset = fixed_offset;
 
 	/* validate keys */
-	if (s->keys_count == 0) {
+	if (ssunlikely(s->keys_count == 0))
 		return -1;
-	}
-
-	/* set keys and update string field positions */
-	s->keys = ss_malloc(a, sizeof(sffield*) * s->keys_count);
+	int size = sizeof(sffield*) * s->keys_count;
+	s->keys = ss_malloc(a, size);
 	if (ssunlikely(s->keys == NULL))
 		return -1;
-	int key_pos = 0;
-	int var_pos = 0;
+	memset(s->keys, 0, size);
+	int pos_var = 0;
 	i = 0;
 	while (i < s->fields_count) {
 		sffield *f = s->fields[i];
 		if (f->key) {
-			s->keys[key_pos] = f;
-			key_pos++;
+			if (ssunlikely(f->position_key < 0))
+				return -1;
+			if (ssunlikely(f->position_key >= s->fields_count))
+				return -1;
+			if (ssunlikely(f->position_key >= s->keys_count))
+				return -1;
+			if (ssunlikely(s->keys[f->position_key] != NULL))
+				return -1;
+			s->keys[f->position_key] = f;
 		}
 		if (f->fixed_size == 0)
-			f->position_ref = var_pos++;
+			f->position_ref = pos_var++;
+		i++;
+	}
+	i = 0;
+	while (i < s->keys_count) {
+		sffield *f = s->keys[i];
+		if (f == NULL)
+			return -1;
 		i++;
 	}
 	return 0;

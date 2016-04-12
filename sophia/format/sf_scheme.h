@@ -18,6 +18,7 @@ struct sffield {
 	sstype    type;
 	int       position;
 	int       position_ref;
+	int       position_key;
 	uint32_t  fixed_size;
 	uint32_t  fixed_offset;
 	char     *name;

@@ -26,7 +26,7 @@ view_create_delete(void)
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
@@ -54,7 +54,7 @@ view_cursor(void)
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
@@ -122,7 +122,7 @@ view_get(void)
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
@@ -176,7 +176,7 @@ view_recover_cursor(void)
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "log.sync", 0) == 0 );
@@ -222,7 +222,7 @@ view_recover_cursor(void)
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "log.sync", 0) == 0 );
@@ -279,7 +279,7 @@ view_recover_get(void)
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "log.sync", 0) == 0 );
@@ -323,7 +323,7 @@ view_recover_get(void)
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "log.sync", 0) == 0 );
@@ -373,7 +373,7 @@ view_db_view_only(void)
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "log.sync", 0) == 0 );

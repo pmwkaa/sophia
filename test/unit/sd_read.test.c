@@ -291,7 +291,7 @@ sd_read_gt0_compression_zstd(void)
 	sfscheme cmp;
 	sf_schemeinit(&cmp);
 	sffield *field = sf_fieldnew(&a, "key");
-	t( sf_fieldoptions(field, &a, "u32,key") == 0 );
+	t( sf_fieldoptions(field, &a, "u32,key(0)") == 0 );
 	t( sf_schemeadd(&cmp, &a, field) == 0 );
 	field = sf_fieldnew(&a, "value");
 	t( sf_fieldoptions(field, &a, "string") == 0 );
@@ -418,7 +418,7 @@ sd_read_gt0_compression_lz4(void)
 	sfscheme cmp;
 	sf_schemeinit(&cmp);
 	sffield *field = sf_fieldnew(&a, "key");
-	t( sf_fieldoptions(field, &a, "u32,key") == 0 );
+	t( sf_fieldoptions(field, &a, "u32,key(0)") == 0 );
 	t( sf_schemeadd(&cmp, &a, field) == 0 );
 	field = sf_fieldnew(&a, "value");
 	t( sf_fieldoptions(field, &a, "string") == 0 );
@@ -547,7 +547,7 @@ sd_read_gt1_compression_zstd(void)
 	sfscheme cmp;
 	sf_schemeinit(&cmp);
 	sffield *field = sf_fieldnew(&a, "key");
-	t( sf_fieldoptions(field, &a, "u32,key") == 0 );
+	t( sf_fieldoptions(field, &a, "u32,key(0)") == 0 );
 	t( sf_schemeadd(&cmp, &a, field) == 0 );
 	field = sf_fieldnew(&a, "value");
 	t( sf_fieldoptions(field, &a, "string") == 0 );
@@ -730,7 +730,7 @@ sd_read_gt1_compression_lz4(void)
 	sfscheme cmp;
 	sf_schemeinit(&cmp);
 	sffield *field = sf_fieldnew(&a, "key");
-	t( sf_fieldoptions(field, &a, "u32,key") == 0 );
+	t( sf_fieldoptions(field, &a, "u32,key(0)") == 0 );
 	t( sf_schemeadd(&cmp, &a, field) == 0 );
 	field = sf_fieldnew(&a, "value");
 	t( sf_fieldoptions(field, &a, "string") == 0 );

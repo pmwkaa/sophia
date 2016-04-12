@@ -30,7 +30,7 @@ snapshot_test0(void)
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
@@ -79,7 +79,7 @@ snapshot_test0(void)
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	db = sp_getobject(env, "db.test");
@@ -113,7 +113,7 @@ snapshot_test1(void)
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
@@ -172,7 +172,7 @@ snapshot_test1(void)
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	db = sp_getobject(env, "db.test");
@@ -205,8 +205,8 @@ snapshot_test2(void)
 	t( sp_setstring(env, "db", "t1", 0) == 0 );
 	t( sp_setstring(env, "db.t0.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.t1.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.t0.scheme.key", "u32,key", 0) == 0 );
-	t( sp_setstring(env, "db.t1.scheme.key", "u32,key", 0) == 0 );
+	t( sp_setstring(env, "db.t0.scheme.key", "u32,key(0)", 0) == 0 );
+	t( sp_setstring(env, "db.t1.scheme.key", "u32,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.t0.scheme", "value", 0) == 0 );
 	t( sp_setstring(env, "db.t1.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.t0.sync", 0) == 0 );

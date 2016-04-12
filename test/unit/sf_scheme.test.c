@@ -24,7 +24,7 @@ sf_scheme_saveload(void)
 	sffield *field;
 	field = sf_fieldnew(&st_r.a, "key");
 	t( field != NULL );
-	t( sf_fieldoptions(field, &st_r.a, "u32,key") == 0);
+	t( sf_fieldoptions(field, &st_r.a, "u32,key(0)") == 0);
 	t( sf_schemeadd(&cmp, &st_r.a, field) == 0);
 
 	field = sf_fieldnew(&st_r.a, "value");
