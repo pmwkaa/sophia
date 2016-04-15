@@ -26,6 +26,7 @@ SP_API void    *sp_env(void);
 SP_API void    *sp_document(void*);
 SP_API int      sp_setstring(void*, const char*, const void*, int);
 SP_API int      sp_setint(void*, const char*, int64_t);
+SP_API int      sp_setobject(void*, const char*, void*);
 SP_API void    *sp_getobject(void*, const char*);
 SP_API void    *sp_getstring(void*, const char*, int*);
 SP_API int64_t  sp_getint(void*, const char*);

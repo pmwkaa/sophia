@@ -54,11 +54,11 @@ static inline void
 sf_limitset(sflimit *b, sfscheme *s, sfv *fields, ssorder order)
 {
 	int i;
-	for (i = 0; i < s->keys_count; i++) {
+	for (i = 0; i < s->fields_count; i++) {
 		sfv *v = &fields[i];
 		if (v->pointer)
 			continue;
-		sffield *part = s->keys[i];
+		sffield *part = s->fields[i];
 		switch (part->type) {
 		case SS_U32:
 			if (order == SS_LT || order == SS_LTE) {

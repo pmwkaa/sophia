@@ -647,6 +647,7 @@ static soif sedbif =
 	.drop         = se_dbdrop,
 	.setstring    = NULL,
 	.setint       = NULL,
+	.setobject    = NULL,
 	.getobject    = NULL,
 	.getstring    = se_dbget_string,
 	.getint       = se_dbget_int,

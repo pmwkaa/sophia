@@ -298,6 +298,7 @@ static soif setxif =
 	.drop         = NULL,
 	.setstring    = NULL,
 	.setint       = se_txset_int,
+	.setobject    = NULL,
 	.getobject    = NULL,
 	.getstring    = NULL,
 	.getint       = se_txget_int,

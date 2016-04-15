@@ -32,6 +32,7 @@ enum {
 	SE_DOCUMENT_CACHE_ONLY,
 	SE_DOCUMENT_OLDEST_ONLY,
 	SE_DOCUMENT_EVENT,
+	SE_DOCUMENT_REUSE,
 	SE_DOCUMENT_UNKNOWN
 };
 
@@ -62,6 +63,8 @@ se_document_opt(const char *path)
 	case 'r':
 		if (sslikely(strcmp(path, "raw") == 0))
 			return SE_DOCUMENT_RAW;
+		if (sslikely(strcmp(path, "reuse") == 0))
+			return SE_DOCUMENT_REUSE;
 		break;
 	case 'f':
 		if (sslikely(strcmp(path, "flags") == 0))
@@ -368,6 +371,32 @@ se_document_getint(so *o, const char *path)
 	return -1;
 }
 
+static int
+se_document_setobject(so *o, const char *path, void *object)
+{
+	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
+	switch (se_document_opt(path)) {
+	case SE_DOCUMENT_REUSE: {
+		se *e = se_of(o);
+		sedocument *reuse = se_cast(object, sedocument*, SEDOCUMENT);
+		if (ssunlikely(v->created))
+			return sr_error(&e->error, "%s", "document is read-only");
+		assert(v->v.v == NULL);
+		if (ssunlikely(object == o->parent))
+			return sr_error(&e->error, "%s", "bad document operation");
+		if (ssunlikely(! reuse->created))
+			return sr_error(&e->error, "%s", "bad document operation");
+		sv_init(&v->v, &sv_vif, reuse->v.v, NULL);
+		sv_vref(v->v.v);
+		v->created = 1;
+		break;
+	}
+	default:
+		return -1;
+	}
+	return 0;
+}
+
 static soif sedocumentif =
 {
 	.open         = se_document_open,
@@ -380,6 +409,7 @@ static soif sedocumentif =
 	.drop         = NULL,
 	.setstring    = se_document_setstring,
 	.setint       = se_document_setint,
+	.setobject    = se_document_setobject,
 	.getobject    = NULL,
 	.getstring    = se_document_getstring,
 	.getint       = se_document_getint,

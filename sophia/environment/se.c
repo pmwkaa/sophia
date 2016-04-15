@@ -246,6 +246,7 @@ static soif seif =
 	.drop         = NULL,
 	.setstring    = se_confset_string,
 	.setint       = se_confset_int,
+	.setobject    = NULL,
 	.getobject    = se_confget_object,
 	.getstring    = se_confget_string,
 	.getint       = se_confget_int,

@@ -24,6 +24,7 @@ struct soif {
 	int      (*drop)(so*);
 	int      (*setstring)(so*, const char*, void*, int);
 	int      (*setint)(so*, const char*, int64_t);
+	int      (*setobject)(so*, const char*, void*);
 	void    *(*getobject)(so*, const char*);
 	void    *(*getstring)(so*, const char*, int*);
 	int64_t  (*getint)(so*, const char*);

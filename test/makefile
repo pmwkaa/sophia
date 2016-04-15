@@ -55,6 +55,7 @@ STS_TESTS = unit/ss_a.test.o \
             generic/get_cache.test.o \
             generic/get_oldest.test.o \
             generic/amqf.test.o \
+            generic/secondary_index.test.o \
             issues/github.test.o \
             compaction/branch.test.o \
             compaction/compact.test.o \

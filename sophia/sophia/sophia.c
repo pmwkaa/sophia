@@ -187,6 +187,20 @@ SP_API int sp_setint(void *ptr, const char *path, int64_t v)
 	return rc;
 }
 
+SP_API int sp_setobject(void *ptr, const char *path, void *v)
+{
+	so *o = sp_cast(ptr, __func__);
+	if (ssunlikely(o->i->setobject == NULL)) {
+		sp_unsupported(o, __func__);
+		return -1;
+	}
+	so *e = o->env;
+	se_apilock(e);
+	int rc = o->i->setobject(o, path, v);
+	se_apiunlock(e);
+	return rc;
+}
+
 SP_API void *sp_getobject(void *ptr, const char *path)
 {
 	so *o = sp_cast(ptr, __func__);

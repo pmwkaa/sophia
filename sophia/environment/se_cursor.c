@@ -95,6 +95,7 @@ static soif secursorif =
 	.drop         = NULL,
 	.setstring    = NULL,
 	.setint       = se_cursorset_int,
+	.setobject    = NULL,
 	.getobject    = NULL,
 	.getstring    = NULL,
 	.getint       = NULL,

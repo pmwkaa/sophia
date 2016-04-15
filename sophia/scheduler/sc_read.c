@@ -77,19 +77,12 @@ int sc_read(scread *r, sc *s)
 {
 	screadarg *arg = &r->arg;
 	si *index = r->index;
-	/* set key */
-	uint32_t keysize;
-	void *key;
-	// XXX
-	if (sslikely(arg->v.v)) {
-		keysize = sv_size(&arg->v);
-		key = sv_pointer(&arg->v);
-	} else {
-		keysize = 0;
-		key = NULL;
-	}
+
 	if (sslikely(arg->vlsn_generate))
 		arg->vlsn = sr_seq(s->r->seq, SR_LSN);
+
+	uint32_t keysize = sv_size(&arg->v);
+	void *key = sv_pointer(&arg->v);
 
 	/* read cache */
 	if (index->cache && (arg->order == SS_EQ))

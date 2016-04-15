@@ -105,6 +105,7 @@ static soif seviewif =
 	.drop         = NULL,
 	.setstring    = NULL,
 	.setint       = se_viewset_int,
+	.setobject    = NULL,
 	.getobject    = se_viewget_object,
 	.getstring    = NULL,
 	.getint       = NULL,

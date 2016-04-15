@@ -72,6 +72,7 @@ static soif seviewdbif =
 	.drop         = NULL,
 	.setstring    = NULL,
 	.setint       = NULL,
+	.setobject    = NULL,
 	.getobject    = NULL,
 	.getstring    = NULL,
 	.getint       = NULL,
