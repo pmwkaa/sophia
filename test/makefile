@@ -33,6 +33,7 @@ STS_TESTS = unit/ss_a.test.o \
             generic/tpr.test.o \
             generic/npr.test.o \
             generic/document.test.o \
+            generic/reuse.test.o \
             generic/env.test.o \
             generic/deadlock.test.o \
             generic/scheme.test.o \

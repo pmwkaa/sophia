@@ -117,6 +117,7 @@ transaction_get0(void)
 
 	o = sp_document(db);
 	t( o != NULL );
+	sp_setstring(o, "order", ">=", 0);
 	o = sp_get(db, o);
 	t( o != NULL );
 	sp_destroy(o);

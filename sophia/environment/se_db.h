@@ -32,11 +32,9 @@ so   *se_dbnew(se*, char*, int);
 so   *se_dbmatch(se*, char*);
 so   *se_dbmatch_id(se*, uint32_t);
 so   *se_dbresult(se*, scread*);
-void *se_dbread(sedb*, sedocument*, sx*, int, sicache*, ssorder);
+void *se_dbread(sedb*, sedocument*, sx*, int, sicache*);
 int   se_dbvisible(sedb*, uint64_t);
 void  se_dbbind(se*);
 void  se_dbunbind(se*, uint64_t);
-int   se_dbv(sedb*, sedocument*, int, ssorder, svv**);
-int   se_dbvprefix(sedb*, sedocument*, svv**);
 
 #endif

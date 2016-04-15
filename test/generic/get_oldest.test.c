@@ -218,6 +218,7 @@ get_oldest_test2(void)
 	/* default */
 	o = sp_document(db);
 	t( o != NULL );
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
 	t( *(int*)sp_getstring(o, "value", NULL) == 2 );
@@ -230,6 +231,7 @@ get_oldest_test2(void)
 
 	/* oldest only */
 	o = sp_document(db);
+	t( sp_setstring(o, "order", ">=", 0) == 0 );
 	t( sp_setint(o, "oldest_only", 1) == 0 );
 	t( o != NULL );
 	o = sp_get(db, o);

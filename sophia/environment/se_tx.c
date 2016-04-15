@@ -25,6 +25,9 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 {
 	se *e = se_of(&t->o);
 	sedb *db = se_cast(o->o.parent, sedb*, SEDB);
+
+	int auto_close = !o->created;
+
 	/* validate req */
 	if (ssunlikely(t->t.state == SXPREPARE)) {
 		sr_error(&e->error, "%s", "transaction is in 'prepare' state (read-only)");
@@ -45,33 +48,37 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 	case SR_ONLINE: break;
 	default: goto error;
 	}
-	if (flags == SVUPSERT && !sf_upserthas(&db->scheme->fmt_upsert))
-		flags = 0;
 
-	/* prepare document */
-	svv *v;
-	int rc = se_dbv(db, o, 0, SS_STOP, &v);
+	/* create document */
+	int rc = so_open(&o->o);
 	if (ssunlikely(rc == -1))
 		goto error;
-	v->flags = flags;
-	v->log = o->log;
-	sv vp;
-	sv_init(&vp, &sv_vif, v, NULL);
-	so_destroy(&o->o);
+	rc = se_document_validate(o, &db->o, flags);
+	if (ssunlikely(rc == -1))
+		goto error;
 
-	/* ensure quota */
+	svv *v = o->v.v;
+	sv_vref(v);
+	v->log = o->log;
+
+	/* destroy document object */
 	int size = sv_vsize(v);
-	ss_quota(&e->quota, SS_QADD, size);
+	if (auto_close) {
+		ss_quota(&e->quota, SS_QADD, size);
+		so_destroy(&o->o);
+	}
 
 	/* concurrent index only */
 	rc = sx_set(&t->t, &db->coindex, v);
 	if (ssunlikely(rc == -1)) {
-		ss_quota(&e->quota, SS_QREMOVE, size);
+		if (auto_close)
+			ss_quota(&e->quota, SS_QREMOVE, size);
 		return -1;
 	}
 	return 0;
 error:
-	so_destroy(&o->o);
+	if (auto_close)
+		so_destroy(&o->o);
 	return -1;
 }
 
@@ -88,6 +95,10 @@ se_txupsert(so *o, so *v)
 {
 	setx *t = se_cast(o, setx*, SETX);
 	sedocument *key = se_cast(v, sedocument*, SEDOCUMENT);
+	se *e = se_of(&t->o);
+	sedb *db = se_cast(v->parent, sedb*, SEDB);
+	if (! sf_upserthas(&db->scheme->fmt_upsert))
+		return sr_error(&e->error, "%s", "upsert callback is not set");
 	return se_txwrite(t, key, SVUPSERT);
 }
 
@@ -121,7 +132,7 @@ se_txget(so *o, so *v)
 		break;
 	default: goto error;
 	}
-	return se_dbread(db, key, &t->t, 1, NULL, key->order);
+	return se_dbread(db, key, &t->t, 1, NULL);
 error:
 	so_destroy(&key->o);
 	return NULL;
@@ -170,8 +181,9 @@ se_txprepare(sx *x, sv *v, so *o, void *ptr)
 	sc_readopen(&q, db->r, &db->o, db->index);
 	screadarg *arg = &q.arg;
 	arg->v             = *v;
-	arg->vprefix.v     = NULL;
 	arg->vup.v         = NULL;
+	arg->prefix        = NULL;
+	arg->prefixsize    = 0;
 	arg->cache         = cache;
 	arg->cachegc       = 0;
 	arg->order         = SS_EQ;

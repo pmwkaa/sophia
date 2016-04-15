@@ -437,10 +437,6 @@ multipart_set_get_incomplete0(void)
 
 	void *o = sp_document(db);
 	sp_setstring(o, "key", key_a, sizeof(key_a));
-	t( sp_set(db, o) == -1 );
-
-	o = sp_document(db);
-	sp_setstring(o, "key", key_a, sizeof(key_a));
 	sp_setstring(o, "key_b", &key_b, sizeof(key_b));
 	t( sp_set(db, o) == 0);
 

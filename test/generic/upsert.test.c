@@ -34,24 +34,10 @@ upsert_no_operator(void)
 	t( db != NULL );
 
 	int i = 0;
-	while ( i < 100 ) {
-		void *o = sp_document(db);
-		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
-		t( sp_upsert(db, o) == 0 );
-		i++;
-	}
-
-	i = 0;
 	void *o = sp_document(db);
-	t( o != NULL );
-	void *cur = sp_cursor(env);
-	while ((o = sp_get(cur, o))) {
-		t( *(int*)sp_getstring(o, "key", NULL) == i );
-		t( *(int*)sp_getstring(o, "value", NULL) == i );
-		i++;
-	}
-	sp_destroy(cur);
+	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
+	t( sp_upsert(db, o) == -1 );
 
 	t( sp_destroy(env) == 0 );
 }

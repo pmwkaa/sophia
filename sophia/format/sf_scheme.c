@@ -157,7 +157,7 @@ sf_schemeset(sfscheme *s, sffield *f, char *opt)
 		f->cmp = sf_cmpu32;
 	} else
 	if (strcmp(opt, "u32_rev") == 0) {
-		f->type = SS_U32;
+		f->type = SS_U32REV;
 		f->fixed_size = sizeof(uint32_t);
 		f->cmp = sf_cmpu32_reverse;
 	} else
@@ -167,7 +167,7 @@ sf_schemeset(sfscheme *s, sffield *f, char *opt)
 		f->cmp = sf_cmpu64;
 	} else
 	if (strcmp(opt, "u64_rev") == 0) {
-		f->type = SS_U64;
+		f->type = SS_U64REV;
 		f->fixed_size = sizeof(uint64_t);
 		f->cmp = sf_cmpu64_reverse;
 	} else

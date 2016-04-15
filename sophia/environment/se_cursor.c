@@ -54,9 +54,8 @@ se_cursorget(so *o, so *v)
 	secursor *c = se_cast(o, secursor*, SECURSOR);
 	sedocument *key = se_cast(v, sedocument*, SEDOCUMENT);
 	sedb *db = se_cast(v->parent, sedb*, SEDB);
-	ssorder order = key->order;
 	if (ssunlikely(! key->orderset))
-		order = SS_GTE;
+		key->order = SS_GTE;
 	/* this statistics might be not complete, because
 	 * last statement is not accounted here */
 	c->read_disk  += key->read_disk;
@@ -65,7 +64,7 @@ se_cursorget(so *o, so *v)
 	sx *x = &c->t;
 	if (c->read_commited)
 		x = NULL;
-	return se_dbread(db, key, x, 0, c->cache, order);
+	return se_dbread(db, key, x, 0, c->cache);
 }
 
 static int

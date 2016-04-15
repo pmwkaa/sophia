@@ -69,12 +69,30 @@ sf_limitset(sflimit *b, sfscheme *s, sfv *fields, ssorder order)
 				v->size = sizeof(uint32_t);
 			}
 			break;
+		case SS_U32REV:
+			if (order == SS_LT || order == SS_LTE) {
+				v->pointer = (char*)&b->u32_min;
+				v->size = sizeof(uint32_t);
+			} else {
+				v->pointer = (char*)&b->u32_max;
+				v->size = sizeof(uint32_t);
+			}
+			break;
 		case SS_U64:
 			if (order == SS_LT || order == SS_LTE) {
 				v->pointer = (char*)&b->u64_max;
 				v->size = sizeof(uint64_t);
 			} else {
 				v->pointer = (char*)&b->u64_min;
+				v->size = sizeof(uint64_t);
+			}
+			break;
+		case SS_U64REV:
+			if (order == SS_LT || order == SS_LTE) {
+				v->pointer = (char*)&b->u64_min;
+				v->size = sizeof(uint64_t);
+			} else {
+				v->pointer = (char*)&b->u64_max;
 				v->size = sizeof(uint64_t);
 			}
 			break;
@@ -99,7 +117,6 @@ sf_limitset(sflimit *b, sfscheme *s, sfv *fields, ssorder order)
 		default: assert(0);
 			break;
 		}
-		i++;
 	}
 }
 

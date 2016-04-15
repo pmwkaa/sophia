@@ -31,7 +31,6 @@ enum {
 	SE_DOCUMENT_FLAGS,
 	SE_DOCUMENT_CACHE_ONLY,
 	SE_DOCUMENT_OLDEST_ONLY,
-	SE_DOCUMENT_IMMUTABLE,
 	SE_DOCUMENT_EVENT,
 	SE_DOCUMENT_UNKNOWN
 };
@@ -72,16 +71,95 @@ se_document_opt(const char *path)
 		if (sslikely(strcmp(path, "cache_only") == 0))
 			return SE_DOCUMENT_CACHE_ONLY;
 		break;
-	case 'i':
-		if (sslikely(strcmp(path, "immutable") == 0))
-			return SE_DOCUMENT_IMMUTABLE;
-		break;
 	case 'e':
 		if (sslikely(strcmp(path, "event") == 0))
 			return SE_DOCUMENT_EVENT;
 		break;
 	}
 	return SE_DOCUMENT_FIELD;
+}
+
+static inline int
+se_document_create(sedocument *o)
+{
+	sedb *db = (sedb*)o->o.parent;
+	se *e = se_of(&db->o);
+
+	assert(o->v.v == NULL);
+
+	/* reuse document */
+	uint32_t timestamp = UINT32_MAX;
+	if (db->scheme->expire > 0) {
+		if (ssunlikely(o->timestamp > 0))
+			timestamp = o->timestamp;
+		else
+			timestamp = ss_timestamp();
+	}
+
+	/* create document from raw data */
+	svv *v;
+	if (o->raw) {
+		v = sv_vbuildraw(db->r, o->raw, o->rawsize, timestamp);
+		if (ssunlikely(v == NULL))
+			return sr_oom(&e->error);
+		sv_init(&o->v, &sv_vif, v, NULL);
+		return 0;
+	}
+
+	if (o->prefix) {
+		if (db->scheme->scheme.keys[0]->type != SS_STRING)
+			return sr_error(&e->error, "%s", "prefix search is only "
+			                "supported for a string key");
+
+		void *copy = ss_malloc(&e->a, o->prefixsize);
+		if (ssunlikely(copy == NULL))
+			return sr_oom(&e->error);
+		memcpy(copy, o->prefix, o->prefixsize);
+		o->prefixcopy = copy;
+
+		if (o->fields_count_keys == 0 && o->prefix)
+		{
+			memset(o->fields, 0, sizeof(o->fields));
+			o->fields[0].pointer = o->prefix;
+			o->fields[0].size = o->prefixsize;
+			sf_limitset(&e->limit, &db->scheme->scheme, o->fields, SS_GTE);
+			goto allocate;
+		}
+	}
+
+	/* create document using current format, supplied
+	 * key-chain and value */
+	if (ssunlikely(o->fields_count_keys != db->scheme->scheme.keys_count))
+	{
+		/* set unspecified min/max keys, depending on
+		 * iteration order */
+		sf_limitset(&e->limit, &db->scheme->scheme,
+		            o->fields, o->order);
+		o->fields_count = db->scheme->scheme.fields_count;
+		o->fields_count_keys = db->scheme->scheme.keys_count;
+	}
+
+allocate:
+	v = sv_vbuild(db->r, o->fields, timestamp);
+	if (ssunlikely(v == NULL))
+		return sr_oom(&e->error);
+	sv_init(&o->v, &sv_vif, v, NULL);
+	return 0;
+}
+
+static int
+se_document_open(so *o)
+{
+	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
+	if (sslikely(v->created)) {
+		assert(v->v.v != NULL);
+		return 0;
+	}
+	int rc = se_document_create(v);
+	if (ssunlikely(rc == -1))
+		return -1;
+	v->created = 1;
+	return 0;
 }
 
 static void
@@ -96,12 +174,14 @@ static int
 se_document_destroy(so *o)
 {
 	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
-	if (ssunlikely(v->immutable))
-		return 0;
 	se *e = se_of(o);
 	if (v->v.v)
 		si_gcv(&e->r, v->v.v);
 	v->v.v = NULL;
+	if (v->prefixcopy)
+		ss_free(&e->a, v->prefixcopy);
+	v->prefixcopy = NULL;
+	v->prefix = NULL;
 	so_mark_destroyed(&v->o);
 	so_poolgc(&e->document, &v->o);
 	return 0;
@@ -257,9 +337,6 @@ se_document_setint(so *o, const char *path, int64_t num)
 	case SE_DOCUMENT_OLDEST_ONLY:
 		v->oldest_only = num;
 		break;
-	case SE_DOCUMENT_IMMUTABLE:
-		v->immutable = num;
-		break;
 	default:
 		return -1;
 	}
@@ -281,8 +358,6 @@ se_document_getint(so *o, const char *path)
 		return v->event;
 	case SE_DOCUMENT_CACHE_ONLY:
 		return v->cache_only;
-	case SE_DOCUMENT_IMMUTABLE:
-		return v->immutable;
 	case SE_DOCUMENT_FLAGS: {
 		uint64_t flags = -1;
 		if (v->v.v)
@@ -295,7 +370,7 @@ se_document_getint(so *o, const char *path)
 
 static soif sedocumentif =
 {
-	.open         = NULL,
+	.open         = se_document_open,
 	.close        = NULL,
 	.destroy      = se_document_destroy,
 	.free         = se_document_free,

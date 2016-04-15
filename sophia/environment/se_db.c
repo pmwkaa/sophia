@@ -346,8 +346,7 @@ so *se_dbresult(se *e, scread *r)
 	sv_init(&result, &sv_vif, r->result, NULL);
 	r->result = NULL;
 
-	sedocument *v =
-		(sedocument*)se_document_new(e, r->db, &result);
+	sedocument *v = (sedocument*)se_document_new(e, r->db, &result);
 	if (ssunlikely(v == NULL))
 		return NULL;
 	v->cache_only   = r->arg.cache_only;
@@ -372,80 +371,62 @@ so *se_dbresult(se *e, scread *r)
 	else
 	if (v->order == SS_LTE)
 		v->order = SS_LT;
-	/* reuse prefix document */
-	v->vprefix.v = r->arg.vprefix.v;
-	if (v->vprefix.v) {
-		r->arg.vprefix.v = NULL;
-		void *vptr = sv_vpointer(v->vprefix.v);
-		sfscheme *s = &r->index->scheme.scheme;
-		v->prefix = sf_fieldof_ptr(s, s->keys[0], vptr, &v->prefixsize);
+
+	/* set prefix */
+	if (r->arg.prefix) {
+		v->prefix = r->arg.prefix;
+		v->prefixcopy = r->arg.prefix;
+		v->prefixsize = r->arg.prefixsize;
 	}
+
+	v->created = 1;
+	v->flagset = 1;
 	return &v->o;
 }
 
 void*
 se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
-          sicache *cache, ssorder order)
+          sicache *cache)
 {
 	se *e = se_of(&db->o);
-	/* validate request */
-	if (ssunlikely(o->o.parent != &db->o)) {
-		sr_error(&e->error, "%s", "bad document parent");
-		return NULL;
-	}
-	if (ssunlikely(! sr_online(&db->index->status)))
-		goto e0;
-	int cache_only  = o->cache_only;
-	int oldest_only = o->oldest_only;
-
 	uint64_t start  = ss_utime();
-	/* prepare search key */
-	if (ssunlikely(order == SS_EQ && o->fields_count == 0))
-		order = SS_GTE;
 
-	svv *v;
-	int rc = se_dbv(db, o, 1, order, &v);
+	/* prepare the key */
+	int auto_close = !o->created;
+	int rc = so_open(&o->o);
 	if (ssunlikely(rc == -1))
-		goto e0;
-	if (v) {
-		v->flags = SVGET;
-	}
-	sv vp;
-	sv_init(&vp, &sv_vif, v, NULL);
-	svv *vprf;
-	rc = se_dbvprefix(db, o, &vprf);
+		goto error;
+	rc = se_document_validate_ro(o, &db->o);
 	if (ssunlikely(rc == -1))
-		goto e1;
-	sv vprefix;
-	sv_init(&vprefix, &sv_vif, vprf, NULL);
-	if (vprf && v == NULL) {
-		v = sv_vdup(db->r, &vprefix);
-		sv_init(&vp, &sv_vif, v, NULL);
-	}
+		goto error;
+	if (ssunlikely(! sr_online(&db->index->status)))
+		goto error;
+
 	sv vup;
-	memset(&vup, 0, sizeof(vup));
-	so_destroy(&o->o);
-	o = NULL;
+	sv_init(&vup, &sv_vif, NULL, NULL);
+
+	sedocument *ret = NULL;
 
 	/* concurrent */
-	if (x_search && order == SS_EQ) {
+	if (x_search && o->order == SS_EQ) {
 		/* note: prefix is ignored during concurrent
 		 * index search */
-		int rc = sx_get(x, &db->coindex, &vp, &vup);
+		int rc = sx_get(x, &db->coindex, &o->v, &vup);
 		if (ssunlikely(rc == -1 || rc == 2 /* delete */))
-			goto e2;
+			goto error;
 		if (rc == 1 && !sv_is(&vup, SVUPSERT)) {
-			so *ret = se_document_new(e, &db->o, &vup);
-			if (ssunlikely(ret == NULL))
+			ret = (sedocument*)se_document_new(e, &db->o, &vup);
+			if (sslikely(ret)) {
+				ret->cache_only  = o->cache_only;
+				ret->oldest_only = o->oldest_only;
+				ret->created     = 1;
+				ret->orderset    = 1;
+				ret->flagset     = 1;
+			} else {
 				sv_vunref(db->r, vup.v);
-
-			sedocument *match = (sedocument*)ret;
-			match->cache_only  = cache_only;
-			match->oldest_only = oldest_only;
-
-			if (vprf)
-				sv_vunref(db->r, vprf);
-			sv_vunref(db->r, v);
+			}
+			if (auto_close)
+				so_destroy(&o->o);
 			return ret;
 		}
 	} else {
@@ -458,27 +439,32 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 		cachegc = 1;
 		cache = si_cachepool_pop(&e->cachepool);
 		if (ssunlikely(cache == NULL)) {
+			if (vup.v)
+				sv_vunref(db->r, vup.v);
 			sr_oom(&e->error);
-			goto e2;
+			goto error;
 		}
 	}
+
+	sv_vref(o->v.v);
 
 	/* prepare request */
 	scread q;
 	sc_readopen(&q, db->r, &db->o, db->index);
 	q.start = start;
 	screadarg *arg = &q.arg;
-	arg->v           = vp;
-	arg->vprefix     = vprefix;
+	arg->v           = o->v;
+	arg->prefix      = o->prefixcopy;
+	arg->prefixsize  = o->prefixsize;
 	arg->vup         = vup;
 	arg->cache       = cache;
 	arg->cachegc     = cachegc;
-	arg->order       = order;
+	arg->order       = o->order;
 	arg->has         = 0;
 	arg->upsert      = 0;
 	arg->upsert_eq   = 0;
-	arg->cache_only  = cache_only;
-	arg->oldest_only = oldest_only;
+	arg->cache_only  = o->cache_only;
+	arg->oldest_only = o->oldest_only;
 	if (x) {
 		arg->vlsn = x->vlsn;
 		arg->vlsn_generate = 0;
@@ -496,15 +482,18 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 
 	/* read index */
 	rc = sc_read(&q, &e->scheduler);
-	if (rc == 1)
-		o = (sedocument*)se_dbresult(e, &q);
+	if (rc == 1) {
+		ret = (sedocument*)se_dbresult(e, &q);
+		if (ret)
+			o->prefixcopy = NULL;
+	}
 	sc_readclose(&q);
-	return o;
-e2: if (vprf)
-		sv_vunref(db->r, vprf);
-e1: if (v)
-		sv_vunref(db->r, v);
-e0: if (o)
+
+	if (auto_close)
+		so_destroy(&o->o);
+	return ret;
+error:
+	if (auto_close)
 		so_destroy(&o->o);
 	return NULL;
 }
@@ -513,28 +502,30 @@ static inline int
 se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 {
 	se *e = se_of(&db->o);
-	/* validate req */
-	if (ssunlikely(o->o.parent != &db->o)) {
-		sr_error(&e->error, "%s", "bad document parent");
-		return -1;
-	}
+
+	int auto_close = !o->created;
 	if (ssunlikely(! sr_online(&db->index->status)))
 		goto error;
 	if (ssunlikely(db->scheme->cache_mode))
 		goto error;
-	if (flags == SVUPSERT && !sf_upserthas(&db->scheme->fmt_upsert))
-		flags = 0;
 
-	/* prepare document */
-	svv *v;
-	int rc = se_dbv(db, o, 0, SS_STOP, &v);
+	/* create document */
+	int rc = so_open(&o->o);
 	if (ssunlikely(rc == -1))
 		goto error;
-	so_destroy(&o->o);
-	v->flags = flags;
+	rc = se_document_validate(o, &db->o, flags);
+	if (ssunlikely(rc == -1))
+		goto error;
 
-	/* ensure quota */
-	ss_quota(&e->quota, SS_QADD, sv_vsize(v));
+	svv *v = o->v.v;
+	sv_vref(v);
+
+	/* destroy document object */
+	if (auto_close) {
+		/* ensure quota */
+		ss_quota(&e->quota, SS_QADD, sv_vsize(v));
+		so_destroy(&o->o);
+	}
 
 	/* single-statement transaction */
 	svlog log;
@@ -554,8 +545,10 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 
 	sx_gc(&x);
 	return rc;
+
 error:
-	so_destroy(&o->o);
+	if (auto_close)
+		so_destroy(&o->o);
 	return -1;
 }
 
@@ -578,6 +571,8 @@ se_dbupsert(so *o, so *v)
 	sedocument *key = se_cast(v, sedocument*, SEDOCUMENT);
 	se *e = se_of(&db->o);
 	uint64_t start = ss_utime();
+	if (! sf_upserthas(&db->scheme->fmt_upsert))
+		return sr_error(&e->error, "%s", "upsert callback is not set");
 	int rc = se_dbwrite(db, key, SVUPSERT);
 	sr_statupsert(&e->stat, start);
 	return rc;
@@ -600,7 +595,7 @@ se_dbget(so *o, so *v)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
 	sedocument *key = se_cast(v, sedocument*, SEDOCUMENT);
-	return se_dbread(db, key, NULL, 0, NULL, key->order);
+	return se_dbread(db, key, NULL, 0, NULL);
 }
 
 static void*
@@ -741,83 +736,4 @@ void se_dbunbind(se *e, uint64_t txn)
 		if (se_dbvisible(db, txn))
 			se_dbunref(db);
 	}
-}
-
-int se_dbv(sedb *db, sedocument *o, int search, ssorder order, svv **v)
-{
-	uint32_t timestamp = UINT32_MAX;
-	if (db->scheme->expire > 0) {
-		if (ssunlikely(o->timestamp > 0))
-			timestamp = o->timestamp;
-		else
-			timestamp = ss_timestamp();
-	}
-
-	se *e = se_of(&db->o);
-	*v = NULL;
-	/* reuse document */
-	if (o->v.v) {
-		if (sslikely(! o->immutable)) {
-			*v = o->v.v;
-			o->v.v = NULL;
-			return 0;
-		}
-		*v = sv_vbuildraw(db->r, sv_pointer(&o->v), sv_size(&o->v), timestamp);
-		goto ret;
-	}
-	/* create document from raw data */
-	if (o->raw) {
-		*v = sv_vbuildraw(db->r, o->raw, o->rawsize, timestamp);
-		goto ret;
-	}
-	if (search && o->fields_count_keys == 0)
-		return 0;
-
-	/* create document using current format, supplied
-	 * key-chain and value */
-	if (ssunlikely(o->fields_count_keys != db->scheme->scheme.keys_count))
-	{
-		if (!search || (search && order == SS_EQ))
-			return sr_error(&e->error, "%s", "incomplete key");
-		/* set unspecified min/max keys, depending on
-		 * iteration order */
-		sf_limitset(&e->limit, &db->scheme->scheme,
-		            o->fields, order);
-		o->fields_count = db->scheme->scheme.fields_count;
-		o->fields_count_keys = db->scheme->scheme.keys_count;
-	}
-
-	*v = sv_vbuild(db->r, o->fields, timestamp);
-ret:
-	if (ssunlikely(*v == NULL))
-		return sr_oom(&e->error);
-	return 0;
-}
-
-int se_dbvprefix(sedb *db, sedocument *o, svv **v)
-{
-	se *e = se_of(&db->o);
-	*v = NULL;
-	/* reuse prefix */
-	if (o->vprefix.v) {
-		*v = o->vprefix.v;
-		o->vprefix.v = NULL;
-		return 0;
-	}
-	if (sslikely(o->prefix == NULL))
-		return 0;
-	/* validate index type */
-	if (db->scheme->scheme.keys[0]->type != SS_STRING)
-		return sr_error(&e->error, "%s", "prefix search is only "
-		                "supported for a string key");
-	/* create prefix document */
-	memset(o->fields, 0, sizeof(o->fields));
-	o->fields[0].pointer = o->prefix;
-	o->fields[0].size = o->prefixsize;
-	sf_limitset(&e->limit, &db->scheme->scheme,
-	            o->fields, SS_GTE);
-	*v = sv_vbuild(db->r, o->fields, 0);
-	if (ssunlikely(*v == NULL))
-		return -1;
-	return 0;
 }

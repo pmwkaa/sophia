@@ -14,7 +14,9 @@ typedef enum {
 	SS_STRING,
 	SS_STRINGPTR,
 	SS_U32,
+	SS_U32REV,
 	SS_U64,
+	SS_U64REV,
 	SS_I64,
 	SS_OBJECT,
 	SS_FUNCTION
@@ -27,7 +29,9 @@ ss_typeof(sstype type) {
 	case SS_STRING:    return "string";
 	case SS_STRINGPTR: return "stringptr";
 	case SS_U32:       return "u32";
+	case SS_U32REV:    return "u32rev";
 	case SS_U64:       return "u64";
+	case SS_U64REV:    return "u64rev";
 	case SS_I64:       return "i64";
 	case SS_OBJECT:    return "object";
 	case SS_FUNCTION:  return "function";

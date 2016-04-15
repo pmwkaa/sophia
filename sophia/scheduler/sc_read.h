@@ -14,7 +14,8 @@ typedef struct scread scread;
 
 struct screadarg {
 	sv        v;
-	sv        vprefix;
+	char     *prefix;
+	int       prefixsize;
 	sv        vup;
 	sicache  *cache;
 	int       cachegc;

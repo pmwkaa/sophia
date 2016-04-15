@@ -24,8 +24,6 @@ void sc_readclose(scread *r)
 	/* free key, prefix, upsert and a pending result */
 	if (r->arg.v.v)
 		sv_vunref(rt, r->arg.v.v);
-	if (r->arg.vprefix.v)
-		sv_vunref(rt, r->arg.vprefix.v);
 	if (r->arg.vup.v)
 		sv_vunref(rt, r->arg.vup.v);
 	if (ssunlikely(r->result))
@@ -82,23 +80,13 @@ int sc_read(scread *r, sc *s)
 	/* set key */
 	uint32_t keysize;
 	void *key;
+	// XXX
 	if (sslikely(arg->v.v)) {
 		keysize = sv_size(&arg->v);
 		key = sv_pointer(&arg->v);
 	} else {
 		keysize = 0;
 		key = NULL;
-	}
-	/* set prefix */
-	char *prefix;
-	uint32_t prefixsize;
-	if (arg->vprefix.v) {
-		void *vptr = sv_vpointer(arg->vprefix.v);
-		sfscheme *s = &index->scheme.scheme;
-		prefix = sf_fieldof_ptr(s, s->keys[0], vptr, &prefixsize);
-	} else {
-		prefix = NULL;
-		prefixsize = 0;
 	}
 	if (sslikely(arg->vlsn_generate))
 		arg->vlsn = sr_seq(s->r->seq, SR_LSN);
@@ -108,8 +96,8 @@ int sc_read(scread *r, sc *s)
 	{
 		int rc;
 		rc = sc_readindex(r, index->cache, key, keysize,
-		                  prefix,
-		                  prefixsize);
+		                  arg->prefix,
+		                  arg->prefixsize);
 		switch (rc) {
 		case  0:
 			/* not found.
@@ -125,6 +113,6 @@ int sc_read(scread *r, sc *s)
 	}
 	/* read storage */
 	return sc_readindex(r, index, key, keysize,
-	                    prefix,
-	                    prefixsize);
+	                    arg->prefix,
+	                    arg->prefixsize);
 }
