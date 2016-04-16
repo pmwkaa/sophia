@@ -21,7 +21,6 @@ struct svwriteiter {
 	uint32_t  now;
 	int       save_delete;
 	int       save_upsert;
-	int       save_set;
 	int       next;
 	int       upsert;
 	uint64_t  prevlsn;
@@ -122,14 +121,6 @@ sv_writeiter_next(ssiter *i)
 					continue;
 				}
 			}
-			/* set (cache mode) */
-			if (! im->save_set) {
-				int set = flags == 0;
-				if (ssunlikely(set && (lsn <= im->vlsn))) {
-					im->prevlsn = lsn;
-					continue;
-				}
-			}
 			im->size += im->sizev + sv_size(v);
 			/* upsert (track first statement start) */
 			if (sv_isflags(flags, SVUPSERT))
@@ -171,8 +162,7 @@ sv_writeiter_open(ssiter *i, sr *r, ssiter *merge, svupsert *u,
                   uint64_t vlsn,
                   uint64_t vlsn_lru,
                   int save_delete,
-                  int save_upsert,
-                  int save_set)
+                  int save_upsert)
 {
 	svwriteiter *im = (svwriteiter*)i->priv;
 	im->u           = u;
@@ -187,7 +177,6 @@ sv_writeiter_open(ssiter *i, sr *r, ssiter *merge, svupsert *u,
 	im->vlsn_lru    = vlsn_lru;
 	im->save_delete = save_delete;
 	im->save_upsert = save_upsert;
-	im->save_set    = save_set;
 	assert(im->merge->vif == &sv_mergeiter);
 	im->next  = 0;
 	im->prevlsn  = 0;

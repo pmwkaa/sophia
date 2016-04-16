@@ -18,9 +18,7 @@
 
 static inline int si_set(sitx *x, svv *v, uint64_t time)
 {
-	int rc;
 	si *index = x->index;
-	sischeme *scheme = &index->scheme;
 	index->update_time = time;
 	/* match node */
 	ssiter i;
@@ -29,18 +27,6 @@ static inline int si_set(sitx *x, svv *v, uint64_t time)
 	            sv_vpointer(v), v->size);
 	sinode *node = ss_iterof(si_iter, &i);
 	assert(node != NULL);
-	/* cache mode */
-	if (scheme->cache_mode && scheme->amqf) {
-		/* skip write-only statements which keys are definately
-		 * not stored in the index */
-		if (v->flags != SVGET) {
-			rc = si_amqfhas(&index->r, node, sv_vpointer(v));
-			if (sslikely(! rc)) {
-				sv_vunref(&index->r, v);
-				return 0;
-			}
-		}
-	}
 	svref *ref = sv_refnew(&index->r, v);
 	assert(ref != NULL);
 	/* insert into node index */
@@ -58,17 +44,13 @@ static inline int si_set(sitx *x, svv *v, uint64_t time)
 }
 
 void si_write(sitx *x, svlog *l, svlogindex *li, uint64_t time,
-              int recover, int ref)
+              int recover)
 {
 	sr *r = &x->index->r;
-	int cache_mode = x->index->scheme.cache_mode;
 	svlogv *cv = sv_logat(l, li->head);
 	int c = li->count;
 	while (c) {
 		svv *v = cv->v.v;
-		if (ref) {
-			sv_vref(v);
-		}
 		if (recover) {
 			if (si_readcommited(x->index, r, &cv->v, recover)) {
 				uint32_t gc = si_gcv(r, v);
@@ -76,7 +58,7 @@ void si_write(sitx *x, svlog *l, svlogindex *li, uint64_t time,
 				goto next;
 			}
 		}
-		if (!cache_mode && v->flags & SVGET) {
+		if (v->flags & SVGET) {
 			assert(v->log == NULL);
 			sv_vunref(r, v);
 			goto next;

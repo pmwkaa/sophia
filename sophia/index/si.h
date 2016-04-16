@@ -42,7 +42,6 @@ struct si {
 	ssbuf      readbuf;
 	svupsert   u;
 	sischeme   scheme;
-	si        *cache;
 	so        *object;
 	sr         r;
 	sslist     link;

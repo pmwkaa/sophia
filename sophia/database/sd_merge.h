@@ -29,7 +29,6 @@ struct sdmergeconf {
 	uint64_t    vlsn_lru;
 	uint32_t    save_delete;
 	uint32_t    save_upsert;
-	uint32_t    save_set;
 };
 
 struct sdmerge {

@@ -37,8 +37,6 @@ se_dbscheme_init(sedb *db, char *name, int size)
 	scheme->sync                  = 2;
 	scheme->mmap                  = 0;
 	scheme->storage               = SI_SCACHE;
-	scheme->cache_mode            = 0;
-	scheme->cache_sz              = NULL;
 	scheme->node_size             = 64 * 1024 * 1024;
 	scheme->node_compact_load     = 0;
 	scheme->node_page_size        = 128 * 1024;
@@ -131,14 +129,6 @@ se_dbscheme_set(sedb *db)
 		sr_error(&e->error, "unknown storage type '%s'", s->storage_sz);
 		return -1;
 	}
-	/* upsert and format */
-	if (sf_upserthas(&s->fmt_upsert)) {
-		if (s->cache_mode) {
-			sr_error(&e->error, "%s", "incompatible options: cache_mode=1 "
-			         "and upsert function");
-			return -1;
-		}
-	}
 	/* compression_key */
 	if (s->compression_key) {
 		s->fmt_storage = SF_SPARSE;
@@ -173,32 +163,6 @@ se_dbscheme_set(sedb *db)
 		s->path_backup = ss_strdup(&e->a, e->conf.backup_path);
 		if (ssunlikely(s->path_backup == NULL))
 			return sr_oom(&e->error);
-	}
-	/* cache */
-	if (s->cache_sz) {
-		sedb *cache = (sedb*)se_dbmatch(e, s->cache_sz);
-		if (ssunlikely(cache == NULL)) {
-			sr_error(&e->error, "could not find cache database '%s'",
-			         s->cache_sz);
-			return -1;
-		}
-		if (ssunlikely(cache == db)) {
-			sr_error(&e->error, "bad cache database '%s'",
-			         s->cache_sz);
-			return -1;
-		}
-		if (! cache->scheme->cache_mode) {
-			sr_error(&e->error, "database '%s' is not in cache mode",
-			         s->cache_sz);
-			return -1;
-		}
-		if (! sf_schemeeq(&db->scheme->scheme, &cache->scheme->scheme)) {
-			sr_error(&e->error, "database and cache '%s' scheme mismatch",
-			         s->cache_sz);
-			return -1;
-		}
-		si_ref(cache->index, SI_REFBE);
-		db->index->cache = cache->index;
 	}
 
 	db->r->scheme = &s->scheme;
@@ -286,8 +250,6 @@ se_dbunref(sedb *db)
 	/* destroy database object */
 	si *index = db->index;
 	so_listdel(&e->db, &db->o);
-	if (index->cache)
-		si_unref(index->cache, SI_REFBE);
 	se_dbfree(db, 0);
 
 	/* schedule index shutdown or drop */
@@ -505,8 +467,6 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 
 	int auto_close = !o->created;
 	if (ssunlikely(! sr_online(&db->index->status)))
-		goto error;
-	if (ssunlikely(db->scheme->cache_mode))
 		goto error;
 
 	/* create document */

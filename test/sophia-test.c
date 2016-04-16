@@ -92,7 +92,6 @@ extern stgroup *expire_group(void);
 extern stgroup *lru_group(void);
 
 /* cache */
-extern stgroup *cache_group(void);
 extern stgroup *anticache_group(void);
 
 /* functional */
@@ -300,7 +299,6 @@ main(int argc, char *argv[])
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
-	st_planadd(plan, cache_group());
 	st_planadd(plan, anticache_group());
 	st_suiteadd(&st_r.suite, plan);
 

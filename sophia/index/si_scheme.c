@@ -69,10 +69,6 @@ void si_schemefree(sischeme *s, sr *r)
 		ss_free(r->a, s->compression_branch_sz);
 		s->compression_branch_sz = NULL;
 	}
-	if (s->cache_sz) {
-		ss_free(r->a, s->cache_sz);
-		s->cache_sz = NULL;
-	}
 	sf_schemefree(&s->scheme, r->a);
 }
 
@@ -148,10 +144,6 @@ int si_schemedeploy(sischeme *s, sr *r)
 		goto error;
 	rc = sd_schemeadd(&c, r, SI_SCHEME_AMQF, SS_U32,
 	                  &s->amqf, sizeof(s->amqf));
-	if (ssunlikely(rc == -1))
-		goto error;
-	rc = sd_schemeadd(&c, r, SI_SCHEME_CACHE_MODE, SS_U32,
-	                  &s->cache_mode, sizeof(s->cache_mode));
 	if (ssunlikely(rc == -1))
 		goto error;
 	rc = sd_schemeadd(&c, r, SI_SCHEME_EXPIRE, SS_U32,
@@ -257,9 +249,6 @@ int si_schemerecover(sischeme *s, sr *r)
 		}
 		case SI_SCHEME_AMQF:
 			s->amqf = sd_schemeu32(opt);
-			break;
-		case SI_SCHEME_CACHE_MODE:
-			s->cache_mode = sd_schemeu32(opt);
 			break;
 		case SI_SCHEME_EXPIRE:
 			s->expire = sd_schemeu32(opt);

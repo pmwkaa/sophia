@@ -27,8 +27,6 @@ struct sischeme {
 	uint32_t    mmap;
 	sistorage   storage;
 	char       *storage_sz;
-	uint32_t    cache_mode;
-	char       *cache_sz;
 	uint32_t    sync;
 	uint64_t    node_size;
 	uint32_t    node_page_size;
