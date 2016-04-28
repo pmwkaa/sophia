@@ -84,6 +84,7 @@ extern stgroup *secondary_index_group(void);
 extern stgroup *github_group(void);
 
 /* compaction */
+extern stgroup *log_group(void);
 extern stgroup *branch_group(void);
 extern stgroup *compact_group(void);
 extern stgroup *compact_delete_group(void);
@@ -284,6 +285,7 @@ main(int argc, char *argv[])
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
+	st_planadd(plan, log_group());
 	st_planadd(plan, branch_group());
 	st_planadd(plan, compact_group());
 	st_planadd(plan, compact_delete_group());

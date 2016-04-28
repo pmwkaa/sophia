@@ -147,6 +147,7 @@ sl_poolrecover(slpool *p)
 			ss_buffree(&list, p->r->a);
 			return -1;
 		}
+		l->gc.complete = 1;
 		ss_listappend(&p->list, &l->link);
 		p->n++;
 		ss_iternext(ss_bufiter, &i);
@@ -154,6 +155,13 @@ sl_poolrecover(slpool *p)
 	ss_buffree(&list, p->r->a);
 	if (p->n) {
 		sl *last = sscast(p->list.prev, sl, link);
+		last->gc.complete = 0;
+		rc = ss_fileseek(&last->file, last->file.size);
+		if (ssunlikely(rc == -1)) {
+			return sr_malfunction(p->r->e, "log file '%s' seek error: %s",
+			                      ss_pathof(&last->file.path),
+			                      strerror(errno));
+		}
 		p->r->seq->lfsn = last->id;
 		p->r->seq->lfsn++;
 	}
@@ -167,12 +175,18 @@ int sl_poolopen(slpool *p, slconf *conf)
 		return 0;
 	int exists = ss_vfsexists(p->r->vfs, p->conf->path);
 	int rc;
-	if (! exists)
+	if (! exists) {
 		rc = sl_poolcreate(p);
-	else
+		if (ssunlikely(rc == -1))
+			return -1;
+		rc = sl_poolrotate(p);
+		if (ssunlikely(rc == -1))
+			return -1;
+	} else {
 		rc = sl_poolrecover(p);
-	if (ssunlikely(rc == -1))
-		return -1;
+		if (ssunlikely(rc == -1))
+			return -1;
+	}
 	return 0;
 }
 

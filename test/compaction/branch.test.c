@@ -16,7 +16,7 @@
 #include <libst.h>
 
 static void
-branch_loggc(void)
+branch_test(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -46,9 +46,6 @@ branch_loggc(void)
 		key++;
 	}
 
-	t( sp_setint(env, "log.rotate",0 ) == 0 );
-	t( sp_getint(env, "log.files") == 2 );
-
 	key = 40;
 	while (key < 80) {
 		void *o = sp_document(db);
@@ -59,11 +56,7 @@ branch_loggc(void)
 		key++;
 	}
 
-	t( sp_setint(env, "log.rotate", 0) == 0 );
-	t( sp_getint(env, "log.files") == 3 );
 	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_setint(env, "log.gc", 0) == 0 );
-	t( sp_getint(env, "log.files") == 1 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -71,6 +64,6 @@ branch_loggc(void)
 stgroup *branch_group(void)
 {
 	stgroup *group = st_group("branch");
-	st_groupadd(group, st_test("log_gc", branch_loggc));
+	st_groupadd(group, st_test("test", branch_test));
 	return group;
 }

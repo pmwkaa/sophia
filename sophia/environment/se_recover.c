@@ -158,7 +158,6 @@ se_recoverlogpool(se *e)
 		int rc = se_recoverlog(e, log);
 		if (ssunlikely(rc == -1))
 			return -1;
-		ss_gccomplete(&log->gc);
 	}
 	return 0;
 }
@@ -178,9 +177,6 @@ int se_recover(se *e)
 		return 0;
 	/* recover log files */
 	rc = se_recoverlogpool(e);
-	if (ssunlikely(rc == -1))
-		goto error;
-	rc = sl_poolrotate(&e->lp);
 	if (ssunlikely(rc == -1))
 		goto error;
 	return 0;
