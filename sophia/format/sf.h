@@ -94,14 +94,17 @@ sf_write(sfscheme *s, sfv *v, char *dest)
 	for (i = 0; i < s->fields_count; i++) {
 		sffield *f = s->fields[i];
 		if (f->fixed_size) {
-			assert(f->fixed_size == v[i].size);
-			memcpy(dest + f->fixed_offset, v[i].pointer, f->fixed_size);
+			if (sslikely(v[i].size > 0))
+				memcpy(dest + f->fixed_offset, v[i].pointer, v[i].size);
+			else
+				memset(dest + f->fixed_offset, 0, f->fixed_size);
 			continue;
 		}
 		sfvar *current = &var[f->position_ref];
 		current->offset = var_value_offset;
 		current->size   = v[i].size;
-		memcpy(dest + var_value_offset, v[i].pointer, v[i].size);
+		if (sslikely(v[i].size > 0))
+			memcpy(dest + var_value_offset, v[i].pointer, v[i].size);
 		var_value_offset += current->size;
 	}
 }
