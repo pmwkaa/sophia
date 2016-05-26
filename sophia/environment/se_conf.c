@@ -471,16 +471,6 @@ se_confdb_set(srconf *c ssunused, srconfstmt *s)
 		return 0;
 	}
 
-	/* get() */
-	if (s->op == SR_READ) {
-		uint64_t txn = sr_seq(&e->seq, SR_TSN);
-		so *c = se_viewdb_new(e, txn);
-		if (ssunlikely(c == NULL))
-			return -1;
-		*(void**)s->value = c;
-		return 0;
-	}
-
 	sr_error(&e->error, "%s", "bad operation");
 	return -1;
 }

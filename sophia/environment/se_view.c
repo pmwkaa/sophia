@@ -70,15 +70,6 @@ se_viewcursor(so *o)
 	return se_cursornew(e, s->vlsn);
 }
 
-void *se_viewget_object(so *o, const char *path)
-{
-	seview *s = se_cast(o, seview*, SEVIEW);
-	se *e = se_of(o);
-	if (strcmp(path, "db") == 0)
-		return se_viewdb_new(e, s->t.id);
-	return NULL;
-}
-
 static int
 se_viewset_int(so *o, const char *path, int64_t v ssunused)
 {
@@ -106,7 +97,7 @@ static soif seviewif =
 	.setstring    = NULL,
 	.setint       = se_viewset_int,
 	.setobject    = NULL,
-	.getobject    = se_viewget_object,
+	.getobject    = NULL,
 	.getstring    = NULL,
 	.getint       = NULL,
 	.set          = NULL,

@@ -39,9 +39,7 @@ STS_TESTS = unit/ss_a.test.o \
             generic/backup.test.o \
             generic/snapshot.test.o \
             generic/checkpoint.test.o \
-            generic/view_db.test.o \
             generic/view.test.o \
-            generic/view_cursor.test.o \
             generic/prefix.test.o \
             generic/transaction_md.test.o \
             generic/transaction_misc.test.o \
