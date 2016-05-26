@@ -2,8 +2,7 @@
 <p align="center">
 	<a href="http://sphia.org"><img src="http://sophia.systems/sophia.png" /></a><br>
 </p>
-
-
+<br>
 [Sophia](http://sophia.systems) is advanced transactional [MVCC](http://en.wikipedia.org/wiki/Multiversion_concurrency_control)
 key-value/row storage library.
 
@@ -44,19 +43,10 @@ event-storage, log-storage, server metrics, etc.
 * Carefully tested
 * Open Source Software, [*BSD* Licensed](documentation/tutorial/license.md)
 
-**Documentation**
-
-To get started, administration and API are available [Here](http://sophia.systems/v2.1/index.html).
-
-**Examples**
-
-Quick GitHub examples are [Here](https://github.com/pmwkaa/sophia/tree/master/example).
-
-**Language bindings**
-
-Bindings for the most common languages are available [here](http://sophia.systems/drivers.html).
-
 **Support**
+
+Sophia [Documentation](http://sophia.systems/v2.1/index.html) and [Bindings](http://sophia.systems/drivers.html)
+for the most common languages are available on the [website](http://sophia.systems).
 
 Please use Official Sophia [Google Group](http://groups.google.com/group/sophia-database) or
 [StackOverflow](http://stackoverflow.com/tags/sophia) to ask any general questions.<br>
