@@ -24,14 +24,11 @@ O = $(OPLATFORM)
 all: banner $(O)
 
 banner:
-	$(E) "SOPHIA v$(SOPHIA_VMAJOR).$(SOPHIA_VMINOR)"
-	$(E)
-	$(E) "cc: $(CC)"
-	$(E) "cflags: $(CFLAGS_OPT) $(CFLAGS_STRICT)"
+	$(E) "SOPHIA $(SOPHIA_VMAJOR).$(SOPHIA_VMINOR) (syntax-checker)"
 	$(E)
 
 .c.o:
-	$(E) "cc   $<"
+	$(E) "$(CC) $<"
 	$(Q) $(CC) $(CFLAGS_SOPHIA) -c $< -o $@
 
 # vim: syntax=make

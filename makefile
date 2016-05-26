@@ -22,21 +22,23 @@ SOPHIA_CFLAGS  = $(CFLAGS_DEBUG) \
                  $(CFLAGS)
 SOPHIA_LDFLAGS = -shared $(LDFLAGS)
 SOPHIA_DEP     = $(wildcard sophia/*/*) makefile
+SOPHIA_VMAJOR  = 2
+SOPHIA_VMINOR  = 1
+SOPHIA_BUILD   = `git rev-parse --short HEAD`
 
 all: banner static dynamic
 banner:
-	@echo SOPHIA v2.1.1
-	@echo "cc: $(CC)"
-	@echo "cflags: $(CFLAGS_DEBUG) $(CFLAGS_COVERAGE)$(CFLAGS_OPT) $(CFLAGS_STRICT)"
+	@echo "SOPHIA $(SOPHIA_VMAJOR).$(SOPHIA_VMINOR) (git: $(SOPHIA_BUILD))"
 	@echo
 sophia.c: $(SOPHIA_DEP)
-	@echo build
+	@echo sophia/build
 	@sh sophia/build sophia $@
-	@echo cc $@
 sophia.h: sophia/sophia/sophia.h
 	@cp $< .
 sophia.o: sophia.c sophia.h
+	@echo "$(CC) sophia.c $(CFLAGS_DEBUG) $(CFLAGS_COVERAGE)$(CFLAGS_OPT) $(CFLAGS_STRICT)"
 	@$(CC) $(SOPHIA_CFLAGS) -c sophia.c -o sophia.o
+	@echo
 libsophia.a: sophia.o
 	@echo "ar libsophia.a"
 	@ar crs libsophia.a sophia.o
