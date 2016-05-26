@@ -5,7 +5,7 @@
 CC ?= cc
 
 ifdef ENABLE_COVERAGE
-CFLAGS_COVERAGE = --coverage
+CFLAGS_COVERAGE = --coverage 
 else
 CFLAGS_COVERAGE =
 endif
@@ -36,14 +36,12 @@ sophia.c: $(SOPHIA_DEP)
 sophia.h: sophia/sophia/sophia.h
 	@cp $< .
 sophia.o: sophia.c sophia.h
-	@echo "$(CC) sophia.c $(CFLAGS_DEBUG) $(CFLAGS_COVERAGE)$(CFLAGS_OPT) $(CFLAGS_STRICT)"
+	@echo "$(CC) sophia.c -c $(CFLAGS_DEBUG) $(CFLAGS_COVERAGE)$(CFLAGS_OPT) $(CFLAGS_STRICT)"
 	@$(CC) $(SOPHIA_CFLAGS) -c sophia.c -o sophia.o
 	@echo
 libsophia.a: sophia.o
-	@echo "ar libsophia.a"
 	@ar crs libsophia.a sophia.o
 libsophia.so: sophia.o
-	@echo "ld libsophia.so"
 	@$(CC) sophia.o $(SOPHIA_LDFLAGS) -o libsophia.so.2.1.1
 	@ln -sf libsophia.so.2.1.1 libsophia.so.2.1
 	@ln -sf libsophia.so.2.1.1 libsophia.so
