@@ -1115,8 +1115,8 @@ int se_confinit(seconf *c, so *e)
 		.compact_mode      = 0, /* branch priority */
 		.branch_prio       = 1,
 		.branch_wm         = 10 * 1024 * 1024,
-		.branch_age        = 40,
-		.branch_age_period = 40,
+		.branch_age        = 0,
+		.branch_age_period = 0,
 		.branch_age_wm     = 1 * 1024 * 1024,
 		.anticache_period  = 0,
 		.snapshot_period   = 0,

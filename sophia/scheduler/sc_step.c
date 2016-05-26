@@ -95,8 +95,6 @@ sc_plan(sc *s, siplan *plan)
 {
 	scdb *db = s->i[s->rr];
 	return si_plan(db->index, plan);
-
-
 }
 
 static inline int
@@ -578,7 +576,7 @@ int sc_step(sc *s, scworker *w, uint64_t vlsn)
 		if (ssunlikely(rc == -1))
 			goto error;
 	}
-	/* trigger backup competion */
+	/* trigger backup completion */
 	if (task.on_backup)
 		ss_triggerrun(s->on_event);
 	if (rc_job > 0) {
