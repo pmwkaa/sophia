@@ -62,7 +62,6 @@ struct seconf {
 	/* sophia */
 	char         *path;
 	uint32_t      path_create;
-	int           recover;
 	int           recover_complete;
 	/* backup */
 	char         *backup_path;

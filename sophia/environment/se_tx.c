@@ -251,8 +251,6 @@ se_txcommit(so *o)
 	assert(t->t.state == SXCOMMIT);
 
 	/* do wal write and backend commit */
-	if (ssunlikely(recover))
-		recover = (e->conf.recover == 3) ? 2: 1;
 	int rc;
 	rc = sc_write(&e->scheduler, &t->log, t->lsn, recover);
 	if (ssunlikely(rc == -1))

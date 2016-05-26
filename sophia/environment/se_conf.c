@@ -80,7 +80,6 @@ se_confsophia(se *e, seconfrt *rt, srconf **pc)
 	sr_C(&p, pc, se_confsophia_error, "error", SS_STRING, NULL, SR_RO, NULL);
 	sr_c(&p, pc, se_confv_offline, "path", SS_STRINGPTR, &e->conf.path);
 	sr_c(&p, pc, se_confv_offline, "path_create", SS_U32, &e->conf.path_create);
-	sr_c(&p, pc, se_confv_offline, "recover", SS_U32, &e->conf.recover);
 	return sr_C(NULL, pc, NULL, "sophia", SS_UNDEF, sophia, SR_NS, NULL);
 }
 
@@ -1107,7 +1106,6 @@ int se_confinit(seconf *c, so *e)
 	c->env                 = e;
 	c->path                = NULL;
 	c->path_create         = 1;
-	c->recover             = 1;
 	c->memory_limit        = 0;
 	c->anticache           = 0;
 	c->threads             = 6;

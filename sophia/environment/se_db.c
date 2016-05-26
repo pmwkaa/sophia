@@ -189,10 +189,8 @@ se_dbopen(so *o)
 	rc = se_recoverbegin(db);
 	if (ssunlikely(rc == -1))
 		return -1;
-
 	if (sr_status(&e->status) == SR_RECOVER)
-		if (e->conf.recover != SE_RECOVER_NP)
-			return 0;
+		return 0;
 online:
 	se_recoverend(db);
 	rc = sc_add(&e->scheduler, db->index);

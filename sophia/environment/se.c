@@ -55,23 +55,6 @@ se_open(so *o)
 	se *e = se_cast(o, se*, SE);
 	/* recover phases */
 	int status = sr_status(&e->status);
-	switch (e->conf.recover) {
-	case SE_RECOVER_1P: break;
-	case SE_RECOVER_2P:
-		if (status == SR_RECOVER)
-			goto online;
-		break;
-	case SE_RECOVER_NP:
-		if (status == SR_RECOVER) {
-			sr_statusset(&e->status, SR_ONLINE);
-			return 0;
-		}
-		if (status == SR_ONLINE) {
-			sr_statusset(&e->status, SR_RECOVER);
-			return 0;
-		}
-		break;
-	}
 	if (status != SR_OFFLINE)
 		return -1;
 
@@ -80,6 +63,8 @@ se_open(so *o)
 	rc = se_confvalidate(&e->conf);
 	if (ssunlikely(rc == -1))
 		return -1;
+
+	/* switch to recover phase */
 	sr_statusset(&e->status, SR_RECOVER);
 
 	/* set memory quota (disable during recovery) */
@@ -90,6 +75,7 @@ se_open(so *o)
 	rc = se_recover_repository(e);
 	if (ssunlikely(rc == -1))
 		return -1;
+
 	/* databases recover */
 	sslist *i, *n;
 	ss_listforeach_safe(&e->db.list, i, n) {
@@ -98,21 +84,20 @@ se_open(so *o)
 		if (ssunlikely(rc == -1))
 			return -1;
 	}
+
 	/* recover logpool */
 	rc = se_recover(e);
 	if (ssunlikely(rc == -1))
 		return -1;
-	if (e->conf.recover == SE_RECOVER_2P)
-		return 0;
 
-online:
-	/* complete */
+	/* put storage on-line */
 	ss_listforeach_safe(&e->db.list, i, n) {
 		so *o = sscast(i, so, link);
 		rc = so_open(o);
 		if (ssunlikely(rc == -1))
 			return -1;
 	}
+
 	/* enable quota */
 	ss_quotaenable(&e->quota, 1);
 	sr_statusset(&e->status, SR_ONLINE);

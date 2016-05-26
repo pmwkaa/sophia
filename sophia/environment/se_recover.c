@@ -42,8 +42,7 @@ int se_recoverbegin(sedb *db)
 	 * during online (only create), since logpool
 	 * reply is required. */
 	if (sr_status(&e->status) == SR_ONLINE)
-		if (e->conf.recover != SE_RECOVER_NP)
-			db->scheme->path_fail_on_exists = 1;
+		db->scheme->path_fail_on_exists = 1;
 	se_recoverf(e, "loading database '%s'", db->scheme->path);
 	int rc = si_open(db->index);
 	if (ssunlikely(rc == -1))
@@ -173,8 +172,6 @@ int se_recover(se *e)
 	int rc = sl_poolopen(&e->lp, lc);
 	if (ssunlikely(rc == -1))
 		return -1;
-	if (e->conf.recover == SE_RECOVER_2P)
-		return 0;
 	/* recover log files */
 	rc = se_recoverlogpool(e);
 	if (ssunlikely(rc == -1))
