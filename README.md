@@ -6,40 +6,41 @@
 [Sophia](http://sophia.systems) is advanced transactional [MVCC](http://en.wikipedia.org/wiki/Multiversion_concurrency_control)
 key-value/row storage library.
 
-Optimized for Write and Range-Query cases. It can efficiently work with ordered data, such as a time-series,
+Optimized for Write and Range-Query cases. It can efficiently work with ordered data, such as a time-series,<br>
 event-storage, log-storage, server metrics, etc.
 
 **Features**
 
 * Full [ACID](http://en.wikipedia.org/wiki/ACID) compliancy
 * [Multi-Version Concurrency Control (MVCC)](http://en.wikipedia.org/wiki/Multiversion_concurrency_control) engine
+* Optimistic, non-blocking concurrency with N-writers and M-readers
 * Pure Append-Only
-* Multi-threaded (api and [compaction scalability](documentation/admin/compaction.md))
-* [Multi-databases](documentation/admin/database.md) support (sharing write-ahead log)
+* Unique data [storage architecture](http://sophia.systems/v2.1/arch/v12.html)
+* Multi-threaded (linear compaction scalability)
+* Multi-databases support (sharing a single write-ahead log)
 * Secondary indexes
-* Multi-Statement and Single-Statement [Transactions](documentation/crud/transactions.md) (multi-databases)
+* Multi-Statement and Single-Statement Transactions (cross-database)
 * Serialized Snapshot Isolation (SSI)
-* Persistent [RAM Storage](documentation/admin/ram.md) mode
-* [Anti-Cache](documentation/admin/anticache.md) Storage mode
-* [LRU](documentation/admin/lru.md) Storage
-* Optional [AMQ Filter](documentation/admin/amqf.md) (approximate member query filter) based on Quotient Filter
-* [Upsert](documentation/crud/upsert.md): optimized write-only 'update or insert' operation
-* Consistent [Cursors](documentation/crud/cursors.md)
-* [Prefix search](documentation/crud/cursors.md)
-* [Duplicate compression](documentation/admin/compression.md)
+* Persistent RAM Storage mode
+* Anti-Cache Storage mode
+* LRU Storage
+* AMQ Filter (approximate member query filter) based on Quotient Filter
+* Upsert (fast write-only 'update or insert' operation)
+* Consistent Cursors
+* Prefix search
+* Duplicate compression
 * Automatic garbage-collection
 * Automatic key-expire
-* Point-in-Time [Views](documentation/admin/view.md)
-* Online/Versional database [creation](documentation/admin/database.md) and asynchronous [shutdown/drop](documentation/admin/database.md)
-* Asynchronous [Online/Hot Backup](documentation/admin/backup.md)
-* [Compression](documentation/admin/compression.md) (no blocks, no-holes, supported: lz4, zstd)
-* [Compression](documentation/admin/compression.md) for hot and cold data (distinct compression types)
-* Optimizations for [faster recovery](documentation/admin/snapshot.md) with large datasets (snapshot)
-* Easy to use ([Minimalistic API](documentation/tutorial/api.md))
+* Point-in-Time views
+* Online/Versional database creation and asynchronous shutdown/drop
+* Asynchronous Online/Hot Backup
+* Compression (no fixed-size blocks, no-holes, supported: lz4, zstd)
+* Compression for hot and cold data (distinct compression types)
+* Optimizations for faster recovery with large datasets (snapshot)
+* Easy to use (minimalistic API)
 * Easy to write bindings (FFI-friendly)
-* Easy to [built-in](documentation/tutorial/build.md) (amalgamated source)
-* Event loop friendly
-* Implemented as small *C-written* [library](documentation/tutorial/build.md) with zero dependencies
+* Easy to built-in (amalgamated source)
+* Implemented as small *C-written* library with zero dependencies
 * Carefully tested
 * Open Source Software, [*BSD* Licensed](documentation/tutorial/license.md)
 
