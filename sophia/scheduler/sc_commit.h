@@ -1,5 +1,5 @@
-#ifndef SC_WRITE_H_
-#define SC_WRITE_H_
+#ifndef SC_COMMIT_H_
+#define SC_COMMIT_H_
 
 /*
  * sophia database
@@ -9,6 +9,6 @@
  * BSD License
 */
 
-int sc_write(sc*, svlog*, uint64_t, int);
+int sc_commit(sc*, svlog*, uint64_t, int);
 
 #endif

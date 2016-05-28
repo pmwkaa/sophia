@@ -300,22 +300,17 @@ se_dbdrop(so *o)
 	return 0;
 }
 
-so *se_dbresult(se *e, scread *r)
+static inline so*
+se_dbread_result(se *e, siread *r)
 {
-	sv result;
-	sv_init(&result, &sv_vif, r->result, NULL);
-	r->result = NULL;
-
-	sedocument *v = (sedocument*)se_document_new(e, r->db, &result);
+	sedocument *v = (sedocument*)se_document_new(e, r->index->object, &r->result);
 	if (ssunlikely(v == NULL))
 		return NULL;
-	v->cache_only   = r->arg.cache_only;
-	v->oldest_only  = r->arg.oldest_only;
 	v->read_disk    = r->read_disk;
 	v->read_cache   = r->read_cache;
 	v->read_latency = 0;
-	if (result.v) {
-		v->read_latency = ss_utime() - r->start;
+	if (r->result.v) {
+		v->read_latency = ss_utime() - r->read_start;
 		sr_statget(&e->stat,
 		           v->read_latency,
 		           v->read_disk,
@@ -325,7 +320,7 @@ so *se_dbresult(se *e, scread *r)
 	/* propagate current document settings to
 	 * the result one */
 	v->orderset = 1;
-	v->order = r->arg.order;
+	v->order = r->order;
 	if (v->order == SS_GTE)
 		v->order = SS_GT;
 	else
@@ -333,19 +328,21 @@ so *se_dbresult(se *e, scread *r)
 		v->order = SS_LT;
 
 	/* set prefix */
-	if (r->arg.prefix) {
-		v->prefix = r->arg.prefix;
-		v->prefixcopy = r->arg.prefix;
-		v->prefixsize = r->arg.prefixsize;
+	if (r->prefix) {
+		v->prefix = r->prefix;
+		v->prefixcopy = r->prefix;
+		v->prefixsize = r->prefixsize;
 	}
 
-	v->created = 1;
-	v->flagset = 1;
+	v->cache_only  = r->cache_only;
+	v->oldest_only = r->oldest_only;
+	v->created     = 1;
+	v->flagset     = 1;
 	return &v->o;
 }
 
 void*
-se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
+se_dbread(sedb *db, sedocument *o, sx *x, uint64_t vlsn,
           sicache *cache)
 {
 	se *e = se_of(&db->o);
@@ -368,7 +365,7 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 	sedocument *ret = NULL;
 
 	/* concurrent */
-	if (x_search && o->order == SS_EQ) {
+	if (x && o->order == SS_EQ) {
 		/* note: prefix is ignored during concurrent
 		 * index search */
 		int rc = sx_get(x, &db->coindex, &o->v, &vup);
@@ -408,46 +405,39 @@ se_dbread(sedb *db, sedocument *o, sx *x, int x_search,
 
 	sv_vref(o->v.v);
 
-	/* prepare request */
-	scread q;
-	sc_readopen(&q, db->r, &db->o, db->index);
-	q.start = start;
-	screadarg *arg = &q.arg;
-	arg->v           = o->v;
-	arg->prefix      = o->prefixcopy;
-	arg->prefixsize  = o->prefixsize;
-	arg->vup         = vup;
-	arg->cache       = cache;
-	arg->cachegc     = cachegc;
-	arg->order       = o->order;
-	arg->has         = 0;
-	arg->upsert      = 0;
-	arg->upsert_eq   = 0;
-	arg->cache_only  = o->cache_only;
-	arg->oldest_only = o->oldest_only;
-	if (x) {
-		arg->vlsn = x->vlsn;
-		arg->vlsn_generate = 0;
-	} else {
-		arg->vlsn = 0;
-		arg->vlsn_generate = 1;
-	}
-	if (sf_upserthas(&db->scheme->fmt_upsert)) {
-		arg->upsert = 1;
-		if (arg->order == SS_EQ) {
-			arg->order = SS_GTE;
-			arg->upsert_eq = 1;
-		}
-	}
+	/* do read */
+	siread rq;
+	si_readopen(&rq, db->index, cache,
+	            o->order,
+	            vlsn,
+	            o->prefixcopy,
+	            o->prefixsize,
+	            sv_pointer(&o->v),
+	            sv_size(&o->v),
+	            &vup,
+	            o->cache_only,
+	            o->oldest_only,
+	            0,
+	            start);
+	rc = si_read(&rq);
+	si_readclose(&rq);
 
-	/* read index */
-	rc = sc_read(&q, &e->scheduler);
+	/* prepare result */
 	if (rc == 1) {
-		ret = (sedocument*)se_dbresult(e, &q);
+		ret = (sedocument*)se_dbread_result(e, &rq);
 		if (ret)
 			o->prefixcopy = NULL;
 	}
-	sc_readclose(&q);
+
+	/* cleanup */
+	if (o->v.v)
+		sv_vunref(db->r, o->v.v);
+	if (vup.v)
+		sv_vunref(db->r, vup.v);
+	if (ret == NULL && rq.result.v)
+		sv_vunref(db->r, rq.result.v);
+	if (cachegc && cache)
+		si_cachepool_push(cache);
 
 	if (auto_close)
 		so_destroy(&o->o);
@@ -497,7 +487,7 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 	}
 
 	/* write wal and index */
-	rc = sc_write(&e->scheduler, &log, 0, 0);
+	rc = sc_commit(&e->scheduler, &log, 0, 0);
 	if (ssunlikely(rc == -1))
 		sx_rollback(&x);
 
@@ -553,7 +543,8 @@ se_dbget(so *o, so *v)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
 	sedocument *key = se_cast(v, sedocument*, SEDOCUMENT);
-	return se_dbread(db, key, NULL, 0, NULL);
+	uint64_t vlsn = sr_seq(db->r->seq, SR_LSN);
+	return se_dbread(db, key, NULL, vlsn, NULL);
 }
 
 static void*

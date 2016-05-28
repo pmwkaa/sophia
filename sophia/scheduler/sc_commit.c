@@ -18,7 +18,7 @@
 #include <libsy.h>
 #include <libsc.h>
 
-int sc_write(sc *s, svlog *log, uint64_t lsn, int recover)
+int sc_commit(sc *s, svlog *log, uint64_t lsn, int recover)
 {
 	/* write-ahead log */
 	sltx tl;

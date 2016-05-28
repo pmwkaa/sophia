@@ -61,10 +61,10 @@ se_cursorget(so *o, so *v)
 	c->read_disk  += key->read_disk;
 	c->read_cache += key->read_cache;
 	c->ops++;
-	sx *x = &c->t;
+	uint64_t vlsn = c->t.vlsn;
 	if (c->read_commited)
-		x = NULL;
-	return se_dbread(db, key, x, 0, c->cache);
+		vlsn = sr_seq(db->r->seq, SR_LSN);
+	return se_dbread(db, key, NULL, vlsn, c->cache);
 }
 
 static int

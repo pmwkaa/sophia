@@ -132,7 +132,7 @@ se_txget(so *o, so *v)
 		break;
 	default: goto error;
 	}
-	return se_dbread(db, key, &t->t, 1, NULL);
+	return se_dbread(db, key, &t->t, t->t.vlsn, NULL);
 error:
 	so_destroy(&key->o);
 	return NULL;
@@ -175,27 +175,21 @@ se_txprepare(sx *x, sv *v, so *o, void *ptr)
 {
 	sicache *cache = ptr;
 	sedb *db = (sedb*)o;
-	se *e = se_of(&db->o);
-
-	scread q;
-	sc_readopen(&q, db->r, &db->o, db->index);
-	screadarg *arg = &q.arg;
-	arg->v             = *v;
-	arg->vup.v         = NULL;
-	arg->prefix        = NULL;
-	arg->prefixsize    = 0;
-	arg->cache         = cache;
-	arg->cachegc       = 0;
-	arg->order         = SS_EQ;
-	arg->has           = 1;
-	arg->upsert        = 0;
-	arg->upsert_eq     = 0;
-	arg->cache_only    = 0;
-	arg->oldest_only   = 0;
-	arg->vlsn          = x->vlsn;
-	arg->vlsn_generate = 0;
-	int rc = sc_read(&q, &e->scheduler);
-	sc_readclose(&q);
+	siread rq;
+	si_readopen(&rq, db->index, cache,
+	            SS_EQ,
+	            x->vlsn,
+	            NULL,
+	            0,
+	            sv_pointer(v),
+	            sv_size(v),
+	            NULL,
+	            0,
+	            0,
+	            1,
+	            0);
+	int rc = si_read(&rq);
+	si_readclose(&rq);
 	return rc;
 }
 
@@ -252,7 +246,7 @@ se_txcommit(so *o)
 
 	/* do wal write and backend commit */
 	int rc;
-	rc = sc_write(&e->scheduler, &t->log, t->lsn, recover);
+	rc = sc_commit(&e->scheduler, &t->log, t->lsn, recover);
 	if (ssunlikely(rc == -1))
 		sx_rollback(&t->t);
 

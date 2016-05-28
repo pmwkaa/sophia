@@ -22,6 +22,7 @@ struct siread {
 	svmerge   merge;
 	int       cache_only;
 	int       oldest_only;
+	int       read_start;
 	int       read_disk;
 	int       read_cache;
 	sv       *upsert_v;
@@ -35,12 +36,8 @@ struct siread {
 int  si_readopen(siread*, si*, sicache*, ssorder,
                  uint64_t,
                  void*, uint32_t,
-                 void*, uint32_t);
+                 void*, uint32_t, sv*, int, int, int, int);
 int  si_readclose(siread*);
-void si_readcache_only(siread*);
-void si_readoldest_only(siread*);
-void si_readhas(siread*);
-void si_readupsert(siread*, sv*, int);
 int  si_read(siread*);
 int  si_readcommited(si*, sr*, sv*, int);
 

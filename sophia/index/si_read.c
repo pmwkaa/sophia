@@ -18,7 +18,12 @@
 int si_readopen(siread *q, si *i, sicache *c, ssorder o,
                 uint64_t vlsn,
                 void *prefix, uint32_t prefixsize,
-                void *key, uint32_t keysize)
+                void *key, uint32_t keysize,
+                sv *upsert_v,
+                int cache_only,
+                int oldest_only,
+                int has,
+                int read_start)
 {
 	q->order       = o;
 	q->key         = key;
@@ -29,38 +34,24 @@ int si_readopen(siread *q, si *i, sicache *c, ssorder o,
 	q->cache       = c;
 	q->prefix      = prefix;
 	q->prefixsize  = prefixsize;
-	q->has         = 0;
-	q->upsert_v    = NULL;
-	q->upsert_eq   = 0;
-	q->cache_only  = 0;
-	q->oldest_only = 0;
+	q->has         = has;
+	q->cache_only  = cache_only;
+	q->oldest_only = oldest_only;
+	q->read_start  = read_start;
 	q->read_disk   = 0;
 	q->read_cache  = 0;
+	q->upsert_v    = upsert_v;
+	q->upsert_eq   = 0;
+	if (!has && sf_upserthas(&i->scheme.fmt_upsert)) {
+		if (q->order == SS_EQ) {
+			q->upsert_eq = 1;
+			q->order = SS_GTE;
+		}
+	}
 	memset(&q->result, 0, sizeof(q->result));
 	sv_mergeinit(&q->merge);
 	si_lock(i);
 	return 0;
-}
-
-void si_readcache_only(siread *q)
-{
-	q->cache_only = 1;
-}
-
-void si_readoldest_only(siread *q)
-{
-	q->oldest_only = 1;
-}
-
-void si_readhas(siread *q)
-{
-	q->has = 1;
-}
-
-void si_readupsert(siread *q, sv *v, int eq)
-{
-	q->upsert_v  = v;
-	q->upsert_eq = eq;
 }
 
 int si_readclose(siread *q)
