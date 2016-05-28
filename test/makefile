@@ -46,8 +46,7 @@ STS_TESTS = unit/ss_a.test.o \
             generic/cursor_md.test.o \
             generic/half_commit.test.o \
             generic/upsert.test.o \
-            generic/get_cache.test.o \
-            generic/get_oldest.test.o \
+            generic/get_cold.test.o \
             generic/amqf.test.o \
             generic/secondary_index.test.o \
             issues/github.test.o \

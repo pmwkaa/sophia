@@ -29,8 +29,7 @@ enum {
 	SE_DOCUMENT_LOG,
 	SE_DOCUMENT_RAW,
 	SE_DOCUMENT_FLAGS,
-	SE_DOCUMENT_CACHE_ONLY,
-	SE_DOCUMENT_OLDEST_ONLY,
+	SE_DOCUMENT_COLD_ONLY,
 	SE_DOCUMENT_EVENT,
 	SE_DOCUMENT_REUSE,
 	SE_DOCUMENT_UNKNOWN
@@ -43,8 +42,6 @@ se_document_opt(const char *path)
 	case 'o':
 		if (sslikely(strcmp(path, "order") == 0))
 			return SE_DOCUMENT_ORDER;
-		if (sslikely(strcmp(path, "oldest_only") == 0))
-			return SE_DOCUMENT_OLDEST_ONLY;
 		break;
 	case 'l':
 		if (sslikely(strcmp(path, "lsn") == 0))
@@ -71,8 +68,8 @@ se_document_opt(const char *path)
 			return SE_DOCUMENT_FLAGS;
 		break;
 	case 'c':
-		if (sslikely(strcmp(path, "cache_only") == 0))
-			return SE_DOCUMENT_CACHE_ONLY;
+		if (sslikely(strcmp(path, "cold_only") == 0))
+			return SE_DOCUMENT_COLD_ONLY;
 		break;
 	case 'e':
 		if (sslikely(strcmp(path, "event") == 0))
@@ -331,14 +328,11 @@ se_document_setint(so *o, const char *path, int64_t num)
 {
 	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
 	switch (se_document_opt(path)) {
+	case SE_DOCUMENT_COLD_ONLY:
+		v->cold_only = num;
+		break;
 	case SE_DOCUMENT_TIMESTAMP:
 		v->timestamp = num;
-		break;
-	case SE_DOCUMENT_CACHE_ONLY:
-		v->cache_only = num;
-		break;
-	case SE_DOCUMENT_OLDEST_ONLY:
-		v->oldest_only = num;
 		break;
 	default:
 		return -1;
@@ -359,8 +353,6 @@ se_document_getint(so *o, const char *path)
 	}
 	case SE_DOCUMENT_EVENT:
 		return v->event;
-	case SE_DOCUMENT_CACHE_ONLY:
-		return v->cache_only;
 	case SE_DOCUMENT_FLAGS: {
 		uint64_t flags = -1;
 		if (v->v.v)

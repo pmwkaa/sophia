@@ -70,8 +70,7 @@ extern stgroup *cursor_md_group(void);
 extern stgroup *half_commit_group(void);
 extern stgroup *upsert_group(void);
 extern stgroup *amqf_group(void);
-extern stgroup *get_cache_group(void);
-extern stgroup *get_oldest_group(void);
+extern stgroup *get_cold_group(void);
 extern stgroup *secondary_index_group(void);
 
 /* issues */
@@ -251,8 +250,7 @@ main(int argc, char *argv[])
 	st_planadd(plan, cursor_md_group());
 	st_planadd(plan, upsert_group());
 	st_planadd(plan, amqf_group());
-	st_planadd(plan, get_cache_group());
-	st_planadd(plan, get_oldest_group());
+	st_planadd(plan, get_cold_group());
 	st_planadd(plan, secondary_index_group());
 	st_suiteadd(&st_r.suite, plan);
 

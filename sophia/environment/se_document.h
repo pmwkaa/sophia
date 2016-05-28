@@ -32,8 +32,7 @@ struct sedocument {
 	uint32_t  timestamp;
 	void     *log;
 	/* read options */
-	int       cache_only;
-	int       oldest_only;
+	int       cold_only;
 	/* stats */
 	int       read_disk;
 	int       read_cache;

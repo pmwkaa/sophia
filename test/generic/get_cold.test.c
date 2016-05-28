@@ -16,7 +16,7 @@
 #include <libst.h>
 
 static void
-get_oldest_test0(void)
+get_cold_test0(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -76,10 +76,10 @@ get_oldest_test0(void)
 	t( *(int*)sp_getstring(o, "value", NULL) == 2 );
 	sp_destroy(o);
 
-	/* oldest only */
+	/* cold only */
 	o = sp_document(db);
 	t( o != NULL );
-	t( sp_setint(o, "oldest_only", 1) == 0 );
+	t( sp_setint(o, "cold_only", 1) == 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(db, o);
 	t( o == NULL );
@@ -88,7 +88,7 @@ get_oldest_test0(void)
 }
 
 static void
-get_oldest_test1(void)
+get_cold_test1(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -149,10 +149,10 @@ get_oldest_test1(void)
 	t( *(int*)sp_getstring(o, "value", NULL) == 2 );
 	sp_destroy(o);
 
-	/* oldest only */
+	/* cold only */
 	o = sp_document(db);
 	t( o != NULL );
-	t( sp_setint(o, "oldest_only", 1) == 0 );
+	t( sp_setint(o, "cold_only", 1) == 0 );
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
@@ -163,7 +163,7 @@ get_oldest_test1(void)
 }
 
 static void
-get_oldest_test2(void)
+get_cold_test2(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -229,10 +229,10 @@ get_oldest_test2(void)
 	o = sp_get(db, o);
 	t( o == NULL );
 
-	/* oldest only */
+	/* cold only */
 	o = sp_document(db);
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
-	t( sp_setint(o, "oldest_only", 1) == 0 );
+	t( sp_setint(o, "cold_only", 1) == 0 );
 	t( o != NULL );
 	o = sp_get(db, o);
 	t( o != NULL );
@@ -247,11 +247,11 @@ get_oldest_test2(void)
 	t( sp_destroy(env) == 0 );
 }
 
-stgroup *get_oldest_group(void)
+stgroup *get_cold_group(void)
 {
-	stgroup *group = st_group("get_oldest");
-	st_groupadd(group, st_test("test0", get_oldest_test0));
-	st_groupadd(group, st_test("test1", get_oldest_test1));
-	st_groupadd(group, st_test("test2", get_oldest_test2));
+	stgroup *group = st_group("get_cold");
+	st_groupadd(group, st_test("test0", get_cold_test0));
+	st_groupadd(group, st_test("test1", get_cold_test1));
+	st_groupadd(group, st_test("test2", get_cold_test2));
 	return group;
 }

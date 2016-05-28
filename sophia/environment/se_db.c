@@ -334,10 +334,9 @@ se_dbread_result(se *e, siread *r)
 		v->prefixsize = r->prefixsize;
 	}
 
-	v->cache_only  = r->cache_only;
-	v->oldest_only = r->oldest_only;
-	v->created     = 1;
-	v->flagset     = 1;
+	v->cold_only = r->cold_only;
+	v->created   = 1;
+	v->flagset   = 1;
 	return &v->o;
 }
 
@@ -374,11 +373,10 @@ se_dbread(sedb *db, sedocument *o, sx *x, uint64_t vlsn,
 		if (rc == 1 && !sv_is(&vup, SVUPSERT)) {
 			ret = (sedocument*)se_document_new(e, &db->o, &vup);
 			if (sslikely(ret)) {
-				ret->cache_only  = o->cache_only;
-				ret->oldest_only = o->oldest_only;
-				ret->created     = 1;
-				ret->orderset    = 1;
-				ret->flagset     = 1;
+				ret->cold_only = o->cold_only;
+				ret->created   = 1;
+				ret->orderset  = 1;
+				ret->flagset   = 1;
 			} else {
 				sv_vunref(db->r, vup.v);
 			}
@@ -415,8 +413,7 @@ se_dbread(sedb *db, sedocument *o, sx *x, uint64_t vlsn,
 	            sv_pointer(&o->v),
 	            sv_size(&o->v),
 	            &vup,
-	            o->cache_only,
-	            o->oldest_only,
+	            o->cold_only,
 	            0,
 	            start);
 	rc = si_read(&rq);

@@ -20,28 +20,26 @@ int si_readopen(siread *q, si *i, sicache *c, ssorder o,
                 void *prefix, uint32_t prefixsize,
                 void *key, uint32_t keysize,
                 sv *upsert_v,
-                int cache_only,
-                int oldest_only,
+                int cold_only,
                 int has,
                 int read_start)
 {
-	q->order       = o;
-	q->key         = key;
-	q->keysize     = keysize;
-	q->vlsn        = vlsn;
-	q->index       = i;
-	q->r           = &i->r;
-	q->cache       = c;
-	q->prefix      = prefix;
-	q->prefixsize  = prefixsize;
-	q->has         = has;
-	q->cache_only  = cache_only;
-	q->oldest_only = oldest_only;
-	q->read_start  = read_start;
-	q->read_disk   = 0;
-	q->read_cache  = 0;
-	q->upsert_v    = upsert_v;
-	q->upsert_eq   = 0;
+	q->order      = o;
+	q->key        = key;
+	q->keysize    = keysize;
+	q->vlsn       = vlsn;
+	q->index      = i;
+	q->r          = &i->r;
+	q->cache      = c;
+	q->prefix     = prefix;
+	q->prefixsize = prefixsize;
+	q->has        = has;
+	q->cold_only  = cold_only;
+	q->read_start = read_start;
+	q->read_disk  = 0;
+	q->read_cache = 0;
+	q->upsert_v   = upsert_v;
+	q->upsert_eq  = 0;
 	if (!has && sf_upserthas(&i->scheme.fmt_upsert)) {
 		if (q->order == SS_EQ) {
 			q->upsert_eq = 1;
@@ -246,8 +244,6 @@ si_get(siread *q)
 	rc = si_getindex(q, node);
 	if (rc != 0)
 		return rc;
-	if (q->cache_only)
-		return 2;
 	sinodeview view;
 	si_nodeview_open(&view, node);
 	rc = si_cachevalidate(q->cache, node);
@@ -262,7 +258,7 @@ si_get(siread *q)
 	rc = sv_mergeprepare(m, q->r, 1);
 	assert(rc == 0);
 	sicachebranch *b;
-	if (q->oldest_only) {
+	if (q->cold_only) {
 		b = si_cacheseek(q->cache, &node->self);
 		assert(b != NULL);
 		rc = si_getbranch(q, node, b);
@@ -295,9 +291,6 @@ si_rangebranch(siread *q, sinode *n, sibranch *b, svmerge *m)
 	}
 	if (c->open) {
 		return 1;
-	}
-	if (q->cache_only) {
-		return 2;
 	}
 	c->open = 1;
 	/* choose compression type */
@@ -402,7 +395,7 @@ next_node:
 		return -1;
 	}
 
-	if (q->oldest_only) {
+	if (q->cold_only) {
 		rc = si_rangebranch(q, node, &node->self, m);
 		if (ssunlikely(rc == -1 || rc == 2))
 			return rc;
