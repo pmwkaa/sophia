@@ -31,7 +31,6 @@ event-storage, log-storage, server metrics, etc.
 * Duplicate compression
 * Automatic garbage-collection
 * Automatic key-expire
-* Point-in-Time views
 * Online/Versional database creation and asynchronous shutdown/drop
 * Asynchronous Online/Hot Backup
 * Compression (no fixed-size blocks, no-holes, supported: lz4, zstd)

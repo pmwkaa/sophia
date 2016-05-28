@@ -269,7 +269,6 @@ github_123(void)
 	t( sp_setstring(env, "sophia.path", path, sizeof(path)) == 0 );
 	t( sp_setstring(env, "db", name, sizeof(name)) == 0 );
 	t( sp_setstring(env, "log.path", path_log, sizeof(path_log)) == 0 );
-	t( sp_setstring(env, "view", name, sizeof(name)) == 0 );
 	t( sp_open(env) == 0 );
 
 	t( exists("./", "abc") == 1 );
@@ -277,9 +276,6 @@ github_123(void)
 
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
-
-	void *view = sp_getobject(env, "view.test");
-	t( view != NULL );
 
 	t( sp_destroy(env) == 0 );
 

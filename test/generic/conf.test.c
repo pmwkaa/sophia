@@ -275,7 +275,6 @@ conf_cursor(void)
 	t( sp_setstring(env, "db.test.scheme.key_b", "string,key(1)", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
-	t( sp_setstring(env, "view", "test_view0", 0) == 0 );
 
 	fprintf(st_r.output, "\n");
 

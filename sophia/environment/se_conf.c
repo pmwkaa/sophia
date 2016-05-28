@@ -733,66 +733,6 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc)
 }
 
 static inline int
-se_confview_set(srconf *c, srconfstmt *s)
-{
-	if (s->op != SR_WRITE)
-		return se_confv(c, s);
-	se *e = s->ptr;
-	uint64_t lsn = sr_seq(&e->seq, SR_LSN);
-	/* create view object */
-	seview *view = (seview*)se_viewnew(e, lsn, s->value, s->valuesize);
-	if (ssunlikely(view == NULL))
-		return -1;
-	return 0;
-}
-
-static inline int
-se_confview_lsn(srconf *c, srconfstmt *s)
-{
-	int rc = se_confv(c, s);
-	if (ssunlikely(rc == -1))
-		return -1;
-	if (s->op != SR_WRITE)
-		return 0;
-	seview *view  = c->ptr;
-	se_viewupdate(view);
-	return 0;
-}
-
-static inline int
-se_confview_get(srconf *c, srconfstmt *s)
-{
-	/* get(view.name) */
-	se *e = s->ptr;
-	if (s->op != SR_READ) {
-		sr_error(&e->error, "%s", "bad operation");
-		return -1;
-	}
-	assert(c->ptr != NULL);
-	*(void**)s->value = c->ptr;
-	return 0;
-}
-
-static inline srconf*
-se_confview(se *e, seconfrt *rt ssunused, srconf **pc)
-{
-	srconf *view = NULL;
-	srconf *prev = NULL;
-	sslist *i;
-	ss_listforeach(&e->view.list.list, i)
-	{
-		seview *s = (seview*)sscast(i, so, link);
-		srconf *p = sr_C(NULL, pc, se_confview_lsn, "lsn", SS_U64, &s->vlsn, 0, s);
-		sr_C(&prev, pc, se_confview_get, s->name.s, SS_STRING, p, SR_NS, s);
-		if (view == NULL)
-			view = prev;
-	}
-	return sr_C(NULL, pc, se_confview_set, "view", SS_STRING,
-	            view, SR_NS, NULL);
-}
-
-
-static inline int
 se_confbackup_run(srconf *c, srconfstmt *s)
 {
 	if (s->op != SR_WRITE)
@@ -879,7 +819,6 @@ se_confprepare(se *e, seconfrt *rt, srconf *c, int serialize)
 	srconf *perf       = se_confperformance(e, rt, &pc);
 	srconf *metric     = se_confmetric(e, rt, &pc);
 	srconf *log        = se_conflog(e, rt, &pc);
-	srconf *view       = se_confview(e, rt, &pc);
 	srconf *backup     = se_confbackup(e, rt, &pc);
 	srconf *db         = se_confdb(e, rt, &pc);
 	srconf *debug      = se_confdebug(e, rt, &pc);
@@ -890,8 +829,7 @@ se_confprepare(se *e, seconfrt *rt, srconf *c, int serialize)
 	scheduler->next  = perf;
 	perf->next       = metric;
 	metric->next     = log;
-	log->next        = view;
-	view->next       = backup;
+	log->next        = backup;
 	backup->next     = db;
 	if (! serialize)
 		db->next = debug;
@@ -965,8 +903,7 @@ static inline int
 se_confensure(seconf *c)
 {
 	se *e = (se*)c->env;
-	int confmax = 2048 + (e->db.n * 100) + (e->view.list.n * 10) +
-	              c->threads;
+	int confmax = 2048 + (e->db.n * 100) + c->threads;
 	confmax *= sizeof(srconf);
 	if (sslikely(confmax <= c->confmax))
 		return 0;
