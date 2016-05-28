@@ -34,8 +34,7 @@ se_cursordestroy(so *o)
 	secursor *c = se_cast(o, secursor*, SECURSOR);
 	se *e = se_of(&c->o);
 	uint64_t id = c->t.id;
-	if (! c->read_commited)
-		sx_rollback(&c->t);
+	sx_rollback(&c->t);
 	if (c->cache)
 		si_cachepool_push(c->cache);
 	se_dbunbind(e, id);
@@ -56,31 +55,14 @@ se_cursorget(so *o, so *v)
 	sedb *db = se_cast(v->parent, sedb*, SEDB);
 	if (ssunlikely(! key->orderset))
 		key->order = SS_GTE;
-	/* this statistics might be not complete, because
-	 * last statement is not accounted here */
-	c->read_disk  += key->read_disk;
-	c->read_cache += key->read_cache;
+	sedocument *ret =
+		(sedocument*)se_dbread(db, key, NULL, c->t.vlsn, c->cache);
+	if (ret == NULL)
+		return NULL;
+	c->read_disk  += ret->read_disk;
+	c->read_cache += ret->read_cache;
 	c->ops++;
-	uint64_t vlsn = c->t.vlsn;
-	if (c->read_commited)
-		vlsn = sr_seq(db->r->seq, SR_LSN);
-	return se_dbread(db, key, NULL, vlsn, c->cache);
-}
-
-static int
-se_cursorset_int(so *o, const char *path, int64_t v)
-{
-	secursor *c = se_cast(o, secursor*, SECURSOR);
-	if (strcmp(path, "read_commited") == 0) {
-		if (c->read_commited)
-			return -1;
-		if (v != 1)
-			return -1;
-		sx_rollback(&c->t);
-		c->read_commited = 1;
-		return 0;
-	}
-	return -1;
+	return ret;
 }
 
 static soif secursorif =
@@ -94,7 +76,7 @@ static soif secursorif =
 	.poll         = NULL,
 	.drop         = NULL,
 	.setstring    = NULL,
-	.setint       = se_cursorset_int,
+	.setint       = NULL,
 	.setobject    = NULL,
 	.getobject    = NULL,
 	.getstring    = NULL,
@@ -133,7 +115,6 @@ so *se_cursornew(se *e, uint64_t vlsn)
 		sr_oom(&e->error);
 		return NULL;
 	}
-	c->read_commited = 0;
 	sx_begin(&e->xm, &c->t, SXRO, &c->log, vlsn);
 	se_dbbind(e);
 	so_pooladd(&e->cursor, &c->o);

@@ -45,7 +45,6 @@ STS_TESTS = unit/ss_a.test.o \
             generic/transaction_misc.test.o \
             generic/cursor_cache.test.o \
             generic/cursor_md.test.o \
-            generic/cursor_rc.test.o \
             generic/half_commit.test.o \
             generic/upsert.test.o \
             generic/get_cache.test.o \

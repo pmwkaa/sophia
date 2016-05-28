@@ -68,7 +68,6 @@ extern stgroup *transaction_md_group(void);
 extern stgroup *transaction_misc_group(void);
 extern stgroup *cursor_cache_group(void);
 extern stgroup *cursor_md_group(void);
-extern stgroup *cursor_rc_group(void);
 extern stgroup *half_commit_group(void);
 extern stgroup *upsert_group(void);
 extern stgroup *amqf_group(void);
@@ -252,7 +251,6 @@ main(int argc, char *argv[])
 	st_planadd(plan, half_commit_group());
 	st_planadd(plan, cursor_cache_group());
 	st_planadd(plan, cursor_md_group());
-	st_planadd(plan, cursor_rc_group());
 	st_planadd(plan, upsert_group());
 	st_planadd(plan, amqf_group());
 	st_planadd(plan, get_cache_group());
