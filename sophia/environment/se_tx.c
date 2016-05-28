@@ -228,18 +228,6 @@ se_txcommit(so *o)
 		assert(s == SXPREPARE);
 
 		sx_commit(&t->t);
-
-		if (t->half_commit) {
-			/* Half commit mode.
-			 *
-			 * A half committed transaction is no longer
-			 * being part of concurrent index, but still can be
-			 * commited or rolled back.
-			 * Yet, it is important to maintain external
-			 * serial commit order.
-			*/
-			return 0;
-		}
 	}
 	assert(t->t.state == SXCOMMIT);
 
@@ -259,10 +247,6 @@ se_txset_int(so *o, const char *path, int64_t v)
 	setx *t = se_cast(o, setx*, SETX);
 	if (strcmp(path, "lsn") == 0) {
 		t->lsn = v;
-		return 0;
-	} else
-	if (strcmp(path, "half_commit") == 0) {
-		t->half_commit = v;
 		return 0;
 	}
 	return -1;
@@ -323,7 +307,6 @@ so *se_txnew(se *e)
 	sx_init(&e->xm, &t->t, &t->log);
 	t->start = ss_utime();
 	t->lsn = 0;
-	t->half_commit = 0;
 	sx_begin(&e->xm, &t->t, SXRW, &t->log, UINT64_MAX);
 	se_dbbind(e);
 	so_pooladd(&e->tx, &t->o);

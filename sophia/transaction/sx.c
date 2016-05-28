@@ -286,7 +286,7 @@ sxstate sx_rollback(sx *x)
 	ssiter i;
 	ss_iterinit(ss_bufiter, &i);
 	ss_iteropen(ss_bufiter, &i, &x->log->buf, sizeof(svlogv));
-	/* support log free after commit and half-commit mode */
+	/* support log free after commit */
 	if (x->state == SXCOMMIT) {
 		int gc = 0;
 		for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
