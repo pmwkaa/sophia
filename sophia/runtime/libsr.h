@@ -13,6 +13,7 @@
 #include <sr_error.h>
 #include <sr_status.h>
 #include <sr_stat.h>
+#include <sr_quota.h>
 #include <sr_seq.h>
 #include <sr_zone.h>
 #include <sr.h>

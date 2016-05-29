@@ -454,8 +454,16 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 	if (ssunlikely(! sr_online(&db->index->status)))
 		goto error;
 
+	/* ensure memory quota */
+	int rc;
+	rc = sr_quota(&e->quota, &e->stat);
+	if (ssunlikely(rc)) {
+		sr_error(&e->error, "%s", "memory quota limit reached");
+		goto error;
+	}
+
 	/* create document */
-	int rc = so_open(&o->o);
+	rc = so_open(&o->o);
 	if (ssunlikely(rc == -1))
 		goto error;
 	rc = se_document_validate(o, &db->o, flags);
@@ -465,18 +473,15 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 	svv *v = o->v.v;
 	sv_vref(v);
 
-	/* destroy document object */
-	if (auto_close) {
-		/* ensure quota */
-		ss_quota(&e->quota, SS_QADD, sv_vsize(v));
+	if (auto_close)
 		so_destroy(&o->o);
-	}
 
 	/* single-statement transaction */
 	svlog log;
 	sv_loginit(&log);
 	sx x;
-	sxstate state = sx_set_autocommit(&e->xm, &db->coindex, &x, &log, v);
+	sxstate state =
+		sx_set_autocommit(&e->xm, &db->coindex, &x, &log, v);
 	switch (state) {
 	case SXLOCK: return 2;
 	case SXROLLBACK: return 1;

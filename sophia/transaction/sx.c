@@ -260,7 +260,6 @@ static inline void
 sx_rollback_svp(sx *x, ssiter *i, int free)
 {
 	sxmanager *m = x->manager;
-	int gc = 0;
 	for (; ss_iterhas(ss_bufiter, i); ss_iternext(ss_bufiter, i))
 	{
 		svlogv *lv = ss_iterof(ss_bufiter, i);
@@ -270,14 +269,10 @@ sx_rollback_svp(sx *x, ssiter *i, int free)
 		sx_untrack(v);
 		/* translate log version from sxv to svv */
 		sv_init(&lv->v, &sv_vif, v->v, NULL);
-		if (free) {
-			int size = sv_vsize((svv*)v->v);
-			if (sv_vunref(m->r, v->v))
-				gc += size;
-		}
+		if (free)
+			sv_vunref(m->r, v->v);
 		sx_vpool_push(&m->pool, v);
 	}
-	ss_quota(m->r->quota, SS_QREMOVE, gc);
 }
 
 sxstate sx_rollback(sx *x)
@@ -288,16 +283,12 @@ sxstate sx_rollback(sx *x)
 	ss_iteropen(ss_bufiter, &i, &x->log->buf, sizeof(svlogv));
 	/* support log free after commit */
 	if (x->state == SXCOMMIT) {
-		int gc = 0;
 		for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
 		{
 			svlogv *lv = ss_iterof(ss_bufiter, &i);
 			svv *v = lv->v.v;
-			int size = sv_vsize(v);
-			if (sv_vunref(m->r, v))
-				gc += size;
+			sv_vunref(m->r, v);
 		}
-		ss_quota(m->r->quota, SS_QREMOVE, gc);
 		sx_promote(x, SXROLLBACK);
 		return SXROLLBACK;
 	}
@@ -422,7 +413,6 @@ int sx_set(sx *x, sxindex *index, svv *version)
 	/* allocate mvcc container */
 	sxv *v = sx_valloc(&m->pool, version);
 	if (ssunlikely(v == NULL)) {
-		ss_quota(r->quota, SS_QREMOVE, sv_vsize(version));
 		sv_vunref(r, version);
 		return -1;
 	}
@@ -474,7 +464,6 @@ int sx_set(sx *x, sxindex *index, svv *version)
 		/* update log */
 		sv_logreplace(x->log, v->lo, &lv);
 
-		ss_quota(r->quota, SS_QREMOVE, sv_vsize(own->v));
 		sx_vfree(&m->pool, own);
 		return 0;
 	}
@@ -489,7 +478,6 @@ int sx_set(sx *x, sxindex *index, svv *version)
 	sx_vlink(head, v);
 	return 0;
 error:
-	ss_quota(r->quota, SS_QREMOVE, sv_vsize(v->v));
 	sx_vfree(&m->pool, v);
 	return -1;
 }

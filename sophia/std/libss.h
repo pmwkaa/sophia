@@ -35,7 +35,6 @@
 #include <ss_mutex.h>
 #include <ss_cond.h>
 #include <ss_thread.h>
-#include <ss_quota.h>
 #include <ss_rb.h>
 #include <ss_qf.h>
 #include <ss_hash.h>

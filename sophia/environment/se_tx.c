@@ -49,8 +49,16 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 	default: goto error;
 	}
 
+	/* ensure memory quota */
+	int rc;
+	rc = sr_quota(&e->quota, &e->stat);
+	if (ssunlikely(rc)) {
+		sr_error(&e->error, "%s", "memory quota limit reached");
+		goto error;
+	}
+
 	/* create document */
-	int rc = so_open(&o->o);
+	rc = so_open(&o->o);
 	if (ssunlikely(rc == -1))
 		goto error;
 	rc = se_document_validate(o, &db->o, flags);
@@ -62,19 +70,13 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 	v->log = o->log;
 
 	/* destroy document object */
-	int size = sv_vsize(v);
-	if (auto_close) {
-		ss_quota(&e->quota, SS_QADD, size);
+	if (auto_close)
 		so_destroy(&o->o);
-	}
 
 	/* concurrent index only */
 	rc = sx_set(&t->t, &db->coindex, v);
-	if (ssunlikely(rc == -1)) {
-		if (auto_close)
-			ss_quota(&e->quota, SS_QREMOVE, size);
+	if (ssunlikely(rc == -1))
 		return -1;
-	}
 	return 0;
 error:
 	if (auto_close)

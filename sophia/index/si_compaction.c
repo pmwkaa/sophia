@@ -210,7 +210,6 @@ int si_branch(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 		si_lock(index);
 		uint32_t used = sv_indexused(i);
 		n->used -= used;
-		ss_quota(r->quota, SS_QREMOVE, used);
 		svindex swap = *i;
 		si_nodeunrotate(n);
 		si_nodeunlock(n);
@@ -228,7 +227,6 @@ int si_branch(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 	n->branch_count++;
 	uint32_t used = sv_indexused(i);
 	n->used -= used;
-	ss_quota(r->quota, SS_QREMOVE, used);
 	index->size +=
 		sd_indexsize_ext(branch->index.h) +
 		sd_indextotal(&branch->index);

@@ -21,7 +21,7 @@ struct sr {
 	ssa *a;
 	ssa *aref;
 	ssvfs *vfs;
-	ssquota *quota;
+	srquota *quota;
 	srzonemap *zonemap;
 	ssinjection *i;
 	srstat *stat;
@@ -35,7 +35,7 @@ sr_init(sr *r,
         ssa *a,
         ssa *aref,
         ssvfs *vfs,
-        ssquota *quota,
+        srquota *quota,
         srzonemap *zonemap,
         srseq *seq,
         sfstorage fmt_storage,
@@ -63,7 +63,7 @@ sr_init(sr *r,
 
 static inline srzone *sr_zoneof(sr *r)
 {
-	int p = ss_quotaused_percent(r->quota);
+	int p = sr_quotaused_percent(r->quota, r->stat);
 	return sr_zonemap(r->zonemap, p);
 }
 

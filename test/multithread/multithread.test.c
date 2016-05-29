@@ -290,16 +290,25 @@ mt_quota(void)
 
 	char value[1000];
 	memset(value, 0, sizeof(value));
+	int hit = 0;
 	int i = 0;
 	while (i < 20000) { /* ~ 20Mb */
-		void *o = sp_document(db);
-		assert(o != NULL);
-		sp_setstring(o, "key", &i, sizeof(i));
-		sp_setstring(o, "value", value, sizeof(value));
-		int rc = sp_set(db, o);
-		t( rc == 0 );
+		int rc;
+		do {
+			void *o = sp_document(db);
+			assert(o != NULL);
+			sp_setstring(o, "key", &i, sizeof(i));
+			sp_setstring(o, "value", value, sizeof(value));
+			rc = sp_set(db, o);
+			if (rc == -1) {
+				hit++;
+				ss_sleep(10000000);
+			}
+		} while (rc == -1);
 		i++;
 	}
+	fprintf(st_r.output, " (quota hit: %d)", hit);
+	fflush(st_r.output);
 	t( sp_destroy(env) == 0 );
 }
 
@@ -327,16 +336,25 @@ mt_quota_checkpoint(void)
 
 	char value[1000];
 	memset(value, 0, sizeof(value));
+	int hit = 0;
 	int i = 0;
 	while (i < 20000) { /* ~ 20Mb */
-		void *o = sp_document(db);
-		assert(o != NULL);
-		sp_setstring(o, "key", &i, sizeof(i));
-		sp_setstring(o, "value", value, sizeof(value));
-		int rc = sp_set(db, o);
-		t( rc == 0 );
+		int rc;
+		do {
+			void *o = sp_document(db);
+			assert(o != NULL);
+			sp_setstring(o, "key", &i, sizeof(i));
+			sp_setstring(o, "value", value, sizeof(value));
+			rc = sp_set(db, o);
+			if (rc == -1) {
+				hit++;
+				ss_sleep(10000000);
+			}
+		} while (rc == -1);
 		i++;
 	}
+	fprintf(st_r.output, " (quota hit: %d)", hit);
+	fflush(st_r.output);
 	t( sp_destroy(env) == 0 );
 }
 
@@ -370,16 +388,25 @@ mt_quota_age(void)
 
 	char value[1000];
 	memset(value, 0, sizeof(value));
+	int hit = 0;
 	int i = 0;
 	while (i < 1000) { /* ~ 1Mb ~ 2-4 seconds */
-		void *o = sp_document(db);
-		assert(o != NULL);
-		sp_setstring(o, "key", &i, sizeof(i));
-		sp_setstring(o, "value", value, sizeof(value));
-		int rc = sp_set(db, o);
-		t( rc == 0 );
+		int rc;
+		do {
+			void *o = sp_document(db);
+			assert(o != NULL);
+			sp_setstring(o, "key", &i, sizeof(i));
+			sp_setstring(o, "value", value, sizeof(value));
+			rc = sp_set(db, o);
+			if (rc == -1) {
+				hit++;
+				ss_sleep(10000000);
+			}
+		} while (rc == -1);
 		i++;
 	}
+	fprintf(st_r.output, " (quota hit: %d)", hit);
+	fflush(st_r.output);
 	t( sp_destroy(env) == 0 );
 }
 

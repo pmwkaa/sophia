@@ -68,8 +68,8 @@ se_open(so *o)
 	sr_statusset(&e->status, SR_RECOVER);
 
 	/* set memory quota (disable during recovery) */
-	ss_quotaset(&e->quota, e->conf.memory_limit);
-	ss_quotaenable(&e->quota, 0);
+	sr_quotaset(&e->quota, e->conf.memory_limit);
+	sr_quotaenable(&e->quota, 0);
 
 	/* repository recover */
 	rc = se_recover_repository(e);
@@ -99,7 +99,7 @@ se_open(so *o)
 	}
 
 	/* enable quota */
-	ss_quotaenable(&e->quota, 1);
+	sr_quotaenable(&e->quota, 1);
 	sr_statusset(&e->status, SR_ONLINE);
 
 	/* run thread-pool and scheduler */
@@ -155,7 +155,6 @@ se_destroy(so *o)
 	ss_vfsfree(&e->vfs);
 	si_cachepool_free(&e->cachepool);
 	se_conffree(&e->conf);
-	ss_quotafree(&e->quota);
 	ss_mutexfree(&e->apilock);
 	sf_limitfree(&e->limit, &e->a);
 	sr_statfree(&e->stat);
@@ -276,7 +275,7 @@ so *se_new(void)
 	so_poolinit(&e->viewdb, 1);
 	so_listinit(&e->db);
 	ss_mutexinit(&e->apilock);
-	ss_quotainit(&e->quota);
+	sr_quotainit(&e->quota);
 	sr_seqinit(&e->seq);
 	sr_errorinit(&e->error);
 	sr_statinit(&e->stat);

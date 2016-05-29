@@ -25,7 +25,7 @@ struct se {
 	solist      db;
 	srseq       seq;
 	seconf      conf;
-	ssquota     quota;
+	srquota     quota;
 	ssvfs       vfs;
 	ssa         a_oom;
 	ssa         a;

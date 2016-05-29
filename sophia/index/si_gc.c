@@ -16,29 +16,22 @@
 #include <libsd.h>
 #include <libsi.h>
 
-uint32_t si_gcv(sr *r, svv *v)
+void si_gcv(sr *r, svv *v)
 {
-	uint32_t size = sv_vsize(v);
 	sl *log = (sl*)v->log;
 	if (sv_vunref(r, v)) {
 		if (log)
 			ss_gcsweep(&log->gc, 1);
-		return size;
 	}
-	return 0;
 }
 
-uint32_t si_gcref(sr *r, svref *gc)
+void si_gcref(sr *r, svref *gc)
 {
-	uint32_t used = 0;
 	svref *v = gc;
 	while (v) {
 		svref *n = v->next;
-		uint32_t size = sv_vsize(v->v);
-		if (si_gcv(r, v->v))
-			used += size;
+		si_gcv(r, v->v);
 		ss_free(r->aref, v);
 		v = n;
 	}
-	return used;
 }

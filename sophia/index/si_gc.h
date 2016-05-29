@@ -9,7 +9,7 @@
  * BSD License
 */
 
-uint32_t si_gcv(sr*, svv*);
-uint32_t si_gcref(sr*, svref*);
+void si_gcv(sr*, svv*);
+void si_gcref(sr*, svref*);
 
 #endif

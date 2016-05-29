@@ -853,9 +853,6 @@ se_confrt(se *e, seconfrt *rt)
 	snprintf(rt->build, sizeof(rt->build), "%s",
 	         SR_VERSION_COMMIT);
 
-	/* memory */
-	rt->memory_used = ss_quotaused(&e->quota);
-
 	/* scheduler */
 	ss_mutexlock(&e->scheduler.lock);
 	rt->checkpoint_active    = e->scheduler.checkpoint;
@@ -875,8 +872,7 @@ se_confrt(se *e, seconfrt *rt)
 	rt->lru_active           = e->scheduler.lru;
 	ss_mutexunlock(&e->scheduler.lock);
 
-	int v = ss_quotaused_percent(&e->quota);
-	srzone *z = sr_zonemap(&e->conf.zones, v);
+	srzone *z = sr_zoneof(&e->r);
 	memcpy(rt->zone, z->name, sizeof(rt->zone));
 
 	/* log */
@@ -893,6 +889,7 @@ se_confrt(se *e, seconfrt *rt)
 	rt->tx_gc_queue = e->xm.count_gc;
 
 	ss_spinlock(&e->stat.lock);
+	rt->memory_used = e->stat.v_allocated;
 	rt->stat = e->stat;
 	ss_spinunlock(&e->stat.lock);
 	sr_statprepare(&rt->stat);
