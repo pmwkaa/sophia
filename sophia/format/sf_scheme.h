@@ -12,6 +12,7 @@
 typedef struct sffield sffield;
 typedef struct sfscheme sfscheme;
 
+typedef int (*sfcmpversionf)(char*, char*, void*);
 typedef int (*sfcmpf)(char*, int, char*, int, void*);
 
 struct sffield {
@@ -28,14 +29,14 @@ struct sffield {
 };
 
 struct sfscheme {
-	sffield **fields;
-	sffield **keys;
-	int       fields_count;
-	int       keys_count;
-	sfcmpf    cmp;
-	void     *cmparg;
-	int       var_offset;
-	int       var_count;
+	sffield       **fields;
+	sffield       **keys;
+	int             fields_count;
+	int             keys_count;
+	sfcmpversionf   cmp;
+	void           *cmparg;
+	int             var_offset;
+	int             var_count;
 };
 
 static inline sffield*
@@ -96,12 +97,12 @@ sffield*
 sf_schemefind(sfscheme*, char *);
 
 int  sf_schemecompare_prefix(sfscheme*, char*, uint32_t, char*);
-int  sf_schemecompare(char*, int, char*, int, void*);
+int  sf_schemecompare(char*, char*, void*);
 
 static inline int
-sf_compare(sfscheme *s, char *a, int asize, char *b, int bsize)
+sf_compare(sfscheme *s, char *a, char *b)
 {
-	return s->cmp(a, asize, b, bsize, s->cmparg);
+	return s->cmp(a, b, s->cmparg);
 }
 
 static inline int

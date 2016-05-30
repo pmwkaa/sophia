@@ -20,7 +20,7 @@ struct svindexiter {
 } sspacked;
 
 static inline int
-sv_indexiter_open(ssiter *i, sr *r, svindex *index, ssorder o, void *key, int keysize)
+sv_indexiter_open(ssiter *i, sr *r, svindex *index, ssorder o, char *key)
 {
 	svindexiter *ii = (svindexiter*)i->priv;
 	ii->index   = index;
@@ -37,7 +37,7 @@ sv_indexiter_open(ssiter *i, sr *r, svindex *index, ssorder o, void *key, int ke
 			ii->v = ss_rbmax(&ii->index->i);
 			break;
 		}
-		rc = sv_indexmatch(&ii->index->i, r->scheme, key, keysize, &ii->v);
+		rc = sv_indexmatch(&ii->index->i, r->scheme, key, 0, &ii->v);
 		if (ii->v == NULL)
 			break;
 		switch (rc) {
@@ -57,7 +57,7 @@ sv_indexiter_open(ssiter *i, sr *r, svindex *index, ssorder o, void *key, int ke
 			ii->v = ss_rbmin(&ii->index->i);
 			break;
 		}
-		rc = sv_indexmatch(&ii->index->i, r->scheme, key, keysize, &ii->v);
+		rc = sv_indexmatch(&ii->index->i, r->scheme, key, 0, &ii->v);
 		if (ii->v == NULL)
 			break;
 		switch (rc) {

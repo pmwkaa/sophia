@@ -17,16 +17,15 @@
 
 int si_readopen(siread *q, si *i, sicache *c, ssorder o,
                 uint64_t vlsn,
-                void *prefix, uint32_t prefix_size,
-                void *key, uint32_t key_size,
-                void *upsert, uint32_t upsert_size,
+                char *key,
+                char *upsert,
+                char *prefix, uint32_t prefix_size,
                 int cold_only,
                 int has,
                 int read_start)
 {
 	q->order       = o;
 	q->key         = key;
-	q->key_size    = key_size;
 	q->vlsn        = vlsn;
 	q->index       = i;
 	q->r           = &i->r;
@@ -39,7 +38,6 @@ int si_readopen(siread *q, si *i, sicache *c, ssorder o,
 	q->read_disk   = 0;
 	q->read_cache  = 0;
 	q->upsert      = upsert;
-	q->upsert_size = upsert_size;
 	q->upsert_eq   = 0;
 	if (!has && sf_upserthas(&i->scheme.fmt_upsert)) {
 		if (q->order == SS_EQ) {
@@ -103,8 +101,7 @@ si_getresult(siread *q, sv *v, int compare)
 {
 	int rc;
 	if (compare) {
-		rc = sf_compare(q->r->scheme, sv_pointer(v), sv_size(v),
-		                q->key, q->key_size);
+		rc = sf_compare(q->r->scheme, sv_pointer(v), q->key);
 		if (ssunlikely(rc != 0))
 			return 0;
 	}
@@ -135,16 +132,14 @@ si_getindex(siread *q, sinode *n)
 	ss_iterinit(sv_indexiter, &i);
 	int rc;
 	if (first->count > 0) {
-		rc = ss_iteropen(sv_indexiter, &i, q->r, first,
-		                 SS_GTE, q->key, q->key_size);
+		rc = ss_iteropen(sv_indexiter, &i, q->r, first, SS_GTE, q->key);
 		if (rc) {
 			goto result;
 		}
 	}
 	if (sslikely(second == NULL || !second->count))
 		return 0;
-	rc = ss_iteropen(sv_indexiter, &i, q->r, second,
-	                 SS_GTE, q->key, q->key_size);
+	rc = ss_iteropen(sv_indexiter, &i, q->r, second, SS_GTE, q->key);
 	if (! rc) {
 		return 0;
 	}
@@ -206,7 +201,7 @@ si_getbranch(siread *q, sinode *n, sicachebranch *c)
 		.r               = q->r
 	};
 	ss_iterinit(sd_read, &c->i);
-	rc = ss_iteropen(sd_read, &c->i, &arg, q->key, q->key_size);
+	rc = ss_iteropen(sd_read, &c->i, &arg, q->key);
 	int reads = sd_read_stat(&c->i);
 	si_readstat(q, 0, n, reads);
 	if (ssunlikely(rc <= 0))
@@ -235,7 +230,7 @@ si_get(siread *q)
 	assert(q->key != NULL);
 	ssiter i;
 	ss_iterinit(si_iter, &i);
-	ss_iteropen(si_iter, &i, q->r, q->index, SS_GTE, q->key, q->key_size);
+	ss_iteropen(si_iter, &i, q->r, q->index, SS_GTE, q->key);
 	sinode *node;
 	node = ss_iterof(si_iter, &i);
 	assert(node != NULL);
@@ -326,7 +321,7 @@ si_rangebranch(siread *q, sinode *n, sibranch *b, svmerge *m)
 		.r               = q->r
 	};
 	ss_iterinit(sd_read, &c->i);
-	int rc = ss_iteropen(sd_read, &c->i, &arg, q->key, q->key_size);
+	int rc = ss_iteropen(sd_read, &c->i, &arg, q->key);
 	int reads = sd_read_stat(&c->i);
 	si_readstat(q, 0, n, reads);
 	if (ssunlikely(rc == -1))
@@ -345,7 +340,7 @@ si_range(siread *q)
 
 	ssiter i;
 	ss_iterinit(si_iter, &i);
-	ss_iteropen(si_iter, &i, q->r, q->index, q->order, q->key, q->key_size);
+	ss_iteropen(si_iter, &i, q->r, q->index, q->order, q->key);
 	sinode *node;
 next_node:
 	node = ss_iterof(si_iter, &i);
@@ -385,13 +380,13 @@ next_node:
 		s = sv_mergeadd(m, NULL);
 		ss_iterinit(sv_indexiter, &s->src);
 		ss_iteropen(sv_indexiter, &s->src, q->r, first, q->order,
-		            q->key, q->key_size);
+		            q->key);
 	}
 	if (ssunlikely(second && second->count)) {
 		s = sv_mergeadd(m, NULL);
 		ss_iterinit(sv_indexiter, &s->src);
 		ss_iteropen(sv_indexiter, &s->src, q->r, second, q->order,
-		            q->key, q->key_size);
+		            q->key);
 	}
 
 	/* cache and branches */
@@ -432,8 +427,7 @@ next_node:
 	rc = 1;
 	/* convert upsert search to SS_EQ */
 	if (q->upsert_eq) {
-		rc = sf_compare(q->r->scheme, sv_pointer(v), sv_size(v),
-		                q->key, q->key_size);
+		rc = sf_compare(q->r->scheme, sv_pointer(v), q->key);
 		rc = rc == 0;
 	}
 	/* do prefix search */
@@ -473,8 +467,7 @@ int si_readcommited(si *index, sr *r, sv *v, int recover)
 	/* search node index */
 	ssiter i;
 	ss_iterinit(si_iter, &i);
-	ss_iteropen(si_iter, &i, r, index, SS_GTE,
-	            sv_pointer(v), sv_size(v));
+	ss_iteropen(si_iter, &i, r, index, SS_GTE, sv_pointer(v));
 	sinode *node;
 	node = ss_iterof(si_iter, &i);
 	assert(node != NULL);
@@ -488,7 +481,7 @@ int si_readcommited(si *index, sr *r, sv *v, int recover)
 		ss_iterinit(sv_indexiter, &i);
 		if (sslikely(first->count > 0)) {
 			rc = ss_iteropen(sv_indexiter, &i, r, first, SS_GTE,
-			                 sv_pointer(v), sv_size(v));
+			                 sv_pointer(v));
 			if (rc) {
 				sv *ref = ss_iterof(sv_indexiter, &i);
 				if (sv_refvisible_gte((svref*)ref->v, lsn))
@@ -497,7 +490,7 @@ int si_readcommited(si *index, sr *r, sv *v, int recover)
 		}
 		if (second && !second->count) {
 			rc = ss_iteropen(sv_indexiter, &i, r, second, SS_GTE,
-			                 sv_pointer(v), sv_size(v));
+			                 sv_pointer(v));
 			if (rc) {
 				sv *ref = ss_iterof(sv_indexiter, &i);
 				if (sv_refvisible_gte((svref*)ref->v, lsn))
@@ -512,7 +505,7 @@ int si_readcommited(si *index, sr *r, sv *v, int recover)
 	{
 		ss_iterinit(sd_indexiter, &i);
 		ss_iteropen(sd_indexiter, &i, r, &b->index, SS_GTE,
-		            sv_pointer(v), sv_size(v));
+		            sv_pointer(v));
 		sdindexpage *page = ss_iterof(sd_indexiter, &i);
 		if (page == NULL)
 			continue;

@@ -102,7 +102,7 @@ sd_read_gt0(void)
 
 	ssiter it;
 	ss_iterinit(sd_read, &it);
-	ss_iteropen(sd_read, &it, &arg, NULL, 0);
+	ss_iteropen(sd_read, &it, &arg, NULL);
 	t( ss_iteratorhas(&it) == 1 );
 
 	sv *v = ss_iteratorof(&it);
@@ -230,7 +230,7 @@ sd_read_gt1(void)
 
 	ssiter it;
 	ss_iterinit(sd_read, &it);
-	ss_iteropen(sd_read, &it, &arg, NULL, 0);
+	ss_iteropen(sd_read, &it, &arg, NULL);
 	t( ss_iteratorhas(&it) == 1 );
 
 	/* page 0 */
@@ -379,7 +379,7 @@ sd_read_gt0_compression_zstd(void)
 
 	ssiter it;
 	ss_iterinit(sd_read, &it);
-	ss_iteropen(sd_read, &it, &arg, NULL, 0);
+	ss_iteropen(sd_read, &it, &arg, NULL);
 	t( ss_iteratorhas(&it) == 1 );
 
 	sv *v = ss_iteratorof(&it);
@@ -508,7 +508,7 @@ sd_read_gt0_compression_lz4(void)
 
 	ssiter it;
 	ss_iterinit(sd_read, &it);
-	ss_iteropen(sd_read, &it, &arg, NULL, 0);
+	ss_iteropen(sd_read, &it, &arg, NULL);
 	t( ss_iteratorhas(&it) == 1 );
 
 	sv *v = ss_iteratorof(&it);
@@ -668,7 +668,7 @@ sd_read_gt1_compression_zstd(void)
 
 	ssiter it;
 	ss_iterinit(sd_read, &it);
-	ss_iteropen(sd_read, &it, &arg, NULL, 0);
+	ss_iteropen(sd_read, &it, &arg, NULL);
 	t( ss_iteratorhas(&it) == 1 );
 
 	/* page 0 */
@@ -851,7 +851,7 @@ sd_read_gt1_compression_lz4(void)
 
 	ssiter it;
 	ss_iterinit(sd_read, &it);
-	ss_iteropen(sd_read, &it, &arg, NULL, 0);
+	ss_iteropen(sd_read, &it, &arg, NULL);
 	t( ss_iteratorhas(&it) == 1 );
 
 	/* page 0 */

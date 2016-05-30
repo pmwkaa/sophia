@@ -399,9 +399,7 @@ sxstate sx_commit(sx *x)
 }
 
 ss_rbget(sx_match,
-         sf_compare(scheme, sv_vpointer((sscast(n, sxv, node))->v),
-                    (sscast(n, sxv, node))->v->size,
-                    key, keysize))
+         sf_compare(scheme, sv_vpointer((sscast(n, sxv, node))->v), key))
 
 int sx_set(sx *x, sxindex *index, svv *version)
 {

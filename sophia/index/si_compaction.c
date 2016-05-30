@@ -40,7 +40,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		return -1;
 	svmergesrc *s = sv_mergeadd(&vmerge, NULL);
 	ss_iterinit(sv_indexiter, &s->src);
-	ss_iteropen(sv_indexiter, &s->src, r, vindex, SS_GTE, NULL, 0);
+	ss_iteropen(sv_indexiter, &s->src, r, vindex, SS_GTE, NULL);
 	ssiter i;
 	ss_iterinit(sv_mergeiter, &i);
 	ss_iteropen(sv_mergeiter, &i, r, &vmerge, SS_GTE);
@@ -332,7 +332,7 @@ int si_compact(si *index, sdc *c, siplan *plan,
 			.r               = r
 		};
 		ss_iterinit(sd_read, &s->src);
-		int rc = ss_iteropen(sd_read, &s->src, &arg, NULL, 0);
+		int rc = ss_iteropen(sd_read, &s->src, &arg, NULL);
 		if (ssunlikely(rc == -1))
 			return sr_oom_malfunction(r->e);
 		size_stream += sd_indextotal(&b->index);
@@ -367,6 +367,6 @@ int si_compact_index(si *index, sdc *c, siplan *plan,
 	uint64_t size_stream = sv_indexused(vindex);
 	ssiter i;
 	ss_iterinit(sv_indexiter, &i);
-	ss_iteropen(sv_indexiter, &i, &index->r, vindex, SS_GTE, NULL, 0);
+	ss_iteropen(sv_indexiter, &i, &index->r, vindex, SS_GTE, NULL);
 	return si_compact(index, c, plan, vlsn, vlsn_lru, &i, size_stream);
 }

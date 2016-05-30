@@ -16,8 +16,7 @@ struct sdindexiter {
 	sdindexpage *v;
 	int pos;
 	ssorder cmp;
-	void *key;
-	int keysize;
+	char *key;
 	sr *r;
 } sspacked;
 
@@ -31,9 +30,7 @@ sd_indexiter_route(sdindexiter *i)
 		sdindexpage *page = sd_indexpage(i->index, mid);
 		int rc = sf_compare(i->r->scheme,
 		                    sd_indexpage_max(i->index, page),
-		                    page->sizemax,
-		                    i->key,
-		                    i->keysize);
+		                    i->key);
 		if (rc < 0) {
 			begin = mid + 1;
 		} else {
@@ -47,16 +44,15 @@ sd_indexiter_route(sdindexiter *i)
 }
 
 static inline int
-sd_indexiter_open(ssiter *i, sr *r, sdindex *index, ssorder o, void *key, int keysize)
+sd_indexiter_open(ssiter *i, sr *r, sdindex *index, ssorder o, char *key)
 {
 	sdindexiter *ii = (sdindexiter*)i->priv;
-	ii->r       = r;
-	ii->index   = index;
-	ii->cmp     = o;
-	ii->key     = key;
-	ii->keysize = keysize;
-	ii->v       = NULL;
-	ii->pos     = 0;
+	ii->r     = r;
+	ii->index = index;
+	ii->cmp   = o;
+	ii->key   = key;
+	ii->v     = NULL;
+	ii->pos   = 0;
 	if (ssunlikely(ii->index->h->count == 1)) {
 		/* skip bootstrap node  */
 		if (ii->index->h->lsnmin == UINT64_MAX &&
@@ -86,14 +82,14 @@ sd_indexiter_open(ssiter *i, sr *r, sdindex *index, ssorder o, void *key, int ke
 	case SS_LTE:
 	case SS_LT:
 		rc = sf_compare(ii->r->scheme, sd_indexpage_min(ii->index, p),
-		                p->sizemin, ii->key, ii->keysize);
+		                ii->key);
 		if (rc ==  1 || (rc == 0 && ii->cmp == SS_LT))
 			ii->pos--;
 		break;
 	case SS_GTE:
 	case SS_GT:
 		rc = sf_compare(ii->r->scheme, sd_indexpage_max(ii->index, p),
-		                p->sizemax, ii->key, ii->keysize);
+		                ii->key);
 		if (rc == -1 || (rc == 0 && ii->cmp == SS_GT))
 			ii->pos++;
 		break;

@@ -57,7 +57,7 @@ sd_v_test(void)
 
 	ssiter it;
 	ss_iterinit(sd_pageiter, &it);
-	ss_iteropen(sd_pageiter, &it, &st_r.r, &xfbuf, &page, SS_GTE, NULL, 0);
+	ss_iteropen(sd_pageiter, &it, &st_r.r, &xfbuf, &page, SS_GTE, NULL);
 	t( ss_iteratorhas(&it) != 0 );
 	sv *v = ss_iteratorof(&it);
 	t( v != NULL );

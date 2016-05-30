@@ -18,8 +18,7 @@ struct sdpageiter {
 	sdv *v;
 	sv current;
 	ssorder order;
-	void *key;
-	int keysize;
+	char *key;
 	sr *r;
 } sspacked;
 
@@ -47,8 +46,7 @@ static inline int
 sd_pageiter_cmp(sdpageiter *i, sr *r, sdv *v)
 {
 	if (sslikely(r->fmt_storage == SF_RAW)) {
-		return sf_compare(r->scheme, sd_pagepointer(i->page, v),
-		                  v->size, i->key, i->keysize);
+		return sf_compare(r->scheme, sd_pagepointer(i->page, v), i->key);
 	}
 	sffield **part = r->scheme->keys;
 	sffield **last = part + r->scheme->keys_count;
@@ -178,17 +176,16 @@ sd_pageiter_lt(sdpageiter *i, int e)
 
 static inline int
 sd_pageiter_open(ssiter *i, sr *r, ssbuf *xfbuf, sdpage *page, ssorder o,
-                 void *key, int keysize)
+                 char *key)
 {
 	sdpageiter *pi = (sdpageiter*)i->priv;
-	pi->r       = r;
-	pi->page    = page;
-	pi->xfbuf   = xfbuf;
-	pi->order   = o;
-	pi->key     = key;
-	pi->keysize = keysize;
-	pi->v       = NULL;
-	pi->pos     = 0;
+	pi->r     = r;
+	pi->page  = page;
+	pi->xfbuf = xfbuf;
+	pi->order = o;
+	pi->key   = key;
+	pi->v     = NULL;
+	pi->pos   = 0;
 	if (ssunlikely(pi->page->h->count == 0)) {
 		sd_pageiter_end(pi);
 		return 0;

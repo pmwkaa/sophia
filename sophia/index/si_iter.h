@@ -15,22 +15,20 @@ struct siiter {
 	si *index;
 	ssrbnode *v;
 	ssorder order;
-	void *key;
-	int keysize;
+	char *key;
 } sspacked;
 
 ss_rbget(si_itermatch,
-         si_nodecmp(sscast(n, sinode, node), key, keysize, scheme))
+         si_nodecmp(sscast(n, sinode, node), key, scheme))
 
 static inline int
-si_iter_open(ssiter *i, sr *r, si *index, ssorder o, void *key, int keysize)
+si_iter_open(ssiter *i, sr *r, si *index, ssorder o, char *key)
 {
 	siiter *ii = (siiter*)i->priv;
-	ii->index   = index;
-	ii->order   = o;
-	ii->key     = key;
-	ii->keysize = keysize;
-	ii->v       = NULL;
+	ii->index = index;
+	ii->order = o;
+	ii->key   = key;
+	ii->v     = NULL;
 	int eq = 0;
 	if (ssunlikely(ii->index->n == 1)) {
 		ii->v = ss_rbmin(&ii->index->i);
@@ -55,7 +53,7 @@ si_iter_open(ssiter *i, sr *r, si *index, ssorder o, void *key, int keysize)
 	/* route */
 	assert(ii->key != NULL);
 	int rc;
-	rc = si_itermatch(&ii->index->i, r->scheme, ii->key, ii->keysize, &ii->v);
+	rc = si_itermatch(&ii->index->i, r->scheme, ii->key, 0, &ii->v);
 	if (ssunlikely(ii->v == NULL)) {
 		assert(rc != 0);
 		if (rc == 1)

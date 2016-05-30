@@ -13,12 +13,10 @@ typedef struct siread siread;
 
 struct siread {
 	ssorder   order;
-	void     *prefix;
-	void     *key;
-	void     *upsert;
-	uint32_t  key_size;
+	char     *key;
+	char     *upsert;
+	char     *prefix;
 	uint32_t  prefix_size;
-	uint32_t  upsert_size;
 	int       has;
 	uint64_t  vlsn;
 	svmerge   merge;
@@ -35,9 +33,8 @@ struct siread {
 
 int  si_readopen(siread*, si*, sicache*, ssorder,
                  uint64_t,
-                 void*, uint32_t,
-                 void*, uint32_t,
-                 void*, uint32_t, int, int, int);
+                 char*, char*,
+                 char*, uint32_t, int, int, int);
 int  si_readclose(siread*);
 int  si_read(siread*);
 int  si_readcommited(si*, sr*, sv*, int);

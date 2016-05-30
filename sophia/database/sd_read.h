@@ -143,7 +143,7 @@ sd_read_page(sdread *i, sdindexpage *ref)
 }
 
 static inline int
-sd_read_openpage(sdread *i, void *key, int keysize)
+sd_read_openpage(sdread *i, char *key)
 {
 	sdreadarg *arg = &i->ra;
 	assert(i->ref != NULL);
@@ -153,21 +153,21 @@ sd_read_openpage(sdread *i, void *key, int keysize)
 	ss_iterinit(sd_pageiter, arg->page_iter);
 	return ss_iteropen(sd_pageiter, arg->page_iter, arg->r,
 	                   arg->buf_xf,
-	                   &i->page, arg->o, key, keysize);
+	                   &i->page, arg->o, key);
 }
 
 static inline void
 sd_read_next(ssiter*);
 
 static inline int
-sd_read_open(ssiter *iptr, sdreadarg *arg, void *key, int keysize)
+sd_read_open(ssiter *iptr, sdreadarg *arg, char *key)
 {
 	sdread *i = (sdread*)iptr->priv;
 	i->reads = 0;
 	i->ra = *arg;
 	ss_iterinit(sd_indexiter, arg->index_iter);
 	ss_iteropen(sd_indexiter, arg->index_iter, arg->r, arg->index,
-	            arg->o, key, keysize);
+	            arg->o, key);
 	i->ref = ss_iterof(sd_indexiter, arg->index_iter);
 	if (i->ref == NULL)
 		return 0;
@@ -178,7 +178,7 @@ sd_read_open(ssiter *iptr, sdreadarg *arg, void *key, int keysize)
 			return 0;
 		}
 	}
-	int rc = sd_read_openpage(i, key, keysize);
+	int rc = sd_read_openpage(i, key);
 	if (ssunlikely(rc == -1)) {
 		i->ref = NULL;
 		return -1;
@@ -229,7 +229,7 @@ retry:
 	i->ref = ss_iterof(sd_indexiter, i->ra.index_iter);
 	if (i->ref == NULL)
 		return;
-	int rc = sd_read_openpage(i, NULL, 0);
+	int rc = sd_read_openpage(i, NULL);
 	if (ssunlikely(rc == -1)) {
 		i->ref = NULL;
 		return;

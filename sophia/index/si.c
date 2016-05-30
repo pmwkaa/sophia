@@ -94,8 +94,7 @@ ss_rbget(si_match,
          sf_compare(scheme,
                     sd_indexpage_min(&(sscast(n, sinode, node))->self.index,
                                      sd_indexmin(&(sscast(n, sinode, node))->self.index)),
-                    sd_indexmin(&(sscast(n, sinode, node))->self.index)->sizemin,
-                                key, keysize))
+                    key))
 
 int si_insert(si *i, sinode *n)
 {

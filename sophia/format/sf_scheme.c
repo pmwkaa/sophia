@@ -66,7 +66,7 @@ sf_cmpu64_reverse(char *a, int asz ssunused, char *b, int bsz ssunused,
 }
 
 sshot int
-sf_schemecompare(char *a, int asize ssunused, char *b, int bsize ssunused, void *arg)
+sf_schemecompare(char *a, char *b, void *arg)
 {
 	sfscheme *s = arg;
 	sffield **part = s->keys;

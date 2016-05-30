@@ -24,7 +24,7 @@ static inline int si_set(sitx *x, svv *v, uint64_t time)
 	ssiter i;
 	ss_iterinit(si_iter, &i);
 	ss_iteropen(si_iter, &i, &index->r, index, SS_GTE,
-	            sv_vpointer(v), v->size);
+	            sv_vpointer(v));
 	sinode *node = ss_iterof(si_iter, &i);
 	assert(node != NULL);
 	svref *ref = sv_refnew(&index->r, v);
