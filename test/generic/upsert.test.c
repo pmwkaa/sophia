@@ -1767,6 +1767,47 @@ upsert_test1(void)
 	t( sp_destroy(env) == 0 );
 }
 
+static void
+upsert_test2(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_setstring(env, "db.test.upsert", upsert_operator2, 0) == 0 );
+	t( sp_open(env) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+
+	void *tx = sp_begin(env);
+
+	void *o = sp_document(db);
+	int up = 777;
+	int i = 0;
+	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
+	t( sp_upsert(tx, o) == 0 );
+
+	o = sp_document(db);
+	t( o != NULL );
+	o = sp_get(tx, o);
+	t( *(int*)sp_getstring(o, "value", NULL) == up );
+	o = sp_get(tx, o);
+	t( o == NULL );
+
+	sp_destroy(tx);
+
+	t( sp_destroy(env) == 0 );
+}
+
 stgroup *upsert_group(void)
 {
 	stgroup *group = st_group("upsert");
@@ -1803,5 +1844,6 @@ stgroup *upsert_group(void)
 	st_groupadd(group, st_test("upsert_cursor6", upsert_cursor6));
 	st_groupadd(group, st_test("upsert_test0", upsert_test0));
 	st_groupadd(group, st_test("upsert_test1", upsert_test1));
+	st_groupadd(group, st_test("upsert_test2", upsert_test2));
 	return group;
 }

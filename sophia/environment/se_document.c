@@ -99,7 +99,7 @@ se_document_create(sedocument *o)
 	/* create document from raw data */
 	svv *v;
 	if (o->raw) {
-		v = sv_vbuildraw(db->r, o->raw, o->rawsize, timestamp);
+		v = sv_vbuildraw(db->r, o->raw, o->raw_size, timestamp);
 		if (ssunlikely(v == NULL))
 			return sr_oom(&e->error);
 		sv_init(&o->v, &sv_vif, v, NULL);
@@ -111,17 +111,17 @@ se_document_create(sedocument *o)
 			return sr_error(&e->error, "%s", "prefix search is only "
 			                "supported for a string key");
 
-		void *copy = ss_malloc(&e->a, o->prefixsize);
+		void *copy = ss_malloc(&e->a, o->prefix_size);
 		if (ssunlikely(copy == NULL))
 			return sr_oom(&e->error);
-		memcpy(copy, o->prefix, o->prefixsize);
-		o->prefixcopy = copy;
+		memcpy(copy, o->prefix, o->prefix_size);
+		o->prefix_copy = copy;
 
 		if (o->fields_count_keys == 0 && o->prefix)
 		{
 			memset(o->fields, 0, sizeof(o->fields));
 			o->fields[0].pointer = o->prefix;
-			o->fields[0].size = o->prefixsize;
+			o->fields[0].size = o->prefix_size;
 			sf_limitset(&e->limit, &db->scheme->scheme, o->fields, SS_GTE);
 			goto allocate;
 		}
@@ -178,9 +178,9 @@ se_document_destroy(so *o)
 	if (v->v.v)
 		si_gcv(&e->r, v->v.v);
 	v->v.v = NULL;
-	if (v->prefixcopy)
-		ss_free(&e->a, v->prefixcopy);
-	v->prefixcopy = NULL;
+	if (v->prefix_copy)
+		ss_free(&e->a, v->prefix_copy);
+	v->prefix_copy = NULL;
 	v->prefix = NULL;
 	so_mark_destroyed(&v->o);
 	so_poolgc(&e->document, &v->o);
@@ -248,14 +248,14 @@ se_document_setstring(so *o, const char *path, void *pointer, int size)
 		break;
 	case SE_DOCUMENT_PREFIX:
 		v->prefix = pointer;
-		v->prefixsize = size;
+		v->prefix_size = size;
 		break;
 	case SE_DOCUMENT_LOG:
 		v->log = pointer;
 		break;
 	case SE_DOCUMENT_RAW:
 		v->raw = pointer;
-		v->rawsize = size;
+		v->raw_size = size;
 		break;
 	default:
 		return -1;
@@ -290,7 +290,7 @@ se_document_getstring(so *o, const char *path, int *size)
 		if (v->prefix == NULL)
 			return NULL;
 		if (size)
-			*size = v->prefixsize;
+			*size = v->prefix_size;
 		return v->prefix;
 	}
 	case SE_DOCUMENT_ORDER: {
@@ -310,7 +310,7 @@ se_document_getstring(so *o, const char *path, int *size)
 	case SE_DOCUMENT_RAW:
 		if (v->raw) {
 			if (size)
-				*size = v->rawsize;
+				*size = v->raw_size;
 			return v->raw;
 		}
 		if (v->v.v == NULL)

@@ -330,8 +330,8 @@ se_dbread_result(se *e, siread *r)
 	/* set prefix */
 	if (r->prefix) {
 		v->prefix = r->prefix;
-		v->prefixcopy = r->prefix;
-		v->prefixsize = r->prefixsize;
+		v->prefix_copy = r->prefix;
+		v->prefix_size = r->prefix_size;
 	}
 
 	v->cold_only = r->cold_only;
@@ -405,14 +405,14 @@ se_dbread(sedb *db, sedocument *o, sx *x, uint64_t vlsn,
 
 	/* do read */
 	siread rq;
-	si_readopen(&rq, db->index, cache,
-	            o->order,
+	si_readopen(&rq, db->index, cache, o->order,
 	            vlsn,
-	            o->prefixcopy,
-	            o->prefixsize,
+	            o->prefix_copy,
+	            o->prefix_size,
 	            sv_pointer(&o->v),
 	            sv_size(&o->v),
-	            &vup,
+	            vup.v,
+	            0,
 	            o->cold_only,
 	            0,
 	            start);
@@ -423,7 +423,7 @@ se_dbread(sedb *db, sedocument *o, sx *x, uint64_t vlsn,
 	if (rc == 1) {
 		ret = (sedocument*)se_dbread_result(e, &rq);
 		if (ret)
-			o->prefixcopy = NULL;
+			o->prefix_copy = NULL;
 	}
 
 	/* cleanup */

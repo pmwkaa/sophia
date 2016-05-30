@@ -22,13 +22,13 @@ struct sedocument {
 	int       fields_count;
 	int       fields_count_keys;
 	void     *prefix;
-	void     *prefixcopy;
-	uint32_t  prefixsize;
+	void     *prefix_copy;
+	uint32_t  prefix_size;
 	void     *value;
-	uint32_t  valuesize;
+	uint32_t  value_size;
 	/* recover */
 	void     *raw;
-	uint32_t  rawsize;
+	uint32_t  raw_size;
 	uint32_t  timestamp;
 	void     *log;
 	/* read options */

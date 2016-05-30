@@ -187,6 +187,7 @@ se_txprepare(sx *x, sv *v, so *o, void *ptr)
 	            sv_size(v),
 	            NULL,
 	            0,
+	            0,
 	            1,
 	            0);
 	int rc = si_read(&rq);
