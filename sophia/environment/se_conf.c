@@ -1079,7 +1079,7 @@ int se_confinit(seconf *c, so *e)
 		.lru_period        = 0
 	};
 	sr_zonemap_set(&o->conf.zones,  0, &def);
-	sr_zonemap_set(&o->conf.zones, 80, &redzone);
+	sr_zonemap_set(&o->conf.zones, 70, &redzone);
 	c->backup_path = NULL;
 	return 0;
 }
