@@ -16,8 +16,8 @@ struct srstat {
 	/* memory */
 	uint64_t v_count;
 	uint64_t v_allocated;
-	/* key-value */
-	ssavg    key, value;
+	/* field */
+	ssavg    field;
 	/* set */
 	uint64_t set;
 	ssavg    set_latency;
@@ -62,8 +62,7 @@ sr_statfree(srstat *s) {
 static inline void
 sr_statprepare(srstat *s)
 {
-	ss_avgprepare(&s->key);
-	ss_avgprepare(&s->value);
+	ss_avgprepare(&s->field);
 	ss_avgprepare(&s->set_latency);
 	ss_avgprepare(&s->del_latency);
 	ss_avgprepare(&s->upsert_latency);
@@ -79,18 +78,10 @@ sr_statprepare(srstat *s)
 }
 
 static inline void
-sr_statkey(srstat *s, int size)
+sr_statfield(srstat *s, int size)
 {
 	ss_spinlock(&s->lock);
-	ss_avgupdate(&s->key, size);
-	ss_spinunlock(&s->lock);
-}
-
-static inline void
-sr_statvalue(srstat *s, int size)
-{
-	ss_spinlock(&s->lock);
-	ss_avgupdate(&s->value, size);
+	ss_avgupdate(&s->field, size);
 	ss_spinunlock(&s->lock);
 }
 

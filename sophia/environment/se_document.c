@@ -217,7 +217,7 @@ se_document_setfield(sedocument *v, const char *path, void *pointer, int size)
 	}
 	fv->pointer = pointer;
 	fv->size = size;
-	sr_statkey(&e->stat, size);
+	sr_statfield(&e->stat, size);
 	return fv;
 }
 
