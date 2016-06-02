@@ -23,7 +23,7 @@ SOPHIA_CFLAGS  = $(CFLAGS_DEBUG) \
 SOPHIA_LDFLAGS = -shared $(LDFLAGS)
 SOPHIA_DEP     = $(wildcard sophia/*/*) makefile
 SOPHIA_VMAJOR  = 2
-SOPHIA_VMINOR  = 1
+SOPHIA_VMINOR  = 2
 SOPHIA_BUILD   = `git rev-parse --short HEAD`
 
 all: banner static dynamic
@@ -42,14 +42,14 @@ sophia.o: sophia.c sophia.h
 libsophia.a: sophia.o
 	@ar crs libsophia.a sophia.o
 libsophia.so: sophia.o
-	@$(CC) sophia.o $(SOPHIA_LDFLAGS) -o libsophia.so.2.1.1
-	@ln -sf libsophia.so.2.1.1 libsophia.so.2.1
-	@ln -sf libsophia.so.2.1.1 libsophia.so
+	@$(CC) sophia.o $(SOPHIA_LDFLAGS) -o libsophia.so.2.2.0
+	@ln -sf libsophia.so.2.2.0 libsophia.so.2.2
+	@ln -sf libsophia.so.2.2.0 libsophia.so
 ifeq ($(shell uname), Linux)
-	@strip --strip-unneeded libsophia.so.2.1.1
+	@strip --strip-unneeded libsophia.so.2.2.0
 endif
 ifeq ($(shell uname), Darwin)
-	@strip -u -r -x libsophia.so.2.1.1
+	@strip -u -r -x libsophia.so.2.2.0
 endif
 static: libsophia.a
 dynamic: libsophia.so
@@ -57,7 +57,7 @@ clean:
 	@rm -f sophia.c sophia.h sophia.o
 	@rm -f libsophia.a
 	@rm -f libsophia.so
-	@rm -f libsophia.so.2.1
-	@rm -f libsophia.so.2.1.1
+	@rm -f libsophia.so.2.2
+	@rm -f libsophia.so.2.2.0
 
 .PHONY: all banner static dynamic clean

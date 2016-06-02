@@ -22,11 +22,11 @@ conf_version(void)
 	t( env != NULL );
 	char *s = sp_getstring(env, "sophia.version", NULL);
 	t( s != NULL );
-	t( strcmp(s, "2.1.1") == 0 );
+	t( strcmp(s, "2.2") == 0 );
 	free(s);
 	s = sp_getstring(env, "sophia.version_storage", NULL);
 	t( s != NULL );
-	t( strcmp(s, "2.1.1") == 0 );
+	t( strcmp(s, "2.2") == 0 );
 	free(s);
 	t( sp_destroy(env) == 0 );
 }

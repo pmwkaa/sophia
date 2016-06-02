@@ -840,15 +840,13 @@ se_confrt(se *e, seconfrt *rt)
 {
 	/* sophia */
 	snprintf(rt->version, sizeof(rt->version),
-	         "%d.%d.%d",
+	         "%d.%d",
 	         SR_VERSION_A - '0',
-	         SR_VERSION_B - '0',
-	         SR_VERSION_C - '0');
+	         SR_VERSION_B - '0');
 	snprintf(rt->version_storage, sizeof(rt->version_storage),
-	         "%d.%d.%d",
+	         "%d.%d",
 	         SR_VERSION_STORAGE_A - '0',
-	         SR_VERSION_STORAGE_B - '0',
-	         SR_VERSION_STORAGE_C - '0');
+	         SR_VERSION_STORAGE_B - '0');
 	snprintf(rt->build, sizeof(rt->build), "%s",
 	         SR_VERSION_COMMIT);
 
