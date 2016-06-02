@@ -58,9 +58,10 @@ se_open(so *o)
 	if (status != SR_OFFLINE)
 		return -1;
 
-	sr_log(&e->log, "sophia %d.%d (%s)",
-	       SR_VERSION_A,
-	       SR_VERSION_B, SR_VERSION_COMMIT);
+	sr_log(&e->log, "sophia %d.%d git: %s",
+	       SR_VERSION_A - '0',
+	       SR_VERSION_B - '0',
+	       SR_VERSION_COMMIT);
 
 	/* validate configuration */
 	int rc;
