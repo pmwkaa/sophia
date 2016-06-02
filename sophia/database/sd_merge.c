@@ -99,7 +99,7 @@ int sd_mergepage(sdmerge *m, uint64_t offset)
 	int rc;
 	rc = sd_buildbegin(m->build, m->r, conf->checksum,
 	                   conf->expire,
-	                   conf->compression_key,
+	                   conf->compression_copy,
 	                   conf->compression,
 	                   conf->compression_if);
 	if (ssunlikely(rc == -1))

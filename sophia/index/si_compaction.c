@@ -48,21 +48,21 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 	/* merge iter is not used */
 	uint32_t timestamp = ss_timestamp();
 	sdmergeconf mergeconf = {
-		.stream          = vindex->count,
-		.size_stream     = UINT32_MAX,
-		.size_node       = UINT64_MAX,
-		.size_page       = index->scheme.node_page_size,
-		.checksum        = index->scheme.node_page_checksum,
-		.expire          = index->scheme.expire,
-		.timestamp       = timestamp,
-		.compression_key = index->scheme.compression_key,
-		.compression     = index->scheme.compression_branch,
-		.compression_if  = index->scheme.compression_branch_if,
-		.amqf            = index->scheme.amqf,
-		.vlsn            = vlsn,
-		.vlsn_lru        = 0,
-		.save_delete     = 1,
-		.save_upsert     = 1
+		.stream           = vindex->count,
+		.size_stream      = UINT32_MAX,
+		.size_node        = UINT64_MAX,
+		.size_page        = index->scheme.node_page_size,
+		.checksum         = index->scheme.node_page_checksum,
+		.expire           = index->scheme.expire,
+		.timestamp        = timestamp,
+		.compression_copy = index->scheme.compression_copy,
+		.compression      = index->scheme.compression_branch,
+		.compression_if   = index->scheme.compression_branch_if,
+		.amqf             = index->scheme.amqf,
+		.vlsn             = vlsn,
+		.vlsn_lru         = 0,
+		.save_delete      = 1,
+		.save_upsert      = 1
 	};
 	sdmerge merge;
 	rc = sd_mergeinit(&merge, r, &i, &c->build, &c->qf,

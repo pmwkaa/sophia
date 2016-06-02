@@ -27,7 +27,7 @@ enum {
 	SI_SCHEME_NODE_PAGE_CHECKSUM,
 	SI_SCHEME_SYNC,
 	SI_SCHEME_COMPRESSION,
-	SI_SCHEME_COMPRESSION_KEY,
+	SI_SCHEME_COMPRESSION_COPY,
 	SI_SCHEME_COMPRESSION_BRANCH,
 	SI_SCHEME_COMPRESSION_RESERVED0,
 	SI_SCHEME_COMPRESSION_RESERVED1,
@@ -137,9 +137,9 @@ int si_schemedeploy(sischeme *s, sr *r)
 	                  strlen(s->compression_branch_if->name) + 1);
 	if (ssunlikely(rc == -1))
 		goto error;
-	rc = sd_schemeadd(&c, r, SI_SCHEME_COMPRESSION_KEY, SS_U32,
-	                  &s->compression_key,
-	                  sizeof(s->compression_key));
+	rc = sd_schemeadd(&c, r, SI_SCHEME_COMPRESSION_COPY, SS_U32,
+	                  &s->compression_copy,
+	                  sizeof(s->compression_copy));
 	if (ssunlikely(rc == -1))
 		goto error;
 	rc = sd_schemeadd(&c, r, SI_SCHEME_AMQF, SS_U32,
@@ -218,8 +218,8 @@ int si_schemerecover(sischeme *s, sr *r)
 		case SI_SCHEME_NODE_PAGE_SIZE:
 			s->node_page_size = sd_schemeu32(opt);
 			break;
-		case SI_SCHEME_COMPRESSION_KEY:
-			s->compression_key = sd_schemeu32(opt);
+		case SI_SCHEME_COMPRESSION_COPY:
+			s->compression_copy = sd_schemeu32(opt);
 			break;
 		case SI_SCHEME_COMPRESSION: {
 			char *name = sd_schemesz(opt);

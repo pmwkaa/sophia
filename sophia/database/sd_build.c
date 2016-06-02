@@ -23,7 +23,7 @@ void sd_buildinit(sdbuild *b)
 	ss_bufinit(&b->k);
 	b->n = 0;
 	b->compress = 0;
-	b->compress_dup = 0;
+	b->compress_copy = 0;
 	b->compress_if = NULL;
 	b->crc = 0;
 	b->vmax = 0;
@@ -83,17 +83,17 @@ void sd_buildgc(sdbuild *b, sr *r, int wm)
 
 int sd_buildbegin(sdbuild *b, sr *r, int crc,
                   int timestamp,
-                  int compress_dup,
+                  int compress_copy,
                   int compress,
                   ssfilterif *compress_if)
 {
 	b->crc = crc;
-	b->compress_dup = compress_dup;
+	b->compress_copy = compress_copy;
 	b->compress = compress;
 	b->compress_if = compress_if;
 	b->timestamp = timestamp;
 	int rc;
-	if (compress_dup && b->tracker.size == 0) {
+	if (compress_copy && b->tracker.size == 0) {
 		rc = ss_htinit(&b->tracker, r->a, 32768);
 		if (ssunlikely(rc == -1))
 			return sr_oom(r->e);
@@ -154,7 +154,7 @@ sd_buildadd_sparse(sdbuild *b, sr *r, sv *v)
 		int is_duplicate = 0;
 		uint32_t hash = 0;
 		int pos = 0;
-		if (b->compress_dup) {
+		if (b->compress_copy) {
 			hash = ss_fnv(field, fieldsize);
 			pos = sd_buildsearch(&b->tracker, hash, field, fieldsize, b);
 			if (b->tracker.i[pos]) {
@@ -184,7 +184,7 @@ sd_buildadd_sparse(sdbuild *b, sr *r, sv *v)
 		ss_bufadvance(&b->k, fieldsize);
 
 		/* add field reference */
-		if (b->compress_dup) {
+		if (b->compress_copy) {
 			if (ssunlikely(ss_htisfull(&b->tracker))) {
 				rc = ss_htresize(&b->tracker, r->a);
 				if (ssunlikely(rc == -1))
@@ -341,7 +341,7 @@ int sd_buildend(sdbuild *b, sr *r)
 
 int sd_buildcommit(sdbuild *b, sr *r)
 {
-	if (b->compress_dup)
+	if (b->compress_copy)
 		sd_buildfree_tracker(b, r);
 	if (b->compress) {
 		ss_bufreset(&b->m);

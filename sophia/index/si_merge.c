@@ -151,21 +151,21 @@ si_split(si *index, sdc *c, ssbuf *result,
 	uint32_t timestamp = ss_timestamp();
 	int rc;
 	sdmergeconf mergeconf = {
-		.stream          = stream,
-		.size_stream     = size_stream,
-		.size_node       = size_node,
-		.size_page       = index->scheme.node_page_size,
-		.checksum        = index->scheme.node_page_checksum,
-		.expire          = index->scheme.expire,
-		.timestamp       = timestamp,
-		.compression_key = index->scheme.compression_key,
-		.compression     = index->scheme.compression,
-		.compression_if  = index->scheme.compression_if,
-		.amqf            = index->scheme.amqf,
-		.vlsn            = vlsn,
-		.vlsn_lru        = vlsn_lru,
-		.save_delete     = 0,
-		.save_upsert     = 0
+		.stream           = stream,
+		.size_stream      = size_stream,
+		.size_node        = size_node,
+		.size_page        = index->scheme.node_page_size,
+		.checksum         = index->scheme.node_page_checksum,
+		.expire           = index->scheme.expire,
+		.timestamp        = timestamp,
+		.compression_copy = index->scheme.compression_copy,
+		.compression      = index->scheme.compression,
+		.compression_if   = index->scheme.compression_if,
+		.amqf             = index->scheme.amqf,
+		.vlsn             = vlsn,
+		.vlsn_lru         = vlsn_lru,
+		.save_delete      = 0,
+		.save_upsert      = 0
 	};
 	sinode *n = NULL;
 	sdmerge merge;

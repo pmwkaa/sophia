@@ -362,7 +362,7 @@ mt_set_get_kv_multipart(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setint(env, "db.test.compression_key", 1) == 0 );
+	t( sp_setint(env, "db.test.compression_copy", 1) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "string,key(0)", 0) == 0 );
@@ -422,7 +422,7 @@ mt_set_get_anticache(void)
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.storage", "anti-cache", 0) == 0 );
-	t( sp_setint(env, "db.test.compression_key", 0) == 0 );
+	t( sp_setint(env, "db.test.compression_copy", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "db.test.temperature", 1) == 0 );
 	t( sp_setint(env, "db.test.node_size", 100 * 1024) == 0 );
@@ -478,7 +478,7 @@ mt_set_lru(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setint(env, "db.test.compression_key", 0) == 0 );
+	t( sp_setint(env, "db.test.compression_copy", 0) == 0 );
 	t( sp_setint(env, "db.test.lru", 1 * 1024 * 1024) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
@@ -522,7 +522,7 @@ mt_set_expire(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setint(env, "db.test.compression_key", 1) == 0 );
+	t( sp_setint(env, "db.test.compression_copy", 1) == 0 );
 	t( sp_setint(env, "db.test.expire", 1) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );

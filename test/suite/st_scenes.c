@@ -459,36 +459,36 @@ void st_scene_phase_storage(stscene *s)
 		break;
 	case 7:
 		if (st_r.verbose) {
-			fprintf(st_r.output, ".storage_compression_key");
+			fprintf(st_r.output, ".storage_compression_copy");
 			fflush(st_r.output);
 		}
-		t( sp_setint(st_r.env, "db.test.compression_key", 1) == 0 );
+		t( sp_setint(st_r.env, "db.test.compression_copy", 1) == 0 );
 		break;
 	case 8:
 		if (st_r.verbose) {
-			fprintf(st_r.output, ".storage_mmap_compression_key");
+			fprintf(st_r.output, ".storage_mmap_compression_copy");
 			fflush(st_r.output);
 		}
 		t( sp_setint(st_r.env, "db.test.mmap", 1) == 0 );
-		t( sp_setint(st_r.env, "db.test.compression_key", 1) == 0 );
+		t( sp_setint(st_r.env, "db.test.compression_copy", 1) == 0 );
 		break;
 	case 9:
 		if (st_r.verbose) {
-			fprintf(st_r.output, ".storage_compression_compression_key");
+			fprintf(st_r.output, ".storage_compression_compression_copy");
 			fflush(st_r.output);
 		}
 		t( sp_setstring(st_r.env, "db.test.compression", "lz4", 0) == 0 );
 		t( sp_setstring(st_r.env, "db.test.compression_branch", "lz4", 0) == 0 );
-		t( sp_setint(st_r.env, "db.test.compression_key", 1) == 0 );
+		t( sp_setint(st_r.env, "db.test.compression_copy", 1) == 0 );
 		break;
 	case 10:
 		if (st_r.verbose) {
-			fprintf(st_r.output, ".storage_mmap_compression_compression_key");
+			fprintf(st_r.output, ".storage_mmap_compression_compression_copy");
 			fflush(st_r.output);
 		}
 		t( sp_setint(st_r.env, "db.test.mmap", 1) == 0 );
 		t( sp_setstring(st_r.env, "db.test.compression", "lz4", 0) == 0 );
-		t( sp_setint(st_r.env, "db.test.compression_key", 1) == 0 );
+		t( sp_setint(st_r.env, "db.test.compression_copy", 1) == 0 );
 		break;
 	case 11:
 		if (st_r.verbose) {
@@ -508,12 +508,12 @@ void st_scene_phase_storage(stscene *s)
 		break;
 	case 13:
 		if (st_r.verbose) {
-			fprintf(st_r.output, ".storage_in_memory_compression_compression_key");
+			fprintf(st_r.output, ".storage_in_memory_compression_compression_copy");
 			fflush(st_r.output);
 		}
 		t( sp_setstring(st_r.env, "db.test.storage", "in-memory", 0) == 0 );
 		t( sp_setstring(st_r.env, "db.test.compression", "lz4", 0) == 0 );
-		t( sp_setint(st_r.env, "db.test.compression_key", 1) == 0 );
+		t( sp_setint(st_r.env, "db.test.compression_copy", 1) == 0 );
 		break;
 	case 14:
 		if (st_r.verbose) {

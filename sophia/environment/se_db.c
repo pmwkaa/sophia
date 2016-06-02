@@ -41,7 +41,7 @@ se_dbscheme_init(sedb *db, char *name, int size)
 	scheme->node_compact_load     = 0;
 	scheme->node_page_size        = 128 * 1024;
 	scheme->node_page_checksum    = 1;
-	scheme->compression_key       = 0;
+	scheme->compression_copy      = 0;
 	scheme->compression           = 0;
 	scheme->compression_if        = &ss_nonefilter;
 	scheme->compression_branch    = 0;
@@ -129,8 +129,8 @@ se_dbscheme_set(sedb *db)
 		sr_error(&e->error, "unknown storage type '%s'", s->storage_sz);
 		return -1;
 	}
-	/* compression_key */
-	if (s->compression_key) {
+	/* compression_copy */
+	if (s->compression_copy) {
 		s->fmt_storage = SF_SPARSE;
 	}
 	/* compression */

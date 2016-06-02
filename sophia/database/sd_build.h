@@ -23,7 +23,7 @@ struct sdbuild {
 	ssbuf list, m, v, k, c;
 	ssfilterif *compress_if;
 	int timestamp;
-	int compress_dup;
+	int compress_copy;
 	int compress;
 	int crc;
 	uint32_t vmax;
