@@ -56,8 +56,8 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		.expire           = index->scheme.expire,
 		.timestamp        = timestamp,
 		.compression_copy = index->scheme.compression_copy,
-		.compression      = index->scheme.compression_branch,
-		.compression_if   = index->scheme.compression_branch_if,
+		.compression      = index->scheme.compression_hot,
+		.compression_if   = index->scheme.compression_hot_if,
 		.amqf             = index->scheme.amqf,
 		.vlsn             = vlsn,
 		.vlsn_lru         = 0,
@@ -305,11 +305,11 @@ int si_compact(si *index, sdc *c, siplan *plan,
 		int compression;
 		ssfilterif *compression_if;
 		if (! si_branchis_root(b)) {
-			compression    = index->scheme.compression_branch;
-			compression_if = index->scheme.compression_branch_if;
+			compression    = index->scheme.compression_hot;
+			compression_if = index->scheme.compression_hot_if;
 		} else {
-			compression    = index->scheme.compression;
-			compression_if = index->scheme.compression_if;
+			compression    = index->scheme.compression_cold;
+			compression_if = index->scheme.compression_cold_if;
 		}
 		sdreadarg arg = {
 			.index           = &b->index,

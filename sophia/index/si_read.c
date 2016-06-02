@@ -174,11 +174,11 @@ si_getbranch(siread *q, sinode *n, sicachebranch *c)
 	int compression;
 	ssfilterif *compression_if;
 	if (! si_branchis_root(b)) {
-		compression    = scheme->compression_branch;
-		compression_if = scheme->compression_branch_if;
+		compression    = scheme->compression_hot;
+		compression_if = scheme->compression_hot_if;
 	} else {
-		compression    = scheme->compression;
-		compression_if = scheme->compression_if;
+		compression    = scheme->compression_cold;
+		compression_if = scheme->compression_cold_if;
 	}
 	sdreadarg arg = {
 		.index           = &b->index,
@@ -294,11 +294,11 @@ si_rangebranch(siread *q, sinode *n, sibranch *b, svmerge *m)
 	int compression;
 	ssfilterif *compression_if;
 	if (! si_branchis_root(b)) {
-		compression    = scheme->compression_branch;
-		compression_if = scheme->compression_branch_if;
+		compression    = scheme->compression_hot;
+		compression_if = scheme->compression_hot_if;
 	} else {
-		compression    = scheme->compression;
-		compression_if = scheme->compression_if;
+		compression    = scheme->compression_cold;
+		compression_if = scheme->compression_cold_if;
 	}
 	sdreadarg arg = {
 		.index           = &b->index,

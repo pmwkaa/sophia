@@ -61,7 +61,7 @@ workflow_open(void *env)
 	rc = sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0);
 	if (rc == -1)
 		return NULL;
-	rc = sp_setstring(env, "db.test.compression", "lz4", 0);
+	rc = sp_setstring(env, "db.test.compression_cold", "lz4", 0);
 	if (rc == -1)
 		return NULL;
 	rc = sp_setint(env, "db.test.compression_copy", 1);

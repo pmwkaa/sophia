@@ -713,8 +713,8 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc)
 		sr_C(&p, pc, se_confv_dboffline, "page_size", SS_U32, &o->scheme->node_page_size, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "page_checksum", SS_U32, &o->scheme->node_page_checksum, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "compression_copy", SS_U32, &o->scheme->compression_copy, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "compression_branch", SS_STRINGPTR, &o->scheme->compression_branch_sz, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "compression", SS_STRINGPTR, &o->scheme->compression_sz, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "compression_hot", SS_STRINGPTR, &o->scheme->compression_hot_sz, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "compression_cold", SS_STRINGPTR, &o->scheme->compression_cold_sz, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "lru", SS_U64, &o->scheme->lru, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "lru_step", SS_U32, &o->scheme->lru_step, 0, o);
 		sr_C(&p, pc, se_confdb_upsert, "upsert", SS_STRING, NULL, 0, o);

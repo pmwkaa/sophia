@@ -148,8 +148,8 @@ void st_scene_env(stscene *s ssunused)
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "db.test.mmap", 0) == 0 );
 	t( sp_setint(env, "db.test.page_checksum", 1) == 0 );
-	t( sp_setstring(env, "db.test.compression", "none", 0) == 0 );
-	t( sp_setstring(env, "db.test.compression_branch", "none", 0) == 0 );
+	t( sp_setstring(env, "db.test.compression_cold", "none", 0) == 0 );
+	t( sp_setstring(env, "db.test.compression_hot", "none", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
@@ -420,27 +420,27 @@ void st_scene_phase_storage(stscene *s)
 		break;
 	case 2:
 		if (st_r.verbose) {
-			fprintf(st_r.output, ".storage_compression");
+			fprintf(st_r.output, ".storage_compression_cold");
 			fflush(st_r.output);
 		}
-		t( sp_setstring(st_r.env, "db.test.compression", "lz4", 0) == 0 );
-		t( sp_setstring(st_r.env, "db.test.compression_branch", "none", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.compression_cold", "lz4", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.compression_hot", "none", 0) == 0 );
 		break;
 	case 3:
 		if (st_r.verbose) {
-			fprintf(st_r.output, ".storage_compression_branch");
+			fprintf(st_r.output, ".storage_compression_hot");
 			fflush(st_r.output);
 		}
-		t( sp_setstring(st_r.env, "db.test.compression", "none", 0) == 0 );
-		t( sp_setstring(st_r.env, "db.test.compression_branch", "lz4", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.compression_cold", "none", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.compression_hot", "lz4", 0) == 0 );
 		break;
 	case 4:
 		if (st_r.verbose) {
 			fprintf(st_r.output, ".storage_compression_full");
 			fflush(st_r.output);
 		}
-		t( sp_setstring(st_r.env, "db.test.compression", "lz4", 0) == 0 );
-		t( sp_setstring(st_r.env, "db.test.compression_branch", "lz4", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.compression_cold", "lz4", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.compression_hot", "lz4", 0) == 0 );
 		break;
 	case 5:
 		if (st_r.verbose) {
@@ -451,11 +451,11 @@ void st_scene_phase_storage(stscene *s)
 		break;
 	case 6:
 		if (st_r.verbose) {
-			fprintf(st_r.output, ".storage_mmap_compression");
+			fprintf(st_r.output, ".storage_mmap_compression_cold");
 			fflush(st_r.output);
 		}
 		t( sp_setint(st_r.env, "db.test.mmap", 1) == 0 );
-		t( sp_setstring(st_r.env, "db.test.compression", "lz4", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.compression_cold", "lz4", 0) == 0 );
 		break;
 	case 7:
 		if (st_r.verbose) {
@@ -477,8 +477,8 @@ void st_scene_phase_storage(stscene *s)
 			fprintf(st_r.output, ".storage_compression_compression_copy");
 			fflush(st_r.output);
 		}
-		t( sp_setstring(st_r.env, "db.test.compression", "lz4", 0) == 0 );
-		t( sp_setstring(st_r.env, "db.test.compression_branch", "lz4", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.compression_cold", "lz4", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.compression_hot", "lz4", 0) == 0 );
 		t( sp_setint(st_r.env, "db.test.compression_copy", 1) == 0 );
 		break;
 	case 10:
@@ -487,7 +487,7 @@ void st_scene_phase_storage(stscene *s)
 			fflush(st_r.output);
 		}
 		t( sp_setint(st_r.env, "db.test.mmap", 1) == 0 );
-		t( sp_setstring(st_r.env, "db.test.compression", "lz4", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.compression_cold", "lz4", 0) == 0 );
 		t( sp_setint(st_r.env, "db.test.compression_copy", 1) == 0 );
 		break;
 	case 11:
@@ -504,7 +504,7 @@ void st_scene_phase_storage(stscene *s)
 			fflush(st_r.output);
 		}
 		t( sp_setstring(st_r.env, "db.test.storage", "in-memory", 0) == 0 );
-		t( sp_setstring(st_r.env, "db.test.compression", "lz4", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.compression_cold", "lz4", 0) == 0 );
 		break;
 	case 13:
 		if (st_r.verbose) {
@@ -512,7 +512,7 @@ void st_scene_phase_storage(stscene *s)
 			fflush(st_r.output);
 		}
 		t( sp_setstring(st_r.env, "db.test.storage", "in-memory", 0) == 0 );
-		t( sp_setstring(st_r.env, "db.test.compression", "lz4", 0) == 0 );
+		t( sp_setstring(st_r.env, "db.test.compression_cold", "lz4", 0) == 0 );
 		t( sp_setint(st_r.env, "db.test.compression_copy", 1) == 0 );
 		break;
 	case 14:

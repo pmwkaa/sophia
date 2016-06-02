@@ -33,38 +33,38 @@ se_dbscheme_init(sedb *db, char *name, int size)
 		goto error;
 	memcpy(scheme->name, name, size);
 	scheme->name[size] = 0;
-	scheme->id                    = sr_seq(&e->seq, SR_DSNNEXT);
-	scheme->sync                  = 2;
-	scheme->mmap                  = 0;
-	scheme->storage               = SI_SCACHE;
-	scheme->node_size             = 64 * 1024 * 1024;
-	scheme->node_compact_load     = 0;
-	scheme->node_page_size        = 128 * 1024;
-	scheme->node_page_checksum    = 1;
-	scheme->compression_copy      = 0;
-	scheme->compression           = 0;
-	scheme->compression_if        = &ss_nonefilter;
-	scheme->compression_branch    = 0;
-	scheme->compression_branch_if = &ss_nonefilter;
-	scheme->temperature           = 0;
-	scheme->expire                = 0;
-	scheme->amqf                  = 0;
-	scheme->fmt_storage           = SF_RAW;
-	scheme->path_fail_on_exists   = 0;
-	scheme->path_fail_on_drop     = 1;
-	scheme->lru                   = 0;
-	scheme->lru_step              = 128 * 1024;
-	scheme->buf_gc_wm             = 1024 * 1024;
+	scheme->id                  = sr_seq(&e->seq, SR_DSNNEXT);
+	scheme->sync                = 2;
+	scheme->mmap                = 0;
+	scheme->storage             = SI_SCACHE;
+	scheme->node_size           = 64 * 1024 * 1024;
+	scheme->node_compact_load   = 0;
+	scheme->node_page_size      = 128 * 1024;
+	scheme->node_page_checksum  = 1;
+	scheme->compression_copy    = 0;
+	scheme->compression_cold    = 0;
+	scheme->compression_cold_if = &ss_nonefilter;
+	scheme->compression_hot     = 0;
+	scheme->compression_hot_if  = &ss_nonefilter;
+	scheme->temperature         = 0;
+	scheme->expire              = 0;
+	scheme->amqf                = 0;
+	scheme->fmt_storage         = SF_RAW;
+	scheme->path_fail_on_exists = 0;
+	scheme->path_fail_on_drop   = 1;
+	scheme->lru                 = 0;
+	scheme->lru_step            = 128 * 1024;
+	scheme->buf_gc_wm           = 1024 * 1024;
 	scheme->storage_sz = ss_strdup(&e->a, "cache");
 	if (ssunlikely(scheme->storage_sz == NULL))
 		goto error;
-	scheme->compression_sz =
-		ss_strdup(&e->a, scheme->compression_if->name);
-	if (ssunlikely(scheme->compression_sz == NULL))
+	scheme->compression_cold_sz =
+		ss_strdup(&e->a, scheme->compression_cold_if->name);
+	if (ssunlikely(scheme->compression_cold_sz == NULL))
 		goto error;
-	scheme->compression_branch_sz =
-		ss_strdup(&e->a, scheme->compression_branch_if->name);
-	if (ssunlikely(scheme->compression_branch_sz == NULL))
+	scheme->compression_hot_sz =
+		ss_strdup(&e->a, scheme->compression_hot_if->name);
+	if (ssunlikely(scheme->compression_hot_sz == NULL))
 		goto error;
 	sf_upsertinit(&scheme->fmt_upsert);
 	sf_schemeinit(&scheme->scheme);
@@ -133,22 +133,22 @@ se_dbscheme_set(sedb *db)
 	if (s->compression_copy) {
 		s->fmt_storage = SF_SPARSE;
 	}
-	/* compression */
-	s->compression_if = ss_filterof(s->compression_sz);
-	if (ssunlikely(s->compression_if == NULL)) {
+	/* compression cold */
+	s->compression_cold_if = ss_filterof(s->compression_cold_sz);
+	if (ssunlikely(s->compression_cold_if == NULL)) {
 		sr_error(&e->error, "unknown compression type '%s'",
-		         s->compression_sz);
+		         s->compression_cold_sz);
 		return -1;
 	}
-	s->compression = s->compression_if != &ss_nonefilter;
-	/* compression branch */
-	s->compression_branch_if = ss_filterof(s->compression_branch_sz);
-	if (ssunlikely(s->compression_branch_if == NULL)) {
+	s->compression_cold = s->compression_cold_if != &ss_nonefilter;
+	/* compression hot */
+	s->compression_hot_if = ss_filterof(s->compression_hot_sz);
+	if (ssunlikely(s->compression_hot_if == NULL)) {
 		sr_error(&e->error, "unknown compression type '%s'",
-		         s->compression_branch_sz);
+		         s->compression_hot_sz);
 		return -1;
 	}
-	s->compression_branch = s->compression_branch_if != &ss_nonefilter;
+	s->compression_hot = s->compression_hot_if != &ss_nonefilter;
 	/* path */
 	if (s->path == NULL) {
 		char path[1024];

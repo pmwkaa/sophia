@@ -87,8 +87,8 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 	                   i->scheme.node_page_checksum,
 	                   i->scheme.expire > 0,
 	                   i->scheme.compression_copy,
-	                   i->scheme.compression,
-	                   i->scheme.compression_if);
+	                   i->scheme.compression_cold,
+	                   i->scheme.compression_cold_if);
 	if (ssunlikely(rc == -1))
 		goto e1;
 	sd_buildend(&build, r);
