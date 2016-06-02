@@ -301,13 +301,15 @@ sd_read_gt0_compression_zstd(void)
 	memset(&ij, 0, sizeof(ij));
 	srstat stat;
 	memset(&stat, 0, sizeof(stat));
+	srlog log;
+	sr_loginit(&log);
 	srerror error;
-	sr_errorinit(&error);
+	sr_errorinit(&error, &log);
 	srseq seq;
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, NULL, &error, &a, &aref, &vfs, NULL, NULL, &seq, SF_RAW,
+	sr_init(&r, NULL, &log, &error, &a, &aref, &vfs, NULL, NULL, &seq, SF_RAW,
 	        NULL, &cmp, &ij, &stat, crc);
 
 	sdbuild b;
@@ -428,13 +430,15 @@ sd_read_gt0_compression_lz4(void)
 	memset(&ij, 0, sizeof(ij));
 	srstat stat;
 	memset(&stat, 0, sizeof(stat));
+	srlog log;
+	sr_loginit(&log);
 	srerror error;
-	sr_errorinit(&error);
+	sr_errorinit(&error, &log);
 	srseq seq;
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, NULL, &error, &a, &aref, &vfs, NULL, NULL, &seq, SF_RAW,
+	sr_init(&r, NULL, &log, &error, &a, &aref, &vfs, NULL, NULL, &seq, SF_RAW,
 	        NULL, &cmp, &ij, &stat, crc);
 
 	sdbuild b;
@@ -557,13 +561,15 @@ sd_read_gt1_compression_zstd(void)
 	memset(&ij, 0, sizeof(ij));
 	srstat stat;
 	memset(&stat, 0, sizeof(stat));
+	srlog log;
+	sr_loginit(&log);
 	srerror error;
-	sr_errorinit(&error);
+	sr_errorinit(&error, &log);
 	srseq seq;
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, NULL, &error, &a, &aref, &vfs, NULL, NULL, &seq, SF_RAW,
+	sr_init(&r, NULL, &log, &error, &a, &aref, &vfs, NULL, NULL, &seq, SF_RAW,
 	        NULL, &cmp, &ij, &stat, crc);
 
 	ssfile f;
@@ -740,13 +746,15 @@ sd_read_gt1_compression_lz4(void)
 	memset(&ij, 0, sizeof(ij));
 	srstat stat;
 	memset(&stat, 0, sizeof(stat));
+	srlog log;
+	sr_loginit(&log);
 	srerror error;
-	sr_errorinit(&error);
+	sr_errorinit(&error, &log);
 	srseq seq;
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, NULL, &error, &a, &aref, &vfs, NULL, NULL, &seq, SF_RAW,
+	sr_init(&r, NULL, &log, &error, &a, &aref, &vfs, NULL, NULL, &seq, SF_RAW,
 	        NULL, &cmp, &ij, &stat, crc);
 
 	ssfile f;

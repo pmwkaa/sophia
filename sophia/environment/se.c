@@ -58,6 +58,10 @@ se_open(so *o)
 	if (status != SR_OFFLINE)
 		return -1;
 
+	sr_log(&e->log, "sophia %d.%d (%s)",
+	       SR_VERSION_A,
+	       SR_VERSION_B, SR_VERSION_COMMIT);
+
 	/* validate configuration */
 	int rc;
 	rc = se_confvalidate(&e->conf);
@@ -277,11 +281,12 @@ so *se_new(void)
 	ss_mutexinit(&e->apilock);
 	sr_quotainit(&e->quota);
 	sr_seqinit(&e->seq);
-	sr_errorinit(&e->error);
+	sr_loginit(&e->log);
+	sr_errorinit(&e->error, &e->log);
 	sr_statinit(&e->stat);
 	sf_limitinit(&e->limit, &e->a);
 	sscrcf crc = ss_crc32c_function();
-	sr_init(&e->r, &e->status, &e->error, &e->a, &e->a_ref, &e->vfs, &e->quota,
+	sr_init(&e->r, &e->status, &e->log, &e->error, &e->a, &e->a_ref, &e->vfs, &e->quota,
 	        &e->conf.zones, &e->seq, SF_RAW, NULL,
 	        NULL, &e->ei, &e->stat, crc);
 	sy_init(&e->rep);

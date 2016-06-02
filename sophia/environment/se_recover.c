@@ -20,19 +20,6 @@
 #include <libsc.h>
 #include <libse.h>
 
-static inline void
-se_recoverf(se *e, char *fmt, ...)
-{
-	if (e->conf.on_recover.function == NULL)
-		return;
-	char trace[1024];
-	va_list args;
-	va_start(args, fmt);
-	vsnprintf(trace, sizeof(trace), fmt, args);
-	va_end(args);
-	e->conf.on_recover.function(trace, e->conf.on_recover.arg);
-}
-
 int se_recoverbegin(sedb *db)
 {
 	/* open and recover repository */
@@ -43,7 +30,7 @@ int se_recoverbegin(sedb *db)
 	 * reply is required. */
 	if (sr_status(&e->status) == SR_ONLINE)
 		db->scheme->path_fail_on_exists = 1;
-	se_recoverf(e, "loading database '%s'", db->scheme->path);
+	sr_log(&e->log, "loading database '%s'", db->scheme->path);
 	int rc = si_open(db->index);
 	if (ssunlikely(rc == -1))
 		goto error;
@@ -121,7 +108,7 @@ se_recoverlog(se *e, sl *log)
 			ss_gcmark(&log->gc, 1);
 			processed++;
 			if ((processed % 100000) == 0)
-				se_recoverf(e, " %.1fM processed", processed / 1000000.0);
+				sr_log(&e->log, " %.1fM processed", processed / 1000000.0);
 			ss_iteratornext(&i);
 		}
 		if (ssunlikely(sl_iter_error(&i)))
@@ -153,7 +140,7 @@ se_recoverlogpool(se *e)
 	ss_listforeach(&e->lp.list, i) {
 		sl *log = sscast(i, sl, link);
 		char *path = ss_pathof(&log->file.path);
-		se_recoverf(e, "loading journal '%s'", path);
+		sr_log(&e->log, "loading journal '%s'", path);
 		int rc = se_recoverlog(e, log);
 		if (ssunlikely(rc == -1))
 			return -1;
@@ -189,6 +176,6 @@ int se_recover_repository(se *e)
 	rc->path_create = e->conf.path_create;
 	rc->path_backup = e->conf.backup_path;
 	rc->sync = 0;
-	se_recoverf(e, "recovering repository '%s'", e->conf.path);
+	sr_log(&e->log, "recovering repository '%s'", e->conf.path);
 	return sy_open(&e->rep, &e->r, rc);
 }

@@ -37,6 +37,7 @@ struct se {
 	slpool      lp;
 	sxmanager   xm;
 	sc          scheduler;
+	srlog       log;
 	srerror     error;
 	srstat      stat;
 	sflimit     limit;

@@ -10,6 +10,7 @@
 */
 
 #include <sr_version.h>
+#include <sr_log.h>
 #include <sr_error.h>
 #include <sr_status.h>
 #include <sr_stat.h>

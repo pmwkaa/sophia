@@ -24,15 +24,17 @@ struct srerror {
 	const char *function;
 	int line;
 	char error[256];
+	srlog *log;
 };
 
 static inline void
-sr_errorinit(srerror *e) {
+sr_errorinit(srerror *e, srlog *log) {
 	e->type = SR_ERROR_NONE;
 	e->error[0] = 0;
 	e->line = 0;
 	e->function = NULL;
 	e->file = NULL;
+	e->log = log;
 	ss_spinlockinit(&e->lock);
 }
 
@@ -101,6 +103,7 @@ sr_verrorset(srerror *e, int type,
 	int len;
 	len = snprintf(e->error, sizeof(e->error), "%s:%d ", file, line);
 	vsnprintf(e->error + len, sizeof(e->error) - len, fmt, args);
+	sr_log(e->log, e->error);
 	ss_spinunlock(&e->lock);
 }
 

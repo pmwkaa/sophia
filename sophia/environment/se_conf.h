@@ -12,13 +12,6 @@
 typedef struct seconfrt seconfrt;
 typedef struct seconf seconf;
 
-typedef void (*serecovercbf)(char*, void*);
-
-typedef struct {
-	serecovercbf function;
-	void *arg;
-} serecovercb;
-
 struct seconfrt {
 	/* sophia */
 	char      version[16];
@@ -65,7 +58,6 @@ struct seconf {
 	srzonemap     zones;
 	/* scheduler */
 	uint32_t      threads;
-	serecovercb   on_recover;
 	sstrigger     on_event;
 	uint32_t      event_on_backup;
 	/* memory */

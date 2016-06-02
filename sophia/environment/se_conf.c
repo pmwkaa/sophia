@@ -69,6 +69,34 @@ se_confsophia_error(srconf *c, srconfstmt *s)
 	return se_confv(&conf, s);
 }
 
+static inline int
+se_confsophia_on_log(srconf *c, srconfstmt *s)
+{
+	se *e = s->ptr;
+	if (s->op != SR_WRITE)
+		return se_confv(c, s);
+	if (ssunlikely(sr_statusactive(&e->status))) {
+		sr_error(s->r->e, "write to %s is offline-only", s->path);
+		return -1;
+	}
+	e->log.log = (srlogcbf)(uintptr_t)s->value;
+	return 0;
+}
+
+static inline int
+se_confsophia_on_log_arg(srconf *c, srconfstmt *s)
+{
+	se *e = s->ptr;
+	if (s->op != SR_WRITE)
+		return se_confv(c, s);
+	if (ssunlikely(sr_statusactive(&e->status))) {
+		sr_error(s->r->e, "write to %s is offline-only", s->path);
+		return -1;
+	}
+	e->log.arg = s->value;
+	return 0;
+}
+
 static inline srconf*
 se_confsophia(se *e, seconfrt *rt, srconf **pc)
 {
@@ -80,6 +108,8 @@ se_confsophia(se *e, seconfrt *rt, srconf **pc)
 	sr_C(&p, pc, se_confsophia_error, "error", SS_STRING, NULL, SR_RO, NULL);
 	sr_c(&p, pc, se_confv_offline, "path", SS_STRINGPTR, &e->conf.path);
 	sr_c(&p, pc, se_confv_offline, "path_create", SS_U32, &e->conf.path_create);
+	sr_c(&p, pc, se_confsophia_on_log, "on_log", SS_STRING, NULL);
+	sr_c(&p, pc, se_confsophia_on_log_arg, "on_log_arg", SS_STRING, NULL);
 	return sr_C(NULL, pc, NULL, "sophia", SS_UNDEF, sophia, SR_NS, NULL);
 }
 
@@ -209,35 +239,6 @@ se_confscheduler_anticache(srconf *c, srconfstmt *s)
 }
 
 static inline int
-se_confscheduler_on_recover(srconf *c, srconfstmt *s)
-{
-	se *e = s->ptr;
-	if (s->op != SR_WRITE)
-		return se_confv(c, s);
-	if (ssunlikely(sr_statusactive(&e->status))) {
-		sr_error(s->r->e, "write to %s is offline-only", s->path);
-		return -1;
-	}
-	e->conf.on_recover.function =
-		(serecovercbf)(uintptr_t)s->value;
-	return 0;
-}
-
-static inline int
-se_confscheduler_on_recover_arg(srconf *c, srconfstmt *s)
-{
-	se *e = s->ptr;
-	if (s->op != SR_WRITE)
-		return se_confv(c, s);
-	if (ssunlikely(sr_statusactive(&e->status))) {
-		sr_error(s->r->e, "write to %s is offline-only", s->path);
-		return -1;
-	}
-	e->conf.on_recover.arg = s->value;
-	return 0;
-}
-
-static inline int
 se_confscheduler_on_event(srconf *c, srconfstmt *s)
 {
 	se *e = s->ptr;
@@ -342,8 +343,6 @@ se_confscheduler(se *e, seconfrt *rt, srconf **pc)
 	sr_C(&p, pc, se_confv, "snapshot_ssn", SS_U64, &rt->snapshot_ssn, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "snapshot_ssn_last", SS_U64, &rt->snapshot_ssn_last, SR_RO, NULL);
 	sr_c(&p, pc, se_confscheduler_snapshot, "snapshot", SS_FUNCTION, NULL);
-	sr_c(&p, pc, se_confscheduler_on_recover, "on_recover", SS_STRING, NULL);
-	sr_c(&p, pc, se_confscheduler_on_recover_arg, "on_recover_arg", SS_STRING, NULL);
 	sr_c(&p, pc, se_confscheduler_on_event, "on_event", SS_STRING, NULL);
 	sr_c(&p, pc, se_confscheduler_on_event_arg, "on_event_arg", SS_STRING, NULL);
 	sr_c(&p, pc, se_confv_offline, "event_on_backup", SS_U32, &e->conf.event_on_backup);
@@ -1035,8 +1034,6 @@ int se_confinit(seconf *c, so *e)
 	c->log_rotate_wm       = 500000;
 	c->log_sync            = 0;
 	c->log_rotate_sync     = 1;
-	c->on_recover.function = NULL;
-	c->on_recover.arg      = NULL;
 	ss_triggerinit(&c->on_event);
 	c->event_on_backup     = 0;
 	srzone def = {

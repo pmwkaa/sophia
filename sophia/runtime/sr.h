@@ -13,6 +13,7 @@ typedef struct sr sr;
 
 struct sr {
 	srstatus *status;
+	srlog *log;
 	srerror *e;
 	sfupsert *fmt_upsert;
 	sfstorage fmt_storage;
@@ -31,6 +32,7 @@ struct sr {
 static inline void
 sr_init(sr *r,
         srstatus *status,
+        srlog *log,
         srerror *e,
         ssa *a,
         ssa *aref,
@@ -46,6 +48,7 @@ sr_init(sr *r,
         sscrcf crc)
 {
 	r->status      = status;
+	r->log         = log;
 	r->e           = e;
 	r->a           = a;
 	r->aref        = aref;

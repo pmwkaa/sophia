@@ -60,7 +60,8 @@ void st_scene_init(stscene *s ssunused)
 	memset(&st_r.injection, 0, sizeof(st_r.injection));
 	memset(&st_r.stat, 0, sizeof(st_r.stat));
 	sr_statusinit(&st_r.status);
-	sr_errorinit(&st_r.error);
+	sr_loginit(&st_r.log);
+	sr_errorinit(&st_r.error, &st_r.log);
 	sr_seqinit(&st_r.seq);
 	st_r.crc = ss_crc32c_function();
 	st_r.fmt_storage = SF_RAW;
@@ -90,6 +91,7 @@ void st_scene_rt(stscene *s ssunused)
 	sf_schemevalidate(&st_r.scheme, &st_r.a);
 
 	sr_init(&st_r.r, &st_r.status,
+	        &st_r.log,
 	        &st_r.error,
 	        &st_r.a,
 	        &st_r.aref,

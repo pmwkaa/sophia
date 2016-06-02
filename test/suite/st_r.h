@@ -33,6 +33,7 @@ struct str {
 	srstat       stat;
 	sfscheme     scheme;
 	srstatus     status;
+	srlog        log;
 	srerror      error;
 	srseq        seq;
 	sfstorage    fmt_storage;
