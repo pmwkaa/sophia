@@ -28,12 +28,6 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 
 	int auto_close = !o->created;
 
-	/* validate req */
-	if (ssunlikely(t->t.state == SXPREPARE)) {
-		sr_error(&e->error, "%s", "transaction is in 'prepare' state (read-only)");
-		goto error;
-	}
-
 	/* validate database status */
 	int status = sr_status(&db->index->status);
 	switch (status) {
@@ -119,6 +113,13 @@ se_txget(so *o, so *v)
 	sedocument *key = se_cast(v, sedocument*, SEDOCUMENT);
 	se *e = se_of(&t->o);
 	sedb *db = se_cast(key->o.parent, sedb*, SEDB);
+
+	/* ensure batch transactions are write-only */
+	if (t->t.isolation == SX_BATCH) {
+		sr_error(&e->error, "%s", "transaction is in write-only mode");
+		goto error;
+	}
+
 	/* validate database */
 	int status = sr_status(&db->index->status);
 	switch (status) {
@@ -202,9 +203,10 @@ se_txcommit(so *o)
 	if (ssunlikely(! sr_statusactive_is(status)))
 		return -1;
 	int recover = (status == SR_RECOVER);
+	int rc;
 
 	/* prepare transaction */
-	if (t->t.state == SXREADY || t->t.state == SXLOCK)
+	if (t->t.state == SX_READY || t->t.state == SX_LOCK)
 	{
 		sicache *cache = NULL;
 		sxpreparef prepare = NULL;
@@ -217,29 +219,40 @@ se_txcommit(so *o)
 		sxstate s = sx_prepare(&t->t, prepare, cache);
 		if (cache)
 			si_cachepool_push(cache);
-		if (s == SXLOCK) {
+		if (s == SX_LOCK) {
 			sr_stattx_lock(&e->stat);
 			return 2;
 		}
-		if (s == SXROLLBACK) {
+		if (s == SX_ROLLBACK) {
 			sx_rollback(&t->t);
 			se_txend(t, 0, 1);
 			return 1;
 		}
-		assert(s == SXPREPARE);
+		assert(s == SX_PREPARE);
 
 		sx_commit(&t->t);
 	}
-	assert(t->t.state == SXCOMMIT);
+	assert(t->t.state == SX_COMMIT);
 
 	/* do wal write and backend commit */
-	int rc;
 	rc = sc_commit(&e->scheduler, &t->log, t->lsn, recover);
 	if (ssunlikely(rc == -1))
 		sx_rollback(&t->t);
 
 	se_txend(t, 0, 0);
 	return rc;
+}
+
+static int
+se_txset_string(so *o, const char *path, void *pointer, int size)
+{
+	setx *t = se_cast(o, setx*, SETX);
+	if (strcmp(path, "isolation") == 0) {
+		if (size == 0)
+			size = strlen(pointer);
+		return sx_isolation(&t->t, pointer, size);
+	}
+	return -1;
 }
 
 static int
@@ -272,7 +285,7 @@ static soif setxif =
 	.document     = NULL,
 	.poll         = NULL,
 	.drop         = NULL,
-	.setstring    = NULL,
+	.setstring    = se_txset_string,
 	.setint       = se_txset_int,
 	.setobject    = NULL,
 	.getobject    = NULL,
@@ -308,7 +321,7 @@ so *se_txnew(se *e)
 	sx_init(&e->xm, &t->t, &t->log);
 	t->start = ss_utime();
 	t->lsn = 0;
-	sx_begin(&e->xm, &t->t, SXRW, &t->log, UINT64_MAX);
+	sx_begin(&e->xm, &t->t, SX_RW, &t->log, UINT64_MAX);
 	se_dbbind(e);
 	so_pooladd(&e->tx, &t->o);
 	return &t->o;

@@ -130,13 +130,6 @@ sx *sx_find(sxmanager *m, uint64_t id)
 	return NULL;
 }
 
-void sx_init(sxmanager *m, sx *x, svlog *log)
-{
-	x->manager = m;
-	x->log = log;
-	ss_listinit(&x->deadlock);
-}
-
 static inline sxstate
 sx_promote(sx *x, sxstate state)
 {
@@ -144,9 +137,19 @@ sx_promote(sx *x, sxstate state)
 	return state;
 }
 
+void sx_init(sxmanager *m, sx *x, svlog *log)
+{
+	x->manager = m;
+	x->log = log;
+	x->isolation = SX_SERIALIZABLE;
+	sx_promote(x, SX_UNDEF);
+	ss_listinit(&x->deadlock);
+}
+
 sxstate sx_begin(sxmanager *m, sx *x, sxtype type, svlog *log, uint64_t vlsn)
 {
-	sx_promote(x, SXREADY);
+	sx_init(m, x, log);
+	sx_promote(x, SX_READY);
 	x->type = type;
 	x->log_read = -1;
 	sr_seqlock(m->r->seq);
@@ -157,7 +160,6 @@ sxstate sx_begin(sxmanager *m, sx *x, sxtype type, svlog *log, uint64_t vlsn)
 	else
 		x->vlsn = vlsn;
 	sr_sequnlock(m->r->seq);
-	sx_init(m, x, log);
 	ss_spinlock(&m->lock);
 	ssrbnode *n = NULL;
 	int rc = sx_matchtx(&m->i, NULL, (char*)&x->id, sizeof(x->id), &n);
@@ -166,12 +168,12 @@ sxstate sx_begin(sxmanager *m, sx *x, sxtype type, svlog *log, uint64_t vlsn)
 	} else {
 		ss_rbset(&m->i, n, rc, &x->node);
 	}
-	if (type == SXRO)
+	if (type == SX_RO)
 		m->count_rd++;
 	else
 		m->count_rw++;
 	ss_spinunlock(&m->lock);
-	return SXREADY;
+	return SX_READY;
 }
 
 static inline void
@@ -197,7 +199,7 @@ sx_csn(sxmanager *m)
 	sx *min = NULL;
 	while (p) {
 		min = sscast(p, sx, node);
-		if (min->type == SXRO) {
+		if (min->type == SX_RO) {
 			p = ss_rbnext(&m->i, p);
 			continue;
 		}
@@ -236,7 +238,7 @@ sx_garbage_collect(sxmanager *m)
 void sx_gc(sx *x)
 {
 	sxmanager *m = x->manager;
-	sx_promote(x, SXUNDEF);
+	sx_promote(x, SX_UNDEF);
 	x->log = NULL;
 	if (m->count_gc == 0)
 		return;
@@ -249,7 +251,7 @@ sx_end(sx *x)
 	sxmanager *m = x->manager;
 	ss_spinlock(&m->lock);
 	ss_rbremove(&m->i, &x->node);
-	if (x->type == SXRO)
+	if (x->type == SX_RO)
 		m->count_rd--;
 	else
 		m->count_rw--;
@@ -282,20 +284,20 @@ sxstate sx_rollback(sx *x)
 	ss_iterinit(ss_bufiter, &i);
 	ss_iteropen(ss_bufiter, &i, &x->log->buf, sizeof(svlogv));
 	/* support log free after commit */
-	if (x->state == SXCOMMIT) {
+	if (x->state == SX_COMMIT) {
 		for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
 		{
 			svlogv *lv = ss_iterof(ss_bufiter, &i);
 			svv *v = lv->v.v;
 			sv_vunref(m->r, v);
 		}
-		sx_promote(x, SXROLLBACK);
-		return SXROLLBACK;
+		sx_promote(x, SX_ROLLBACK);
+		return SX_ROLLBACK;
 	}
 	sx_rollback_svp(x, &i, 1);
-	sx_promote(x, SXROLLBACK);
+	sx_promote(x, SX_ROLLBACK);
 	sx_end(x);
-	return SXROLLBACK;
+	return SX_ROLLBACK;
 }
 
 static inline int
@@ -315,8 +317,8 @@ sxstate sx_prepare(sx *x, sxpreparef prepare, void *arg)
 {
 	uint64_t lsn = sr_seq(x->manager->r->seq, SR_LSN);
 	/* proceed read-only transactions */
-	if (x->type == SXRO || sv_logcount_write(x->log) == 0)
-		return sx_promote(x, SXPREPARE);
+	if (x->type == SX_RO || sv_logcount_write(x->log) == 0)
+		return sx_promote(x, SX_PREPARE);
 	ssiter i;
 	ss_iterinit(ss_bufiter, &i);
 	ss_iteropen(ss_bufiter, &i, &x->log->buf, sizeof(svlogv));
@@ -328,34 +330,35 @@ sxstate sx_prepare(sx *x, sxpreparef prepare, void *arg)
 		if ((int)v->lo == x->log_read)
 			break;
 		if (sx_vaborted(v))
-			return sx_promote(x, SXROLLBACK);
+			return sx_promote(x, SX_ROLLBACK);
 		if (sslikely(v->prev == NULL)) {
 			rc = sx_preparecb(x, lv, lsn, prepare, arg);
 			if (ssunlikely(rc != 0))
-				return sx_promote(x, SXROLLBACK);
+				return sx_promote(x, SX_ROLLBACK);
 			continue;
 		}
 		if (sx_vcommitted(v->prev)) {
 			if (v->prev->csn > x->csn)
-				return sx_promote(x, SXROLLBACK);
+				return sx_promote(x, SX_ROLLBACK);
 			continue;
 		}
 		/* force commit for read-only conflicts */
 		if (v->prev->v->flags & SVGET) {
 			rc = sx_preparecb(x, lv, lsn, prepare, arg);
 			if (ssunlikely(rc != 0))
-				return sx_promote(x, SXROLLBACK);
+				return sx_promote(x, SX_ROLLBACK);
 			continue;
 		}
-		return sx_promote(x, SXLOCK);
+		return sx_promote(x, SX_LOCK);
 	}
-	return sx_promote(x, SXPREPARE);
+	return sx_promote(x, SX_PREPARE);
 }
 
 sxstate sx_commit(sx *x)
 {
-	assert(x->state == SXPREPARE);
-
+	if (x->state == SX_COMMIT)
+		return SX_COMMIT;
+	assert(x->state == SX_PREPARE);
 	sxmanager *m = x->manager;
 	ssiter i;
 	ss_iterinit(ss_bufiter, &i);
@@ -393,9 +396,44 @@ sxstate sx_commit(sx *x)
 	/* rollback latest reads */
 	sx_rollback_svp(x, &i, 0);
 
-	sx_promote(x, SXCOMMIT);
+	sx_promote(x, SX_COMMIT);
 	sx_end(x);
-	return SXCOMMIT;
+	return SX_COMMIT;
+}
+
+int sx_isolation(sx *x, char *name, int size)
+{
+	sxmanager *m = x->manager;
+	sr *r = m->r;
+	if (x->state != SX_READY)
+		return -1;
+	if (ss_bufused(&x->log->buf) > 0)
+		goto error;
+	sxisolation isolation;
+	if (strncasecmp(name, "serializable", size) == 0)
+		isolation = SX_SERIALIZABLE;
+	else
+	if (strncasecmp(name, "batch", size) == 0)
+		isolation = SX_BATCH;
+	else
+		goto error;
+	switch (isolation) {
+	case SX_BATCH:
+		if (x->isolation != SX_SERIALIZABLE)
+			goto error;
+		sx_end(x);
+		sx_promote(x, SX_COMMIT);
+		break;
+	case SX_SERIALIZABLE:
+		if (x->isolation == SX_BATCH)
+			goto error;
+		break;
+	}
+	x->isolation = isolation;
+	return 0;
+error:
+	sr_error(r->e, "%s", "failed to switch transaction isolation level");
+	return -1;
 }
 
 ss_rbget(sx_match,
@@ -405,27 +443,37 @@ int sx_set(sx *x, sxindex *index, svv *version)
 {
 	sxmanager *m = x->manager;
 	sr *r = m->r;
-	if (! (version->flags & SVGET)) {
-		x->log_read = -1;
+
+	svlogv lv;
+	lv.id   = index->dsn;
+	lv.next = UINT32_MAX;
+
+	/* batch isolation: directly write into the log */
+	if (x->isolation == SX_BATCH) {
+		sv_init(&lv.v, &sv_vif, version, NULL);
+		return sv_logadd(x->log, r->a, &lv, index->ptr);
 	}
+
 	/* allocate mvcc container */
 	sxv *v = sx_valloc(&m->pool, version);
 	if (ssunlikely(v == NULL)) {
 		sv_vunref(r, version);
 		return -1;
 	}
-	v->id = x->id;
+	v->id    = x->id;
 	v->index = index;
-	svlogv lv;
-	lv.id   = index->dsn;
-	lv.next = UINT32_MAX;
 	sv_init(&lv.v, &sx_vif, v, NULL);
+
+	if (! (version->flags & SVGET))
+		x->log_read = -1;
+
 	/* update concurrent index */
 	ssrbnode *n = NULL;
-	int rc = sx_match(&index->i, index->r->scheme,
-	                  sv_vpointer(version),
-	                  version->size,
-	                  &n);
+	int rc;
+	rc = sx_match(&index->i, index->r->scheme,
+	              sv_vpointer(version),
+	              version->size,
+	              &n);
 	if (ssunlikely(rc == 0 && n)) {
 		/* exists */
 	} else {
@@ -484,6 +532,7 @@ int sx_get(sx *x, sxindex *index, sv *key, sv *result)
 {
 	sxmanager *m = x->manager;
 	ssrbnode *n = NULL;
+	assert(x->isolation == SX_SERIALIZABLE);
 	int rc;
 	rc = sx_match(&index->i, index->r->scheme,
 	              sv_pointer(key),
@@ -532,20 +581,20 @@ sxstate sx_set_autocommit(sxmanager *m, sxindex *index, sx *x, svlog *log, svv *
 		sv_init(&lv.v, &sv_vif, v, NULL);
 		sv_logadd(x->log, m->r->a, &lv, index->ptr);
 		sr_seq(m->r->seq, SR_TSNNEXT);
-		sx_promote(x, SXCOMMIT);
-		return SXCOMMIT;
+		sx_promote(x, SX_COMMIT);
+		return SX_COMMIT;
 	}
-	sx_begin(m, x, SXRW, log, 0);
+	sx_begin(m, x, SX_RW, log, 0);
 	int rc = sx_set(x, index, v);
 	if (ssunlikely(rc == -1)) {
 		sx_rollback(x);
-		return SXROLLBACK;
+		return SX_ROLLBACK;
 	}
 	sxstate s = sx_prepare(x, NULL, NULL);
-	if (sslikely(s == SXPREPARE))
+	if (sslikely(s == SX_PREPARE))
 		sx_commit(x);
 	else
-	if (s == SXLOCK)
+	if (s == SX_LOCK)
 		sx_rollback(x);
 	return s;
 }
@@ -553,5 +602,5 @@ sxstate sx_set_autocommit(sxmanager *m, sxindex *index, sx *x, svlog *log, svv *
 sxstate sx_get_autocommit(sxmanager *m, sxindex *index ssunused)
 {
 	sr_seq(m->r->seq, SR_TSNNEXT);
-	return SXCOMMIT;
+	return SX_COMMIT;
 }

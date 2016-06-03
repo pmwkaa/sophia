@@ -14,17 +14,22 @@ typedef struct sxindex sxindex;
 typedef struct sx sx;
 
 typedef enum {
-	SXUNDEF,
-	SXREADY,
-	SXCOMMIT,
-	SXPREPARE,
-	SXROLLBACK,
-	SXLOCK
+	SX_UNDEF,
+	SX_READY,
+	SX_COMMIT,
+	SX_PREPARE,
+	SX_ROLLBACK,
+	SX_LOCK
 } sxstate;
 
 typedef enum {
-	SXRO,
-	SXRW
+	SX_SERIALIZABLE,
+	SX_BATCH
+} sxisolation;
+
+typedef enum {
+	SX_RO,
+	SX_RW
 } sxtype;
 
 struct sxindex {
@@ -39,16 +44,17 @@ struct sxindex {
 typedef int (*sxpreparef)(sx*, sv*, so*, void*);
 
 struct sx {
-	sxtype     type;
-	sxstate    state;
-	uint64_t   id;
-	uint64_t   vlsn;
-	uint64_t   csn;
-	int        log_read;
-	svlog     *log;
-	sslist     deadlock;
-	ssrbnode   node;
-	sxmanager *manager;
+	sxtype       type;
+	sxisolation  isolation;
+	sxstate      state;
+	uint64_t     id;
+	uint64_t     vlsn;
+	uint64_t     csn;
+	int          log_read;
+	svlog       *log;
+	sslist       deadlock;
+	ssrbnode     node;
+	sxmanager   *manager;
 };
 
 struct sxmanager {
@@ -76,6 +82,7 @@ void      sx_gc(sx*);
 sxstate   sx_prepare(sx*, sxpreparef, void*);
 sxstate   sx_commit(sx*);
 sxstate   sx_rollback(sx*);
+int       sx_isolation(sx*, char*, int);
 int       sx_set(sx*, sxindex*, svv*);
 int       sx_get(sx*, sxindex*, sv*, sv*);
 uint64_t  sx_min(sxmanager*);

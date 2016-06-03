@@ -481,8 +481,8 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 	sxstate state =
 		sx_set_autocommit(&e->xm, &db->coindex, &x, &log, v);
 	switch (state) {
-	case SXLOCK: return 2;
-	case SXROLLBACK: return 1;
+	case SX_LOCK: return 2;
+	case SX_ROLLBACK: return 1;
 	default: break;
 	}
 

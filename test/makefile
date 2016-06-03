@@ -40,6 +40,7 @@ STS_TESTS = unit/ss_a.test.o \
             generic/snapshot.test.o \
             generic/checkpoint.test.o \
             generic/prefix.test.o \
+            generic/transaction_batch.test.o \
             generic/transaction_md.test.o \
             generic/transaction_misc.test.o \
             generic/cursor_cache.test.o \

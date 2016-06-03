@@ -107,7 +107,7 @@ so *se_cursornew(se *e, uint64_t vlsn)
 	c->ops = 0;
 	c->read_disk = 0;
 	c->read_cache = 0;
-	c->t.state = SXUNDEF;
+	c->t.state = SX_UNDEF;
 	c->cache = si_cachepool_pop(&e->cachepool);
 	if (ssunlikely(c->cache == NULL)) {
 		so_mark_destroyed(&c->o);
@@ -115,7 +115,7 @@ so *se_cursornew(se *e, uint64_t vlsn)
 		sr_oom(&e->error);
 		return NULL;
 	}
-	sx_begin(&e->xm, &c->t, SXRO, &c->log, vlsn);
+	sx_begin(&e->xm, &c->t, SX_RO, &c->log, vlsn);
 	se_dbbind(e);
 	so_pooladd(&e->cursor, &c->o);
 	return &c->o;
