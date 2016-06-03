@@ -21,6 +21,16 @@
 #include <libse.h>
 
 enum {
+	SE_DOCUMENT_FIELD_0,
+	SE_DOCUMENT_FIELD_1,
+	SE_DOCUMENT_FIELD_2,
+	SE_DOCUMENT_FIELD_3,
+	SE_DOCUMENT_FIELD_4,
+	SE_DOCUMENT_FIELD_5,
+	SE_DOCUMENT_FIELD_6,
+	SE_DOCUMENT_FIELD_7,
+	SE_DOCUMENT_FIELD_8,
+	SE_DOCUMENT_FIELD_9,
 	SE_DOCUMENT_FIELD,
 	SE_DOCUMENT_ORDER,
 	SE_DOCUMENT_PREFIX,
@@ -38,6 +48,8 @@ enum {
 static inline int
 se_document_opt(const char *path)
 {
+	if (sslikely((intptr_t)path <= (intptr_t)SE_DOCUMENT_FIELD_9))
+		return (int)(intptr_t)path;
 	switch (path[0]) {
 	case 'o':
 		if (sslikely(strcmp(path, "order") == 0))
@@ -187,16 +199,18 @@ se_document_destroy(so *o)
 	return 0;
 }
 
-static sfv*
-se_document_setfield(sedocument *v, const char *path, void *pointer, int size)
+static inline int
+se_document_setfield(sedocument *v, int pos, void *pointer, int size)
 {
 	se *e = se_of(&v->o);
 	sedb *db = (sedb*)v->o.parent;
-	sffield *field = sf_schemefind(&db->scheme->scheme, (char*)path);
-	if (ssunlikely(field == NULL))
-		return NULL;
-	assert(field->position < (int)(sizeof(v->fields) / sizeof(sfv)));
-	sfv *fv = &v->fields[field->position];
+	if (ssunlikely(pos >= db->scheme->scheme.fields_count)) {
+		sr_error(&e->error, "%s", "incorrect field position");
+		return -1;
+	}
+	assert(pos < (int)(sizeof(v->fields) / sizeof(sfv)));
+	sffield *field = sf_schemeof(&db->scheme->scheme, pos);
+	sfv *fv = &v->fields[pos];
 	if (size == 0)
 		size = strlen(pointer);
 	int fieldsize_max;
@@ -208,7 +222,7 @@ se_document_setfield(sedocument *v, const char *path, void *pointer, int size)
 	if (ssunlikely(size > fieldsize_max)) {
 		sr_error(&e->error, "field '%s' is too big (%d limit)",
 		         pointer, fieldsize_max);
-		return NULL;
+		return -1;
 	}
 	if (fv->pointer == NULL) {
 		v->fields_count++;
@@ -218,7 +232,31 @@ se_document_setfield(sedocument *v, const char *path, void *pointer, int size)
 	fv->pointer = pointer;
 	fv->size = size;
 	sr_statfield(&e->stat, size);
-	return fv;
+	return 0;
+}
+
+static inline void*
+se_document_getfield(sedocument *v, int pos, int *size)
+{
+	se *e = se_of(&v->o);
+	sedb *db = (sedb*)v->o.parent;
+	if (ssunlikely(pos >= db->scheme->scheme.fields_count)) {
+		sr_error(&e->error, "%s", "incorrect field position");
+		return NULL;
+	}
+	assert(pos < (int)(sizeof(v->fields) / sizeof(sfv)));
+	sffield *field = sf_schemeof(&db->scheme->scheme, pos);
+	/* database result document */
+	if (v->v.v)
+		return sv_field(&v->v, db->r, field->position, (uint32_t*)size);
+	/* database field document */
+	assert(field->position < (int)(sizeof(v->fields) / sizeof(sfv)));
+	sfv *fv = &v->fields[field->position];
+	if (fv->pointer == NULL)
+		return NULL;
+	if (size)
+		*size = fv->size;
+	return fv->pointer;
 }
 
 static int
@@ -228,12 +266,25 @@ se_document_setstring(so *o, const char *path, void *pointer, int size)
 	se *e = se_of(o);
 	if (ssunlikely(v->v.v))
 		return sr_error(&e->error, "%s", "document is read-only");
-	switch (se_document_opt(path)) {
+	int opt = se_document_opt(path);
+	switch (opt) {
+	case SE_DOCUMENT_FIELD_0:
+	case SE_DOCUMENT_FIELD_1:
+	case SE_DOCUMENT_FIELD_2:
+	case SE_DOCUMENT_FIELD_3:
+	case SE_DOCUMENT_FIELD_4:
+	case SE_DOCUMENT_FIELD_5:
+	case SE_DOCUMENT_FIELD_6:
+	case SE_DOCUMENT_FIELD_7:
+	case SE_DOCUMENT_FIELD_8:
+	case SE_DOCUMENT_FIELD_9:
+		return se_document_setfield(v, opt, pointer, size);
 	case SE_DOCUMENT_FIELD: {
-		sfv *fv = se_document_setfield(v, path, pointer, size);
-		if (ssunlikely(fv == NULL))
+		sedb *db = (sedb*)v->o.parent;
+		sffield *field = sf_schemefind(&db->scheme->scheme, (char*)path);
+		if (ssunlikely(field == NULL))
 			return -1;
-		break;
+		return se_document_setfield(v, field->position, pointer, size);
 	}
 	case SE_DOCUMENT_ORDER:
 		if (size == 0)
@@ -267,24 +318,26 @@ static void*
 se_document_getstring(so *o, const char *path, int *size)
 {
 	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
-	switch (se_document_opt(path)) {
+	int opt = se_document_opt(path);
+	switch (opt) {
+	case SE_DOCUMENT_FIELD_0:
+	case SE_DOCUMENT_FIELD_1:
+	case SE_DOCUMENT_FIELD_2:
+	case SE_DOCUMENT_FIELD_3:
+	case SE_DOCUMENT_FIELD_4:
+	case SE_DOCUMENT_FIELD_5:
+	case SE_DOCUMENT_FIELD_6:
+	case SE_DOCUMENT_FIELD_7:
+	case SE_DOCUMENT_FIELD_8:
+	case SE_DOCUMENT_FIELD_9:
+		return se_document_getfield(v, opt, size);
 	case SE_DOCUMENT_FIELD: {
 		/* match field */
 		sedb *db = (sedb*)o->parent;
 		sffield *field = sf_schemefind(&db->scheme->scheme, (char*)path);
 		if (ssunlikely(field == NULL))
 			return NULL;
-		/* database result document */
-		if (v->v.v)
-			return sv_field(&v->v, db->r, field->position, (uint32_t*)size);
-		/* database field document */
-		assert(field->position < (int)(sizeof(v->fields) / sizeof(sfv)));
-		sfv *fv = &v->fields[field->position];
-		if (fv->pointer == NULL)
-			return NULL;
-		if (size)
-			*size = fv->size;
-		return fv->pointer;
+		return se_document_getfield(v, field->position, size);
 	}
 	case SE_DOCUMENT_PREFIX: {
 		if (v->prefix == NULL)

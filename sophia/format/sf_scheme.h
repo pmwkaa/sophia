@@ -93,8 +93,16 @@ int  sf_schemeadd(sfscheme*, ssa*, sffield*);
 int  sf_schemevalidate(sfscheme*, ssa*);
 int  sf_schemesave(sfscheme*, ssa*, ssbuf*);
 int  sf_schemeload(sfscheme*, ssa*, char*, int);
+
 sffield*
-sf_schemefind(sfscheme*, char *);
+sf_schemefind(sfscheme*, char*);
+
+static inline sffield*
+sf_schemeof(sfscheme *s, int pos)
+{
+	assert(pos < s->fields_count);
+	return s->fields[pos];
+}
 
 int  sf_schemecompare_prefix(sfscheme*, char*, uint32_t, char*);
 int  sf_schemecompare(char*, char*, void*);
