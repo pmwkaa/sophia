@@ -602,11 +602,6 @@ int si_recover(si *i)
 	int exist = ss_vfsexists(r->vfs, i->scheme.path);
 	if (exist == 0)
 		goto deploy;
-	if (i->scheme.path_fail_on_exists) {
-		sr_error(r->e, "directory '%s' already exists",
-		         i->scheme.path);
-		return -1;
-	}
 	int rc;
 	rc = si_schemerecover(&i->scheme, r);
 	if (ssunlikely(rc == -1))

@@ -107,7 +107,6 @@ se_confsophia(se *e, seconfrt *rt, srconf **pc)
 	sr_C(&p, pc, se_confv, "build", SS_STRING, rt->build, SR_RO, NULL);
 	sr_C(&p, pc, se_confsophia_error, "error", SS_STRING, NULL, SR_RO, NULL);
 	sr_c(&p, pc, se_confv_offline, "path", SS_STRINGPTR, &e->conf.path);
-	sr_c(&p, pc, se_confv_offline, "path_create", SS_U32, &e->conf.path_create);
 	sr_c(&p, pc, se_confsophia_on_log, "on_log", SS_STRING, NULL);
 	sr_c(&p, pc, se_confsophia_on_log_arg, "on_log_arg", SS_STRING, NULL);
 	return sr_C(NULL, pc, NULL, "sophia", SS_UNDEF, sophia, SR_NS, NULL);
@@ -702,7 +701,6 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc)
 		sr_C(&p, pc, se_confv_dboffline, "expire", SS_U32, &o->scheme->expire, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "amqf", SS_U32, &o->scheme->amqf, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "path", SS_STRINGPTR, &o->scheme->path, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "path_fail_on_exists", SS_U32, &o->scheme->path_fail_on_exists, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "mmap", SS_U32, &o->scheme->mmap, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "sync", SS_U32, &o->scheme->sync, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "node_preload", SS_U32, &o->scheme->node_compact_load, 0, o);
@@ -1023,7 +1021,6 @@ int se_confinit(seconf *c, so *e)
 	sf_schemeinit(&c->scheme);
 	c->env                 = e;
 	c->path                = NULL;
-	c->path_create         = 1;
 	c->memory_limit        = 0;
 	c->anticache           = 0;
 	c->threads             = 6;

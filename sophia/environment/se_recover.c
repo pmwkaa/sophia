@@ -25,11 +25,6 @@ int se_recoverbegin(sedb *db)
 	/* open and recover repository */
 	sr_statusset(&db->index->status, SR_RECOVER);
 	se *e = se_of(&db->o);
-	/* do not allow to recover existing databases
-	 * during online (only create), since logpool
-	 * reply is required. */
-	if (sr_status(&e->status) == SR_ONLINE)
-		db->scheme->path_fail_on_exists = 1;
 	sr_log(&e->log, "loading database '%s'", db->scheme->path);
 	int rc = si_open(db->index);
 	if (ssunlikely(rc == -1))
@@ -173,7 +168,6 @@ int se_recover_repository(se *e)
 {
 	syconf *rc = &e->repconf;
 	rc->path        = e->conf.path;
-	rc->path_create = e->conf.path_create;
 	rc->path_backup = e->conf.backup_path;
 	rc->sync = 0;
 	sr_log(&e->log, "recovering repository '%s'", e->conf.path);

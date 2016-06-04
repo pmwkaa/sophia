@@ -50,7 +50,6 @@ se_dbscheme_init(sedb *db, char *name, int size)
 	scheme->expire              = 0;
 	scheme->amqf                = 0;
 	scheme->fmt_storage         = SF_RAW;
-	scheme->path_fail_on_exists = 0;
 	scheme->lru                 = 0;
 	scheme->lru_step            = 128 * 1024;
 	scheme->buf_gc_wm           = 1024 * 1024;
