@@ -113,13 +113,8 @@ int sy_open(sy *e, sr *r, syconf *conf)
 	if (ssunlikely(rc == -1))
 		return -1;
 	int exists = ss_vfsexists(r->vfs, conf->path);
-	if (exists == 0) {
-		if (ssunlikely(! conf->path_create)) {
-			sr_error(r->e, "directory '%s' does not exist", conf->path);
-			return -1;
-		}
+	if (exists == 0)
 		return sy_deploy(e, r);
-	}
 	return 0;
 }
 

@@ -13,7 +13,6 @@ typedef struct syconf syconf;
 
 struct syconf {
 	char *path;
-	int   path_create;
 	char *path_backup;
 	int   sync;
 };
