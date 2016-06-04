@@ -33,11 +33,9 @@ se_cursordestroy(so *o)
 {
 	secursor *c = se_cast(o, secursor*, SECURSOR);
 	se *e = se_of(&c->o);
-	uint64_t id = c->t.id;
 	sx_rollback(&c->t);
 	if (c->cache)
 		si_cachepool_push(c->cache);
-	se_dbunbind(e, id);
 	sr_statcursor(&e->stat, c->start,
 	              c->read_disk,
 	              c->read_cache,
@@ -68,13 +66,11 @@ se_cursorget(so *o, so *v)
 static soif secursorif =
 {
 	.open         = NULL,
-	.close        = NULL,
 	.destroy      = se_cursordestroy,
 	.free         = se_cursorfree,
 	.error        = NULL,
 	.document     = NULL,
 	.poll         = NULL,
-	.drop         = NULL,
 	.setstring    = NULL,
 	.setint       = NULL,
 	.setobject    = NULL,
@@ -116,7 +112,6 @@ so *se_cursornew(se *e, uint64_t vlsn)
 		return NULL;
 	}
 	sx_begin(&e->xm, &c->t, SX_RO, &c->log, vlsn);
-	se_dbbind(e);
 	so_pooladd(&e->cursor, &c->o);
 	return &c->o;
 }

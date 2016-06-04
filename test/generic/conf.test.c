@@ -73,6 +73,15 @@ conf_validation0(void)
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setint(env, "log.enable", 0) == 0 );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "string,key(0)", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
+
 	t( sp_open(env) == 0 );
 
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == -1 );
@@ -84,17 +93,6 @@ conf_validation0(void)
 	t( sp_setint(env, "log.rotate_wm", 0) == -1 );
 	t( sp_setint(env, "log.rotate_sync", 0) == -1 );
 	t( sp_setint(env, "log.two_phase_commit", 0) == -1 );
-
-	t( sp_setstring(env, "db", "test", 0) == 0 );
-	void *db = sp_getobject(env, "db.test");
-	t( db != NULL );
-
-	t( sp_setint(env, "db.test.sync", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "string,key(0)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
-
-	t( sp_open(db) == 0 );
 
 	t( sp_setint(env, "db.test.page_size", 0) == -1 );
 	t( sp_setint(env, "db.test.node_size", 0) == -1 );

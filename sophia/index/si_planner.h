@@ -29,13 +29,11 @@ struct siplanner {
 #define SI_TEMP          64
 #define SI_BACKUP        128
 #define SI_BACKUPEND     256
-#define SI_SHUTDOWN      512
-#define SI_DROP          1024
-#define SI_SNAPSHOT      2048
-#define SI_ANTICACHE     4096
-#define SI_LRU           8192
-#define SI_NODEGC        16384
-#define SI_EXPIRE        32768
+#define SI_SNAPSHOT      512
+#define SI_ANTICACHE     1024
+#define SI_LRU           2048
+#define SI_NODEGC        4096
+#define SI_EXPIRE        8192
 
 /* explain */
 #define SI_ENONE         0
@@ -75,8 +73,6 @@ struct siplan {
 	 *   a: ssn
 	 * backup:
 	 *   a: bsn
-	 * shutdown:
-	 * drop:
 	 */
 	uint64_t a, b, c;
 	sinode *node;

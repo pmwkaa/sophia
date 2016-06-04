@@ -66,13 +66,11 @@ void *se_confkv_getstring(so *o, const char *path, int *size)
 static soif seconfkvif =
 {
 	.open         = NULL,
-	.close        = NULL,
 	.destroy      = se_confkv_destroy,
 	.free         = se_confkv_free,
 	.error        = NULL,
 	.document     = NULL,
 	.poll         = NULL,
-	.drop         = NULL,
 	.setstring    = NULL,
 	.setint       = NULL,
 	.setobject    = NULL,
@@ -183,7 +181,6 @@ static soif seconfcursorif =
 	.error        = NULL,
 	.document     = NULL,
 	.poll         = NULL,
-	.drop         = NULL,
 	.setstring    = NULL,
 	.setint       = NULL,
 	.setobject    = NULL,

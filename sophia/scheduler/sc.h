@@ -31,7 +31,6 @@ struct scdb {
 struct sctask {
 	siplan plan;
 	scdb  *db;
-	si    *shutdown;
 	int    on_backup;
 	int    rotate;
 	int    gc;
@@ -69,8 +68,6 @@ struct sc {
 	int            rr;
 	int            count;
 	scdb         **i;
-	sslist         shutdown;
-	int            shutdown_pending;
 	ssthreadpool   tp;
 	scworkerpool   wp;
 	slpool        *lp;

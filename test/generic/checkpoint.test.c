@@ -25,7 +25,6 @@ checkpoint_test0(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
-	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
@@ -34,7 +33,7 @@ checkpoint_test0(void)
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
-	t( sp_open(db) == 0 );
+	t( sp_open(env) == 0 );
 
 	int key = 0;
 	while (key < 10) {
@@ -76,7 +75,6 @@ checkpoint_test1(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
-	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
@@ -85,7 +83,7 @@ checkpoint_test1(void)
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
-	t( sp_open(db) == 0 );
+	t( sp_open(env) == 0 );
 
 	int key = 0;
 	while (key < 20) {

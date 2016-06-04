@@ -21,6 +21,5 @@ int sc_ctl_gc(sc*);
 int sc_ctl_lru(sc*);
 int sc_ctl_backup(sc*);
 int sc_ctl_backup_event(sc*);
-int sc_ctl_shutdown(sc*, si*);
 
 #endif

@@ -85,7 +85,7 @@ se_open(so *o)
 	sslist *i, *n;
 	ss_listforeach_safe(&e->db.list, i, n) {
 		so *o = sscast(i, so, link);
-		rc = so_open(o);
+		rc = se_dbopen(o);
 		if (ssunlikely(rc == -1))
 			return -1;
 	}
@@ -98,7 +98,7 @@ se_open(so *o)
 	/* put storage on-line */
 	ss_listforeach_safe(&e->db.list, i, n) {
 		so *o = sscast(i, so, link);
-		rc = so_open(o);
+		rc = se_dbopen(o);
 		if (ssunlikely(rc == -1))
 			return -1;
 	}
@@ -129,12 +129,6 @@ se_destroy(so *o)
 	rc = so_pooldestroy(&e->cursor);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_pooldestroy(&e->view);
-	if (ssunlikely(rc == -1))
-		rcret = -1;
-	rc = so_pooldestroy(&e->viewdb);
-	if (ssunlikely(rc == -1))
-		rcret = -1;
 	rc = so_pooldestroy(&e->tx);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
@@ -144,9 +138,13 @@ se_destroy(so *o)
 	rc = so_pooldestroy(&e->confcursor);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = so_listdestroy(&e->db);
-	if (ssunlikely(rc == -1))
-		rcret = -1;
+	sslist *i, *n;
+	ss_listforeach_safe(&e->db.list, i, n) {
+		so *db = sscast(i, so, link);
+		rc = se_dbdestroy(db);
+		if (ssunlikely(rc == -1))
+			rcret = -1;
+	}
 	rc = so_pooldestroy(&e->document);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
@@ -168,12 +166,6 @@ se_destroy(so *o)
 	so_mark_destroyed(&e->o);
 	free(e);
 	return rcret;
-}
-
-static int
-se_close(so *o)
-{
-	return se_destroy(o);
 }
 
 static void*
@@ -226,13 +218,11 @@ se_cursor(so *o)
 static soif seif =
 {
 	.open         = se_open,
-	.close        = se_close,
 	.destroy      = se_destroy,
 	.free         = NULL,
 	.error        = se_error,
 	.document     = NULL,
 	.poll         = se_poll,
-	.drop         = NULL,
 	.setstring    = se_confset_string,
 	.setint       = se_confset_int,
 	.setobject    = NULL,
@@ -276,8 +266,6 @@ so *se_new(void)
 	so_poolinit(&e->tx, 512);
 	so_poolinit(&e->confcursor, 2);
 	so_poolinit(&e->confcursor_kv, 1);
-	so_poolinit(&e->view, 1);
-	so_poolinit(&e->viewdb, 1);
 	so_listinit(&e->db);
 	ss_mutexinit(&e->apilock);
 	sr_quotainit(&e->quota);

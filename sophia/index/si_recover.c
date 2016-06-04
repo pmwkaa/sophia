@@ -532,25 +532,6 @@ error:
 }
 
 static inline int
-si_recoverdrop(si *i, sr *r)
-{
-	char path[1024];
-	snprintf(path, sizeof(path), "%s/drop", i->scheme.path);
-	int rc = ss_vfsexists(r->vfs, path);
-	if (sslikely(! rc))
-		return 0;
-	if (i->scheme.path_fail_on_drop) {
-		sr_malfunction(r->e, "attempt to recover a dropped database: %s:",
-		               i->scheme.path);
-		return -1;
-	}
-	rc = si_droprepository(r, i->scheme.path, 0);
-	if (ssunlikely(rc == -1))
-		return -1;
-	return 1;
-}
-
-static inline int
 si_recoversnapshot(si *i, sr *r, sdsnapshot *s)
 {
 	/* recovery stages:
@@ -622,14 +603,11 @@ int si_recover(si *i)
 	if (exist == 0)
 		goto deploy;
 	if (i->scheme.path_fail_on_exists) {
-		sr_error(r->e, "directory '%s' already exists", i->scheme.path);
+		sr_error(r->e, "directory '%s' already exists",
+		         i->scheme.path);
 		return -1;
 	}
-	int rc = si_recoverdrop(i, r);
-	switch (rc) {
-	case -1: return -1;
-	case  1: goto deploy;
-	}
+	int rc;
 	rc = si_schemerecover(&i->scheme, r);
 	if (ssunlikely(rc == -1))
 		return -1;

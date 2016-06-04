@@ -173,128 +173,6 @@ mt_set_snapshot_recover_get(void)
 }
 
 static void
-mt_create_set_close(void)
-{
-	void *env = sp_env();
-	t( env != NULL );
-	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "scheduler.threads", 5) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
-	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
-	t( sp_open(env) == 0 );
-
-	char value[32];
-	memset(value, 0, sizeof(value));
-
-	int i = 0;
-	int n = 100;
-
-	while (i < n) {
-		char path[64];
-		snprintf(path, sizeof(path), "%d", i);
-		t( sp_setstring(env, "db", path, 0) == 0 );
-
-		snprintf(path, sizeof(path), "db.%d.sync", i);
-		t( sp_setint(env, path, 0) == 0 );
-
-		snprintf(path, sizeof(path), "db.%d.scheme", i);
-		t( sp_setstring(env, path, "key", 0) == 0 );
-
-		snprintf(path, sizeof(path), "db.%d.scheme", i);
-		t( sp_setstring(env, path, "value", 0) == 0 );
-
-		snprintf(path, sizeof(path), "db.%d.scheme.key", i);
-		t( sp_setstring(env, path, "u32,key(0)", 0) == 0 );
-
-		snprintf(path, sizeof(path), "db.%d", i);
-		void *db = sp_getobject(env, path);
-		t( db != NULL );
-		t( sp_open(db) == 0 );
-
-		uint32_t n = 10000;
-		uint32_t j, k;
-		srand(82351);
-		for (j = 0; j < n; j++) {
-			k = rand();
-			*(uint32_t*)value = k;
-			void *o = sp_document(db);
-			t( o != NULL );
-			t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
-			t( sp_setstring(o, "value", value, sizeof(value)) == 0 );
-			t( sp_set(db, o) == 0 );
-			print_current(j);
-		}
-
-		t( sp_close(db) == 0 );
-		t( sp_destroy(db) == 0 );
-		i++;
-	}
-
-	t( sp_destroy(env) == 0 );
-}
-
-static void
-mt_create_set_drop(void)
-{
-	void *env = sp_env();
-	t( env != NULL );
-	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "scheduler.threads", 5) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
-	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
-	t( sp_open(env) == 0 );
-
-	char value[32];
-	memset(value, 0, sizeof(value));
-
-	int i = 0;
-	int n = 100;
-
-	while (i < n) {
-		char path[64];
-		snprintf(path, sizeof(path), "%d", i);
-		t( sp_setstring(env, "db", path, 0) == 0 );
-
-		snprintf(path, sizeof(path), "db.%d.sync", i);
-		t( sp_setint(env, path, 0) == 0 );
-
-		snprintf(path, sizeof(path), "db.%d.scheme", i);
-		t( sp_setstring(env, path, "key", 0) == 0 );
-
-		snprintf(path, sizeof(path), "db.%d.scheme", i);
-		t( sp_setstring(env, path, "value", 0) == 0 );
-
-		snprintf(path, sizeof(path), "db.%d.scheme.key", i);
-		t( sp_setstring(env, path, "u32,key(0)", 0) == 0 );
-
-		snprintf(path, sizeof(path), "db.%d", i);
-		void *db = sp_getobject(env, path);
-		t( db != NULL );
-		t( sp_open(db) == 0 );
-
-		uint32_t n = 10000;
-		uint32_t j, k;
-		srand(82351);
-		for (j = 0; j < n; j++) {
-			k = rand();
-			*(uint32_t*)value = k;
-			void *o = sp_document(db);
-			t( o != NULL );
-			t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
-			t( sp_setstring(o, "value", value, sizeof(value)) == 0 );
-			t( sp_set(db, o) == 0 );
-			print_current(j);
-		}
-
-		t( sp_drop(db) == 0 );
-		t( sp_destroy(db) == 0 );
-		i++;
-	}
-
-	t( sp_destroy(env) == 0 );
-}
-
-static void
 mt_set_delete_get(void)
 {
 	void *env = sp_env();
@@ -302,7 +180,6 @@ mt_set_delete_get(void)
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 5) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
-	t( sp_open(env) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
@@ -311,7 +188,7 @@ mt_set_delete_get(void)
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
-	t( sp_open(db) == 0 );
+	t( sp_open(env) == 0 );
 
 	char value[100];
 	memset(value, 0, sizeof(value));
@@ -557,8 +434,6 @@ mt_set_expire(void)
 stgroup *multithread_be_group(void)
 {
 	stgroup *group = st_group("mt_backend");
-	st_groupadd(group, st_test("create_set_close", mt_create_set_close));
-	st_groupadd(group, st_test("create_set_drop", mt_create_set_drop));
 	st_groupadd(group, st_test("set_delete_get", mt_set_delete_get));
 	st_groupadd(group, st_test("set_snapshot_recover_get", mt_set_snapshot_recover_get));
 	st_groupadd(group, st_test("set_checkpoint_get", mt_set_checkpoint_get));

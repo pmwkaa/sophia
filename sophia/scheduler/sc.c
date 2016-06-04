@@ -58,8 +58,6 @@ int sc_init(sc *s, sr *r, sstrigger *on_event, slpool *lp)
 	s->lp                       = lp;
 	ss_threadpool_init(&s->tp);
 	sc_workerpool_init(&s->wp);
-	ss_listinit(&s->shutdown);
-	s->shutdown_pending = 0;
 	return 0;
 }
 
@@ -85,15 +83,6 @@ int sc_shutdown(sc *s)
 	rc = sc_workerpool_free(&s->wp, r);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
-	/* destroy databases which are ready for
-	 * shutdown or drop */
-	sslist *p, *n;
-	ss_listforeach_safe(&s->shutdown, p, n) {
-		si *index = sscast(p, si, link);
-		rc = si_close(index);
-		if (ssunlikely(rc == -1))
-			rcret = -1;
-	}
 	if (s->i) {
 		int j = 0;
 		while (j < s->count) {

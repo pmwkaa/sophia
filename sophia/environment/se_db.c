@@ -51,7 +51,6 @@ se_dbscheme_init(sedb *db, char *name, int size)
 	scheme->amqf                = 0;
 	scheme->fmt_storage         = SF_RAW;
 	scheme->path_fail_on_exists = 0;
-	scheme->path_fail_on_drop   = 1;
 	scheme->lru                 = 0;
 	scheme->lru_step            = 128 * 1024;
 	scheme->buf_gc_wm           = 1024 * 1024;
@@ -171,14 +170,12 @@ se_dbscheme_set(sedb *db)
 	return 0;
 }
 
-static int
-se_dbopen(so *o)
+int se_dbopen(so *o)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
 	se *e = se_of(&db->o);
 	int status = sr_status(&db->index->status);
-	if (status == SR_RECOVER ||
-	    status == SR_DROP_PENDING)
+	if (status == SR_RECOVER)
 		goto online;
 	if (status != SR_OFFLINE)
 		return -1;
@@ -216,47 +213,7 @@ se_dbfree(sedb *db, int close)
 	return rcret;
 }
 
-static inline void
-se_dbunref(sedb *db)
-{
-	se *e = se_of(&db->o);
-	/* do nothing during env shutdown */
-	int status = sr_status(&e->status);
-	if (status == SR_SHUTDOWN)
-		return;
-	/* reduce reference counter */
-	int ref;
-	ref = si_unref(db->index, SI_REFFE);
-	if (ref > 1)
-		return;
-	/* drop/shutdown pending:
-	 *
-	 * switch state and transfer job to
-	 * the scheduler.
-	*/
-	status = sr_status(&db->index->status);
-	switch (status) {
-	case SR_SHUTDOWN_PENDING:
-		status = SR_SHUTDOWN;
-		break;
-	case SR_DROP_PENDING:
-		status = SR_DROP;
-		break;
-	default:
-		return;
-	}
-	/* destroy database object */
-	si *index = db->index;
-	so_listdel(&e->db, &db->o);
-	se_dbfree(db, 0);
-
-	/* schedule index shutdown or drop */
-	sr_statusset(&index->status, status);
-	sc_ctl_shutdown(&e->scheduler, index);
-}
-
-static int
-se_dbdestroy(so *o)
+int se_dbdestroy(so *o)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
 	se *e = se_of(&db->o);
@@ -265,38 +222,7 @@ se_dbdestroy(so *o)
 	    status == SR_OFFLINE) {
 		return se_dbfree(db, 1);
 	}
-	se_dbunref(db);
-	return 0;
-}
-
-static int
-se_dbclose(so *o)
-{
-	sedb *db = se_cast(o, sedb*, SEDB);
-	se *e = se_of(&db->o);
-	int status = sr_status(&db->index->status);
-	if (ssunlikely(! sr_statusactive_is(status)))
-		return -1;
-	/* set last visible transaction id */
-	db->txn_max = sx_max(&e->xm);
-	sr_statusset(&db->index->status, SR_SHUTDOWN_PENDING);
-	return 0;
-}
-
-static int
-se_dbdrop(so *o)
-{
-	sedb *db = se_cast(o, sedb*, SEDB);
-	se *e = se_of(&db->o);
-	int status = sr_status(&db->index->status);
-	if (ssunlikely(! sr_statusactive_is(status)))
-		return -1;
-	int rc = si_dropmark(db->index);
-	if (ssunlikely(rc == -1))
-		return -1;
-	/* set last visible transaction id */
-	db->txn_max = sx_max(&e->xm);
-	sr_statusset(&db->index->status, SR_DROP_PENDING);
+	/* do nothing */
 	return 0;
 }
 
@@ -586,14 +512,12 @@ se_dbget_int(so *o, const char *path)
 
 static soif sedbif =
 {
-	.open         = se_dbopen,
-	.close        = se_dbclose,
-	.destroy      = se_dbdestroy,
+	.open         = NULL,
+	.destroy      = NULL,
 	.free         = NULL,
 	.error        = NULL,
 	.document     = se_dbdocument,
 	.poll         = NULL,
-	.drop         = se_dbdrop,
 	.setstring    = NULL,
 	.setint       = NULL,
 	.setobject    = NULL,
@@ -635,8 +559,6 @@ so *se_dbnew(se *e, char *name, int size)
 	}
 	sr_statusset(&o->index->status, SR_OFFLINE);
 	sx_indexinit(&o->coindex, &e->xm, o->r, &o->o, o->index);
-	o->txn_min = sx_min(&e->xm);
-	o->txn_max = UINT32_MAX;
 	return &o->o;
 }
 
@@ -660,30 +582,4 @@ so *se_dbmatch_id(se *e, uint32_t id)
 			return &db->o;
 	}
 	return NULL;
-}
-
-int se_dbvisible(sedb *db, uint64_t txn)
-{
-	return txn > db->txn_min && txn <= db->txn_max;
-}
-
-void se_dbbind(se *e)
-{
-	sslist *i;
-	ss_listforeach(&e->db.list, i) {
-		sedb *db = (sedb*)sscast(i, so, link);
-		int status = sr_status(&db->index->status);
-		if (sr_statusactive_is(status))
-			si_ref(db->index, SI_REFFE);
-	}
-}
-
-void se_dbunbind(se *e, uint64_t txn)
-{
-	sslist *i, *n;
-	ss_listforeach_safe(&e->db.list, i, n) {
-		sedb *db = (sedb*)sscast(i, so, link);
-		if (se_dbvisible(db, txn))
-			se_dbunref(db);
-	}
 }

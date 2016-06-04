@@ -44,12 +44,7 @@ sc_gc(sc *s, scworker *w)
 static inline int
 sc_execute(sctask *t, scworker *w, uint64_t vlsn)
 {
-	si *index;
-	if (ssunlikely(t->shutdown))
-		index = t->shutdown;
-	else
-		index = t->db->index;
-
+	si *index = t->db->index;
 	si_plannertrace(&t->plan, index->scheme.id, &w->trace);
 	uint64_t vlsn_lru = si_lru_vlsn(index);
 	return si_execute(index, &w->dc, &t->plan, vlsn, vlsn_lru);
@@ -106,30 +101,6 @@ sc_planquota(sc *s, siplan *plan, uint32_t quota, uint32_t quota_limit)
 	return si_plan(db->index, plan);
 }
 
-static inline int
-sc_do_shutdown(sc *s, sctask *task)
-{
-	if (sslikely(s->shutdown_pending == 0))
-		return 0;
-	sslist *p, *n;
-	ss_listforeach_safe(&s->shutdown, p, n) {
-		si *index = sscast(p, si, link);
-		task->plan.plan = SI_SHUTDOWN;
-		int rc;
-		rc = si_plan(index, &task->plan);
-		if (rc == 1) {
-			s->shutdown_pending--;
-			ss_listunlink(&index->link);
-			sc_del(s, index, 0);
-			task->shutdown = index;
-			task->db = NULL;
-			task->gc = 1;
-			return 1;
-		}
-	}
-	return 0;
-}
-
 static int
 sc_do(sc *s, sctask *task, scworker *w, srzone *zone,
       scdb *db, uint64_t vlsn, uint64_t now)
@@ -141,7 +112,6 @@ sc_do(sc *s, sctask *task, scworker *w, srzone *zone,
 	task->plan.plan = SI_NODEGC;
 	rc = sc_plan(s, &task->plan);
 	if (rc == 1) {
-		si_ref(db->index, SI_REFBE);
 		task->db = db;
 		return 1;
 	}
@@ -154,7 +124,6 @@ sc_do(sc *s, sctask *task, scworker *w, srzone *zone,
 		switch (rc) {
 		case 1:
 			db->workers[SC_QBRANCH]++;
-			si_ref(db->index, SI_REFBE);
 			task->db = db;
 			task->gc = 1;
 			return 1;
@@ -173,7 +142,6 @@ sc_do(sc *s, sctask *task, scworker *w, srzone *zone,
 		rc = sc_plan(s, &task->plan);
 		switch (rc) {
 		case 1:
-			si_ref(db->index, SI_REFBE);
 			task->db = db;
 			uint64_t size = task->plan.c;
 			if (size > 0) {
@@ -197,7 +165,6 @@ sc_do(sc *s, sctask *task, scworker *w, srzone *zone,
 		rc = sc_plan(s, &task->plan);
 		switch (rc) {
 		case 1:
-			si_ref(db->index, SI_REFBE);
 			task->db = db;
 			return 1;
 		case 0: /* complete */
@@ -258,7 +225,6 @@ sc_do(sc *s, sctask *task, scworker *w, srzone *zone,
 		switch (rc) {
 		case 1:
 			db->workers[SC_QBACKUP]++;
-			si_ref(db->index, SI_REFBE);
 			task->db = db;
 			return 1;
 		case 0: /* state 3 */
@@ -286,7 +252,6 @@ backup_error:;
 		case 1:
 			if (zone->mode == 0)
 				task->plan.plan = SI_COMPACT_INDEX;
-			si_ref(db->index, SI_REFBE);
 			db->workers[SC_QEXPIRE]++;
 			task->db = db;
 			return 1;
@@ -307,7 +272,6 @@ backup_error:;
 		case 1:
 			if (zone->mode == 0)
 				task->plan.plan = SI_COMPACT_INDEX;
-			si_ref(db->index, SI_REFBE);
 			db->workers[SC_QGC]++;
 			task->db = db;
 			return 1;
@@ -326,7 +290,6 @@ backup_error:;
 		case 1:
 			if (zone->mode == 0)
 				task->plan.plan = SI_COMPACT_INDEX;
-			si_ref(db->index, SI_REFBE);
 			db->workers[SC_QLRU]++;
 			task->db = db;
 			return 1;
@@ -347,7 +310,6 @@ backup_error:;
 		case 1:
 			if (zone->mode == 0)
 				task->plan.plan = SI_COMPACT_INDEX;
-			si_ref(db->index, SI_REFBE);
 			db->workers[SC_QBRANCH]++;
 			task->db = db;
 			return 1;
@@ -364,7 +326,6 @@ backup_error:;
 		task->plan.a = zone->branch_wm;
 		rc = sc_plan(s, &task->plan);
 		if (rc == 1) {
-			si_ref(db->index, SI_REFBE);
 			task->db = db;
 			task->gc = 1;
 			return 1;
@@ -378,7 +339,6 @@ backup_error:;
 	rc = sc_planquota(s, &task->plan, SC_QBRANCH, zone->branch_prio);
 	if (rc == 1) {
 		db->workers[SC_QBRANCH]++;
-		si_ref(db->index, SI_REFBE);
 		task->db = db;
 		task->gc = 1;
 		return 1;
@@ -390,7 +350,6 @@ backup_error:;
 	task->plan.b = zone->compact_mode;
 	rc = sc_plan(s, &task->plan);
 	if (rc == 1) {
-		si_ref(db->index, SI_REFBE);
 		task->db = db;
 		return 1;
 	}
@@ -493,12 +452,6 @@ sc_schedule(sc *s, sctask *task, scworker *w, uint64_t vlsn)
 	ss_mutexlock(&s->lock);
 	/* start periodic tasks */
 	sc_periodic(s, task, zone, now);
-	/* database shutdown-drop */
-	rc = sc_do_shutdown(s, task);
-	if (rc) {
-		ss_mutexunlock(&s->lock);
-		return rc;
-	}
 	/* peek a database */
 	scdb *db = sc_peek(s);
 	if (ssunlikely(db == NULL)) {
@@ -546,8 +499,6 @@ sc_complete(sc *s, sctask *t)
 		db->workers[SC_QLRU]--;
 		break;
 	}
-	if (db)
-		si_unref(db->index, SI_REFBE);
 	if (t->rotate == 1)
 		s->rotate = 0;
 	ss_mutexunlock(&s->lock);
@@ -562,7 +513,6 @@ sc_taskinit(sctask *task)
 	task->rotate = 0;
 	task->gc = 0;
 	task->db = NULL;
-	task->shutdown = NULL;
 }
 
 int sc_step(sc *s, scworker *w, uint64_t vlsn)

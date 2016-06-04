@@ -26,8 +26,6 @@ STS_TESTS = unit/ss_a.test.o \
             generic/method.test.o \
             generic/profiler.test.o \
             generic/repository.test.o \
-            generic/shutdown.test.o \
-            generic/drop.test.o \
             generic/ddl.test.o \
             generic/multipart.test.o \
             generic/document.test.o \

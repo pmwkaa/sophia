@@ -43,9 +43,6 @@ error:
 
 int se_recoverend(sedb *db)
 {
-	int status = sr_status(&db->index->status);
-	if (ssunlikely(status == SR_DROP_PENDING))
-		return 0;
 	sr_statusset(&db->index->status, SR_ONLINE);
 	return 0;
 }

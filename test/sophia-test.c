@@ -49,8 +49,6 @@ extern stgroup *error_group(void);
 extern stgroup *method_group(void);
 extern stgroup *profiler_group(void);
 extern stgroup *repository_group(void);
-extern stgroup *shutdown_group(void);
-extern stgroup *drop_group(void);
 extern stgroup *ddl_group(void);
 extern stgroup *multipart_group(void);
 extern stgroup *document_group(void);
@@ -229,8 +227,6 @@ main(int argc, char *argv[])
 	st_planadd(plan, method_group());
 	st_planadd(plan, profiler_group());
 	st_planadd(plan, repository_group());
-	st_planadd(plan, shutdown_group());
-	st_planadd(plan, drop_group());
 	st_planadd(plan, ddl_group());
 	st_planadd(plan, multipart_group());
 	st_planadd(plan, env_group());

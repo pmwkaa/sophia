@@ -11,11 +11,6 @@
 
 typedef struct si si;
 
-typedef enum {
-	SI_REFFE,
-	SI_REFBE
-} siref;
-
 struct si {
 	srstatus   status;
 	ssmutex    lock;
@@ -34,9 +29,6 @@ struct si {
 	uint64_t   read_disk;
 	uint64_t   read_cache;
 	uint64_t   size;
-	ssspinlock ref_lock;
-	uint32_t   ref_fe;
-	uint32_t   ref_be;
 	uint32_t   gc_count;
 	sslist     gc;
 	ssbuf      readbuf;
@@ -78,10 +70,6 @@ int si_close(si*);
 int si_insert(si*, sinode*);
 int si_remove(si*, sinode*);
 int si_replace(si*, sinode*, sinode*);
-int si_refs(si*);
-int si_refof(si*, siref);
-int si_ref(si*, siref);
-int si_unref(si*, siref);
 int si_plan(si*, siplan*);
 int si_execute(si*, sdc*, siplan*, uint64_t, uint64_t);
 

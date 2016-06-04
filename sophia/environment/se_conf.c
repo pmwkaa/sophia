@@ -455,22 +455,28 @@ se_confdb_set(srconf *c ssunused, srconfstmt *s)
 {
 	/* set(db) */
 	se *e = s->ptr;
-	if (s->op == SR_WRITE) {
-		char *name = s->value;
-		sedb *db = (sedb*)se_dbmatch(e, name);
-		if (ssunlikely(db)) {
-			sr_error(&e->error, "database '%s' already exists", name);
-			return -1;
-		}
-		db = (sedb*)se_dbnew(e, name, s->valuesize);
-		if (ssunlikely(db == NULL))
-			return -1;
-		so_listadd(&e->db, &db->o);
-		return 0;
+	if (s->op != SR_WRITE) {
+		sr_error(&e->error, "%s", "bad operation");
+		return -1;
 	}
-
-	sr_error(&e->error, "%s", "bad operation");
-	return -1;
+	/* ensure that environment is offline */
+	int status = sr_status(&e->status);
+	if (status != SR_OFFLINE) {
+		sr_error(&e->error, "%s", "bad operation: environment is online");
+		return -1;
+	}
+	/* define database */
+	char *name = s->value;
+	sedb *db = (sedb*)se_dbmatch(e, name);
+	if (ssunlikely(db)) {
+		sr_error(&e->error, "database '%s' already exists", name);
+		return -1;
+	}
+	db = (sedb*)se_dbnew(e, name, s->valuesize);
+	if (ssunlikely(db == NULL))
+		return -1;
+	so_listadd(&e->db, &db->o);
+	return 0;
 }
 
 static inline int
@@ -484,13 +490,6 @@ se_confdb_get(srconf *c, srconfstmt *s)
 	}
 	assert(c->ptr != NULL);
 	sedb *db = c->ptr;
-	int status = sr_status(&db->index->status);
-	if (status == SR_SHUTDOWN_PENDING ||
-	    status == SR_DROP_PENDING) {
-		sr_error(&e->error, "%s", "database has been scheduled for shutdown/drop");
-		return -1;
-	}
-	si_ref(db->index, SI_REFFE);
 	*(void**)s->value = db;
 	return 0;
 }
@@ -704,7 +703,6 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc)
 		sr_C(&p, pc, se_confv_dboffline, "amqf", SS_U32, &o->scheme->amqf, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "path", SS_STRINGPTR, &o->scheme->path, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "path_fail_on_exists", SS_U32, &o->scheme->path_fail_on_exists, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "path_fail_on_drop", SS_U32, &o->scheme->path_fail_on_drop, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "mmap", SS_U32, &o->scheme->mmap, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "sync", SS_U32, &o->scheme->sync, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "node_preload", SS_U32, &o->scheme->node_compact_load, 0, o);

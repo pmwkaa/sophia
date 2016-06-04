@@ -143,7 +143,6 @@ github_117(void)
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
-	t( sp_open(env) == 0 );
 	int i = 0;
 	int max = 30;
 	while (i < max) {
@@ -152,9 +151,9 @@ github_117(void)
 		t( sp_setstring(env, "db", name + 3, 0) == 0 );
 		void *db = sp_getobject(env, name);
 		t( db != NULL );
-		t( sp_open(db) == 0 );
 		i++;
 	}
+	t( sp_open(env) == 0 );
 	t( sp_destroy(env) == 0 );
 }
 
@@ -192,7 +191,6 @@ github_118(void)
 	t( strcmp(sz, "[0]:1-1 ") == 0 );
 	free(sz);
 
-	t( sp_destroy(db) == 0 );
 	t( sp_destroy(env) == 0 );
 }
 

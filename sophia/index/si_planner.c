@@ -78,10 +78,6 @@ int si_plannertrace(siplan *p, uint32_t id, sstrace *t)
 	case SI_BACKUP:
 	case SI_BACKUPEND: plan = "backup";
 		break;
-	case SI_SHUTDOWN: plan = "database shutdown";
-		break;
-	case SI_DROP: plan = "database drop";
-		break;
 	case SI_SNAPSHOT: plan = "snapshot";
 		break;
 	case SI_ANTICACHE: plan = "anticache";
@@ -459,26 +455,6 @@ match:
 }
 
 static inline int
-si_plannerpeek_shutdown(siplanner *p, siplan *plan)
-{
-	si *index = p->i;
-	int status = sr_status(&index->status);
-	switch (status) {
-	case SR_DROP:
-		if (si_refs(index) > 0)
-			return 2;
-		plan->plan = SI_DROP;
-		return 1;
-	case SR_SHUTDOWN:
-		if (si_refs(index) > 0)
-			return 2;
-		plan->plan = SI_SHUTDOWN;
-		return 1;
-	}
-	return 0;
-}
-
-static inline int
 si_plannerpeek_nodegc(siplanner *p, siplan *plan)
 {
 	si *index = p->i;
@@ -529,9 +505,6 @@ int si_planner(siplanner *p, siplan *plan)
 		return si_plannerpeek_anticache(p, plan);
 	case SI_LRU:
 		return si_plannerpeek_lru(p, plan);
-	case SI_SHUTDOWN:
-	case SI_DROP:
-		return si_plannerpeek_shutdown(p, plan);
 	}
 	return -1;
 }

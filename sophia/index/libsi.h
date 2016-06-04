@@ -23,7 +23,6 @@
 #include <si_write.h>
 #include <si_read.h>
 #include <si_iter.h>
-#include <si_drop.h>
 #include <si_anticache.h>
 #include <si_snapshot.h>
 #include <si_backup.h>

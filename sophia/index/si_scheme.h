@@ -22,7 +22,6 @@ struct sischeme {
 	char       *name;
 	char       *path;
 	uint32_t    path_fail_on_exists;
-	uint32_t    path_fail_on_drop;
 	char       *path_backup;
 	uint32_t    mmap;
 	sistorage   storage;

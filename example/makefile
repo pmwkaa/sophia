@@ -2,7 +2,7 @@
 # sophia examples
 #
 
-all: validate clean crud multipart upsert transaction cursor view
+all: validate clean crud multipart upsert transaction cursor
 validate:
 	@if [ ! -f ../sophia.o ]; then \
 		echo "Please build sophia first."; \
@@ -19,8 +19,6 @@ transaction:
 	gcc transaction.c ../libsophia.a -I../ -pedantic -std=c99 -Wall -Wextra -pthread -g -o transaction
 cursor:
 	gcc cursor.c ../libsophia.a -I../ -pedantic -std=c99 -Wall -Wextra -pthread -g -o cursor
-view:
-	gcc view.c ../libsophia.a -I../ -pedantic -std=c99 -Wall -Wextra -pthread -g -o view
 clean:
 	@rm -rf _test
 	@rm -f crud
@@ -28,7 +26,6 @@ clean:
 	@rm -f upsert
 	@rm -f transaction
 	@rm -f cursor
-	@rm -f view
 
 .PHONY: all validate clean
 

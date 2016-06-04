@@ -48,9 +48,6 @@ si *si_init(sr *r, so *object)
 	i->snapshot_run = 0;
 	i->snapshot     = 0;
 	i->n            = 0;
-	ss_spinlockinit(&i->ref_lock);
-	i->ref_fe       = 0;
-	i->ref_be       = 0;
 	i->object       = object;
 	return i;
 }
@@ -83,7 +80,6 @@ int si_close(si *i)
 	ss_buffree(&i->readbuf, i->r.a);
 	si_plannerfree(&i->p, i->r.a);
 	ss_mutexfree(&i->lock);
-	ss_spinlockfree(&i->ref_lock);
 	sr_statusfree(&i->status);
 	si_schemefree(&i->scheme, &i->r);
 	ss_free(i->r.a, i);
@@ -120,54 +116,6 @@ int si_replace(si *i, sinode *o, sinode *n)
 {
 	ss_rbreplace(&i->i, &o->node, &n->node);
 	return 0;
-}
-
-int si_refs(si *i)
-{
-	ss_spinlock(&i->ref_lock);
-	int v = i->ref_be + i->ref_fe;
-	ss_spinunlock(&i->ref_lock);
-	return v;
-}
-
-int si_refof(si *i, siref ref)
-{
-	int v = 0;
-	ss_spinlock(&i->ref_lock);
-	if (ref == SI_REFBE)
-		v = i->ref_be;
-	else
-		v = i->ref_fe;
-	ss_spinunlock(&i->ref_lock);
-	return v;
-}
-
-int si_ref(si *i, siref ref)
-{
-	ss_spinlock(&i->ref_lock);
-	if (ref == SI_REFBE)
-		i->ref_be++;
-	else
-		i->ref_fe++;
-	ss_spinunlock(&i->ref_lock);
-	return 0;
-}
-
-int si_unref(si *i, siref ref)
-{
-	int prev_ref = 0;
-	ss_spinlock(&i->ref_lock);
-	if (ref == SI_REFBE) {
-		prev_ref = i->ref_be;
-		if (i->ref_be > 0)
-			i->ref_be--;
-	} else {
-		prev_ref = i->ref_fe;
-		if (i->ref_fe > 0)
-			i->ref_fe--;
-	}
-	ss_spinunlock(&i->ref_lock);
-	return prev_ref;
 }
 
 int si_plan(si *i, siplan *plan)
@@ -211,17 +159,8 @@ int si_execute(si *i, sdc *c, siplan *plan,
 	case SI_BACKUPEND:
 		rc = si_backup(i, c, plan);
 		break;
-	case SI_SHUTDOWN:
-		rc = si_close(i);
-		break;
-	case SI_DROP:
-		rc = si_drop(i);
-		break;
 	}
 	/* garbage collect buffers */
-	if (plan->plan != SI_SHUTDOWN &&
-	    plan->plan != SI_DROP) {
-		sd_cgc(c, &i->r, i->scheme.buf_gc_wm);
-	}
+	sd_cgc(c, &i->r, i->scheme.buf_gc_wm);
 	return rc;
 }

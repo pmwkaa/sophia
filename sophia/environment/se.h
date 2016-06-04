@@ -20,8 +20,6 @@ struct se {
 	sopool      tx;
 	sopool      confcursor;
 	sopool      confcursor_kv;
-	sopool      view;
-	sopool      viewdb;
 	solist      db;
 	srseq       seq;
 	seconf      conf;

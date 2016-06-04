@@ -31,13 +31,6 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 	/* validate database status */
 	int status = sr_status(&db->index->status);
 	switch (status) {
-	case SR_SHUTDOWN_PENDING:
-	case SR_DROP_PENDING:
-		if (ssunlikely(! se_dbvisible(db, t->t.id))) {
-			sr_error(&e->error, "%s", "database is invisible for the transaction");
-			goto error;
-		}
-		break;
 	case SR_RECOVER:
 	case SR_ONLINE: break;
 	default: goto error;
@@ -123,13 +116,6 @@ se_txget(so *o, so *v)
 	/* validate database */
 	int status = sr_status(&db->index->status);
 	switch (status) {
-	case SR_SHUTDOWN_PENDING:
-	case SR_DROP_PENDING:
-		if (ssunlikely(! se_dbvisible(db, t->t.id))) {
-			sr_error(&e->error, "%s", "database is invisible for the transaction");
-			goto error;
-		}
-		break;
 	case SR_ONLINE:
 	case SR_RECOVER:
 		break;
@@ -159,7 +145,6 @@ se_txend(setx *t, int rlb, int conflict)
 	sx_gc(&t->t);
 	sv_logreset(&t->log);
 	sr_stattx(&e->stat, t->start, count, rlb, conflict);
-	se_dbunbind(e, t->t.id);
 	so_mark_destroyed(&t->o);
 	so_poolgc(&e->tx, &t->o);
 }
@@ -278,13 +263,11 @@ se_txget_int(so *o, const char *path)
 static soif setxif =
 {
 	.open         = NULL,
-	.close        = NULL,
 	.destroy      = se_txrollback,
 	.free         = se_txfree,
 	.error        = NULL,
 	.document     = NULL,
 	.poll         = NULL,
-	.drop         = NULL,
 	.setstring    = se_txset_string,
 	.setint       = se_txset_int,
 	.setobject    = NULL,
@@ -322,7 +305,6 @@ so *se_txnew(se *e)
 	t->start = ss_utime();
 	t->lsn = 0;
 	sx_begin(&e->xm, &t->t, SX_RW, &t->log, UINT64_MAX);
-	se_dbbind(e);
 	so_pooladd(&e->tx, &t->o);
 	return &t->o;
 }
