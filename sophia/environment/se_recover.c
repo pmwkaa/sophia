@@ -136,14 +136,17 @@ error:
 static inline int
 se_recoverlogpool(se *e)
 {
+	sr_log(&e->log, "loading journals '%s'", e->lp.conf->path);
+	uint32_t current = 1;
 	sslist *i;
 	ss_listforeach(&e->lp.list, i) {
 		sl *log = sscast(i, sl, link);
-		char *path = ss_pathof(&log->file.path);
-		sr_log(&e->log, "loading journal '%s'", path);
+		sr_log(&e->log, "(%" PRIu32 "/%" PRIu32 ") %020" PRIu64".log",
+		       current, e->lp.n, log->id);
 		int rc = se_recoverlog(e, log);
 		if (ssunlikely(rc == -1))
 			return -1;
+		current++;
 	}
 	return 0;
 }
