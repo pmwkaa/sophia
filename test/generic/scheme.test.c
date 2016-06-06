@@ -140,10 +140,70 @@ scheme_test1(void)
 	t( sp_destroy(env) == 0 );
 }
 
+static int
+comparator(char *a, int a_size,
+           char *b, int b_size, void *arg)
+{
+	uint32_t av = *(uint32_t*)a;
+	uint32_t bv = *(uint32_t*)b;
+	if (av == bv)
+		return 0;
+	return (av > bv) ? 1 : -1;
+}
+
+static void
+scheme_comparator(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "string,key(0)", 0) == 0 );
+	t( sp_setstring(env, "db.test.index.comparator", (char*)(intptr_t)comparator, 0) );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(env) == 0 );
+
+	uint32_t key = 0;
+	while (key < 10) {
+		void *o = sp_document(db);
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_set(db, o) == 0 );
+		key++;
+	}
+
+	key = 4;
+	void *o = sp_document(db);
+	sp_setstring(o, "key", &key, sizeof(key));
+	o = sp_get(db, o);
+	t( o != NULL );
+	sp_destroy(o);
+
+	key = 0;
+	o = sp_document(db);
+	sp_setstring(o, "order", ">=", 0);
+	sp_setstring(o, "key", &key, sizeof(key));
+	void *c = sp_cursor(env);
+	while ((o = sp_get(c, o))) {
+		t( *(uint32_t*)sp_getstring(o, "key", NULL) == key );
+		key++;
+	}
+	t(key == 10);
+	sp_destroy(c);
+
+	t( sp_destroy(env) == 0 );
+}
+
 stgroup *scheme_group(void)
 {
 	stgroup *group = st_group("scheme");
 	st_groupadd(group, st_test("test0", scheme_test0));
 	st_groupadd(group, st_test("test1", scheme_test1));
+	st_groupadd(group, st_test("comparator", scheme_comparator));
 	return group;
 }

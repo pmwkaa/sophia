@@ -494,6 +494,37 @@ se_confdb_get(srconf *c, srconfstmt *s)
 }
 
 static inline int
+se_confdb_comparator(srconf *c, srconfstmt *s)
+{
+	if (s->op != SR_WRITE)
+		return se_confv(c, s);
+	sedb *db = c->ptr;
+	if (ssunlikely(se_dbactive(db))) {
+		sr_error(s->r->e, "write to %s is offline-only", s->path);
+		return -1;
+	}
+	/* set compare function */
+	sfcmpf compare = (sfcmpf)(uintptr_t)s->value;
+	sf_schemeset_comparator(&db->scheme->scheme, compare);
+	return 0;
+}
+
+static inline int
+se_confdb_comparatorarg(srconf *c, srconfstmt *s)
+{
+	if (s->op != SR_WRITE)
+		return se_confv(c, s);
+	sedb *db = c->ptr;
+	if (ssunlikely(se_dbactive(db))) {
+		sr_error(s->r->e, "write to %s is offline-only", s->path);
+		return -1;
+	}
+	/* set compare function argument */
+	sf_schemeset_comparatorarg(&db->scheme->scheme, s->value);
+	return 0;
+}
+
+static inline int
 se_confdb_upsert(srconf *c, srconfstmt *s)
 {
 	if (s->op != SR_WRITE)
@@ -712,6 +743,8 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc)
 		sr_C(&p, pc, se_confv_dboffline, "compression_cold", SS_STRINGPTR, &o->scheme->compression_cold_sz, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "lru", SS_U64, &o->scheme->lru, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "lru_step", SS_U32, &o->scheme->lru_step, 0, o);
+		sr_C(&p, pc, se_confdb_upsert, "comparator", SS_STRING, NULL, 0, o);
+		sr_C(&p, pc, se_confdb_upsertarg, "comparator_arg", SS_STRING, NULL, 0, o);
 		sr_C(&p, pc, se_confdb_upsert, "upsert", SS_STRING, NULL, 0, o);
 		sr_C(&p, pc, se_confdb_upsertarg, "upsert_arg", SS_STRING, NULL, 0, o);
 		sr_c(&p, pc, se_confdb_branch, "branch", SS_FUNCTION, o);

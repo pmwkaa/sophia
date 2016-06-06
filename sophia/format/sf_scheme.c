@@ -66,9 +66,8 @@ sf_cmpu64_reverse(char *a, int asz ssunused, char *b, int bsz ssunused,
 }
 
 sshot int
-sf_schemecompare(char *a, char *b, void *arg)
+sf_compare(sfscheme *s, char *a, char *b)
 {
-	sfscheme *s = arg;
 	sffield **part = s->keys;
 	sffield **last = part + s->keys_count;
 	int rc;
@@ -87,7 +86,7 @@ sf_schemecompare(char *a, char *b, void *arg)
 }
 
 sshot int
-sf_schemecompare_prefix(sfscheme *s, char *prefix, uint32_t prefixsize, char *key)
+sf_compareprefix(sfscheme *s, char *prefix, uint32_t prefixsize, char *key)
 {
 	uint32_t keysize;
 	key = sf_fieldof(s, 0, key, &keysize);
@@ -104,8 +103,8 @@ void sf_schemeinit(sfscheme *s)
 	s->keys_count = 0;
 	s->var_offset = 0;
 	s->var_count  = 0;
-	s->cmp = sf_schemecompare;
-	s->cmparg = s;
+	s->cmp = NULL;
+	s->cmparg = NULL;
 }
 
 void sf_schemefree(sfscheme *s, ssa *a)
@@ -210,6 +209,10 @@ sf_schemevalidate(sfscheme *s, ssa *a)
 		sffield *f = s->fields[i];
 		if (f->options == NULL) {
 			return -1;
+		}
+		/* set user compare function */
+		if (s->cmp) {
+			f->cmp = s->cmp;
 		}
 		char opts[256];
 		snprintf(opts, sizeof(opts), "%s", f->options);

@@ -29,14 +29,14 @@ struct sffield {
 };
 
 struct sfscheme {
-	sffield       **fields;
-	sffield       **keys;
-	int             fields_count;
-	int             keys_count;
-	sfcmpversionf   cmp;
-	void           *cmparg;
-	int             var_offset;
-	int             var_count;
+	sffield **fields;
+	sffield **keys;
+	int       fields_count;
+	int       keys_count;
+	sfcmpf    cmp;
+	void     *cmparg;
+	int       var_offset;
+	int       var_count;
 };
 
 static inline sffield*
@@ -94,6 +94,18 @@ int  sf_schemevalidate(sfscheme*, ssa*);
 int  sf_schemesave(sfscheme*, ssa*, ssbuf*);
 int  sf_schemeload(sfscheme*, ssa*, char*, int);
 
+static inline void
+sf_schemeset_comparator(sfscheme *s, sfcmpf cmp)
+{
+	s->cmp = cmp;
+}
+
+static inline void
+sf_schemeset_comparatorarg(sfscheme *s, void *arg)
+{
+	s->cmparg = arg;
+}
+
 sffield*
 sf_schemefind(sfscheme*, char*);
 
@@ -102,21 +114,6 @@ sf_schemeof(sfscheme *s, int pos)
 {
 	assert(pos < s->fields_count);
 	return s->fields[pos];
-}
-
-int  sf_schemecompare_prefix(sfscheme*, char*, uint32_t, char*);
-int  sf_schemecompare(char*, char*, void*);
-
-static inline int
-sf_compare(sfscheme *s, char *a, char *b)
-{
-	return s->cmp(a, b, s->cmparg);
-}
-
-static inline int
-sf_compareprefix(sfscheme *s, char *a, int asize, char *b, int bsize ssunused)
-{
-	return sf_schemecompare_prefix(s, a, asize, b);
 }
 
 static inline int
@@ -134,5 +131,8 @@ sf_schemeeq(sfscheme *a, sfscheme *b)
 	}
 	return 1;
 }
+
+int  sf_compare(sfscheme*, char*, char*);
+int  sf_compareprefix(sfscheme*, char*, uint32_t, char*);
 
 #endif

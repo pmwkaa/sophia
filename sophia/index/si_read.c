@@ -108,8 +108,7 @@ si_getresult(siread *q, sv *v, int compare)
 	if (q->prefix) {
 		rc = sf_compareprefix(q->r->scheme,
 		                      q->prefix,
-		                      q->prefix_size,
-		                      sv_pointer(v), sv_size(v));
+		                      q->prefix_size, sv_pointer(v));
 		if (ssunlikely(! rc))
 			return 0;
 	}
@@ -433,8 +432,7 @@ next_node:
 	/* do prefix search */
 	if (q->prefix && rc) {
 		rc = sf_compareprefix(q->r->scheme, q->prefix, q->prefix_size,
-		                      sv_pointer(v),
-		                      sv_size(v));
+		                      sv_pointer(v));
 	}
 	if (sslikely(rc == 1)) {
 		if (ssunlikely(si_readdup(q, v) == -1))

@@ -20,8 +20,7 @@ example/crud
 example/multipart
 example/upsert
 example/transaction
-example/batch
 example/cursor
-example/view
+example/comparator
 documentation/_book
 documentation/node_modules
