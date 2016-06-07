@@ -286,6 +286,29 @@ main(int argc, char *argv[])
 	st_planadd(plan, anticache_group());
 	st_suiteadd(&st_r.suite, plan);
 
+	plan = st_plan("memory");
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rmrf"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "init"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rt"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
+	st_planadd(plan, leak_group());
+	st_suiteadd(&st_r.suite, plan);
+
+	plan = st_plan("crash");
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rmrf"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "init"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rt"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
+	st_planadd(plan, durability_group());
+	st_planadd(plan, oom_group());
+	st_planadd(plan, io_group());
+	st_planadd(plan, recover_loop_group());
+	st_suiteadd(&st_r.suite, plan);
+
 	if (! full) {
 		plan = st_plan("functional_truncate_recover_fast");
 		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rmrf"));
@@ -386,29 +409,6 @@ main(int argc, char *argv[])
 	st_planadd(plan, cursor_group());
 	st_suiteadd(&st_r.suite, plan);
 #endif
-
-	plan = st_plan("memory");
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rmrf"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "init"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rt"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
-	st_planadd(plan, leak_group());
-	st_suiteadd(&st_r.suite, plan);
-
-	plan = st_plan("crash");
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rmrf"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "init"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rt"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
-	st_planadd(plan, durability_group());
-	st_planadd(plan, oom_group());
-	st_planadd(plan, io_group());
-	st_planadd(plan, recover_loop_group());
-	st_suiteadd(&st_r.suite, plan);
 
 	plan = st_plan("multithread");
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rmrf"));

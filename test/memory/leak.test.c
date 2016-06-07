@@ -92,6 +92,48 @@ leak_set_get(void)
 }
 
 static void
+leak_set_cursor(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(env) == 0 );
+
+	uint32_t key = 0;
+	while (key < 10) {
+		void *o = sp_document(db);
+		sp_setstring(o, "key", &key, sizeof(key));
+		t( sp_set(db, o) == 0 );
+		key++;
+	}
+
+	t( sp_getint(env, "performance.documents") == 10 );
+
+	void *cursor = sp_cursor(env);
+	void *o = sp_document(db);
+	while ((o = sp_get(cursor, o))) {
+	}
+	sp_destroy(cursor);
+
+	t( sp_getint(env, "performance.documents") == 10 );
+	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_getint(env, "performance.documents") == 0 );
+
+	t( sp_destroy(env) == 0 );
+}
+
+static void
 leak_tx_set_commit(void)
 {
 	void *env = sp_env();
@@ -536,6 +578,7 @@ stgroup *leak_group(void)
 	stgroup *group = st_group("leak");
 	st_groupadd(group, st_test("set", leak_set));
 	st_groupadd(group, st_test("set_get", leak_set_get));
+	st_groupadd(group, st_test("set_cursor", leak_set_cursor));
 	st_groupadd(group, st_test("tx_set_commit", leak_tx_set_commit));
 	st_groupadd(group, st_test("tx_set_get_commit", leak_tx_set_get_commit));
 	st_groupadd(group, st_test("tx_set_get_rollback", leak_tx_set_get_rollback));

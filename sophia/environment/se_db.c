@@ -273,8 +273,8 @@ se_dbread(sedb *db, sedocument *o, sx *x, uint64_t vlsn,
 	uint64_t start  = ss_utime();
 
 	/* prepare the key */
-	int auto_close = !o->created;
-	int rc = so_open(&o->o);
+	int auto_close = o->created <= 1;
+	int rc = se_document_create(o);
 	if (ssunlikely(rc == -1))
 		goto error;
 	rc = se_document_validate_ro(o, &db->o);
@@ -373,7 +373,7 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 {
 	se *e = se_of(&db->o);
 
-	int auto_close = !o->created;
+	int auto_close = o->created <= 1;
 	if (ssunlikely(! sr_online(&db->index->status)))
 		goto error;
 
@@ -386,7 +386,7 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 	}
 
 	/* create document */
-	rc = so_open(&o->o);
+	rc = se_document_create(o);
 	if (ssunlikely(rc == -1))
 		goto error;
 	rc = se_document_validate(o, &db->o, flags);

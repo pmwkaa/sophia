@@ -215,9 +215,10 @@ SP_API int64_t sp_getint(void *ptr, const char *path)
 	return rc;
 }
 
-SP_API int sp_set(void *ptr, void *v)
+SP_API int sp_set(void *ptr, void *ptr_arg)
 {
 	so *o = sp_cast(ptr, __func__);
+	so *v = sp_cast(ptr_arg, __func__);
 	if (ssunlikely(o->i->set == NULL)) {
 		sp_unsupported(o, __func__);
 		return -1;
@@ -229,9 +230,10 @@ SP_API int sp_set(void *ptr, void *v)
 	return rc;
 }
 
-SP_API int sp_upsert(void *ptr, void *v)
+SP_API int sp_upsert(void *ptr, void *ptr_arg)
 {
 	so *o = sp_cast(ptr, __func__);
+	so *v = sp_cast(ptr_arg, __func__);
 	if (ssunlikely(o->i->upsert == NULL)) {
 		sp_unsupported(o, __func__);
 		return -1;
@@ -243,9 +245,10 @@ SP_API int sp_upsert(void *ptr, void *v)
 	return rc;
 }
 
-SP_API int sp_delete(void *ptr, void *v)
+SP_API int sp_delete(void *ptr, void *ptr_arg)
 {
 	so *o = sp_cast(ptr, __func__);
+	so *v = sp_cast(ptr_arg, __func__);
 	if (ssunlikely(o->i->del == NULL)) {
 		sp_unsupported(o, __func__);
 		return -1;
@@ -257,9 +260,12 @@ SP_API int sp_delete(void *ptr, void *v)
 	return rc;
 }
 
-SP_API void *sp_get(void *ptr, void *v)
+SP_API void *sp_get(void *ptr, void *ptr_arg)
 {
 	so *o = sp_cast(ptr, __func__);
+	so *v = ptr_arg;
+	if (v != NULL)
+		v = sp_cast(ptr_arg, __func__);
 	if (ssunlikely(o->i->get == NULL)) {
 		sp_unsupported(o, __func__);
 		return NULL;

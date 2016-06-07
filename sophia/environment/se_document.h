@@ -42,6 +42,7 @@ struct sedocument {
 };
 
 so *se_document_new(se*, so*, sv*);
+int se_document_create(sedocument*);
 
 static inline int
 se_document_validate_ro(sedocument *o, so *dest)

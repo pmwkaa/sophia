@@ -91,12 +91,15 @@ se_document_opt(const char *path)
 	return SE_DOCUMENT_FIELD;
 }
 
-static inline int
-se_document_create(sedocument *o)
+int se_document_create(sedocument *o)
 {
 	sedb *db = (sedb*)o->o.parent;
 	se *e = se_of(&db->o);
 
+	if (ssunlikely(o->created)) {
+		assert(o->v.v != NULL);
+		return 0;
+	}
 	assert(o->v.v == NULL);
 
 	/* reuse document */
@@ -115,6 +118,7 @@ se_document_create(sedocument *o)
 		if (ssunlikely(v == NULL))
 			return sr_oom(&e->error);
 		sv_init(&o->v, &sv_vif, v, NULL);
+		o->created = 1;
 		return 0;
 	}
 
@@ -156,6 +160,7 @@ allocate:
 	if (ssunlikely(v == NULL))
 		return sr_oom(&e->error);
 	sv_init(&o->v, &sv_vif, v, NULL);
+	o->created = 1;
 	return 0;
 }
 
@@ -163,14 +168,12 @@ static int
 se_document_open(so *o)
 {
 	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
-	if (sslikely(v->created)) {
-		assert(v->v.v != NULL);
-		return 0;
-	}
+	if (ssunlikely(v->created))
+		return -1;
 	int rc = se_document_create(v);
 	if (ssunlikely(rc == -1))
 		return -1;
-	v->created = 1;
+	v->created = 2;
 	return 0;
 }
 
@@ -429,11 +432,11 @@ se_document_setobject(so *o, const char *path, void *object)
 		assert(v->v.v == NULL);
 		if (ssunlikely(object == o->parent))
 			return sr_error(&e->error, "%s", "bad document operation");
-		if (ssunlikely(! reuse->created))
+		if (ssunlikely(reuse->created != 2))
 			return sr_error(&e->error, "%s", "bad document operation");
 		sv_init(&v->v, &sv_vif, reuse->v.v, NULL);
 		sv_vref(v->v.v);
-		v->created = 1;
+		v->created = 2;
 		break;
 	}
 	default:

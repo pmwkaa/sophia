@@ -26,7 +26,7 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 	se *e = se_of(&t->o);
 	sedb *db = se_cast(o->o.parent, sedb*, SEDB);
 
-	int auto_close = !o->created;
+	int auto_close = o->created <= 1;
 
 	/* validate database status */
 	int status = sr_status(&db->index->status);
@@ -45,7 +45,7 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 	}
 
 	/* create document */
-	rc = so_open(&o->o);
+	rc = se_document_create(o);
 	if (ssunlikely(rc == -1))
 		goto error;
 	rc = se_document_validate(o, &db->o, flags);
