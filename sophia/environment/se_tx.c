@@ -86,8 +86,12 @@ se_txupsert(so *o, so *v)
 	sedocument *key = se_cast(v, sedocument*, SEDOCUMENT);
 	se *e = se_of(&t->o);
 	sedb *db = se_cast(v->parent, sedb*, SEDB);
-	if (! sf_upserthas(&db->scheme->fmt_upsert))
-		return sr_error(&e->error, "%s", "upsert callback is not set");
+	if (! sf_upserthas(&db->scheme->fmt_upsert)) {
+		if (key->created <= 1)
+			so_destroy(v);
+		sr_error(&e->error, "%s", "upsert callback is not set");
+		return -1;
+	}
 	return se_txwrite(t, key, SVUPSERT);
 }
 
@@ -121,7 +125,7 @@ se_txget(so *o, so *v)
 		break;
 	default: goto error;
 	}
-	return se_dbread(db, key, &t->t, t->t.vlsn, NULL);
+	return se_read(db, key, &t->t, t->t.vlsn, NULL);
 error:
 	so_destroy(&key->o);
 	return NULL;

@@ -54,7 +54,7 @@ se_cursorget(so *o, so *v)
 	if (ssunlikely(! key->orderset))
 		key->order = SS_GTE;
 	sedocument *ret =
-		(sedocument*)se_dbread(db, key, NULL, c->t.vlsn, c->cache);
+		(sedocument*)se_read(db, key, NULL, c->t.vlsn, c->cache);
 	if (ret == NULL)
 		return NULL;
 	c->read_disk  += ret->read_disk;
