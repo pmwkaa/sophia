@@ -27,7 +27,7 @@ sv_v_kv(void)
 	pv[1].pointer = value;
 	pv[1].size = sizeof(value);
 
-	svv *vv = sv_vbuild(&st_r.r, pv, 0);
+	svv *vv = sv_vbuild(&st_r.r, pv);
 	t( vv != NULL );
 	vv->flags = 0;
 	vv->lsn = 10;

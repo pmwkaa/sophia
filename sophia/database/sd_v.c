@@ -35,12 +35,6 @@ sd_vifpointer(sv *v)
 }
 
 static uint32_t
-sd_viftimestamp(sv *v)
-{
-	return ((sdv*)v->v)->timestamp;
-}
-
-static uint32_t
 sd_vifsize(sv *v)
 {
 	return ((sdv*)v->v)->size;
@@ -51,7 +45,6 @@ svif sd_vif =
 	.flags     = sd_vifflags,
 	.lsn       = sd_viflsn,
 	.lsnset    = NULL,
-	.timestamp = sd_viftimestamp,
 	.pointer   = sd_vifpointer,
 	.size      = sd_vifsize
 };
@@ -67,7 +60,6 @@ svif sd_vrawif =
 	.flags     = sd_vifflags,
 	.lsn       = sd_viflsn,
 	.lsnset    = NULL,
-	.timestamp = sd_viftimestamp,
 	.pointer   = sd_vrawifpointer,
 	.size      = sd_vifsize
 };

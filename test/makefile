@@ -118,7 +118,7 @@ validate:
 		exit 1; \
 	fi
 .c.o:
-	@echo "cc $<"
+	@echo "$(CC) $<"
 	@$(CC) $(STS_CFLAGS) -c $< -o $@
 clean:
 	@rm -f $(STS_BINARY)

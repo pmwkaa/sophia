@@ -28,7 +28,8 @@ expire_test0(void)
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "ttl", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.ttl", "u32,timestamp,expire", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "db.test.expire", 1) == 0 );
 	t( sp_open(env) == 0 );
@@ -39,7 +40,6 @@ expire_test0(void)
 	while ( i < 100 ) {
 		void *o = sp_document(db);
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
@@ -65,7 +65,8 @@ expire_test1(void)
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "ttl", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.ttl", "u32,timestamp,expire", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "db.test.expire", 1) == 0 );
 	t( sp_open(env) == 0 );
@@ -76,7 +77,6 @@ expire_test1(void)
 	while ( i < 100 ) {
 		void *o = sp_document(db);
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
@@ -104,7 +104,8 @@ expire_test2(void)
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "ttl", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.ttl", "u32,timestamp,expire", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "db.test.expire", 1) == 0 );
 	t( sp_open(env) == 0 );
@@ -115,7 +116,6 @@ expire_test2(void)
 	while ( i < 100 ) {
 		void *o = sp_document(db);
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
 		i++;
 	}

@@ -403,7 +403,8 @@ mt_set_expire(void)
 	t( sp_setint(env, "db.test.expire", 1) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "ttl", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.ttl", "u32,timestamp,expire", 0) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
 	t( sp_open(env) == 0 );
@@ -420,7 +421,6 @@ mt_set_expire(void)
 		void *o = sp_document(db);
 		t( o != NULL );
 		t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
-		t( sp_setstring(o, "value", value, sizeof(value)) == 0 );
 		t( sp_set(db, o) == 0 );
 		print_current(i);
 	}

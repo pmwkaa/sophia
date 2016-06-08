@@ -28,11 +28,6 @@ sv_refiflsnset(sv *v, uint64_t lsn) {
 	((svv*)((svref*)v->v)->v)->lsn = lsn;
 }
 
-static uint32_t
-sv_refiftimestamp(sv *v) {
-	return ((svv*)((svref*)v->v)->v)->timestamp;
-}
-
 static char*
 sv_refifpointer(sv *v) {
 	return sv_vpointer(((svv*)((svref*)v->v)->v));
@@ -45,10 +40,9 @@ sv_refifsize(sv *v) {
 
 svif sv_refif =
 {
-	.flags     = sv_refifflags,
-	.lsn       = sv_refiflsn,
-	.lsnset    = sv_refiflsnset,
-	.timestamp = sv_refiftimestamp,
-	.pointer   = sv_refifpointer,
-	.size      = sv_refifsize
+	.flags   = sv_refifflags,
+	.lsn     = sv_refiflsn,
+	.lsnset  = sv_refiflsnset,
+	.pointer = sv_refifpointer,
+	.size    = sv_refifsize
 };

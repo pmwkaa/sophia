@@ -24,7 +24,6 @@ struct svif {
 	uint8_t   (*flags)(sv*);
 	void      (*lsnset)(sv*, uint64_t);
 	uint64_t  (*lsn)(sv*);
-	uint32_t  (*timestamp)(sv*);
 	char     *(*pointer)(sv*);
 	uint32_t  (*size)(sv*);
 };
@@ -64,11 +63,6 @@ sv_lsn(sv *v) {
 static inline void
 sv_lsnset(sv *v, uint64_t lsn) {
 	v->i->lsnset(v, lsn);
-}
-
-static inline uint32_t
-sv_timestamp(sv *v) {
-	return v->i->timestamp(v);
 }
 
 static inline char*

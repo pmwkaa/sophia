@@ -87,8 +87,10 @@ sv_writeiter_next(ssiter *i)
 	for (; ss_iterhas(sv_mergeiter, im->merge); ss_iternext(sv_mergeiter, im->merge))
 	{
 		sv *v = ss_iterof(sv_mergeiter, im->merge);
+		/* expiration logic */
 		if (im->expire > 0) {
-			uint32_t timestamp = sv_timestamp(v);
+			uint32_t timestamp =
+				sf_ttlof(im->r->scheme, sv_pointer(v));
 			if ((im->now - timestamp) >= im->expire)
 				 continue;
 		}

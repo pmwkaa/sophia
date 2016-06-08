@@ -69,7 +69,6 @@ se_recoverlog(se *e, sl *log)
 			v = ss_iteratorof(&i);
 			assert(sv_lsn(v) == lsn);
 			/* match a database */
-			uint32_t timestamp = sl_vtimestamp(v);
 			uint32_t dsn = sl_vdsn(v);
 			if (db == NULL || db->scheme->id != dsn)
 				db = (sedb*)se_dbmatch_id(e, dsn);
@@ -83,7 +82,6 @@ se_recoverlog(se *e, sl *log)
 				goto rlb;
 			so_setstring(o, "raw", sv_pointer(v), sv_size(v));
 			so_setstring(o, "log", log, 0);
-			so_setint(o, "timestamp", timestamp);
 			
 			int flags = sv_flags(v);
 			if (flags == SVDELETE) {

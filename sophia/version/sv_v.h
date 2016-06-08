@@ -14,9 +14,8 @@ typedef struct svv svv;
 struct svv {
 	uint64_t lsn;
 	uint32_t size;
-	uint32_t timestamp;
-	uint8_t  flags;
 	uint16_t refs;
+	uint8_t  flags;
 	void *log;
 } sspacked;
 
@@ -33,18 +32,17 @@ sv_vsize(svv *v) {
 }
 
 static inline svv*
-sv_vbuild(sr *r, sfv *fields, uint32_t ts)
+sv_vbuild(sr *r, sfv *fields)
 {
 	int size = sf_writesize(r->scheme, fields);
 	svv *v = ss_malloc(r->a, sizeof(svv) + size);
 	if (ssunlikely(v == NULL))
 		return NULL;
-	v->size      = size;
-	v->lsn       = 0;
-	v->timestamp = ts;
-	v->flags     = 0;
-	v->refs      = 1;
-	v->log       = NULL;
+	v->size  = size;
+	v->lsn   = 0;
+	v->flags = 0;
+	v->refs  = 1;
+	v->log   = NULL;
 	char *ptr = sv_vpointer(v);
 	sf_write(r->scheme, fields, ptr);
 	/* update runtime statistics */
@@ -56,17 +54,16 @@ sv_vbuild(sr *r, sfv *fields, uint32_t ts)
 }
 
 static inline svv*
-sv_vbuildraw(sr *r, char *src, int size, uint64_t ts)
+sv_vbuildraw(sr *r, char *src, int size)
 {
 	svv *v = ss_malloc(r->a, sizeof(svv) + size);
 	if (ssunlikely(v == NULL))
 		return NULL;
-	v->size      = size;
-	v->timestamp = ts;
-	v->flags     = 0;
-	v->refs      = 1;
-	v->lsn       = 0;
-	v->log       = NULL;
+	v->size  = size;
+	v->flags = 0;
+	v->refs  = 1;
+	v->lsn   = 0;
+	v->log   = NULL;
 	memcpy(sv_vpointer(v), src, size);
 	/* update runtime statistics */
 	ss_spinlock(&r->stat->lock);
@@ -79,12 +76,11 @@ sv_vbuildraw(sr *r, char *src, int size, uint64_t ts)
 static inline svv*
 sv_vdup(sr *r, sv *src)
 {
-	svv *v = sv_vbuildraw(r, sv_pointer(src), sv_size(src), 0);
+	svv *v = sv_vbuildraw(r, sv_pointer(src), sv_size(src));
 	if (ssunlikely(v == NULL))
 		return NULL;
-	v->flags     = sv_flags(src);
-	v->lsn       = sv_lsn(src);
-	v->timestamp = sv_timestamp(src);
+	v->flags = sv_flags(src);
+	v->lsn   = sv_lsn(src);
 	return v;
 }
 

@@ -27,7 +27,6 @@ multipart_cmp_eq_key(void)
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 
 	char *v = sp_getstring(env, "db.test.scheme.key", 0);
@@ -50,7 +49,6 @@ multipart_schema0(void)
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key_b", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "string,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key_b", "string", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
@@ -166,7 +164,6 @@ multipart_set_get0(void)
 	t( sp_setstring(env, "db.test.scheme.key", "string,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key_b", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key_b", "u32,key(1)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 
@@ -205,7 +202,6 @@ multipart_set_get1(void)
 	t( sp_setstring(env, "db.test.scheme.key", "string,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key_b", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key_b", "u32,key(1)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 
@@ -218,7 +214,6 @@ multipart_set_get1(void)
 		void *o = sp_document(db);
 		sp_setstring(o, "key", key_a, sizeof(key_a));
 		sp_setstring(o, "key_b", &i, sizeof(i));
-		sp_setstring(o, "value", &i, sizeof(i));
 		t( sp_set(db, o) == 0);
 		i++;
 	}
@@ -234,11 +229,8 @@ multipart_set_get1(void)
 		t( strcmp(key_a, sp_getstring(o, "key", &asize)) == 0 );
 		int bsize;
 		t( *(uint32_t*)sp_getstring(o, "key_b", &bsize) == i );
-		int vsize;
-		t( *(uint32_t*)sp_getstring(o, "value", &vsize) == i );
 		t( asize == sizeof(key_a) );
 		t( bsize == sizeof(i) );
-		t( vsize == sizeof(i) );
 		sp_destroy(o);
 		i++;
 	}
@@ -260,7 +252,6 @@ multipart_set_get2(void)
 	t( sp_setstring(env, "db.test.scheme.key", "string,key(1)", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key_b", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key_b", "u32,key(0)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 
@@ -273,7 +264,6 @@ multipart_set_get2(void)
 		void *o = sp_document(db);
 		sp_setstring(o, "key", key_a, sizeof(key_a));
 		sp_setstring(o, "key_b", &i, sizeof(i));
-		sp_setstring(o, "value", &i, sizeof(i));
 		t( sp_set(db, o) == 0);
 		i++;
 	}
@@ -289,11 +279,8 @@ multipart_set_get2(void)
 		t( strcmp(key_a, sp_getstring(o, "key", &asize)) == 0 );
 		int bsize;
 		t( *(uint32_t*)sp_getstring(o, "key_b", &bsize) == i );
-		int vsize;
-		t( *(uint32_t*)sp_getstring(o, "value", &vsize) == i );
 		t( asize == sizeof(key_a) );
 		t( bsize == sizeof(i) );
-		t( vsize == sizeof(i) );
 		sp_destroy(o);
 		i++;
 	}
@@ -315,7 +302,6 @@ multipart_cursor0(void)
 	t( sp_setstring(env, "db.test.scheme.key", "string,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key_b", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key_b", "u32,key(1)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 
@@ -328,7 +314,6 @@ multipart_cursor0(void)
 		void *o = sp_document(db);
 		sp_setstring(o, "key", key_a, sizeof(key_a));
 		sp_setstring(o, "key_b", &i, sizeof(i));
-		sp_setstring(o, "value", &i, sizeof(i));
 		t( sp_set(db, o) == 0);
 		i++;
 	}
@@ -342,11 +327,8 @@ multipart_cursor0(void)
 		t( strcmp(key_a, sp_getstring(o, "key", &asize)) == 0 );
 		int bsize;
 		t( *(uint32_t*)sp_getstring(o, "key_b", &bsize) == i );
-		int vsize;
-		t( *(uint32_t*)sp_getstring(o, "value", &vsize) == i );
 		t( asize == sizeof(key_a) );
 		t( bsize == sizeof(i) );
-		t( vsize == sizeof(i) );
 		i++;
 	}
 	sp_destroy(cur);
@@ -368,7 +350,6 @@ multipart_cursor1(void)
 	t( sp_setstring(env, "db.test.scheme.key", "string,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key_b", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key_b", "u32,key(1)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 
@@ -381,7 +362,6 @@ multipart_cursor1(void)
 		void *o = sp_document(db);
 		sp_setstring(o, "key", key_a, sizeof(key_a));
 		sp_setstring(o, "key_b", &i, sizeof(i));
-		sp_setstring(o, "value", &i, sizeof(i));
 		t( sp_set(db, o) == 0);
 		i++;
 	}
@@ -392,17 +372,13 @@ multipart_cursor1(void)
 	void *o = sp_document(db);
 	sp_setstring(o, "key", key_a, sizeof(key_a));
 	sp_setstring(o, "key_b", &i, sizeof(i));
-	sp_setstring(o, "value", &i, sizeof(i));
 	while ((o = sp_get(cur, o))) {
 		int asize;
 		t( strcmp(key_a, sp_getstring(o, "key", &asize)) == 0 );
 		int bsize;
 		t( *(uint32_t*)sp_getstring(o, "key_b", &bsize) == i );
-		int vsize;
-		t( *(uint32_t*)sp_getstring(o, "value", &vsize) == i );
 		t( asize == sizeof(key_a) );
 		t( bsize == sizeof(i) );
-		t( vsize == sizeof(i) );
 		i++;
 	}
 	sp_destroy(cur);
@@ -425,7 +401,6 @@ multipart_set_get_incomplete0(void)
 	t( sp_setstring(env, "db.test.scheme.key", "string,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key_b", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key_b", "u32,key(1)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 
@@ -469,7 +444,6 @@ multipart_set_get_incomplete1(void)
 	t( sp_setstring(env, "db.test.scheme.key", "string,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key_b", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key_b", "u32,key(1)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 
@@ -540,7 +514,6 @@ multipart_set_get_incomplete2(void)
 	t( sp_setstring(env, "db.test.scheme.key", "string,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key_b", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key_b", "string,key(1)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 

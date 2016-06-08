@@ -43,6 +43,7 @@ profiler_count(void)
 	while ( i < 100 ) {
 		void *o = sp_document(db);
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
@@ -56,6 +57,7 @@ profiler_count(void)
 	while ( i < 10 ) {
 		void *o = sp_document(db);
 		t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+		t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 		t( sp_set(db, o) == 0 );
 		i++;
 	}

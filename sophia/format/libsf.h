@@ -12,6 +12,7 @@
 #include <sf_scheme.h>
 #include <sf.h>
 #include <sf_limit.h>
+#include <sf_auto.h>
 #include <sf_upsert.h>
 
 #endif

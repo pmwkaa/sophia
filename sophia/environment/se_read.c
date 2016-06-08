@@ -68,7 +68,7 @@ so *se_read(sedb *db, sedocument *o, sx *x, uint64_t vlsn,
 
 	/* prepare the key */
 	int auto_close = o->created <= 1;
-	int rc = se_document_create(o);
+	int rc = se_document_createkey(o);
 	if (ssunlikely(rc == -1))
 		goto error;
 	rc = se_document_validate_ro(o, &db->o);

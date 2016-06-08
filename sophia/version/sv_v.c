@@ -27,11 +27,6 @@ sv_viflsnset(sv *v, uint64_t lsn) {
 	((svv*)v->v)->lsn = lsn;
 }
 
-static uint32_t
-sv_viftimestamp(sv *v) {
-	return ((svv*)v->v)->timestamp;
-}
-
 static char*
 sv_vifpointer(sv *v) {
 	return sv_vpointer(((svv*)v->v));
@@ -44,10 +39,9 @@ sv_vifsize(sv *v) {
 
 svif sv_vif =
 {
-	.flags     = sv_vifflags,
-	.lsn       = sv_viflsn,
-	.lsnset    = sv_viflsnset,
-	.timestamp = sv_viftimestamp,
-	.pointer   = sv_vifpointer,
-	.size      = sv_vifsize
+	.flags   = sv_vifflags,
+	.lsn     = sv_viflsn,
+	.lsnset  = sv_viflsnset,
+	.pointer = sv_vifpointer,
+	.size    = sv_vifsize
 };

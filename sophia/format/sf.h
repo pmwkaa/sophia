@@ -27,6 +27,13 @@ struct sfv {
 	uint32_t  size;
 };
 
+static inline uint32_t
+sf_ttlof(sfscheme *s, char *data)
+{
+	assert(s->has_expire);
+	return *(uint32_t*)(data + s->offset_expire);
+}
+
 static inline char*
 sf_fieldof_ptr(sfscheme *s, sffield *f, char *data, uint32_t *size)
 {

@@ -62,7 +62,13 @@ spr_cmd_start(void)
 	sp_setstring(spr_env, "backup.path", "_test_backup", 0);
 	sp_setstring(spr_env, "db", "test", 0);
 
-	/*sp_setstring(spr_env, "db.test.index.key", "u32", 0);*/
+	sp_setstring(spr_env, "db.test.scheme", "key", 0);
+	sp_setstring(spr_env, "db.test.scheme.key", "u32,key(0)", 0);
+	sp_setstring(spr_env, "db.test.scheme", "value", 0);
+	sp_setstring(spr_env, "db.test.scheme.value", "string", 0);
+	sp_setstring(spr_env, "db.test.scheme", "ttl", 0);
+	sp_setstring(spr_env, "db.test.scheme.ttl", "u32,timestamp,expire", 0);
+
 	sp_setint(spr_env, "compaction.0.expire_prio", 1);
 	sp_setint(spr_env, "db.test.expire", 10);
 
@@ -249,7 +255,9 @@ spr_execute(char *cmd, int size)
 			printf("profiling is already started\n");
 			return;
 		}
-		spr_cmd_start();
+		int rc = spr_cmd_start();
+		if (rc == -1)
+			printf("start failed\n");
 		printf("profiling started\n");
 	} else
 	if (strcmp(argv[0], "stop") == 0) {

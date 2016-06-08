@@ -23,7 +23,7 @@ addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 	pv[0].size = sizeof(uint32_t);
 	pv[1].pointer = NULL;
 	pv[1].size = 0;
-	svv *v = sv_vbuild(r, pv, 0);
+	svv *v = sv_vbuild(r, pv);
 	v->lsn = lsn;
 	v->flags = flags;
 	sv vv;
@@ -37,7 +37,7 @@ sd_build_empty(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
 	sd_buildend(&b, &st_r.r);
 	sdpageheader *h = sd_buildheader(&b);
 	t( h->count == 0 );
@@ -49,7 +49,7 @@ sd_build_page0(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
 	int i = 7;
 	int j = 8;
 	int k = 15;
@@ -99,7 +99,7 @@ sd_build_compression_zstd(void)
 
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &r, 1, 0, 0, 1, &ss_zstdfilter) == 0);
+	t( sd_buildbegin(&b, &r, 1, 0, 1, &ss_zstdfilter) == 0);
 	int i = 7;
 	int j = 8;
 	int k = 15;
@@ -113,7 +113,7 @@ sd_build_compression_zstd(void)
 	t( h->lsnmax == 3 );
 	sd_buildcommit(&b, &r);
 
-	t( sd_buildbegin(&b, &r, 1, 0, 0, 1, &ss_zstdfilter) == 0);
+	t( sd_buildbegin(&b, &r, 1, 0, 1, &ss_zstdfilter) == 0);
 	addv(&b, &r, 3, 0, &i);
 	addv(&b, &r, 2, 0, &j);
 	addv(&b, &r, 1, 0, &k);
@@ -163,7 +163,7 @@ sd_build_compression_lz4(void)
 
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &r, 1, 0, 0, 1, &ss_zstdfilter) == 0);
+	t( sd_buildbegin(&b, &r, 1, 0, 1, &ss_zstdfilter) == 0);
 	int i = 7;
 	int j = 8;
 	int k = 15;
@@ -177,7 +177,7 @@ sd_build_compression_lz4(void)
 	t( h->lsnmax == 3 );
 	sd_buildcommit(&b, &r);
 
-	t( sd_buildbegin(&b, &r, 1, 0, 0, 1, &ss_zstdfilter) == 0);
+	t( sd_buildbegin(&b, &r, 1, 0, 1, &ss_zstdfilter) == 0);
 	addv(&b, &r, 3, 0, &i);
 	addv(&b, &r, 2, 0, &j);
 	addv(&b, &r, 1, 0, &k);

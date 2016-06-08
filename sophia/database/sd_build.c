@@ -82,7 +82,6 @@ void sd_buildgc(sdbuild *b, sr *r, int wm)
 }
 
 int sd_buildbegin(sdbuild *b, sr *r, int crc,
-                  int timestamp,
                   int compress_copy,
                   int compress,
                   ssfilterif *compress_if)
@@ -91,7 +90,6 @@ int sd_buildbegin(sdbuild *b, sr *r, int crc,
 	b->compress_copy = compress_copy;
 	b->compress = compress;
 	b->compress_if = compress_if;
-	b->timestamp = timestamp;
 	int rc;
 	if (compress_copy && b->tracker.size == 0) {
 		rc = ss_htinit(&b->tracker, r->a, 32768);
@@ -222,7 +220,6 @@ int sd_buildadd(sdbuild *b, sr *r, sv *v, uint32_t flags)
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
 	uint64_t lsn = sv_lsn(v);
-	uint32_t timestamp = sv_timestamp(v);
 	uint32_t size = sv_size(v);
 	sdpageheader *h = sd_buildheader(b);
 	sdv *sv = (sdv*)b->m.p;
@@ -230,7 +227,6 @@ int sd_buildadd(sdbuild *b, sr *r, sv *v, uint32_t flags)
 	sv->offset = ss_bufused(&b->v) - sd_buildref(b)->v;
 	sv->size = size;
 	sv->lsn = lsn;
-	sv->timestamp = timestamp;
 	ss_bufadvance(&b->m, sizeof(sdv));
 	/* copy document */
 	switch (r->fmt_storage) {
@@ -252,12 +248,16 @@ int sd_buildadd(sdbuild *b, sr *r, sv *v, uint32_t flags)
 		h->lsnmax = lsn;
 	if (lsn < h->lsnmin)
 		h->lsnmin = lsn;
-	if (timestamp < h->tsmin)
-		h->tsmin = timestamp;
 	if (sv->flags & SVDUP) {
 		h->countdup++;
 		if (lsn < h->lsnmindup)
 			h->lsnmindup = lsn;
+	}
+	if (r->scheme->has_expire) {
+		uint32_t timestamp =
+			sf_ttlof(r->scheme, sv_pointer(v));
+		if (timestamp < h->tsmin)
+			h->tsmin = timestamp;
 	}
 	return 0;
 }

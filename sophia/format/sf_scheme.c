@@ -102,9 +102,12 @@ void sf_schemeinit(sfscheme *s)
 	s->keys = NULL;
 	s->keys_count = 0;
 	s->var_offset = 0;
+	s->offset_expire = 0;
 	s->var_count  = 0;
 	s->cmp = NULL;
 	s->cmparg = NULL;
+	s->has_timestamp = 0;
+	s->has_expire = 0;
 }
 
 void sf_schemefree(sfscheme *s, ssa *a)
@@ -187,6 +190,12 @@ sf_schemeset(sfscheme *s, sffield *f, char *opt)
 		p++;
 		f->position_key = v;
 		f->key = 1;
+	} else
+	if (strncmp(opt, "timestamp", 9) == 0) {
+		f->timestamp = 1;
+	} else
+	if (strncmp(opt, "expire", 6) == 0) {
+		f->expire = 1;
 	} else {
 		return -1;
 	}
@@ -224,6 +233,20 @@ sf_schemevalidate(sfscheme *s, ssa *a)
 			if (ssunlikely(rc == -1))
 				return -1;
 		}
+		/* validate auto modifiers */
+		if (f->timestamp) {
+			if (f->type != SS_U32)
+				return -1;
+			s->has_timestamp = 1;
+		}
+		if (f->expire) {
+			if (! f->timestamp)
+				return -1;
+			if (s->has_expire)
+				return -1;
+			s->has_expire = 1;
+		}
+
 		/* calculate offset and position for fixed
 		 * size types */
 		if (f->fixed_size > 0) {
@@ -231,6 +254,8 @@ sf_schemevalidate(sfscheme *s, ssa *a)
 			fixed_pos++;
 			f->fixed_offset = fixed_offset;
 			fixed_offset += f->fixed_size;
+			if (f->expire)
+				s->offset_expire = f->fixed_offset;
 		} else {
 			s->var_count++;
 		}

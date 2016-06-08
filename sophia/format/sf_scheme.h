@@ -25,6 +25,8 @@ struct sffield {
 	char     *name;
 	char     *options;
 	int       key;
+	int       timestamp;
+	int       expire;
 	sfcmpf    cmp;
 };
 
@@ -35,8 +37,11 @@ struct sfscheme {
 	int       keys_count;
 	sfcmpf    cmp;
 	void     *cmparg;
+	int       offset_expire;
 	int       var_offset;
 	int       var_count;
+	int       has_timestamp;
+	int       has_expire;
 };
 
 static inline sffield*
@@ -45,6 +50,8 @@ sf_fieldnew(ssa *a, char *name)
 	sffield *f = ss_malloc(a, sizeof(sffield));
 	if (ssunlikely(f == NULL))
 		return NULL;
+	f->timestamp = 0;
+	f->expire = 0;
 	f->key = 0;
 	f->fixed_size = 0;
 	f->fixed_offset = 0;

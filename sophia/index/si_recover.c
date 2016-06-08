@@ -85,7 +85,6 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 	sd_buildinit(&build);
 	rc = sd_buildbegin(&build, r,
 	                   i->scheme.node_page_checksum,
-	                   i->scheme.expire > 0,
 	                   i->scheme.compression_copy,
 	                   i->scheme.compression_cold,
 	                   i->scheme.compression_cold_if);

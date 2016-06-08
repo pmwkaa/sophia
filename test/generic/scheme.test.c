@@ -199,11 +199,120 @@ scheme_comparator(void)
 	t( sp_destroy(env) == 0 );
 }
 
+static void
+scheme_timestamp0(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "ts", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.ts", "u32,timestamp", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(env) == 0 );
+
+	uint32_t key = 0;
+	while (key < 10) {
+		void *o = sp_document(db);
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_set(db, o) == 0 );
+		key++;
+	}
+
+	key = 0;
+	void *o = sp_document(db);
+	sp_setstring(o, "order", ">=", 0);
+	void *c = sp_cursor(env);
+	while ((o = sp_get(c, o))) {
+		t( *(uint32_t*)sp_getstring(o, "key", NULL) == key );
+		t( *(uint32_t*)sp_getstring(o, "ts", NULL) > 0 );
+		key++;
+	}
+
+	t( sp_destroy(env) == 0 );
+}
+
+static void
+scheme_timestamp1(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "ts0", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.ts0", "u32,timestamp", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "ts1", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.ts1", "u32,timestamp", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(env) == 0 );
+
+	uint32_t key = 0;
+	while (key < 10) {
+		void *o = sp_document(db);
+		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
+		t( sp_set(db, o) == 0 );
+		key++;
+	}
+
+	key = 0;
+	void *o = sp_document(db);
+	sp_setstring(o, "order", ">=", 0);
+	void *c = sp_cursor(env);
+	while ((o = sp_get(c, o))) {
+		t( *(uint32_t*)sp_getstring(o, "key", NULL) == key );
+		t( *(uint32_t*)sp_getstring(o, "ts0", NULL) > 0 );
+		t( *(uint32_t*)sp_getstring(o, "ts1", NULL) > 0 );
+		key++;
+	}
+
+	t( sp_destroy(env) == 0 );
+}
+
+static void
+scheme_timestamp2(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "ts0", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.ts0", "u32,timestamp,expire", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "ts1", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.ts1", "u32,timestamp,expire", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(env) == -1 );
+	t( sp_destroy(env) == 0 );
+}
+
 stgroup *scheme_group(void)
 {
 	stgroup *group = st_group("scheme");
 	st_groupadd(group, st_test("test0", scheme_test0));
 	st_groupadd(group, st_test("test1", scheme_test1));
 	st_groupadd(group, st_test("comparator", scheme_comparator));
+	st_groupadd(group, st_test("timestamp0", scheme_timestamp0));
+	st_groupadd(group, st_test("timestamp1", scheme_timestamp1));
+	st_groupadd(group, st_test("timestamp2", scheme_timestamp2));
 	return group;
 }

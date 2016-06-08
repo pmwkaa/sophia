@@ -437,13 +437,12 @@ static inline void
 sl_writeadd(slpool *p, sltx *t, slv *lv, svlogv *logv)
 {
 	sv *v = &logv->v;
-	lv->lsn       = t->lsn;
-	lv->dsn       = logv->id;
-	lv->flags     = sv_flags(v);
-	lv->size      = sv_size(v);
-	lv->timestamp = sv_timestamp(v);
-	lv->crc       = ss_crcp(p->r->crc, sv_pointer(v), lv->size, 0);
-	lv->crc       = ss_crcs(p->r->crc, lv, sizeof(slv), lv->crc);
+	lv->lsn   = t->lsn;
+	lv->dsn   = logv->id;
+	lv->flags = sv_flags(v);
+	lv->size  = sv_size(v);
+	lv->crc   = ss_crcp(p->r->crc, sv_pointer(v), lv->size, 0);
+	lv->crc   = ss_crcs(p->r->crc, lv, sizeof(slv), lv->crc);
 	ss_iovadd(&p->iov, lv, sizeof(slv));
 	ss_iovadd(&p->iov, sv_pointer(v), lv->size);
 	((svv*)v->v)->log = t->l;
@@ -493,12 +492,11 @@ sl_writestmt_multi(sltx *t, svlog *vlog)
 	lvp = 0;
 	/* transaction header */
 	slv *lv = &lvbuf[0];
-	lv->lsn       = t->lsn;
-	lv->dsn       = 0;
-	lv->timestamp = 0;
-	lv->flags     = SVBEGIN;
-	lv->size      = sv_logcount_write(vlog);
-	lv->crc       = ss_crcs(p->r->crc, lv, sizeof(slv), 0);
+	lv->lsn   = t->lsn;
+	lv->dsn   = 0;
+	lv->flags = SVBEGIN;
+	lv->size  = sv_logcount_write(vlog);
+	lv->crc   = ss_crcs(p->r->crc, lv, sizeof(slv), 0);
 	ss_iovadd(&p->iov, lv, sizeof(slv));
 	lvp++;
 	/* body */

@@ -35,7 +35,6 @@ enum {
 	SE_DOCUMENT_ORDER,
 	SE_DOCUMENT_PREFIX,
 	SE_DOCUMENT_LSN,
-	SE_DOCUMENT_TIMESTAMP,
 	SE_DOCUMENT_LOG,
 	SE_DOCUMENT_RAW,
 	SE_DOCUMENT_FLAGS,
@@ -60,10 +59,6 @@ se_document_opt(const char *path)
 			return SE_DOCUMENT_LSN;
 		if (sslikely(strcmp(path, "log") == 0))
 			return SE_DOCUMENT_LOG;
-		break;
-	case 't':
-		if (sslikely(strcmp(path, "timestamp") == 0))
-			return SE_DOCUMENT_TIMESTAMP;
 		break;
 	case 'p':
 		if (sslikely(strcmp(path, "prefix") == 0))
@@ -102,19 +97,10 @@ int se_document_create(sedocument *o)
 	}
 	assert(o->v.v == NULL);
 
-	/* reuse document */
-	uint32_t timestamp = UINT32_MAX;
-	if (db->scheme->expire > 0) {
-		if (ssunlikely(o->timestamp > 0))
-			timestamp = o->timestamp;
-		else
-			timestamp = ss_timestamp();
-	}
-
 	/* create document from raw data */
 	svv *v;
 	if (o->raw) {
-		v = sv_vbuildraw(db->r, o->raw, o->raw_size, timestamp);
+		v = sv_vbuildraw(db->r, o->raw, o->raw_size);
 		if (ssunlikely(v == NULL))
 			return sr_oom(&e->error);
 		sv_init(&o->v, &sv_vif, v, NULL);
@@ -122,41 +108,64 @@ int se_document_create(sedocument *o)
 		return 0;
 	}
 
+	/* ensure all keys are set */
+	if (ssunlikely(o->fields_count_keys != db->scheme->scheme.keys_count))
+		return sr_error(&e->error, "%s", "incomplete key");
+
+	/* set auto fields */
+	uint32_t timestamp = UINT32_MAX;
+	if (db->scheme->scheme.has_timestamp) {
+		timestamp = ss_timestamp();
+		sf_autoset(&db->scheme->scheme, o->fields, &timestamp);
+	}
+
+	v = sv_vbuild(db->r, o->fields);
+	if (ssunlikely(v == NULL))
+		return sr_oom(&e->error);
+	sv_init(&o->v, &sv_vif, v, NULL);
+	o->created = 1;
+	return 0;
+}
+
+int se_document_createkey(sedocument *o)
+{
+	sedb *db = (sedb*)o->o.parent;
+	se *e = se_of(&db->o);
+
+	if (ssunlikely(o->created)) {
+		assert(o->v.v != NULL);
+		return 0;
+	}
+	assert(o->v.v == NULL);
+
+	/* set prefix */
 	if (o->prefix) {
 		if (db->scheme->scheme.keys[0]->type != SS_STRING)
 			return sr_error(&e->error, "%s", "prefix search is only "
 			                "supported for a string key");
-
 		void *copy = ss_malloc(&e->a, o->prefix_size);
 		if (ssunlikely(copy == NULL))
 			return sr_oom(&e->error);
 		memcpy(copy, o->prefix, o->prefix_size);
 		o->prefix_copy = copy;
+	}
 
-		if (o->fields_count_keys == 0 && o->prefix)
-		{
+	/* set unspecified min/max keys, depending on
+	 * iteration order */
+	if (ssunlikely(o->fields_count_keys != db->scheme->scheme.keys_count))
+	{
+		if (o->prefix && o->fields_count_keys == 0) {
 			memset(o->fields, 0, sizeof(o->fields));
 			o->fields[0].pointer = o->prefix;
 			o->fields[0].size = o->prefix_size;
-			sf_limitset(&e->limit, &db->scheme->scheme, o->fields, SS_GTE);
-			goto allocate;
 		}
-	}
-
-	/* create document using current format, supplied
-	 * key-chain and value */
-	if (ssunlikely(o->fields_count_keys != db->scheme->scheme.keys_count))
-	{
-		/* set unspecified min/max keys, depending on
-		 * iteration order */
 		sf_limitset(&e->limit, &db->scheme->scheme,
-		            o->fields, o->order);
+		             o->fields, o->order);
 		o->fields_count = db->scheme->scheme.fields_count;
 		o->fields_count_keys = db->scheme->scheme.keys_count;
 	}
 
-allocate:
-	v = sv_vbuild(db->r, o->fields, timestamp);
+	svv *v = sv_vbuild(db->r, o->fields);
 	if (ssunlikely(v == NULL))
 		return sr_oom(&e->error);
 	sv_init(&o->v, &sv_vif, v, NULL);
@@ -386,9 +395,6 @@ se_document_setint(so *o, const char *path, int64_t num)
 	switch (se_document_opt(path)) {
 	case SE_DOCUMENT_COLD_ONLY:
 		v->cold_only = num;
-		break;
-	case SE_DOCUMENT_TIMESTAMP:
-		v->timestamp = num;
 		break;
 	default:
 		return -1;

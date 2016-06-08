@@ -55,7 +55,7 @@ st_generator_kv(stgenerator *g, va_list args)
 		}
 		i++;
 	}
-	return sv_vbuild(g->r, fields, 0);
+	return sv_vbuild(g->r, fields);
 }
 
 static inline svv*
@@ -195,7 +195,7 @@ svv *st_svv_seed(stgenerator *g, uint32_t seed, uint32_t seed_value)
 		}
 		i++;
 	}
-	svv *v = sv_vbuild(g->r, fields, 0);
+	svv *v = sv_vbuild(g->r, fields);
 	i = 0;
 	while (i < scheme->fields_count) {
 		sfv *fv = &fields[i];
