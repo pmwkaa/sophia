@@ -12,6 +12,10 @@
 typedef struct sflimit sflimit;
 
 struct sflimit {
+	uint8_t  u8_min;
+	uint8_t  u8_max;
+	uint16_t u16_min;
+	uint16_t u16_max;
 	uint32_t u32_min;
 	uint32_t u32_max;
 	uint64_t u64_min;
@@ -27,6 +31,10 @@ struct sflimit {
 static inline int
 sf_limitinit(sflimit *b, ssa *a)
 {
+	b->u8_min  = 0;
+	b->u8_max  = UINT8_MAX;
+	b->u16_min = 0;
+	b->u16_max = UINT16_MAX;
 	b->u32_min = 0;
 	b->u32_max = UINT32_MAX;
 	b->u64_min = 0;
@@ -60,6 +68,42 @@ sf_limitset(sflimit *b, sfscheme *s, sfv *fields, ssorder order)
 			continue;
 		sffield *part = s->fields[i];
 		switch (part->type) {
+		case SS_U8:
+			if (order == SS_LT || order == SS_LTE) {
+				v->pointer = (char*)&b->u8_max;
+				v->size = sizeof(uint8_t);
+			} else {
+				v->pointer = (char*)&b->u8_min;
+				v->size = sizeof(uint8_t);
+			}
+			break;
+		case SS_U8REV:
+			if (order == SS_LT || order == SS_LTE) {
+				v->pointer = (char*)&b->u8_min;
+				v->size = sizeof(uint8_t);
+			} else {
+				v->pointer = (char*)&b->u8_max;
+				v->size = sizeof(uint8_t);
+			}
+			break;
+		case SS_U16:
+			if (order == SS_LT || order == SS_LTE) {
+				v->pointer = (char*)&b->u16_max;
+				v->size = sizeof(uint16_t);
+			} else {
+				v->pointer = (char*)&b->u16_min;
+				v->size = sizeof(uint16_t);
+			}
+			break;
+		case SS_U16REV:
+			if (order == SS_LT || order == SS_LTE) {
+				v->pointer = (char*)&b->u16_min;
+				v->size = sizeof(uint16_t);
+			} else {
+				v->pointer = (char*)&b->u16_max;
+				v->size = sizeof(uint16_t);
+			}
+			break;
 		case SS_U32:
 			if (order == SS_LT || order == SS_LTE) {
 				v->pointer = (char*)&b->u32_max;

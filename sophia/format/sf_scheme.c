@@ -24,6 +24,46 @@ sf_cmpstring(char *a, int asz, char *b, int bsz, void *arg ssunused)
 }
 
 static inline sshot int
+sf_cmpu8(char *a, int asz ssunused, char *b, int bsz ssunused, void *arg ssunused)
+{
+	uint8_t av = *(uint8_t*)a;
+	uint8_t bv = *(uint8_t*)b;
+	if (av == bv)
+		return 0;
+	return (av > bv) ? 1 : -1;
+}
+
+static inline sshot int
+sf_cmpu8_reverse(char *a, int asz ssunused, char *b, int bsz ssunused, void *arg ssunused)
+{
+	uint8_t av = *(uint8_t*)a;
+	uint8_t bv = *(uint8_t*)b;
+	if (av == bv)
+		return 0;
+	return (av > bv) ? -1 : 1;
+}
+
+static inline sshot int
+sf_cmpu16(char *a, int asz ssunused, char *b, int bsz ssunused, void *arg ssunused)
+{
+	uint16_t av = *(uint16_t*)a;
+	uint16_t bv = *(uint16_t*)b;
+	if (av == bv)
+		return 0;
+	return (av > bv) ? 1 : -1;
+}
+
+static inline sshot int
+sf_cmpu16_reverse(char *a, int asz ssunused, char *b, int bsz ssunused, void *arg ssunused)
+{
+	uint16_t av = *(uint16_t*)a;
+	uint16_t bv = *(uint16_t*)b;
+	if (av == bv)
+		return 0;
+	return (av > bv) ? -1 : 1;
+}
+
+static inline sshot int
 sf_cmpu32(char *a, int asz ssunused, char *b, int bsz ssunused, void *arg ssunused)
 {
 	uint32_t av = sscastu32(a);
@@ -152,6 +192,26 @@ sf_schemeset(sfscheme *s, sffield *f, char *opt)
 		f->type = SS_STRING;
 		f->fixed_size = 0;
 		f->cmp = sf_cmpstring;
+	} else
+	if (strcmp(opt, "u8") == 0) {
+		f->type = SS_U8;
+		f->fixed_size = sizeof(uint8_t);
+		f->cmp = sf_cmpu8;
+	} else
+	if (strcmp(opt, "u8_rev") == 0) {
+		f->type = SS_U8REV;
+		f->fixed_size = sizeof(uint8_t);
+		f->cmp = sf_cmpu8_reverse;
+	} else
+	if (strcmp(opt, "u16") == 0) {
+		f->type = SS_U16;
+		f->fixed_size = sizeof(uint16_t);
+		f->cmp = sf_cmpu16;
+	} else
+	if (strcmp(opt, "u16_rev") == 0) {
+		f->type = SS_U16REV;
+		f->fixed_size = sizeof(uint16_t);
+		f->cmp = sf_cmpu16_reverse;
 	} else
 	if (strcmp(opt, "u32") == 0) {
 		f->type = SS_U32;

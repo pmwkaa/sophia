@@ -140,6 +140,27 @@ scheme_test1(void)
 	t( sp_destroy(env) == 0 );
 }
 
+static void
+scheme_test2(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u16,key(0)", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key_b", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key_b", "u8,key(1)", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(env) == 0 );
+	t( sp_destroy(env) == 0 );
+}
+
 static int
 comparator(char *a, int a_size,
            char *b, int b_size, void *arg)
@@ -310,6 +331,7 @@ stgroup *scheme_group(void)
 	stgroup *group = st_group("scheme");
 	st_groupadd(group, st_test("test0", scheme_test0));
 	st_groupadd(group, st_test("test1", scheme_test1));
+	st_groupadd(group, st_test("test2", scheme_test2));
 	st_groupadd(group, st_test("comparator", scheme_comparator));
 	st_groupadd(group, st_test("timestamp0", scheme_timestamp0));
 	st_groupadd(group, st_test("timestamp1", scheme_timestamp1));
