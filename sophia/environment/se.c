@@ -51,6 +51,9 @@ se_open(so *o)
 	if (status != SR_OFFLINE)
 		return -1;
 
+	/* switch to recover phase */
+	sr_statusset(&e->status, SR_RECOVER);
+
 	sr_log(&e->log, "sophia %d.%d git: %s",
 	       SR_VERSION_A - '0',
 	       SR_VERSION_B - '0',
@@ -62,8 +65,11 @@ se_open(so *o)
 	if (ssunlikely(rc == -1))
 		return -1;
 
-	/* switch to recover phase */
-	sr_statusset(&e->status, SR_RECOVER);
+	/* prepare scheduler */
+	rc = sc_set(&e->scheduler, e->db.n, e->conf.anticache,
+	            e->conf.backup_path);
+	if (ssunlikely(rc == -1))
+		return -1;
 
 	/* set memory quota (disable during recovery) */
 	sr_quotaset(&e->quota, e->conf.memory_limit);
@@ -74,15 +80,9 @@ se_open(so *o)
 	if (ssunlikely(rc == -1))
 		return -1;
 
-	/* prepare scheduler */
-	rc = sc_set(&e->scheduler, e->db.n, e->conf.anticache,
-	            e->conf.backup_path);
-	if (ssunlikely(rc == -1))
-		return -1;
-
 	/* databases recover */
-	sslist *i, *n;
-	ss_listforeach_safe(&e->db.list, i, n) {
+	sslist *i;
+	ss_listforeach(&e->db.list, i) {
 		so *o = sscast(i, so, link);
 		rc = se_dbopen(o);
 		if (ssunlikely(rc == -1))
@@ -99,7 +99,7 @@ se_open(so *o)
 	sr_statusset(&e->status, SR_ONLINE);
 
 	/* run thread-pool and scheduler */
-	rc = sc_create(&e->scheduler, se_worker, e, e->conf.threads);
+	rc = sc_run(&e->scheduler, se_worker, e, e->conf.threads);
 	if (ssunlikely(rc == -1))
 		return -1;
 	return 0;

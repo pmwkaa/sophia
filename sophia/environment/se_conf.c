@@ -1091,7 +1091,7 @@ int se_confinit(seconf *c, so *e)
 		.lru_period        = 0
 	};
 	sr_zonemap_set(&o->conf.zones,  0, &def);
-	sr_zonemap_set(&o->conf.zones, 70, &redzone);
+	sr_zonemap_set(&o->conf.zones, 90, &redzone);
 	c->backup_path = NULL;
 	return 0;
 }
@@ -1132,6 +1132,10 @@ int se_confvalidate(seconf *c)
 		if (ssunlikely(c->log_path == NULL)) {
 			return sr_oom(&e->error);
 		}
+	}
+	if (e->db.n == 0) {
+		sr_error(&e->error, "%s", "no databases are defined");
+		return -1;
 	}
 	int i = 0;
 	for (; i < 11; i++) {

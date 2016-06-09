@@ -159,7 +159,7 @@ int se_recover_repository(se *e)
 	syconf *rc = &e->repconf;
 	rc->path        = e->conf.path;
 	rc->path_backup = e->conf.backup_path;
-	rc->sync = 0;
+	rc->sync        = 0;
 	sr_log(&e->log, "recovering repository '%s'", e->conf.path);
 	return sy_open(&e->rep, &e->r, rc);
 }

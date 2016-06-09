@@ -45,10 +45,12 @@ ddl_create_online0(void)
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_open(env) == 0 );
-	t( sp_setstring(env, "db", "test", 0) == -1 );
+	t( sp_setstring(env, "db", "test2", 0) == -1 );
 	t( sp_destroy(env) == 0 );
 }
 

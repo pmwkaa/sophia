@@ -75,7 +75,7 @@ int sc_set(sc *s, uint32_t count, uint64_t anticache, char *backup_path)
 	return 0;
 }
 
-int sc_create(sc *s, ssthreadf function, void *arg, int n)
+int sc_run(sc *s, ssthreadf function, void *arg, int n)
 {
 	return ss_threadpool_new(&s->tp, s->r->a, n, function, arg);
 }

@@ -78,7 +78,7 @@ struct sc {
 
 int sc_init(sc*, sr*, sstrigger*, slpool*);
 int sc_set(sc*, uint32_t, uint64_t, char*);
-int sc_create(sc*, ssthreadf, void*, int);
+int sc_run(sc*, ssthreadf, void*, int);
 int sc_shutdown(sc*);
 
 static inline void

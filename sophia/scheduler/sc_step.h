@@ -9,6 +9,18 @@
  * BSD License
 */
 
+static inline scdb*
+sc_current(sc *s) {
+	return &s->i[s->rr];
+}
+
+static inline void
+sc_next(sc *s) {
+	s->rr++;
+	if (s->rr >= s->count)
+		s->rr = 0;
+}
+
 static inline void
 sc_task_checkpoint(sc *s)
 {

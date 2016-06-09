@@ -19,7 +19,7 @@
 #include <libsc.h>
 
 static inline int
-sc_rotate(sc*s, scworker *w)
+sc_rotate(sc *s, scworker *w)
 {
 	ss_trace(&w->trace, "%s", "log rotation");
 	int rc = sl_poolrotate_ready(s->lp);
@@ -50,48 +50,10 @@ sc_execute(sctask *t, scworker *w, uint64_t vlsn)
 	return si_execute(index, &w->dc, &t->plan, vlsn, vlsn_lru);
 }
 
-static inline scdb*
-sc_peek(sc *s)
-{
-	if (s->rr >= s->count)
-		s->rr = 0;
-	int start = s->rr;
-	int limit = s->count;
-	int i = start;
-first_half:
-	while (i < limit) {
-		scdb *db = &s->i[i];
-		s->rr = i;
-		return db;
-	}
-	if (i > start) {
-		i = 0;
-		limit = start;
-		goto first_half;
-	}
-	s->rr = 0;
-	return NULL;
-}
-
-static inline void
-sc_next(sc *s)
-{
-	s->rr++;
-	if (s->rr >= s->count)
-		s->rr = 0;
-}
-
-static inline int
-sc_plan(sc *s, siplan *plan)
-{
-	scdb *db = &s->i[s->rr];
-	return si_plan(db->index, plan);
-}
-
 static inline int
 sc_planquota(sc *s, siplan *plan, uint32_t quota, uint32_t quota_limit)
 {
-	scdb *db = &s->i[s->rr];
+	scdb *db = sc_current(s);
 	if (db->workers[quota] >= quota_limit)
 		return 2;
 	return si_plan(db->index, plan);
@@ -104,25 +66,22 @@ sc_do(sc *s, sctask *task, scworker *w, srzone *zone,
 	int rc;
 	ss_trace(&w->trace, "%s", "schedule");
 
-	/* node gc */
-	task->plan.plan = SI_NODEGC;
-	rc = sc_plan(s, &task->plan);
-	if (rc == 1) {
-		task->db = db;
-		return 1;
-	}
-
 	/* checkpoint */
 	if (s->checkpoint) {
 		task->plan.plan = SI_CHECKPOINT;
 		task->plan.a = s->checkpoint_lsn;
-		rc = sc_plan(s, &task->plan);
+		rc = si_plan(db->index, &task->plan);
 		switch (rc) {
 		case 1:
 			db->workers[SC_QBRANCH]++;
 			task->db = db;
 			task->gc = 1;
 			return 1;
+		case 2: /* busy */
+			/* do not start additional compaction
+			 * tasks in checkpoint mode */
+			si_planinit(&task->plan);
+			return 2;
 		case 0: /* complete */
 			if (sc_end(s, db, SI_CHECKPOINT))
 				sc_task_checkpoint_done(s);
@@ -130,12 +89,20 @@ sc_do(sc *s, sctask *task, scworker *w, srzone *zone,
 		}
 	}
 
+	/* node delayed gc */
+	task->plan.plan = SI_NODEGC;
+	rc = si_plan(db->index, &task->plan);
+	if (rc == 1) {
+		task->db = db;
+		return 1;
+	}
+
 	/* anti-cache */
 	if (s->anticache) {
 		task->plan.plan = SI_ANTICACHE;
 		task->plan.a = s->anticache_asn;
 		task->plan.b = s->anticache_storage;
-		rc = sc_plan(s, &task->plan);
+		rc = si_plan(db->index, &task->plan);
 		switch (rc) {
 		case 1:
 			task->db = db;
@@ -158,7 +125,7 @@ sc_do(sc *s, sctask *task, scworker *w, srzone *zone,
 	if (s->snapshot) {
 		task->plan.plan = SI_SNAPSHOT;
 		task->plan.a = s->snapshot_ssn;
-		rc = sc_plan(s, &task->plan);
+		rc = si_plan(db->index, &task->plan);
 		switch (rc) {
 		case 1:
 			task->db = db;
@@ -320,7 +287,7 @@ backup_error:;
 	if (zone->mode == 0) {
 		task->plan.plan = SI_COMPACT_INDEX;
 		task->plan.a = zone->branch_wm;
-		rc = sc_plan(s, &task->plan);
+		rc = si_plan(db->index, &task->plan);
 		if (rc == 1) {
 			task->db = db;
 			task->gc = 1;
@@ -344,7 +311,7 @@ backup_error:;
 	task->plan.plan = SI_COMPACT;
 	task->plan.a = zone->compact_wm;
 	task->plan.b = zone->compact_mode;
-	rc = sc_plan(s, &task->plan);
+	rc = si_plan(db->index, &task->plan);
 	if (rc == 1) {
 		task->db = db;
 		return 1;
@@ -356,36 +323,8 @@ no_job:
 }
 
 static inline void
-sc_periodic_done(sc *s, uint64_t now)
-{
-	/* checkpoint */
-	if (ssunlikely(s->checkpoint))
-		sc_task_checkpoint_done(s);
-	/* anti-cache */
-	if (ssunlikely(s->anticache))
-		sc_task_anticache_done(s, now);
-	/* snapshot */
-	if (ssunlikely(s->snapshot))
-		sc_task_snapshot_done(s, now);
-	/* expire */
-	if (ssunlikely(s->expire))
-		sc_task_expire_done(s, now);
-	/* gc */
-	if (ssunlikely(s->gc))
-		sc_task_gc_done(s, now);
-	/* lru */
-	if (ssunlikely(s->lru))
-		sc_task_lru_done(s, now);
-	/* age */
-	if (ssunlikely(s->age))
-		sc_task_age_done(s, now);
-}
-
-static inline void
 sc_periodic(sc *s, sctask *task, srzone *zone, uint64_t now)
 {
-	if (ssunlikely(s->count == 0))
-		return;
 	/* log gc and rotation */
 	if (s->rotate == 0) {
 		task->rotate = 1;
@@ -402,38 +341,40 @@ sc_periodic(sc *s, sctask *task, srzone *zone, uint64_t now)
 	{
 		if (s->checkpoint == 0)
 			sc_task_checkpoint(s);
-		break;
+		/* do not start additional periodic tasks in
+		 * checkpoint mode */
+		return;
 	}
 	default: /* branch + compact */
 		assert(zone->mode == 3);
 	}
 	/* anti-cache */
-	if (s->anticache == 0 && zone->anticache_period) {
+	if (zone->anticache_period && s->anticache == 0) {
 		if ((now - s->anticache_time) >= zone->anticache_period_us)
 			sc_task_anticache(s);
 	}
 	/* snapshot */
-	if (s->snapshot == 0 && zone->snapshot_period) {
+	if (zone->snapshot_period && s->snapshot == 0) {
 		if ((now - s->snapshot_time) >= zone->snapshot_period_us)
 			sc_task_snapshot(s);
 	}
 	/* expire */
-	if (s->expire == 0 && zone->expire_prio && zone->expire_period) {
+	if (zone->expire_period && zone->expire_prio && s->expire == 0) {
 		if ((now - s->expire_time) >= zone->expire_period_us)
 			sc_task_expire(s);
 	}
 	/* gc */
-	if (s->gc == 0 && zone->gc_prio && zone->gc_period) {
+	if (zone->gc_period && zone->gc_prio && s->gc == 0) {
 		if ((now - s->gc_time) >= zone->gc_period_us)
 			sc_task_gc(s);
 	}
 	/* lru */
-	if (s->lru == 0 && zone->lru_prio && zone->lru_period) {
+	if (zone->lru_period && zone->lru_prio && s->lru == 0) {
 		if ((now - s->lru_time) >= zone->lru_period_us)
 			sc_task_lru(s);
 	}
 	/* aging */
-	if (s->age == 0 && zone->branch_prio && zone->branch_age_period) {
+	if (zone->branch_age_period && zone->branch_prio && s->age == 0) {
 		if ((now - s->age_time) >= zone->branch_age_period_us)
 			sc_task_age(s);
 	}
@@ -448,17 +389,8 @@ sc_schedule(sc *s, sctask *task, scworker *w, uint64_t vlsn)
 	ss_mutexlock(&s->lock);
 	/* start periodic tasks */
 	sc_periodic(s, task, zone, now);
-	/* peek a database */
-	scdb *db = sc_peek(s);
-	if (ssunlikely(db == NULL)) {
-		/* complete on-going periodic tasks when there
-		 * are no active databases left */
-		sc_periodic_done(s, now);
-		ss_mutexunlock(&s->lock);
-		return 0;
-	}
+	scdb *db = sc_current(s);
 	rc = sc_do(s, task, w, zone, db, vlsn, now);
-	/* schedule next database */
 	sc_next(s);
 	ss_mutexunlock(&s->lock);
 	return rc;
@@ -525,7 +457,7 @@ int sc_step(sc *s, scworker *w, uint64_t vlsn)
 	/* trigger backup completion */
 	if (task.on_backup)
 		ss_triggerrun(s->on_event);
-	if (rc_job > 0) {
+	if (rc_job == 1) {
 		rc = sc_execute(&task, w, vlsn);
 		if (ssunlikely(rc == -1)) {
 			if (task.plan.plan != SI_BACKUP &&
