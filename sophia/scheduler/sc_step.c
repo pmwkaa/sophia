@@ -77,15 +77,16 @@ sc_do(sc *s, sctask *task, scworker *w, srzone *zone,
 			task->db = db;
 			task->gc = 1;
 			return 1;
-		case 2: /* busy */
+		case 0: /* complete */
+			if (sc_end(s, db, SI_CHECKPOINT)) {
+				sc_task_checkpoint_done(s);
+				break;
+			}
+		case 2:
 			/* do not start additional compaction
 			 * tasks in checkpoint mode */
 			si_planinit(&task->plan);
 			return 2;
-		case 0: /* complete */
-			if (sc_end(s, db, SI_CHECKPOINT))
-				sc_task_checkpoint_done(s);
-			break;
 		}
 	}
 
