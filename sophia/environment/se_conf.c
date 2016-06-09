@@ -46,6 +46,23 @@ se_confv_offline(srconf *c, srconfstmt *s)
 }
 
 static inline int
+se_confsophia_status(srconf *c, srconfstmt *s)
+{
+	se *e = s->ptr;
+	char *status = sr_statusof(&e->status);
+	srconf conf = {
+		.key      = c->key,
+		.flags    = c->flags,
+		.type     = c->type,
+		.function = NULL,
+		.value    = status,
+		.ptr      = NULL,
+		.next     = NULL
+	};
+	return se_confv(&conf, s);
+}
+
+static inline int
 se_confsophia_error(srconf *c, srconfstmt *s)
 {
 	se *e = s->ptr;
@@ -105,6 +122,7 @@ se_confsophia(se *e, seconfrt *rt, srconf **pc)
 	sr_C(&p, pc, se_confv, "version", SS_STRING, rt->version, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "version_storage", SS_STRING, rt->version_storage, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "build", SS_STRING, rt->build, SR_RO, NULL);
+	sr_C(&p, pc, se_confsophia_status, "status", SS_STRING, NULL, SR_RO, NULL);
 	sr_C(&p, pc, se_confsophia_error, "error", SS_STRING, NULL, SR_RO, NULL);
 	sr_c(&p, pc, se_confv_offline, "path", SS_STRINGPTR, &e->conf.path);
 	sr_c(&p, pc, se_confsophia_on_log, "on_log", SS_STRING, NULL);
