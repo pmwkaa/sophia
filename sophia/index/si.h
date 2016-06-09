@@ -12,7 +12,6 @@
 typedef struct si si;
 
 struct si {
-	srstatus   status;
 	ssmutex    lock;
 	siplanner  p;
 	ssrb       i;
@@ -38,11 +37,6 @@ struct si {
 	sr         r;
 	sslist     link;
 };
-
-static inline int
-si_active(si *i) {
-	return sr_statusactive(&i->status);
-}
 
 static inline void
 si_lock(si *i) {

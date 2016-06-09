@@ -62,8 +62,6 @@ static inline se *se_of(so *o) {
 	return (se*)o->env;
 }
 
-so  *se_new(void);
-int  se_service_threads(se*, int);
-int  se_service(so*);
+so *se_new(void);
 
 #endif

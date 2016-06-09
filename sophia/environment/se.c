@@ -43,17 +43,10 @@ se_worker(void *arg)
 	return NULL;
 }
 
-int se_service_threads(se *e, int n)
-{
-	/* run more threads */
-	return sc_create(&e->scheduler, se_worker, e, n);
-}
-
 static int
 se_open(so *o)
 {
 	se *e = se_cast(o, se*, SE);
-	/* recover phases */
 	int status = sr_status(&e->status);
 	if (status != SR_OFFLINE)
 		return -1;
@@ -81,6 +74,12 @@ se_open(so *o)
 	if (ssunlikely(rc == -1))
 		return -1;
 
+	/* prepare scheduler */
+	rc = sc_set(&e->scheduler, e->db.n, e->conf.anticache,
+	            e->conf.backup_path);
+	if (ssunlikely(rc == -1))
+		return -1;
+
 	/* databases recover */
 	sslist *i, *n;
 	ss_listforeach_safe(&e->db.list, i, n) {
@@ -95,22 +94,12 @@ se_open(so *o)
 	if (ssunlikely(rc == -1))
 		return -1;
 
-	/* put storage on-line */
-	ss_listforeach_safe(&e->db.list, i, n) {
-		so *o = sscast(i, so, link);
-		rc = se_dbopen(o);
-		if (ssunlikely(rc == -1))
-			return -1;
-	}
-
 	/* enable quota */
 	sr_quotaenable(&e->quota, 1);
 	sr_statusset(&e->status, SR_ONLINE);
 
 	/* run thread-pool and scheduler */
-	sc_set(&e->scheduler, e->conf.anticache,
-	        e->conf.backup_path);
-	rc = se_service_threads(e, e->conf.threads);
+	rc = sc_create(&e->scheduler, se_worker, e, e->conf.threads);
 	if (ssunlikely(rc == -1))
 		return -1;
 	return 0;
@@ -238,12 +227,6 @@ static soif seif =
 	.commit       = NULL,
 	.cursor       = se_cursor,
 };
-
-int se_service(so *o)
-{
-	se *e = se_cast(o, se*, SE);
-	return sc_ctl_call(&e->scheduler, sx_vlsn(&e->xm));
-}
 
 so *se_new(void)
 {

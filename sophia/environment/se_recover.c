@@ -20,10 +20,9 @@
 #include <libsc.h>
 #include <libse.h>
 
-int se_recoverbegin(sedb *db)
+int se_recover_database(sedb *db)
 {
 	/* open and recover repository */
-	sr_statusset(&db->index->status, SR_RECOVER);
 	se *e = se_of(&db->o);
 	sr_log(&e->log, "loading database '%s'", db->scheme->path);
 	int rc = si_open(db->index);
@@ -32,18 +31,12 @@ int se_recoverbegin(sedb *db)
 	db->created = rc;
 	return 0;
 error:
-	sr_statusset(&db->index->status, SR_MALFUNCTION);
+	sr_statusset(&e->status, SR_MALFUNCTION);
 	return -1;
 }
 
-int se_recoverend(sedb *db)
-{
-	sr_statusset(&db->index->status, SR_ONLINE);
-	return 0;
-}
-
 static int
-se_recoverlog(se *e, sl *log)
+se_recover_log(se *e, sl *log)
 {
 	so *tx = NULL;
 	sedb *db = NULL;
@@ -124,7 +117,7 @@ error:
 }
 
 static inline int
-se_recoverlogpool(se *e)
+se_recover_logpool(se *e)
 {
 	sr_log(&e->log, "loading journals '%s'", e->lp.conf->path);
 	uint32_t current = 1;
@@ -133,7 +126,7 @@ se_recoverlogpool(se *e)
 		sl *log = sscast(i, sl, link);
 		sr_log(&e->log, "(%" PRIu32 "/%" PRIu32 ") %020" PRIu64".log",
 		       current, e->lp.n, log->id);
-		int rc = se_recoverlog(e, log);
+		int rc = se_recover_log(e, log);
 		if (ssunlikely(rc == -1))
 			return -1;
 		current++;
@@ -151,9 +144,8 @@ int se_recover(se *e)
 	lc->sync_on_write  = e->conf.log_sync;
 	int rc = sl_poolopen(&e->lp, lc);
 	if (ssunlikely(rc == -1))
-		return -1;
-	/* recover log files */
-	rc = se_recoverlogpool(e);
+		goto error;
+	rc = se_recover_logpool(e);
 	if (ssunlikely(rc == -1))
 		goto error;
 	return 0;

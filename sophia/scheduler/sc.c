@@ -61,8 +61,15 @@ int sc_init(sc *s, sr *r, sstrigger *on_event, slpool *lp)
 	return 0;
 }
 
-int sc_set(sc *s, uint64_t anticache, char *backup_path)
+int sc_set(sc *s, uint32_t count, uint64_t anticache, char *backup_path)
 {
+	int size = sizeof(scdb) * count;
+	scdb *db = ss_malloc(s->r->a, size);
+	if (ssunlikely(db == NULL))
+		return -1;
+	memset(db, 0, size);
+	s->i = db;
+	s->count = count;
 	s->anticache_limit = anticache;
 	s->backup_path = backup_path;
 	return 0;
@@ -84,89 +91,9 @@ int sc_shutdown(sc *s)
 	if (ssunlikely(rc == -1))
 		rcret = -1;
 	if (s->i) {
-		int j = 0;
-		while (j < s->count) {
-			ss_free(r->a, s->i[j]);
-			j++;
-		}
 		ss_free(r->a, s->i);
 		s->i = NULL;
 	}
 	ss_mutexfree(&s->lock);
 	return rcret;
-}
-
-int sc_add(sc *s, si *index)
-{
-	scdb *db = ss_malloc(s->r->a, sizeof(scdb));
-	if (ssunlikely(db == NULL))
-		return -1;
-	db->index  = index;
-	db->active = 0;
-	memset(db->workers, 0, sizeof(db->workers));
-
-	ss_mutexlock(&s->lock);
-	int count = s->count + 1;
-	scdb **i = ss_malloc(s->r->a, count * sizeof(scdb*));
-	if (ssunlikely(i == NULL)) {
-		ss_mutexunlock(&s->lock);
-		ss_free(s->r->a, db);
-		return -1;
-	}
-	memcpy(i, s->i, s->count * sizeof(scdb*));
-	i[s->count] = db;
-	void *iprev = s->i;
-	s->i = i;
-	s->count = count;
-	ss_mutexunlock(&s->lock);
-	if (iprev)
-		ss_free(s->r->a, iprev);
-	return 0;
-}
-
-int sc_del(sc *s, si *index, int lock)
-{
-	if (ssunlikely(s->i == NULL))
-		return 0;
-	if (lock)
-		ss_mutexlock(&s->lock);
-	scdb *db = NULL;
-	scdb **iprev;
-	int count = s->count - 1;
-	if (ssunlikely(count == 0)) {
-		iprev = s->i;
-		db = s->i[0];
-		s->count = 0;
-		s->i = NULL;
-		goto free;
-	}
-	scdb **i = ss_malloc(s->r->a, count * sizeof(scdb*));
-	if (ssunlikely(i == NULL)) {
-		if (lock)
-			ss_mutexunlock(&s->lock);
-		return -1;
-	}
-	int j = 0;
-	int k = 0;
-	while (j < s->count) {
-		if (s->i[j]->index == index) {
-			db = s->i[j];
-			j++;
-			continue;
-		}
-		i[k] = s->i[j];
-		k++;
-		j++;
-	}
-	iprev = s->i;
-	s->i = i;
-	s->count = count;
-	if (ssunlikely(s->rr >= s->count))
-		s->rr = 0;
-free:
-	if (lock)
-		ss_mutexunlock(&s->lock);
-	ss_free(s->r->a, iprev);
-	ss_free(s->r->a, db);
-	return 0;
 }

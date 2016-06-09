@@ -21,7 +21,6 @@ si *si_init(sr *r, so *object)
 	if (ssunlikely(i == NULL))
 		return NULL;
 	i->r = *r;
-	sr_statusinit(&i->status);
 	int rc = si_plannerinit(&i->p, r->a, i);
 	if (ssunlikely(rc == -1)) {
 		ss_free(r->a, i);
@@ -80,7 +79,6 @@ int si_close(si *i)
 	ss_buffree(&i->readbuf, i->r.a);
 	si_plannerfree(&i->p, i->r.a);
 	ss_mutexfree(&i->lock);
-	sr_statusfree(&i->status);
 	si_schemefree(&i->scheme, &i->r);
 	ss_free(i->r.a, i);
 	return rc_ret;

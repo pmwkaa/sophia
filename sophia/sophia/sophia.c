@@ -111,12 +111,6 @@ SP_API int sp_error(void *ptr)
 	return rc;
 }
 
-SP_API int sp_service(void *ptr)
-{
-	so *o = sp_cast(ptr, __func__);
-	return se_service(o->env);
-}
-
 SP_API void *sp_poll(void *ptr)
 {
 	so *o = sp_cast(ptr, __func__);

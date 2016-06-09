@@ -60,11 +60,7 @@ sc_peek(sc *s)
 	int i = start;
 first_half:
 	while (i < limit) {
-		scdb *db = s->i[i];
-		if (ssunlikely(! si_active(db->index))) {
-			i++;
-			continue;
-		}
+		scdb *db = &s->i[i];
 		s->rr = i;
 		return db;
 	}
@@ -88,14 +84,14 @@ sc_next(sc *s)
 static inline int
 sc_plan(sc *s, siplan *plan)
 {
-	scdb *db = s->i[s->rr];
+	scdb *db = &s->i[s->rr];
 	return si_plan(db->index, plan);
 }
 
 static inline int
 sc_planquota(sc *s, siplan *plan, uint32_t quota, uint32_t quota_limit)
 {
-	scdb *db = s->i[s->rr];
+	scdb *db = &s->i[s->rr];
 	if (db->workers[quota] >= quota_limit)
 		return 2;
 	return si_plan(db->index, plan);
@@ -534,8 +530,7 @@ int sc_step(sc *s, scworker *w, uint64_t vlsn)
 		if (ssunlikely(rc == -1)) {
 			if (task.plan.plan != SI_BACKUP &&
 			    task.plan.plan != SI_BACKUPEND) {
-				sr_statusset(&task.db->index->status,
-				             SR_MALFUNCTION);
+				sr_statusset(s->r->status, SR_MALFUNCTION);
 				goto error;
 			}
 			ss_mutexlock(&s->lock);

@@ -74,7 +74,7 @@ so *se_read(sedb *db, sedocument *o, sx *x, uint64_t vlsn,
 	rc = se_document_validate_ro(o, &db->o);
 	if (ssunlikely(rc == -1))
 		goto error;
-	if (ssunlikely(! sr_online(&db->index->status)))
+	if (ssunlikely(! se_active(e)))
 		goto error;
 
 	sv vup;

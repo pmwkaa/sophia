@@ -29,12 +29,8 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 	int auto_close = o->created <= 1;
 
 	/* validate database status */
-	int status = sr_status(&db->index->status);
-	switch (status) {
-	case SR_RECOVER:
-	case SR_ONLINE: break;
-	default: goto error;
-	}
+	if (ssunlikely(! se_active(e)))
+		goto error;
 
 	/* ensure memory quota */
 	int rc;
@@ -111,20 +107,16 @@ se_txget(so *o, so *v)
 	se *e = se_of(&t->o);
 	sedb *db = se_cast(key->o.parent, sedb*, SEDB);
 
+	/* validate database */
+	if (ssunlikely(! se_active(e)))
+		goto error;
+
 	/* ensure batch transactions are write-only */
 	if (t->t.isolation == SX_BATCH) {
 		sr_error(&e->error, "%s", "transaction is in write-only mode");
 		goto error;
 	}
 
-	/* validate database */
-	int status = sr_status(&db->index->status);
-	switch (status) {
-	case SR_ONLINE:
-	case SR_RECOVER:
-		break;
-	default: goto error;
-	}
 	return se_read(db, key, &t->t, t->t.vlsn, NULL);
 error:
 	so_destroy(&key->o);

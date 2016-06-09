@@ -37,7 +37,7 @@ se_confv_offline(srconf *c, srconfstmt *s)
 {
 	se *e = s->ptr;
 	if (s->op == SR_WRITE) {
-		if (sr_status(&e->status)) {
+		if (ssunlikely(sr_online(&e->status))) {
 			sr_error(s->r->e, "write to %s is offline-only", s->path);
 			return -1;
 		}
@@ -75,7 +75,7 @@ se_confsophia_on_log(srconf *c, srconfstmt *s)
 	se *e = s->ptr;
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
-	if (ssunlikely(sr_statusactive(&e->status))) {
+	if (ssunlikely(sr_online(&e->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
@@ -89,7 +89,7 @@ se_confsophia_on_log_arg(srconf *c, srconfstmt *s)
 	se *e = s->ptr;
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
-	if (ssunlikely(sr_statusactive(&e->status))) {
+	if (ssunlikely(sr_online(&e->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
@@ -131,7 +131,7 @@ se_confcompaction_set(srconf *c ssunused, srconfstmt *s)
 		sr_error(&e->error, "%s", "bad operation");
 		return -1;
 	}
-	if (ssunlikely(sr_statusactive(&e->status))) {
+	if (ssunlikely(sr_online(&e->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
@@ -243,7 +243,7 @@ se_confscheduler_on_event(srconf *c, srconfstmt *s)
 	se *e = s->ptr;
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
-	if (ssunlikely(sr_statusactive(&e->status))) {
+	if (ssunlikely(sr_online(&e->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
@@ -257,7 +257,7 @@ se_confscheduler_on_event_arg(srconf *c, srconfstmt *s)
 	se *e = s->ptr;
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
-	if (ssunlikely(sr_statusactive(&e->status))) {
+	if (ssunlikely(sr_online(&e->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
@@ -302,33 +302,13 @@ se_confscheduler_run(srconf *c, srconfstmt *s)
 	return sc_ctl_call(&e->scheduler, vlsn);
 }
 
-static inline int
-se_confscheduler_threads(srconf *c, srconfstmt *s)
-{
-	if (s->op != SR_WRITE)
-		return se_confv(c, s);
-	se *e = s->ptr;
-	uint32_t threads = e->conf.threads;
-	if (ssunlikely(se_confv(c, s) == -1))
-		return -1;
-	if (sslikely(! sr_online(&e->status)))
-		return 0;
-	/* run more threads during run-time */
-	if (e->conf.threads <= threads) {
-		e->conf.threads = threads;
-		return 0;
-	}
-	int n_more = e->conf.threads - threads;
-	return se_service_threads(e, n_more);
-}
-
 static inline srconf*
 se_confscheduler(se *e, seconfrt *rt, srconf **pc)
 {
 	srconf *scheduler = *pc;
 	srconf *prev;
 	srconf *p = NULL;
-	sr_c(&p, pc, se_confscheduler_threads, "threads", SS_U32, &e->conf.threads);
+	sr_c(&p, pc, se_confv_offline, "threads", SS_U32, &e->conf.threads);
 	sr_C(&p, pc, se_confv, "zone", SS_STRING, rt->zone, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "checkpoint_active", SS_U32, &rt->checkpoint_active, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "checkpoint_lsn", SS_U64, &rt->checkpoint_lsn, SR_RO, NULL);
@@ -459,8 +439,7 @@ se_confdb_set(srconf *c ssunused, srconfstmt *s)
 		return -1;
 	}
 	/* ensure that environment is offline */
-	int status = sr_status(&e->status);
-	if (status != SR_OFFLINE) {
+	if (ssunlikely(sr_online(&e->status))) {
 		sr_error(&e->error, "%s", "bad operation: environment is online");
 		return -1;
 	}
@@ -499,7 +478,8 @@ se_confdb_comparator(srconf *c, srconfstmt *s)
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
 	sedb *db = c->ptr;
-	if (ssunlikely(se_dbactive(db))) {
+	se *e = se_of(&db->o);
+	if (ssunlikely(sr_online(&e->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
@@ -515,7 +495,8 @@ se_confdb_comparatorarg(srconf *c, srconfstmt *s)
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
 	sedb *db = c->ptr;
-	if (ssunlikely(se_dbactive(db))) {
+	se *e = se_of(&db->o);
+	if (ssunlikely(sr_online(&e->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
@@ -530,7 +511,8 @@ se_confdb_upsert(srconf *c, srconfstmt *s)
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
 	sedb *db = c->ptr;
-	if (ssunlikely(se_dbactive(db))) {
+	se *e = se_of(&db->o);
+	if (ssunlikely(sr_online(&e->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
@@ -546,29 +528,13 @@ se_confdb_upsertarg(srconf *c, srconfstmt *s)
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
 	sedb *db = c->ptr;
-	if (ssunlikely(se_dbactive(db))) {
+	se *e = se_of(&db->o);
+	if (ssunlikely(sr_online(&e->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
 	sf_upsertset_arg(&db->scheme->fmt_upsert, s->value);
 	return 0;
-}
-
-static inline int
-se_confdb_status(srconf *c, srconfstmt *s)
-{
-	sedb *db = c->value;
-	char *status = sr_statusof(&db->index->status);
-	srconf conf = {
-		.key      = c->key,
-		.flags    = c->flags,
-		.type     = c->type,
-		.function = NULL,
-		.value    = status,
-		.ptr      = NULL,
-		.next     = NULL
-	};
-	return se_confv(&conf, s);
 }
 
 static inline int
@@ -608,8 +574,9 @@ static inline int
 se_confv_dboffline(srconf *c, srconfstmt *s)
 {
 	sedb *db = c->ptr;
+	se *e = se_of(&db->o);
 	if (s->op == SR_WRITE) {
-		if (se_dbactive(db)) {
+		if (ssunlikely(sr_online(&e->status))) {
 			sr_error(s->r->e, "write to %s is offline-only", s->path);
 			return -1;
 		}
@@ -627,7 +594,7 @@ se_confdb_scheme(srconf *c ssunused, srconfstmt *s)
 		sr_error(&e->error, "%s", "bad operation");
 		return -1;
 	}
-	if (ssunlikely(se_dbactive(db))) {
+	if (ssunlikely(sr_online(&e->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
@@ -666,7 +633,7 @@ se_confdb_field(srconf *c, srconfstmt *s)
 	se *e = se_of(&db->o);
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
-	if (ssunlikely(se_dbactive(db))) {
+	if (ssunlikely(sr_online(&e->status))) {
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
@@ -725,8 +692,7 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc)
 		srconf *database = *pc;
 		p = NULL;
 		sr_C(&p, pc, se_confv, "name", SS_STRINGPTR, &o->scheme->name, SR_RO, NULL);
-		sr_C(&p, pc, se_confv_dboffline, "id", SS_U32, &o->scheme->id, 0, o);
-		sr_C(&p, pc, se_confdb_status,   "status", SS_STRING, o, SR_RO, NULL);
+		sr_C(&p, pc, se_confv, "id", SS_U32, &o->scheme->id, SR_RO, o);
 		sr_C(&p, pc, se_confv_dboffline, "storage", SS_STRINGPTR, &o->scheme->storage_sz, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "temperature", SS_U32, &o->scheme->temperature, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "expire", SS_U32, &o->scheme->expire, 0, o);

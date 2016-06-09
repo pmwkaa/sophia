@@ -24,6 +24,9 @@ static int
 se_dbscheme_init(sedb *db, char *name, int size)
 {
 	se *e = se_of(&db->o);
+	/* database id */
+	uint32_t id = sr_seq(&e->seq, SR_DSN);
+	sr_seq(&e->seq, SR_DSNNEXT);
 	/* prepare index scheme */
 	sischeme *scheme = db->scheme;
 	if (size == 0)
@@ -33,7 +36,7 @@ se_dbscheme_init(sedb *db, char *name, int size)
 		goto error;
 	memcpy(scheme->name, name, size);
 	scheme->name[size] = 0;
-	scheme->id                  = sr_seq(&e->seq, SR_DSNNEXT);
+	scheme->id                  = id;
 	scheme->sync                = 2;
 	scheme->mmap                = 0;
 	scheme->storage             = SI_SCACHE;
@@ -173,40 +176,29 @@ int se_dbopen(so *o)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
 	se *e = se_of(&db->o);
-	int status = sr_status(&db->index->status);
-	if (status == SR_RECOVER)
-		goto online;
-	if (status != SR_OFFLINE)
-		return -1;
-	int rc = se_dbscheme_set(db);
+	assert(sr_status(&e->status) == SR_RECOVER);
+	int rc;
+	rc = se_dbscheme_set(db);
 	if (ssunlikely(rc == -1))
 		return -1;
 	sx_indexset(&db->coindex, db->scheme->id);
-	rc = se_recoverbegin(db);
+	rc = se_recover_database(db);
 	if (ssunlikely(rc == -1))
 		return -1;
-	if (sr_status(&e->status) == SR_RECOVER)
-		return 0;
-online:
-	se_recoverend(db);
-	rc = sc_add(&e->scheduler, db->index);
-	if (ssunlikely(rc == -1))
-		return -1;
+	sc_register(&e->scheduler, db->index);
 	return 0;
 }
 
 static inline int
-se_dbfree(sedb *db, int close)
+se_dbfree(sedb *db)
 {
 	se *e = se_of(&db->o);
 	int rcret = 0;
 	int rc;
+	rc = si_close(db->index);
+	if (ssunlikely(rc == -1))
+		rcret = -1;
 	sx_indexfree(&db->coindex, &e->xm);
-	if (close) {
-		rc = si_close(db->index);
-		if (ssunlikely(rc == -1))
-			rcret = -1;
-	}
 	so_mark_destroyed(&db->o);
 	ss_free(&e->a, db);
 	return rcret;
@@ -217,12 +209,10 @@ int se_dbdestroy(so *o)
 	sedb *db = se_cast(o, sedb*, SEDB);
 	se *e = se_of(&db->o);
 	int status = sr_status(&e->status);
-	if (status == SR_SHUTDOWN ||
-	    status == SR_OFFLINE) {
-		return se_dbfree(db, 1);
-	}
-	/* do nothing */
-	return 0;
+	if (status != SR_SHUTDOWN &&
+	    status != SR_OFFLINE)
+		return 0;
+	return se_dbfree(db);
 }
 
 static inline int
@@ -231,7 +221,7 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 	se *e = se_of(&db->o);
 
 	int auto_close = o->created <= 1;
-	if (ssunlikely(! sr_online(&db->index->status)))
+	if (ssunlikely(! se_active(e)))
 		goto error;
 
 	/* ensure memory quota */
@@ -341,35 +331,6 @@ se_dbdocument(so *o)
 	return se_document_new(e, &db->o, NULL);
 }
 
-static void*
-se_dbget_string(so *o, const char *path, int *size)
-{
-	sedb *db = se_cast(o, sedb*, SEDB);
-	if (strcmp(path, "name") == 0) {
-		int namesize = strlen(db->scheme->name) + 1;
-		if (size)
-			*size = namesize;
-		char *name = malloc(namesize);
-		if (name == NULL)
-			return NULL;
-		memcpy(name, db->scheme->name, namesize);
-		return name;
-	}
-	return NULL;
-}
-
-static int64_t
-se_dbget_int(so *o, const char *path)
-{
-	sedb *db = se_cast(o, sedb*, SEDB);
-	if (strcmp(path, "id") == 0)
-		return db->scheme->id;
-	else
-	if (strcmp(path, "key-count") == 0)
-		return db->scheme->scheme.keys_count;
-	return -1;
-}
-
 static soif sedbif =
 {
 	.open         = NULL,
@@ -382,8 +343,8 @@ static soif sedbif =
 	.setint       = NULL,
 	.setobject    = NULL,
 	.getobject    = NULL,
-	.getstring    = se_dbget_string,
-	.getint       = se_dbget_int,
+	.getstring    = NULL,
+	.getint       = NULL,
 	.set          = se_dbset,
 	.upsert       = se_dbupsert,
 	.del          = se_dbdel,
@@ -417,7 +378,6 @@ so *se_dbnew(se *e, char *name, int size)
 		ss_free(&e->a, o);
 		return NULL;
 	}
-	sr_statusset(&o->index->status, SR_OFFLINE);
 	sx_indexinit(&o->coindex, &e->xm, o->r, &o->o, o->index);
 	return &o->o;
 }
