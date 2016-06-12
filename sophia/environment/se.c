@@ -184,19 +184,6 @@ se_poll(so *o)
 	return NULL;
 }
 
-static int
-se_error(so *o)
-{
-	se *e = se_cast(o, se*, SE);
-	int status = sr_errorof(&e->error);
-	if (status == SR_ERROR_MALFUNCTION)
-		return 1;
-	status = sr_status(&e->status);
-	if (status == SR_MALFUNCTION)
-		return 1;
-	return 0;
-}
-
 static void*
 se_cursor(so *o)
 {
@@ -209,7 +196,6 @@ static soif seif =
 	.open         = se_open,
 	.destroy      = se_destroy,
 	.free         = NULL,
-	.error        = se_error,
 	.document     = NULL,
 	.poll         = se_poll,
 	.setstring    = se_confset_string,

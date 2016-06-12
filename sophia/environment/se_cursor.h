@@ -12,13 +12,13 @@
 typedef struct secursor secursor;
 
 struct secursor {
-	so o;
-	svlog log;
-	sx t;
+	so       o;
+	svlog    log;
+	sx       t;
 	uint64_t start;
-	int ops;
-	int read_disk;
-	int read_cache;
+	int      ops;
+	int      read_disk;
+	int      read_cache;
 	sicache *cache;
 };
 

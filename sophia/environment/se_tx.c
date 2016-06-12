@@ -261,7 +261,6 @@ static soif setxif =
 	.open         = NULL,
 	.destroy      = se_txrollback,
 	.free         = se_txfree,
-	.error        = NULL,
 	.document     = NULL,
 	.poll         = NULL,
 	.setstring    = se_txset_string,

@@ -336,7 +336,6 @@ static soif sedbif =
 	.open         = NULL,
 	.destroy      = NULL,
 	.free         = NULL,
-	.error        = NULL,
 	.document     = se_dbdocument,
 	.poll         = NULL,
 	.setstring    = NULL,

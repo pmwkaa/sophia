@@ -68,7 +68,6 @@ static soif secursorif =
 	.open         = NULL,
 	.destroy      = se_cursordestroy,
 	.free         = se_cursorfree,
-	.error        = NULL,
 	.document     = NULL,
 	.poll         = NULL,
 	.setstring    = NULL,
