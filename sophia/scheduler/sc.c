@@ -18,7 +18,7 @@
 #include <libsy.h>
 #include <libsc.h>
 
-int sc_init(sc *s, sr *r, sstrigger *on_event, slpool *lp)
+int sc_init(sc *s, sr *r, slpool *lp)
 {
 	uint64_t now = ss_utime();
 	ss_mutexinit(&s->lock);
@@ -53,7 +53,6 @@ int sc_init(sc *s, sr *r, sstrigger *on_event, slpool *lp)
 	s->count                    = 0;
 	s->rr                       = 0;
 	s->r                        = r;
-	s->on_event                 = on_event;
 	s->backup_path              = NULL;
 	s->lp                       = lp;
 	ss_threadpool_init(&s->tp);

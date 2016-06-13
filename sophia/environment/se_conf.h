@@ -57,8 +57,6 @@ struct seconf {
 	srzonemap     zones;
 	/* scheduler */
 	uint32_t      threads;
-	sstrigger     on_event;
-	uint32_t      event_on_backup;
 	/* memory */
 	uint64_t      memory_limit;
 	uint64_t      anticache;

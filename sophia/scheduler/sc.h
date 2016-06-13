@@ -72,11 +72,10 @@ struct sc {
 	scworkerpool  wp;
 	slpool       *lp;
 	char         *backup_path;
-	sstrigger    *on_event;
 	sr           *r;
 };
 
-int sc_init(sc*, sr*, sstrigger*, slpool*);
+int sc_init(sc*, sr*, slpool*);
 int sc_set(sc*, uint32_t, uint64_t, char*);
 int sc_run(sc*, ssthreadf, void*, int);
 int sc_shutdown(sc*);

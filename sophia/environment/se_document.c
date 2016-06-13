@@ -457,7 +457,6 @@ static soif sedocumentif =
 	.destroy      = se_document_destroy,
 	.free         = se_document_free,
 	.document     = NULL,
-	.poll         = NULL,
 	.setstring    = se_document_setstring,
 	.setint       = se_document_setint,
 	.setobject    = se_document_setobject,

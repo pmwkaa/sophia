@@ -18,7 +18,6 @@ struct soif {
 	int      (*destroy)(so*);
 	void     (*free)(so*);
 	void    *(*document)(so*);
-	void    *(*poll)(so*);
 	int      (*setstring)(so*, const char*, void*, int);
 	int      (*setint)(so*, const char*, int64_t);
 	int      (*setobject)(so*, const char*, void*);
@@ -87,7 +86,6 @@ so_cast_dynamic(void *ptr, sotype *type,
 #define so_destroy(o)   (o)->i->destroy(o)
 #define so_free(o)      (o)->i->free(o)
 #define so_document(o)  (o)->i->document(o)
-#define so_poll(o)      (o)->i->poll(o)
 #define so_set(o, v)    (o)->i->set(o, v)
 #define so_upsert(o, v) (o)->i->upsert(o, v)
 #define so_delete(o, v) (o)->i->del(o, v)

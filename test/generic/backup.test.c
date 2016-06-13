@@ -103,14 +103,6 @@ backup_test0(void)
 	t( sp_destroy(env) == 0 );
 }
 
-static int trigger_called = 0;
-
-static inline void
-on_event(void *arg)
-{
-	trigger_called = 1;
-}
-
 static void
 backup_test1(void)
 {
@@ -128,8 +120,6 @@ backup_test1(void)
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
-	t( sp_setstring(env, "scheduler.on_event", on_event, 0) == 0 );
-	t( sp_setint(env, "scheduler.event_on_backup", 1) == 0 );
 	t( sp_open(env) == 0 );
 
 	void *db = sp_getobject(env, "db.test");
@@ -168,16 +158,9 @@ backup_test1(void)
 	while ( (rc = sp_setint(env, "scheduler.run", 0)) > 0 );
 	t( rc == 0 );
 
-	t( trigger_called == 1 );
-
 	t( sp_getint(env, "backup.active") == 0 );
 	t( sp_getint(env, "backup.last") == 1 );
 	t( sp_getint(env, "backup.last_complete") == 1 );
-
-	void *o = sp_poll(env);
-	t( o != NULL );
-	t( sp_destroy(o) == 0 );
-	t( sp_poll(env) == NULL );
 
 	t( sp_destroy(env) == 0 );
 
@@ -202,7 +185,7 @@ backup_test1(void)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	o = sp_document(db);
+	void *o = sp_document(db);
 	t( o != NULL );
 	void *cur = sp_cursor(env);
 	t( cur != NULL );

@@ -1,5 +1,4 @@
 LIBSS_O = ss_time.o \
-          ss_trigger.o \
           ss_stda.o \
           ss_ooma.o \
           ss_rb.o \

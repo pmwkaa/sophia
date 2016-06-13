@@ -27,7 +27,6 @@
 #include <ss_trace.h>
 #include <ss_gc.h>
 #include <ss_order.h>
-#include <ss_trigger.h>
 #include <ss_buf.h>
 #include <ss_injection.h>
 #include <ss_crc.h>

@@ -256,34 +256,6 @@ se_confscheduler_anticache(srconf *c, srconfstmt *s)
 }
 
 static inline int
-se_confscheduler_on_event(srconf *c, srconfstmt *s)
-{
-	se *e = s->ptr;
-	if (s->op != SR_WRITE)
-		return se_confv(c, s);
-	if (ssunlikely(sr_online(&e->status))) {
-		sr_error(s->r->e, "write to %s is offline-only", s->path);
-		return -1;
-	}
-	ss_triggerset(&e->conf.on_event, s->value);
-	return 0;
-}
-
-static inline int
-se_confscheduler_on_event_arg(srconf *c, srconfstmt *s)
-{
-	se *e = s->ptr;
-	if (s->op != SR_WRITE)
-		return se_confv(c, s);
-	if (ssunlikely(sr_online(&e->status))) {
-		sr_error(s->r->e, "write to %s is offline-only", s->path);
-		return -1;
-	}
-	ss_triggerset_arg(&e->conf.on_event, s->value);
-	return 0;
-}
-
-static inline int
 se_confscheduler_gc(srconf *c, srconfstmt *s)
 {
 	if (s->op != SR_WRITE)
@@ -340,9 +312,6 @@ se_confscheduler(se *e, seconfrt *rt, srconf **pc)
 	sr_C(&p, pc, se_confv, "snapshot_ssn", SS_U64, &rt->snapshot_ssn, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "snapshot_ssn_last", SS_U64, &rt->snapshot_ssn_last, SR_RO, NULL);
 	sr_c(&p, pc, se_confscheduler_snapshot, "snapshot", SS_FUNCTION, NULL);
-	sr_c(&p, pc, se_confscheduler_on_event, "on_event", SS_STRING, NULL);
-	sr_c(&p, pc, se_confscheduler_on_event_arg, "on_event_arg", SS_STRING, NULL);
-	sr_c(&p, pc, se_confv_offline, "event_on_backup", SS_U32, &e->conf.event_on_backup);
 	sr_C(&p, pc, se_confv, "gc_active", SS_U32, &rt->gc_active, SR_RO, NULL);
 	sr_c(&p, pc, se_confscheduler_gc, "gc", SS_FUNCTION, NULL);
 	sr_C(&p, pc, se_confv, "expire_active", SS_U32, &rt->expire_active, SR_RO, NULL);
@@ -1046,8 +1015,6 @@ int se_confinit(seconf *c, so *e)
 	c->log_rotate_wm       = 500000;
 	c->log_sync            = 0;
 	c->log_rotate_sync     = 1;
-	ss_triggerinit(&c->on_event);
-	c->event_on_backup     = 0;
 	srzone def = {
 		.enable            = 1,
 		.mode              = 3, /* branch + compact */

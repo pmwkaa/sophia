@@ -97,20 +97,6 @@ SP_API int sp_destroy(void *ptr)
 	return rc;
 }
 
-SP_API void *sp_poll(void *ptr)
-{
-	so *o = sp_cast(ptr, __func__);
-	if (ssunlikely(o->i->poll == NULL)) {
-		sp_unsupported(o, __func__);
-		return NULL;
-	}
-	so *e = o->env;
-	se_apilock(e);
-	void *h = o->i->poll(o);
-	se_apiunlock(e);
-	return h;
-}
-
 SP_API int sp_setstring(void *ptr, const char *path, const void *pointer, int size)
 {
 	so *o = sp_cast(ptr, __func__);

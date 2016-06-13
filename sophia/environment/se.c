@@ -165,26 +165,6 @@ se_begin(so *o)
 }
 
 static void*
-se_poll(so *o)
-{
-	se *e = se_cast(o, se*, SE);
-	so *result;
-	if (e->conf.event_on_backup) {
-		int event = sc_ctl_backup_event(&e->scheduler);
-		if (event) {
-			sedocument *doc;
-			result = se_document_new(e, &e->o, NULL);
-			if (ssunlikely(result == NULL))
-				return NULL;
-			doc = (sedocument*)result;
-			doc->event = 1;
-			return result;
-		}
-	}
-	return NULL;
-}
-
-static void*
 se_cursor(so *o)
 {
 	se *e = se_cast(o, se*, SE);
@@ -197,7 +177,6 @@ static soif seif =
 	.destroy      = se_destroy,
 	.free         = NULL,
 	.document     = NULL,
-	.poll         = se_poll,
 	.setstring    = se_confset_string,
 	.setint       = se_confset_int,
 	.setobject    = NULL,
@@ -251,7 +230,7 @@ so *se_new(void)
 	sl_poolinit(&e->lp, &e->r);
 	sx_managerinit(&e->xm, &e->r);
 	si_cachepool_init(&e->cachepool, &e->r);
-	sc_init(&e->scheduler, &e->r, &e->conf.on_event, &e->lp);
+	sc_init(&e->scheduler, &e->r, &e->lp);
 	return &e->o;
 error:
 	sr_statusfree(&e->status);

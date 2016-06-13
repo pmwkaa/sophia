@@ -455,9 +455,6 @@ int sc_step(sc *s, scworker *w, uint64_t vlsn)
 		if (ssunlikely(rc == -1))
 			goto error;
 	}
-	/* trigger backup completion */
-	if (task.on_backup)
-		ss_triggerrun(s->on_event);
 	if (rc_job == 1) {
 		rc = sc_execute(&task, w, vlsn);
 		if (ssunlikely(rc == -1)) {
