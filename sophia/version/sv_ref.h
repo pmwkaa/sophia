@@ -12,8 +12,8 @@
 typedef struct svref svref;
 
 struct svref {
-	svv      *v;
-	svref    *next;
+	svv     *v;
+	svref   *next;
 	uint8_t  flags;
 	ssrbnode node;
 } sspacked;

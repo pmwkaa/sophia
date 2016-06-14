@@ -460,7 +460,7 @@ int si_read(siread *q)
 	return -1;
 }
 
-int si_readcommited(si *index, sr *r, sv *v, int recover)
+int si_readcommited(si *index, sr *r, sv *v)
 {
 	/* search node index */
 	ssiter i;
@@ -471,31 +471,6 @@ int si_readcommited(si *index, sr *r, sv *v, int recover)
 	assert(node != NULL);
 
 	uint64_t lsn = sv_lsn(v);
-	int rc;
-	/* search in-memory */
-	if (recover == 2) {
-		svindex *second;
-		svindex *first = si_nodeindex_priority(node, &second);
-		ss_iterinit(sv_indexiter, &i);
-		if (sslikely(first->count > 0)) {
-			rc = ss_iteropen(sv_indexiter, &i, r, first, SS_GTE,
-			                 sv_pointer(v));
-			if (rc) {
-				sv *ref = ss_iterof(sv_indexiter, &i);
-				if (sv_refvisible_gte((svref*)ref->v, lsn))
-					return 1;
-			}
-		}
-		if (second && !second->count) {
-			rc = ss_iteropen(sv_indexiter, &i, r, second, SS_GTE,
-			                 sv_pointer(v));
-			if (rc) {
-				sv *ref = ss_iterof(sv_indexiter, &i);
-				if (sv_refvisible_gte((svref*)ref->v, lsn))
-					return 1;
-			}
-		}
-	}
 
 	/* search branches */
 	sibranch *b;

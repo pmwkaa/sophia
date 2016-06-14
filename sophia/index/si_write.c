@@ -52,7 +52,7 @@ void si_write(sitx *x, svlog *l, svlogindex *li, uint64_t time,
 	while (c) {
 		svv *v = cv->v.v;
 		if (recover) {
-			if (si_readcommited(x->index, r, &cv->v, recover)) {
+			if (si_readcommited(x->index, r, &cv->v)) {
 				si_gcv(r, v);
 				goto next;
 			}

@@ -14,6 +14,7 @@
 #define SVUPSERT     2
 #define SVGET        4
 #define SVDUP        8
+
 #define SVBEGIN     16
 #define SVCONFLICT  32
 

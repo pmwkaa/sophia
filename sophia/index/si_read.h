@@ -37,6 +37,6 @@ int  si_readopen(siread*, si*, sicache*, ssorder,
                  char*, uint32_t, int, int, int);
 int  si_readclose(siread*);
 int  si_read(siread*);
-int  si_readcommited(si*, sr*, sv*, int);
+int  si_readcommited(si*, sr*, sv*);
 
 #endif
