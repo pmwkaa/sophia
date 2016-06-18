@@ -9,6 +9,8 @@
  * BSD License
 */
 
+int sc_step(sc*, scworker*, uint64_t);
+
 static inline scdb*
 sc_current(sc *s) {
 	return &s->i[s->rr];
@@ -22,114 +24,104 @@ sc_next(sc *s) {
 }
 
 static inline void
-sc_task_checkpoint(sc *s)
+sc_task_checkpoint(sc *s, scdb *db)
 {
-	uint64_t lsn = sr_seq(s->r->seq, SR_LSN);
-	s->checkpoint_lsn = lsn;
-	s->checkpoint = 1;
-	sc_start(s, SI_CHECKPOINT);
+	db->checkpoint_lsn = sr_seq(s->r->seq, SR_LSN);
+	db->checkpoint = 1;
 }
 
 static inline void
-sc_task_checkpoint_done(sc *s)
+sc_task_checkpoint_done(scdb *db)
 {
-	s->checkpoint = 0;
-	s->checkpoint_lsn_last = s->checkpoint_lsn;
-	s->checkpoint_lsn = 0;
+	db->checkpoint = 0;
+	db->checkpoint_lsn_last = db->checkpoint_lsn;
+	db->checkpoint_lsn = 0;
 }
 
 static inline void
-sc_task_anticache(sc *s)
+sc_task_anticache(sc *s, scdb *db)
 {
-	s->anticache = 1;
-	s->anticache_storage = s->anticache_limit;
-	s->anticache_asn = sr_seq(s->r->seq, SR_ASNNEXT);
-	sc_start(s, SI_ANTICACHE);
+	db->anticache = 1;
+	db->anticache_storage = db->anticache_limit;
+	db->anticache_asn = sr_seq(s->r->seq, SR_ASNNEXT);
 }
 
 static inline void
-sc_task_anticache_done(sc *s, uint64_t now)
+sc_task_anticache_done(scdb *db, uint64_t now)
 {
-	s->anticache = 0;
-	s->anticache_asn_last = s->anticache_asn;
-	s->anticache_asn = 0;
-	s->anticache_storage = 0;
-	s->anticache_time = now;
+	db->anticache = 0;
+	db->anticache_asn_last = db->anticache_asn;
+	db->anticache_asn = 0;
+	db->anticache_storage = 0;
+	db->anticache_time = now;
 }
 
 static inline void
-sc_task_snapshot(sc *s)
+sc_task_snapshot(sc *s, scdb *db)
 {
-	s->snapshot = 1;
-	s->snapshot_ssn = sr_seq(s->r->seq, SR_SSNNEXT);
-	sc_start(s, SI_SNAPSHOT);
+	db->snapshot = 1;
+	db->snapshot_ssn = sr_seq(s->r->seq, SR_SSNNEXT);
 }
 
 static inline void
-sc_task_snapshot_done(sc *s, uint64_t now)
+sc_task_snapshot_done(scdb *db, uint64_t now)
 {
-	s->snapshot = 0;
-	s->snapshot_ssn_last = s->snapshot_ssn;
-	s->snapshot_ssn = 0;
-	s->snapshot_time = now;
+	db->snapshot = 0;
+	db->snapshot_ssn_last = db->snapshot_ssn;
+	db->snapshot_ssn = 0;
+	db->snapshot_time = now;
 }
 
 static inline void
-sc_task_expire(sc *s)
+sc_task_expire(scdb *db)
 {
-	s->expire = 1;
-	sc_start(s, SI_EXPIRE);
+	db->expire = 1;
 }
 
 static inline void
-sc_task_expire_done(sc *s, uint64_t now)
+sc_task_expire_done(scdb *db, uint64_t now)
 {
-	s->expire = 0;
-	s->expire_time = now;
+	db->expire = 0;
+	db->expire_time = now;
 }
 
 static inline void
-sc_task_gc(sc *s)
+sc_task_gc(scdb *db)
 {
-	s->gc = 1;
-	sc_start(s, SI_GC);
+	db->gc = 1;
 }
 
 static inline void
-sc_task_gc_done(sc *s, uint64_t now)
+sc_task_gc_done(scdb *db, uint64_t now)
 {
-	s->gc = 0;
-	s->gc_time = now;
+	db->gc = 0;
+	db->gc_time = now;
 }
 
 static inline void
-sc_task_lru(sc *s)
+sc_task_lru(scdb *db)
 {
-	s->lru = 1;
-	sc_start(s, SI_LRU);
+	db->lru = 1;
 }
 
 static inline void
-sc_task_lru_done(sc *s, uint64_t now)
+sc_task_lru_done(scdb *db, uint64_t now)
 {
-	s->lru = 0;
-	s->lru_time = now;
+	db->lru = 0;
+	db->lru_time = now;
 }
 
 static inline void
-sc_task_age(sc *s)
+sc_task_age(scdb *db)
 {
-	s->age = 1;
-	sc_start(s, SI_AGE);
+	db->age = 1;
 }
 
 static inline void
-sc_task_age_done(sc *s, uint64_t now)
+sc_task_age_done(scdb *db, uint64_t now)
 {
-	s->age = 0;
-	s->age_time = now;
+	db->age = 0;
+	db->age_time = now;
 }
-
-int sc_step(sc*, scworker*, uint64_t);
 
 #endif

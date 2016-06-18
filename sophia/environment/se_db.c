@@ -36,26 +36,28 @@ se_dbscheme_init(sedb *db, char *name, int size)
 		goto error;
 	memcpy(scheme->name, name, size);
 	scheme->name[size] = 0;
-	scheme->id                  = id;
-	scheme->sync                = 2;
-	scheme->mmap                = 0;
-	scheme->storage             = SI_SCACHE;
-	scheme->node_size           = 64 * 1024 * 1024;
-	scheme->node_compact_load   = 0;
-	scheme->node_page_size      = 128 * 1024;
-	scheme->node_page_checksum  = 1;
-	scheme->compression_copy    = 0;
-	scheme->compression_cold    = 0;
-	scheme->compression_cold_if = &ss_nonefilter;
-	scheme->compression_hot     = 0;
-	scheme->compression_hot_if  = &ss_nonefilter;
-	scheme->temperature         = 0;
-	scheme->expire              = 0;
-	scheme->amqf                = 0;
-	scheme->fmt_storage         = SF_RAW;
-	scheme->lru                 = 0;
-	scheme->lru_step            = 128 * 1024;
-	scheme->buf_gc_wm           = 1024 * 1024;
+	scheme->id                     = id;
+	scheme->memory_limit           = 0;
+	scheme->memory_limit_anticache = 0;
+	scheme->sync                   = 2;
+	scheme->mmap                   = 0;
+	scheme->storage                = SI_SCACHE;
+	scheme->node_size              = 64 * 1024 * 1024;
+	scheme->node_compact_load      = 0;
+	scheme->node_page_size         = 128 * 1024;
+	scheme->node_page_checksum     = 1;
+	scheme->compression_copy       = 0;
+	scheme->compression_cold       = 0;
+	scheme->compression_cold_if    = &ss_nonefilter;
+	scheme->compression_hot        = 0;
+	scheme->compression_hot_if     = &ss_nonefilter;
+	scheme->temperature            = 0;
+	scheme->expire                 = 0;
+	scheme->amqf                   = 0;
+	scheme->fmt_storage            = SF_RAW;
+	scheme->lru                    = 0;
+	scheme->lru_step               = 128 * 1024;
+	scheme->buf_gc_wm              = 1024 * 1024;
 	scheme->storage_sz = ss_strdup(&e->a, "cache");
 	if (ssunlikely(scheme->storage_sz == NULL))
 		goto error;
@@ -153,22 +155,43 @@ se_dbscheme_set(sedb *db)
 	/* path */
 	if (s->path == NULL) {
 		char path[1024];
-		snprintf(path, sizeof(path), "%s/%s", e->conf.path, s->name);
+		snprintf(path, sizeof(path), "%s/%s", e->rep_conf->path, s->name);
 		s->path = ss_strdup(&e->a, path);
 		if (ssunlikely(s->path == NULL))
 			return sr_oom(&e->error);
 	}
 	/* backup path */
-	s->path_backup = e->conf.backup_path;
-	if (e->conf.backup_path) {
-		s->path_backup = ss_strdup(&e->a, e->conf.backup_path);
+	s->path_backup = e->rep_conf->path_backup;
+	if (e->rep_conf->path_backup) {
+		s->path_backup = ss_strdup(&e->a, e->rep_conf->path_backup);
 		if (ssunlikely(s->path_backup == NULL))
 			return sr_oom(&e->error);
 	}
+	/* compaction settings */
+	sicompaction *c = &s->compaction;
+	if (c->compact_wm <= 1) {
+		sr_error(&e->error, "%s", "bad compaction.compact_wm value");
+		return -1;
+	}
+	/* convert periodic times from sec to usec */
+	c->branch_age_period_us = c->branch_age_period * 1000000;
+	c->snapshot_period_us   = c->snapshot_period * 1000000;
+	c->anticache_period_us  = c->anticache_period * 1000000;
+	c->gc_period_us         = c->gc_period * 1000000;
+	c->expire_period_us     = c->expire_period * 1000000;
+	c->lru_period_us        = c->lru_period * 1000000;
+	/* enable memory quota */
+	if (s->memory_limit > 0) {
+		sr_quotaenable(&db->quota, 1);
+		sr_quotaset(&db->quota, s->memory_limit);
+	}
 
+	/* .. */
 	db->r->scheme = &s->scheme;
 	db->r->fmt_storage = s->fmt_storage;
 	db->r->fmt_upsert = &s->fmt_upsert;
+	db->r->stat = &db->stat;
+	db->r->quota = &db->quota;
 	return 0;
 }
 
@@ -182,9 +205,13 @@ int se_dbopen(so *o)
 	if (ssunlikely(rc == -1))
 		return -1;
 	sx_indexset(&db->coindex, db->scheme->id);
-	rc = se_recover_database(db);
-	if (ssunlikely(rc == -1))
+	sr_log(&e->log, "loading database '%s'", db->scheme->path);
+	rc = si_open(db->index);
+	if (ssunlikely(rc == -1)) {
+		sr_statusset(&e->status, SR_MALFUNCTION);
 		return -1;
+	}
+	db->created = rc;
 	sc_register(&e->scheduler, db->index);
 	return 0;
 }
@@ -198,6 +225,7 @@ se_dbfree(sedb *db)
 	rc = si_close(db->index);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
+	sr_statfree(&db->stat);
 	sx_indexfree(&db->coindex, &e->xm);
 	so_mark_destroyed(&db->o);
 	ss_free(&e->a, db);
@@ -219,14 +247,12 @@ static inline int
 se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 {
 	se *e = se_of(&db->o);
-
-	int auto_close = o->created <= 1;
 	if (ssunlikely(! se_active(e)))
 		goto error;
 
 	/* ensure memory quota */
 	int rc;
-	rc = sr_quota(&e->quota, &e->stat);
+	rc = sr_quota(&db->quota, &db->stat);
 	if (ssunlikely(rc)) {
 		sr_error(&e->error, "%s", "memory quota limit reached");
 		goto error;
@@ -242,9 +268,7 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 
 	svv *v = o->v.v;
 	sv_vref(v);
-
-	if (auto_close)
-		so_destroy(&o->o);
+	so_destroy(&o->o);
 
 	/* single-statement transaction */
 	svlog log;
@@ -267,8 +291,7 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 	return rc;
 
 error:
-	if (auto_close)
-		so_destroy(&o->o);
+	so_destroy(&o->o);
 	return -1;
 }
 
@@ -277,10 +300,9 @@ se_dbset(so *o, so *v)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
 	sedocument *key = se_cast(v, sedocument*, SEDOCUMENT);
-	se *e = se_of(&db->o);
 	uint64_t start = ss_utime();
 	int rc = se_dbwrite(db, key, 0);
-	sr_statset(&e->stat, start);
+	sr_statset(&db->stat, start);
 	return rc;
 }
 
@@ -298,7 +320,7 @@ se_dbupsert(so *o, so *v)
 		return -1;
 	}
 	int rc = se_dbwrite(db, key, SVUPSERT);
-	sr_statupsert(&e->stat, start);
+	sr_statupsert(&db->stat, start);
 	return rc;
 }
 
@@ -307,10 +329,9 @@ se_dbdel(so *o, so *v)
 {
 	sedb *db = se_cast(o, sedb*, SEDB);
 	sedocument *key = se_cast(v, sedocument*, SEDOCUMENT);
-	se *e = se_of(&db->o);
 	uint64_t start = ss_utime();
 	int rc = se_dbwrite(db, key, SVDELETE);
-	sr_statdelete(&e->stat, start);
+	sr_statdelete(&db->stat, start);
 	return rc;
 }
 
@@ -339,7 +360,6 @@ static soif sedbif =
 	.document     = se_dbdocument,
 	.setstring    = NULL,
 	.setint       = NULL,
-	.setobject    = NULL,
 	.getobject    = NULL,
 	.getstring    = NULL,
 	.getint       = NULL,
@@ -362,6 +382,8 @@ so *se_dbnew(se *e, char *name, int size)
 	}
 	memset(o, 0, sizeof(*o));
 	so_init(&o->o, &se_o[SEDB], &sedbif, &e->o, &e->o);
+	sr_statinit(&o->stat);
+	sr_quotainit(&o->quota);
 	o->index = si_init(&e->r, &o->o);
 	if (ssunlikely(o->index == NULL)) {
 		ss_free(&e->a, o);

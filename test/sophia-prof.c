@@ -69,7 +69,6 @@ spr_cmd_start(void)
 	sp_setstring(spr_env, "db.test.scheme", "ttl", 0);
 	sp_setstring(spr_env, "db.test.scheme.ttl", "u32,timestamp,expire", 0);
 
-	sp_setint(spr_env, "compaction.0.expire_prio", 1);
 	sp_setint(spr_env, "db.test.expire", 10);
 
 	spr_db = sp_getobject(spr_env, "db.test");
@@ -117,7 +116,7 @@ spr_cmd_checkpoint(void)
 {
 	if (! spr_start)
 		return;
-	sp_setint(spr_env, "scheduler.checkpoint", 0);
+	sp_setint(spr_env, "db.test.compaction.checkpoint", 0);
 }
 
 static inline void
@@ -125,7 +124,7 @@ spr_cmd_snapshot(void)
 {
 	if (! spr_start)
 		return;
-	sp_setint(spr_env, "scheduler.snapshot", 0);
+	sp_setint(spr_env, "db.test.compaction.snapshot", 0);
 }
 
 static inline void
@@ -133,7 +132,7 @@ spr_cmd_gc(void)
 {
 	if (! spr_start)
 		return;
-	sp_setint(spr_env, "scheduler.gc", 0);
+	sp_setint(spr_env, "db.test.compaction.gc", 0);
 }
 
 static inline void
@@ -141,7 +140,7 @@ spr_cmd_expire(void)
 {
 	if (! spr_start)
 		return;
-	sp_setint(spr_env, "scheduler.expire", 0);
+	sp_setint(spr_env, "db.test.compaction.expire", 0);
 }
 
 static inline void
@@ -149,7 +148,7 @@ spr_cmd_lru(void)
 {
 	if (! spr_start)
 		return;
-	sp_setint(spr_env, "scheduler.lru", 0);
+	sp_setint(spr_env, "db.test.compaction.lru", 0);
 }
 
 static inline void
@@ -157,7 +156,7 @@ spr_cmd_anticache(void)
 {
 	if (! spr_start)
 		return;
-	sp_setint(spr_env, "scheduler.anticache", 0);
+	sp_setint(spr_env, "db.test.compaction.anticache", 0);
 }
 
 static inline void

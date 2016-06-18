@@ -29,9 +29,9 @@ recover_loop(void)
 		t( env != NULL );
 		t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 		t( sp_setint(env, "scheduler.threads", 0) == 0 );
-		t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 		t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 		t( sp_setstring(env, "db", "test", 0) == 0 );
+		t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 		t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 		t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 		t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -57,7 +57,7 @@ recover_loop(void)
 				sp_destroy(o);
 				i++;
 			}
-			t( sp_setint(env, "db.test.branch", 0) == 0 );
+			t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 		}
 
 		srand(seed);
@@ -82,9 +82,9 @@ recover_loop(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );

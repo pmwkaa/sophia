@@ -20,21 +20,6 @@
 #include <libsc.h>
 #include <libse.h>
 
-int se_recover_database(sedb *db)
-{
-	/* open and recover repository */
-	se *e = se_of(&db->o);
-	sr_log(&e->log, "loading database '%s'", db->scheme->path);
-	int rc = si_open(db->index);
-	if (ssunlikely(rc == -1))
-		goto error;
-	db->created = rc;
-	return 0;
-error:
-	sr_statusset(&e->status, SR_MALFUNCTION);
-	return -1;
-}
-
 static int
 se_recover_log(se *e, sl *log)
 {
@@ -119,7 +104,7 @@ error:
 static inline int
 se_recover_logpool(se *e)
 {
-	sr_log(&e->log, "loading journals '%s'", e->lp.conf->path);
+	sr_log(&e->log, "loading journals '%s'", e->lp_conf->path);
 	uint32_t current = 1;
 	sslist *i;
 	ss_listforeach(&e->lp.list, i) {
@@ -136,13 +121,7 @@ se_recover_logpool(se *e)
 
 int se_recover(se *e)
 {
-	slconf *lc = &e->lpconf;
-	lc->enable         = e->conf.log_enable;
-	lc->path           = e->conf.log_path;
-	lc->rotatewm       = e->conf.log_rotate_wm;
-	lc->sync_on_rotate = e->conf.log_rotate_sync;
-	lc->sync_on_write  = e->conf.log_sync;
-	int rc = sl_poolopen(&e->lp, lc);
+	int rc = sl_poolopen(&e->lp);
 	if (ssunlikely(rc == -1))
 		goto error;
 	rc = se_recover_logpool(e);
@@ -152,14 +131,4 @@ int se_recover(se *e)
 error:
 	sr_statusset(&e->status, SR_MALFUNCTION);
 	return -1;
-}
-
-int se_recover_repository(se *e)
-{
-	syconf *rc = &e->repconf;
-	rc->path        = e->conf.path;
-	rc->path_backup = e->conf.backup_path;
-	rc->sync        = 0;
-	sr_log(&e->log, "recovering repository '%s'", e->conf.path);
-	return sy_open(&e->rep, &e->r, rc);
 }

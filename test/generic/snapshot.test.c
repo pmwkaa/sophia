@@ -22,11 +22,11 @@ snapshot_test0(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -45,25 +45,25 @@ snapshot_test0(void)
 		t( sp_set(db, o) == 0 );
 		key++;
 	}
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
-	t( sp_getint(env, "scheduler.snapshot_active") == 0 );
-	t( sp_getint(env, "scheduler.snapshot_ssn") == 0 );
-	t( sp_getint(env, "scheduler.snapshot_ssn_last") == 0 );
+	t( sp_getint(env, "db.test.scheduler.snapshot") == 0 );
+	t( sp_getint(env, "db.test.scheduler.snapshot_ssn") == 0 );
+	t( sp_getint(env, "db.test.scheduler.snapshot_ssn_last") == 0 );
 
-	t( sp_setint(env, "scheduler.snapshot", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.snapshot", 0) == 0 );
 
-	t( sp_getint(env, "scheduler.snapshot_active") == 1 );
-	t( sp_getint(env, "scheduler.snapshot_ssn") == 1 );
-	t( sp_getint(env, "scheduler.snapshot_ssn_last") == 0 );
+	t( sp_getint(env, "db.test.scheduler.snapshot") == 1 );
+	t( sp_getint(env, "db.test.scheduler.snapshot_ssn") == 1 );
+	t( sp_getint(env, "db.test.scheduler.snapshot_ssn_last") == 0 );
 
 	int rc;
 	while ( (rc = sp_setint(env, "scheduler.run", 0)) > 0 );
 	t( rc == 0 );
 
-	t( sp_getint(env, "scheduler.snapshot_active") == 0 );
-	t( sp_getint(env, "scheduler.snapshot_ssn") == 0 );
-	t( sp_getint(env, "scheduler.snapshot_ssn_last") == 1 );
+	t( sp_getint(env, "db.test.scheduler.snapshot") == 0 );
+	t( sp_getint(env, "db.test.scheduler.snapshot_ssn") == 0 );
+	t( sp_getint(env, "db.test.scheduler.snapshot_ssn_last") == 1 );
 
 	t( sp_destroy(env) == 0 );
 
@@ -71,11 +71,11 @@ snapshot_test0(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -104,11 +104,11 @@ snapshot_test1(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -127,25 +127,25 @@ snapshot_test1(void)
 		t( sp_set(db, o) == 0 );
 		key++;
 	}
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
-	t( sp_getint(env, "scheduler.snapshot_active") == 0 );
-	t( sp_getint(env, "scheduler.snapshot_ssn") == 0 );
-	t( sp_getint(env, "scheduler.snapshot_ssn_last") == 0 );
+	t( sp_getint(env, "db.test.scheduler.snapshot") == 0 );
+	t( sp_getint(env, "db.test.scheduler.snapshot_ssn") == 0 );
+	t( sp_getint(env, "db.test.scheduler.snapshot_ssn_last") == 0 );
 
-	t( sp_setint(env, "scheduler.snapshot", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.snapshot", 0) == 0 );
 
-	t( sp_getint(env, "scheduler.snapshot_active") == 1 );
-	t( sp_getint(env, "scheduler.snapshot_ssn") == 1 );
-	t( sp_getint(env, "scheduler.snapshot_ssn_last") == 0 );
+	t( sp_getint(env, "db.test.scheduler.snapshot") == 1 );
+	t( sp_getint(env, "db.test.scheduler.snapshot_ssn") == 1 );
+	t( sp_getint(env, "db.test.scheduler.snapshot_ssn_last") == 0 );
 
 	int rc;
 	while ( (rc = sp_setint(env, "scheduler.run", 0)) > 0 );
 	t( rc == 0 );
 
-	t( sp_getint(env, "scheduler.snapshot_active") == 0 );
-	t( sp_getint(env, "scheduler.snapshot_ssn") == 0 );
-	t( sp_getint(env, "scheduler.snapshot_ssn_last") == 1 );
+	t( sp_getint(env, "db.test.scheduler.snapshot") == 0 );
+	t( sp_getint(env, "db.test.scheduler.snapshot_ssn") == 0 );
+	t( sp_getint(env, "db.test.scheduler.snapshot_ssn_last") == 1 );
 
 	while (key < 15) {
 		void *o = sp_document(db);
@@ -155,7 +155,7 @@ snapshot_test1(void)
 		t( sp_set(db, o) == 0 );
 		key++;
 	}
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	t( sp_destroy(env) == 0 );
 
@@ -163,11 +163,11 @@ snapshot_test1(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -216,25 +216,14 @@ snapshot_test2(void)
 	t( t1 != NULL );
 	t( sp_open(env) == 0 );
 
-	t( sp_getint(env, "scheduler.snapshot_active") == 0 );
-	t( sp_getint(env, "scheduler.snapshot_ssn") == 0 );
-	t( sp_getint(env, "scheduler.snapshot_ssn_last") == 0 );
-
-	t( sp_setint(env, "scheduler.snapshot", 0) == 0 );
-
-	t( sp_getint(env, "scheduler.snapshot_active") == 1 );
-	t( sp_getint(env, "scheduler.snapshot_ssn") == 1 );
-	t( sp_getint(env, "scheduler.snapshot_ssn_last") == 0 );
+	t( sp_setint(env, "db.t0.compaction.snapshot", 0) == 0 );
+	t( sp_setint(env, "db.t1.compaction.snapshot", 0) == 0 );
 
 	t( sp_setint(env, "scheduler.run", 0) == 1 );
 	t( sp_setint(env, "scheduler.run", 0) == 1 );
 	t( sp_setint(env, "scheduler.run", 0) == 0 );
 	t( sp_setint(env, "scheduler.run", 0) == 0 );
 	t( sp_setint(env, "scheduler.run", 0) == 0 );
-
-	t( sp_getint(env, "scheduler.snapshot_active") == 0 );
-	t( sp_getint(env, "scheduler.snapshot_ssn") == 0 );
-	t( sp_getint(env, "scheduler.snapshot_ssn_last") == 1 );
 
 	t( sp_destroy(env) == 0 );
 }

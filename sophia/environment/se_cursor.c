@@ -36,10 +36,12 @@ se_cursordestroy(so *o)
 	sx_rollback(&c->t);
 	if (c->cache)
 		si_cachepool_push(c->cache);
-	sr_statcursor(&e->stat, c->start,
-	              c->read_disk,
-	              c->read_cache,
-	              c->ops);
+	if (c->read_db) {
+		sr_statcursor(&c->read_db->stat, c->start,
+		              c->read_disk,
+		              c->read_cache,
+		              c->ops);
+	}
 	so_mark_destroyed(&c->o);
 	so_poolgc(&e->cursor, &c->o);
 	return 0;
@@ -51,6 +53,8 @@ se_cursorget(so *o, so *v)
 	secursor *c = se_cast(o, secursor*, SECURSOR);
 	sedocument *key = se_cast(v, sedocument*, SEDOCUMENT);
 	sedb *db = se_cast(v->parent, sedb*, SEDB);
+	if (ssunlikely(c->read_db == NULL))
+		c->read_db = db;
 	if (ssunlikely(! key->orderset))
 		key->order = SS_GTE;
 	sedocument *ret =
@@ -71,7 +75,6 @@ static soif secursorif =
 	.document     = NULL,
 	.setstring    = NULL,
 	.setint       = NULL,
-	.setobject    = NULL,
 	.getobject    = NULL,
 	.getstring    = NULL,
 	.getint       = NULL,
@@ -101,6 +104,7 @@ so *se_cursornew(se *e, uint64_t vlsn)
 	c->ops = 0;
 	c->read_disk = 0;
 	c->read_cache = 0;
+	c->read_db = NULL;
 	c->t.state = SX_UNDEF;
 	c->cache = si_cachepool_pop(&e->cachepool);
 	if (ssunlikely(c->cache == NULL)) {

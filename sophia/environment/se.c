@@ -66,17 +66,17 @@ se_open(so *o)
 		return -1;
 
 	/* prepare scheduler */
-	rc = sc_set(&e->scheduler, e->db.n, e->conf.anticache,
-	            e->conf.backup_path);
+	rc = sc_set(&e->scheduler, e->db.n);
+	if (ssunlikely(rc == -1))
+		return -1;
+	rc = sc_setbackup(&e->scheduler, e->rep_conf->path_backup);
 	if (ssunlikely(rc == -1))
 		return -1;
 
-	/* set memory quota (disable during recovery) */
-	sr_quotaset(&e->quota, e->conf.memory_limit);
-	sr_quotaenable(&e->quota, 0);
-
 	/* repository recover */
-	rc = se_recover_repository(e);
+	sr_log(&e->log, "recovering repository '%s'",
+	       e->rep_conf->path);
+	rc = sy_open(&e->rep, &e->r);
 	if (ssunlikely(rc == -1))
 		return -1;
 
@@ -94,8 +94,6 @@ se_open(so *o)
 	if (ssunlikely(rc == -1))
 		return -1;
 
-	/* enable quota */
-	sr_quotaenable(&e->quota, 1);
 	sr_statusset(&e->status, SR_ONLINE);
 
 	/* run thread-pool and scheduler */
@@ -149,7 +147,7 @@ se_destroy(so *o)
 	se_conffree(&e->conf);
 	ss_mutexfree(&e->apilock);
 	sf_limitfree(&e->limit, &e->a);
-	sr_statfree(&e->stat);
+
 	sr_seqfree(&e->seq);
 	sr_statusfree(&e->status);
 	so_mark_destroyed(&e->o);
@@ -179,7 +177,6 @@ static soif seif =
 	.document     = NULL,
 	.setstring    = se_confset_string,
 	.setint       = se_confset_int,
-	.setobject    = NULL,
 	.getobject    = se_confget_object,
 	.getstring    = se_confget_string,
 	.getint       = se_confget_int,
@@ -216,19 +213,19 @@ so *se_new(void)
 	so_poolinit(&e->confcursor_kv, 1);
 	so_listinit(&e->db);
 	ss_mutexinit(&e->apilock);
-	sr_quotainit(&e->quota);
 	sr_seqinit(&e->seq);
 	sr_loginit(&e->log);
 	sr_errorinit(&e->error, &e->log);
-	sr_statinit(&e->stat);
 	sf_limitinit(&e->limit, &e->a);
 	sscrcf crc = ss_crc32c_function();
-	sr_init(&e->r, &e->status, &e->log, &e->error, &e->a, &e->a_ref, &e->vfs, &e->quota,
-	        &e->conf.zones, &e->seq, SF_RAW, NULL,
-	        NULL, &e->ei, &e->stat, crc);
+	sr_init(&e->r, &e->status, &e->log, &e->error, &e->a, &e->a_ref, &e->vfs,
+	        NULL, &e->seq, SF_RAW, NULL, NULL,
+	        &e->ei, NULL, crc);
 	sy_init(&e->rep);
+	e->rep_conf = sy_conf(&e->rep);
 	sl_poolinit(&e->lp, &e->r);
-	sx_managerinit(&e->xm, &e->r);
+	e->lp_conf = sl_conf(&e->lp);
+	sx_managerinit(&e->xm, &e->seq, &e->a);
 	si_cachepool_init(&e->cachepool, &e->r);
 	sc_init(&e->scheduler, &e->r, &e->lp);
 	return &e->o;

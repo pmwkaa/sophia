@@ -49,14 +49,13 @@ freelog(svlog *log, sr *c)
 static void
 sl_itertx(void)
 {
-	slconf conf = {
-		.path     = st_r.conf->log_dir,
-		.enable   = 1,
-		.rotatewm = 1000
-	};
 	slpool lp;
 	t( sl_poolinit(&lp, &st_r.r) == 0 );
-	t( sl_poolopen(&lp, &conf) == 0 );
+	slconf *conf = sl_conf(&lp);
+	conf->path     = strdup(st_r.conf->log_dir);
+	conf->enable   = 1;
+	conf->rotatewm = 1000;
+	t( sl_poolopen(&lp) == 0 );
 	t( sl_poolrotate(&lp) == 0 );
 
 	svlog log;
@@ -76,14 +75,13 @@ sl_itertx(void)
 static void
 sl_itertx_read_empty(void)
 {
-	slconf conf = {
-		.path     = st_r.conf->log_dir,
-		.enable   = 1,
-		.rotatewm = 1000
-	};
 	slpool lp;
 	t( sl_poolinit(&lp, &st_r.r) == 0 );
-	t( sl_poolopen(&lp, &conf) == 0 );
+	slconf *conf = sl_conf(&lp);
+	conf->path     = strdup(st_r.conf->log_dir);
+	conf->enable   = 1;
+	conf->rotatewm = 1000;
+	t( sl_poolopen(&lp) == 0 );
 	t( sl_poolrotate(&lp) == 0 );
 	svlog log;
 	sv_loginit(&log);
@@ -113,14 +111,13 @@ sl_itertx_read_empty(void)
 static void
 sl_itertx_read0(void)
 {
-	slconf conf = {
-		.path     = st_r.conf->log_dir,
-		.enable   = 1,
-		.rotatewm = 1000
-	};
 	slpool lp;
 	t( sl_poolinit(&lp, &st_r.r) == 0 );
-	t( sl_poolopen(&lp, &conf) == 0 );
+	slconf *conf = sl_conf(&lp);
+	conf->path     = strdup(st_r.conf->log_dir);
+	conf->enable   = 1;
+	conf->rotatewm = 1000;
+	t( sl_poolopen(&lp) == 0 );
 	t( sl_poolrotate(&lp) == 0 );
 	svlog log;
 	sv_loginit(&log);
@@ -155,14 +152,13 @@ sl_itertx_read0(void)
 static void
 sl_itertx_read1(void)
 {
-	slconf conf = {
-		.path     = st_r.conf->log_dir,
-		.enable   = 1,
-		.rotatewm = 1000
-	};
 	slpool lp;
 	t( sl_poolinit(&lp, &st_r.r) == 0 );
-	t( sl_poolopen(&lp, &conf) == 0 );
+	slconf *conf = sl_conf(&lp);
+	conf->path     = strdup(st_r.conf->log_dir);
+	conf->enable   = 1;
+	conf->rotatewm = 1000;
+	t( sl_poolopen(&lp) == 0 );
 	t( sl_poolrotate(&lp) == 0 );
 	svlog log;
 	sv_loginit(&log);
@@ -208,14 +204,13 @@ sl_itertx_read1(void)
 static void
 sl_itertx_read2(void)
 {
-	slconf conf = {
-		.path     = st_r.conf->log_dir,
-		.enable   = 1,
-		.rotatewm = 1000
-	};
 	slpool lp;
 	t( sl_poolinit(&lp, &st_r.r) == 0 );
-	t( sl_poolopen(&lp, &conf) == 0 );
+	slconf *conf = sl_conf(&lp);
+	conf->path     = strdup(st_r.conf->log_dir);
+	conf->enable   = 1;
+	conf->rotatewm = 1000;
+	t( sl_poolopen(&lp) == 0 );
 	t( sl_poolrotate(&lp) == 0 );
 	svlog log;
 	sv_loginit(&log);
@@ -265,14 +260,13 @@ sl_itertx_read2(void)
 static void
 sl_itertx_read3(void)
 {
-	slconf conf = {
-		.path     = st_r.conf->log_dir,
-		.enable   = 1,
-		.rotatewm = 1000
-	};
 	slpool lp;
 	t( sl_poolinit(&lp, &st_r.r) == 0 );
-	t( sl_poolopen(&lp, &conf) == 0 );
+	slconf *conf = sl_conf(&lp);
+	conf->path     = strdup(st_r.conf->log_dir);
+	conf->enable   = 1;
+	conf->rotatewm = 1000;
+	t( sl_poolopen(&lp) == 0 );
 	t( sl_poolrotate(&lp) == 0 );
 	svlog log;
 

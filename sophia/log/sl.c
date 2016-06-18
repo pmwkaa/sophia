@@ -53,7 +53,7 @@ sl_open(slpool *p, uint64_t id)
 	if (ssunlikely(l == NULL))
 		return NULL;
 	sspath path;
-	ss_path(&path, p->conf->path, id, ".log");
+	ss_path(&path, p->conf.path, id, ".log");
 	int rc = ss_fileopen(&l->file, path.path);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(p->r->e, "log file '%s' open error: %s",
@@ -74,7 +74,7 @@ sl_new(slpool *p, uint64_t id)
 	if (ssunlikely(l == NULL))
 		return NULL;
 	sspath path;
-	ss_path(&path, p->conf->path, id, ".log");
+	ss_path(&path, p->conf.path, id, ".log");
 	int rc = ss_filenew(&l->file, path.path);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(p->r->e, "log file '%s' create error: %s",
@@ -100,10 +100,10 @@ int sl_poolinit(slpool *p, sr *r)
 {
 	ss_spinlockinit(&p->lock);
 	ss_listinit(&p->list);
+	sl_confinit(&p->conf);
 	p->n    = 0;
 	p->r    = r;
 	p->gc   = 1;
-	p->conf = NULL;
 	struct iovec *iov =
 		ss_malloc(r->a, sizeof(struct iovec) * 1021);
 	if (ssunlikely(iov == NULL))
@@ -116,10 +116,10 @@ static inline int
 sl_poolcreate(slpool *p)
 {
 	int rc;
-	rc = ss_vfsmkdir(p->r->vfs, p->conf->path, 0755);
+	rc = ss_vfsmkdir(p->r->vfs, p->conf.path, 0755);
 	if (ssunlikely(rc == -1))
 		return sr_malfunction(p->r->e, "log directory '%s' create error: %s",
-		                      p->conf->path, strerror(errno));
+		                      p->conf.path, strerror(errno));
 	return 1;
 }
 
@@ -133,10 +133,10 @@ sl_poolrecover(slpool *p)
 		{ "log", 1, 0 },
 		{ NULL,  0, 0 }
 	};
-	int rc = sl_dirread(&list, p->r->a, types, p->conf->path);
+	int rc = sl_dirread(&list, p->r->a, types, p->conf.path);
 	if (ssunlikely(rc == -1))
 		return sr_malfunction(p->r->e, "log directory '%s' open error",
-		                      p->conf->path);
+		                      p->conf.path);
 	ssiter i;
 	ss_iterinit(ss_bufiter, &i);
 	ss_iteropen(ss_bufiter, &i, &list, sizeof(sldirid));
@@ -168,12 +168,11 @@ sl_poolrecover(slpool *p)
 	return 0;
 }
 
-int sl_poolopen(slpool *p, slconf *conf)
+int sl_poolopen(slpool *p)
 {
-	p->conf = conf;
-	if (ssunlikely(! p->conf->enable))
+	if (ssunlikely(! p->conf.enable))
 		return 0;
-	int exists = ss_vfsexists(p->r->vfs, p->conf->path);
+	int exists = ss_vfsexists(p->r->vfs, p->conf.path);
 	int rc;
 	if (! exists) {
 		rc = sl_poolcreate(p);
@@ -192,7 +191,7 @@ int sl_poolopen(slpool *p, slconf *conf)
 
 int sl_poolrotate(slpool *p)
 {
-	if (ssunlikely(! p->conf->enable))
+	if (ssunlikely(! p->conf.enable))
 		return 0;
 	uint64_t lfsn = sr_seq(p->r->seq, SR_LFSNNEXT);
 	sl *l = sl_new(p, lfsn);
@@ -207,7 +206,7 @@ int sl_poolrotate(slpool *p)
 	ss_spinunlock(&p->lock);
 	if (log) {
 		assert(log->file.fd != -1);
-		if (p->conf->sync_on_rotate) {
+		if (p->conf.sync_on_rotate) {
 			int rc = ss_filesync(&log->file);
 			if (ssunlikely(rc == -1)) {
 				sr_malfunction(p->r->e, "log file '%s' sync error: %s",
@@ -224,12 +223,12 @@ int sl_poolrotate(slpool *p)
 
 int sl_poolrotate_ready(slpool *p)
 {
-	if (ssunlikely(! p->conf->enable))
+	if (ssunlikely(! p->conf.enable))
 		return 0;
 	ss_spinlock(&p->lock);
 	assert(p->n > 0);
 	sl *l = sscast(p->list.prev, sl, link);
-	int ready = ss_gcrotateready(&l->gc, p->conf->rotatewm);
+	int ready = ss_gcrotateready(&l->gc, p->conf.rotatewm);
 	ss_spinunlock(&p->lock);
 	return ready;
 }
@@ -249,6 +248,7 @@ int sl_poolshutdown(slpool *p)
 	}
 	if (p->iov.v)
 		ss_free(p->r->a, p->iov.v);
+	sl_conffree(&p->conf, p->r->a);
 	ss_spinlockfree(&p->lock);
 	return rcret;
 }
@@ -279,7 +279,7 @@ int sl_poolgc_enable(slpool *p, int enable)
 
 int sl_poolgc(slpool *p)
 {
-	if (ssunlikely(! p->conf->enable))
+	if (ssunlikely(! p->conf.enable))
 		return 0;
 	for (;;) {
 		ss_spinlock(&p->lock);
@@ -399,7 +399,7 @@ int sl_begin(slpool *p, sltx *t, uint64_t lsn, int recover)
 	t->svp = 0;
 	t->p = p;
 	t->l = NULL;
-	if (! p->conf->enable)
+	if (! p->conf.enable)
 		return 0;
 	assert(p->n > 0);
 	sl *l = sscast(p->list.prev, sl, link);
@@ -412,7 +412,7 @@ int sl_begin(slpool *p, sltx *t, uint64_t lsn, int recover)
 
 int sl_commit(sltx *t)
 {
-	if (t->p->conf->enable)
+	if (t->p->conf.enable)
 		ss_mutexunlock(&t->l->filelock);
 	ss_spinunlock(&t->p->lock);
 	return 0;
@@ -421,7 +421,7 @@ int sl_commit(sltx *t)
 int sl_rollback(sltx *t)
 {
 	int rc = 0;
-	if (t->p->conf->enable) {
+	if (t->p->conf.enable) {
 		rc = ss_filerlb(&t->l->file, t->svp);
 		if (ssunlikely(rc == -1))
 			sr_malfunction(t->p->r->e, "log file '%s' truncate error: %s",
@@ -546,7 +546,7 @@ int sl_write(sltx *t, svlog *vlog)
 	/* fast path for log-disabled, recover or
 	 * ro-transactions
 	 */
-	if (t->recover || !t->p->conf->enable || count == 0)
+	if (t->recover || !t->p->conf.enable || count == 0)
 	{
 		ssiter i;
 		ss_iterinit(ss_bufiter, &i);
@@ -570,7 +570,7 @@ int sl_write(sltx *t, svlog *vlog)
 		return -1;
 
 	/* sync */
-	if (t->p->conf->sync_on_write) {
+	if (t->p->conf.sync_on_write) {
 		rc = ss_filesync(&t->l->file);
 		if (ssunlikely(rc == -1)) {
 			sr_malfunction(t->p->r->e, "log file '%s' sync error: %s",

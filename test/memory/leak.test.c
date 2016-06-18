@@ -22,9 +22,9 @@ leak_set(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -44,9 +44,9 @@ leak_set(void)
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	t( sp_getint(env, "performance.documents") == 2 );
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_getint(env, "performance.documents") == 0 );
+	t( sp_getint(env, "db.test.stat.documents") == 2 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_getint(env, "db.test.stat.documents") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -58,9 +58,9 @@ leak_set_get(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -75,18 +75,18 @@ leak_set_get(void)
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	t( sp_getint(env, "performance.documents") == 1 );
+	t( sp_getint(env, "db.test.stat.documents") == 1 );
 
 	o = sp_document(db);
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	o = sp_get(db, o);
 	t( o != NULL );
-	t( sp_getint(env, "performance.documents") == 1 ); /* reuse same object */
+	t( sp_getint(env, "db.test.stat.documents") == 1 ); /* reuse same object */
 	sp_destroy(o);
-	t( sp_getint(env, "performance.documents") == 1 );
+	t( sp_getint(env, "db.test.stat.documents") == 1 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_getint(env, "performance.documents") == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_getint(env, "db.test.stat.documents") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -98,9 +98,9 @@ leak_set_cursor(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -118,7 +118,7 @@ leak_set_cursor(void)
 		key++;
 	}
 
-	t( sp_getint(env, "performance.documents") == 10 );
+	t( sp_getint(env, "db.test.stat.documents") == 10 );
 
 	void *cursor = sp_cursor(env);
 	void *o = sp_document(db);
@@ -126,9 +126,9 @@ leak_set_cursor(void)
 	}
 	sp_destroy(cursor);
 
-	t( sp_getint(env, "performance.documents") == 10 );
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_getint(env, "performance.documents") == 0 );
+	t( sp_getint(env, "db.test.stat.documents") == 10 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_getint(env, "db.test.stat.documents") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -140,9 +140,9 @@ leak_tx_set_commit(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -165,13 +165,13 @@ leak_tx_set_commit(void)
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(b, o) == 0 );
 
-	t( sp_getint(env, "performance.documents") == 2 );
+	t( sp_getint(env, "db.test.stat.documents") == 2 );
 
 	t( sp_commit(b) == 0 );
 
-	t( sp_getint(env, "performance.documents") == 2 );
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_getint(env, "performance.documents") == 0 );
+	t( sp_getint(env, "db.test.stat.documents") == 2 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_getint(env, "db.test.stat.documents") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -183,9 +183,9 @@ leak_tx_set_get_commit(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -209,13 +209,13 @@ leak_tx_set_get_commit(void)
 	o = sp_get(b, o);
 	t( o == NULL );
 
-	t( sp_getint(env, "performance.documents") == 2 );
+	t( sp_getint(env, "db.test.stat.documents") == 2 );
 
 	t( sp_commit(b) == 0 );
 
-	t( sp_getint(env, "performance.documents") == 1 );
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_getint(env, "performance.documents") == 0 );
+	t( sp_getint(env, "db.test.stat.documents") == 1 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_getint(env, "db.test.stat.documents") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -227,9 +227,9 @@ leak_tx_set_get_rollback(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -253,9 +253,9 @@ leak_tx_set_get_rollback(void)
 	o = sp_get(b, o);
 	t( o == NULL );
 
-	t( sp_getint(env, "performance.documents") == 2 );
+	t( sp_getint(env, "db.test.stat.documents") == 2 );
 	t( sp_destroy(b) == 0 );
-	t( sp_getint(env, "performance.documents") == 0 );
+	t( sp_getint(env, "db.test.stat.documents") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -267,9 +267,9 @@ leak_tx_tx_set_commit(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -295,16 +295,16 @@ leak_tx_tx_set_commit(void)
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(b, o) == 0 );
 
-	t( sp_getint(env, "performance.documents") == 2 );
+	t( sp_getint(env, "db.test.stat.documents") == 2 );
 
 	t( sp_commit(b) == 0 );
 
-	t( sp_getint(env, "performance.documents") == 2 );
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_getint(env, "performance.documents") == 0 );
+	t( sp_getint(env, "db.test.stat.documents") == 2 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_getint(env, "db.test.stat.documents") == 0 );
 
 	t( sp_commit(a) == 0 );
-	t( sp_getint(env, "performance.documents") == 0 );
+	t( sp_getint(env, "db.test.stat.documents") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -316,9 +316,9 @@ leak_tx_tx_set_rollback(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -344,13 +344,13 @@ leak_tx_tx_set_rollback(void)
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(b, o) == 0 );
 
-	t( sp_getint(env, "performance.documents") == 2 );
+	t( sp_getint(env, "db.test.stat.documents") == 2 );
 
 	t( sp_destroy(b) == 0 );
 
-	t( sp_getint(env, "performance.documents") == 0 );
+	t( sp_getint(env, "db.test.stat.documents") == 0 );
 	t( sp_commit(a) == 0 );
-	t( sp_getint(env, "performance.documents") == 0 );
+	t( sp_getint(env, "db.test.stat.documents") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -362,9 +362,9 @@ leak_tx_tx_set_get_commit0(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -391,14 +391,14 @@ leak_tx_tx_set_get_commit0(void)
 	o = sp_get(b, o);
 	t( o == NULL );
 
-	t( sp_getint(env, "performance.documents") == 2 );
+	t( sp_getint(env, "db.test.stat.documents") == 2 );
 	t( sp_commit(b) == 0 );
-	t( sp_getint(env, "performance.documents") == 1 ); /* last read freed */
+	t( sp_getint(env, "db.test.stat.documents") == 1 ); /* last read freed */
 
 	t( sp_commit(a) == 0 );
-	t( sp_getint(env, "performance.documents") == 1 );
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_getint(env, "performance.documents") == 0 );
+	t( sp_getint(env, "db.test.stat.documents") == 1 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_getint(env, "db.test.stat.documents") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -410,9 +410,9 @@ leak_tx_tx_set_get_commit1(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -439,14 +439,14 @@ leak_tx_tx_set_get_commit1(void)
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(b, o) == 0 );
 
-	t( sp_getint(env, "performance.documents") == 2 );
+	t( sp_getint(env, "db.test.stat.documents") == 2 );
 	t( sp_commit(b) == 0 );
-	t( sp_getint(env, "performance.documents") == 2 );
+	t( sp_getint(env, "db.test.stat.documents") == 2 );
 
 	t( sp_commit(a) == 0 );
-	t( sp_getint(env, "performance.documents") == 1 );
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_getint(env, "performance.documents") == 0 );
+	t( sp_getint(env, "db.test.stat.documents") == 1 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_getint(env, "db.test.stat.documents") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -458,9 +458,9 @@ leak_tx_tx_tx_set_get_commit0(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -484,30 +484,30 @@ leak_tx_tx_tx_set_get_commit0(void)
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(a, o) == 0 );
 
-	t( sp_getint(env, "performance.documents") == 1 );
+	t( sp_getint(env, "db.test.stat.documents") == 1 );
 	t( sp_commit(a) == 0 );
-	t( sp_getint(env, "performance.documents") == 1 );
+	t( sp_getint(env, "db.test.stat.documents") == 1 );
 
 	key = 124;
 	o = sp_document(db);
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(b, o) == 0 );
 
-	t( sp_getint(env, "performance.documents") == 2 );
+	t( sp_getint(env, "db.test.stat.documents") == 2 );
 	t( sp_commit(b) == 0 );
-	t( sp_getint(env, "performance.documents") == 2 );
+	t( sp_getint(env, "db.test.stat.documents") == 2 );
 
 	key = 125;
 	o = sp_document(db);
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(c, o) == 0 );
 
-	t( sp_getint(env, "performance.documents") == 3 );
+	t( sp_getint(env, "db.test.stat.documents") == 3 );
 	t( sp_commit(c) == 0 );
-	t( sp_getint(env, "performance.documents") == 3 );
+	t( sp_getint(env, "db.test.stat.documents") == 3 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_getint(env, "performance.documents") == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_getint(env, "db.test.stat.documents") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -519,9 +519,9 @@ leak_tx_tx_tx_set_get_commit1(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -545,30 +545,30 @@ leak_tx_tx_tx_set_get_commit1(void)
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(c, o) == 0 );
 
-	t( sp_getint(env, "performance.documents") == 1 );
+	t( sp_getint(env, "db.test.stat.documents") == 1 );
 	t( sp_commit(c) == 0 );
-	t( sp_getint(env, "performance.documents") == 1 );
+	t( sp_getint(env, "db.test.stat.documents") == 1 );
 
 	key = 124;
 	o = sp_document(db);
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(b, o) == 0 );
 
-	t( sp_getint(env, "performance.documents") == 2 );
+	t( sp_getint(env, "db.test.stat.documents") == 2 );
 	t( sp_commit(b) == 0 );
-	t( sp_getint(env, "performance.documents") == 2 );
+	t( sp_getint(env, "db.test.stat.documents") == 2 );
 
 	key = 125;
 	o = sp_document(db);
 	t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 	t( sp_set(a, o) == 0 );
 
-	t( sp_getint(env, "performance.documents") == 3 );
+	t( sp_getint(env, "db.test.stat.documents") == 3 );
 	t( sp_commit(a) == 0 );
-	t( sp_getint(env, "performance.documents") == 3 );
+	t( sp_getint(env, "db.test.stat.documents") == 3 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_getint(env, "performance.documents") == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_getint(env, "db.test.stat.documents") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }

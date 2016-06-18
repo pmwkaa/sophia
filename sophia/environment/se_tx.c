@@ -26,15 +26,13 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 	se *e = se_of(&t->o);
 	sedb *db = se_cast(o->o.parent, sedb*, SEDB);
 
-	int auto_close = o->created <= 1;
-
 	/* validate database status */
 	if (ssunlikely(! se_active(e)))
 		goto error;
 
 	/* ensure memory quota */
 	int rc;
-	rc = sr_quota(&e->quota, &e->stat);
+	rc = sr_quota(&db->quota, &db->stat);
 	if (ssunlikely(rc)) {
 		sr_error(&e->error, "%s", "memory quota limit reached");
 		goto error;
@@ -49,12 +47,9 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 		goto error;
 
 	svv *v = o->v.v;
-	sv_vref(v);
 	v->log = o->log;
-
-	/* destroy document object */
-	if (auto_close)
-		so_destroy(&o->o);
+	sv_vref(v);
+	so_destroy(&o->o);
 
 	/* concurrent index only */
 	rc = sx_set(&t->t, &db->coindex, v);
@@ -62,8 +57,7 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 		return -1;
 	return 0;
 error:
-	if (auto_close)
-		so_destroy(&o->o);
+	so_destroy(&o->o);
 	return -1;
 }
 
@@ -137,10 +131,13 @@ static inline void
 se_txend(setx *t, int rlb, int conflict)
 {
 	se *e = se_of(&t->o);
-	uint32_t count = sv_logcount(&t->log);
 	sx_gc(&t->t);
 	sv_logreset(&t->log);
-	sr_stattx(&e->stat, t->start, count, rlb, conflict);
+	(void)rlb;
+	(void)conflict;
+	// XXX
+	/*uint32_t count = sv_logcount(&t->log);*/
+	/*sr_stattx(&e->stat, t->start, count, rlb, conflict);*/
 	so_mark_destroyed(&t->o);
 	so_poolgc(&e->tx, &t->o);
 }
@@ -201,7 +198,8 @@ se_txcommit(so *o)
 		if (cache)
 			si_cachepool_push(cache);
 		if (s == SX_LOCK) {
-			sr_stattx_lock(&e->stat);
+			// XXX
+			/*sr_stattx_lock(&e->stat);*/
 			return 2;
 		}
 		if (s == SX_ROLLBACK) {
@@ -217,8 +215,9 @@ se_txcommit(so *o)
 
 	/* do wal write and backend commit */
 	rc = sc_commit(&e->scheduler, &t->log, t->lsn, recover);
-	if (ssunlikely(rc == -1))
-		sx_rollback(&t->t);
+	if (ssunlikely(rc == -1)) {
+		// XXX sx_rollback(&t->t);
+	}
 
 	se_txend(t, 0, 0);
 	return rc;
@@ -264,7 +263,6 @@ static soif setxif =
 	.document     = NULL,
 	.setstring    = se_txset_string,
 	.setint       = se_txset_int,
-	.setobject    = NULL,
 	.getobject    = NULL,
 	.getstring    = NULL,
 	.getint       = se_txget_int,

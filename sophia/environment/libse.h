@@ -16,8 +16,8 @@
 #include <se_document.h>
 #include <se_db.h>
 #include <se_tx.h>
-#include <se_read.h>
 #include <se_cursor.h>
+#include <se_read.h>
 #include <se_recover.h>
 
 #endif

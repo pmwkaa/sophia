@@ -32,13 +32,6 @@ struct srstat {
 	ssavg    get_read_disk;
 	ssavg    get_read_cache;
 	ssavg    get_latency;
-	/* transaction */
-	uint64_t tx;
-	uint64_t tx_rlb;
-	uint64_t tx_conflict;
-	uint64_t tx_lock;
-	ssavg    tx_latency;
-	ssavg    tx_stmts;
 	/* cursor */
 	uint64_t cursor;
 	ssavg    cursor_latency;
@@ -69,8 +62,6 @@ sr_statprepare(srstat *s)
 	ss_avgprepare(&s->get_read_disk);
 	ss_avgprepare(&s->get_read_cache);
 	ss_avgprepare(&s->get_latency);
-	ss_avgprepare(&s->tx_latency);
-	ss_avgprepare(&s->tx_stmts);
 	ss_avgprepare(&s->cursor_latency);
 	ss_avgprepare(&s->cursor_read_disk);
 	ss_avgprepare(&s->cursor_read_cache);
@@ -127,28 +118,6 @@ sr_statget(srstat *s, uint64_t diff, int read_disk, int read_cache)
 }
 
 static inline void
-sr_stattx(srstat *s, uint64_t start, uint32_t count,
-          int rlb, int conflict)
-{
-	uint64_t diff = ss_utime() - start;
-	ss_spinlock(&s->lock);
-	s->tx++;
-	s->tx_rlb += rlb;
-	s->tx_conflict += conflict;
-	ss_avgupdate(&s->tx_stmts, count);
-	ss_avgupdate(&s->tx_latency, diff);
-	ss_spinunlock(&s->lock);
-}
-
-static inline void
-sr_stattx_lock(srstat *s)
-{
-	ss_spinlock(&s->lock);
-	s->tx_lock++;
-	ss_spinunlock(&s->lock);
-}
-
-static inline void
 sr_statcursor(srstat *s, uint64_t start, int read_disk, int read_cache, int ops)
 {
 	uint64_t diff = ss_utime() - start;
@@ -158,6 +127,14 @@ sr_statcursor(srstat *s, uint64_t start, int read_disk, int read_cache, int ops)
 	ss_avgupdate(&s->cursor_read_cache, read_cache);
 	ss_avgupdate(&s->cursor_latency, diff);
 	ss_avgupdate(&s->cursor_ops, ops);
+	ss_spinunlock(&s->lock);
+}
+
+static inline void
+sr_statcopy(srstat *s, srstat *dest)
+{
+	ss_spinlock(&s->lock);
+	*dest = *s;
 	ss_spinunlock(&s->lock);
 }
 

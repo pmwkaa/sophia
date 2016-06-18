@@ -43,28 +43,6 @@ conf_error_injection(void)
 }
 
 static void
-conf_compaction(void)
-{
-	void *env = sp_env();
-	t( env != NULL );
-	t( sp_setint(env, "compaction", 58) == 0 );
-	t( sp_getint(env, "compaction.50.mode") == 0 );
-	char path[64];
-	int i = 10;
-	while (i < 100) {
-		t( sp_setint(env, "compaction", i) == 0 );
-		i += 10;
-	}
-	i = 10;
-	while (i < 100) {
-		snprintf(path, sizeof(path), "compaction.%d.branch_wm", i);
-		t( sp_getint(env, path) >= 0 );
-		i += 10;
-	}
-	t( sp_destroy(env) == 0 );
-}
-
-static void
 conf_validation0(void)
 {
 	void *env = sp_env();
@@ -85,17 +63,17 @@ conf_validation0(void)
 	t( sp_open(env) == 0 );
 
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == -1 );
-	t( sp_setint(env, "memory.limit", 0) == -1 );
+	t( sp_setint(env, "db.test.memory_limit", 0) == -1 );
+	t( sp_setint(env, "db.test.memory_limit_anticache", 0) == -1 );
 
 	t( sp_setint(env, "log.enable", 0) == -1 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == -1 );
 	t( sp_setint(env, "log.sync", 0) == -1 );
 	t( sp_setint(env, "log.rotate_wm", 0) == -1 );
 	t( sp_setint(env, "log.rotate_sync", 0) == -1 );
-	t( sp_setint(env, "log.two_phase_commit", 0) == -1 );
 
-	t( sp_setint(env, "db.test.page_size", 0) == -1 );
-	t( sp_setint(env, "db.test.node_size", 0) == -1 );
+	t( sp_setint(env, "db.test.compaction.page_size", 0) == -1 );
+	t( sp_setint(env, "db.test.compaction.node_size", 0) == -1 );
 	t( sp_setstring(env, "db.test.path", "path", 0) == -1 );
 	t( sp_setstring(env, "db.test.scheme.key", NULL, 0) == -1 );
 
@@ -251,7 +229,6 @@ stgroup *conf_group(void)
 	stgroup *group = st_group("conf");
 	st_groupadd(group, st_test("version", conf_version));
 	st_groupadd(group, st_test("error_injection", conf_error_injection));
-	st_groupadd(group, st_test("compaction", conf_compaction));
 	st_groupadd(group, st_test("validation0", conf_validation0));
 	st_groupadd(group, st_test("validation1", conf_validation1));
 	st_groupadd(group, st_test("validation_upsert", conf_validation_upsert));

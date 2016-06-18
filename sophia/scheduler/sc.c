@@ -20,56 +20,78 @@
 
 int sc_init(sc *s, sr *r, slpool *lp)
 {
-	uint64_t now = ss_utime();
 	ss_mutexinit(&s->lock);
-	s->checkpoint_lsn           = 0;
-	s->checkpoint_lsn_last      = 0;
-	s->checkpoint               = 0;
-	s->age                      = 0;
-	s->age_time                 = now;
-	s->expire                   = 0;
-	s->expire_time              = now;
+	/* task priorities */
+	s->prio[SC_QBRANCH]         = 1;
+	s->prio[SC_QGC]             = 1;
+	s->prio[SC_QEXPIRE]         = 1;
+	s->prio[SC_QLRU]            = 1;
+	s->prio[SC_QBACKUP]         = 1;
+	/* backup */
 	s->backup_bsn               = 0;
 	s->backup_bsn_last          = 0;
 	s->backup_bsn_last_complete = 0;
-	s->backup_events            = 0;
 	s->backup                   = 0;
-	s->anticache_asn            = 0;
-	s->anticache_asn_last       = 0;
-	s->anticache_storage        = 0;
-	s->anticache_time           = now;
-	s->anticache                = 0;
-	s->anticache_limit          = 0;
-	s->snapshot_ssn             = 0;
-	s->snapshot_ssn_last        = 0;
-	s->snapshot_time            = now;
-	s->snapshot                 = 0;
-	s->gc                       = 0;
-	s->gc_time                  = now;
-	s->lru                      = 0;
-	s->lru_time                 = now;
+	s->backup_path              = NULL;
+	/* generic */
 	s->rotate                   = 0;
 	s->i                        = NULL;
 	s->count                    = 0;
 	s->rr                       = 0;
 	s->r                        = r;
-	s->backup_path              = NULL;
 	s->lp                       = lp;
 	ss_threadpool_init(&s->tp);
 	sc_workerpool_init(&s->wp);
 	return 0;
 }
 
-int sc_set(sc *s, uint32_t count, uint64_t anticache, char *backup_path)
+static inline int
+sc_prepare(scdb *db)
+{
+	uint64_t now = ss_utime();
+	db->checkpoint_lsn      = 0;
+	db->checkpoint_lsn_last = 0;
+	db->checkpoint          = 0;
+	db->age                 = 0;
+	db->age_time            = now;
+	db->expire              = 0;
+	db->expire_time         = now;
+	db->anticache_asn       = 0;
+	db->anticache_asn_last  = 0;
+	db->anticache_time      = now;
+	db->anticache           = 0;
+	db->anticache_storage   = 0;
+	db->anticache_limit     = 0;
+	db->snapshot_ssn        = 0;
+	db->snapshot_ssn_last   = 0;
+	db->snapshot_time       = now;
+	db->snapshot            = 0;
+	db->gc                  = 0;
+	db->gc_time             = now;
+	db->lru                 = 0;
+	db->lru_time            = now;
+	return 0;
+}
+
+int sc_set(sc *s, uint32_t count)
 {
 	int size = sizeof(scdb) * count;
-	scdb *db = ss_malloc(s->r->a, size);
-	if (ssunlikely(db == NULL))
+	scdb *list = ss_malloc(s->r->a, size);
+	if (ssunlikely(list == NULL))
 		return -1;
-	memset(db, 0, size);
-	s->i = db;
+	memset(list, 0, size);
+	uint32_t i = 0;
+	while (i < count) {
+		sc_prepare(&list[i]);
+		i++;
+	}
+	s->i = list;
 	s->count = count;
-	s->anticache_limit = anticache;
+	return 0;
+}
+
+int sc_setbackup(sc *s, char *backup_path)
+{
 	s->backup_path = backup_path;
 	return 0;
 }

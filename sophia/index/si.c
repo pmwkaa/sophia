@@ -116,17 +116,19 @@ int si_replace(si *i, sinode *o, sinode *n)
 	return 0;
 }
 
-int si_plan(si *i, siplan *plan)
+siplannerrc
+si_plan(si *i, siplan *plan)
 {
 	si_lock(i);
-	int rc = si_planner(&i->p, plan);
+	siplannerrc rc = si_planner(&i->p, plan);
 	si_unlock(i);
 	return rc;
 }
 
-int si_execute(si *i, sdc *c, siplan *plan,
-               uint64_t vlsn,
-               uint64_t vlsn_lru)
+int
+si_execute(si *i, sdc *c, siplan *plan,
+           uint64_t vlsn,
+           uint64_t vlsn_lru)
 {
 	int rc = -1;
 	switch (plan->plan) {

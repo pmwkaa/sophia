@@ -22,10 +22,10 @@ compact_branch(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
-	t( sp_setint(env, "compaction.0.compact_mode", 0) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact_mode", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -44,8 +44,8 @@ compact_branch(void)
 		t( sp_set(db, o) == 0 );
 		key++;
 	}
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_setint(env, "db.test.compact", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -57,10 +57,10 @@ compact_temperature(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
-	t( sp_setint(env, "compaction.0.compact_mode", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact_mode", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -80,8 +80,8 @@ compact_temperature(void)
 		t( sp_set(db, o) == 0 );
 		key++;
 	}
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_setint(env, "db.test.compact", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -93,10 +93,10 @@ compact_index(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
-	t( sp_setint(env, "compaction.0.mode", 0) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact_mode", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -115,7 +115,7 @@ compact_index(void)
 		t( sp_set(db, o) == 0 );
 		key++;
 	}
-	t( sp_setint(env, "db.test.compact_index", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact_index", 0) == 0 );
 
 	key = 0;
 	while (key < 20) {

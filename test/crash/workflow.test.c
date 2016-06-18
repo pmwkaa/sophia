@@ -46,9 +46,6 @@ workflow_open(void *env)
 	rc = sp_setint(env, "scheduler.threads", 0);
 	if (rc == -1)
 		return NULL;
-	rc = sp_setint(env, "compaction.0.branch_wm", 1);
-	if (rc == -1)
-		return NULL;
 	rc = sp_setstring(env, "log.path", st_r.conf->log_dir, 0);
 	if (rc == -1)
 		return NULL;
@@ -56,6 +53,9 @@ workflow_open(void *env)
 	if (rc == -1)
 		return NULL;
 	rc = sp_setstring(env, "db", "test", 0);
+	if (rc == -1)
+		return NULL;
+	rc = sp_setint(env, "db.test.compaction.branch_wm", 1);
 	if (rc == -1)
 		return NULL;
 	rc = sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0);
@@ -232,7 +232,7 @@ static inline int
 workflow_compaction(void *env, void *db)
 {
 	/* branch oom */
-	int rc = sp_setint(env, "db.test.branch", 0);
+	int rc = sp_setint(env, "db.test.compaction.branch", 0);
 	if (rc == -1)
 		return -1;
 	uint32_t key = 123;
@@ -257,7 +257,7 @@ workflow_compaction(void *env, void *db)
 		key++;
 		count++;
 	}
-	rc = sp_setint(env, "db.test.branch", 0);
+	rc = sp_setint(env, "db.test.compaction.branch", 0);
 	if (rc == -1)
 		return -1;
 	/* put some statements in log */
@@ -282,7 +282,7 @@ workflow_compaction(void *env, void *db)
 		count++;
 	}
 	/* compaction oom */
-	rc = sp_setint(env, "db.test.compact", 0);
+	rc = sp_setint(env, "db.test.compaction.compact", 0);
 	if (rc == -1)
 		return -1;
 	return 0;
@@ -291,7 +291,7 @@ workflow_compaction(void *env, void *db)
 static inline int
 workflow_snapshot(void *env, void *db)
 {
-	int rc = sp_setint(env, "scheduler.snapshot", 0);
+	int rc = sp_setint(env, "db.test.compaction.snapshot", 0);
 	if (rc == -1)
 		return -1;
 	rc = sp_setint(env, "scheduler.run", 0);

@@ -22,10 +22,9 @@ lru_test0(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
-	t( sp_setint(env, "compaction.0.lru_prio", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -47,18 +46,18 @@ lru_test0(void)
 		i++;
 	}
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	int64_t size = sp_getint(env, "db.test.index.size");
 
-	t( sp_setint(env, "scheduler.lru", 1) == 0 );
-	t( sp_getint(env, "scheduler.lru_active") == 1 );
+	t( sp_setint(env, "db.test.compaction.lru", 0) == 0 );
+	t( sp_getint(env, "db.test.scheduler.lru") == 1 );
 
 	int rc;
 	while ( (rc = sp_setint(env, "scheduler.run", 0)) > 0 );
 	t( rc == 0 );
 
-	t( sp_getint(env, "scheduler.lru_active") == 0 );
+	t( sp_getint(env, "db.test.scheduler.lru") == 0 );
 
 	int64_t size_after = sp_getint(env, "db.test.index.size");
 	t( size_after < size );

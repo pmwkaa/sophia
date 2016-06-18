@@ -27,15 +27,15 @@ struct sxv {
 struct sxvpool {
 	sxv *head;
 	int n;
-	sr *r;
+	ssa *a;
 };
 
 static inline void
-sx_vpool_init(sxvpool *p, sr *r)
+sx_vpool_init(sxvpool *p, ssa *a)
 {
 	p->head = NULL;
 	p->n = 0;
-	p->r = r;
+	p->a = a;
 }
 
 static inline void
@@ -44,7 +44,7 @@ sx_vpool_free(sxvpool *p)
 	sxv *n, *c = p->head;
 	while (c) {
 		n = c->next;
-		ss_free(p->r->a, c);
+		ss_free(p->a, c);
 		c = n;
 	}
 }
@@ -76,7 +76,7 @@ sx_valloc(sxvpool *p, svv *ref)
 {
 	sxv *v = sx_vpool_pop(p);
 	if (ssunlikely(v == NULL)) {
-		v = ss_malloc(p->r->a, sizeof(sxv));
+		v = ss_malloc(p->a, sizeof(sxv));
 		if (ssunlikely(v == NULL))
 			return NULL;
 	}
@@ -93,18 +93,18 @@ sx_valloc(sxvpool *p, svv *ref)
 }
 
 static inline void
-sx_vfree(sxvpool *p, sxv *v)
+sx_vfree(sxvpool *p, sr *r, sxv *v)
 {
-	sv_vunref(p->r, v->v);
+	sv_vunref(r, v->v);
 	sx_vpool_push(p, v);
 }
 
 static inline void
-sx_vfreeall(sxvpool *p, sxv *v)
+sx_vfreeall(sxvpool *p, sr *r, sxv *v)
 {
 	while (v) {
 		sxv *next = v->next;
-		sx_vfree(p, v);
+		sx_vfree(p, r, v);
 		v = next;
 	}
 }

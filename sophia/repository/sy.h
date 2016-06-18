@@ -12,11 +12,16 @@
 typedef struct sy sy;
 
 struct sy {
-	syconf *conf;
+	syconf conf;
 };
 
+static inline syconf*
+sy_conf(sy *e) {
+	return &e->conf;
+}
+
 int sy_init(sy*);
-int sy_open(sy*, sr*, syconf*);
+int sy_open(sy*, sr*);
 int sy_close(sy*, sr*);
 
 #endif

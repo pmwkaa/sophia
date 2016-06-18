@@ -19,6 +19,7 @@ struct secursor {
 	int      ops;
 	int      read_disk;
 	int      read_cache;
+	sedb    *read_db;
 	sicache *cache;
 };
 

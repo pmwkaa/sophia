@@ -20,6 +20,7 @@ static inline void
 sr_quotainit(srquota *q)
 {
 	q->limit = 0;
+	q->enable = 0;
 }
 
 static inline void

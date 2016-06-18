@@ -60,11 +60,11 @@ mt_set_checkpoint_get(void)
 		print_current(i);
 	}
 	t( sp_setint(env, "log.rotate", 0) == 0 );
-	t( sp_setint(env, "scheduler.checkpoint", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.checkpoint", 0) == 0 );
 	fprintf(st_r.output, " (checkpoint..");
 	fflush(st_r.output);
 	for (;;) {
-		int active = sp_getint(env, "scheduler.checkpoint_active");
+		int active = sp_getint(env, "db.test.scheduler.checkpoint");
 		if (!active)
 			break;
 	}
@@ -128,11 +128,11 @@ mt_set_snapshot_recover_get(void)
 		print_current(i);
 	}
 	t( sp_setint(env, "log.rotate", 0) == 0 );
-	t( sp_setint(env, "scheduler.snapshot", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.snapshot", 0) == 0 );
 	fprintf(st_r.output, " (snapshot..");
 	fflush(st_r.output);
 	for (;;) {
-		int active = sp_getint(env, "scheduler.snapshot_active");
+		int active = sp_getint(env, "db.test.scheduler.snapshot");
 		if (!active)
 			break;
 	}
@@ -294,16 +294,16 @@ mt_set_get_anticache(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 5) == 0 );
-	t( sp_setint(env, "memory.anticache", 500 * 1024) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.memory_limit_anticache", 500 * 1024) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.storage", "anti-cache", 0) == 0 );
 	t( sp_setint(env, "db.test.compression_copy", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "db.test.temperature", 1) == 0 );
-	t( sp_setint(env, "db.test.node_size", 100 * 1024) == 0 );
-	t( sp_setint(env, "db.test.page_size", 8 * 1024) == 0 );
+	t( sp_setint(env, "db.test.compaction.node_size", 100 * 1024) == 0 );
+	t( sp_setint(env, "db.test.compaction.page_size", 8 * 1024) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
@@ -349,11 +349,10 @@ mt_set_lru(void)
 	void *env = sp_env();
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "compaction.0.lru_prio", 3) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 500000) == 0 );
 	t( sp_setint(env, "scheduler.threads", 5) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 500000) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setint(env, "db.test.compression_copy", 0) == 0 );
 	t( sp_setint(env, "db.test.lru", 1 * 1024 * 1024) == 0 );
@@ -394,7 +393,6 @@ mt_set_expire(void)
 	void *env = sp_env();
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "compaction.0.expire_prio", 3) == 0 );
 	t( sp_setint(env, "scheduler.threads", 5) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );

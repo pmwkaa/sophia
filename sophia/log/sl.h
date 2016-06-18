@@ -25,7 +25,7 @@ struct sl {
 
 struct slpool {
 	ssspinlock lock;
-	slconf *conf;
+	slconf conf;
 	sslist list;
 	int gc;
 	int n;
@@ -41,8 +41,13 @@ struct sltx {
 	uint64_t svp;
 };
 
+static inline slconf*
+sl_conf(slpool *p) {
+	return &p->conf;
+}
+
 int sl_poolinit(slpool*, sr*);
-int sl_poolopen(slpool*, slconf*);
+int sl_poolopen(slpool*);
 int sl_poolrotate(slpool*);
 int sl_poolrotate_ready(slpool*);
 int sl_poolshutdown(slpool*);

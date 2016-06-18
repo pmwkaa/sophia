@@ -15,10 +15,14 @@ struct sedb {
 	so         o;
 	uint32_t   created;
 	siprofiler rtp;
+	scprofiler scp;
 	sischeme  *scheme;
 	si        *index;
 	sr        *r;
 	sxindex    coindex;
+	srquota    quota;
+	srstat     stat;
+	srstat     statrt;
 };
 
 int  se_dbopen(so*);

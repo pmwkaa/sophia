@@ -50,14 +50,13 @@ freelog(svlog *log, sr *c)
 static void
 sl_begin_commit(void)
 {
-	slconf conf = {
-		.path     = st_r.conf->log_dir,
-		.enable   = 1,
-		.rotatewm = 1000
-	};
 	slpool lp;
 	t( sl_poolinit(&lp, &st_r.r) == 0 );
-	t( sl_poolopen(&lp, &conf) == 0 );
+	slconf *conf = sl_conf(&lp);
+	conf->path     = strdup(st_r.conf->log_dir);
+	conf->enable   = 1;
+	conf->rotatewm = 1000;
+	t( sl_poolopen(&lp) == 0 );
 	t( sl_poolrotate(&lp) == 0 );
 
 	svlog log;
@@ -77,14 +76,13 @@ sl_begin_commit(void)
 static void
 sl_begin_rollback(void)
 {
-	slconf conf = {
-		.path     = st_r.conf->log_dir,
-		.enable   = 1,
-		.rotatewm = 1000
-	};
 	slpool lp;
 	t( sl_poolinit(&lp, &st_r.r) == 0 );
-	t( sl_poolopen(&lp, &conf) == 0 );
+	slconf *conf = sl_conf(&lp);
+	conf->path     = strdup(st_r.conf->log_dir);
+	conf->enable   = 1;
+	conf->rotatewm = 1000;
+	t( sl_poolopen(&lp) == 0 );
 	t( sl_poolrotate(&lp) == 0 );
 
 	svlog log;

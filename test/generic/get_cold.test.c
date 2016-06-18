@@ -21,10 +21,10 @@ get_cold_test0(void)
 	void *env = sp_env();
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -48,7 +48,7 @@ get_cold_test0(void)
 	t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	value = 2;
 	key = 7;
@@ -65,7 +65,7 @@ get_cold_test0(void)
 	t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	/* default */
 	o = sp_document(db);
@@ -93,10 +93,10 @@ get_cold_test1(void)
 	void *env = sp_env();
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -120,8 +120,8 @@ get_cold_test1(void)
 	t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_setint(env, "db.test.compact", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	value = 2;
 	key = 7;
@@ -138,7 +138,7 @@ get_cold_test1(void)
 	t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	/* default */
 	o = sp_document(db);
@@ -168,10 +168,10 @@ get_cold_test2(void)
 	void *env = sp_env();
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -195,8 +195,8 @@ get_cold_test2(void)
 	t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_setint(env, "db.test.compact", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	value = 2;
 	key = 7;
@@ -213,7 +213,7 @@ get_cold_test2(void)
 	t( sp_setstring(o, "value", &value, sizeof(value)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	/* default */
 	o = sp_document(db);

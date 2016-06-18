@@ -97,7 +97,6 @@ void st_scene_rt(stscene *s ssunused)
 	        &st_r.aref,
 	        &st_r.vfs,
 	        NULL, /* quota */
-	        NULL, /* zonemap */
 	        &st_r.seq,
 	         st_r.fmt_storage,
 	         NULL, /* update */
@@ -149,7 +148,7 @@ void st_scene_env(stscene *s ssunused)
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "db.test.mmap", 0) == 0 );
-	t( sp_setint(env, "db.test.page_checksum", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.page_checksum", 1) == 0 );
 	t( sp_setstring(env, "db.test.compression_cold", "none", 0) == 0 );
 	t( sp_setstring(env, "db.test.compression_hot", "none", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
@@ -163,7 +162,7 @@ void st_scene_env(stscene *s ssunused)
 
 void st_scene_branch_wm_1(stscene *s ssunused)
 {
-	t( sp_setint(st_r.env, "compaction.0.branch_wm", 1) == 0 );
+	t( sp_setint(st_r.env, "db.test.compaction.branch_wm", 1) == 0 );
 }
 
 void st_scene_thread_5(stscene *s ssunused)

@@ -22,9 +22,9 @@ github_97(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -128,7 +128,7 @@ github_112(void)
 	t( sp_open(env) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
-	char *s = sp_getstring(env, "scheduler.lru", NULL);
+	char *s = sp_getstring(env, "db.test.compaction.lru", NULL);
 	t( s == NULL );
 	t( sp_destroy(env) == 0 );
 }

@@ -87,9 +87,9 @@ upsert_upsert_get_scheme(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -128,9 +128,9 @@ upsert_upsert_get_branch0(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -148,7 +148,7 @@ upsert_upsert_get_branch0(void)
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 	t( upsert_ops == 0 );
 
 	o = sp_document(db);
@@ -172,9 +172,9 @@ upsert_upsert_get_compact(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -192,8 +192,8 @@ upsert_upsert_get_compact(void)
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_setint(env, "db.test.compact", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	t( upsert_ops == 1 );
 
@@ -218,9 +218,9 @@ upsert_set_upsert_get_scheme(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -264,9 +264,9 @@ upsert_set_upsert_get_branch0(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -283,7 +283,7 @@ upsert_set_upsert_get_branch0(void)
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	o = sp_document(db);
 	int up = 777;
@@ -312,9 +312,9 @@ upsert_set_upsert_get_branch1(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -331,7 +331,7 @@ upsert_set_upsert_get_branch1(void)
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	o = sp_document(db);
 	int up = 777;
@@ -339,7 +339,7 @@ upsert_set_upsert_get_branch1(void)
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
@@ -362,9 +362,9 @@ upsert_set_upsert_get_compact(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -381,7 +381,7 @@ upsert_set_upsert_get_compact(void)
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	o = sp_document(db);
 	int up = 777;
@@ -389,8 +389,8 @@ upsert_set_upsert_get_compact(void)
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_setint(env, "db.test.compact", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
@@ -413,9 +413,9 @@ upsert_set_upsert_upsert_get_scheme(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -465,9 +465,9 @@ upsert_set_upsert_upsert_get_branch0(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -484,7 +484,7 @@ upsert_set_upsert_upsert_get_branch0(void)
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	o = sp_document(db);
 	int up0 = 777;
@@ -519,9 +519,9 @@ upsert_set_upsert_upsert_get_branch1(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -538,7 +538,7 @@ upsert_set_upsert_upsert_get_branch1(void)
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	o = sp_document(db);
 	int up0 = 777;
@@ -546,7 +546,7 @@ upsert_set_upsert_upsert_get_branch1(void)
 	t( sp_setstring(o, "value", &up0, sizeof(up0)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	o = sp_document(db);
 	int up1 = 778;
@@ -575,9 +575,9 @@ upsert_set_upsert_upsert_get_branch2(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -594,7 +594,7 @@ upsert_set_upsert_upsert_get_branch2(void)
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	o = sp_document(db);
 	int up0 = 777;
@@ -602,7 +602,7 @@ upsert_set_upsert_upsert_get_branch2(void)
 	t( sp_setstring(o, "value", &up0, sizeof(up0)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	o = sp_document(db);
 	int up1 = 778;
@@ -610,7 +610,7 @@ upsert_set_upsert_upsert_get_branch2(void)
 	t( sp_setstring(o, "value", &up1, sizeof(up1)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
@@ -633,9 +633,9 @@ upsert_set_upsert_upsert_get_compact(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -652,7 +652,7 @@ upsert_set_upsert_upsert_get_compact(void)
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	o = sp_document(db);
 	int up0 = 777;
@@ -660,7 +660,7 @@ upsert_set_upsert_upsert_get_compact(void)
 	t( sp_setstring(o, "value", &up0, sizeof(up0)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	o = sp_document(db);
 	int up1 = 778;
@@ -668,8 +668,8 @@ upsert_set_upsert_upsert_get_compact(void)
 	t( sp_setstring(o, "value", &up1, sizeof(up1)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_setint(env, "db.test.compact", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
@@ -692,9 +692,9 @@ upsert_set_upsert_upsert_get_cursor(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -711,7 +711,7 @@ upsert_set_upsert_upsert_get_cursor(void)
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	o = sp_document(db);
 	int up0 = 777;
@@ -719,7 +719,7 @@ upsert_set_upsert_upsert_get_cursor(void)
 	t( sp_setstring(o, "value", &up0, sizeof(up0)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	o = sp_document(db);
 	int up1 = 778;
@@ -727,7 +727,7 @@ upsert_set_upsert_upsert_get_cursor(void)
 	t( sp_setstring(o, "value", &up1, sizeof(up1)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	o = sp_document(db);
 	t( o != NULL );
@@ -768,9 +768,9 @@ upsert_set_delete_upsert_get_scheme(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -818,9 +818,9 @@ upsert_set_delete_upsert_get_branch0(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -841,7 +841,7 @@ upsert_set_delete_upsert_get_branch0(void)
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_delete(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	o = sp_document(db);
 	int up = 777;
@@ -870,9 +870,9 @@ upsert_set_delete_upsert_get_branch1(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -893,7 +893,7 @@ upsert_set_delete_upsert_get_branch1(void)
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_delete(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	o = sp_document(db);
 	int up = 777;
@@ -901,7 +901,7 @@ upsert_set_delete_upsert_get_branch1(void)
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
@@ -924,9 +924,9 @@ upsert_set_delete_upsert_get_compact(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -947,7 +947,7 @@ upsert_set_delete_upsert_get_compact(void)
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_delete(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	o = sp_document(db);
 	int up = 777;
@@ -955,8 +955,8 @@ upsert_set_delete_upsert_get_compact(void)
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_setint(env, "db.test.compact", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
@@ -979,9 +979,9 @@ upsert_delete_upsert_get_scheme(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -1025,9 +1025,9 @@ upsert_delete_upsert_get_branch0(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -1044,7 +1044,7 @@ upsert_delete_upsert_get_branch0(void)
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_delete(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	o = sp_document(db);
 	int up = 777;
@@ -1073,9 +1073,9 @@ upsert_delete_upsert_get_branch1(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -1092,7 +1092,7 @@ upsert_delete_upsert_get_branch1(void)
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_delete(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	o = sp_document(db);
 	int up = 777;
@@ -1100,7 +1100,7 @@ upsert_delete_upsert_get_branch1(void)
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
@@ -1123,9 +1123,9 @@ upsert_delete_upsert_get_compact(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -1142,7 +1142,7 @@ upsert_delete_upsert_get_compact(void)
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_delete(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	o = sp_document(db);
 	int up = 777;
@@ -1150,8 +1150,8 @@ upsert_delete_upsert_get_compact(void)
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_setint(env, "db.test.compact", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
@@ -1174,9 +1174,9 @@ upsert_sx_set_upsert_get(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -1217,9 +1217,9 @@ upsert_sx_upsert_upsert(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -1263,9 +1263,9 @@ upsert_cursor0(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -1317,9 +1317,9 @@ upsert_cursor1(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -1372,9 +1372,9 @@ upsert_cursor2(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -1427,9 +1427,9 @@ upsert_cursor3(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -1496,9 +1496,9 @@ upsert_cursor4(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -1554,9 +1554,9 @@ upsert_cursor5(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -1589,8 +1589,8 @@ upsert_cursor5(void)
 	t( sp_setstring(o, "value", &up0, sizeof(up0)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_setint(env, "db.test.compact", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	void *cur = sp_cursor(env);
 	o = sp_document(db);
@@ -1615,9 +1615,9 @@ upsert_cursor6(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -1646,8 +1646,8 @@ upsert_cursor6(void)
 	t( sp_setstring(o, "value", &up0, sizeof(up0)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_setint(env, "db.test.compact", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	void *cur = sp_cursor(env);
 	o = sp_document(db);
@@ -1670,9 +1670,9 @@ upsert_test0(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -1689,21 +1689,21 @@ upsert_test0(void)
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_upsert(db, o) == 0 );
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	up = 778;
 	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_upsert(db, o) == 0 );
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
-	t( sp_setint(env, "db.test.compact", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	void *cur = sp_cursor(env);
 	o = sp_document(db);
@@ -1724,9 +1724,9 @@ upsert_test1(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -1750,10 +1750,10 @@ upsert_test1(void)
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
-	t( sp_setint(env, "db.test.compact", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	void *cur = sp_cursor(env);
 	o = sp_document(db);
@@ -1774,9 +1774,9 @@ upsert_test2(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );

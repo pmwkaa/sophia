@@ -11,9 +11,10 @@
 
 #include <sc_worker.h>
 #include <sc.h>
+#include <sc_profiler.h>
 #include <sc_commit.h>
 #include <sc_step.h>
-#include <sc_ctl.h>
 #include <sc_backup.h>
+#include <sc_ctl.h>
 
 #endif

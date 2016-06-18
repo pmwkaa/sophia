@@ -21,7 +21,7 @@
 #include <libse.h>
 
 static inline so*
-se_readresult(se *e, siread *r)
+se_readresult(se *e, sedb *db, siread *r)
 {
 	sedocument *v = (sedocument*)se_document_new(e, r->index->object, &r->result);
 	if (ssunlikely(v == NULL))
@@ -31,7 +31,7 @@ se_readresult(se *e, siread *r)
 	v->read_latency = 0;
 	if (r->result.v) {
 		v->read_latency = ss_utime() - r->read_start;
-		sr_statget(&e->stat,
+		sr_statget(&db->stat,
 		           v->read_latency,
 		           v->read_disk,
 		           v->read_cache);
@@ -67,7 +67,6 @@ so *se_read(sedb *db, sedocument *o, sx *x, uint64_t vlsn,
 	uint64_t start  = ss_utime();
 
 	/* prepare the key */
-	int auto_close = o->created <= 1;
 	int rc = se_document_createkey(o);
 	if (ssunlikely(rc == -1))
 		goto error;
@@ -99,8 +98,7 @@ so *se_read(sedb *db, sedocument *o, sx *x, uint64_t vlsn,
 			} else {
 				sv_vunref(db->r, vup.v);
 			}
-			if (auto_close)
-				so_destroy(&o->o);
+			so_destroy(&o->o);
 			return &ret->o;
 		}
 	} else {
@@ -138,7 +136,7 @@ so *se_read(sedb *db, sedocument *o, sx *x, uint64_t vlsn,
 
 	/* prepare result */
 	if (rc == 1) {
-		ret = (sedocument*)se_readresult(e, &rq);
+		ret = (sedocument*)se_readresult(e, db, &rq);
 		if (ret)
 			o->prefix_copy = NULL;
 	}
@@ -153,12 +151,10 @@ so *se_read(sedb *db, sedocument *o, sx *x, uint64_t vlsn,
 	if (cachegc && cache)
 		si_cachepool_push(cache);
 
-	if (auto_close)
-		so_destroy(&o->o);
+	so_destroy(&o->o);
 	return &ret->o;
 error:
-	if (auto_close)
-		so_destroy(&o->o);
+	so_destroy(&o->o);
 	return NULL;
 }
 

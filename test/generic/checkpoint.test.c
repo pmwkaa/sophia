@@ -45,22 +45,22 @@ checkpoint_test0(void)
 		key++;
 	}
 
-	t( sp_getint(env, "scheduler.checkpoint_active") == 0 );
-	t( sp_getint(env, "scheduler.checkpoint_lsn") == 0 );
-	t( sp_getint(env, "scheduler.checkpoint_lsn_last") == 0 );
+	t( sp_getint(env, "db.test.scheduler.checkpoint") == 0 );
+	t( sp_getint(env, "db.test.scheduler.checkpoint_lsn") == 0 );
+	t( sp_getint(env, "db.test.scheduler.checkpoint_lsn_last") == 0 );
 
-	t( sp_setint(env, "scheduler.checkpoint", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.checkpoint", 0) == 0 );
 
-	t( sp_getint(env, "scheduler.checkpoint_active") == 1 );
-	t( sp_getint(env, "scheduler.checkpoint_lsn") == 10 );
-	t( sp_getint(env, "scheduler.checkpoint_lsn_last") == 0 );
+	t( sp_getint(env, "db.test.scheduler.checkpoint") == 1 );
+	t( sp_getint(env, "db.test.scheduler.checkpoint_lsn") == 10 );
+	t( sp_getint(env, "db.test.scheduler.checkpoint_lsn_last") == 0 );
 
 	t( sp_setint(env, "scheduler.run", 0) == 1 );
 	t( sp_setint(env, "scheduler.run", 0) == 1 );
 
-	t( sp_getint(env, "scheduler.checkpoint_active") == 0 );
-	t( sp_getint(env, "scheduler.checkpoint_lsn") == 0 );
-	t( sp_getint(env, "scheduler.checkpoint_lsn_last") == 10 );
+	t( sp_getint(env, "db.test.scheduler.checkpoint") == 0 );
+	t( sp_getint(env, "db.test.scheduler.checkpoint_lsn") == 0 );
+	t( sp_getint(env, "db.test.scheduler.checkpoint_lsn_last") == 10 );
 
 	t( sp_destroy(env) == 0 );
 }
@@ -111,7 +111,8 @@ checkpoint_test1(void)
 	t( sp_setint(env, "log.rotate", 0) == 0 );
 	t( sp_getint(env, "log.files") == 3 );
 
-	t( sp_setint(env, "scheduler.checkpoint", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.checkpoint", 0) == 0 );
+
 	t( sp_setint(env, "scheduler.run", 0) == 1 );
 	t( sp_setint(env, "scheduler.run", 0) == 1 );
 
@@ -134,22 +135,22 @@ checkpoint_test2(void)
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_open(env) == 0 );
 
-	t( sp_getint(env, "scheduler.checkpoint_active") == 0 );
-	t( sp_getint(env, "scheduler.checkpoint_lsn") == 0 );
-	t( sp_getint(env, "scheduler.checkpoint_lsn_last") == 0 );
+	t( sp_getint(env, "db.test.scheduler.checkpoint") == 0 );
+	t( sp_getint(env, "db.test.scheduler.checkpoint_lsn") == 0 );
+	t( sp_getint(env, "db.test.scheduler.checkpoint_lsn_last") == 0 );
 
-	t( sp_setint(env, "scheduler.checkpoint", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.checkpoint", 0) == 0 );
 
-	t( sp_getint(env, "scheduler.checkpoint_active") == 1 );
-	t( sp_getint(env, "scheduler.checkpoint_lsn") == 0 );
-	t( sp_getint(env, "scheduler.checkpoint_lsn_last") == 0 );
+	t( sp_getint(env, "db.test.scheduler.checkpoint") == 1 );
+	t( sp_getint(env, "db.test.scheduler.checkpoint_lsn") == 0 );
+	t( sp_getint(env, "db.test.scheduler.checkpoint_lsn_last") == 0 );
 
 	t( sp_setint(env, "scheduler.run", 0) == 0 );
 	t( sp_setint(env, "scheduler.run", 0) == 0 );
 
-	t( sp_getint(env, "scheduler.checkpoint_active") == 0 );
-	t( sp_getint(env, "scheduler.checkpoint_lsn") == 0 );
-	t( sp_getint(env, "scheduler.checkpoint_lsn_last") == 0 );
+	t( sp_getint(env, "db.test.scheduler.checkpoint") == 0 );
+	t( sp_getint(env, "db.test.scheduler.checkpoint_lsn") == 0 );
+	t( sp_getint(env, "db.test.scheduler.checkpoint_lsn_last") == 0 );
 
 	t( sp_destroy(env) == 0 );
 }

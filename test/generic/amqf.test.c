@@ -28,7 +28,7 @@ amqf_test0(void)
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "db.test.amqf", 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_open(env) == 0 );
 
 	void *db = sp_getobject(env, "db.test");
@@ -43,7 +43,7 @@ amqf_test0(void)
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	i = 0;
 	while (i < 400) {
@@ -74,7 +74,7 @@ amqf_test1(void)
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "db.test.amqf", 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_open(env) == 0 );
 
 	void *db = sp_getobject(env, "db.test");
@@ -98,7 +98,7 @@ amqf_test1(void)
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	i = 0;
 	while (i < 400) {
@@ -128,8 +128,8 @@ amqf_test2(void)
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "db.test.amqf", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_open(env) == 0 );
 
 	void *db = sp_getobject(env, "db.test");
@@ -153,7 +153,7 @@ amqf_test2(void)
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	i = 0;
 	while (i < 400) {
@@ -184,7 +184,7 @@ amqf_test3(void)
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "db.test.amqf", 1) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_open(env) == 0 );
 
 	void *db = sp_getobject(env, "db.test");
@@ -199,7 +199,7 @@ amqf_test3(void)
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 	i = 300;
 	while (i < 500) {
 		void *o = sp_document(db);
@@ -209,8 +209,8 @@ amqf_test3(void)
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_setint(env, "db.test.compact", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	i = 0;
 	while (i < 400) {

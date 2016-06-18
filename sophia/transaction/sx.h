@@ -67,10 +67,10 @@ struct sxmanager {
 	uint64_t    csn;
 	sxv        *gc;
 	sxvpool     pool;
-	sr         *r;
+	srseq      *seq;
 };
 
-int       sx_managerinit(sxmanager*, sr*);
+int       sx_managerinit(sxmanager*, srseq*, ssa*);
 int       sx_managerfree(sxmanager*);
 int       sx_indexinit(sxindex*, sxmanager*, sr*, so*, void*);
 int       sx_indexset(sxindex*, uint32_t);

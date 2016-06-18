@@ -64,7 +64,8 @@ int si_close(si*);
 int si_insert(si*, sinode*);
 int si_remove(si*, sinode*);
 int si_replace(si*, sinode*, sinode*);
-int si_plan(si*, siplan*);
 int si_execute(si*, sdc*, siplan*, uint64_t, uint64_t);
+siplannerrc
+si_plan(si*, siplan*);
 
 #endif

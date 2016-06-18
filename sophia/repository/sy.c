@@ -16,7 +16,7 @@
 
 int sy_init(sy *e)
 {
-	e->conf = NULL;
+	sy_confinit(&e->conf);
 	return 0;
 }
 
@@ -24,10 +24,10 @@ static int
 sy_deploy(sy *e, sr *r)
 {
 	int rc;
-	rc = ss_vfsmkdir(r->vfs, e->conf->path, 0755);
+	rc = ss_vfsmkdir(r->vfs, e->conf.path, 0755);
 	if (ssunlikely(rc == -1)) {
 		sr_error(r->e, "directory '%s' create error: %s",
-		         e->conf->path, strerror(errno));
+		         e->conf.path, strerror(errno));
 		return -1;
 	}
 	return 0;
@@ -65,23 +65,23 @@ sy_process(char *name, uint32_t *bsn)
 static inline int
 sy_recoverbackup(sy *i, sr *r)
 {
-	if (i->conf->path_backup == NULL)
+	if (i->conf.path_backup == NULL)
 		return 0;
 	int rc;
-	int exists = ss_vfsexists(r->vfs, i->conf->path_backup);
+	int exists = ss_vfsexists(r->vfs, i->conf.path_backup);
 	if (! exists) {
-		rc = ss_vfsmkdir(r->vfs, i->conf->path_backup, 0755);
+		rc = ss_vfsmkdir(r->vfs, i->conf.path_backup, 0755);
 		if (ssunlikely(rc == -1)) {
 			sr_error(r->e, "backup directory '%s' create error: %s",
-					 i->conf->path_backup, strerror(errno));
+					 i->conf.path_backup, strerror(errno));
 			return -1;
 		}
 	}
 	/* recover backup sequential number */
-	DIR *dir = opendir(i->conf->path_backup);
+	DIR *dir = opendir(i->conf.path_backup);
 	if (ssunlikely(dir == NULL)) {
 		sr_error(r->e, "backup directory '%s' open error: %s",
-				 i->conf->path_backup, strerror(errno));
+				 i->conf.path_backup, strerror(errno));
 		return -1;
 	}
 	uint32_t bsn = 0;
@@ -106,13 +106,12 @@ sy_recoverbackup(sy *i, sr *r)
 	return 0;
 }
 
-int sy_open(sy *e, sr *r, syconf *conf)
+int sy_open(sy *e, sr *r)
 {
-	e->conf = conf;
 	int rc = sy_recoverbackup(e, r);
 	if (ssunlikely(rc == -1))
 		return -1;
-	int exists = ss_vfsexists(r->vfs, conf->path);
+	int exists = ss_vfsexists(r->vfs, e->conf.path);
 	if (exists == 0)
 		return sy_deploy(e, r);
 	return 0;
@@ -120,7 +119,6 @@ int sy_open(sy *e, sr *r, syconf *conf)
 
 int sy_close(sy *e, sr *r)
 {
-	(void)e;
-	(void)r;
+	sy_conffree(&e->conf, r->a);
 	return 0;
 }

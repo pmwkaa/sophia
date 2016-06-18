@@ -17,12 +17,11 @@
 
 int si_planinit(siplan *p)
 {
-	p->plan    = SI_NONE;
-	p->explain = SI_ENONE;
-	p->a       = 0;
-	p->b       = 0;
-	p->c       = 0;
-	p->node    = NULL;
+	p->plan = SI_NONE;
+	p->a    = 0;
+	p->b    = 0;
+	p->c    = 0;
+	p->node = NULL;
 	return 0;
 }
 
@@ -83,30 +82,12 @@ int si_plannertrace(siplan *p, uint32_t id, sstrace *t)
 	case SI_ANTICACHE: plan = "anticache";
 		break;
 	}
-	char *explain = NULL;
-	switch (p->explain) {
-	case SI_ENONE:
-		explain = "none";
-		break;
-	case SI_ERETRY:
-		explain = "retry expected";
-		break;
-	case SI_EINDEX_SIZE:
-		explain = "index size";
-		break;
-	case SI_EINDEX_AGE:
-		explain = "index age";
-		break;
-	case SI_EBRANCH_COUNT:
-		explain = "branch count";
-		break;
-	}
 	if (p->node) {
-		ss_trace(t, "%s <%" PRIu32 ":%020" PRIu64 ".db explain: %s>",
-		         plan, id, p->node->self.id.id, explain);
+		ss_trace(t, "%s <%" PRIu32 ":%020" PRIu64 ".db>",
+		         plan, id, p->node->self.id.id);
 	} else {
-		ss_trace(t, "%s <%" PRIu32 " explain: %s>",
-		         plan, id, explain);
+		ss_trace(t, "%s <%" PRIu32 ">",
+		         plan, id);
 	}
 	return 0;
 }
@@ -133,73 +114,67 @@ int si_plannerremove(siplanner *p, int mask, sinode *n)
 	return 0;
 }
 
-static inline int
+static inline siplannerrc
 si_plannerpeek_backup(siplanner *p, siplan *plan)
 {
-	/* try to peek a node which has
-	 * bsn <= required value
+	/* try to peek a node which has bsn <= required
+	 * value
 	*/
-	int rc_inprogress = 0;
+	siplannerrc rc = SI_PNONE;
 	sinode *n;
 	ssrqnode *pn = NULL;
 	while ((pn = ss_rqprev(&p->branch, pn))) {
 		n = sscast(pn, sinode, nodebranch);
 		if (n->backup < plan->a) {
 			if (n->flags & SI_LOCK) {
-				rc_inprogress = 2;
+				rc = SI_PRETRY;
 				continue;
 			}
 			goto match;
 		}
 	}
-	if (rc_inprogress) {
-		plan->explain = SI_ERETRY;
-		return 2;
-	}
+	if (rc)
+		return rc;
 	si *index = p->i;
 	if (index->backup < plan->a) {
 		plan->plan = SI_BACKUPEND;
 		plan->node = 0;
-		return 1;
+	return SI_PMATCH;
 	}
-	return 0;
+	return SI_PNONE;
 match:
 	si_nodelock(n);
-	plan->explain = SI_ENONE;
 	plan->node = n;
-	return 1;
+	return SI_PMATCH;
 }
 
-static inline int
+static inline siplannerrc
 si_plannerpeek_checkpoint(siplanner *p, siplan *plan)
 {
 	/* try to peek a node which has min
 	 * lsn <= required value
 	*/
-	int rc_inprogress = 0;
+	siplannerrc rc = SI_PNONE;
 	sinode *n;
 	ssrqnode *pn = NULL;
 	while ((pn = ss_rqprev(&p->branch, pn))) {
 		n = sscast(pn, sinode, nodebranch);
 		if (n->i0.lsnmin <= plan->a) {
 			if (n->flags & SI_LOCK) {
-				rc_inprogress = 2;
+				rc = SI_PRETRY;
 				continue;
 			}
 			goto match;
 		}
 	}
-	if (rc_inprogress)
-		plan->explain = SI_ERETRY;
-	return rc_inprogress;
+	return rc;
 match:
 	si_nodelock(n);
-	plan->explain = SI_ENONE;
 	plan->node = n;
-	return 1;
+	return SI_PMATCH;
 }
 
-static inline int
+static inline siplannerrc
 si_plannerpeek_branch(siplanner *p, siplan *plan)
 {
 	/* try to peek a node with a biggest in-memory index */
@@ -211,17 +186,16 @@ si_plannerpeek_branch(siplanner *p, siplan *plan)
 			continue;
 		if (n->used >= plan->a)
 			goto match;
-		return 0;
+		return SI_PNONE;
 	}
-	return 0;
+	return SI_PNONE;
 match:
 	si_nodelock(n);
-	plan->explain = SI_EINDEX_SIZE;
 	plan->node = n;
-	return 1;
+	return SI_PMATCH;
 }
 
-static inline int
+static inline siplannerrc
 si_plannerpeek_age(siplanner *p, siplan *plan)
 {
 	/* try to peek a node with update >= a and in-memory
@@ -238,15 +212,14 @@ si_plannerpeek_age(siplanner *p, siplan *plan)
 		if (n->used >= plan->b && ((now - n->update_time) >= plan->a))
 			goto match;
 	}
-	return 0;
+	return SI_PNONE;
 match:
 	si_nodelock(n);
-	plan->explain = SI_EINDEX_AGE;
 	plan->node = n;
-	return 1;
+	return SI_PMATCH;
 }
 
-static inline int
+static inline siplannerrc
 si_plannerpeek_compact(siplanner *p, siplan *plan)
 {
 	/* try to peek a node with a biggest number
@@ -259,17 +232,16 @@ si_plannerpeek_compact(siplanner *p, siplan *plan)
 			continue;
 		if (n->branch_count >= plan->a)
 			goto match;
-		return 0;
+		return SI_PNONE;
 	}
-	return 0;
+	return SI_PNONE;
 match:
 	si_nodelock(n);
-	plan->explain = SI_EBRANCH_COUNT;
 	plan->node = n;
-	return 1;
+	return SI_PMATCH;
 }
 
-static inline int
+static inline siplannerrc
 si_plannerpeek_compact_temperature(siplanner *p, siplan *plan)
 {
 	/* try to peek a hottest node with number of
@@ -282,22 +254,21 @@ si_plannerpeek_compact_temperature(siplanner *p, siplan *plan)
 			continue;
 		if (n->branch_count >= plan->a)
 			goto match;
-		return 0;
+		return SI_PNONE;
 	}
-	return 0;
+	return SI_PNONE;
 match:
 	si_nodelock(n);
-	plan->explain = SI_ENONE;
 	plan->node = n;
-	return 1;
+	return SI_PMATCH;
 }
 
-static inline int
+static inline siplannerrc
 si_plannerpeek_gc(siplanner *p, siplan *plan)
 {
 	/* try to peek a node with a biggest number
 	 * of branches which is ready for gc */
-	int rc_inprogress = 0;
+	siplannerrc rc = SI_PNONE;
 	sinode *n;
 	ssrqnode *pn = NULL;
 	while ((pn = ss_rqprev(&p->compact, pn))) {
@@ -308,27 +279,24 @@ si_plannerpeek_gc(siplanner *p, siplan *plan)
 		uint32_t used = (h->dupkeys * 100) / h->keys;
 		if (used >= plan->b) {
 			if (n->flags & SI_LOCK) {
-				rc_inprogress = 2;
+				rc = SI_PRETRY;
 				continue;
 			}
 			goto match;
 		}
 	}
-	if (rc_inprogress)
-		plan->explain = SI_ERETRY;
-	return rc_inprogress;
+	return rc;
 match:
 	si_nodelock(n);
-	plan->explain = SI_ENONE;
 	plan->node = n;
-	return 1;
+	return SI_PMATCH;
 }
 
-static inline int
+static inline siplannerrc
 si_plannerpeek_expire(siplanner *p, siplan *plan)
 {
 	/* full scan */
-	int rc_inprogress = 0;
+	siplannerrc rc = SI_PNONE;
 	uint32_t now = ss_timestamp();
 	sinode *n = NULL;
 	ssrqnode *pn = NULL;
@@ -340,50 +308,46 @@ si_plannerpeek_expire(siplanner *p, siplan *plan)
 		uint32_t diff = now - h->tsmin;
 		if (sslikely(diff >= plan->a)) {
 			if (n->flags & SI_LOCK) {
-				rc_inprogress = 2;
+				rc = SI_PRETRY;
 				continue;
 			}
 			goto match;
 		}
 	}
-	if (rc_inprogress)
-		plan->explain = SI_ERETRY;
-	return rc_inprogress;
+	return rc;
 match:
 	si_nodelock(n);
 	plan->node = n;
-	return 1;
+	return SI_PMATCH;
 }
 
-
-static inline int
+static inline siplannerrc
 si_plannerpeek_snapshot(siplanner *p, siplan *plan)
 {
 	si *index = p->i;
 	if (index->snapshot >= plan->a)
-		return 0;
+		return SI_PNONE;
 	if (index->snapshot_run) {
 		/* snaphot inprogress */
-		plan->explain = SI_ERETRY;
-		return 2;
+		return SI_PRETRY;
 	}
 	index->snapshot_run = 1;
-	return 1;
+	return SI_PMATCH;
 }
 
-static inline int
+static inline siplannerrc
 si_plannerpeek_anticache(siplanner *p, siplan *plan)
 {
 	si *index = p->i;
 	if (index->scheme.storage != SI_SANTI_CACHE)
-		return 0;
-	int rc_inprogress = 0;
+		return SI_PNONE;
+	siplannerrc rc = SI_PNONE;
 	sinode *n;
 	ssrqnode *pn = NULL;
 	while ((pn = ss_rqprev(&p->temp, pn))) {
 		n = sscast(pn, sinode, nodetemp);
 		if (n->flags & SI_LOCK) {
-			rc_inprogress = 2;
+			rc = SI_PRETRY;
 			continue;
 		}
 		if (n->ac >= plan->a)
@@ -405,30 +369,25 @@ si_plannerpeek_anticache(siplanner *p, siplan *plan)
 		}
 		goto match;
 	}
-	if (rc_inprogress) {
-		plan->explain = SI_ERETRY;
-		return 2;
-	}
-	return 0;
+	return rc;
 match:
 	si_nodelock(n);
-	plan->explain = SI_ENONE;
 	plan->node = n;
-	return 1;
+	return SI_PMATCH;
 }
 
-static inline int
+static inline siplannerrc
 si_plannerpeek_lru(siplanner *p, siplan *plan)
 {
 	si *index = p->i;
 	if (sslikely(! index->scheme.lru))
-		return 0;
+		return SI_PNONE;
 	if (! index->lru_run_lsn) {
 		index->lru_run_lsn = si_lru_vlsn_of(index);
 		if (sslikely(index->lru_run_lsn == 0))
-			return 0;
+			return SI_PNONE;
 	}
-	int rc_inprogress = 0;
+	siplannerrc rc = SI_PNONE;
 	sinode *n;
 	ssrqnode *pn = NULL;
 	while ((pn = ss_rqprev(&p->compact, pn))) {
@@ -436,48 +395,45 @@ si_plannerpeek_lru(siplanner *p, siplan *plan)
 		sdindexheader *h = n->self.index.h;
 		if (h->lsnmin < index->lru_run_lsn) {
 			if (n->flags & SI_LOCK) {
-				rc_inprogress = 2;
+				rc = SI_PRETRY;
 				continue;
 			}
 			goto match;
 		}
 	}
-	if (rc_inprogress)
-		plan->explain = SI_ERETRY;
-	else
+
+	if (rc == SI_PNONE)
 		index->lru_run_lsn = 0;
-	return rc_inprogress;
+	return rc;
 match:
 	si_nodelock(n);
-	plan->explain = SI_ENONE;
 	plan->node = n;
-	return 1;
+	return SI_PMATCH;
 }
 
-static inline int
+static inline siplannerrc
 si_plannerpeek_nodegc(siplanner *p, siplan *plan)
 {
 	si *index = p->i;
 	if (sslikely(index->gc_count == 0))
 		return 0;
-	int rc_inprogress = 0;
+	siplannerrc rc = SI_PNONE;
 	sslist *i;
 	ss_listforeach(&index->gc, i) {
 		sinode *n = sscast(i, sinode, gc);
 		if (sslikely(si_noderefof(n) == 0)) {
 			ss_listunlink(&n->gc);
 			index->gc_count--;
-			plan->explain = SI_ENONE;
 			plan->node = n;
-			return 1;
-		} else {
-			rc_inprogress = 2;
+			return SI_PMATCH;
 		}
+		rc = SI_PRETRY;
 	}
-	return rc_inprogress;
+	return rc;
 }
 
-int si_planner(siplanner *p, siplan *plan)
+siplannerrc
+si_planner(siplanner *p, siplan *plan)
 {
 	switch (plan->plan) {
 	case SI_BRANCH:

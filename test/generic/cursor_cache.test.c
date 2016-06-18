@@ -27,7 +27,7 @@ cursor_cache_test0(void)
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_open(env) == 0 );
 
 	void *db = sp_getobject(env, "db.test");
@@ -42,7 +42,7 @@ cursor_cache_test0(void)
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	void *cur = sp_cursor(env);
 	i = 0;
@@ -73,7 +73,7 @@ cursor_cache_test1(void)
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_open(env) == 0 );
 
 	void *db = sp_getobject(env, "db.test");
@@ -88,7 +88,7 @@ cursor_cache_test1(void)
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 	i = 185;
 	while (i < 370) {
 		void *o = sp_document(db);
@@ -99,7 +99,7 @@ cursor_cache_test1(void)
 		i++;
 	}
 	t( i == 370 );
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	void *cur = sp_cursor(env);
 	t( cur != NULL );
@@ -128,7 +128,7 @@ cursor_cache_invalidate(void)
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_open(env) == 0 );
 
 	void *db = sp_getobject(env, "db.test");
@@ -143,7 +143,7 @@ cursor_cache_invalidate(void)
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	i = 185;
 	while (i < 370) {
@@ -155,7 +155,7 @@ cursor_cache_invalidate(void)
 		i++;
 	}
 	t( i == 370 );
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	void *o = sp_document(db);
 	t( o != NULL );
@@ -170,7 +170,7 @@ cursor_cache_invalidate(void)
 	while ((o = sp_get(cur, o))) {
 		t( *(int*)sp_getstring(o, "key", NULL) == i );
 		if (i == 200) {
-			t( sp_setint(env, "db.test.branch", 0) == 0 );
+			t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 		}
 		i++;
 	}

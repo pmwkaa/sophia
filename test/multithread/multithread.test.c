@@ -267,18 +267,16 @@ mt_quota(void)
 	void *env = sp_env();
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "memory.limit", 524288) == 0 ); /* 512k */
 	/* branch_wm should hit compaction.e zone */
-	t( sp_setint(env, "compaction.90.mode", 3) == 0 );
-	t( sp_setint(env, "compaction.90.branch_wm", 500000) == 0 );
-	t( sp_setint(env, "compaction.90.branch_prio", 3) == 0 );
-	t( sp_setint(env, "compaction.90.branch_age", 100) == 0 );
-	t( sp_setint(env, "compaction.90.branch_age_period", 1) == 0 );
 	t( sp_setint(env, "scheduler.threads", 5) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.memory_limit", 524288) == 0 ); /* 512k */
+	t( sp_setint(env, "db.test.compaction.branch_wm", 500000) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_age", 100) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_age_period", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -318,13 +316,13 @@ mt_quota_checkpoint(void)
 	void *env = sp_env();
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "memory.limit", 524288) == 0 ); /* 512k */
 	/* use default settings */
 	t( sp_setint(env, "scheduler.threads", 5) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.memory_limit", 524288) == 0 ); /* 512k */
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -364,19 +362,17 @@ mt_quota_age(void)
 	void *env = sp_env();
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "memory.limit", 524288) == 0 ); /* 512k */
 	/* 100Mb branch_wm to avoid branching */
-	t( sp_setint(env, "compaction.90.mode", 3) == 0 );
-	t( sp_setint(env, "compaction.90.branch_wm", 104857600) == 0 );
-	t( sp_setint(env, "compaction.90.branch_age_period", 1) == 0 );
-	t( sp_setint(env, "compaction.90.branch_age", 1) == 0 );
-	t( sp_setint(env, "compaction.90.branch_prio", 1) == 0 );
-	t( sp_setint(env, "compaction.90.branch_age_wm", 500000) == 0 );
 	t( sp_setint(env, "scheduler.threads", 5) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.memory_limit", 524288) == 0 ); /* 512k */
+	t( sp_setint(env, "db.test.compaction.branch_wm", 104857600) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_age_period", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_age", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_age_wm", 500000) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );

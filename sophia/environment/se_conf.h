@@ -14,62 +14,25 @@ typedef struct seconf seconf;
 
 struct seconfrt {
 	/* sophia */
-	char      version[16];
-	char      version_storage[16];
-	char      build[32];
-	/* memory */
-	uint64_t  memory_used;
+	char     version[16];
+	char     version_storage[16];
+	char     build[32];
 	/* scheduler */
-	char      zone[4];
-	uint32_t  checkpoint_active;
-	uint64_t  checkpoint_lsn;
-	uint64_t  checkpoint_lsn_last;
-	uint32_t  snapshot_active;
-	uint64_t  snapshot_ssn;
-	uint64_t  snapshot_ssn_last;
-	uint32_t  anticache_active;
-	uint64_t  anticache_asn;
-	uint64_t  anticache_asn_last;
-	uint32_t  backup_active;
-	uint32_t  backup_last;
-	uint32_t  backup_last_complete;
-	uint32_t  gc_active;
-	uint32_t  expire_active;
-	uint32_t  lru_active;
+	uint32_t backup_active;
+	uint32_t backup_last;
+	uint32_t backup_last_complete;
 	/* log */
-	uint32_t  log_files;
+	uint32_t log_files;
 	/* metric */
-	srseq     seq;
-	/* performance */
-	uint32_t  tx_rw;
-	uint32_t  tx_ro;
-	uint32_t  tx_gc_queue;
-	srstat    stat;
+	srseq    seq;
 };
 
 struct seconf {
-	/* sophia */
-	char         *path;
-	int           recover_complete;
-	/* backup */
-	char         *backup_path;
-	/* compaction */
-	srzonemap     zones;
-	/* scheduler */
-	uint32_t      threads;
-	/* memory */
-	uint64_t      memory_limit;
-	uint64_t      anticache;
-	/* log */
-	uint32_t      log_enable;
-	char         *log_path;
-	uint32_t      log_sync;
-	uint32_t      log_rotate_wm;
-	uint32_t      log_rotate_sync;
-	sfscheme      scheme;
-	int           confmax;
-	srconf       *conf;
-	so           *env;
+	uint32_t  threads;
+	sfscheme  scheme;
+	int       confmax;
+	srconf   *conf;
+	so       *env;
 };
 
 int      se_confinit(seconf*, so*);

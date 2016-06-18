@@ -22,9 +22,9 @@ gc_test0(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -56,7 +56,7 @@ gc_test0(void)
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	i = 0;
 	void *o = sp_document(db);
@@ -72,7 +72,7 @@ gc_test0(void)
 	t( sp_getint(env, "db.test.index.count") == 200 );
 	t( sp_getint(env, "db.test.index.count_dup") == 100 );
 
-	t( sp_setint(env, "db.test.compact", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	i = 0;
 	o = sp_document(db);
@@ -99,9 +99,9 @@ gc_test1(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -133,7 +133,7 @@ gc_test1(void)
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	i = 0;
 	void *o = sp_document(db);
@@ -149,7 +149,7 @@ gc_test1(void)
 	t( sp_getint(env, "db.test.index.count") == 200 );
 	t( sp_getint(env, "db.test.index.count_dup") == 100 );
 
-	t( sp_setint(env, "db.test.compact", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	i = 0;
 	o = sp_document(db);
@@ -176,9 +176,9 @@ gc_test2(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -210,7 +210,7 @@ gc_test2(void)
 	}
 
 	void *t0 = sp_begin(env);
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	i = 0;
 	void *o = sp_document(db);
@@ -226,7 +226,7 @@ gc_test2(void)
 	t( sp_getint(env, "db.test.index.count") == 100 );
 	t( sp_getint(env, "db.test.index.count_dup") == 0 );
 
-	t( sp_setint(env, "db.test.compact", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	i = 0;
 	o = sp_document(db);
@@ -253,9 +253,9 @@ gc_test3(void)
 	t( env != NULL );
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "compaction.0.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
@@ -288,8 +288,8 @@ gc_test3(void)
 		i++;
 	}
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_setint(env, "db.test.compact", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	i = 0;
 	void *o = sp_document(db);
@@ -308,15 +308,15 @@ gc_test3(void)
 	sp_destroy(t0);
 
 	/* gc */
-	t( sp_getint(env, "scheduler.gc_active") == 0 );
-	t( sp_setint(env, "scheduler.gc", 0) == 0 );
-	t( sp_getint(env, "scheduler.gc_active") == 1 );
+	t( sp_getint(env, "db.test.scheduler.gc") == 0 );
+	t( sp_setint(env, "db.test.compaction.gc", 0) == 0 );
+	t( sp_getint(env, "db.test.scheduler.gc") == 1 );
 
 	int rc;
 	while ( (rc = sp_setint(env, "scheduler.run", 0)) > 0 );
 	t( rc == 0 );
 
-	t( sp_getint(env, "scheduler.gc_active") == 0 );
+	t( sp_getint(env, "db.test.scheduler.gc") == 0 );
 
 	t( sp_getint(env, "db.test.index.count") == 100 );
 	t( sp_getint(env, "db.test.index.count_dup") == 0 );

@@ -12,6 +12,12 @@
 typedef struct siplanner siplanner;
 typedef struct siplan siplan;
 
+typedef enum {
+	SI_PNONE,
+	SI_PMATCH,
+	SI_PRETRY
+} siplannerrc;
+
 struct siplanner {
 	ssrq branch;
 	ssrq compact;
@@ -35,15 +41,7 @@ struct siplanner {
 #define SI_NODEGC        4096
 #define SI_EXPIRE        8192
 
-/* explain */
-#define SI_ENONE         0
-#define SI_ERETRY        1
-#define SI_EINDEX_SIZE   2
-#define SI_EINDEX_AGE    3
-#define SI_EBRANCH_COUNT 4
-
 struct siplan {
-	int explain;
 	int plan;
 	/* branch:
 	 *   a: index_size
@@ -84,6 +82,7 @@ int si_plannerfree(siplanner*, ssa*);
 int si_plannertrace(siplan*, uint32_t, sstrace*);
 int si_plannerupdate(siplanner*, int, sinode*);
 int si_plannerremove(siplanner*, int, sinode*);
-int si_planner(siplanner*, siplan*);
+siplannerrc
+si_planner(siplanner*, siplan*);
 
 #endif

@@ -52,7 +52,6 @@ extern stgroup *repository_group(void);
 extern stgroup *ddl_group(void);
 extern stgroup *multipart_group(void);
 extern stgroup *document_group(void);
-extern stgroup *reuse_group(void);
 extern stgroup *env_group(void);
 extern stgroup *deadlock_group(void);
 extern stgroup *scheme_group(void);
@@ -231,11 +230,10 @@ main(int argc, char *argv[])
 	st_planadd(plan, multipart_group());
 	st_planadd(plan, env_group());
 	st_planadd(plan, document_group());
-	st_planadd(plan, reuse_group());
 	st_planadd(plan, deadlock_group());
 	st_planadd(plan, scheme_group());
 	st_planadd(plan, rev_group());
-	st_planadd(plan, backup_group());
+	/*st_planadd(plan, backup_group());*/
 	st_planadd(plan, snapshot_group());
 	st_planadd(plan, checkpoint_group());
 	st_planadd(plan, prefix_group());
@@ -305,7 +303,7 @@ main(int argc, char *argv[])
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
 	st_planadd(plan, durability_group());
 	st_planadd(plan, oom_group());
-	st_planadd(plan, io_group());
+	/*st_planadd(plan, io_group());*/
 	st_planadd(plan, recover_loop_group());
 	st_suiteadd(&st_r.suite, plan);
 

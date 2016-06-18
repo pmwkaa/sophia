@@ -17,4 +17,7 @@ struct syconf {
 	int   sync;
 };
 
+void sy_confinit(syconf*);
+void sy_conffree(syconf*, ssa*);
+
 #endif

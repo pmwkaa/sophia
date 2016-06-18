@@ -37,19 +37,17 @@ int sc_ctl_branch(sc *s, uint64_t vlsn, si *index)
 	int rc = sr_statusactive(r->status);
 	if (ssunlikely(rc == 0))
 		return 0;
-	srzone *z = sr_zoneof(r);
 	scworker *w = sc_workerpool_pop(&s->wp, r);
 	if (ssunlikely(w == NULL))
 		return -1;
 	while (1) {
 		uint64_t vlsn_lru = si_lru_vlsn(index);
 		siplan plan = {
-			.explain   = SI_ENONE,
-			.plan      = SI_BRANCH,
-			.a         = z->branch_wm,
-			.b         = 0,
-			.c         = 0,
-			.node      = NULL
+			.plan = SI_BRANCH,
+			.a    = index->scheme.compaction.branch_wm,
+			.b    = 0,
+			.c    = 0,
+			.node = NULL
 		};
 		rc = si_plan(index, &plan);
 		if (rc == 0)
@@ -68,19 +66,17 @@ int sc_ctl_compact(sc *s, uint64_t vlsn, si *index)
 	int rc = sr_statusactive(r->status);
 	if (ssunlikely(rc == 0))
 		return 0;
-	srzone *z = sr_zoneof(r);
 	scworker *w = sc_workerpool_pop(&s->wp, r);
 	if (ssunlikely(w == NULL))
 		return -1;
 	while (1) {
 		uint64_t vlsn_lru = si_lru_vlsn(index);
 		siplan plan = {
-			.explain   = SI_ENONE,
-			.plan      = SI_COMPACT,
-			.a         = z->compact_wm,
-			.b         = z->compact_mode,
-			.c         = 0,
-			.node      = NULL
+			.plan = SI_COMPACT,
+			.a    = index->scheme.compaction.compact_wm,
+			.b    = index->scheme.compaction.compact_mode,
+			.c    = 0,
+			.node = NULL
 		};
 		rc = si_plan(index, &plan);
 		if (rc == 0)
@@ -99,19 +95,17 @@ int sc_ctl_compact_index(sc *s, uint64_t vlsn, si *index)
 	int rc = sr_statusactive(r->status);
 	if (ssunlikely(rc == 0))
 		return 0;
-	srzone *z = sr_zoneof(r);
 	scworker *w = sc_workerpool_pop(&s->wp, r);
 	if (ssunlikely(w == NULL))
 		return -1;
 	while (1) {
 		uint64_t vlsn_lru = si_lru_vlsn(index);
 		siplan plan = {
-			.explain   = SI_ENONE,
-			.plan      = SI_COMPACT_INDEX,
-			.a         = z->branch_wm,
-			.b         = 0,
-			.c         = 0,
-			.node      = NULL
+			.plan = SI_COMPACT_INDEX,
+			.a    = index->scheme.compaction.branch_wm,
+			.b    = 0,
+			.c    = 0,
+			.node = NULL
 		};
 		rc = si_plan(index, &plan);
 		if (rc == 0)
@@ -124,50 +118,56 @@ int sc_ctl_compact_index(sc *s, uint64_t vlsn, si *index)
 	return rc;
 }
 
-int sc_ctl_anticache(sc *s)
+int sc_ctl_anticache(sc *s, si *index)
 {
 	ss_mutexlock(&s->lock);
-	sc_task_anticache(s);
+	scdb *db = sc_of(s, index);
+	sc_task_anticache(s, db);
 	ss_mutexunlock(&s->lock);
 	return 0;
 }
 
-int sc_ctl_snapshot(sc *s)
+int sc_ctl_snapshot(sc *s, si *index)
 {
 	ss_mutexlock(&s->lock);
-	sc_task_snapshot(s);
+	scdb *db = sc_of(s, index);
+	sc_task_snapshot(s, db);
 	ss_mutexunlock(&s->lock);
 	return 0;
 }
 
-int sc_ctl_checkpoint(sc *s)
+int sc_ctl_checkpoint(sc *s, si *index)
 {
 	ss_mutexlock(&s->lock);
-	sc_task_checkpoint(s);
+	scdb *db = sc_of(s, index);
+	sc_task_checkpoint(s, db);
 	ss_mutexunlock(&s->lock);
 	return 0;
 }
 
-int sc_ctl_expire(sc *s)
+int sc_ctl_expire(sc *s, si *index)
 {
 	ss_mutexlock(&s->lock);
-	sc_task_expire(s);
+	scdb *db = sc_of(s, index);
+	sc_task_expire(db);
 	ss_mutexunlock(&s->lock);
 	return 0;
 }
 
-int sc_ctl_gc(sc *s)
+int sc_ctl_gc(sc *s, si *index)
 {
 	ss_mutexlock(&s->lock);
-	sc_task_gc(s);
+	scdb *db = sc_of(s, index);
+	sc_task_gc(db);
 	ss_mutexunlock(&s->lock);
 	return 0;
 }
 
-int sc_ctl_lru(sc *s)
+int sc_ctl_lru(sc *s, si *index)
 {
 	ss_mutexlock(&s->lock);
-	sc_task_lru(s);
+	scdb *db = sc_of(s, index);
+	sc_task_lru(db);
 	ss_mutexunlock(&s->lock);
 	return 0;
 }
@@ -175,16 +175,4 @@ int sc_ctl_lru(sc *s)
 int sc_ctl_backup(sc *s)
 {
 	return sc_backupstart(s);
-}
-
-int sc_ctl_backup_event(sc *s)
-{
-	int event = 0;
-	ss_mutexlock(&s->lock);
-	if (ssunlikely(s->backup_events > 0)) {
-		s->backup_events--;
-		event = 1;
-	}
-	ss_mutexunlock(&s->lock);
-	return event;
 }
