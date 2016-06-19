@@ -55,14 +55,6 @@ sr_errorreset(srerror *e) {
 }
 
 static inline void
-sr_errorrecover(srerror *e) {
-	ss_spinlock(&e->lock);
-	assert(e->type == SR_ERROR_MALFUNCTION);
-	e->type = SR_ERROR;
-	ss_spinunlock(&e->lock);
-}
-
-static inline void
 sr_malfunction_set(srerror *e) {
 	ss_spinlock(&e->lock);
 	e->type = SR_ERROR_MALFUNCTION;

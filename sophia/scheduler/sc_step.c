@@ -69,6 +69,7 @@ sc_taskbegin(sctask *task, scworker *w, uint64_t vlsn)
 	task->db     = NULL;
 	task->rotate = 0;
 	task->gc     = 0;
+	task->backup = 0;
 	si_planinit(&task->plan);
 }
 
@@ -189,9 +190,8 @@ sc_do(sc *s, sctask *task)
 		}
 	}
 
-#if 0
 	/* backup */
-	if (s->backup)
+	if (db->backup)
 	{
 		/* backup procedure.
 		 *
@@ -225,16 +225,7 @@ sc_do(sc *s, sctask *task)
 		 * e. set last backup, set COMPLETE
 		 *
 		*/
-		if (s->backup == 1) {
-			/* state 1 */
-			int rc;
-			rc = sc_backupbegin(s);
-			if (ssunlikely(rc == -1)) {
-				sc_backuperror(s);
-				goto backup_error;
-			}
-			s->backup = 2;
-		}
+
 		/* state 2 */
 		task->plan.plan = SI_BACKUP;
 		task->plan.a = s->backup_bsn;
@@ -244,23 +235,18 @@ sc_do(sc *s, sctask *task)
 			db->workers[SC_QBACKUP]++;
 			task->db = db;
 			return SI_PMATCH;
-		case SI_PNONE: /* state 3 */
-			/*
-			if (sc_end(s, db, SI_BACKUP)) {
-				rc = sc_backupend(s, w);
-				if (ssunlikely(rc == -1)) {
-					sc_backuperror(s);
-					goto backup_error;
-				}
-			}
-			*/
+		case SI_PNONE:
+			sc_task_backup_done(task->db);
+			assert(s->backup_in_progress > 0);
+			s->backup_in_progress--;
+			/* state 3 */
+			if (s->backup_in_progress == 0)
+				task->backup = 1;
 			break;
 		case SI_PRETRY:
 			break;
 		}
-backup_error:;
 	}
-#endif
 
 	/* expire */
 	if (db->expire) {
@@ -453,10 +439,17 @@ int sc_step(sc *s, scworker *w, uint64_t vlsn)
 	sc_taskbegin(&task, w, vlsn);
 	int rc = sc_schedule(s, &task);
 	int rc_job = rc;
+	/* log rotation */
 	if (task.rotate) {
 		rc = sc_rotate(s, w);
 		if (ssunlikely(rc == -1))
 			goto error;
+	}
+	/* backup completion */
+	if (task.backup) {
+		rc = sc_backupend(s, w);
+		if (ssunlikely(rc == -1))
+			sc_backupstop(s);
 	}
 	if (rc_job == 1) {
 		rc = sc_execute(&task, w, vlsn);
@@ -466,9 +459,7 @@ int sc_step(sc *s, scworker *w, uint64_t vlsn)
 				sr_statusset(s->r->status, SR_MALFUNCTION);
 				goto error;
 			}
-			ss_mutexlock(&s->lock);
-			/*sc_backuperror(s);*/
-			ss_mutexunlock(&s->lock);
+			sc_backupstop(s);
 		}
 	}
 	sc_taskend(s, &task);

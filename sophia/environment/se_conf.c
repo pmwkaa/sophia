@@ -607,6 +607,7 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc, int serialize)
 		sr_C(&p, pc, se_confv, "gc", SS_U32, &o->scp.state.gc, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "expire", SS_U32, &o->scp.state.expire, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "lru", SS_U32, &o->scp.state.lru, SR_RO, NULL);
+		sr_C(&p, pc, se_confv, "backup", SS_U32, &o->scp.state.backup, SR_RO, NULL);
 
 		/* index */
 		srconf *index = *pc;
@@ -684,6 +685,10 @@ se_confbackup_run(srconf *c, srconfstmt *s)
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
 	se *e = s->ptr;
+	if (ssunlikely(e->rep_conf->path_backup == NULL)) {
+		sr_error(&e->error, "%s", "backup is not enabled");
+		return -1;
+	}
 	return sc_ctl_backup(&e->scheduler);
 }
 

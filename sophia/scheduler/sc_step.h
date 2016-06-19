@@ -124,4 +124,16 @@ sc_task_age_done(scdb *db, uint64_t now)
 	db->age_time = now;
 }
 
+static inline void
+sc_task_backup(scdb *db)
+{
+	db->backup = 1;
+}
+
+static inline void
+sc_task_backup_done(scdb *db)
+{
+	db->backup = 0;
+}
+
 #endif

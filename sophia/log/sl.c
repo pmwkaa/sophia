@@ -344,38 +344,38 @@ int sl_poolcopy(slpool *p, char *dest, ssbuf *buf)
 		ss_fileinit(&file, p->r->vfs);
 		int rc = ss_filenew(&file, path.path);
 		if (ssunlikely(rc == -1)) {
-			sr_malfunction(p->r->e, "log file '%s' create error: %s",
-			               path.path, strerror(errno));
+			sr_error(p->r->e, "log file '%s' create error: %s",
+			         path.path, strerror(errno));
 			return -1;
 		}
 		rc = ss_bufensure(buf, p->r->a, l->file.size);
 		if (ssunlikely(rc == -1)) {
-			sr_oom_malfunction(p->r->e);
+			sr_oom(p->r->e);
 			ss_fileclose(&file);
 			return -1;
 		}
 		rc = ss_filepread(&l->file, 0, buf->s, l->file.size);
 		if (ssunlikely(rc == -1)) {
-			sr_malfunction(p->r->e, "log file '%s' read error: %s",
-			               ss_pathof(&l->file.path),
-			               strerror(errno));
+			sr_error(p->r->e, "log file '%s' read error: %s",
+			         ss_pathof(&l->file.path),
+			         strerror(errno));
 			ss_fileclose(&file);
 			return -1;
 		}
 		ss_bufadvance(buf, l->file.size);
 		rc = ss_filewrite(&file, buf->s, l->file.size);
 		if (ssunlikely(rc == -1)) {
-			sr_malfunction(p->r->e, "log file '%s' write error: %s",
-			               path.path,
-			               strerror(errno));
+			sr_error(p->r->e, "log file '%s' write error: %s",
+			         path.path,
+			         strerror(errno));
 			ss_fileclose(&file);
 			return -1;
 		}
 		/* sync? */
 		rc = ss_fileclose(&file);
 		if (ssunlikely(rc == -1)) {
-			sr_malfunction(p->r->e, "log file '%s' close error: %s",
-			               path.path, strerror(errno));
+			sr_error(p->r->e, "log file '%s' close error: %s",
+			         path.path, strerror(errno));
 			return -1;
 		}
 		ss_bufreset(buf);

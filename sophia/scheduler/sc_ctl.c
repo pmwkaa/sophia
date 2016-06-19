@@ -174,5 +174,13 @@ int sc_ctl_lru(sc *s, si *index)
 
 int sc_ctl_backup(sc *s)
 {
-	return sc_backupstart(s);
+	int rc = sc_backupstart(s);
+	if (ssunlikely(rc == -1))
+		return -1;
+	if (ssunlikely(rc == 1))
+		return 0;
+	rc = sc_backupbegin(s);
+	if (ssunlikely(rc == -1))
+		sc_backupstop(s);
+	return rc;
 }

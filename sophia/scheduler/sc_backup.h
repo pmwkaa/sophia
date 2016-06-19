@@ -12,6 +12,6 @@
 int sc_backupstart(sc*);
 int sc_backupbegin(sc*);
 int sc_backupend(sc*, scworker*);
-int sc_backuperror(sc*);
+int sc_backupstop(sc*);
 
 #endif

@@ -32,6 +32,7 @@ int sc_init(sc *s, sr *r, slpool *lp)
 	s->backup_bsn_last          = 0;
 	s->backup_bsn_last_complete = 0;
 	s->backup                   = 0;
+	s->backup_in_progress       = 0;
 	s->backup_path              = NULL;
 	/* generic */
 	s->rotate                   = 0;
@@ -70,6 +71,7 @@ sc_prepare(scdb *db)
 	db->gc_time             = now;
 	db->lru                 = 0;
 	db->lru_time            = now;
+	db->backup              = 0;
 	return 0;
 }
 

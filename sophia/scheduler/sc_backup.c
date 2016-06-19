@@ -20,10 +20,6 @@
 
 int sc_backupstart(sc *s)
 {
-	if (ssunlikely(s->backup_path == NULL)) {
-		sr_error(s->r->e, "%s", "backup is not enabled");
-		return -1;
-	}
 	/* begin backup procedure
 	 * state 0
 	 *
@@ -35,13 +31,11 @@ int sc_backupstart(sc *s)
 		ss_mutexunlock(&s->lock);
 		sl_poolgc_enable(s->lp, 1);
 		/* in progress */
-		return 0;
+		return 1;
 	}
 	uint64_t bsn = sr_seq(s->r->seq, SR_BSNNEXT);
 	s->backup = 1;
 	s->backup_bsn = bsn;
-	// XXX
-	/*sc_start(s, SI_BACKUP);*/
 	ss_mutexunlock(&s->lock);
 	return 0;
 }
@@ -84,6 +78,16 @@ int sc_backupbegin(sc *s)
 		         path, strerror(errno));
 		return -1;
 	}
+
+	ss_mutexlock(&s->lock);
+	s->backup = 2;
+	s->backup_in_progress = s->count;
+	i = 0;
+	while (i < s->count) {
+		sc_task_backup(&s->i[i]);
+		i++;
+	}
+	ss_mutexunlock(&s->lock);
 	return 0;
 }
 
@@ -110,13 +114,8 @@ int sc_backupend(sc *s, scworker *w)
 	snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete/log",
 	         s->backup_path, s->backup_bsn);
 	rc = sl_poolcopy(s->lp, path, &w->dc.c);
-	if (ssunlikely(rc == -1)) {
-		sr_errorrecover(s->r->e);
+	if (ssunlikely(rc == -1))
 		return -1;
-	}
-
-	/* enable log gc */
-	sl_poolgc_enable(s->lp, 1);
 
 	/* complete backup */
 	snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete",
@@ -131,18 +130,26 @@ int sc_backupend(sc *s, scworker *w)
 		return -1;
 	}
 
+	/* enable log gc */
+	sl_poolgc_enable(s->lp, 1);
+
 	/* complete */
+	ss_mutexlock(&s->lock);
 	s->backup_bsn_last = s->backup_bsn;
 	s->backup_bsn_last_complete = 1;
+	s->backup_in_progress = 0;
 	s->backup = 0;
 	s->backup_bsn = 0;
+	ss_mutexunlock(&s->lock);
 	return 0;
 }
 
-int sc_backuperror(sc *s)
+int sc_backupstop(sc *s)
 {
 	sl_poolgc_enable(s->lp, 1);
+	ss_mutexlock(&s->lock);
 	s->backup = 0;
 	s->backup_bsn_last_complete = 0;
+	ss_mutexunlock(&s->lock);
 	return 0;
 }

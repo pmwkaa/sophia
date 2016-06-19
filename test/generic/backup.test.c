@@ -49,7 +49,7 @@ backup_test0(void)
 	t( sp_setint(env, "backup.run", 0) == 0 );
 
 	/* state 0 */
-	t( sp_getint(env, "backup.active") == 1 );
+	t( sp_getint(env, "backup.active") == 2 );
 
 	/* state 1 + 2 */
 	t( sp_setint(env, "scheduler.run", 0) == 1 );
@@ -134,15 +134,15 @@ backup_test1(void)
 		i++;
 	}
 
-	t( sp_setint(env, "db.test.branch", 0) == 0 );
-	t( sp_setint(env, "scheduler.checkpoint", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.checkpoint", 0) == 0 );
 	t( sp_setint(env, "scheduler.run", 0) == 1 );
 
 	t( sp_getint(env, "backup.active") == 0 );
 	t( sp_setint(env, "backup.run", 0) == 0 );
 
 	/* state 0 */
-	t( sp_getint(env, "backup.active") == 1 );
+	t( sp_getint(env, "backup.active") == 2 );
 
 #if 0
 	/* state 1 + 2 */

@@ -69,7 +69,7 @@ spr_cmd_start(void)
 	sp_setstring(spr_env, "db.test.scheme", "ttl", 0);
 	sp_setstring(spr_env, "db.test.scheme.ttl", "u32,timestamp,expire", 0);
 
-	sp_setint(spr_env, "db.test.expire", 10);
+	/*sp_setint(spr_env, "db.test.expire", 10);*/
 
 	spr_db = sp_getobject(spr_env, "db.test");
 	int rc;

@@ -47,16 +47,18 @@ struct scdb {
 	uint32_t  gc;
 	uint64_t  lru_time;
 	uint32_t  lru;
+	uint32_t  backup;
 };
 
 struct sctask {
-	scdb      *db;
-	scworker  *w;
-	uint64_t   vlsn;
-	uint64_t   time;
-	int        rotate;
-	int        gc;
-	siplan     plan;
+	scdb     *db;
+	scworker *w;
+	uint64_t  vlsn;
+	uint64_t  time;
+	int       rotate;
+	int       gc;
+	int       backup;
+	siplan    plan;
 };
 
 struct sc {
@@ -67,6 +69,7 @@ struct sc {
 	uint32_t      backup_bsn_last;
 	uint32_t      backup_bsn_last_complete;
 	uint32_t      backup;
+	uint32_t      backup_in_progress;
 	char         *backup_path;
 	/* index */
 	int           rotate;
