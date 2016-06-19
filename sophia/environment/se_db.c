@@ -284,8 +284,11 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 
 	/* write wal and index */
 	rc = sc_commit(&e->scheduler, &log, 0, 0);
-	if (ssunlikely(rc == -1))
-		sx_rollback(&x);
+	if (ssunlikely(rc == -1)) {
+		svlogv *lv = sv_logat(&log, 0);
+		svv *v = lv->v.v;
+		sv_vunref(db->r, v);
+	}
 
 	sx_gc(&x);
 	return rc;

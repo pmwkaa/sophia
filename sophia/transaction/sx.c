@@ -80,32 +80,6 @@ int sx_indexfree(sxindex *i, sxmanager *m)
 	return 0;
 }
 
-uint64_t sx_min(sxmanager *m)
-{
-	ss_spinlock(&m->lock);
-	uint64_t id = 0;
-	if (sx_count(m) > 0) {
-		ssrbnode *node = ss_rbmin(&m->i);
-		sx *min = sscast(node, sx, node);
-		id = min->id;
-	}
-	ss_spinunlock(&m->lock);
-	return id;
-}
-
-uint64_t sx_max(sxmanager *m)
-{
-	ss_spinlock(&m->lock);
-	uint64_t id = 0;
-	if (sx_count(m) > 0) {
-		ssrbnode *node = ss_rbmax(&m->i);
-		sx *max = sscast(node, sx, node);
-		id = max->id;
-	}
-	ss_spinunlock(&m->lock);
-	return id;
-}
-
 uint64_t sx_vlsn(sxmanager *m)
 {
 	ss_spinlock(&m->lock);
@@ -284,20 +258,10 @@ sx_rollback_svp(sx *x, ssiter *i, int free)
 
 sxstate sx_rollback(sx *x)
 {
+	assert(x->state != SX_COMMIT);
 	ssiter i;
 	ss_iterinit(ss_bufiter, &i);
 	ss_iteropen(ss_bufiter, &i, &x->log->buf, sizeof(svlogv));
-	/* support log free after commit */
-	if (x->state == SX_COMMIT) {
-		for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
-		{
-			svlogv *lv = ss_iterof(ss_bufiter, &i);
-			svv *v = lv->v.v;
-			sv_vunref(NULL, v); // XXX
-		}
-		sx_promote(x, SX_ROLLBACK);
-		return SX_ROLLBACK;
-	}
 	sx_rollback_svp(x, &i, 1);
 	sx_promote(x, SX_ROLLBACK);
 	sx_end(x);

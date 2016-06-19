@@ -303,7 +303,7 @@ main(int argc, char *argv[])
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
 	st_planadd(plan, durability_group());
 	st_planadd(plan, oom_group());
-	/*st_planadd(plan, io_group());*/
+	st_planadd(plan, io_group());
 	st_planadd(plan, recover_loop_group());
 	st_suiteadd(&st_r.suite, plan);
 

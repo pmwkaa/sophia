@@ -85,8 +85,6 @@ sxstate   sx_rollback(sx*);
 int       sx_isolation(sx*, char*, int);
 int       sx_set(sx*, sxindex*, svv*);
 int       sx_get(sx*, sxindex*, sv*, sv*);
-uint64_t  sx_min(sxmanager*);
-uint64_t  sx_max(sxmanager*);
 uint64_t  sx_vlsn(sxmanager*);
 sxstate   sx_set_autocommit(sxmanager*, sxindex*, sx*, svlog*, svv*);
 sxstate   sx_get_autocommit(sxmanager*, sxindex*);

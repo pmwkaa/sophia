@@ -143,7 +143,7 @@ se_txend(setx *t, int rlb, int conflict)
 }
 
 static int
-se_txrollback(so *o)
+se_txdestroy(so *o)
 {
 	setx *t = se_cast(o, setx*, SETX);
 	sx_rollback(&t->t);
@@ -213,12 +213,23 @@ se_txcommit(so *o)
 	}
 	assert(t->t.state == SX_COMMIT);
 
-	/* do wal write and backend commit */
+	/* wal write and multi-index write */
 	rc = sc_commit(&e->scheduler, &t->log, t->lsn, recover);
 	if (ssunlikely(rc == -1)) {
-		// XXX sx_rollback(&t->t);
+		/* free the transaction log in case of
+		 * commit error */
+		ssiter i;
+		ss_iterinit(ss_bufiter, &i);
+		ss_iteropen(ss_bufiter, &i, &t->log.buf, sizeof(svlogv));
+		for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
+		{
+			svlogv *lv = ss_iterof(ss_bufiter, &i);
+			sedb *db = (sedb*)se_dbmatch_id(e, lv->id);
+			assert(db != NULL);
+			svv *v = lv->v.v;
+			sv_vunref(db->r, v);
+		}
 	}
-
 	se_txend(t, 0, 0);
 	return rc;
 }
@@ -258,7 +269,7 @@ se_txget_int(so *o, const char *path)
 static soif setxif =
 {
 	.open         = NULL,
-	.destroy      = se_txrollback,
+	.destroy      = se_txdestroy,
 	.free         = se_txfree,
 	.document     = NULL,
 	.setstring    = se_txset_string,
