@@ -26,7 +26,6 @@ struct se {
 	ssvfs        vfs;
 	ssa          a_oom;
 	ssa          a;
-	ssa          a_ref;
 	sicachepool  cachepool;
 	syconf      *rep_conf;
 	sy           rep;

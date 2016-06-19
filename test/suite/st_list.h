@@ -12,7 +12,6 @@
 typedef struct stlist stlist;
 
 typedef enum {
-	ST_SVREF,
 	ST_SVV,
 	ST_SV
 } stlisttype;
@@ -35,14 +34,6 @@ st_listfree(stlist *l, sr *r)
 	ssiter i;
 	ss_iterinit(ss_bufiterref, &i);
 	switch (l->type) {
-	case ST_SVREF:
-		ss_iteropen(ss_bufiterref, &i, &l->list, sizeof(svv*));
-		while (ss_iteratorhas(&i)) {
-			svref *v = (svref*)ss_iteratorof(&i);
-			sv_reffree(r, v);
-			ss_iteratornext(&i);
-		}
-		break;
 	case ST_SVV:
 		ss_iteropen(ss_bufiterref, &i, &l->list, sizeof(svv*));
 		while (ss_iteratorhas(&i)) {

@@ -54,7 +54,6 @@ void st_scene_init(stscene *s ssunused)
 {
 	st_listinit(&st_r.gc, ST_SVV);
 	ss_aopen(&st_r.a, &ss_stda);
-	ss_aopen(&st_r.aref, &ss_stda);
 	ss_vfsinit(&st_r.vfs, &ss_stdvfs);
 	sf_schemeinit(&st_r.scheme);
 	memset(&st_r.injection, 0, sizeof(st_r.injection));
@@ -94,7 +93,6 @@ void st_scene_rt(stscene *s ssunused)
 	        &st_r.log,
 	        &st_r.error,
 	        &st_r.a,
-	        &st_r.aref,
 	        &st_r.vfs,
 	        NULL, /* quota */
 	        &st_r.seq,
@@ -116,7 +114,6 @@ void st_scene_gc(stscene *s ssunused)
 {
 	st_listfree(&st_r.gc, &st_r.r);
 	ss_aclose(&st_r.a);
-	ss_aclose(&st_r.aref);
 	ss_vfsfree(&st_r.vfs);
 	sr_errorfree(&st_r.error);
 	sr_statusfree(&st_r.status);

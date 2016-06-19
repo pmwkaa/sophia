@@ -10,6 +10,15 @@
 */
 
 void si_gcv(sr*, svv*);
-void si_gcref(sr*, svref*);
+
+static inline void
+si_gcvall(sr *r, svv *v)
+{
+	while (v) {
+		svv *n = v->next;
+		si_gcv(r, v);
+		v = n;
+	}
+}
 
 #endif

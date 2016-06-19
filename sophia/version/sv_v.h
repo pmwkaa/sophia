@@ -16,7 +16,9 @@ struct svv {
 	uint32_t size;
 	uint16_t refs;
 	uint8_t  flags;
-	void *log;
+	void    *log;
+	svv     *next;
+	ssrbnode node;
 } sspacked;
 
 extern svif sv_vif;
@@ -43,6 +45,8 @@ sv_vbuild(sr *r, sfv *fields)
 	v->flags = 0;
 	v->refs  = 1;
 	v->log   = NULL;
+	v->next  = NULL;
+	memset(&v->node, 0, sizeof(v->node));
 	char *ptr = sv_vpointer(v);
 	sf_write(r->scheme, fields, ptr);
 	/* update runtime statistics */
@@ -64,6 +68,8 @@ sv_vbuildraw(sr *r, char *src, int size)
 	v->refs  = 1;
 	v->lsn   = 0;
 	v->log   = NULL;
+	v->next  = NULL;
+	memset(&v->node, 0, sizeof(v->node));
 	memcpy(sv_vpointer(v), src, size);
 	/* update runtime statistics */
 	ss_spinlock(&r->stat->lock);
@@ -105,6 +111,23 @@ sv_vunref(sr *r, svv *v)
 		return 1;
 	}
 	return 0;
+}
+
+static inline void
+sv_vfree(sr *r, svv *v)
+{
+	while (v) {
+		svv *n = v->next;
+		sv_vunref(r, v);
+		v = n;
+	}
+}
+
+static inline svv*
+sv_vvisible(svv *v, uint64_t vlsn) {
+	while (v && v->lsn > vlsn)
+		v = v->next;
+	return v;
 }
 
 #endif

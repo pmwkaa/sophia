@@ -15,12 +15,12 @@
 #include <libso.h>
 #include <libst.h>
 
-static inline svref*
+static inline svv*
 getv(svindex *i, sr *r, uint64_t vlsn, svv *key) {
 	ssrbnode *n = NULL;
 	int rc = sv_indexmatch(&i->i, r->scheme, sv_vpointer(key), sv_vsize(key), &n);
 	if (rc == 0 && n) {
-		return sv_refvisible(sscast(n, svref, node), vlsn);
+		return sv_vvisible(sscast(n, svv, node), vlsn);
 	}
 	return NULL;
 }
@@ -32,15 +32,15 @@ sv_index_replace0(void)
 	t( sv_indexinit(&i) == 0 );
 
 	uint32_t key = 7;
-	svref *h = st_svref(&st_r.g, NULL, 0, 0, key, NULL, 0);
-	svref *n = st_svref(&st_r.g, NULL, 1, 0, key, NULL, 0);
+	svv *h = st_svv(&st_r.g, NULL, 0, 0, key, NULL, 0);
+	svv *n = st_svv(&st_r.g, NULL, 1, 0, key, NULL, 0);
 
 	t( sv_indexset(&i, &st_r.r, h) == 0 );
 	t( sv_indexset(&i, &st_r.r, n) == 0 );
 
 	svv *keyv = st_svv(&st_r.g, &st_r.gc, 0, 0, key, NULL, 0);
 
-	svref *p = getv(&i, &st_r.r, 0, keyv);
+	svv *p = getv(&i, &st_r.r, 0, keyv);
 	t( p == h );
 
 	p = getv(&i, &st_r.r, 1, keyv);

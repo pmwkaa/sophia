@@ -284,8 +284,6 @@ sd_read_gt0_compression_zstd(void)
 {
 	ssa a;
 	ss_aopen(&a, &ss_stda);
-	ssa aref;
-	ss_aopen(&aref, &ss_stda);
 	ssvfs vfs;
 	ss_vfsinit(&vfs, &ss_stdvfs);
 	sfscheme cmp;
@@ -309,7 +307,7 @@ sd_read_gt0_compression_zstd(void)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, NULL, &log, &error, &a, &aref, &vfs, NULL, &seq, SF_RAW,
+	sr_init(&r, NULL, &log, &error, &a, &vfs, NULL, &seq, SF_RAW,
 	        NULL, &cmp, &ij, &stat, crc);
 
 	sdbuild b;
@@ -413,8 +411,6 @@ sd_read_gt0_compression_lz4(void)
 {
 	ssa a;
 	ss_aopen(&a, &ss_stda);
-	ssa aref;
-	ss_aopen(&aref, &ss_stda);
 	ssvfs vfs;
 	ss_vfsinit(&vfs, &ss_stdvfs);
 	sfscheme cmp;
@@ -438,7 +434,7 @@ sd_read_gt0_compression_lz4(void)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, NULL, &log, &error, &a, &aref, &vfs, NULL, &seq, SF_RAW,
+	sr_init(&r, NULL, &log, &error, &a, &vfs, NULL, &seq, SF_RAW,
 	        NULL, &cmp, &ij, &stat, crc);
 
 	sdbuild b;
@@ -544,8 +540,6 @@ sd_read_gt1_compression_zstd(void)
 {
 	ssa a;
 	ss_aopen(&a, &ss_stda);
-	ssa aref;
-	ss_aopen(&aref, &ss_stda);
 	ssvfs vfs;
 	ss_vfsinit(&vfs, &ss_stdvfs);
 	sfscheme cmp;
@@ -569,7 +563,7 @@ sd_read_gt1_compression_zstd(void)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, NULL, &log, &error, &a, &aref, &vfs, NULL, &seq, SF_RAW,
+	sr_init(&r, NULL, &log, &error, &a, &vfs, NULL, &seq, SF_RAW,
 	        NULL, &cmp, &ij, &stat, crc);
 
 	ssfile f;
@@ -729,8 +723,6 @@ sd_read_gt1_compression_lz4(void)
 {
 	ssa a;
 	ss_aopen(&a, &ss_stda);
-	ssa aref;
-	ss_aopen(&aref, &ss_stda);
 	ssvfs vfs;
 	ss_vfsinit(&vfs, &ss_stdvfs);
 	sfscheme cmp;
@@ -754,7 +746,7 @@ sd_read_gt1_compression_lz4(void)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, NULL, &log, &error, &a, &aref, &vfs, NULL, &seq, SF_RAW,
+	sr_init(&r, NULL, &log, &error, &a, &vfs, NULL, &seq, SF_RAW,
 	        NULL, &cmp, &ij, &stat, crc);
 
 	ssfile f;

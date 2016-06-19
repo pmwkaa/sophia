@@ -25,15 +25,15 @@ struct svindex {
 } sspacked;
 
 ss_rbget(sv_indexmatch,
-         sf_compare(scheme, sv_vpointer((sscast(n, svref, node))->v), key))
+         sf_compare(scheme, sv_vpointer(sscast(n, svv, node)), key))
 
-int sv_indexinit(svindex*);
-int sv_indexfree(svindex*, sr*);
-int sv_indexupdate(svindex*, svindexpos*, svref*);
-svref *sv_indexget(svindex*, sr*, svindexpos*, svref*);
+int  sv_indexinit(svindex*);
+int  sv_indexfree(svindex*, sr*);
+int  sv_indexupdate(svindex*, svindexpos*, svv*);
+svv *sv_indexget(svindex*, sr*, svindexpos*, svv*);
 
 static inline int
-sv_indexset(svindex *i, sr *r, svref  *v)
+sv_indexset(svindex *i, sr *r, svv *v)
 {
 	svindexpos pos;
 	sv_indexget(i, r, &pos, v);

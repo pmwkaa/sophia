@@ -1,5 +1,4 @@
 LIBSV_O = sv_v.o \
-          sv_ref.o \
           sv_upsertv.o \
           sv_index.o \
           sv_indexiter.o \

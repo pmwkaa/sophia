@@ -27,18 +27,16 @@ static inline int si_set(sitx *x, svv *v, uint64_t time)
 	            sv_vpointer(v));
 	sinode *node = ss_iterof(si_iter, &i);
 	assert(node != NULL);
-	svref *ref = sv_refnew(&index->r, v);
-	assert(ref != NULL);
 	/* insert into node index */
 	svindex *vindex = si_nodeindex(node);
 	svindexpos pos;
-	sv_indexget(vindex, &index->r, &pos, ref);
-	sv_indexupdate(vindex, &pos, ref);
+	sv_indexget(vindex, &index->r, &pos, v);
+	sv_indexupdate(vindex, &pos, v);
 	/* update node */
 	node->update_time = index->update_time;
 	node->used += sv_vsize(v);
 	if (index->scheme.lru)
-		si_lru_add(index, ref);
+		si_lru_add(index, v);
 	si_txtrack(x, node);
 	return 0;
 }

@@ -201,7 +201,6 @@ so *se_new(void)
 	sr_statusset(&e->status, SR_OFFLINE);
 	ss_vfsinit(&e->vfs, &ss_stdvfs);
 	ss_aopen(&e->a, &ss_stda);
-	ss_aopen(&e->a_ref, &ss_stda);
 	int rc;
 	rc = se_confinit(&e->conf, &e->o);
 	if (ssunlikely(rc == -1))
@@ -218,7 +217,7 @@ so *se_new(void)
 	sr_errorinit(&e->error, &e->log);
 	sf_limitinit(&e->limit, &e->a);
 	sscrcf crc = ss_crc32c_function();
-	sr_init(&e->r, &e->status, &e->log, &e->error, &e->a, &e->a_ref, &e->vfs,
+	sr_init(&e->r, &e->status, &e->log, &e->error, &e->a, &e->vfs,
 	        NULL, &e->seq, SF_RAW, NULL, NULL,
 	        &e->ei, NULL, crc);
 	sy_init(&e->rep);

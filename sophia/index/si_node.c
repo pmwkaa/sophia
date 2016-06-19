@@ -53,7 +53,7 @@ sinode *si_nodenew(sr *r)
 }
 
 ss_rbtruncate(si_nodegc_indexgc,
-              si_gcref((sr*)arg, sscast(n, svref, node)))
+              si_gcvall((sr*)arg, sscast(n, svv, node)))
 
 int si_nodegc_index(sr *r, svindex *i)
 {

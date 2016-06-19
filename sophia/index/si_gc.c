@@ -24,14 +24,3 @@ void si_gcv(sr *r, svv *v)
 			ss_gcsweep(&log->gc, 1);
 	}
 }
-
-void si_gcref(sr *r, svref *gc)
-{
-	svref *v = gc;
-	while (v) {
-		svref *n = v->next;
-		si_gcv(r, v->v);
-		ss_free(r->aref, v);
-		v = n;
-	}
-}
