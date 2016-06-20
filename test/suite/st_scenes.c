@@ -96,12 +96,13 @@ void st_scene_rt(stscene *s ssunused)
 	        &st_r.vfs,
 	        NULL, /* quota */
 	        &st_r.seq,
-	         st_r.fmt_storage,
-	         NULL, /* update */
+	        st_r.fmt_storage,
+	        NULL, /* update */
 	        &st_r.scheme,
 	        &st_r.injection,
 	        &st_r.stat,
-	         st_r.crc);
+	        st_r.crc,
+	        NULL);
 
 	st_generator_init(&st_r.g, &st_r.r,
 	                  st_r.key_start,

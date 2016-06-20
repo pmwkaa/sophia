@@ -15,11 +15,11 @@ typedef struct sx sx;
 
 typedef enum {
 	SX_UNDEF,
+	SX_ROLLBACK,
+	SX_LOCK,
 	SX_READY,
 	SX_COMMIT,
-	SX_PREPARE,
-	SX_ROLLBACK,
-	SX_LOCK
+	SX_PREPARE
 } sxstate;
 
 typedef enum {
@@ -36,7 +36,6 @@ struct sxindex {
 	ssrb      i;
 	uint32_t  dsn;
 	so       *object;
-	void     *ptr;
 	sr       *r;
 	sslist    link;
 };
@@ -72,7 +71,7 @@ struct sxmanager {
 
 int       sx_managerinit(sxmanager*, srseq*, ssa*);
 int       sx_managerfree(sxmanager*);
-int       sx_indexinit(sxindex*, sxmanager*, sr*, so*, void*);
+int       sx_indexinit(sxindex*, sxmanager*, sr*, so*);
 int       sx_indexset(sxindex*, uint32_t);
 int       sx_indexfree(sxindex*, sxmanager*);
 sx       *sx_find(sxmanager*, uint64_t);

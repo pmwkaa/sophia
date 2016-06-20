@@ -28,10 +28,10 @@ alloclogv(svlog *log, sr *r, uint64_t lsn, uint8_t flags, int key)
 	v->lsn = lsn;
 	v->flags = flags;
 	svlogv logv;
-	logv.id = 0;
+	logv.index_id = 0;
 	logv.next = UINT32_MAX;
 	sv_init(&logv.v, &sv_vif, v, NULL);
-	sv_logadd(log, r->a, &logv, NULL);
+	sv_logadd(log, r->a, &logv);
 }
 
 static void
@@ -60,7 +60,7 @@ sl_begin_commit(void)
 	t( sl_poolrotate(&lp) == 0 );
 
 	svlog log;
-	sv_loginit(&log);
+	sv_loginit(&log, &st_r.a, 1);
 
 	alloclogv(&log, &st_r.r, 0, 0, 7);
 
@@ -86,7 +86,7 @@ sl_begin_rollback(void)
 	t( sl_poolrotate(&lp) == 0 );
 
 	svlog log;
-	sv_loginit(&log);
+	sv_loginit(&log, &st_r.a, 1);
 
 	alloclogv(&log, &st_r.r, 0, 0, 7);
 

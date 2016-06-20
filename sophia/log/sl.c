@@ -21,8 +21,8 @@ sl_alloc(slpool *p, uint64_t id)
 		sr_oom_malfunction(p->r->e);
 		return NULL;
 	}
-	l->id   = id;
-	l->p    = NULL;
+	l->id = id;
+	l->p  = NULL;
 	ss_gcinit(&l->gc);
 	ss_mutexinit(&l->filelock);
 	ss_fileinit(&l->file, p->r->vfs);
@@ -438,7 +438,7 @@ sl_writeadd(slpool *p, sltx *t, slv *lv, svlogv *logv)
 {
 	sv *v = &logv->v;
 	lv->lsn   = t->lsn;
-	lv->dsn   = logv->id;
+	lv->dsn   = logv->index_id;
 	lv->flags = sv_flags(v);
 	lv->size  = sv_size(v);
 	lv->crc   = ss_crcp(p->r->crc, sv_pointer(v), lv->size, 0);

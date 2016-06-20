@@ -14,22 +14,21 @@ typedef struct svlogv svlogv;
 typedef struct svlog svlog;
 
 struct svlogindex {
-	uint32_t id;
 	uint32_t head, tail;
 	uint32_t count;
-	void *ptr;
+	sr *r;
 } sspacked;
 
 struct svlogv {
 	sv v;
-	uint32_t id;
+	uint32_t index_id;
 	uint32_t next;
 } sspacked;
 
 struct svlog {
 	int count_write;
-	svlogindex reserve_i[2];
-	svlogv reserve_v[1];
+	svlogv reserve_buf[1];
+	svlogv reserve_index[4];
 	ssbuf index;
 	ssbuf buf;
 };
@@ -37,33 +36,67 @@ struct svlog {
 static inline void
 sv_logvinit(svlogv *v, uint32_t id)
 {
-	v->id   = id;
-	v->next = UINT32_MAX;
-	v->v.v  = NULL;
-	v->v.i  = NULL;
+	v->index_id = id;
+	v->next     = UINT32_MAX;
+	v->v.v      = NULL;
+	v->v.i      = NULL;
+}
+
+static inline int
+sv_loginit(svlog *l, ssa *a, int index_max)
+{
+	l->count_write = 0;
+	ss_bufinit_reserve(&l->index, l->reserve_index, sizeof(l->reserve_index));
+	ss_bufinit_reserve(&l->buf, l->reserve_buf, sizeof(l->reserve_buf));
+	if (index_max == 0)
+		return 0;
+	int size = sizeof(svlogindex) * index_max;
+	int rc = ss_bufensure(&l->index, a, size);
+	if (ssunlikely(rc == -1))
+		return -1;
+	ss_bufadvance(&l->index, size);
+	int i = 0;
+	while (i < index_max) {
+		svlogindex *index =
+			ss_bufat(&l->index, sizeof(svlogindex), i);
+		index->head = UINT32_MAX;
+		index->tail = 0;
+		index->count = 0;
+		index->r = NULL;
+		i++;
+	}
+	return 0;
 }
 
 static inline void
-sv_loginit(svlog *l)
+sv_loginit_index(svlog *l, int pos, sr *r)
 {
-	ss_bufinit_reserve(&l->index, l->reserve_i, sizeof(l->reserve_i));
-	ss_bufinit_reserve(&l->buf, l->reserve_v, sizeof(l->reserve_v));
-	l->count_write = 0;
+	svlogindex *index =
+		ss_bufat(&l->index, sizeof(svlogindex), pos);
+	index->r = r;
 }
 
 static inline void
 sv_logfree(svlog *l, ssa *a)
 {
-	ss_buffree(&l->buf, a);
 	ss_buffree(&l->index, a);
+	ss_buffree(&l->buf, a);
 	l->count_write = 0;
 }
 
 static inline void
-sv_logreset(svlog *l)
+sv_logreset(svlog *l, int index_max)
 {
+	int i = 0;
+	while (i < index_max) {
+		svlogindex *index =
+			ss_bufat(&l->index, sizeof(svlogindex), i);
+		index->head  = UINT32_MAX;
+		index->tail  = 0;
+		index->count = 0;
+		i++;
+	}
 	ss_bufreset(&l->buf);
-	ss_bufreset(&l->index);
 	l->count_write = 0;
 }
 
@@ -83,36 +116,20 @@ sv_logat(svlog *l, int pos) {
 }
 
 static inline int
-sv_logadd(svlog *l, ssa *a, svlogv *v, void *ptr)
+sv_logadd(svlog *l, ssa *a, svlogv *v)
 {
 	uint32_t n = sv_logcount(l);
 	int rc = ss_bufadd(&l->buf, a, v, sizeof(svlogv));
 	if (ssunlikely(rc == -1))
 		return -1;
-	svlogindex *i = (svlogindex*)l->index.s;
-	while ((char*)i < l->index.p) {
-		if (sslikely(i->id == v->id)) {
-			svlogv *tail = sv_logat(l, i->tail);
-			tail->next = n;
-			i->tail = n;
-			i->count++;
-			goto done;
-		}
-		i++;
-	}
-	rc = ss_bufensure(&l->index, a, sizeof(svlogindex));
-	if (ssunlikely(rc == -1)) {
-		l->buf.p -= sizeof(svlogv);
-		return -1;
-	}
-	i = (svlogindex*)l->index.p;
-	i->id    = v->id;
-	i->head  = n;
-	i->tail  = n;
-	i->ptr   = ptr;
-	i->count = 1;
-	ss_bufadvance(&l->index, sizeof(svlogindex));
-done:
+	svlogindex *index =
+		ss_bufat(&l->index, sizeof(svlogindex), v->index_id);
+	svlogv *tail = sv_logat(l, index->tail);
+	tail->next  = n;
+	if (index->head == UINT32_MAX)
+		index->head = n;
+	index->tail = n;
+	index->count++;
 	if (! (sv_flags(&v->v) & SVGET))
 		l->count_write++;
 	return 0;

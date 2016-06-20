@@ -25,6 +25,7 @@ struct sr {
 	ssinjection *i;
 	srstat *stat;
 	sscrcf crc;
+	void *ptr;
 };
 
 static inline void
@@ -41,7 +42,8 @@ sr_init(sr *r,
         sfscheme *scheme,
         ssinjection *i,
 		srstat *stat,
-        sscrcf crc)
+        sscrcf crc,
+        void *ptr)
 {
 	r->status      = status;
 	r->log         = log;
@@ -56,6 +58,7 @@ sr_init(sr *r,
 	r->i           = i;
 	r->stat        = stat;
 	r->crc         = crc;
+	r->ptr         = ptr;
 }
 
 #endif

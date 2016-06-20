@@ -132,7 +132,7 @@ se_txend(setx *t, int rlb, int conflict)
 {
 	se *e = se_of(&t->o);
 	sx_gc(&t->t);
-	sv_logreset(&t->log);
+	sv_logreset(&t->log, e->db.n);
 	(void)rlb;
 	(void)conflict;
 	// XXX
@@ -224,7 +224,7 @@ se_txcommit(so *o)
 		for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
 		{
 			svlogv *lv = ss_iterof(ss_bufiter, &i);
-			sedb *db = (sedb*)se_dbmatch_id(e, lv->id);
+			sedb *db = (sedb*)se_dbmatch_id(e, lv->index_id);
 			assert(db != NULL);
 			svv *v = lv->v.v;
 			sv_vunref(db->r, v);
@@ -302,8 +302,18 @@ so *se_txnew(se *e)
 		return NULL;
 	}
 	so_init(&t->o, &se_o[SETX], &setxif, &e->o, &e->o);
-	if (! cache)
-		sv_loginit(&t->log);
+	if (! cache) {
+		int rc = sv_loginit(&t->log, &e->a, e->db.n);
+		if (ssunlikely(rc == -1)) {
+			ss_free(&e->a, t);
+			return NULL;
+		}
+		sslist *i;
+		ss_listforeach(&e->db.list, i) {
+			sedb *db = (sedb*)sscast(i, so, link);
+			sv_loginit_index(&t->log, db->index->scheme.id, db->r);
+		}
+	}
 	sx_init(&e->xm, &t->t, &t->log);
 	t->start = ss_utime();
 	t->lsn = 0;

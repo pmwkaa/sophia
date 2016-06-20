@@ -34,13 +34,14 @@ int sc_commit(sc *s, svlog *log, uint64_t lsn, int recover)
 	uint64_t now = ss_utime();
 	svlogindex *i   = (svlogindex*)log->index.s;
 	svlogindex *end = (svlogindex*)log->index.p;
-	while (i < end) {
-		si *index = i->ptr;
+	for (; i < end; i++) {
+		if (i->count == 0)
+			continue;
+		si *index = i->r->ptr;
 		sitx x;
 		si_begin(&x, index);
 		si_write(&x, log, i, now, recover);
 		si_commit(&x);
-		i++;
 	}
 	return 0;
 }

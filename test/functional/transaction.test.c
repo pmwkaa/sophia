@@ -1877,7 +1877,7 @@ transaction_sc_set_wait(void)
 	t( sp_set(tx, o) == 0 );
 
 	o = st_document(key, key);
-	t( sp_set(db, o) == 2 ); /* wait */
+	t( sp_set(db, o) == 1 ); /* rlb due to conflict */
 	st_phase();
 
 	rc = sp_commit(tx);

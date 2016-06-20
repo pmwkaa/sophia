@@ -42,13 +42,12 @@ int sx_managerfree(sxmanager *m)
 	return 0;
 }
 
-int sx_indexinit(sxindex *i, sxmanager *m, sr *r, so *object, void *ptr)
+int sx_indexinit(sxindex *i, sxmanager *m, sr *r, so *object)
 {
 	ss_rbinit(&i->i);
 	ss_listinit(&i->link);
 	i->dsn = 0;
 	i->object = object;
-	i->ptr = ptr;
 	i->r = r;
 	ss_listappend(&m->indexes, &i->link);
 	return 0;
@@ -410,13 +409,13 @@ int sx_set(sx *x, sxindex *index, svv *version)
 	sr *r = index->r;
 
 	svlogv lv;
-	lv.id   = index->dsn;
+	lv.index_id = index->dsn;
 	lv.next = UINT32_MAX;
 
 	/* batch isolation: directly write into the log */
 	if (x->isolation == SX_BATCH) {
 		sv_init(&lv.v, &sv_vif, version, NULL);
-		return sv_logadd(x->log, r->a, &lv, index->ptr);
+		return sv_logadd(x->log, r->a, &lv);
 	}
 
 	/* allocate mvcc container */
@@ -425,7 +424,7 @@ int sx_set(sx *x, sxindex *index, svv *version)
 		sv_vunref(r, version);
 		return -1;
 	}
-	v->id    = x->id;
+	v->id = x->id;
 	v->index = index;
 	sv_init(&lv.v, &sx_vif, v, NULL);
 
@@ -445,7 +444,7 @@ int sx_set(sx *x, sxindex *index, svv *version)
 		int pos = rc;
 		/* unique */
 		v->lo = sv_logcount(x->log);
-		rc = sv_logadd(x->log, r->a, &lv, index->ptr);
+		rc = sv_logadd(x->log, r->a, &lv);
 		if (ssunlikely(rc == -1)) {
 			sr_oom(r->e);
 			goto error;
@@ -480,7 +479,7 @@ int sx_set(sx *x, sxindex *index, svv *version)
 	}
 	/* update log */
 	v->lo = sv_logcount(x->log);
-	rc = sv_logadd(x->log, r->a, &lv, index->ptr);
+	rc = sv_logadd(x->log, r->a, &lv);
 	if (ssunlikely(rc == -1)) {
 		sr_oom(r->e);
 		goto error;
@@ -540,10 +539,10 @@ sxstate sx_set_autocommit(sxmanager *m, sxindex *index, sx *x, svlog *log, svv *
 	if (sslikely(m->count_rw == 0)) {
 		sx_init(m, x, log);
 		svlogv lv;
-		lv.id   = index->dsn;
+		lv.index_id = index->dsn;
 		lv.next = UINT32_MAX;
 		sv_init(&lv.v, &sv_vif, v, NULL);
-		sv_logadd(x->log, index->r->a, &lv, index->ptr);
+		sv_logadd(x->log, index->r->a, &lv);
 		sr_seq(index->r->seq, SR_TSNNEXT);
 		sx_promote(x, SX_COMMIT);
 		return SX_COMMIT;
@@ -555,11 +554,18 @@ sxstate sx_set_autocommit(sxmanager *m, sxindex *index, sx *x, svlog *log, svv *
 		return SX_ROLLBACK;
 	}
 	sxstate s = sx_prepare(x, NULL, NULL);
-	if (sslikely(s == SX_PREPARE))
-		sx_commit(x);
-	else
-	if (s == SX_LOCK)
-		sx_rollback(x);
+	switch (s) {
+	case SX_PREPARE:
+		s = sx_commit(x);
+		break;
+	case SX_LOCK:
+		s = sx_rollback(x);
+		break;
+	case SX_ROLLBACK:
+		break;
+	default:
+		assert(0);
+	}
 	return s;
 }
 

@@ -29,7 +29,6 @@ STS_TESTS = unit/ss_a.test.o \
             generic/ddl.test.o \
             generic/multipart.test.o \
             generic/document.test.o \
-            generic/env.test.o \
             generic/deadlock.test.o \
             generic/scheme.test.o \
             generic/rev.test.o \

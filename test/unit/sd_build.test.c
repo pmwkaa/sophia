@@ -93,7 +93,7 @@ sd_build_compression_zstd(void)
 	sscrcf crc = ss_crc32c_function();
 	sr r;
 	sr_init(&r, NULL, &log, &error, &a, &vfs, NULL, &seq, SF_RAW,
-	        NULL, &cmp, &ij, &stat, crc);
+	        NULL, &cmp, &ij, &stat, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -155,7 +155,7 @@ sd_build_compression_lz4(void)
 	sscrcf crc = ss_crc32c_function();
 	sr r;
 	sr_init(&r, NULL, &log, &error, &a, &vfs, NULL, &seq,
-	        SF_RAW, NULL, &cmp, &ij, &stat, crc);
+	        SF_RAW, NULL, &cmp, &ij, &stat, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);

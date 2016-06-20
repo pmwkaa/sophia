@@ -192,6 +192,7 @@ se_dbscheme_set(sedb *db)
 	db->r->fmt_upsert = &s->fmt_upsert;
 	db->r->stat = &db->stat;
 	db->r->quota = &db->quota;
+	db->r->ptr = db->index;
 	return 0;
 }
 
@@ -272,14 +273,18 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 
 	/* single-statement transaction */
 	svlog log;
-	sv_loginit(&log);
+	rc = sv_loginit(&log, db->r->a, e->db.n);
+	if (ssunlikely(rc == -1))
+		return -1;
+	sv_loginit_index(&log, db->index->scheme.id, db->r);
+
 	sx x;
 	sxstate state =
 		sx_set_autocommit(&e->xm, &db->coindex, &x, &log, v);
-	switch (state) {
-	case SX_LOCK: return 2;
-	case SX_ROLLBACK: return 1;
-	default: break;
+	if (ssunlikely(state != SX_COMMIT)) {
+		/* rollback */
+		sv_logfree(&log, db->r->a);
+		return 1;
 	}
 
 	/* write wal and index */
@@ -289,6 +294,7 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 		svv *v = lv->v.v;
 		sv_vunref(db->r, v);
 	}
+	sv_logfree(&log, db->r->a);
 
 	sx_gc(&x);
 	return rc;
@@ -401,7 +407,7 @@ so *se_dbnew(se *e, char *name, int size)
 		ss_free(&e->a, o);
 		return NULL;
 	}
-	sx_indexinit(&o->coindex, &e->xm, o->r, &o->o, o->index);
+	sx_indexinit(&o->coindex, &e->xm, o->r, &o->o);
 	return &o->o;
 }
 
