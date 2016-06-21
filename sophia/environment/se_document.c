@@ -36,7 +36,6 @@ enum {
 	SE_DOCUMENT_PREFIX,
 	SE_DOCUMENT_LOG,
 	SE_DOCUMENT_RAW,
-	SE_DOCUMENT_FLAGS,
 	SE_DOCUMENT_COLD_ONLY,
 	SE_DOCUMENT_UNKNOWN
 };
@@ -63,10 +62,6 @@ se_document_opt(const char *path)
 		if (sslikely(strcmp(path, "raw") == 0))
 			return SE_DOCUMENT_RAW;
 		break;
-	case 'f':
-		if (sslikely(strcmp(path, "flags") == 0))
-			return SE_DOCUMENT_FLAGS;
-		break;
 	case 'c':
 		if (sslikely(strcmp(path, "cold_only") == 0))
 			return SE_DOCUMENT_COLD_ONLY;
@@ -75,15 +70,12 @@ se_document_opt(const char *path)
 	return SE_DOCUMENT_FIELD;
 }
 
-int se_document_create(sedocument *o)
+int se_document_create(sedocument *o, uint8_t flags)
 {
 	sedb *db = (sedb*)o->o.parent;
 	se *e = se_of(&db->o);
 
-	if (ssunlikely(o->created)) {
-		assert(o->v.v != NULL);
-		return 0;
-	}
+	assert(o->created == 0);
 	assert(o->v.v == NULL);
 
 	/* create document from raw data */
@@ -112,6 +104,7 @@ int se_document_create(sedocument *o)
 	if (ssunlikely(v == NULL))
 		return sr_oom(&e->error);
 	sv_init(&o->v, &sv_vif, v, NULL);
+	sf_flagsset(db->r->scheme, sv_pointer(&o->v), flags);
 	o->created = 1;
 	return 0;
 }
@@ -121,10 +114,8 @@ int se_document_createkey(sedocument *o)
 	sedb *db = (sedb*)o->o.parent;
 	se *e = se_of(&db->o);
 
-	if (ssunlikely(o->created)) {
-		assert(o->v.v != NULL);
+	if (o->created)
 		return 0;
-	}
 	assert(o->v.v == NULL);
 
 	/* set prefix */
@@ -158,6 +149,7 @@ int se_document_createkey(sedocument *o)
 	if (ssunlikely(v == NULL))
 		return sr_oom(&e->error);
 	sv_init(&o->v, &sv_vif, v, NULL);
+	sf_flagsset(db->r->scheme, sv_pointer(&o->v), SVGET);
 	o->created = 1;
 	return 0;
 }
@@ -358,21 +350,6 @@ se_document_setint(so *o, const char *path, int64_t num)
 	return 0;
 }
 
-static int64_t
-se_document_getint(so *o, const char *path)
-{
-	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
-	switch (se_document_opt(path)) {
-	case SE_DOCUMENT_FLAGS: {
-		uint64_t flags = -1;
-		if (v->v.v)
-			flags = ((svv*)(v->v.v))->flags;
-		return flags;
-	}
-	}
-	return -1;
-}
-
 static soif sedocumentif =
 {
 	.open         = NULL,
@@ -383,7 +360,7 @@ static soif sedocumentif =
 	.setint       = se_document_setint,
 	.getobject    = NULL,
 	.getstring    = se_document_getstring,
-	.getint       = se_document_getint,
+	.getint       = NULL,
 	.set          = NULL,
 	.upsert       = NULL,
 	.del          = NULL,
@@ -411,20 +388,4 @@ so *se_document_new(se *e, so *parent, sv *vp)
 	}
 	so_pooladd(&e->document, &v->o);
 	return &v->o;
-}
-
-int se_document_validate(sedocument *o, so *dest, uint8_t flags)
-{
-	se *e = se_of(&o->o);
-	if (ssunlikely(o->o.parent != dest))
-		return sr_error(&e->error, "%s", "incompatible document parent db");
-	svv *v = o->v.v;
-	if (o->flagset) {
-		if (ssunlikely(v->flags != flags))
-			return sr_error(&e->error, "%s", "incompatible document flags");
-	} else {
-		o->flagset = 1;
-		v->flags = flags;
-	}
-	return 0;
 }

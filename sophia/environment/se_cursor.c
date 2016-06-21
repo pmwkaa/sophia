@@ -98,7 +98,7 @@ so *se_cursornew(se *e, uint64_t vlsn)
 		return NULL;
 	}
 	so_init(&c->o, &se_o[SECURSOR], &secursorif, &e->o, &e->o);
-	sv_loginit(&c->log, &e->a, 0);
+	sv_loginit(&c->log, &e->r, 0);
 	sx_init(&e->xm, &c->t, &c->log);
 	c->start = ss_utime();
 	c->ops = 0;

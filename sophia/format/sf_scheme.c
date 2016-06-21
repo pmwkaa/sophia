@@ -145,11 +145,13 @@ void sf_schemeinit(sfscheme *s)
 	s->offset_expire = 0;
 	s->offset_lsn = 0;
 	s->offset_size = 0;
+	s->offset_flags = 0;
 	s->var_count  = 0;
 	s->cmp = NULL;
 	s->cmparg = NULL;
 	s->has_lsn = 0;
 	s->has_size = 0;
+	s->has_flags = 0;
 	s->has_timestamp = 0;
 	s->has_expire = 0;
 }
@@ -261,6 +263,9 @@ sf_schemeset(sfscheme *s, sffield *f, char *opt)
 	if (strncmp(opt, "size", 4) == 0) {
 		f->size = 1;
 	} else
+	if (strncmp(opt, "flags", 5) == 0) {
+		f->flags = 1;
+	} else
 	if (strncmp(opt, "timestamp", 9) == 0) {
 		f->timestamp = 1;
 	} else
@@ -281,12 +286,27 @@ sf_schemevalidate(sfscheme *s, ssa *a)
 	}
 
 	/* add meta fields */
+	int rc;
 
-	/* lsn */
+	/* flags */
+	sffield *meta_flags = sf_fieldnew(a, "_flags");
+	if (ssunlikely(meta_flags == NULL))
+		return -1;
+	rc = sf_fieldoptions(meta_flags, a, "u8,flags");
+	if (ssunlikely(rc == -1)) {
+		sf_fieldfree(meta_flags, a);
+		return -1;
+	}
+	rc = sf_schemeadd(s, a, meta_flags);
+	if (ssunlikely(rc == -1)) {
+		sf_fieldfree(meta_flags, a);
+		return -1;
+	}
+
+	/* size */
 	sffield *meta_size = sf_fieldnew(a, "_size");
 	if (ssunlikely(meta_size == NULL))
 		return -1;
-	int rc;
 	rc = sf_fieldoptions(meta_size, a, "u32,size");
 	if (ssunlikely(rc == -1)) {
 		sf_fieldfree(meta_size, a);
@@ -352,6 +372,14 @@ sf_schemevalidate(sfscheme *s, ssa *a)
 		}
 		/* meta fields */
 
+		/* flags */
+		if (f->flags) {
+			if (f->type != SS_U8)
+				return -1;
+			if (s->has_flags)
+				return -1;
+			s->has_flags = 1;
+		}
 		/* size */
 		if (f->size) {
 			if (f->type != SS_U32)
@@ -384,6 +412,9 @@ sf_schemevalidate(sfscheme *s, ssa *a)
 			else
 			if (f->size)
 				s->offset_size = f->fixed_offset;
+			else
+			if (f->flags)
+				s->offset_flags = f->fixed_offset;
 		} else {
 			s->var_count++;
 		}
@@ -437,6 +468,8 @@ int sf_schemesave(sfscheme *s, ssa *a, ssbuf *buf)
 	if (s->has_lsn)
 		v--;
 	if (s->has_size)
+		v--;
+	if (s->has_flags)
 		v--;
 	int rc = ss_bufadd(buf, a, &v, sizeof(uint32_t));
 	if (ssunlikely(rc == -1))

@@ -30,11 +30,10 @@ sv_v_kv(void)
 
 	svv *vv = sv_vbuild(&st_r.r, pv);
 	t( vv != NULL );
-	vv->flags = 0;
 	sv v;
 	sv_init(&v, &sv_vif, vv, NULL);
 
-	t( sv_flags(&v) == 0 );
+	t( sv_flags(&v, &st_r.r) == 0 );
 
 	t( *(uint32_t*)sf_field(&st_r.scheme, 0, sv_pointer(&v)) == key );
 	t( sf_fieldsize(&st_r.scheme, 0, sv_pointer(&v)) == sizeof(key) );

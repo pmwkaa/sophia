@@ -26,7 +26,7 @@ addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 	pv[1].size = 0;
 	svv *v = sv_vbuild(r, pv);
 	sf_lsnset(r->scheme, sv_vpointer(v), lsn);
-	v->flags = flags;
+	sf_flagsset(r->scheme, sv_vpointer(v), flags);
 	sv vv;
 	sv_init(&vv, &sv_vif, v, NULL);
 	sd_buildadd(b, r, &vv, flags & SVDUP);
@@ -359,49 +359,49 @@ sd_pageiter_lte_dup_iterate0(void)
 	t( ss_iteratorhas(&it) != 0 );
 	sv *v = ss_iteratorof(&it);
 	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == k);
-	t( sv_flags(v) == 0);
+	t( sv_flags(v, &st_r.r) == 0);
 	t( sv_lsn(v, &st_r.r) == 50);
 	ss_iteratornext(&it);
 
 	t( ss_iteratorhas(&it) != 0 );
 	v = ss_iteratorof(&it);
 	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == k);
-	t( sv_flags(v) == SVDUP);
+	t( sv_flags(v, &st_r.r) == SVDUP);
 	t( sv_lsn(v, &st_r.r) == 40);
 	ss_iteratornext(&it);
 
 	t( ss_iteratorhas(&it) != 0 );
 	v = ss_iteratorof(&it);
 	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == k);
-	t( sv_flags(v) == SVDUP);
+	t( sv_flags(v, &st_r.r) == SVDUP);
 	t( sv_lsn(v, &st_r.r) == 30);
 	ss_iteratornext(&it);
 
 	t( ss_iteratorhas(&it) != 0 );
 	v = ss_iteratorof(&it);
 	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == j);
-	t( sv_flags(v) == 0);
+	t( sv_flags(v, &st_r.r) == 0);
 	t( sv_lsn(v, &st_r.r) == 80);
 	ss_iteratornext(&it);
 
 	t( ss_iteratorhas(&it) != 0 );
 	v = ss_iteratorof(&it);
 	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == j);
-	t( sv_flags(v) == SVDUP);
+	t( sv_flags(v, &st_r.r) == SVDUP);
 	t( sv_lsn(v, &st_r.r) == 70);
 	ss_iteratornext(&it);
 
 	t( ss_iteratorhas(&it) != 0 );
 	v = ss_iteratorof(&it);
 	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == j);
-	t( sv_flags(v) == SVDUP);
+	t( sv_flags(v, &st_r.r) == SVDUP);
 	t( sv_lsn(v, &st_r.r) == 60);
 	ss_iteratornext(&it);
 
 	t( ss_iteratorhas(&it) != 0 );
 	v = ss_iteratorof(&it);
 	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i);
-	t( sv_flags(v) == 0);
+	t( sv_flags(v, &st_r.r) == 0);
 	t( sv_lsn(v, &st_r.r) == 90);
 	ss_iteratornext(&it);
 
@@ -455,7 +455,7 @@ sd_pageiter_lte_dup_mid(void)
 	t( ss_iteratorhas(&it) != 0 );
 	v = ss_iteratorof(&it);
 	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i);
-	t( sv_flags(v) == 0);
+	t( sv_flags(v, &st_r.r) == 0);
 	t( sv_lsn(v, &st_r.r) == 90);
 	ss_iteratorclose(&it);
 
@@ -466,7 +466,7 @@ sd_pageiter_lte_dup_mid(void)
 	t( ss_iteratorhas(&it) != 0 );
 	v = ss_iteratorof(&it);
 	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == j);
-	t( sv_flags(v) == 0);
+	t( sv_flags(v, &st_r.r) == 0);
 	t( sv_lsn(v, &st_r.r) == 80);
 	ss_iteratorclose(&it);
 
@@ -477,7 +477,7 @@ sd_pageiter_lte_dup_mid(void)
 	t( ss_iteratorhas(&it) != 0 );
 	v = ss_iteratorof(&it);
 	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == k);
-	t( sv_flags(v) == 0);
+	t( sv_flags(v, &st_r.r) == 0);
 	t( sv_lsn(v, &st_r.r) == 50);
 	ss_iteratorclose(&it);
 
@@ -788,7 +788,7 @@ sd_pageiter_lt_dup_mid(void)
 	t( ss_iteratorhas(&it) != 0 );
 	v = ss_iteratorof(&it);
 	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i);
-	t( sv_flags(v) == 0);
+	t( sv_flags(v, &st_r.r) == 0);
 	t( sv_lsn(v, &st_r.r) == 90);
 	ss_iteratorclose(&it);
 
@@ -799,7 +799,7 @@ sd_pageiter_lt_dup_mid(void)
 	t( ss_iteratorhas(&it) != 0 );
 	v = ss_iteratorof(&it);
 	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == j);
-	t( sv_flags(v) == 0);
+	t( sv_flags(v, &st_r.r) == 0);
 	t( sv_lsn(v, &st_r.r) == 80);
 	ss_iteratorclose(&it);
 
@@ -1253,7 +1253,7 @@ sd_pageiter_gte_dup_mid(void)
 	t( ss_iteratorhas(&it) != 0 );
 	v = ss_iteratorof(&it);
 	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i);
-	t( sv_flags(v) == 0);
+	t( sv_flags(v, &st_r.r) == 0);
 	t( sv_lsn(v, &st_r.r) == 90);
 	ss_iteratorclose(&it);
 
@@ -1264,7 +1264,7 @@ sd_pageiter_gte_dup_mid(void)
 	t( ss_iteratorhas(&it) != 0 );
 	v = ss_iteratorof(&it);
 	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == j);
-	t( sv_flags(v) == 0);
+	t( sv_flags(v, &st_r.r) == 0);
 	t( sv_lsn(v, &st_r.r) == 80);
 	ss_iteratorclose(&it);
 
@@ -1275,7 +1275,7 @@ sd_pageiter_gte_dup_mid(void)
 	t( ss_iteratorhas(&it) != 0 );
 	v = ss_iteratorof(&it);
 	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == k);
-	t( sv_flags(v) == 0);
+	t( sv_flags(v, &st_r.r) == 0);
 	t( sv_lsn(v, &st_r.r) == 50);
 	ss_iteratorclose(&it);
 
@@ -1579,7 +1579,7 @@ sd_pageiter_gt_dup_mid(void)
 	t( ss_iteratorhas(&it) != 0 );
 	v = ss_iteratorof(&it);
 	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == j);
-	t( sv_flags(v) == 0);
+	t( sv_flags(v, &st_r.r) == 0);
 	t( sv_lsn(v, &st_r.r) == 80);
 	ss_iteratorclose(&it);
 
@@ -1590,7 +1590,7 @@ sd_pageiter_gt_dup_mid(void)
 	t( ss_iteratorhas(&it) != 0 );
 	v = ss_iteratorof(&it);
 	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == k);
-	t( sv_flags(v) == 0);
+	t( sv_flags(v, &st_r.r) == 0);
 	t( sv_lsn(v, &st_r.r) == 50);
 	ss_iteratorclose(&it);
 

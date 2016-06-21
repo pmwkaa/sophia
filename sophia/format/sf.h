@@ -34,6 +34,20 @@ sf_ttl(sfscheme *s, char *data)
 	return *(uint32_t*)(data + s->offset_expire);
 }
 
+static inline uint8_t
+sf_flags(sfscheme *s, char *data)
+{
+	assert(s->has_flags);
+	return *(uint8_t*)(data + s->offset_flags);
+}
+
+static inline void
+sf_flagsset(sfscheme *s, char *data, uint8_t flags)
+{
+	assert(s->has_flags);
+	*(uint8_t*)(data + s->offset_flags) = flags;
+}
+
 static inline uint32_t
 sf_size(sfscheme *s, char *data)
 {

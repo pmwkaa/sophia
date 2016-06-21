@@ -13,7 +13,6 @@ typedef struct svv svv;
 
 struct svv {
 	uint16_t refs;
-	uint8_t  flags;
 	void    *log;
 	svv     *next;
 	ssrbnode node;
@@ -24,6 +23,11 @@ extern svif sv_vif;
 static inline char*
 sv_vpointer(svv *v) {
 	return (char*)(v) + sizeof(svv);
+}
+
+static inline uint8_t
+sv_vflags(svv *v, sr *r) {
+	return sf_flags(r->scheme, sv_vpointer(v));
 }
 
 static inline uint32_t
@@ -43,7 +47,6 @@ sv_vbuild(sr *r, sfv *fields)
 	svv *v = ss_malloc(r->a, sizeof(svv) + size);
 	if (ssunlikely(v == NULL))
 		return NULL;
-	v->flags = 0;
 	v->refs  = 1;
 	v->log   = NULL;
 	v->next  = NULL;
@@ -67,7 +70,6 @@ sv_vbuildraw(sr *r, char *src)
 	svv *v = ss_malloc(r->a, sizeof(svv) + size);
 	if (ssunlikely(v == NULL))
 		return NULL;
-	v->flags = 0;
 	v->refs  = 1;
 	v->log   = NULL;
 	v->next  = NULL;
@@ -78,16 +80,6 @@ sv_vbuildraw(sr *r, char *src)
 	r->stat->v_count++;
 	r->stat->v_allocated += sizeof(svv) + size;
 	ss_spinunlock(&r->stat->lock);
-	return v;
-}
-
-static inline svv*
-sv_vdup(sr *r, sv *src)
-{
-	svv *v = sv_vbuildraw(r, sv_pointer(src));
-	if (ssunlikely(v == NULL))
-		return NULL;
-	v->flags = sv_flags(src);
 	return v;
 }
 

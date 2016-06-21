@@ -40,7 +40,8 @@ sv_vset(svv *head, svv *v, sr *r)
 	/* default */
 	if (sslikely(sv_vlsn(head, r) < sv_vlsn(v, r))) {
 		v->next = head;
-		head->flags |= SVDUP;
+		sf_flagsset(r->scheme, sv_vpointer(head),
+		            sv_vflags(head, r) | SVDUP);
 		return v;
 	}
 	/* redistribution (starting from highest lsn) */
@@ -55,7 +56,8 @@ sv_vset(svv *head, svv *v, sr *r)
 	}
 	prev->next = v;
 	v->next = c;
-	v->flags |= SVDUP;
+	sf_flagsset(r->scheme, sv_vpointer(v),
+	            sv_vflags(v, r) | SVDUP);
 	return head;
 }
 

@@ -14,11 +14,6 @@
 #include <libso.h>
 #include <libsx.h>
 
-static uint8_t
-sx_vifflags(sv *v) {
-	return ((sxv*)v->v)->v->flags;
-}
-
 static char*
 sx_vifpointer(sv *v) {
 	return sv_vpointer(((sxv*)v->v)->v);
@@ -26,6 +21,5 @@ sx_vifpointer(sv *v) {
 
 svif sx_vif =
 {
-	.flags   = sx_vifflags,
 	.pointer = sx_vifpointer
 };

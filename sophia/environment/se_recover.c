@@ -62,7 +62,7 @@ se_recover_log(se *e, sl *log)
 			so_setstring(o, "raw", sv_pointer(v), 0);
 			so_setstring(o, "log", log, 0);
 			
-			int flags = sv_flags(v);
+			int flags = sv_flags(v, db->r);
 			if (flags == SVDELETE) {
 				rc = so_delete(tx, o);
 			} else

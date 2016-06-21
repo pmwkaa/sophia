@@ -27,12 +27,12 @@ alloclogv(svlog *log, sr *r, uint64_t lsn, uint8_t flags, int key)
 	pv[1].size = 0;
 	svv *v = sv_vbuild(r, pv);
 	sf_lsnset(r->scheme, sv_vpointer(v), lsn);
-	v->flags = flags;
+	sf_flagsset(r->scheme, sv_vpointer(v), flags);
 	svlogv logv;
 	logv.index_id = 0;
 	logv.next = UINT32_MAX;
 	sv_init(&logv.v, &sv_vif, v, NULL);
-	sv_logadd(log, r->a, &logv);
+	sv_logadd(log, r, &logv);
 }
 
 static void
@@ -45,7 +45,7 @@ freelog(svlog *log, sr *c)
 		svlogv *v = ss_iteratorof(&i);
 		ss_free(c->a, v->v.v);
 	}
-	sv_logfree(log, c->a);
+	sv_logfree(log, c);
 }
 
 static void
@@ -61,7 +61,7 @@ sl_begin_commit(void)
 	t( sl_poolrotate(&lp) == 0 );
 
 	svlog log;
-	sv_loginit(&log, &st_r.a, 1);
+	sv_loginit(&log, &st_r.r, 1);
 	sv_loginit_index(&log, 0, &st_r.r);
 
 	alloclogv(&log, &st_r.r, 0, 0, 7);
@@ -88,7 +88,7 @@ sl_begin_rollback(void)
 	t( sl_poolrotate(&lp) == 0 );
 
 	svlog log;
-	sv_loginit(&log, &st_r.a, 1);
+	sv_loginit(&log, &st_r.r, 1);
 	sv_loginit_index(&log, 0, &st_r.r);
 
 	alloclogv(&log, &st_r.r, 0, 0, 7);

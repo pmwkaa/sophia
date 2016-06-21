@@ -13,8 +13,7 @@ typedef struct svupsertnode svupsertnode;
 typedef struct svupsert svupsert;
 
 struct svupsertnode {
-	uint8_t flags;
-	ssbuf   buf;
+	ssbuf buf;
 };
 
 #define SV_UPSERTRESRV 16
@@ -92,7 +91,7 @@ sv_upsertgc(svupsert *u, sr *r, int wm_stack, int wm_buf)
 }
 
 static inline int
-sv_upsertpush_raw(svupsert *u, sr *r, char *pointer, uint8_t flags)
+sv_upsertpush(svupsert *u, sr *r, char *pointer)
 {
 	svupsertnode *n;
 	int rc;
@@ -112,17 +111,10 @@ sv_upsertpush_raw(svupsert *u, sr *r, char *pointer, uint8_t flags)
 	if (ssunlikely(rc == -1))
 		return -1;
 	memcpy(n->buf.p, pointer, size);
-	n->flags = flags;
 	ss_bufadvance(&n->buf, size);
 	ss_bufadvance(&u->stack, sizeof(svupsertnode));
 	u->count++;
 	return 0;
-}
-
-static inline int
-sv_upsertpush(svupsert *u, sr *r, sv *v)
-{
-	return sv_upsertpush_raw(u, r, sv_pointer(v), sv_flags(v));
 }
 
 static inline svupsertnode*
@@ -140,7 +132,6 @@ static inline int
 sv_upsertdo(svupsert *u, sr *r, svupsertnode *a, svupsertnode *b)
 {
 	assert(r->scheme->fields_count <= 16);
-	assert(b->flags & SVUPSERT);
 
 	uint32_t  src_size[16];
 	char     *src[16];
@@ -153,7 +144,7 @@ sv_upsertdo(svupsert *u, sr *r, svupsertnode *a, svupsertnode *b)
 	char     *result[16];
 
 	int i = 0;
-	if (sslikely(a && !(a->flags & SVDELETE)))
+	if (sslikely(a && !(sf_flags(r->scheme, a->buf.s) & SVDELETE) ))
 	{
 		src_ptr = src;
 		src_size_ptr = src_size;
@@ -199,11 +190,14 @@ sv_upsertdo(svupsert *u, sr *r, svupsertnode *a, svupsertnode *b)
 	if (ssunlikely(rc == -1))
 		goto cleanup;
 	sf_write(r->scheme, v, u->tmp.s);
-	sf_sizeset(r->scheme, u->tmp.s, size);
 	ss_bufadvance(&u->tmp, size);
+	/* update meta-fields */
+	sf_sizeset(r->scheme, u->tmp.s, size);
+	sf_flagsset(r->scheme, u->tmp.s,
+	            sf_flags(r->scheme, b->buf.s) & ~SVUPSERT);
 
 	/* save result */
-	rc = sv_upsertpush_raw(u, r, u->tmp.s, b->flags & ~SVUPSERT);
+	rc = sv_upsertpush(u, r, u->tmp.s);
 cleanup:
 	/* free fields */
 	i = 0;
@@ -225,7 +219,7 @@ sv_upsert(svupsert *u, sr *r)
 	assert(u->count >= 1 );
 	svupsertnode *f = ss_bufat(&u->stack, sizeof(svupsertnode), u->count - 1);
 	int rc;
-	if (f->flags & SVUPSERT) {
+	if (sf_flags(r->scheme, f->buf.s) & SVUPSERT) {
 		f = sv_upsertpop(u);
 		rc = sv_upsertdo(u, r, NULL, f);
 		if (ssunlikely(rc == -1))

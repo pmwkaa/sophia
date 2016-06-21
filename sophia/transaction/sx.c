@@ -195,7 +195,8 @@ sx_garbage_collect(sxmanager *m)
 	for (; v; v = next)
 	{
 		next = v->gc;
-		assert(v->v->flags & SVGET);
+		sxindex *i = v->index;
+		assert(sv_vflags(v->v, i->r) & SVGET);
 		assert(sx_vcommitted(v));
 		if (v->csn > min_csn) {
 			v->gc = gc;
@@ -204,7 +205,6 @@ sx_garbage_collect(sxmanager *m)
 			continue;
 		}
 		sx_untrack(v);
-		sxindex *i = v->index;
 		sx_vfree(&m->pool, i->r, v);
 	}
 	m->count_gc = count;
@@ -310,7 +310,8 @@ sxstate sx_prepare(sx *x, sxpreparef prepare, void *arg)
 			continue;
 		}
 		/* force commit for read-only conflicts */
-		if (v->prev->v->flags & SVGET) {
+		sxindex *i = v->prev->index;
+		if (sv_vflags(v->prev->v, i->r) & SVGET) {
 			rc = sx_preparecb(x, lv, lsn, prepare, arg);
 			if (ssunlikely(rc != 0))
 				return sx_promote(x, SX_ROLLBACK);
@@ -339,7 +340,8 @@ sxstate sx_commit(sx *x)
 			break;
 		/* abort conflict reader */
 		if (v->prev && !sx_vcommitted(v->prev)) {
-			assert(v->prev->v->flags & SVGET);
+			sxindex *i = v->prev->index;
+			assert(sv_vflags(v->prev->v, i->r) & SVGET);
 			sx_vabort(v->prev);
 		}
 		/* abort waiters */
@@ -349,7 +351,9 @@ sxstate sx_commit(sx *x)
 		/* translate log version from sxv to svv */
 		sv_init(&lv->v, &sv_vif, v->v, NULL);
 		/* schedule read stmt for gc */
-		if (v->v->flags & SVGET) {
+
+		sxindex *i = v->index;
+		if (sv_vflags(v->v, i->r) & SVGET) {
 			sv_vref(v->v);
 			v->gc = m->gc;
 			m->gc = v;
@@ -415,7 +419,7 @@ int sx_set(sx *x, sxindex *index, svv *version)
 	/* batch isolation: directly write into the log */
 	if (x->isolation == SX_BATCH) {
 		sv_init(&lv.v, &sv_vif, version, NULL);
-		return sv_logadd(x->log, r->a, &lv);
+		return sv_logadd(x->log, r, &lv);
 	}
 
 	/* allocate mvcc container */
@@ -428,7 +432,7 @@ int sx_set(sx *x, sxindex *index, svv *version)
 	v->index = index;
 	sv_init(&lv.v, &sx_vif, v, NULL);
 
-	if (! (version->flags & SVGET))
+	if (! (sv_vflags(version, index->r) & SVGET))
 		x->log_read = -1;
 
 	/* update concurrent index */
@@ -442,7 +446,7 @@ int sx_set(sx *x, sxindex *index, svv *version)
 		int pos = rc;
 		/* unique */
 		v->lo = sv_logcount(x->log);
-		rc = sv_logadd(x->log, r->a, &lv);
+		rc = sv_logadd(x->log, r, &lv);
 		if (ssunlikely(rc == -1)) {
 			sr_oom(r->e);
 			goto error;
@@ -456,7 +460,7 @@ int sx_set(sx *x, sxindex *index, svv *version)
 	sxv *own = sx_vmatch(head, x->id);
 	if (ssunlikely(own))
 	{
-		if (ssunlikely(version->flags & SVUPSERT)) {
+		if (ssunlikely(sv_vflags(version, index->r) & SVUPSERT)) {
 			sr_error(r->e, "%s", "only one upsert statement is "
 			         "allowed per a transaction key");
 			goto error;
@@ -470,14 +474,14 @@ int sx_set(sx *x, sxindex *index, svv *version)
 		if (sslikely(head == own))
 			ss_rbreplace(&index->i, &own->node, &v->node);
 		/* update log */
-		sv_logreplace(x->log, v->lo, &lv);
+		sv_logreplace(x->log, r, v->lo, &lv);
 
 		sx_vfree(&m->pool, r, own);
 		return 0;
 	}
 	/* update log */
 	v->lo = sv_logcount(x->log);
-	rc = sv_logadd(x->log, r->a, &lv);
+	rc = sv_logadd(x->log, r, &lv);
 	if (ssunlikely(rc == -1)) {
 		sr_oom(r->e);
 		goto error;
@@ -503,13 +507,13 @@ int sx_get(sx *x, sxindex *index, sv *key, sv *result)
 	sxv *v = sx_vmatch(head, x->id);
 	if (v == NULL)
 		goto add;
-	if (ssunlikely((v->v->flags & SVGET) > 0))
+	if (ssunlikely(sv_vflags(v->v, index->r) & SVGET))
 		return 0;
-	if (ssunlikely((v->v->flags & SVDELETE) > 0))
+	if (ssunlikely(sv_vflags(v->v, index->r) & SVDELETE))
 		return 2;
 	sv vv;
 	sv_init(&vv, &sv_vif, v->v, NULL);
-	svv *ret = sv_vdup(index->r, &vv);
+	svv *ret = sv_vbuildraw(index->r, sv_pointer(&vv));
 	if (ssunlikely(ret == NULL)) {
 		rc = sr_oom(index->r->e);
 	} else {
@@ -538,7 +542,7 @@ sxstate sx_set_autocommit(sxmanager *m, sxindex *index, sx *x, svlog *log, svv *
 		lv.index_id = index->dsn;
 		lv.next = UINT32_MAX;
 		sv_init(&lv.v, &sv_vif, v, NULL);
-		sv_logadd(x->log, index->r->a, &lv);
+		sv_logadd(x->log, index->r, &lv);
 		sr_seq(index->r->seq, SR_TSNNEXT);
 		sx_promote(x, SX_COMMIT);
 		return SX_COMMIT;

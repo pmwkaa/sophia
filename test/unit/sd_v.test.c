@@ -26,7 +26,7 @@ addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 	pv[1].size = 0;
 	svv *v = sv_vbuild(r, pv);
 	sf_lsnset(r->scheme, sv_vpointer(v), lsn);
-	v->flags = flags;
+	sf_flagsset(r->scheme, sv_vpointer(v), flags);
 	sv vv;
 	sv_init(&vv, &sv_vif, v, NULL);
 	sd_buildadd(b, r, &vv, flags & SVDUP);
@@ -65,7 +65,7 @@ sd_v_test(void)
 
 	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
 	t( sv_lsn(v, &st_r.r) == 3 );
-	t( sv_flags(v) == 0 );
+	t( sv_flags(v, &st_r.r) == 0 );
 	ss_iteratornext(&it);
 	t( ss_iteratorhas(&it) != 0 );
 
@@ -74,7 +74,7 @@ sd_v_test(void)
 	
 	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == j );
 	t( sv_lsn(v, &st_r.r) == 4 );
-	t( sv_flags(v) == 0 );
+	t( sv_flags(v, &st_r.r) == 0 );
 
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);

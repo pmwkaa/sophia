@@ -56,7 +56,6 @@ se_readresult(se *e, sedb *db, siread *r)
 
 	v->cold_only = r->cold_only;
 	v->created   = 1;
-	v->flagset   = 1;
 	return &v->o;
 }
 
@@ -64,16 +63,17 @@ so *se_read(sedb *db, sedocument *o, sx *x, uint64_t vlsn,
             sicache *cache)
 {
 	se *e = se_of(&db->o);
+	if (ssunlikely(! se_active(e)))
+		goto error;
+
 	uint64_t start  = ss_utime();
 
 	/* prepare the key */
-	int rc = se_document_createkey(o);
+	int rc = se_document_validate_ro(o, &db->o);
 	if (ssunlikely(rc == -1))
 		goto error;
-	rc = se_document_validate_ro(o, &db->o);
+	rc = se_document_createkey(o);
 	if (ssunlikely(rc == -1))
-		goto error;
-	if (ssunlikely(! se_active(e)))
 		goto error;
 
 	sv vup;
@@ -88,13 +88,12 @@ so *se_read(sedb *db, sedocument *o, sx *x, uint64_t vlsn,
 		int rc = sx_get(x, &db->coindex, &o->v, &vup);
 		if (ssunlikely(rc == -1 || rc == 2 /* delete */))
 			goto error;
-		if (rc == 1 && !sv_is(&vup, SVUPSERT)) {
+		if (rc == 1 && !sv_is(&vup, db->r, SVUPSERT)) {
 			ret = (sedocument*)se_document_new(e, &db->o, &vup);
 			if (sslikely(ret)) {
 				ret->cold_only = o->cold_only;
 				ret->created   = 1;
 				ret->orderset  = 1;
-				ret->flagset   = 1;
 			} else {
 				sv_vunref(db->r, vup.v);
 			}

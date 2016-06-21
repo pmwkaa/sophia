@@ -13,15 +13,16 @@ typedef struct sxv sxv;
 typedef struct sxvpool sxvpool;
 
 struct sxv {
-	uint64_t id;
-	uint32_t lo;
-	uint64_t csn;
-	void *index;
-	svv *v;
-	sxv *next;
-	sxv *prev;
-	sxv *gc;
-	ssrbnode node;
+	uint64_t  id;
+	uint32_t  lo;
+	uint64_t  csn;
+	uint8_t   conflict;
+	void     *index;
+	svv      *v;
+	sxv      *next;
+	sxv      *prev;
+	sxv      *gc;
+	ssrbnode  node;
 } sspacked;
 
 struct sxvpool {
@@ -80,14 +81,15 @@ sx_valloc(sxvpool *p, svv *ref)
 		if (ssunlikely(v == NULL))
 			return NULL;
 	}
-	v->index = NULL;
-	v->id    = 0;
-	v->lo    = 0;
-	v->csn   = 0;
-	v->v     = ref;
-	v->next  = NULL;
-	v->prev  = NULL;
-	v->gc    = NULL;
+	v->index    = NULL;
+	v->id       = 0;
+	v->lo       = 0;
+	v->csn      = 0;
+	v->v        = ref;
+	v->next     = NULL;
+	v->prev     = NULL;
+	v->gc       = NULL;
+	v->conflict = 0;
 	memset(&v->node, 0, sizeof(v->node));
 	return v;
 }
@@ -171,7 +173,7 @@ sx_vcommitted(sxv *v)
 static inline void
 sx_vabort(sxv *v)
 {
-	v->v->flags |= SVCONFLICT;
+	v->conflict = 1;
 }
 
 static inline void
@@ -186,7 +188,7 @@ sx_vabort_all(sxv *v)
 static inline int
 sx_vaborted(sxv *v)
 {
-	return v->v->flags & SVCONFLICT;
+	return v->conflict;
 }
 
 extern svif sx_vif;

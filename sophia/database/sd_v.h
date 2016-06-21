@@ -13,7 +13,6 @@ typedef struct sdv sdv;
 
 struct sdv {
 	uint32_t offset;
-	uint8_t  flags;
 } sspacked;
 
 extern svif sd_vif;

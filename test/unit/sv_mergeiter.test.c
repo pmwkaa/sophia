@@ -52,7 +52,7 @@ sv_mergeiter_merge_a(void)
 		sv *v = (sv*)ss_iteratorof(&merge);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
 		t( sv_lsn(v, &st_r.r) == i );
-		t( sv_flags(v) == 0 );
+		t( sv_flags(v, &st_r.r) == 0 );
 		ss_iteratornext(&merge);
 		i++;
 	}
@@ -103,7 +103,7 @@ sv_mergeiter_merge_b(void)
 		sv *v = (sv*)ss_iteratorof(&merge);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
 		t( sv_lsn(v, &st_r.r) == i );
-		t( sv_flags(v) == 0 );
+		t( sv_flags(v, &st_r.r) == 0 );
 		ss_iteratornext(&merge);
 		i++;
 	}
@@ -160,7 +160,7 @@ sv_mergeiter_merge_ab(void)
 		sv *v = (sv*)ss_iteratorof(&merge);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
 		t( sv_lsn(v, &st_r.r) == i );
-		t( sv_flags(v) == 0 );
+		t( sv_flags(v, &st_r.r) == 0 );
 		ss_iteratornext(&merge);
 		i++;
 	}
@@ -230,7 +230,7 @@ sv_mergeiter_merge_abc(void)
 		sv *v = (sv*)ss_iteratorof(&merge);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
 		t( sv_lsn(v, &st_r.r) == i );
-		t( sv_flags(v) == 0 );
+		t( sv_flags(v, &st_r.r) == 0 );
 		ss_iteratornext(&merge);
 		i++;
 	}
@@ -288,7 +288,7 @@ sv_mergeiter_merge_ba(void)
 		sv *v = (sv*)ss_iteratorof(&merge);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
 		t( sv_lsn(v, &st_r.r) == i );
-		t( sv_flags(v) == 0 );
+		t( sv_flags(v, &st_r.r) == 0 );
 		ss_iteratornext(&merge);
 		i++;
 	}
@@ -350,11 +350,11 @@ sv_mergeiter_merge_dup_ab(void)
 		sv *v = (sv*)ss_iteratorof(&merge);
 		if ((i % 2) == 0) {
 			t( *(int*)sv_field(v, &st_r.r, 0, NULL) == key );
-			t( sv_flags(v) == 0 );
+			t( sv_flags(v, &st_r.r) == 0 );
 			key++;
 		} else {
 			t( *(int*)sv_field(v, &st_r.r, 0, NULL) == key - 1);
-			t( (sv_flags(v) | sv_mergeisdup(&merge)) == (0|SVDUP) );
+			t( (sv_flags(v, &st_r.r) | sv_mergeisdup(&merge)) == (0|SVDUP) );
 		}
 		ss_iteratornext(&merge);
 		i++;
@@ -410,9 +410,9 @@ sv_mergeiter_merge_dup_a_chain(void)
 		sv *v = (sv*)ss_iteratorof(&merge);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == key );
 		if (i == 0) {
-			t( sv_flags(v) == 0 );
+			t( sv_flags(v, &st_r.r) == 0 );
 		} else {
-			t( (sv_flags(v) | sv_mergeisdup(&merge)) == (0|SVDUP) );
+			t( (sv_flags(v, &st_r.r) | sv_mergeisdup(&merge)) == (0|SVDUP) );
 		}
 		ss_iteratornext(&merge);
 		i++;
@@ -475,9 +475,9 @@ sv_mergeiter_merge_dup_ab_chain(void)
 		sv *v = (sv*)ss_iteratorof(&merge);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == key );
 		if (i == 0) {
-			t( sv_flags(v) == 0 );
+			t( sv_flags(v, &st_r.r) == 0 );
 		} else {
-			t( (sv_flags(v) | sv_mergeisdup(&merge)) == (0|SVDUP) );
+			t( (sv_flags(v, &st_r.r) | sv_mergeisdup(&merge)) == (0|SVDUP) );
 		}
 		ss_iteratornext(&merge);
 		i++;
@@ -555,9 +555,9 @@ sv_mergeiter_merge_dup_abc_chain(void)
 		sv *v = (sv*)ss_iteratorof(&merge);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == key );
 		if (i == 0) {
-			t( sv_flags(v) == 0 );
+			t( sv_flags(v, &st_r.r) == 0 );
 		} else {
-			t( (sv_flags(v) | sv_mergeisdup(&merge)) == (0|SVDUP) );
+			t( (sv_flags(v, &st_r.r) | sv_mergeisdup(&merge)) == (0|SVDUP) );
 		}
 		ss_iteratornext(&merge);
 		i++;

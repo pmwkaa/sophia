@@ -55,7 +55,7 @@ void si_write(sitx *x, svlog *l, svlogindex *li, uint64_t time,
 				goto next;
 			}
 		}
-		if (v->flags & SVGET) {
+		if (sv_vflags(v, r) & SVGET) {
 			assert(v->log == NULL);
 			sv_vunref(r, v);
 			goto next;

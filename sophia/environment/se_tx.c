@@ -39,10 +39,10 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 	}
 
 	/* create document */
-	rc = se_document_create(o);
+	rc = se_document_validate(o, &db->o);
 	if (ssunlikely(rc == -1))
 		goto error;
-	rc = se_document_validate(o, &db->o, flags);
+	rc = se_document_create(o, flags);
 	if (ssunlikely(rc == -1))
 		goto error;
 
@@ -123,7 +123,7 @@ se_txfree(so *o)
 	assert(o->destroyed);
 	se *e = se_of(o);
 	setx *t = (setx*)o;
-	sv_logfree(&t->log, &e->a);
+	sv_logfree(&t->log, &e->r);
 	ss_free(&e->a, o);
 }
 
@@ -303,7 +303,7 @@ so *se_txnew(se *e)
 	}
 	so_init(&t->o, &se_o[SETX], &setxif, &e->o, &e->o);
 	if (! cache) {
-		int rc = sv_loginit(&t->log, &e->a, e->db.n);
+		int rc = sv_loginit(&t->log, &e->r, e->db.n);
 		if (ssunlikely(rc == -1)) {
 			ss_free(&e->a, t);
 			return NULL;

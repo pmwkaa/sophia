@@ -40,7 +40,7 @@ st_generator_kv(stgenerator *g, va_list args)
 	while (i < scheme->fields_count)
 	{
 		sffield *field = g->r->scheme->fields[i];
-		if (field->lsn || field->size) {
+		if (field->lsn || field->size || field->flags) {
 			i++;
 			continue;
 		}
@@ -68,7 +68,7 @@ static inline svv*
 st_svv_va(stgenerator *g, stlist *l, uint64_t lsn, uint8_t flags, va_list args)
 {
 	svv *v = st_generator_kv(g, args);
-	v->flags = flags;
+	sf_flagsset(g->r->scheme, sv_vpointer(v), flags);
 	sf_lsnset(g->r->scheme, sv_vpointer(v), lsn);
 	if (v == NULL || l == NULL)
 		return v;
@@ -148,7 +148,7 @@ svv *st_svv_seed(stgenerator *g, uint32_t seed, uint32_t seed_value)
 	while (i < scheme->fields_count)
 	{
 		sffield *field = g->r->scheme->fields[i];
-		if (field->lsn || field->size) {
+		if (field->lsn || field->size || field->flags) {
 			i++;
 			continue;
 		}

@@ -137,7 +137,7 @@ ss_htsearch(sd_buildsearch,
                     sscast(t->i[pos], sdbuildkey, node)->offsetstart, key, size) == 0))
 
 static inline int
-sd_buildadd_sparse(sdbuild *b, sr *r, sv *v)
+sd_buildadd_sparse(sdbuild *b, sr *r, sv *v, uint8_t flags)
 {
 	int i = 0;
 	for (; i < r->scheme->fields_count; i++)
@@ -178,6 +178,9 @@ sd_buildadd_sparse(sdbuild *b, sr *r, sv *v)
 			return sr_oom(r->e);
 		*(uint32_t*)b->k.p = fieldsize;
 		ss_bufadvance(&b->k, sizeof(uint32_t));
+		sffield *f = r->scheme->fields[i];
+		if (f->flags)
+			field = (char*)&flags;
 		memcpy(b->k.p, field, fieldsize);
 		ss_bufadvance(&b->k, fieldsize);
 
@@ -203,18 +206,19 @@ sd_buildadd_sparse(sdbuild *b, sr *r, sv *v)
 }
 
 static inline int
-sd_buildadd_raw(sdbuild *b, sr *r, sv *v)
+sd_buildadd_raw(sdbuild *b, sr *r, sv *v, uint8_t flags)
 {
 	uint32_t size = sv_size(v, r);
 	int rc = ss_bufensure(&b->v, r->a, size);
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
 	memcpy(b->v.p, sv_pointer(v), size);
+	sf_flagsset(r->scheme, b->v.p, flags);
 	ss_bufadvance(&b->v, size);
 	return 0;
 }
 
-int sd_buildadd(sdbuild *b, sr *r, sv *v, uint32_t flags)
+int sd_buildadd(sdbuild *b, sr *r, sv *v, uint8_t flags)
 {
 	/* prepare document metadata */
 	int rc = ss_bufensure(&b->m, r->a, sizeof(sdv));
@@ -222,16 +226,15 @@ int sd_buildadd(sdbuild *b, sr *r, sv *v, uint32_t flags)
 		return sr_oom(r->e);
 	sdpageheader *h = sd_buildheader(b);
 	sdv *sv = (sdv*)b->m.p;
-	sv->flags = flags;
 	sv->offset = ss_bufused(&b->v) - sd_buildref(b)->v;
 	ss_bufadvance(&b->m, sizeof(sdv));
 	/* copy document */
 	switch (r->fmt_storage) {
 	case SF_RAW:
-		rc = sd_buildadd_raw(b, r, v);
+		rc = sd_buildadd_raw(b, r, v, flags);
 		break;
 	case SF_SPARSE:
-		rc = sd_buildadd_sparse(b, r, v);
+		rc = sd_buildadd_sparse(b, r, v, flags);
 		break;
 	}
 	if (ssunlikely(rc == -1))
@@ -247,7 +250,7 @@ int sd_buildadd(sdbuild *b, sr *r, sv *v, uint32_t flags)
 		h->lsnmax = lsn;
 	if (lsn < h->lsnmin)
 		h->lsnmin = lsn;
-	if (sv->flags & SVDUP) {
+	if (flags & SVDUP) {
 		h->countdup++;
 		if (lsn < h->lsnmindup)
 			h->lsnmindup = lsn;

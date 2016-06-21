@@ -439,7 +439,7 @@ sl_writeadd(slpool *p, sltx *t, svlog *vlog, slv *lv, svlogv *logv)
 	sr *r = sv_logindex(vlog, logv->index_id)->r;
 	sv *v = &logv->v;
 	lv->dsn   = logv->index_id;
-	lv->flags = sv_flags(v);
+	lv->flags = sv_flags(v, r);
 	lv->size  = sv_size(v, r);
 	lv->crc   = ss_crcp(p->r->crc, sv_pointer(v), lv->size, 0);
 	lv->crc   = ss_crcs(p->r->crc, lv, sizeof(slv), lv->crc);
@@ -462,7 +462,7 @@ sl_writestmt(sltx *t, svlog *vlog)
 		assert(v->i == &sv_vif);
 		sr *r = sv_logindex(vlog, logv->index_id)->r;
 		sv_lsnset(v, r, t->lsn);
-		if (sslikely(! (sv_is(v, SVGET)))) {
+		if (sslikely(! (sv_is(v, r, SVGET)))) {
 			assert(stmt == NULL);
 			stmt = logv;
 		}
@@ -521,7 +521,7 @@ sl_writestmt_multi(sltx *t, svlog *vlog)
 		assert(v->i == &sv_vif);
 		sr *r = sv_logindex(vlog, logv->index_id)->r;
 		sv_lsnset(v, r, t->lsn);
-		if (sv_is(v, SVGET))
+		if (sv_is(v, r, SVGET))
 			continue;
 		lv = &lvbuf[lvp];
 		sl_writeadd(p, t, vlog, lv, logv);

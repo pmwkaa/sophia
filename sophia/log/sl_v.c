@@ -13,11 +13,6 @@
 #include <libsv.h>
 #include <libsl.h>
 
-static uint8_t
-sl_vifflags(sv *v) {
-	return ((slv*)v->v)->flags;
-}
-
 static char*
 sl_vifpointer(sv *v) {
 	return (char*)v->v + sizeof(slv);
@@ -25,6 +20,5 @@ sl_vifpointer(sv *v) {
 
 svif sl_vif =
 {
-	.flags   = sl_vifflags,
 	.pointer = sl_vifpointer
 };

@@ -66,7 +66,7 @@ si_readdup(siread *q, sv *result)
 		v = result->v;
 		sv_vref(v);
 	} else {
-		v = sv_vdup(q->r, result);
+		v = sv_vbuildraw(q->r, sv_pointer(result));
 		if (ssunlikely(v == NULL))
 			return sr_oom(q->r->e);
 	}
@@ -114,7 +114,7 @@ si_getresult(siread *q, sv *v, int compare)
 	}
 	if (ssunlikely(q->has))
 		return sv_lsn(v, q->r) > q->vlsn;
-	if (ssunlikely(sv_is(v, SVDELETE)))
+	if (ssunlikely(sv_is(v, q->r, SVDELETE)))
 		return 2;
 	rc = si_readdup(q, v);
 	if (ssunlikely(rc == -1))

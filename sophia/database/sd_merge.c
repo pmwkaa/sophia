@@ -106,7 +106,7 @@ int sd_mergepage(sdmerge *m, uint64_t offset)
 	while (ss_iterhas(sv_writeiter, &m->i))
 	{
 		sv *v = ss_iterof(sv_writeiter, &m->i);
-		uint8_t flags = sv_flags(v);
+		uint8_t flags = sv_flags(v, m->r);
 		if (sv_writeiter_is_duplicate(&m->i))
 			flags |= SVDUP;
 		rc = sd_buildadd(m->build, m->r, v, flags);

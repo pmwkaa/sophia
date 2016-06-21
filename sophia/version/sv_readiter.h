@@ -29,8 +29,8 @@ sv_readiter_upsert(svreaditer *i)
 	/* upsert begin */
 	sv *v = ss_iterof(sv_mergeiter, i->merge);
 	assert(v != NULL);
-	assert(sv_flags(v) & SVUPSERT);
-	int rc = sv_upsertpush(i->u, i->r, v);
+	assert(sv_flags(v, i->r) & SVUPSERT);
+	int rc = sv_upsertpush(i->u, i->r, sv_pointer(v));
 	if (ssunlikely(rc == -1))
 		return -1;
 	ss_iternext(sv_mergeiter, i->merge);
@@ -39,15 +39,15 @@ sv_readiter_upsert(svreaditer *i)
 	for (; ss_iterhas(sv_mergeiter, i->merge); ss_iternext(sv_mergeiter, i->merge))
 	{
 		v = ss_iterof(sv_mergeiter, i->merge);
-		int dup = sv_is(v, SVDUP) || sv_mergeisdup(i->merge);
+		int dup = sv_is(v, i->r, SVDUP) || sv_mergeisdup(i->merge);
 		if (! dup)
 			break;
 		if (skip)
 			continue;
-		int rc = sv_upsertpush(i->u, i->r, v);
+		int rc = sv_upsertpush(i->u, i->r, sv_pointer(v));
 		if (ssunlikely(rc == -1))
 			return -1;
-		if (! (sv_flags(v) & SVUPSERT))
+		if (! (sv_flags(v, i->r) & SVUPSERT))
 			skip = 1;
 	}
 	/* upsert */
@@ -68,7 +68,7 @@ sv_readiter_next(ssiter *i)
 	for (; ss_iterhas(sv_mergeiter, im->merge); ss_iternext(sv_mergeiter, im->merge))
 	{
 		sv *v = ss_iterof(sv_mergeiter, im->merge);
-		int dup = sv_is(v, SVDUP) || sv_mergeisdup(im->merge);
+		int dup = sv_is(v, im->r, SVDUP) || sv_mergeisdup(im->merge);
 		if (im->nextdup) {
 			if (dup)
 				continue;
@@ -80,9 +80,9 @@ sv_readiter_next(ssiter *i)
 			continue;
 		}
 		im->nextdup = 1;
-		if (ssunlikely(!im->save_delete && sv_is(v, SVDELETE)))
+		if (ssunlikely(!im->save_delete && sv_is(v, im->r, SVDELETE)))
 			continue;
-		if (ssunlikely(sv_is(v, SVUPSERT))) {
+		if (ssunlikely(sv_is(v, im->r, SVUPSERT))) {
 			int rc = sv_readiter_upsert(im);
 			if (ssunlikely(rc == -1))
 				return;
@@ -107,7 +107,7 @@ sv_readiter_forward(ssiter *i)
 	for (; ss_iterhas(sv_mergeiter, im->merge); ss_iternext(sv_mergeiter, im->merge))
 	{
 		sv *v = ss_iterof(sv_mergeiter, im->merge);
-		int dup = sv_is(v, SVDUP) || sv_mergeisdup(im->merge);
+		int dup = sv_is(v, im->r, SVDUP) || sv_mergeisdup(im->merge);
 		if (dup)
 			continue;
 		im->next = 0;

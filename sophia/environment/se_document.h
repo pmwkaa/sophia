@@ -17,7 +17,6 @@ struct sedocument {
 	sv        v;
 	ssorder   order;
 	int       orderset;
-	int       flagset;
 	sfv       fields[8];
 	int       fields_count;
 	int       fields_count_keys;
@@ -28,7 +27,6 @@ struct sedocument {
 	uint32_t  value_size;
 	/* recover */
 	void     *raw;
-	uint32_t  timestamp;
 	void     *log;
 	/* read options */
 	int       cold_only;
@@ -39,8 +37,19 @@ struct sedocument {
 };
 
 so *se_document_new(se*, so*, sv*);
-int se_document_create(sedocument*);
+int se_document_create(sedocument*, uint8_t);
 int se_document_createkey(sedocument*);
+
+static inline int
+se_document_validate(sedocument *o, so *dest)
+{
+	se *e = se_of(&o->o);
+	if (o->created)
+		return sr_error(&e->error, "%s", "attempt to reuse document");
+	if (ssunlikely(o->o.parent != dest))
+		return sr_error(&e->error, "%s", "incompatible document parent db");
+	return 0;
+}
 
 static inline int
 se_document_validate_ro(sedocument *o, so *dest)
@@ -48,14 +57,7 @@ se_document_validate_ro(sedocument *o, so *dest)
 	se *e = se_of(&o->o);
 	if (ssunlikely(o->o.parent != dest))
 		return sr_error(&e->error, "%s", "incompatible document parent db");
-	svv *v = o->v.v;
-	if (! o->flagset) {
-		o->flagset = 1;
-		v->flags = SVGET;
-	}
 	return 0;
 }
-
-int se_document_validate(sedocument*, so*, uint8_t);
 
 #endif

@@ -13,12 +13,6 @@
 #include <libsv.h>
 #include <libsd.h>
 
-static uint8_t
-sd_vifflags(sv *v)
-{
-	return ((sdv*)v->v)->flags;
-}
-
 static char*
 sd_vifpointer(sv *v)
 {
@@ -28,20 +22,18 @@ sd_vifpointer(sv *v)
 	return sd_pagepointer(&p, (sdv*)v->v);
 }
 
-svif sd_vif =
-{
-	.flags     = sd_vifflags,
-	.pointer   = sd_vifpointer
-};
-
 static char*
 sd_vrawifpointer(sv *v)
 {
 	return (char*)v->v + sizeof(sdv);
 }
 
+svif sd_vif =
+{
+	.pointer = sd_vifpointer
+};
+
 svif sd_vrawif =
 {
-	.flags     = sd_vifflags,
-	.pointer   = sd_vrawifpointer
+	.pointer = sd_vrawifpointer
 };

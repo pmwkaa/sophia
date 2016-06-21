@@ -92,7 +92,9 @@ sd_pageiter_chain_head(sdpageiter *i, int64_t pos)
 	/* find first non-duplicate key */
 	while (pos >= 0) {
 		sdv *v = sd_pagev(i->page, pos);
-		if (sslikely(! (v->flags & SVDUP))) {
+		uint8_t flags =
+			sf_flags(i->r->scheme, sd_pagepointer(i->page, v));
+		if (sslikely(! (flags & SVDUP))) {
 			i->pos = pos;
 			i->v = v;
 			return;
@@ -109,7 +111,9 @@ sd_pageiter_chain_next(sdpageiter *i)
 	int64_t pos = i->pos + 1;
 	while (pos < i->page->h->count) {
 		sdv *v = sd_pagev(i->page, pos);
-		if (sslikely(! (v->flags & SVDUP))) {
+		uint8_t flags =
+			sf_flags(i->r->scheme, sd_pagepointer(i->page, v));
+		if (sslikely(! (flags & SVDUP))) {
 			i->pos = pos;
 			i->v = v;
 			return;
@@ -249,7 +253,9 @@ sd_pageiter_next(ssiter *i)
 		int64_t pos = pi->pos + 1;
 		if (pos < pi->page->h->count) {
 			v = sd_pagev(pi->page, pos);
-			if (v->flags & SVDUP) {
+			uint8_t flags =
+				sf_flags(pi->r->scheme, sd_pagepointer(pi->page, v));
+			if (flags & SVDUP) {
 				pi->pos = pos;
 				pi->v   = v;
 				break;

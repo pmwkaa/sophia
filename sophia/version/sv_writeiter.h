@@ -41,9 +41,9 @@ sv_writeiter_upsert(svwriteiter *i)
 	/* upsert begin */
 	sv *v = ss_iterof(sv_mergeiter, i->merge);
 	assert(v != NULL);
-	assert(sv_flags(v) & SVUPSERT);
+	assert(sv_flags(v, i->r) & SVUPSERT);
 	assert(sv_lsn(v, i->r) <= i->vlsn);
-	int rc = sv_upsertpush(i->u, i->r, v);
+	int rc = sv_upsertpush(i->u, i->r, sv_pointer(v));
 	if (ssunlikely(rc == -1))
 		return -1;
 	ss_iternext(sv_mergeiter, i->merge);
@@ -53,7 +53,7 @@ sv_writeiter_upsert(svwriteiter *i)
 	for (; ss_iterhas(sv_mergeiter, i->merge); ss_iternext(sv_mergeiter, i->merge))
 	{
 		v = ss_iterof(sv_mergeiter, i->merge);
-		int flags = sv_flags(v);
+		int flags = sv_flags(v, i->r);
 		int dup = sv_isflags(flags, SVDUP) || sv_mergeisdup(i->merge);
 		if (! dup)
 			break;
@@ -62,7 +62,7 @@ sv_writeiter_upsert(svwriteiter *i)
 		if (last_non_upd)
 			continue;
 		last_non_upd = ! sv_isflags(flags, SVUPSERT);
-		int rc = sv_upsertpush(i->u, i->r, v);
+		int rc = sv_upsertpush(i->u, i->r, sv_pointer(v));
 		if (ssunlikely(rc == -1))
 			return -1;
 	}
@@ -97,7 +97,7 @@ sv_writeiter_next(ssiter *i)
 		uint64_t lsn = sv_lsn(v, im->r);
 		if (lsn < im->vlsn_lru)
 			continue;
-		int flags = sv_flags(v);
+		int flags = sv_flags(v, im->r);
 		int dup = sv_isflags(flags, SVDUP) || sv_mergeisdup(im->merge);
 		if (im->size >= im->limit) {
 			if (! dup)
@@ -216,7 +216,7 @@ sv_writeiter_resume(ssiter *i)
 	im->v       = ss_iterof(sv_mergeiter, im->merge);
 	if (ssunlikely(im->v == NULL))
 		return 0;
-	im->vdup    = sv_is(im->v, SVDUP) || sv_mergeisdup(im->merge);
+	im->vdup    = sv_is(im->v, im->r, SVDUP) || sv_mergeisdup(im->merge);
 	im->prevlsn = sv_lsn(im->v, im->r);
 	im->next    = 1;
 	im->upsert  = 0;

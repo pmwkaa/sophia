@@ -134,7 +134,8 @@ se_dbscheme_set(sedb *db)
 	}
 	/* compression_copy */
 	if (s->compression_copy) {
-		s->fmt_storage = SF_SPARSE;
+		// XXX
+		/*s->fmt_storage = SF_SPARSE;*/
 	}
 	/* compression cold */
 	s->compression_cold_if = ss_filterof(s->compression_cold_sz);
@@ -260,10 +261,10 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 	}
 
 	/* create document */
-	rc = se_document_create(o);
+	rc = se_document_validate(o, &db->o);
 	if (ssunlikely(rc == -1))
 		goto error;
-	rc = se_document_validate(o, &db->o, flags);
+	rc = se_document_create(o, flags);
 	if (ssunlikely(rc == -1))
 		goto error;
 
@@ -273,7 +274,7 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 
 	/* single-statement transaction */
 	svlog log;
-	rc = sv_loginit(&log, db->r->a, e->db.n);
+	rc = sv_loginit(&log, db->r, e->db.n);
 	if (ssunlikely(rc == -1))
 		return -1;
 	sv_loginit_index(&log, db->index->scheme.id, db->r);
@@ -283,7 +284,7 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 		sx_set_autocommit(&e->xm, &db->coindex, &x, &log, v);
 	if (ssunlikely(state != SX_COMMIT)) {
 		/* rollback */
-		sv_logfree(&log, db->r->a);
+		sv_logfree(&log, db->r);
 		return 1;
 	}
 
@@ -294,7 +295,7 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 		svv *v = lv->v.v;
 		sv_vunref(db->r, v);
 	}
-	sv_logfree(&log, db->r->a);
+	sv_logfree(&log, db->r);
 
 	sx_gc(&x);
 	return rc;
