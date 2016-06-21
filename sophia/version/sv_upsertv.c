@@ -25,15 +25,8 @@ sv_upsertvifpointer(sv *v) {
 	return n->buf.s;
 }
 
-static uint32_t
-sv_upsertvifsize(sv *v) {
-	svupsertnode *n = v->v;
-	return ss_bufused(&n->buf);
-}
-
 svif sv_upsertvif =
 {
 	.flags   = sv_upsertvifflags,
-	.pointer = sv_upsertvifpointer,
-	.size    = sv_upsertvifsize
+	.pointer = sv_upsertvifpointer
 };

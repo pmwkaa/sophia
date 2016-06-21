@@ -41,9 +41,4 @@ sv_indexset(svindex *i, sr *r, svv *v)
 	return 0;
 }
 
-static inline uint32_t
-sv_indexused(svindex *i) {
-	return i->count * sizeof(svv) + i->used;
-}
-
 #endif

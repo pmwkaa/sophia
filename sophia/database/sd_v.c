@@ -28,17 +28,10 @@ sd_vifpointer(sv *v)
 	return sd_pagepointer(&p, (sdv*)v->v);
 }
 
-static uint32_t
-sd_vifsize(sv *v)
-{
-	return ((sdv*)v->v)->size;
-}
-
 svif sd_vif =
 {
 	.flags     = sd_vifflags,
-	.pointer   = sd_vifpointer,
-	.size      = sd_vifsize
+	.pointer   = sd_vifpointer
 };
 
 static char*
@@ -50,6 +43,5 @@ sd_vrawifpointer(sv *v)
 svif sd_vrawif =
 {
 	.flags     = sd_vifflags,
-	.pointer   = sd_vrawifpointer,
-	.size      = sd_vifsize
+	.pointer   = sd_vrawifpointer
 };

@@ -144,10 +144,12 @@ void sf_schemeinit(sfscheme *s)
 	s->var_offset = 0;
 	s->offset_expire = 0;
 	s->offset_lsn = 0;
+	s->offset_size = 0;
 	s->var_count  = 0;
 	s->cmp = NULL;
 	s->cmparg = NULL;
 	s->has_lsn = 0;
+	s->has_size = 0;
 	s->has_timestamp = 0;
 	s->has_expire = 0;
 }
@@ -256,6 +258,9 @@ sf_schemeset(sfscheme *s, sffield *f, char *opt)
 	if (strncmp(opt, "lsn", 3) == 0) {
 		f->lsn = 1;
 	} else
+	if (strncmp(opt, "size", 4) == 0) {
+		f->size = 1;
+	} else
 	if (strncmp(opt, "timestamp", 9) == 0) {
 		f->timestamp = 1;
 	} else
@@ -275,19 +280,36 @@ sf_schemevalidate(sfscheme *s, ssa *a)
 		return -1;
 	}
 
-	/* lsn meta */
-	sffield *lsn = sf_fieldnew(a, "_lsn");
-	if (ssunlikely(lsn == NULL))
+	/* add meta fields */
+
+	/* lsn */
+	sffield *meta_size = sf_fieldnew(a, "_size");
+	if (ssunlikely(meta_size == NULL))
 		return -1;
 	int rc;
-	rc = sf_fieldoptions(lsn, a, "u64,lsn");
+	rc = sf_fieldoptions(meta_size, a, "u32,size");
 	if (ssunlikely(rc == -1)) {
-		sf_fieldfree(lsn, a);
+		sf_fieldfree(meta_size, a);
 		return -1;
 	}
-	rc = sf_schemeadd(s, a, lsn);
+	rc = sf_schemeadd(s, a, meta_size);
 	if (ssunlikely(rc == -1)) {
-		sf_fieldfree(lsn, a);
+		sf_fieldfree(meta_size, a);
+		return -1;
+	}
+
+	/* lsn */
+	sffield *meta_lsn = sf_fieldnew(a, "_lsn");
+	if (ssunlikely(meta_lsn == NULL))
+		return -1;
+	rc = sf_fieldoptions(meta_lsn, a, "u64,lsn");
+	if (ssunlikely(rc == -1)) {
+		sf_fieldfree(meta_lsn, a);
+		return -1;
+	}
+	rc = sf_schemeadd(s, a, meta_lsn);
+	if (ssunlikely(rc == -1)) {
+		sf_fieldfree(meta_lsn, a);
 		return -1;
 	}
 
@@ -328,6 +350,16 @@ sf_schemevalidate(sfscheme *s, ssa *a)
 				return -1;
 			s->has_expire = 1;
 		}
+		/* meta fields */
+
+		/* size */
+		if (f->size) {
+			if (f->type != SS_U32)
+				return -1;
+			if (s->has_size)
+				return -1;
+			s->has_size = 1;
+		}
 		/* lsn */
 		if (f->lsn) {
 			if (f->type != SS_U64)
@@ -349,6 +381,9 @@ sf_schemevalidate(sfscheme *s, ssa *a)
 			else
 			if (f->lsn)
 				s->offset_lsn = f->fixed_offset;
+			else
+			if (f->size)
+				s->offset_size = f->fixed_offset;
 		} else {
 			s->var_count++;
 		}
@@ -401,6 +436,8 @@ int sf_schemesave(sfscheme *s, ssa *a, ssbuf *buf)
 	uint32_t v = s->fields_count;
 	if (s->has_lsn)
 		v--;
+	if (s->has_size)
+		v--;
 	int rc = ss_bufadd(buf, a, &v, sizeof(uint32_t));
 	if (ssunlikely(rc == -1))
 		return -1;
@@ -408,7 +445,7 @@ int sf_schemesave(sfscheme *s, ssa *a, ssbuf *buf)
 	while (i < s->fields_count) {
 		sffield *field = s->fields[i];
 		/* skip meta-fields */
-		if (field->lsn) {
+		if (field->lsn || field->size) {
 			i++;
 			continue;
 		}

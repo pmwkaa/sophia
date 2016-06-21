@@ -62,8 +62,8 @@ sv_vset(svv *head, svv *v, sr *r)
 svv*
 sv_indexget(svindex *i, sr *r, svindexpos *p, svv *v)
 {
-	p->rc = sv_indexmatch(&i->i, r->scheme, sv_vpointer(v),
-	                      v->size, &p->node);
+	p->rc = sv_indexmatch(&i->i, r->scheme, sv_vpointer(v), 0,
+	                      &p->node);
 	if (p->rc == 0 && p->node)
 		return sscast(p->node, svv, node);
 	return NULL;
@@ -82,6 +82,6 @@ int sv_indexupdate(svindex *i, sr *r, svindexpos *p, svv *v)
 	if (sv_vlsn(v, r) < i->lsnmin)
 		i->lsnmin = sv_vlsn(v, r);
 	i->count++;
-	i->used += v->size;
+	i->used += sv_vsize(v, r);
 	return 0;
 }

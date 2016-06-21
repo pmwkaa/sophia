@@ -89,7 +89,7 @@ int se_document_create(sedocument *o)
 	/* create document from raw data */
 	svv *v;
 	if (o->raw) {
-		v = sv_vbuildraw(db->r, o->raw, o->raw_size);
+		v = sv_vbuildraw(db->r, o->raw);
 		if (ssunlikely(v == NULL))
 			return sr_oom(&e->error);
 		sv_init(&o->v, &sv_vif, v, NULL);
@@ -295,7 +295,6 @@ se_document_setstring(so *o, const char *path, void *pointer, int size)
 		break;
 	case SE_DOCUMENT_RAW:
 		v->raw = pointer;
-		v->raw_size = size;
 		break;
 	default:
 		return -1;
@@ -341,21 +340,9 @@ se_document_getstring(so *o, const char *path, int *size)
 			*size = strlen(order) + 1;
 		return order;
 	}
-	case SE_DOCUMENT_RAW:
-		if (v->raw) {
-			if (size)
-				*size = v->raw_size;
-			return v->raw;
-		}
-		if (v->v.v == NULL)
-			return NULL;
-		if (size)
-			*size = sv_size(&v->v);
-		return sv_pointer(&v->v);
 	}
 	return NULL;
 }
-
 
 static int
 se_document_setint(so *o, const char *path, int64_t num)

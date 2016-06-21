@@ -22,9 +22,8 @@ typedef struct svif svif;
 typedef struct sv sv;
 
 struct svif {
-	uint8_t  (*flags)(sv*);
-	char    *(*pointer)(sv*);
-	uint32_t (*size)(sv*);
+	uint8_t (*flags)(sv*);
+	char *(*pointer)(sv*);
 };
 
 struct sv {
@@ -60,8 +59,8 @@ sv_pointer(sv *v) {
 }
 
 static inline uint32_t
-sv_size(sv *v) {
-	return v->i->size(v);
+sv_size(sv *v, sr *r) {
+	return sf_size(r->scheme, v->i->pointer(v));
 }
 
 static inline uint64_t

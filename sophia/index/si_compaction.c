@@ -208,7 +208,7 @@ int si_branch(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 		return -1;
 	if (ssunlikely(branch == NULL)) {
 		si_lock(index);
-		uint32_t used = sv_indexused(i);
+		uint32_t used = i->used;
 		n->used -= used;
 		svindex swap = *i;
 		si_nodeunrotate(n);
@@ -225,7 +225,7 @@ int si_branch(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 	n->branch->link = branch;
 	n->branch = branch;
 	n->branch_count++;
-	uint32_t used = sv_indexused(i);
+	uint32_t used = i->used;
 	n->used -= used;
 	index->size +=
 		sd_indexsize_ext(branch->index.h) +
@@ -364,7 +364,7 @@ int si_compact_index(si *index, sdc *c, siplan *plan,
 	vindex = si_noderotate(node);
 	si_unlock(index);
 
-	uint64_t size_stream = sv_indexused(vindex);
+	uint64_t size_stream = vindex->used;
 	ssiter i;
 	ss_iterinit(sv_indexiter, &i);
 	ss_iteropen(sv_indexiter, &i, &index->r, vindex, SS_GTE, NULL);

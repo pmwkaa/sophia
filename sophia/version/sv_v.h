@@ -12,7 +12,6 @@
 typedef struct svv svv;
 
 struct svv {
-	uint32_t size;
 	uint16_t refs;
 	uint8_t  flags;
 	void    *log;
@@ -28,8 +27,8 @@ sv_vpointer(svv *v) {
 }
 
 static inline uint32_t
-sv_vsize(svv *v) {
-	return sizeof(svv) + v->size;
+sv_vsize(svv *v, sr *r) {
+	return sizeof(svv) + sf_size(r->scheme, sv_vpointer(v));
 }
 
 static inline uint64_t
@@ -40,11 +39,10 @@ sv_vlsn(svv *v, sr *r) {
 static inline svv*
 sv_vbuild(sr *r, sfv *fields)
 {
-	int size = sf_writesize(r->scheme, fields);
+	uint32_t size = sf_writesize(r->scheme, fields);
 	svv *v = ss_malloc(r->a, sizeof(svv) + size);
 	if (ssunlikely(v == NULL))
 		return NULL;
-	v->size  = size;
 	v->flags = 0;
 	v->refs  = 1;
 	v->log   = NULL;
@@ -52,6 +50,8 @@ sv_vbuild(sr *r, sfv *fields)
 	memset(&v->node, 0, sizeof(v->node));
 	char *ptr = sv_vpointer(v);
 	sf_write(r->scheme, fields, ptr);
+	sf_sizeset(r->scheme, sv_vpointer(v), size);
+
 	/* update runtime statistics */
 	ss_spinlock(&r->stat->lock);
 	r->stat->v_count++;
@@ -61,12 +61,12 @@ sv_vbuild(sr *r, sfv *fields)
 }
 
 static inline svv*
-sv_vbuildraw(sr *r, char *src, int size)
+sv_vbuildraw(sr *r, char *src)
 {
+	uint32_t size = sf_size(r->scheme, src);
 	svv *v = ss_malloc(r->a, sizeof(svv) + size);
 	if (ssunlikely(v == NULL))
 		return NULL;
-	v->size  = size;
 	v->flags = 0;
 	v->refs  = 1;
 	v->log   = NULL;
@@ -84,7 +84,7 @@ sv_vbuildraw(sr *r, char *src, int size)
 static inline svv*
 sv_vdup(sr *r, sv *src)
 {
-	svv *v = sv_vbuildraw(r, sv_pointer(src), sv_size(src));
+	svv *v = sv_vbuildraw(r, sv_pointer(src));
 	if (ssunlikely(v == NULL))
 		return NULL;
 	v->flags = sv_flags(src);
@@ -100,7 +100,7 @@ static inline int
 sv_vunref(sr *r, svv *v)
 {
 	if (sslikely(--v->refs == 0)) {
-		uint32_t size = sv_vsize(v);
+		uint32_t size = sv_vsize(v, r);
 		/* update runtime statistics */
 		ss_spinlock(&r->stat->lock);
 		assert(r->stat->v_count > 0);

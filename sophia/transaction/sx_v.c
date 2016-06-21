@@ -24,14 +24,8 @@ sx_vifpointer(sv *v) {
 	return sv_vpointer(((sxv*)v->v)->v);
 }
 
-static uint32_t
-sx_vifsize(sv *v) {
-	return ((sxv*)v->v)->v->size;
-}
-
 svif sx_vif =
 {
 	.flags   = sx_vifflags,
-	.pointer = sx_vifpointer,
-	.size    = sx_vifsize
+	.pointer = sx_vifpointer
 };

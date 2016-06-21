@@ -125,8 +125,8 @@ int si_profiler(siprofiler *p)
 			p->histogram_branch[n->branch_count]++;
 		else
 			p->histogram_branch_20plus++;
-		memory_used += sv_indexused(&n->i0);
-		memory_used += sv_indexused(&n->i1);
+		memory_used += n->i0.used;
+		memory_used += n->i1.used;
 		sibranch *b = n->branch;
 		while (b) {
 			p->count += b->index.h->keys;

@@ -203,8 +203,9 @@ sd_buildadd_sparse(sdbuild *b, sr *r, sv *v)
 }
 
 static inline int
-sd_buildadd_raw(sdbuild *b, sr *r, sv *v, uint32_t size)
+sd_buildadd_raw(sdbuild *b, sr *r, sv *v)
 {
+	uint32_t size = sv_size(v, r);
 	int rc = ss_bufensure(&b->v, r->a, size);
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
@@ -219,17 +220,15 @@ int sd_buildadd(sdbuild *b, sr *r, sv *v, uint32_t flags)
 	int rc = ss_bufensure(&b->m, r->a, sizeof(sdv));
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
-	uint32_t size = sv_size(v);
 	sdpageheader *h = sd_buildheader(b);
 	sdv *sv = (sdv*)b->m.p;
 	sv->flags = flags;
 	sv->offset = ss_bufused(&b->v) - sd_buildref(b)->v;
-	sv->size = size;
 	ss_bufadvance(&b->m, sizeof(sdv));
 	/* copy document */
 	switch (r->fmt_storage) {
 	case SF_RAW:
-		rc = sd_buildadd_raw(b, r, v, size);
+		rc = sd_buildadd_raw(b, r, v);
 		break;
 	case SF_SPARSE:
 		rc = sd_buildadd_sparse(b, r, v);
@@ -239,6 +238,7 @@ int sd_buildadd(sdbuild *b, sr *r, sv *v, uint32_t flags)
 		return -1;
 	/* update page header */
 	h->count++;
+	uint32_t size = sv_size(v, r);
 	size += sizeof(sdv) + size;
 	if (size > b->vmax)
 		b->vmax = size;
@@ -254,7 +254,7 @@ int sd_buildadd(sdbuild *b, sr *r, sv *v, uint32_t flags)
 	}
 	if (r->scheme->has_expire) {
 		uint32_t timestamp =
-			sf_ttlof(r->scheme, sv_pointer(v));
+			sf_ttl(r->scheme, sv_pointer(v));
 		if (timestamp < h->tsmin)
 			h->tsmin = timestamp;
 	}

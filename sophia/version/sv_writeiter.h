@@ -90,7 +90,7 @@ sv_writeiter_next(ssiter *i)
 		/* expiration logic */
 		if (im->expire > 0) {
 			uint32_t timestamp =
-				sf_ttlof(im->r->scheme, sv_pointer(v));
+				sf_ttl(im->r->scheme, sv_pointer(v));
 			if ((im->now - timestamp) >= im->expire)
 				 continue;
 		}
@@ -123,7 +123,7 @@ sv_writeiter_next(ssiter *i)
 					continue;
 				}
 			}
-			im->size += im->sizev + sv_size(v);
+			im->size += im->sizev + sv_size(v, im->r);
 			/* upsert (track first statement start) */
 			if (sv_isflags(flags, SVUPSERT))
 				im->upsert = 1;
@@ -220,7 +220,7 @@ sv_writeiter_resume(ssiter *i)
 	im->prevlsn = sv_lsn(im->v, im->r);
 	im->next    = 1;
 	im->upsert  = 0;
-	im->size    = im->sizev + sv_size(im->v);
+	im->size    = im->sizev + sv_size(im->v, im->r);
 	return 1;
 }
 

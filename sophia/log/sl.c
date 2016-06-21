@@ -434,12 +434,13 @@ int sl_rollback(sltx *t)
 }
 
 static inline void
-sl_writeadd(slpool *p, sltx *t, slv *lv, svlogv *logv)
+sl_writeadd(slpool *p, sltx *t, svlog *vlog, slv *lv, svlogv *logv)
 {
+	sr *r = sv_logindex(vlog, logv->index_id)->r;
 	sv *v = &logv->v;
 	lv->dsn   = logv->index_id;
 	lv->flags = sv_flags(v);
-	lv->size  = sv_size(v);
+	lv->size  = sv_size(v, r);
 	lv->crc   = ss_crcp(p->r->crc, sv_pointer(v), lv->size, 0);
 	lv->crc   = ss_crcs(p->r->crc, lv, sizeof(slv), lv->crc);
 	ss_iovadd(&p->iov, lv, sizeof(slv));
@@ -468,7 +469,7 @@ sl_writestmt(sltx *t, svlog *vlog)
 	}
 	assert(stmt != NULL);
 	slv lv;
-	sl_writeadd(t->p, t, &lv, stmt);
+	sl_writeadd(t->p, t, vlog, &lv, stmt);
 	int rc = ss_filewritev(&t->l->file, &p->iov);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(p->r->e, "log file '%s' write error: %s",
@@ -523,7 +524,7 @@ sl_writestmt_multi(sltx *t, svlog *vlog)
 		if (sv_is(v, SVGET))
 			continue;
 		lv = &lvbuf[lvp];
-		sl_writeadd(p, t, lv, logv);
+		sl_writeadd(p, t, vlog, lv, logv);
 		lvp++;
 	}
 	if (sslikely(ss_iovhas(&p->iov))) {

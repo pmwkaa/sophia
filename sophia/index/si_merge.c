@@ -89,7 +89,7 @@ si_redistribute_set(si *index, sr *r, uint64_t now, svv *v)
 	svindex *vindex = si_nodeindex(node);
 	sv_indexset(vindex, r, v);
 	node->update_time = index->update_time;
-	node->used += sv_vsize(v);
+	node->used += sv_vsize(v, &index->r);
 	/* schedule node */
 	si_plannerupdate(&index->p, SI_BRANCH, node);
 }
@@ -334,7 +334,7 @@ int si_merge(si *index, sdc *c, sinode *node,
 		n->i0 = *j;
 		n->temperature = node->temperature;
 		n->temperature_reads = node->temperature_reads;
-		n->used = sv_indexused(j);
+		n->used = j->used;
 		index->size += si_nodesize(n);
 		si_nodelock(n);
 		si_replace(index, node, n);
@@ -350,7 +350,7 @@ int si_merge(si *index, sdc *c, sinode *node,
 		ss_iterinit(ss_bufiterref, &i);
 		ss_iteropen(ss_bufiterref, &i, result, sizeof(sinode*));
 		n = ss_iterof(ss_bufiterref, &i);
-		n->used = sv_indexused(&n->i0);
+		n->used = n->i0.used;
 		n->temperature = node->temperature;
 		n->temperature_reads = node->temperature_reads;
 		index->size += si_nodesize(n);
@@ -360,7 +360,7 @@ int si_merge(si *index, sdc *c, sinode *node,
 		for (ss_iternext(ss_bufiterref, &i); ss_iterhas(ss_bufiterref, &i);
 		     ss_iternext(ss_bufiterref, &i)) {
 			n = ss_iterof(ss_bufiterref, &i);
-			n->used = sv_indexused(&n->i0);
+			n->used = n->i0.used;
 			n->temperature = node->temperature;
 			n->temperature_reads = node->temperature_reads;
 			index->size += si_nodesize(n);

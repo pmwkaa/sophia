@@ -28,10 +28,24 @@ struct sfv {
 };
 
 static inline uint32_t
-sf_ttlof(sfscheme *s, char *data)
+sf_ttl(sfscheme *s, char *data)
 {
 	assert(s->has_expire);
 	return *(uint32_t*)(data + s->offset_expire);
+}
+
+static inline uint32_t
+sf_size(sfscheme *s, char *data)
+{
+	assert(s->has_size);
+	return *(uint32_t*)(data + s->offset_size);
+}
+
+static inline void
+sf_sizeset(sfscheme *s, char *data, uint32_t size)
+{
+	assert(s->has_size);
+	*(uint32_t*)(data + s->offset_size) = size;
 }
 
 static inline uint64_t

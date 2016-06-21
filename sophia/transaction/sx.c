@@ -435,9 +435,7 @@ int sx_set(sx *x, sxindex *index, svv *version)
 	ssrbnode *n = NULL;
 	int rc;
 	rc = sx_match(&index->i, index->r->scheme,
-	              sv_vpointer(version),
-	              version->size,
-	              &n);
+	              sv_vpointer(version), 0, &n);
 	if (ssunlikely(rc == 0 && n)) {
 		/* exists */
 	} else {
@@ -498,9 +496,7 @@ int sx_get(sx *x, sxindex *index, sv *key, sv *result)
 	assert(x->isolation == SX_SERIALIZABLE);
 	int rc;
 	rc = sx_match(&index->i, index->r->scheme,
-	              sv_pointer(key),
-	              sv_size(key),
-	              &n);
+	              sv_pointer(key), 0, &n);
 	if (! (rc == 0 && n))
 		goto add;
 	sxv *head = sscast(n, sxv, node);

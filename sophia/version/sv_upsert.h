@@ -92,8 +92,7 @@ sv_upsertgc(svupsert *u, sr *r, int wm_stack, int wm_buf)
 }
 
 static inline int
-sv_upsertpush_raw(svupsert *u, sr *r, char *pointer, int size,
-                  uint8_t flags)
+sv_upsertpush_raw(svupsert *u, sr *r, char *pointer, uint8_t flags)
 {
 	svupsertnode *n;
 	int rc;
@@ -108,6 +107,7 @@ sv_upsertpush_raw(svupsert *u, sr *r, char *pointer, int size,
 		ss_bufinit(&n->buf);
 		u->max++;
 	}
+	uint32_t size = sf_size(r->scheme, pointer);
 	rc = ss_bufensure(&n->buf, r->a, size);
 	if (ssunlikely(rc == -1))
 		return -1;
@@ -122,9 +122,7 @@ sv_upsertpush_raw(svupsert *u, sr *r, char *pointer, int size,
 static inline int
 sv_upsertpush(svupsert *u, sr *r, sv *v)
 {
-	return sv_upsertpush_raw(u, r, sv_pointer(v),
-	                         sv_size(v),
-	                         sv_flags(v));
+	return sv_upsertpush_raw(u, r, sv_pointer(v), sv_flags(v));
 }
 
 static inline svupsertnode*
@@ -195,17 +193,17 @@ sv_upsertdo(svupsert *u, sr *r, svupsertnode *a, svupsertnode *b)
 		v[i].pointer = result[i];
 		v[i].size = result_size[i];
 	}
-	int size = sf_writesize(r->scheme, v);
+	uint32_t size = sf_writesize(r->scheme, v);
 	ss_bufreset(&u->tmp);
 	rc = ss_bufensure(&u->tmp, r->a, size);
 	if (ssunlikely(rc == -1))
 		goto cleanup;
 	sf_write(r->scheme, v, u->tmp.s);
+	sf_sizeset(r->scheme, u->tmp.s, size);
 	ss_bufadvance(&u->tmp, size);
 
 	/* save result */
-	rc = sv_upsertpush_raw(u, r, u->tmp.s, ss_bufused(&u->tmp),
-	                       b->flags & ~SVUPSERT);
+	rc = sv_upsertpush_raw(u, r, u->tmp.s, b->flags & ~SVUPSERT);
 cleanup:
 	/* free fields */
 	i = 0;

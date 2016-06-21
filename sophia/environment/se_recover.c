@@ -59,7 +59,7 @@ se_recover_log(se *e, sl *log)
 			so *o = so_document(&db->o);
 			if (ssunlikely(o == NULL))
 				goto rlb;
-			so_setstring(o, "raw", sv_pointer(v), sv_size(v));
+			so_setstring(o, "raw", sv_pointer(v), 0);
 			so_setstring(o, "log", log, 0);
 			
 			int flags = sv_flags(v);

@@ -28,7 +28,6 @@ struct sedocument {
 	uint32_t  value_size;
 	/* recover */
 	void     *raw;
-	uint32_t  raw_size;
 	uint32_t  timestamp;
 	void     *log;
 	/* read options */
