@@ -42,7 +42,7 @@ sv_writeiter_upsert(svwriteiter *i)
 	sv *v = ss_iterof(sv_mergeiter, i->merge);
 	assert(v != NULL);
 	assert(sv_flags(v) & SVUPSERT);
-	assert(sv_lsn(v) <= i->vlsn);
+	assert(sv_lsn(v, i->r) <= i->vlsn);
 	int rc = sv_upsertpush(i->u, i->r, v);
 	if (ssunlikely(rc == -1))
 		return -1;
@@ -94,7 +94,7 @@ sv_writeiter_next(ssiter *i)
 			if ((im->now - timestamp) >= im->expire)
 				 continue;
 		}
-		uint64_t lsn = sv_lsn(v);
+		uint64_t lsn = sv_lsn(v, im->r);
 		if (lsn < im->vlsn_lru)
 			continue;
 		int flags = sv_flags(v);
@@ -217,7 +217,7 @@ sv_writeiter_resume(ssiter *i)
 	if (ssunlikely(im->v == NULL))
 		return 0;
 	im->vdup    = sv_is(im->v, SVDUP) || sv_mergeisdup(im->merge);
-	im->prevlsn = sv_lsn(im->v);
+	im->prevlsn = sv_lsn(im->v, im->r);
 	im->next    = 1;
 	im->upsert  = 0;
 	im->size    = im->sizev + sv_size(im->v);

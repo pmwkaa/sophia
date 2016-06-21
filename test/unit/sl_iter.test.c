@@ -19,7 +19,8 @@
 static void
 alloclogv(svlog *log, sr *r, uint8_t flags, int key)
 {
-	sfv pv[2];
+	sfv pv[8];
+	memset(pv, 0, sizeof(pv));
 	pv[0].pointer = (char*)&key;
 	pv[0].size = sizeof(uint32_t);
 	pv[1].pointer = NULL;
@@ -60,6 +61,7 @@ sl_itertx(void)
 
 	svlog log;
 	sv_loginit(&log, &st_r.a, 1);
+	sv_loginit_index(&log, 0, &st_r.r);
 
 	alloclogv(&log, &st_r.r, 0, 7);
 
@@ -85,6 +87,7 @@ sl_itertx_read_empty(void)
 	t( sl_poolrotate(&lp) == 0 );
 	svlog log;
 	sv_loginit(&log, &st_r.a, 1);
+	sv_loginit_index(&log, 0, &st_r.r);
 	freelog(&log, &st_r.r);
 
 	sl *current = sscast(lp.list.prev, sl, link);
@@ -121,6 +124,7 @@ sl_itertx_read0(void)
 	t( sl_poolrotate(&lp) == 0 );
 	svlog log;
 	sv_loginit(&log, &st_r.a, 1);
+	sv_loginit_index(&log, 0, &st_r.r);
 	alloclogv(&log, &st_r.r, 0, 7);
 	sltx ltx;
 	t( sl_begin(&lp, &ltx, 0, 0) == 0 );
@@ -162,6 +166,7 @@ sl_itertx_read1(void)
 	t( sl_poolrotate(&lp) == 0 );
 	svlog log;
 	sv_loginit(&log, &st_r.a, 1);
+	sv_loginit_index(&log, 0, &st_r.r);
 	alloclogv(&log, &st_r.r, 0, 7);
 	alloclogv(&log, &st_r.r, 0, 8);
 	alloclogv(&log, &st_r.r, 0, 9);
@@ -214,6 +219,7 @@ sl_itertx_read2(void)
 	t( sl_poolrotate(&lp) == 0 );
 	svlog log;
 	sv_loginit(&log, &st_r.a, 1);
+	sv_loginit_index(&log, 0, &st_r.r);
 	alloclogv(&log, &st_r.r, 0, 7);
 	alloclogv(&log, &st_r.r, 0, 8);
 	alloclogv(&log, &st_r.r, 0, 9);
@@ -271,6 +277,7 @@ sl_itertx_read3(void)
 	svlog log;
 
 	sv_loginit(&log, &st_r.a, 1);
+	sv_loginit_index(&log, 0, &st_r.r);
 	alloclogv(&log, &st_r.r, 0, 7); /* single stmt */
 	sltx ltx;
 	t( sl_begin(&lp, &ltx, 0, 0) == 0 );
@@ -279,6 +286,7 @@ sl_itertx_read3(void)
 	freelog(&log, &st_r.r);
 
 	sv_loginit(&log, &st_r.a, 1);
+	sv_loginit_index(&log, 0, &st_r.r);
 	alloclogv(&log, &st_r.r, 0, 8); /* multi stmt */
 	alloclogv(&log, &st_r.r, 0, 9);
 	alloclogv(&log, &st_r.r, 0, 10);
@@ -288,6 +296,7 @@ sl_itertx_read3(void)
 	freelog(&log, &st_r.r);
 
 	sv_loginit(&log, &st_r.a, 1);
+	sv_loginit_index(&log, 0, &st_r.r);
 	alloclogv(&log, &st_r.r, 0, 11); /* multi stmt */
 	alloclogv(&log, &st_r.r, 0, 12);
 	alloclogv(&log, &st_r.r, 0, 13);
@@ -297,6 +306,7 @@ sl_itertx_read3(void)
 	freelog(&log, &st_r.r);
 
 	sv_loginit(&log, &st_r.a, 1);
+	sv_loginit_index(&log, 0, &st_r.r);
 	alloclogv(&log, &st_r.r, 0, 14); /* single stmt */
 	t( sl_begin(&lp, &ltx, 0, 0) == 0 );
 	t( sl_write(&ltx, &log) == 0 );

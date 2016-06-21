@@ -115,6 +115,11 @@ sv_logat(svlog *l, int pos) {
 	return ss_bufat(&l->buf, sizeof(svlogv), pos);
 }
 
+static inline svlogindex*
+sv_logindex(svlog *l, int id) {
+	return ss_bufat(&l->index, sizeof(svlogindex), id);
+}
+
 static inline int
 sv_logadd(svlog *l, ssa *a, svlogv *v)
 {

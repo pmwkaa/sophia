@@ -31,7 +31,7 @@ static inline int si_set(sitx *x, svv *v, uint64_t time)
 	svindex *vindex = si_nodeindex(node);
 	svindexpos pos;
 	sv_indexget(vindex, &index->r, &pos, v);
-	sv_indexupdate(vindex, &pos, v);
+	sv_indexupdate(vindex, &index->r, &pos, v);
 	/* update node */
 	node->update_time = index->update_time;
 	node->used += sv_vsize(v);

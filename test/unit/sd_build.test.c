@@ -18,13 +18,14 @@
 static void
 addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 {
-	sfv pv[2];
+	sfv pv[8];
+	memset(pv, 0, sizeof(pv));
 	pv[0].pointer = (char*)key;
 	pv[0].size = sizeof(uint32_t);
 	pv[1].pointer = NULL;
 	pv[1].size = 0;
 	svv *v = sv_vbuild(r, pv);
-	v->lsn = lsn;
+	sf_lsnset(r->scheme, sv_vpointer(v), lsn);
 	v->flags = flags;
 	sv vv;
 	sv_init(&vv, &sv_vif, v, NULL);

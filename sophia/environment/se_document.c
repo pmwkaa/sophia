@@ -34,12 +34,10 @@ enum {
 	SE_DOCUMENT_FIELD,
 	SE_DOCUMENT_ORDER,
 	SE_DOCUMENT_PREFIX,
-	SE_DOCUMENT_LSN,
 	SE_DOCUMENT_LOG,
 	SE_DOCUMENT_RAW,
 	SE_DOCUMENT_FLAGS,
 	SE_DOCUMENT_COLD_ONLY,
-	SE_DOCUMENT_EVENT,
 	SE_DOCUMENT_UNKNOWN
 };
 
@@ -54,8 +52,6 @@ se_document_opt(const char *path)
 			return SE_DOCUMENT_ORDER;
 		break;
 	case 'l':
-		if (sslikely(strcmp(path, "lsn") == 0))
-			return SE_DOCUMENT_LSN;
 		if (sslikely(strcmp(path, "log") == 0))
 			return SE_DOCUMENT_LOG;
 		break;
@@ -74,10 +70,6 @@ se_document_opt(const char *path)
 	case 'c':
 		if (sslikely(strcmp(path, "cold_only") == 0))
 			return SE_DOCUMENT_COLD_ONLY;
-		break;
-	case 'e':
-		if (sslikely(strcmp(path, "event") == 0))
-			return SE_DOCUMENT_EVENT;
 		break;
 	}
 	return SE_DOCUMENT_FIELD;
@@ -349,14 +341,6 @@ se_document_getstring(so *o, const char *path, int *size)
 			*size = strlen(order) + 1;
 		return order;
 	}
-	case SE_DOCUMENT_EVENT: {
-		char *type = "none";
-		if (v->event == 1)
-			type = "on_backup";
-		if (size)
-			*size = strlen(type);
-		return type;
-	}
 	case SE_DOCUMENT_RAW:
 		if (v->raw) {
 			if (size)
@@ -392,14 +376,6 @@ se_document_getint(so *o, const char *path)
 {
 	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
 	switch (se_document_opt(path)) {
-	case SE_DOCUMENT_LSN: {
-		uint64_t lsn = -1;
-		if (v->v.v)
-			lsn = ((svv*)(v->v.v))->lsn;
-		return lsn;
-	}
-	case SE_DOCUMENT_EVENT:
-		return v->event;
 	case SE_DOCUMENT_FLAGS: {
 		uint64_t flags = -1;
 		if (v->v.v)
@@ -448,4 +424,20 @@ so *se_document_new(se *e, so *parent, sv *vp)
 	}
 	so_pooladd(&e->document, &v->o);
 	return &v->o;
+}
+
+int se_document_validate(sedocument *o, so *dest, uint8_t flags)
+{
+	se *e = se_of(&o->o);
+	if (ssunlikely(o->o.parent != dest))
+		return sr_error(&e->error, "%s", "incompatible document parent db");
+	svv *v = o->v.v;
+	if (o->flagset) {
+		if (ssunlikely(v->flags != flags))
+			return sr_error(&e->error, "%s", "incompatible document flags");
+	} else {
+		o->flagset = 1;
+		v->flags = flags;
+	}
+	return 0;
 }

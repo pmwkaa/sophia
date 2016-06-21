@@ -20,7 +20,7 @@ getv(svindex *i, sr *r, uint64_t vlsn, svv *key) {
 	ssrbnode *n = NULL;
 	int rc = sv_indexmatch(&i->i, r->scheme, sv_vpointer(key), sv_vsize(key), &n);
 	if (rc == 0 && n) {
-		return sv_vvisible(sscast(n, svv, node), vlsn);
+		return sv_vvisible(sscast(n, svv, node), r, vlsn);
 	}
 	return NULL;
 }

@@ -34,10 +34,15 @@ st_generator_kv(stgenerator *g, va_list args)
 	uint32_t u32fields[16];
 	uint64_t u64fields[16];
 	sfv fields[16];
+	memset(fields, 0, sizeof(fields));
 	assert(scheme->fields_count <= 16);
 	int i = 0;
 	while (i < scheme->fields_count)
 	{
+		if (scheme->fields[i]->lsn) {
+			i++;
+			continue;
+		}
 		sfv *fv = &fields[i];
 		if (scheme->fields[i]->type == SS_U32) {
 			u32fields[i] = va_arg(args, uint32_t);
@@ -62,8 +67,8 @@ static inline svv*
 st_svv_va(stgenerator *g, stlist *l, uint64_t lsn, uint8_t flags, va_list args)
 {
 	svv *v = st_generator_kv(g, args);
-	v->lsn = lsn;
 	v->flags = flags;
+	sf_lsnset(g->r->scheme, sv_vpointer(v), lsn);
 	if (v == NULL || l == NULL)
 		return v;
 	assert(l->type == ST_SVV);
@@ -134,12 +139,17 @@ svv *st_svv_seed(stgenerator *g, uint32_t seed, uint32_t seed_value)
 {
 	sfscheme *scheme = g->r->scheme;
 	sfv fields[16];
+	memset(fields, 0, sizeof(fields));
 	assert(scheme->fields_count <= 16);
 	int keysize = 0;
 	void *key = NULL;
 	int i = 0;
 	while (i < scheme->fields_count)
 	{
+		if (scheme->fields[i]->lsn) {
+			i++;
+			continue;
+		}
 		sfv *fv = &fields[i];
 		if (scheme->fields[i]->type == SS_U32) {
 			u32fields[i] = seed;

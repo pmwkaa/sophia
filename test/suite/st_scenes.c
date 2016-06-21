@@ -209,6 +209,10 @@ void st_scene_truncate(stscene *s ssunused)
 		t( k != NULL );
 		int i = 0;
 		while (i < st_r.r.scheme->fields_count) {
+			if (st_r.r.scheme->fields[i]->lsn) {
+				i++;
+				continue;
+			}
 			int size;
 			void *field = sp_getstring(o, st_r.r.scheme->fields[i]->name, &size);
 			sp_setstring(k, st_r.r.scheme->fields[i]->name, field, size);

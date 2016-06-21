@@ -143,9 +143,11 @@ void sf_schemeinit(sfscheme *s)
 	s->keys_count = 0;
 	s->var_offset = 0;
 	s->offset_expire = 0;
+	s->offset_lsn = 0;
 	s->var_count  = 0;
 	s->cmp = NULL;
 	s->cmparg = NULL;
+	s->has_lsn = 0;
 	s->has_timestamp = 0;
 	s->has_expire = 0;
 }
@@ -251,6 +253,9 @@ sf_schemeset(sfscheme *s, sffield *f, char *opt)
 		f->position_key = v;
 		f->key = 1;
 	} else
+	if (strncmp(opt, "lsn", 3) == 0) {
+		f->lsn = 1;
+	} else
 	if (strncmp(opt, "timestamp", 9) == 0) {
 		f->timestamp = 1;
 	} else
@@ -269,6 +274,23 @@ sf_schemevalidate(sfscheme *s, ssa *a)
 	if (s->fields_count == 0) {
 		return -1;
 	}
+
+	/* lsn meta */
+	sffield *lsn = sf_fieldnew(a, "_lsn");
+	if (ssunlikely(lsn == NULL))
+		return -1;
+	int rc;
+	rc = sf_fieldoptions(lsn, a, "u64,lsn");
+	if (ssunlikely(rc == -1)) {
+		sf_fieldfree(lsn, a);
+		return -1;
+	}
+	rc = sf_schemeadd(s, a, lsn);
+	if (ssunlikely(rc == -1)) {
+		sf_fieldfree(lsn, a);
+		return -1;
+	}
+
 	int fixed_offset = 0;
 	int fixed_pos = 0;
 	int i = 0;
@@ -289,7 +311,7 @@ sf_schemevalidate(sfscheme *s, ssa *a)
 		for (p = strtok(opts, " ,"); p;
 		     p = strtok(NULL, " ,"))
 		{
-			int rc = sf_schemeset(s, f, p);
+			rc = sf_schemeset(s, f, p);
 			if (ssunlikely(rc == -1))
 				return -1;
 		}
@@ -306,6 +328,14 @@ sf_schemevalidate(sfscheme *s, ssa *a)
 				return -1;
 			s->has_expire = 1;
 		}
+		/* lsn */
+		if (f->lsn) {
+			if (f->type != SS_U64)
+				return -1;
+			if (s->has_lsn)
+				return -1;
+			s->has_lsn = 1;
+		}
 
 		/* calculate offset and position for fixed
 		 * size types */
@@ -316,6 +346,9 @@ sf_schemevalidate(sfscheme *s, ssa *a)
 			fixed_offset += f->fixed_size;
 			if (f->expire)
 				s->offset_expire = f->fixed_offset;
+			else
+			if (f->lsn)
+				s->offset_lsn = f->fixed_offset;
 		} else {
 			s->var_count++;
 		}
@@ -366,12 +399,19 @@ int sf_schemesave(sfscheme *s, ssa *a, ssbuf *buf)
 {
 	/* fields count */
 	uint32_t v = s->fields_count;
+	if (s->has_lsn)
+		v--;
 	int rc = ss_bufadd(buf, a, &v, sizeof(uint32_t));
 	if (ssunlikely(rc == -1))
 		return -1;
 	int i = 0;
 	while (i < s->fields_count) {
 		sffield *field = s->fields[i];
+		/* skip meta-fields */
+		if (field->lsn) {
+			i++;
+			continue;
+		}
 		/* name */
 		v = strlen(field->name) + 1;
 		rc = ss_bufensure(buf, a, sizeof(uint32_t) + v);

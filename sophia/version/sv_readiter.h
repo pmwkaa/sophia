@@ -76,7 +76,7 @@ sv_readiter_next(ssiter *i)
 				im->nextdup = 0;
 		}
 		/* skip version out of visible range */
-		if (sv_lsn(v) > im->vlsn) {
+		if (sv_lsn(v, im->r) > im->vlsn) {
 			continue;
 		}
 		im->nextdup = 1;

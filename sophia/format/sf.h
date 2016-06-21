@@ -34,6 +34,20 @@ sf_ttlof(sfscheme *s, char *data)
 	return *(uint32_t*)(data + s->offset_expire);
 }
 
+static inline uint64_t
+sf_lsn(sfscheme *s, char *data)
+{
+	assert(s->has_lsn);
+	return *(uint64_t*)(data + s->offset_lsn);
+}
+
+static inline void
+sf_lsnset(sfscheme *s, char *data, uint64_t lsn)
+{
+	assert(s->has_lsn);
+	*(uint64_t*)(data + s->offset_lsn) = lsn;
+}
+
 static inline char*
 sf_fieldof_ptr(sfscheme *s, sffield *f, char *data, uint32_t *size)
 {

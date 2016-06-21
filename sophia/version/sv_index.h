@@ -29,7 +29,7 @@ ss_rbget(sv_indexmatch,
 
 int  sv_indexinit(svindex*);
 int  sv_indexfree(svindex*, sr*);
-int  sv_indexupdate(svindex*, svindexpos*, svv*);
+int  sv_indexupdate(svindex*, sr*, svindexpos*, svv*);
 svv *sv_indexget(svindex*, sr*, svindexpos*, svv*);
 
 static inline int
@@ -37,7 +37,7 @@ sv_indexset(svindex *i, sr *r, svv *v)
 {
 	svindexpos pos;
 	sv_indexget(i, r, &pos, v);
-	sv_indexupdate(i, &pos, v);
+	sv_indexupdate(i, r, &pos, v);
 	return 0;
 }
 

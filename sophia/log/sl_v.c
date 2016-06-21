@@ -18,11 +18,6 @@ sl_vifflags(sv *v) {
 	return ((slv*)v->v)->flags;
 }
 
-static uint64_t
-sl_viflsn(sv *v) {
-	return ((slv*)v->v)->lsn;
-}
-
 static char*
 sl_vifpointer(sv *v) {
 	return (char*)v->v + sizeof(slv);
@@ -36,8 +31,6 @@ sl_vifsize(sv *v) {
 svif sl_vif =
 {
 	.flags   = sl_vifflags,
-	.lsn     = sl_viflsn,
-	.lsnset  = NULL,
 	.pointer = sl_vifpointer,
 	.size    = sl_vifsize
 };

@@ -34,11 +34,11 @@ int sv_indexfree(svindex *i, sr *r)
 }
 
 static inline svv*
-sv_vset(svv *head, svv *v)
+sv_vset(svv *head, svv *v, sr *r)
 {
-	assert(head->lsn != v->lsn);
+	assert(sv_vlsn(head, r) != sv_vlsn(v, r));
 	/* default */
-	if (sslikely(head->lsn < v->lsn)) {
+	if (sslikely(sv_vlsn(head, r) < sv_vlsn(v, r))) {
 		v->next = head;
 		head->flags |= SVDUP;
 		return v;
@@ -47,8 +47,8 @@ sv_vset(svv *head, svv *v)
 	svv *prev = head;
 	svv *c = head->next;
 	while (c) {
-		assert(c->lsn != v->lsn);
-		if (c->lsn < v->lsn)
+		assert(sv_vlsn(c, r) != sv_vlsn(v, r));
+		if (sv_vlsn(c, r) < sv_vlsn(v, r))
 			break;
 		prev = c;
 		c = c->next;
@@ -69,18 +69,18 @@ sv_indexget(svindex *i, sr *r, svindexpos *p, svv *v)
 	return NULL;
 }
 
-int sv_indexupdate(svindex *i, svindexpos *p, svv *v)
+int sv_indexupdate(svindex *i, sr *r, svindexpos *p, svv *v)
 {
 	if (p->rc == 0 && p->node) {
 		svv *head = sscast(p->node, svv, node);
-		svv *update = sv_vset(head, v);
+		svv *update = sv_vset(head, v, r);
 		if (head != update)
 			ss_rbreplace(&i->i, p->node, &update->node);
 	} else {
 		ss_rbset(&i->i, p->node, p->rc, &v->node);
 	}
-	if (v->lsn < i->lsnmin)
-		i->lsnmin = v->lsn;
+	if (sv_vlsn(v, r) < i->lsnmin)
+		i->lsnmin = sv_vlsn(v, r);
 	i->count++;
 	i->used += v->size;
 	return 0;

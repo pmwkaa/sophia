@@ -271,7 +271,7 @@ sv_indexiter_iterate1(void)
 	j = 0;
 	while (ss_iteratorhas(&it)) {
 		sv *v = ss_iteratorof(&it);
-		t( sv_lsn(v) == j );
+		t( sv_lsn(v, &st_r.r) == j );
 		ss_iteratornext(&it);
 		j++;
 	}

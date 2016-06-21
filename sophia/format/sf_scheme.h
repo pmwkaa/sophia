@@ -24,6 +24,7 @@ struct sffield {
 	uint32_t  fixed_offset;
 	char     *name;
 	char     *options;
+	int       lsn;
 	int       key;
 	int       timestamp;
 	int       expire;
@@ -38,8 +39,10 @@ struct sfscheme {
 	sfcmpf    cmp;
 	void     *cmparg;
 	int       offset_expire;
+	int       offset_lsn;
 	int       var_offset;
 	int       var_count;
+	int       has_lsn;
 	int       has_timestamp;
 	int       has_expire;
 };
@@ -52,6 +55,7 @@ sf_fieldnew(ssa *a, char *name)
 		return NULL;
 	f->timestamp = 0;
 	f->expire = 0;
+	f->lsn = 0;
 	f->key = 0;
 	f->fixed_size = 0;
 	f->fixed_offset = 0;

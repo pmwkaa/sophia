@@ -19,17 +19,6 @@ sv_upsertvifflags(sv *v) {
 	return n->flags;
 }
 
-static uint64_t
-sv_upsertviflsn(sv *v) {
-	svupsertnode *n = v->v;
-	return n->lsn;
-}
-
-static void
-sv_upsertviflsnset(sv *v ssunused, uint64_t lsn ssunused) {
-	assert(0);
-}
-
 static char*
 sv_upsertvifpointer(sv *v) {
 	svupsertnode *n = v->v;
@@ -45,8 +34,6 @@ sv_upsertvifsize(sv *v) {
 svif sv_upsertvif =
 {
 	.flags   = sv_upsertvifflags,
-	.lsn     = sv_upsertviflsn,
-	.lsnset  = sv_upsertviflsnset,
 	.pointer = sv_upsertvifpointer,
 	.size    = sv_upsertvifsize
 };

@@ -12,7 +12,6 @@
 typedef struct svv svv;
 
 struct svv {
-	uint64_t lsn;
 	uint32_t size;
 	uint16_t refs;
 	uint8_t  flags;
@@ -33,6 +32,11 @@ sv_vsize(svv *v) {
 	return sizeof(svv) + v->size;
 }
 
+static inline uint64_t
+sv_vlsn(svv *v, sr *r) {
+	return sf_lsn(r->scheme, sv_vpointer(v));
+}
+
 static inline svv*
 sv_vbuild(sr *r, sfv *fields)
 {
@@ -41,7 +45,6 @@ sv_vbuild(sr *r, sfv *fields)
 	if (ssunlikely(v == NULL))
 		return NULL;
 	v->size  = size;
-	v->lsn   = 0;
 	v->flags = 0;
 	v->refs  = 1;
 	v->log   = NULL;
@@ -66,7 +69,6 @@ sv_vbuildraw(sr *r, char *src, int size)
 	v->size  = size;
 	v->flags = 0;
 	v->refs  = 1;
-	v->lsn   = 0;
 	v->log   = NULL;
 	v->next  = NULL;
 	memset(&v->node, 0, sizeof(v->node));
@@ -86,7 +88,6 @@ sv_vdup(sr *r, sv *src)
 	if (ssunlikely(v == NULL))
 		return NULL;
 	v->flags = sv_flags(src);
-	v->lsn   = sv_lsn(src);
 	return v;
 }
 
@@ -124,8 +125,8 @@ sv_vfree(sr *r, svv *v)
 }
 
 static inline svv*
-sv_vvisible(svv *v, uint64_t vlsn) {
-	while (v && v->lsn > vlsn)
+sv_vvisible(svv *v, sr *r, uint64_t vlsn) {
+	while (v && sv_vlsn(v, r) > vlsn)
 		v = v->next;
 	return v;
 }

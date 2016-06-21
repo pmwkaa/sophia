@@ -22,11 +22,9 @@ typedef struct svif svif;
 typedef struct sv sv;
 
 struct svif {
-	uint8_t   (*flags)(sv*);
-	void      (*lsnset)(sv*, uint64_t);
-	uint64_t  (*lsn)(sv*);
-	char     *(*pointer)(sv*);
-	uint32_t  (*size)(sv*);
+	uint8_t  (*flags)(sv*);
+	char    *(*pointer)(sv*);
+	uint32_t (*size)(sv*);
 };
 
 struct sv {
@@ -56,16 +54,6 @@ sv_is(sv *v, int flags) {
 	return sv_isflags(sv_flags(v), flags) > 0;
 }
 
-static inline uint64_t
-sv_lsn(sv *v) {
-	return v->i->lsn(v);
-}
-
-static inline void
-sv_lsnset(sv *v, uint64_t lsn) {
-	v->i->lsnset(v, lsn);
-}
-
 static inline char*
 sv_pointer(sv *v) {
 	return v->i->pointer(v);
@@ -74,6 +62,16 @@ sv_pointer(sv *v) {
 static inline uint32_t
 sv_size(sv *v) {
 	return v->i->size(v);
+}
+
+static inline uint64_t
+sv_lsn(sv *v, sr *r) {
+	return sf_lsn(r->scheme, v->i->pointer(v));
+}
+
+static inline void
+sv_lsnset(sv *v, sr *r, uint64_t lsn) {
+	sf_lsnset(r->scheme, v->i->pointer(v), lsn);
 }
 
 static inline char*

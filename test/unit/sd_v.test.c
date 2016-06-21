@@ -18,13 +18,14 @@
 static void
 addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 {
-	sfv pv[2];
+	sfv pv[8];
+	memset(pv, 0, sizeof(pv));
 	pv[0].pointer = (char*)key;
 	pv[0].size = sizeof(uint32_t);
 	pv[1].pointer = NULL;
 	pv[1].size = 0;
 	svv *v = sv_vbuild(r, pv);
-	v->lsn = lsn;
+	sf_lsnset(r->scheme, sv_vpointer(v), lsn);
 	v->flags = flags;
 	sv vv;
 	sv_init(&vv, &sv_vif, v, NULL);
@@ -63,7 +64,7 @@ sd_v_test(void)
 	t( v != NULL );
 
 	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
-	t( sv_lsn(v) == 3 );
+	t( sv_lsn(v, &st_r.r) == 3 );
 	t( sv_flags(v) == 0 );
 	ss_iteratornext(&it);
 	t( ss_iteratorhas(&it) != 0 );
@@ -72,7 +73,7 @@ sd_v_test(void)
 	t( v != NULL );
 	
 	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == j );
-	t( sv_lsn(v) == 4 );
+	t( sv_lsn(v, &st_r.r) == 4 );
 	t( sv_flags(v) == 0 );
 
 	ss_iteratornext(&it);

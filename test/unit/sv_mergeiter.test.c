@@ -51,7 +51,7 @@ sv_mergeiter_merge_a(void)
 	while (ss_iteratorhas(&merge)) {
 		sv *v = (sv*)ss_iteratorof(&merge);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
-		t( sv_lsn(v) == i );
+		t( sv_lsn(v, &st_r.r) == i );
 		t( sv_flags(v) == 0 );
 		ss_iteratornext(&merge);
 		i++;
@@ -102,7 +102,7 @@ sv_mergeiter_merge_b(void)
 	while (ss_iteratorhas(&merge)) {
 		sv *v = (sv*)ss_iteratorof(&merge);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
-		t( sv_lsn(v) == i );
+		t( sv_lsn(v, &st_r.r) == i );
 		t( sv_flags(v) == 0 );
 		ss_iteratornext(&merge);
 		i++;
@@ -159,7 +159,7 @@ sv_mergeiter_merge_ab(void)
 	while (ss_iteratorhas(&merge)) {
 		sv *v = (sv*)ss_iteratorof(&merge);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
-		t( sv_lsn(v) == i );
+		t( sv_lsn(v, &st_r.r) == i );
 		t( sv_flags(v) == 0 );
 		ss_iteratornext(&merge);
 		i++;
@@ -229,7 +229,7 @@ sv_mergeiter_merge_abc(void)
 	while (ss_iteratorhas(&merge)) {
 		sv *v = (sv*)ss_iteratorof(&merge);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
-		t( sv_lsn(v) == i );
+		t( sv_lsn(v, &st_r.r) == i );
 		t( sv_flags(v) == 0 );
 		ss_iteratornext(&merge);
 		i++;
@@ -287,7 +287,7 @@ sv_mergeiter_merge_ba(void)
 	while (ss_iteratorhas(&merge)) {
 		sv *v = (sv*)ss_iteratorof(&merge);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
-		t( sv_lsn(v) == i );
+		t( sv_lsn(v, &st_r.r) == i );
 		t( sv_flags(v) == 0 );
 		ss_iteratornext(&merge);
 		i++;

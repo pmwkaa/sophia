@@ -113,7 +113,7 @@ si_getresult(siread *q, sv *v, int compare)
 			return 0;
 	}
 	if (ssunlikely(q->has))
-		return sv_lsn(v) > q->vlsn;
+		return sv_lsn(v, q->r) > q->vlsn;
 	if (ssunlikely(sv_is(v, SVDELETE)))
 		return 2;
 	rc = si_readdup(q, v);
@@ -148,7 +148,7 @@ result:;
 	assert(v != NULL);
 	svv *visible = v->v;
 	if (sslikely(! q->has)) {
-		visible = sv_vvisible(visible, q->vlsn);
+		visible = sv_vvisible(visible, q->r, q->vlsn);
 		if (visible == NULL)
 			return 0;
 	}
@@ -470,7 +470,7 @@ int si_readcommited(si *index, sr *r, sv *v)
 	node = ss_iterof(si_iter, &i);
 	assert(node != NULL);
 
-	uint64_t lsn = sv_lsn(v);
+	uint64_t lsn = sv_lsn(v, r);
 
 	/* search branches */
 	sibranch *b;

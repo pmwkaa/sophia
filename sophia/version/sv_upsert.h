@@ -13,9 +13,8 @@ typedef struct svupsertnode svupsertnode;
 typedef struct svupsert svupsert;
 
 struct svupsertnode {
-	uint64_t lsn;
-	uint8_t  flags;
-	ssbuf    buf;
+	uint8_t flags;
+	ssbuf   buf;
 };
 
 #define SV_UPSERTRESRV 16
@@ -94,8 +93,7 @@ sv_upsertgc(svupsert *u, sr *r, int wm_stack, int wm_buf)
 
 static inline int
 sv_upsertpush_raw(svupsert *u, sr *r, char *pointer, int size,
-                  uint8_t flags,
-                  uint64_t lsn)
+                  uint8_t flags)
 {
 	svupsertnode *n;
 	int rc;
@@ -115,7 +113,6 @@ sv_upsertpush_raw(svupsert *u, sr *r, char *pointer, int size,
 		return -1;
 	memcpy(n->buf.p, pointer, size);
 	n->flags = flags;
-	n->lsn = lsn;
 	ss_bufadvance(&n->buf, size);
 	ss_bufadvance(&u->stack, sizeof(svupsertnode));
 	u->count++;
@@ -127,7 +124,7 @@ sv_upsertpush(svupsert *u, sr *r, sv *v)
 {
 	return sv_upsertpush_raw(u, r, sv_pointer(v),
 	                         sv_size(v),
-	                         sv_flags(v), sv_lsn(v));
+	                         sv_flags(v));
 }
 
 static inline svupsertnode*
@@ -208,8 +205,7 @@ sv_upsertdo(svupsert *u, sr *r, svupsertnode *a, svupsertnode *b)
 
 	/* save result */
 	rc = sv_upsertpush_raw(u, r, u->tmp.s, ss_bufused(&u->tmp),
-	                       b->flags & ~SVUPSERT,
-	                       b->lsn);
+	                       b->flags & ~SVUPSERT);
 cleanup:
 	/* free fields */
 	i = 0;

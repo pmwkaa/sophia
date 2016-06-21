@@ -19,13 +19,14 @@
 static void
 alloclogv(svlog *log, sr *r, uint64_t lsn, uint8_t flags, int key)
 {
-	sfv pv[2];
+	sfv pv[8];
+	memset(pv, 0, sizeof(pv));
 	pv[0].pointer = (char*)&key;
 	pv[0].size = sizeof(uint32_t);
 	pv[1].pointer = NULL;
 	pv[1].size = 0;
 	svv *v = sv_vbuild(r, pv);
-	v->lsn = lsn;
+	sf_lsnset(r->scheme, sv_vpointer(v), lsn);
 	v->flags = flags;
 	svlogv logv;
 	logv.index_id = 0;
@@ -61,6 +62,7 @@ sl_begin_commit(void)
 
 	svlog log;
 	sv_loginit(&log, &st_r.a, 1);
+	sv_loginit_index(&log, 0, &st_r.r);
 
 	alloclogv(&log, &st_r.r, 0, 0, 7);
 
@@ -87,6 +89,7 @@ sl_begin_rollback(void)
 
 	svlog log;
 	sv_loginit(&log, &st_r.a, 1);
+	sv_loginit_index(&log, 0, &st_r.r);
 
 	alloclogv(&log, &st_r.r, 0, 0, 7);
 

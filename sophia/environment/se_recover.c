@@ -38,14 +38,14 @@ se_recover_log(se *e, sl *log)
 			break;
 
 		/* reply transaction */
-		uint64_t lsn = sv_lsn(v);
+
+		uint64_t lsn = UINT64_MAX;
 		tx = so_begin(&e->o);
 		if (ssunlikely(tx == NULL))
 			goto error;
 
 		while (ss_iteratorhas(&i)) {
 			v = ss_iteratorof(&i);
-			assert(sv_lsn(v) == lsn);
 			/* match a database */
 			uint32_t dsn = sl_vdsn(v);
 			if (db == NULL || db->scheme->id != dsn)
@@ -55,6 +55,7 @@ se_recover_log(se *e, sl *log)
 				               " is not declared", dsn);
 				goto rlb;
 			}
+			lsn = sv_lsn(v, db->r);
 			so *o = so_document(&db->o);
 			if (ssunlikely(o == NULL))
 				goto rlb;

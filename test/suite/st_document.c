@@ -33,6 +33,10 @@ void *st_document_generate(stgenerator *g, stlist *l, void *db,
 
 	int i = 0;
 	while (i < g->r->scheme->fields_count) {
+		if (g->r->scheme->fields[i]->lsn) {
+			i++;
+			continue;
+		}
 		uint32_t size;
 		char *ptr = sf_fieldof(g->r->scheme, i, sv_vpointer(v), &size);
 		rc = sp_setstring(o, g->r->scheme->fields[i]->name, ptr, size);
@@ -55,6 +59,10 @@ void st_document_eq(stgenerator *g, void *o,
 	int i = 0;
 	int size = 0;
 	while (i < g->r->scheme->fields_count) {
+		if (g->r->scheme->fields[i]->lsn) {
+			i++;
+			continue;
+		}
 		void *ptr = sp_getstring(o, g->r->scheme->fields[i]->name, &size);
 		uint32_t size_b;
 		char *ptr_b = sf_fieldof(g->r->scheme, i, sv_vpointer(v), &size_b);

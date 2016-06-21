@@ -13,7 +13,6 @@ typedef struct slv slv;
 
 struct slv {
 	uint32_t crc;
-	uint64_t lsn;
 	uint32_t dsn;
 	uint32_t size;
 	uint8_t  flags;

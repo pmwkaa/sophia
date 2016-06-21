@@ -59,7 +59,7 @@ sv_writeiter_iter(void)
 	while (ss_iteratorhas(&iter)) {
 		sv *v = (sv*)ss_iteratorof(&iter);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
-		t( sv_lsn(v) == 10 - i );
+		t( sv_lsn(v, &st_r.r) == 10 - i );
 		t( sv_flags(v) == 0 );
 		ss_iteratornext(&iter);
 		i++;
@@ -119,7 +119,7 @@ sv_writeiter_limit(void)
 	while (ss_iteratorhas(&iter)) {
 		sv *v = (sv*)ss_iteratorof(&iter);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
-		t( sv_lsn(v) == 18 - i );
+		t( sv_lsn(v, &st_r.r) == 18 - i );
 		t( sv_flags(v) == 0 );
 		ss_iteratornext(&iter);
 		i++;
@@ -130,7 +130,7 @@ sv_writeiter_limit(void)
 	while (ss_iteratorhas(&iter)) {
 		sv *v = (sv*)ss_iteratorof(&iter);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
-		t( sv_lsn(v) == 18 - i );
+		t( sv_lsn(v, &st_r.r) == 18 - i );
 		t( sv_flags(v) == 0 );
 		ss_iteratornext(&iter);
 		i++;
@@ -142,7 +142,7 @@ sv_writeiter_limit(void)
 	while (ss_iteratorhas(&iter)) {
 		sv *v = (sv*)ss_iteratorof(&iter);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
-		t( sv_lsn(v) == 18 - i );
+		t( sv_lsn(v, &st_r.r) == 18 - i );
 		t( sv_flags(v) == 0 );
 		ss_iteratornext(&iter);
 		i++;
@@ -154,7 +154,7 @@ sv_writeiter_limit(void)
 	while (ss_iteratorhas(&iter)) {
 		sv *v = (sv*)ss_iteratorof(&iter);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
-		t( sv_lsn(v) == 18 - i );
+		t( sv_lsn(v, &st_r.r) == 18 - i );
 		t( sv_flags(v) == 0 );
 		ss_iteratornext(&iter);
 		i++;
@@ -217,7 +217,7 @@ sv_writeiter_limit_small(void)
 	while (ss_iteratorhas(&iter)) {
 		sv *v = (sv*)ss_iteratorof(&iter);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
-		t( sv_lsn(v) == 18 - i );
+		t( sv_lsn(v, &st_r.r) == 18 - i );
 		t( sv_flags(v) == 0 );
 		ss_iteratornext(&iter);
 		i++;
@@ -228,7 +228,7 @@ sv_writeiter_limit_small(void)
 	while (ss_iteratorhas(&iter)) {
 		sv *v = (sv*)ss_iteratorof(&iter);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
-		t( sv_lsn(v) == 18 - i );
+		t( sv_lsn(v, &st_r.r) == 18 - i );
 		t( sv_flags(v) == 0 );
 		ss_iteratornext(&iter);
 		i++;
@@ -240,7 +240,7 @@ sv_writeiter_limit_small(void)
 	while (ss_iteratorhas(&iter)) {
 		sv *v = (sv*)ss_iteratorof(&iter);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
-		t( sv_lsn(v) == 18 - i );
+		t( sv_lsn(v, &st_r.r) == 18 - i );
 		t( sv_flags(v) == 0 );
 		ss_iteratornext(&iter);
 		i++;
@@ -252,7 +252,7 @@ sv_writeiter_limit_small(void)
 	while (ss_iteratorhas(&iter)) {
 		sv *v = (sv*)ss_iteratorof(&iter);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
-		t( sv_lsn(v) == 18 - i );
+		t( sv_lsn(v, &st_r.r) == 18 - i );
 		t( sv_flags(v) == 0 );
 		ss_iteratornext(&iter);
 		i++;
@@ -274,7 +274,7 @@ checkv(sr *r, ssiter *i, uint64_t lsn, int flags, int key)
 {
 	sv *v = (sv*)ss_iteratorof(i);
 	t( *(int*)sv_field(v, r, 0, NULL) == key );
-	t( sv_lsn(v) == lsn );
+	t( sv_lsn(v, &st_r.r) == lsn );
 	t( sv_flags(v) == flags );
 }
 
@@ -323,7 +323,7 @@ sv_writeiter_dup_lsn_gt(void)
 	while (ss_iteratorhas(&iter)) {
 		sv *v = (sv*)ss_iteratorof(&iter);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == key );
-		t( sv_lsn(v) == 10 - i );
+		t( sv_lsn(v, &st_r.r) == 10 - i );
 		if (i == 0)
 			t( sv_flags(v) == 0 );
 		else
@@ -387,7 +387,7 @@ sv_writeiter_dup_lsn_lt0(void)
 	while (ss_iteratorhas(&iter)) {
 		sv *v = (sv*)ss_iteratorof(&iter);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == key );
-		t( sv_lsn(v) == 10 - i );
+		t( sv_lsn(v, &st_r.r) == 10 - i );
 		if (i == 0)
 			t( sv_flags(v) == 0 );
 		else
@@ -451,7 +451,7 @@ sv_writeiter_dup_lsn_lt1(void)
 	while (ss_iteratorhas(&iter)) {
 		sv *v = (sv*)ss_iteratorof(&iter);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == key );
-		t( sv_lsn(v) == 10 - i );
+		t( sv_lsn(v, &st_r.r) == 10 - i );
 		if (i == 0)
 			t( sv_flags(v) == 0 );
 		else
@@ -515,7 +515,7 @@ sv_writeiter_dup_lsn_lt2(void)
 	while (ss_iteratorhas(&iter)) {
 		sv *v = (sv*)ss_iteratorof(&iter);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == key );
-		t( sv_lsn(v) == 10 - i );
+		t( sv_lsn(v, &st_r.r) == 10 - i );
 		if (i == 0)
 			t( sv_flags(v) == 0 );
 		else
@@ -1194,7 +1194,7 @@ sv_writeiter_delete0(void)
 	while (ss_iteratorhas(&iter)) {
 		sv *v = (sv*)ss_iteratorof(&iter);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == key );
-		t( sv_lsn(v) == 10 - i );
+		t( sv_lsn(v, &st_r.r) == 10 - i );
 		if (i == 0)
 			t( sv_flags(v) == 0 );
 		else
@@ -1258,7 +1258,7 @@ sv_writeiter_delete1(void)
 	while (ss_iteratorhas(&iter)) {
 		sv *v = (sv*)ss_iteratorof(&iter);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == key );
-		t( sv_lsn(v) == 10 - i );
+		t( sv_lsn(v, &st_r.r) == 10 - i );
 		if (i == 0)
 			t( sv_flags(v) == 0 );
 		else
@@ -1322,7 +1322,7 @@ sv_writeiter_delete2(void)
 	while (ss_iteratorhas(&iter)) {
 		sv *v = (sv*)ss_iteratorof(&iter);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == key );
-		t( sv_lsn(v) == 10 - i );
+		t( sv_lsn(v, &st_r.r) == 10 - i );
 		if (i == 0)
 			t( sv_flags(v) == 0 );
 		else
@@ -1386,7 +1386,7 @@ sv_writeiter_delete3(void)
 	while (ss_iteratorhas(&iter)) {
 		sv *v = (sv*)ss_iteratorof(&iter);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == key );
-		t( sv_lsn(v) == 10 - i );
+		t( sv_lsn(v, &st_r.r) == 10 - i );
 		if (i == 0)
 			t( sv_flags(v) == SVDELETE );
 		else
@@ -1450,7 +1450,7 @@ sv_writeiter_delete4(void)
 	while (ss_iteratorhas(&iter)) {
 		sv *v = (sv*)ss_iteratorof(&iter);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == key );
-		t( sv_lsn(v) == 10 - i );
+		t( sv_lsn(v, &st_r.r) == 10 - i );
 		if (i == 0)
 			t( sv_flags(v) == SVDELETE );
 		else
@@ -1514,7 +1514,7 @@ sv_writeiter_delete5(void)
 	while (ss_iteratorhas(&iter)) {
 		sv *v = (sv*)ss_iteratorof(&iter);
 		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == key );
-		t( sv_lsn(v) == 10 - i );
+		t( sv_lsn(v, &st_r.r) == 10 - i );
 		if (i == 0)
 			t( sv_flags(v) == SVDELETE );
 		else
@@ -1582,10 +1582,10 @@ sv_writeiter_delete6(void)
 		sv *v = (sv*)ss_iteratorof(&iter);
 		if (i == 0) {
 			t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 6 );
-			t( sv_lsn(v) == 12 );
+			t( sv_lsn(v, &st_r.r) == 12 );
 		} else {
 			t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 10 );
-			t( sv_lsn(v) == 11 );
+			t( sv_lsn(v, &st_r.r) == 11 );
 		}
 		t( sv_flags(v) == 0 );
 		ss_iteratornext(&iter);
@@ -1652,11 +1652,11 @@ sv_writeiter_delete7(void)
 		if (i == 0) {
 			t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 6 );
 			t( sv_flags(v) == 0 );
-			t( sv_lsn(v) == 12 );
+			t( sv_lsn(v, &st_r.r) == 12 );
 		} else {
 			t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 10 );
 			t( sv_flags(v) == 0 );
-			t( sv_lsn(v) == 11 );
+			t( sv_lsn(v, &st_r.r) == 11 );
 		}
 		ss_iteratornext(&iter);
 		i++;
@@ -1722,21 +1722,21 @@ sv_writeiter_delete8(void)
 		if (i == 0) {
 			t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 6 );
 			t( sv_flags(v) == 0 );
-			t( sv_lsn(v) == 12 );
+			t( sv_lsn(v, &st_r.r) == 12 );
 		} else
 		if (i == 1) {
 			t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 7 );
 			t( sv_flags(v) == SVDELETE );
-			t( sv_lsn(v) == 10 );
+			t( sv_lsn(v, &st_r.r) == 10 );
 		} else
 		if (i == 2) {
 			t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 7 );
 			t( sv_flags(v) == (SVDELETE|SVDUP) );
-			t( sv_lsn(v) ==  9 );
+			t( sv_lsn(v, &st_r.r) ==  9 );
 		} else {
 			t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 10 );
 			t( sv_flags(v) == 0 );
-			t( sv_lsn(v) == 11 );
+			t( sv_lsn(v, &st_r.r) == 11 );
 		}
 		ss_iteratornext(&iter);
 		i++;

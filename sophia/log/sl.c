@@ -437,7 +437,6 @@ static inline void
 sl_writeadd(slpool *p, sltx *t, slv *lv, svlogv *logv)
 {
 	sv *v = &logv->v;
-	lv->lsn   = t->lsn;
 	lv->dsn   = logv->index_id;
 	lv->flags = sv_flags(v);
 	lv->size  = sv_size(v);
@@ -460,7 +459,8 @@ sl_writestmt(sltx *t, svlog *vlog)
 		svlogv *logv = ss_iterof(ss_bufiter, &i);
 		sv *v = &logv->v;
 		assert(v->i == &sv_vif);
-		sv_lsnset(v, t->lsn);
+		sr *r = sv_logindex(vlog, logv->index_id)->r;
+		sv_lsnset(v, r, t->lsn);
 		if (sslikely(! (sv_is(v, SVGET)))) {
 			assert(stmt == NULL);
 			stmt = logv;
@@ -492,7 +492,6 @@ sl_writestmt_multi(sltx *t, svlog *vlog)
 	lvp = 0;
 	/* transaction header */
 	slv *lv = &lvbuf[0];
-	lv->lsn   = t->lsn;
 	lv->dsn   = 0;
 	lv->flags = SVBEGIN;
 	lv->size  = sv_logcount_write(vlog);
@@ -519,7 +518,8 @@ sl_writestmt_multi(sltx *t, svlog *vlog)
 		svlogv *logv = ss_iterof(ss_bufiter, &i);
 		sv *v = &logv->v;
 		assert(v->i == &sv_vif);
-		sv_lsnset(v, t->lsn);
+		sr *r = sv_logindex(vlog, logv->index_id)->r;
+		sv_lsnset(v, r, t->lsn);
 		if (sv_is(v, SVGET))
 			continue;
 		lv = &lvbuf[lvp];
@@ -554,7 +554,8 @@ int sl_write(sltx *t, svlog *vlog)
 		for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
 		{
 			svlogv *v = ss_iterof(ss_bufiter, &i);
-			sv_lsnset(&v->v, t->lsn);
+			sr *r = sv_logindex(vlog, v->index_id)->r;
+			sv_lsnset(&v->v, r, t->lsn);
 		}
 		return 0;
 	}

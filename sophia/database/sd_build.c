@@ -219,14 +219,12 @@ int sd_buildadd(sdbuild *b, sr *r, sv *v, uint32_t flags)
 	int rc = ss_bufensure(&b->m, r->a, sizeof(sdv));
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
-	uint64_t lsn = sv_lsn(v);
 	uint32_t size = sv_size(v);
 	sdpageheader *h = sd_buildheader(b);
 	sdv *sv = (sdv*)b->m.p;
 	sv->flags = flags;
 	sv->offset = ss_bufused(&b->v) - sd_buildref(b)->v;
 	sv->size = size;
-	sv->lsn = lsn;
 	ss_bufadvance(&b->m, sizeof(sdv));
 	/* copy document */
 	switch (r->fmt_storage) {
@@ -244,6 +242,7 @@ int sd_buildadd(sdbuild *b, sr *r, sv *v, uint32_t flags)
 	size += sizeof(sdv) + size;
 	if (size > b->vmax)
 		b->vmax = size;
+	uint64_t lsn  = sv_lsn(v, r);
 	if (lsn > h->lsnmax)
 		h->lsnmax = lsn;
 	if (lsn < h->lsnmin)
