@@ -166,14 +166,14 @@ sv_upsertdo(svupsert *u, sr *r, svupsertnode *a, svupsertnode *b)
 
 	/* execute */
 	int rc;
-	rc = r->fmt_upsert->function(r->scheme->fields_count,
-	                             src_ptr,
-	                             src_size_ptr,
-	                             upsert,
-	                             upsert_size,
-	                             result,
-	                             result_size,
-	                             r->fmt_upsert->arg);
+	rc = r->upsert->function(r->scheme->fields_count,
+	                         src_ptr,
+	                         src_size_ptr,
+	                         upsert,
+	                         upsert_size,
+	                         result,
+	                         result_size,
+	                         r->upsert->arg);
 	if (ssunlikely(rc == -1))
 		return -1;
 

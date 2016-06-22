@@ -87,9 +87,9 @@ sd_cgc(sdc *sc, sr *r, int wm)
 }
 
 static inline void
-sd_creset(sdc *sc, sr *r)
+sd_creset(sdc *sc, sr *r ssunused)
 {
-	sd_buildreset(&sc->build, r);
+	sd_buildreset(&sc->build);
 	ss_qfreset(&sc->qf);
 	sv_upsertreset(&sc->upsert);
 	ss_bufreset(&sc->a);

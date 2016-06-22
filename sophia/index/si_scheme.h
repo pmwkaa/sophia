@@ -64,14 +64,12 @@ struct sischeme {
 	uint32_t      compression_hot;
 	char         *compression_hot_sz;
 	ssfilterif   *compression_hot_if;
-	uint32_t      compression_copy;
 	uint32_t      temperature;
 	uint32_t      amqf;
 	uint64_t      lru;
 	uint32_t      lru_step;
 	uint32_t      buf_gc_wm;
-	sfstorage     fmt_storage;
-	sfupsert      fmt_upsert;
+	sfupsert      upsert;
 	sfscheme      scheme;
 	srversion     version;
 	srversion     version_storage;

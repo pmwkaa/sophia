@@ -336,7 +336,7 @@ se_confdb_upsert(srconf *c, srconfstmt *s)
 	}
 	/* set upsert function */
 	sfupsertf upsert = (sfupsertf)(uintptr_t)s->value;
-	sf_upsertset(&db->scheme->fmt_upsert, upsert);
+	sf_upsertset(&db->scheme->upsert, upsert);
 	return 0;
 }
 
@@ -351,7 +351,7 @@ se_confdb_upsertarg(srconf *c, srconfstmt *s)
 		sr_error(s->r->e, "write to %s is offline-only", s->path);
 		return -1;
 	}
-	sf_upsertset_arg(&db->scheme->fmt_upsert, s->value);
+	sf_upsertset_arg(&db->scheme->upsert, s->value);
 	return 0;
 }
 
@@ -658,7 +658,6 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc, int serialize)
 		sr_C(&p, pc, se_confv_dboffline, "expire", SS_U32, &o->scheme->expire, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "lru", SS_U64, &o->scheme->lru, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "lru_step", SS_U32, &o->scheme->lru_step, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "compression_copy", SS_U32, &o->scheme->compression_copy, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "compression_hot", SS_STRINGPTR, &o->scheme->compression_hot_sz, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "compression_cold", SS_STRINGPTR, &o->scheme->compression_cold_sz, 0, o);
 		sr_C(&p, pc, se_confdb_upsert, "comparator", SS_STRING, NULL, 0, o);

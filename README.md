@@ -28,7 +28,6 @@ events, logs, counters, metrics, etc.
 * Upsert (fast write-only 'update or insert' operation)
 * Consistent Cursors
 * Prefix search
-* Duplicate compression
 * Automatic garbage-collection
 * Automatic key-expire
 * Online/Versional database creation and asynchronous shutdown/drop

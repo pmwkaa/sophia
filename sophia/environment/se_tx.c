@@ -76,7 +76,7 @@ se_txupsert(so *o, so *v)
 	sedocument *key = se_cast(v, sedocument*, SEDOCUMENT);
 	se *e = se_of(&t->o);
 	sedb *db = se_cast(v->parent, sedb*, SEDB);
-	if (! sf_upserthas(&db->scheme->fmt_upsert)) {
+	if (! sf_upserthas(&db->scheme->upsert)) {
 		if (key->created <= 1)
 			so_destroy(v);
 		sr_error(&e->error, "%s", "upsert callback is not set");

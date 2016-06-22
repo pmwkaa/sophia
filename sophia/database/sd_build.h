@@ -22,17 +22,15 @@ struct sdbuildref {
 struct sdbuild {
 	ssbuf list, m, v, k, c;
 	ssfilterif *compress_if;
-	int compress_copy;
 	int compress;
 	int crc;
 	uint32_t vmax;
 	uint32_t n;
-	ssht tracker;
 };
 
 void sd_buildinit(sdbuild*);
 void sd_buildfree(sdbuild*, sr*);
-void sd_buildreset(sdbuild*, sr*);
+void sd_buildreset(sdbuild*);
 void sd_buildgc(sdbuild*, sr*, int);
 
 static inline sdbuildref*
@@ -78,9 +76,9 @@ sd_buildmaxkey(sdbuild *b) {
 	return b->v.s + r->v + sd_buildmax(b)->offset;
 }
 
-int sd_buildbegin(sdbuild*, sr*, int, int, int, ssfilterif*);
+int sd_buildbegin(sdbuild*, sr*, int, int, ssfilterif*);
 int sd_buildend(sdbuild*, sr*);
-int sd_buildcommit(sdbuild*, sr*);
+int sd_buildcommit(sdbuild*);
 int sd_buildadd(sdbuild*, sr*, sv*, uint8_t);
 
 #endif

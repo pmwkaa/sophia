@@ -38,7 +38,7 @@ sd_v_test(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 	int i = 7;
 	int j = 8;
 	addv(&b, &st_r.r, 3, 0, &i);

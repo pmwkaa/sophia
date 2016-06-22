@@ -12,11 +12,6 @@
 typedef struct sfvar sfvar;
 typedef struct sfv sfv;
 
-typedef enum {
-	SF_RAW,
-	SF_SPARSE
-} sfstorage;
-
 struct sfvar {
 	uint32_t offset;
 	uint32_t size;

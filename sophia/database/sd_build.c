@@ -15,7 +15,6 @@
 
 void sd_buildinit(sdbuild *b)
 {
-	memset(&b->tracker, 0, sizeof(b->tracker));
 	ss_bufinit(&b->list);
 	ss_bufinit(&b->m);
 	ss_bufinit(&b->v);
@@ -23,31 +22,13 @@ void sd_buildinit(sdbuild *b)
 	ss_bufinit(&b->k);
 	b->n = 0;
 	b->compress = 0;
-	b->compress_copy = 0;
 	b->compress_if = NULL;
 	b->crc = 0;
 	b->vmax = 0;
 }
 
-static inline void
-sd_buildfree_tracker(sdbuild *b, sr *r)
-{
-	if (b->tracker.count == 0)
-		return;
-	int i = 0;
-	for (; i < b->tracker.size; i++) {
-		if (b->tracker.i[i] == NULL)
-			continue;
-		ss_free(r->a, b->tracker.i[i]);
-		b->tracker.i[i] = NULL;
-	}
-	b->tracker.count = 0;
-}
-
 void sd_buildfree(sdbuild *b, sr *r)
 {
-	sd_buildfree_tracker(b, r);
-	ss_htfree(&b->tracker, r->a);
 	ss_buffree(&b->list, r->a);
 	ss_buffree(&b->m, r->a);
 	ss_buffree(&b->v, r->a);
@@ -55,10 +36,8 @@ void sd_buildfree(sdbuild *b, sr *r)
 	ss_buffree(&b->k, r->a);
 }
 
-void sd_buildreset(sdbuild *b, sr *r)
+void sd_buildreset(sdbuild *b)
 {
-	sd_buildfree_tracker(b, r);
-	ss_htreset(&b->tracker);
 	ss_bufreset(&b->list);
 	ss_bufreset(&b->m);
 	ss_bufreset(&b->v);
@@ -70,8 +49,6 @@ void sd_buildreset(sdbuild *b, sr *r)
 
 void sd_buildgc(sdbuild *b, sr *r, int wm)
 {
-	sd_buildfree_tracker(b, r);
-	ss_htreset(&b->tracker);
 	ss_bufgc(&b->list, r->a, wm);
 	ss_bufgc(&b->m, r->a, wm);
 	ss_bufgc(&b->v, r->a, wm);
@@ -82,20 +59,13 @@ void sd_buildgc(sdbuild *b, sr *r, int wm)
 }
 
 int sd_buildbegin(sdbuild *b, sr *r, int crc,
-                  int compress_copy,
                   int compress,
                   ssfilterif *compress_if)
 {
 	b->crc = crc;
-	b->compress_copy = compress_copy;
 	b->compress = compress;
 	b->compress_if = compress_if;
 	int rc;
-	if (compress_copy && b->tracker.size == 0) {
-		rc = ss_htinit(&b->tracker, r->a, 32768);
-		if (ssunlikely(rc == -1))
-			return sr_oom(r->e);
-	}
 	rc = ss_bufensure(&b->list, r->a, sizeof(sdbuildref));
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
@@ -123,88 +93,6 @@ int sd_buildbegin(sdbuild *b, sr *r, int crc,
 	return 0;
 }
 
-typedef struct {
-	sshtnode node;
-	uint32_t offset;
-	uint32_t offsetstart;
-	uint32_t size;
-} sdbuildkey;
-
-ss_htsearch(sd_buildsearch,
-            (sscast(t->i[pos], sdbuildkey, node)->node.hash == hash) &&
-            (sscast(t->i[pos], sdbuildkey, node)->size == size) &&
-            (memcmp(((sdbuild*)ptr)->k.s +
-                    sscast(t->i[pos], sdbuildkey, node)->offsetstart, key, size) == 0))
-
-static inline int
-sd_buildadd_sparse(sdbuild *b, sr *r, sv *v, uint8_t flags)
-{
-	int i = 0;
-	for (; i < r->scheme->fields_count; i++)
-	{
-		uint32_t fieldsize;
-		char *field = sv_field(v, r, i, &fieldsize);
-
-		int offsetstart = ss_bufused(&b->k);
-		int offset = (offsetstart - sd_buildref(b)->k);
-
-		/* match a field copy */
-		int is_duplicate = 0;
-		uint32_t hash = 0;
-		int pos = 0;
-		if (b->compress_copy) {
-			hash = ss_fnv(field, fieldsize);
-			pos = sd_buildsearch(&b->tracker, hash, field, fieldsize, b);
-			if (b->tracker.i[pos]) {
-				is_duplicate = 1;
-				sdbuildkey *ref = sscast(b->tracker.i[pos], sdbuildkey, node);
-				offset = ref->offset;
-			}
-		}
-
-		/* offset */
-		int rc;
-		rc = ss_bufensure(&b->v, r->a, sizeof(uint32_t));
-		if (ssunlikely(rc == -1))
-			return sr_oom(r->e);
-		*(uint32_t*)b->v.p = offset;
-		ss_bufadvance(&b->v, sizeof(uint32_t));
-		if (is_duplicate)
-			continue;
-
-		/* copy field */
-		rc = ss_bufensure(&b->k, r->a, sizeof(uint32_t) + fieldsize);
-		if (ssunlikely(rc == -1))
-			return sr_oom(r->e);
-		*(uint32_t*)b->k.p = fieldsize;
-		ss_bufadvance(&b->k, sizeof(uint32_t));
-		sffield *f = r->scheme->fields[i];
-		if (f->flags)
-			field = (char*)&flags;
-		memcpy(b->k.p, field, fieldsize);
-		ss_bufadvance(&b->k, fieldsize);
-
-		/* add field reference */
-		if (b->compress_copy) {
-			if (ssunlikely(ss_htisfull(&b->tracker))) {
-				rc = ss_htresize(&b->tracker, r->a);
-				if (ssunlikely(rc == -1))
-					return sr_oom(r->e);
-			}
-			sdbuildkey *ref = ss_malloc(r->a, sizeof(sdbuildkey));
-			if (ssunlikely(ref == NULL))
-				return sr_oom(r->e);
-			ref->node.hash = hash;
-			ref->offset = offset;
-			ref->offsetstart = offsetstart + sizeof(uint32_t);
-			ref->size = fieldsize;
-			ss_htset(&b->tracker, pos, &ref->node);
-		}
-	}
-
-	return 0;
-}
-
 static inline int
 sd_buildadd_raw(sdbuild *b, sr *r, sv *v, uint8_t flags)
 {
@@ -229,14 +117,7 @@ int sd_buildadd(sdbuild *b, sr *r, sv *v, uint8_t flags)
 	sv->offset = ss_bufused(&b->v) - sd_buildref(b)->v;
 	ss_bufadvance(&b->m, sizeof(sdv));
 	/* copy document */
-	switch (r->fmt_storage) {
-	case SF_RAW:
-		rc = sd_buildadd_raw(b, r, v, flags);
-		break;
-	case SF_SPARSE:
-		rc = sd_buildadd_sparse(b, r, v, flags);
-		break;
-	}
+	rc = sd_buildadd_raw(b, r, v, flags);
 	if (ssunlikely(rc == -1))
 		return -1;
 	/* update page header */
@@ -341,10 +222,8 @@ int sd_buildend(sdbuild *b, sr *r)
 	return 0;
 }
 
-int sd_buildcommit(sdbuild *b, sr *r)
+int sd_buildcommit(sdbuild *b)
 {
-	if (b->compress_copy)
-		sd_buildfree_tracker(b, r);
 	if (b->compress) {
 		ss_bufreset(&b->m);
 		ss_bufreset(&b->v);

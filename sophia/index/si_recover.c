@@ -85,7 +85,6 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 	sd_buildinit(&build);
 	rc = sd_buildbegin(&build, r,
 	                   i->scheme.node_page_checksum,
-	                   i->scheme.compression_copy,
 	                   i->scheme.compression_cold,
 	                   i->scheme.compression_cold_if);
 	if (ssunlikely(rc == -1))
@@ -135,7 +134,7 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 	}
 	si_branchset(&n->self, &index);
 
-	sd_buildcommit(&build, r);
+	sd_buildcommit(&build);
 	sd_buildfree(&build, r);
 	return n;
 e1:
@@ -606,7 +605,6 @@ int si_recover(si *i)
 	if (ssunlikely(rc == -1))
 		return -1;
 	r->scheme = &i->scheme.scheme;
-	r->fmt_storage = i->scheme.fmt_storage;
 	sdsnapshot snapshot;
 	sd_snapshot_init(&snapshot);
 	rc = si_recoversnapshot(i, r, &snapshot);

@@ -20,14 +20,12 @@ enum {
 	SI_SCHEME_VERSION,
 	SI_SCHEME_VERSION_STORAGE,
 	SI_SCHEME_NAME,
-	SI_SCHEME_FORMAT_STORAGE,
 	SI_SCHEME_SCHEME,
 	SI_SCHEME_NODE_SIZE,
 	SI_SCHEME_NODE_PAGE_SIZE,
 	SI_SCHEME_NODE_PAGE_CHECKSUM,
 	SI_SCHEME_SYNC,
 	SI_SCHEME_COMPRESSION_COLD,
-	SI_SCHEME_COMPRESSION_COPY,
 	SI_SCHEME_COMPRESSION_HOT,
 	SI_SCHEME_COMPRESSION_RESERVED0,
 	SI_SCHEME_COMPRESSION_RESERVED1,
@@ -122,11 +120,6 @@ int si_schemedeploy(sischeme *s, sr *r)
 	if (ssunlikely(rc == -1))
 		goto error;
 	ss_buffree(&buf, r->a);
-	uint32_t v;
-	v = s->fmt_storage;
-	rc = sd_schemeadd(&c, r, SI_SCHEME_FORMAT_STORAGE, SS_U32, &v, sizeof(v));
-	if (ssunlikely(rc == -1))
-		goto error;
 	rc = sd_schemeadd(&c, r, SI_SCHEME_NODE_SIZE, SS_U64,
 	                  &s->node_size,
 	                  sizeof(s->node_size));
@@ -155,11 +148,6 @@ int si_schemedeploy(sischeme *s, sr *r)
 	rc = sd_schemeadd(&c, r, SI_SCHEME_COMPRESSION_HOT, SS_STRING,
 	                  s->compression_hot_if->name,
 	                  strlen(s->compression_hot_if->name) + 1);
-	if (ssunlikely(rc == -1))
-		goto error;
-	rc = sd_schemeadd(&c, r, SI_SCHEME_COMPRESSION_COPY, SS_U32,
-	                  &s->compression_copy,
-	                  sizeof(s->compression_copy));
 	if (ssunlikely(rc == -1))
 		goto error;
 	rc = sd_schemeadd(&c, r, SI_SCHEME_AMQF, SS_U32,
@@ -215,9 +203,6 @@ int si_schemerecover(sischeme *s, sr *r)
 			version_storage_set = 1;
 			break;
 		}
-		case SI_SCHEME_FORMAT_STORAGE:
-			s->fmt_storage = sd_schemeu32(opt);
-			break;
 		case SI_SCHEME_SCHEME: {
 			sf_schemefree(&s->scheme, r->a);
 			sf_schemeinit(&s->scheme);
@@ -237,9 +222,6 @@ int si_schemerecover(sischeme *s, sr *r)
 			break;
 		case SI_SCHEME_NODE_PAGE_SIZE:
 			s->node_page_size = sd_schemeu32(opt);
-			break;
-		case SI_SCHEME_COMPRESSION_COPY:
-			s->compression_copy = sd_schemeu32(opt);
 			break;
 		case SI_SCHEME_COMPRESSION_COLD: {
 			char *name = sd_schemesz(opt);

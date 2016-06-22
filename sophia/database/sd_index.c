@@ -93,72 +93,6 @@ sd_indexadd_raw(sdindex *i, sr *r, sdindexpage *p, char *min, char *max)
 	return 0;
 }
 
-static inline int
-sd_indexadd_sparse(sdindex *i, sr *r, sdbuild *build, sdindexpage *p, char *min, char *max)
-{
-	sfv fields[16];
-
-	/* min */
-	int part = 0;
-	while (part < r->scheme->fields_count)
-	{
-		/* read field offset */
-		uint32_t offset = *(uint32_t*)min;
-		min += sizeof(uint32_t);
-		/* read field */
-		char *field = build->k.s + sd_buildref(build)->k + offset;
-		int fieldsize = *(uint32_t*)field;
-		field += sizeof(uint32_t);
-		/* copy only key fields, others are set to zero */
-		sfv *k = &fields[part];
-		if (r->scheme->fields[part]->key) {
-			k->pointer = field;
-			k->size = fieldsize;
-		} else {
-			k->pointer = NULL;
-			k->size = 0;
-		}
-		part++;
-	}
-	p->sizemin = sf_writesize(r->scheme, fields);
-	int rc = ss_bufensure(&i->v, r->a, p->sizemin);
-	if (ssunlikely(rc == -1))
-		return sr_oom(r->e);
-	sf_write(r->scheme, fields, i->v.p);
-	ss_bufadvance(&i->v, p->sizemin);
-
-	/* max */
-	part = 0;
-	while (part < r->scheme->fields_count)
-	{
-		/* read field offset */
-		uint32_t offset = *(uint32_t*)max;
-		max += sizeof(uint32_t);
-
-		/* read field */
-		char *field = build->k.s + sd_buildref(build)->k + offset;
-		int fieldsize = *(uint32_t*)field;
-		field += sizeof(uint32_t);
-
-		sfv *k = &fields[part];
-		if (r->scheme->fields[part]->key) {
-			k->pointer = field;
-			k->size = fieldsize;
-		} else {
-			k->pointer = NULL;
-			k->size = 0;
-		}
-		part++;
-	}
-	p->sizemax = sf_writesize(r->scheme, fields);
-	rc = ss_bufensure(&i->v, r->a, p->sizemax);
-	if (ssunlikely(rc == -1))
-		return sr_oom(r->e);
-	sf_write(r->scheme, fields, i->v.p);
-	ss_bufadvance(&i->v, p->sizemax);
-	return 0;
-}
-
 int sd_indexadd(sdindex *i, sr *r, sdbuild *build, uint64_t offset)
 {
 	int rc = ss_bufensure(&i->i, r->a, sizeof(sdindexpage));
@@ -181,18 +115,10 @@ int sd_indexadd(sdindex *i, sr *r, sdbuild *build, uint64_t offset)
 	p->sizemax     = 0;
 
 	/* copy keys */
-	if (ssunlikely(ph->count > 0))
-	{
+	if (ssunlikely(ph->count > 0)) {
 		char *min = sd_buildminkey(build);
 		char *max = sd_buildmaxkey(build);
-		switch (r->fmt_storage) {
-		case SF_RAW:
-			rc = sd_indexadd_raw(i, r, p, min, max);
-			break;
-		case SF_SPARSE:
-			rc = sd_indexadd_sparse(i, r, build, p, min, max);
-			break;
-		}
+		rc = sd_indexadd_raw(i, r, p, min, max);
 		if (ssunlikely(rc == -1))
 			return -1;
 	}

@@ -39,7 +39,7 @@ int si_readopen(siread *q, si *i, sicache *c, ssorder o,
 	q->read_cache  = 0;
 	q->upsert      = upsert;
 	q->upsert_eq   = 0;
-	if (!has && sf_upserthas(&i->scheme.fmt_upsert)) {
+	if (!has && sf_upserthas(&i->scheme.upsert)) {
 		if (q->order == SS_EQ) {
 			q->upsert_eq = 1;
 			q->order = SS_GTE;

@@ -46,7 +46,6 @@ se_dbscheme_init(sedb *db, char *name, int size)
 	scheme->node_compact_load      = 0;
 	scheme->node_page_size         = 128 * 1024;
 	scheme->node_page_checksum     = 1;
-	scheme->compression_copy       = 0;
 	scheme->compression_cold       = 0;
 	scheme->compression_cold_if    = &ss_nonefilter;
 	scheme->compression_hot        = 0;
@@ -54,7 +53,6 @@ se_dbscheme_init(sedb *db, char *name, int size)
 	scheme->temperature            = 0;
 	scheme->expire                 = 0;
 	scheme->amqf                   = 0;
-	scheme->fmt_storage            = SF_RAW;
 	scheme->lru                    = 0;
 	scheme->lru_step               = 128 * 1024;
 	scheme->buf_gc_wm              = 1024 * 1024;
@@ -69,7 +67,7 @@ se_dbscheme_init(sedb *db, char *name, int size)
 		ss_strdup(&e->a, scheme->compression_hot_if->name);
 	if (ssunlikely(scheme->compression_hot_sz == NULL))
 		goto error;
-	sf_upsertinit(&scheme->fmt_upsert);
+	sf_upsertinit(&scheme->upsert);
 	sf_schemeinit(&scheme->scheme);
 	return 0;
 error:
@@ -132,11 +130,6 @@ se_dbscheme_set(sedb *db)
 		sr_error(&e->error, "unknown storage type '%s'", s->storage_sz);
 		return -1;
 	}
-	/* compression_copy */
-	if (s->compression_copy) {
-		// XXX
-		/*s->fmt_storage = SF_SPARSE;*/
-	}
 	/* compression cold */
 	s->compression_cold_if = ss_filterof(s->compression_cold_sz);
 	if (ssunlikely(s->compression_cold_if == NULL)) {
@@ -189,11 +182,10 @@ se_dbscheme_set(sedb *db)
 
 	/* .. */
 	db->r->scheme = &s->scheme;
-	db->r->fmt_storage = s->fmt_storage;
-	db->r->fmt_upsert = &s->fmt_upsert;
-	db->r->stat = &db->stat;
-	db->r->quota = &db->quota;
-	db->r->ptr = db->index;
+	db->r->upsert = &s->upsert;
+	db->r->stat   = &db->stat;
+	db->r->quota  = &db->quota;
+	db->r->ptr    = db->index;
 	return 0;
 }
 
@@ -323,7 +315,7 @@ se_dbupsert(so *o, so *v)
 	sedocument *key = se_cast(v, sedocument*, SEDOCUMENT);
 	se *e = se_of(&db->o);
 	uint64_t start = ss_utime();
-	if (! sf_upserthas(&db->scheme->fmt_upsert)) {
+	if (! sf_upserthas(&db->scheme->upsert)) {
 		if (key->created <= 1)
 			so_destroy(v);
 		sr_error(&e->error, "%s", "upsert callback is not set");

@@ -15,8 +15,7 @@ struct sr {
 	srstatus *status;
 	srlog *log;
 	srerror *e;
-	sfupsert *fmt_upsert;
-	sfstorage fmt_storage;
+	sfupsert *upsert;
 	sfscheme *scheme;
 	srseq *seq;
 	ssa *a;
@@ -37,28 +36,26 @@ sr_init(sr *r,
         ssvfs *vfs,
         srquota *quota,
         srseq *seq,
-        sfstorage fmt_storage,
-        sfupsert *fmt_upsert,
+        sfupsert *upsert,
         sfscheme *scheme,
         ssinjection *i,
 		srstat *stat,
         sscrcf crc,
         void *ptr)
 {
-	r->status      = status;
-	r->log         = log;
-	r->e           = e;
-	r->a           = a;
-	r->vfs         = vfs;
-	r->quota       = quota;
-	r->seq         = seq;
-	r->scheme      = scheme;
-	r->fmt_storage = fmt_storage;
-	r->fmt_upsert  = fmt_upsert;
-	r->i           = i;
-	r->stat        = stat;
-	r->crc         = crc;
-	r->ptr         = ptr;
+	r->status = status;
+	r->log    = log;
+	r->e      = e;
+	r->a      = a;
+	r->vfs    = vfs;
+	r->quota  = quota;
+	r->seq    = seq;
+	r->scheme = scheme;
+	r->upsert = upsert;
+	r->i      = i;
+	r->stat   = stat;
+	r->crc    = crc;
+	r->ptr    = ptr;
 }
 
 #endif

@@ -218,7 +218,7 @@ so *se_new(void)
 	sf_limitinit(&e->limit, &e->a);
 	sscrcf crc = ss_crc32c_function();
 	sr_init(&e->r, &e->status, &e->log, &e->error, &e->a, &e->vfs,
-	        NULL, &e->seq, SF_RAW, NULL, NULL,
+	        NULL, &e->seq, NULL, NULL,
 	        &e->ei, NULL, crc, NULL);
 	sy_init(&e->rep);
 	e->rep_conf = sy_conf(&e->rep);

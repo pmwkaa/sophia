@@ -26,11 +26,11 @@ struct svlogv {
 } sspacked;
 
 struct svlog {
-	int count_write;
+	int    count_write;
 	svlogv reserve_buf[1];
 	svlogv reserve_index[4];
-	ssbuf index;
-	ssbuf buf;
+	ssbuf  index;
+	ssbuf  buf;
 };
 
 static inline void

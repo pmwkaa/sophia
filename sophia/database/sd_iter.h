@@ -32,12 +32,7 @@ static inline void
 sd_iterresult(sditer *i, int pos)
 {
 	i->dv = sd_pagev(&i->pagev, pos);
-	if (sslikely(i->r->fmt_storage == SF_RAW)) {
-		sv_init(&i->v, &sd_vif, i->dv, i->pagev.h);
-		return;
-	}
-	sd_pagesparse_convert(&i->pagev, i->r, i->dv, i->transform_buf->s);
-	sv_init(&i->v, &sd_vrawif, i->transform_buf->s, NULL);
+	sv_init(&i->v, &sd_vif, i->dv, i->pagev.h);
 }
 
 static inline int
@@ -65,7 +60,8 @@ sd_iternextpage(sditer *i)
 
 		/* prepare decompression buffer */
 		sdpageheader *h = (sdpageheader*)i->page;
-		int rc = ss_bufensure(i->compression_buf, i->r->a, h->sizeorigin + sizeof(sdpageheader));
+		int rc = ss_bufensure(i->compression_buf, i->r->a,
+		                      h->sizeorigin + sizeof(sdpageheader));
 		if (ssunlikely(rc == -1)) {
 			i->page = NULL;
 			return sr_oom_malfunction(i->r->e);
@@ -83,7 +79,8 @@ sd_iternextpage(sditer *i)
 			sr_malfunction(i->r->e, "%s", "page decompression error");
 			return -1;
 		}
-		rc = ss_filternext(&f, i->compression_buf, i->page + sizeof(sdpageheader), h->size);
+		rc = ss_filternext(&f, i->compression_buf,
+		                   i->page + sizeof(sdpageheader), h->size);
 		if (ssunlikely(rc == -1)) {
 			ss_filterfree(&f);
 			i->page = NULL;

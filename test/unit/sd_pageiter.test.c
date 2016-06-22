@@ -38,7 +38,7 @@ sd_pageiter_lte_empty(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 	sd_buildend(&b, &st_r.r);
 
 	ssbuf buf;
@@ -69,7 +69,7 @@ sd_pageiter_lte_eq0(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -122,7 +122,7 @@ sd_pageiter_lte_minmax0(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -167,7 +167,7 @@ sd_pageiter_lte_mid0(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -220,7 +220,7 @@ sd_pageiter_lte_iterate0(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -273,7 +273,7 @@ sd_pageiter_lte_iterate1(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -327,7 +327,7 @@ sd_pageiter_lte_dup_iterate0(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -420,7 +420,7 @@ sd_pageiter_lte_dup_mid(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -491,7 +491,7 @@ sd_pageiter_lt_eq(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -544,7 +544,7 @@ sd_pageiter_lt_minmax(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -589,7 +589,7 @@ sd_pageiter_lt_mid(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -642,7 +642,7 @@ sd_pageiter_lt_iterate0(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -695,7 +695,7 @@ sd_pageiter_lt_iterate1(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -744,7 +744,7 @@ sd_pageiter_lt_dup_mid(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -813,7 +813,7 @@ sd_pageiter_gte_eq0(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -866,7 +866,7 @@ sd_pageiter_gte_minmax0(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -912,7 +912,7 @@ sd_pageiter_gte_mid0(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -972,7 +972,7 @@ sd_pageiter_gte_mid1(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -1025,7 +1025,7 @@ sd_pageiter_gte_iterate0(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -1078,7 +1078,7 @@ sd_pageiter_gte_iterate1(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -1132,7 +1132,7 @@ sd_pageiter_gte_dup_iterate0(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -1218,7 +1218,7 @@ sd_pageiter_gte_dup_mid(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -1289,7 +1289,7 @@ sd_pageiter_gt_eq(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -1343,7 +1343,7 @@ sd_pageiter_gt_minmax(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 8;
@@ -1389,7 +1389,7 @@ sd_pageiter_gt_mid(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -1442,7 +1442,7 @@ sd_pageiter_gt_iterate0(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -1495,7 +1495,7 @@ sd_pageiter_gt_iterate1(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 9;
@@ -1544,7 +1544,7 @@ sd_pageiter_gt_dup_mid(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int i = 7;
 	int j = 9;

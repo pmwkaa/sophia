@@ -21,7 +21,6 @@ struct sdmergeconf {
 	uint32_t    checksum;
 	uint32_t    expire;
 	uint32_t    timestamp;
-	uint32_t    compression_copy;
 	uint32_t    compression;
 	ssfilterif *compression_if;
 	uint32_t    amqf;

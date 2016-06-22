@@ -35,7 +35,6 @@ struct str {
 	srlog        log;
 	srerror      error;
 	srseq        seq;
-	sfstorage    fmt_storage;
 	sscrcf       crc;
 	ssfilterif  *compression;
 	sr           r;

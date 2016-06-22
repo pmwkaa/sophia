@@ -38,7 +38,7 @@ sd_read_gt0(void)
 {
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int key = 7;
 	addv(&b, &st_r.r, 3, 0, &key);
@@ -138,7 +138,7 @@ sd_read_gt1(void)
 
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 
 	int key = 7;
 	addv(&b, &st_r.r, 3, 0, &key);
@@ -157,9 +157,9 @@ sd_read_gt1(void)
 	int rc;
 	rc = sd_indexadd(&index, &st_r.r, &b, poff);
 	t( rc == 0 );
-	t( sd_buildcommit(&b, &st_r.r) == 0 );
+	t( sd_buildcommit(&b) == 0 );
 
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 	key = 10;
 	addv(&b, &st_r.r, 6, 0, &key);
 	key = 11;
@@ -172,9 +172,9 @@ sd_read_gt1(void)
 
 	rc = sd_indexadd(&index, &st_r.r, &b, poff);
 	t( rc == 0 );
-	t( sd_buildcommit(&b, &st_r.r) == 0 );
+	t( sd_buildcommit(&b) == 0 );
 
-	t( sd_buildbegin(&b, &st_r.r, 1, 0, 0, NULL) == 0);
+	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 	key = 15;
 	addv(&b, &st_r.r, 9, 0, &key);
 	key = 18;
@@ -187,7 +187,7 @@ sd_read_gt1(void)
 
 	rc = sd_indexadd(&index, &st_r.r, &b, poff);
 	t( rc == 0 );
-	t( sd_buildcommit(&b, &st_r.r) == 0 );
+	t( sd_buildcommit(&b) == 0 );
 
 	sdid id;
 	memset(&id, 0, sizeof(id));
@@ -308,12 +308,12 @@ sd_read_gt0_compression_zstd(void)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, NULL, &log, &error, &a, &vfs, NULL, &seq, SF_RAW,
+	sr_init(&r, NULL, &log, &error, &a, &vfs, NULL, &seq,
 	        NULL, &cmp, &ij, &stat, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &r, 1, 0, 1, &ss_zstdfilter) == 0);
+	t( sd_buildbegin(&b, &r, 1, 1, &ss_zstdfilter) == 0);
 
 	int key = 7;
 	addv(&b, &r, 3, 0, &key);
@@ -343,7 +343,7 @@ sd_read_gt0_compression_zstd(void)
 	t( sd_writeindex(&r, &f, NULL, &index) == 0 );
 	t( sd_seal(&r, &f, NULL, &index, 0) == 0 );
 
-	t( sd_buildcommit(&b, &r) == 0 );
+	t( sd_buildcommit(&b) == 0 );
 
 	ssmmap map;
 	t( ss_vfsmmap(&st_r.vfs, &map, f.fd, f.size, 1) == 0 );
@@ -435,12 +435,12 @@ sd_read_gt0_compression_lz4(void)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, NULL, &log, &error, &a, &vfs, NULL, &seq, SF_RAW,
+	sr_init(&r, NULL, &log, &error, &a, &vfs, NULL, &seq,
 	        NULL, &cmp, &ij, &stat, crc, NULL);
 
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &r, 1, 0, 1, &ss_lz4filter) == 0);
+	t( sd_buildbegin(&b, &r, 1, 1, &ss_lz4filter) == 0);
 
 	int key = 7;
 	addv(&b, &r, 3, 0, &key);
@@ -475,7 +475,7 @@ sd_read_gt0_compression_lz4(void)
 	ssmmap map;
 	t( ss_vfsmmap(&st_r.vfs, &map, f.fd, f.size, 1) == 0 );
 
-	t( sd_buildcommit(&b, &r) == 0 );
+	t( sd_buildcommit(&b) == 0 );
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -564,7 +564,7 @@ sd_read_gt1_compression_zstd(void)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, NULL, &log, &error, &a, &vfs, NULL, &seq, SF_RAW,
+	sr_init(&r, NULL, &log, &error, &a, &vfs, NULL, &seq,
 	        NULL, &cmp, &ij, &stat, crc, NULL);
 
 	ssfile f;
@@ -574,7 +574,7 @@ sd_read_gt1_compression_zstd(void)
 
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &r, 1, 0, 1, &ss_zstdfilter) == 0);
+	t( sd_buildbegin(&b, &r, 1, 1, &ss_zstdfilter) == 0);
 
 	int key = 7;
 	addv(&b, &r, 3, 0, &key);
@@ -593,10 +593,10 @@ sd_read_gt1_compression_zstd(void)
 	int rc;
 	rc = sd_indexadd(&index, &r, &b, poff);
 	t( rc == 0 );
-	t( sd_buildcommit(&b, &r) == 0 );
-	sd_buildreset(&b, &r);
+	t( sd_buildcommit(&b) == 0 );
+	sd_buildreset(&b);
 
-	t( sd_buildbegin(&b, &r, 1, 0, 1, &ss_zstdfilter) == 0);
+	t( sd_buildbegin(&b, &r, 1, 1, &ss_zstdfilter) == 0);
 	key = 10;
 	addv(&b, &r, 6, 0, &key);
 	key = 11;
@@ -609,10 +609,10 @@ sd_read_gt1_compression_zstd(void)
 
 	rc = sd_indexadd(&index, &r, &b, poff);
 	t( rc == 0 );
-	t( sd_buildcommit(&b, &r) == 0 );
-	sd_buildreset(&b, &r);
+	t( sd_buildcommit(&b) == 0 );
+	sd_buildreset(&b);
 
-	t( sd_buildbegin(&b, &r, 1, 0, 1, &ss_zstdfilter) == 0);
+	t( sd_buildbegin(&b, &r, 1, 1, &ss_zstdfilter) == 0);
 	key = 15;
 	addv(&b, &r, 9, 0, &key);
 	key = 18;
@@ -625,7 +625,7 @@ sd_read_gt1_compression_zstd(void)
 
 	rc = sd_indexadd(&index, &r, &b, poff);
 	t( rc == 0 );
-	t( sd_buildcommit(&b, &r) == 0 );
+	t( sd_buildcommit(&b) == 0 );
 
 	sdid id;
 	memset(&id, 0, sizeof(id));
@@ -747,7 +747,7 @@ sd_read_gt1_compression_lz4(void)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, NULL, &log, &error, &a, &vfs, NULL, &seq, SF_RAW,
+	sr_init(&r, NULL, &log, &error, &a, &vfs, NULL, &seq,
 	        NULL, &cmp, &ij, &stat, crc, NULL);
 
 	ssfile f;
@@ -757,7 +757,7 @@ sd_read_gt1_compression_lz4(void)
 
 	sdbuild b;
 	sd_buildinit(&b);
-	t( sd_buildbegin(&b, &r, 1, 0, 1, &ss_lz4filter) == 0);
+	t( sd_buildbegin(&b, &r, 1, 1, &ss_lz4filter) == 0);
 
 	int key = 7;
 	addv(&b, &r, 3, 0, &key);
@@ -776,10 +776,10 @@ sd_read_gt1_compression_lz4(void)
 	int rc;
 	rc = sd_indexadd(&index, &r, &b, poff);
 	t( rc == 0 );
-	t( sd_buildcommit(&b, &r) == 0 );
-	sd_buildreset(&b, &r);
+	t( sd_buildcommit(&b) == 0 );
+	sd_buildreset(&b);
 
-	t( sd_buildbegin(&b, &r, 1, 0, 1, &ss_lz4filter) == 0);
+	t( sd_buildbegin(&b, &r, 1, 1, &ss_lz4filter) == 0);
 	key = 10;
 	addv(&b, &r, 6, 0, &key);
 	key = 11;
@@ -792,10 +792,10 @@ sd_read_gt1_compression_lz4(void)
 
 	rc = sd_indexadd(&index, &r, &b, poff);
 	t( rc == 0 );
-	t( sd_buildcommit(&b, &r) == 0 );
-	sd_buildreset(&b, &r);
+	t( sd_buildcommit(&b) == 0 );
+	sd_buildreset(&b);
 
-	t( sd_buildbegin(&b, &r, 1, 0, 1, &ss_lz4filter) == 0);
+	t( sd_buildbegin(&b, &r, 1, 1, &ss_lz4filter) == 0);
 	key = 15;
 	addv(&b, &r, 9, 0, &key);
 	key = 18;
@@ -808,7 +808,7 @@ sd_read_gt1_compression_lz4(void)
 
 	rc = sd_indexadd(&index, &r, &b, poff);
 	t( rc == 0 );
-	t( sd_buildcommit(&b, &r) == 0 );
+	t( sd_buildcommit(&b) == 0 );
 
 	sdid id;
 	memset(&id, 0, sizeof(id));
