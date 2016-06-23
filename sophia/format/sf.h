@@ -20,7 +20,6 @@ typedef struct sfv sfv;
 #define SVBEGIN  16
 
 struct sfvar {
-	uint32_t offset;
 	uint32_t size;
 } sspacked;
 
@@ -95,10 +94,14 @@ sf_fieldptr(sfscheme *s, sffield *f, char *data, uint32_t *size)
 		*size = f->fixed_size;
 		return data + f->fixed_offset;
 	}
-	register sfvar *v =
-		&((sfvar*)(data + s->var_offset))[f->position_ref];
+	uint32_t offset = 0;
+	uint32_t pos = 0;
+	register sfvar *v = &((sfvar*)(data + s->var_offset))[0];
+	for (; pos < f->position_ref; v++, pos++) {
+		offset += v->size;
+	}
 	*size = v->size;
-	return data + v->offset;
+	return data + s->var_offset + (sizeof(sfvar) * s->var_count) + offset;
 }
 
 static inline char*
@@ -149,8 +152,7 @@ sf_write(sfscheme *s, sfv *v, char *dest)
 			continue;
 		}
 		sfvar *current = &var[f->position_ref];
-		current->offset = var_value_offset;
-		current->size   = v[i].size;
+		current->size  = v[i].size;
 		if (sslikely(v[i].size > 0))
 			memcpy(dest + var_value_offset, v[i].pointer, v[i].size);
 		var_value_offset += current->size;
@@ -199,7 +201,6 @@ sf_comparable_write(sfscheme *s, char *src, char *dest)
 		if (f->fixed_size != 0)
 			continue;
 		sfvar *current = &var[f->position_ref];
-		current->offset = var_value_offset;
 		if (! f->key) {
 			current->size = 0;
 			continue;

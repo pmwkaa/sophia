@@ -124,7 +124,7 @@ sv_writeiter_limit(void)
 		ss_iteratornext(&iter);
 		i++;
 	}
-	t( i == 5 );
+	t( i == 4 );
 	int j = 0;
 	sv_writeiter_resume(&iter);
 	while (ss_iteratorhas(&iter)) {
@@ -136,7 +136,7 @@ sv_writeiter_limit(void)
 		i++;
 		j++;
 	}
-	t( j == 5 );
+	t( j == 4 );
 	j = 0;
 	sv_writeiter_resume(&iter);
 	while (ss_iteratorhas(&iter)) {
@@ -148,7 +148,7 @@ sv_writeiter_limit(void)
 		i++;
 		j++;
 	}
-	t( j == 5 );
+	t( j == 4 );
 	j = 0;
 	sv_writeiter_resume(&iter);
 	while (ss_iteratorhas(&iter)) {
@@ -160,8 +160,8 @@ sv_writeiter_limit(void)
 		i++;
 		j++;
 	}
-	t( j == 3 );
-	t( i == 18 );
+	t( j == 4 );
+	t( i == 16 );
 	ss_iteratorclose(&iter);
 
 	sv_mergefree(&m, &st_r.a);
