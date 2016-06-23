@@ -99,7 +99,7 @@ sl_itertx_read_empty(void)
 		// begin
 		while (ss_iteratorhas(&li)) {
 			slv *v = ss_iteratorof(&li);
-			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 7 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 7 );
 			ss_iteratornext(&li);
 		}
 		t( sl_iter_error(&li) == 0 );
@@ -141,7 +141,7 @@ sl_itertx_read0(void)
 		// begin
 		while (ss_iteratorhas(&li)) {
 			slv *v = ss_iteratorof(&li);
-			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 7 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 7 );
 			ss_iteratornext(&li);
 		}
 		t( sl_iter_error(&li) == 0 );
@@ -185,15 +185,15 @@ sl_itertx_read1(void)
 		// begin
 		t( ss_iteratorhas(&li) == 1 );
 		slv *v = ss_iteratorof(&li);
-		t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 7 );
+		t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 7 );
 		ss_iteratornext(&li);
 		t( ss_iteratorhas(&li) == 1 );
 		v = ss_iteratorof(&li);
-		t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 8 );
+		t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 8 );
 		ss_iteratornext(&li);
 		t( ss_iteratorhas(&li) == 1 );
 		v = ss_iteratorof(&li);
-		t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 9 );
+		t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 9 );
 		ss_iteratornext(&li);
 		t( ss_iteratorhas(&li) == 0 );
 
@@ -242,15 +242,15 @@ sl_itertx_read2(void)
 		// begin
 		t( ss_iteratorhas(&li) == 1 );
 		slv *v = ss_iteratorof(&li);
-		t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 7 );
+		t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 7 );
 		ss_iteratornext(&li);
 		t( ss_iteratorhas(&li) == 1 );
 		v = ss_iteratorof(&li);
-		t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 8 );
+		t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 8 );
 		ss_iteratornext(&li);
 		t( ss_iteratorhas(&li) == 1 );
 		v = ss_iteratorof(&li);
-		t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 9 );
+		t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 9 );
 		ss_iteratornext(&li);
 
 		t( ss_iteratorhas(&li) == 0 );
@@ -327,7 +327,7 @@ sl_itertx_read3(void)
 		case 0:
 			t( ss_iteratorhas(&li) == 1 );
 			v = ss_iteratorof(&li);
-			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 7 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 7 );
 			ss_iteratornext(&li);
 			v = ss_iteratorof(&li);
 			t( v == NULL );
@@ -335,13 +335,13 @@ sl_itertx_read3(void)
 		case 1:
 			t( ss_iteratorhas(&li) == 1 );
 			v = ss_iteratorof(&li);
-			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 8 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 8 );
 			ss_iteratornext(&li);
 			v = ss_iteratorof(&li);
-			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 9 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 9 );
 			ss_iteratornext(&li);
 			v = ss_iteratorof(&li);
-			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 10 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 10 );
 			ss_iteratornext(&li);
 			v = ss_iteratorof(&li);
 			t( v == NULL );
@@ -349,13 +349,13 @@ sl_itertx_read3(void)
 		case 2:
 			t( ss_iteratorhas(&li) == 1 );
 			v = ss_iteratorof(&li);
-			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 11 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 11 );
 			ss_iteratornext(&li);
 			v = ss_iteratorof(&li);
-			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 12 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 12 );
 			ss_iteratornext(&li);
 			v = ss_iteratorof(&li);
-			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 13 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 13 );
 			ss_iteratornext(&li);
 			v = ss_iteratorof(&li);
 			t( v == NULL );
@@ -363,7 +363,7 @@ sl_itertx_read3(void)
 		case 3:
 			t( ss_iteratorhas(&li) == 1 );
 			v = ss_iteratorof(&li);
-			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 14 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 14 );
 			ss_iteratornext(&li);
 			v = ss_iteratorof(&li);
 			t( v == NULL );

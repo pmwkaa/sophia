@@ -225,9 +225,15 @@ se_document_getfield(sedocument *v, int pos, int *size)
 	assert(pos < (int)(sizeof(v->fields) / sizeof(sfv)));
 	sffield *field = sf_schemeof(&db->scheme->scheme, pos);
 	/* database result document */
-	if (v->v)
-		return sf_fieldof(db->r->scheme, field->position,
-		                  sv_vpointer(v->v), (uint32_t*)size);
+	if (v->v) {
+		uint32_t datasize;
+		char *data =
+			sf_field(db->r->scheme, field->position,
+			         sv_vpointer(v->v), &datasize);
+		if (size)
+			*size = datasize;
+		return data;
+	}
 	/* database field document */
 	assert(field->position < (int)(sizeof(v->fields) / sizeof(sfv)));
 	sfv *fv = &v->fields[field->position];

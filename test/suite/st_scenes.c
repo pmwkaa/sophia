@@ -69,6 +69,7 @@ void st_scene_init(stscene *s ssunused)
 	st_r.key_end = 32;
 	st_r.value_start = 4;
 	st_r.value_end = 4;
+	st_r.size = 0;
 }
 
 void st_scene_scheme_u32(stscene *s ssunused)

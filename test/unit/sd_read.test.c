@@ -104,13 +104,13 @@ sd_read_gt0(void)
 	t( ss_iteratorhas(&it) == 1 );
 
 	char *v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 7);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 7);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 8);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 8);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 9);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 9);
 	ss_iteratornext(&it);
 	t( ss_iteratorhas(&it) == 0 );
 	ss_iteratorclose(&it);
@@ -233,35 +233,35 @@ sd_read_gt1(void)
 	/* page 0 */
 	t( ss_iteratorhas(&it) != 0 );
 	char *v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 7);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 7);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 8);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 8);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 9);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 9);
 	ss_iteratornext(&it);
 
 	/* page 1 */
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 10);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 10);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 11);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 11);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 13);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 13);
 	ss_iteratornext(&it);
 
 	/* page 2 */
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 15);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 15);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 18);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 18);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 20);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 20);
 	ss_iteratornext(&it);
 	t( ss_iteratorhas(&it) == 0 );
 	ss_iteratorclose(&it);
@@ -379,13 +379,13 @@ sd_read_gt0_compression_zstd(void)
 	t( ss_iteratorhas(&it) == 1 );
 
 	char *v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 7);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 7);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 8);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 8);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 9);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 9);
 	ss_iteratornext(&it);
 	t( ss_iteratorhas(&it) == 0 );
 	ss_iteratorclose(&it);
@@ -507,13 +507,13 @@ sd_read_gt0_compression_lz4(void)
 	t( ss_iteratorhas(&it) == 1 );
 
 	char *v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 7);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 7);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 8);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 8);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 9);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 9);
 	ss_iteratornext(&it);
 	t( ss_iteratorhas(&it) == 0 );
 	ss_iteratorclose(&it);
@@ -668,35 +668,35 @@ sd_read_gt1_compression_zstd(void)
 	/* page 0 */
 	t( ss_iteratorhas(&it) != 0 );
 	char *v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 7);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 7);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 8);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 8);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 9);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 9);
 	ss_iteratornext(&it);
 
 	/* page 1 */
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 10);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 10);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 11);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 11);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 13);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 13);
 	ss_iteratornext(&it);
 
 	/* page 2 */
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 15);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 15);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 18);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 18);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 20);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 20);
 	ss_iteratornext(&it);
 	t( ss_iteratorhas(&it) == 0 );
 	ss_iteratorclose(&it);
@@ -850,35 +850,35 @@ sd_read_gt1_compression_lz4(void)
 	/* page 0 */
 	t( ss_iteratorhas(&it) != 0 );
 	char *v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 7);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 7);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 8);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 8);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 9);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 9);
 	ss_iteratornext(&it);
 
 	/* page 1 */
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 10);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 10);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 11);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 11);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 13);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 13);
 	ss_iteratornext(&it);
 
 	/* page 2 */
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 15);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 15);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 18);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 18);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 20);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 20);
 	ss_iteratornext(&it);
 	t( ss_iteratorhas(&it) == 0 );
 	ss_iteratorclose(&it);

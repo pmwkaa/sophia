@@ -61,7 +61,7 @@ sd_v_test(void)
 	char *v = ss_iteratorof(&it);
 	t( v != NULL );
 
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == i );
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == i );
 	t( sf_lsn(st_r.r.scheme, v) == 3 );
 	t( sf_flags(st_r.r.scheme, v) == 0 );
 	ss_iteratornext(&it);
@@ -70,7 +70,7 @@ sd_v_test(void)
 	v = ss_iteratorof(&it);
 	t( v != NULL );
 	
-	t( *(int*)sf_field(st_r.r.scheme, 0, v) == j );
+	t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == j );
 	t( sf_lsn(st_r.r.scheme, v) == 4 );
 	t( sf_flags(st_r.r.scheme, v) == 0 );
 

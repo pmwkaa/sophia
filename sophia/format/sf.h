@@ -89,35 +89,22 @@ sf_lsnset(sfscheme *s, char *data, uint64_t lsn)
 }
 
 static inline char*
-sf_fieldof_ptr(sfscheme *s, sffield *f, char *data, uint32_t *size)
+sf_fieldptr(sfscheme *s, sffield *f, char *data, uint32_t *size)
 {
 	if (sslikely(f->fixed_size > 0)) {
-		if (sslikely(size))
-			*size = f->fixed_size;
+		*size = f->fixed_size;
 		return data + f->fixed_offset;
 	}
 	register sfvar *v =
 		&((sfvar*)(data + s->var_offset))[f->position_ref];
-	if (sslikely(size))
-		*size = v->size;
+	*size = v->size;
 	return data + v->offset;
 }
 
 static inline char*
-sf_fieldof(sfscheme *s, int pos, char *data, uint32_t *size)
+sf_field(sfscheme *s, int pos, char *data, uint32_t *size)
 {
-	return sf_fieldof_ptr(s, s->fields[pos], data, size);
-}
-
-static inline char*
-sf_field(sfscheme *s, int pos, char *data)
-{
-	register sffield *f = s->fields[pos];
-	if (sslikely(f->fixed_size > 0))
-		return data + f->fixed_offset;
-	register sfvar *v =
-		&((sfvar*)(data + s->var_offset))[f->position_ref];
-	return data + v->offset;
+	return sf_fieldptr(s, s->fields[pos], data, size);
 }
 
 static inline int
@@ -175,8 +162,11 @@ sf_hash(sfscheme *s, char *data)
 {
 	uint64_t hash = 0;
 	int i;
-	for (i = 0; i < s->keys_count; i++)
-		hash ^= ss_fnv(sf_field(s, i, data), sf_fieldsize(s, i, data));
+	for (i = 0; i < s->keys_count; i++) {
+		uint32_t size;
+		char *field = sf_field(s, i, data, &size);
+		hash ^= ss_fnv(field, size);
+	}
 	return hash;
 }
 
@@ -214,7 +204,7 @@ sf_comparable_write(sfscheme *s, char *src, char *dest)
 			current->size = 0;
 			continue;
 		}
-		char *ptr = sf_fieldof_ptr(s, f, src, &current->size);
+		char *ptr = sf_fieldptr(s, f, src, &current->size);
 		memcpy(dest + var_value_offset, ptr, current->size);
 		var_value_offset += current->size;
 	}

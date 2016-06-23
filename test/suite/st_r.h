@@ -57,6 +57,9 @@ struct str {
 	int          stat_stmt;
 	int          stat_test;
 	time_t       start;
+
+	/* misc */
+	uint32_t     size;
 };
 
 extern str st_r;

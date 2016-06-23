@@ -39,7 +39,7 @@ void *st_document_generate(stgenerator *g, stlist *l, void *db,
 			continue;
 		}
 		uint32_t size;
-		char *ptr = sf_fieldof(g->r->scheme, i, sv_vpointer(v), &size);
+		char *ptr = sf_field(g->r->scheme, i, sv_vpointer(v), &size);
 		rc = sp_setstring(o, g->r->scheme->fields[i]->name, ptr, size);
 		t( rc == 0 );
 		i++;
@@ -67,7 +67,7 @@ void st_document_eq(stgenerator *g, void *o,
 		}
 		void *ptr = sp_getstring(o, g->r->scheme->fields[i]->name, &size);
 		uint32_t size_b;
-		char *ptr_b = sf_fieldof(g->r->scheme, i, sv_vpointer(v), &size_b);
+		char *ptr_b = sf_field(g->r->scheme, i, sv_vpointer(v), &size_b);
 		t( size == size_b );
 		t( memcmp(ptr, ptr_b, size) == 0 );
 		i++;

@@ -58,7 +58,7 @@ sv_writeiter_iter(void)
 	i = 0;
 	while (ss_iteratorhas(&iter)) {
 		char *v = ss_iteratorof(&iter);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == i );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == i );
 		t( sf_lsn(st_r.r.scheme, v) == 10 - i );
 		t( sf_flags(st_r.r.scheme, v) == 0 );
 		ss_iteratornext(&iter);
@@ -118,7 +118,7 @@ sv_writeiter_limit(void)
 	i = 0;
 	while (ss_iteratorhas(&iter)) {
 		char *v = ss_iteratorof(&iter);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == i );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == i );
 		t( sf_lsn(st_r.r.scheme, v) == 18 - i );
 		t( sf_flags(st_r.r.scheme, v) == 0 );
 		ss_iteratornext(&iter);
@@ -129,7 +129,7 @@ sv_writeiter_limit(void)
 	sv_writeiter_resume(&iter);
 	while (ss_iteratorhas(&iter)) {
 		char *v = ss_iteratorof(&iter);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == i );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == i );
 		t( sf_lsn(st_r.r.scheme, v) == 18 - i );
 		t( sf_flags(st_r.r.scheme, v) == 0 );
 		ss_iteratornext(&iter);
@@ -141,7 +141,7 @@ sv_writeiter_limit(void)
 	sv_writeiter_resume(&iter);
 	while (ss_iteratorhas(&iter)) {
 		char *v = ss_iteratorof(&iter);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == i );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == i );
 		t( sf_lsn(st_r.r.scheme, v) == 18 - i );
 		t( sf_flags(st_r.r.scheme, v) == 0 );
 		ss_iteratornext(&iter);
@@ -153,7 +153,7 @@ sv_writeiter_limit(void)
 	sv_writeiter_resume(&iter);
 	while (ss_iteratorhas(&iter)) {
 		char *v = ss_iteratorof(&iter);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == i );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == i );
 		t( sf_lsn(st_r.r.scheme, v) == 18 - i );
 		t( sf_flags(st_r.r.scheme, v) == 0 );
 		ss_iteratornext(&iter);
@@ -216,7 +216,7 @@ sv_writeiter_limit_small(void)
 	i = 0;
 	while (ss_iteratorhas(&iter)) {
 		char *v = ss_iteratorof(&iter);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == i );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == i );
 		t( sf_lsn(st_r.r.scheme, v) == 18 - i );
 		t( sf_flags(st_r.r.scheme, v) == 0 );
 		ss_iteratornext(&iter);
@@ -227,7 +227,7 @@ sv_writeiter_limit_small(void)
 	sv_writeiter_resume(&iter);
 	while (ss_iteratorhas(&iter)) {
 		char *v = ss_iteratorof(&iter);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == i );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == i );
 		t( sf_lsn(st_r.r.scheme, v) == 18 - i );
 		t( sf_flags(st_r.r.scheme, v) == 0 );
 		ss_iteratornext(&iter);
@@ -239,7 +239,7 @@ sv_writeiter_limit_small(void)
 	sv_writeiter_resume(&iter);
 	while (ss_iteratorhas(&iter)) {
 		char *v = ss_iteratorof(&iter);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == i );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == i );
 		t( sf_lsn(st_r.r.scheme, v) == 18 - i );
 		t( sf_flags(st_r.r.scheme, v) == 0 );
 		ss_iteratornext(&iter);
@@ -251,7 +251,7 @@ sv_writeiter_limit_small(void)
 	sv_writeiter_resume(&iter);
 	while (ss_iteratorhas(&iter)) {
 		char *v = ss_iteratorof(&iter);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == i );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == i );
 		t( sf_lsn(st_r.r.scheme, v) == 18 - i );
 		t( sf_flags(st_r.r.scheme, v) == 0 );
 		ss_iteratornext(&iter);
@@ -273,7 +273,7 @@ static void
 checkv(sr *r, ssiter *i, uint64_t lsn, int flags, int key)
 {
 	char *v = ss_iteratorof(i);
-	t( *(int*)sf_field(r->scheme, 0, v) == key );
+	t( *(int*)sf_field(r->scheme, 0, v, &st_r.size) == key );
 	t( sf_lsn(st_r.r.scheme, v) == lsn );
 	t( sf_flags(st_r.r.scheme, v) == flags );
 }
@@ -322,7 +322,7 @@ sv_writeiter_dup_lsn_gt(void)
 	i = 0;
 	while (ss_iteratorhas(&iter)) {
 		char *v = ss_iteratorof(&iter);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == key );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == key );
 		t( sf_lsn(st_r.r.scheme, v) == 10 - i );
 		if (i == 0)
 			t( sf_flags(st_r.r.scheme, v) == 0 );
@@ -386,7 +386,7 @@ sv_writeiter_dup_lsn_lt0(void)
 	i = 0;
 	while (ss_iteratorhas(&iter)) {
 		char *v = ss_iteratorof(&iter);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == key );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == key );
 		t( sf_lsn(st_r.r.scheme, v) == 10 - i );
 		if (i == 0)
 			t( sf_flags(st_r.r.scheme, v) == 0 );
@@ -450,7 +450,7 @@ sv_writeiter_dup_lsn_lt1(void)
 	i = 0;
 	while (ss_iteratorhas(&iter)) {
 		char *v = ss_iteratorof(&iter);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == key );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == key );
 		t( sf_lsn(st_r.r.scheme, v) == 10 - i );
 		if (i == 0)
 			t( sf_flags(st_r.r.scheme, v) == 0 );
@@ -514,7 +514,7 @@ sv_writeiter_dup_lsn_lt2(void)
 	i = 0;
 	while (ss_iteratorhas(&iter)) {
 		char *v = ss_iteratorof(&iter);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == key );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == key );
 		t( sf_lsn(st_r.r.scheme, v) == 10 - i );
 		if (i == 0)
 			t( sf_flags(st_r.r.scheme, v) == 0 );
@@ -1193,7 +1193,7 @@ sv_writeiter_delete0(void)
 	i = 0;
 	while (ss_iteratorhas(&iter)) {
 		char *v = ss_iteratorof(&iter);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == key );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == key );
 		t( sf_lsn(st_r.r.scheme, v) == 10 - i );
 		if (i == 0)
 			t( sf_flags(st_r.r.scheme, v) == 0 );
@@ -1257,7 +1257,7 @@ sv_writeiter_delete1(void)
 	i = 0;
 	while (ss_iteratorhas(&iter)) {
 		char *v = ss_iteratorof(&iter);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == key );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == key );
 		t( sf_lsn(st_r.r.scheme, v) == 10 - i );
 		if (i == 0)
 			t( sf_flags(st_r.r.scheme, v) == 0 );
@@ -1321,7 +1321,7 @@ sv_writeiter_delete2(void)
 	i = 0;
 	while (ss_iteratorhas(&iter)) {
 		char *v = ss_iteratorof(&iter);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == key );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == key );
 		t( sf_lsn(st_r.r.scheme, v) == 10 - i );
 		if (i == 0)
 			t( sf_flags(st_r.r.scheme, v) == 0 );
@@ -1385,7 +1385,7 @@ sv_writeiter_delete3(void)
 	i = 0;
 	while (ss_iteratorhas(&iter)) {
 		char *v = ss_iteratorof(&iter);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == key );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == key );
 		t( sf_lsn(st_r.r.scheme, v) == 10 - i );
 		if (i == 0)
 			t( sf_flags(st_r.r.scheme, v) == SVDELETE );
@@ -1449,7 +1449,7 @@ sv_writeiter_delete4(void)
 	i = 0;
 	while (ss_iteratorhas(&iter)) {
 		char *v = ss_iteratorof(&iter);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == key );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == key );
 		t( sf_lsn(st_r.r.scheme, v) == 10 - i );
 		if (i == 0)
 			t( sf_flags(st_r.r.scheme, v) == SVDELETE );
@@ -1513,7 +1513,7 @@ sv_writeiter_delete5(void)
 	i = 0;
 	while (ss_iteratorhas(&iter)) {
 		char *v = ss_iteratorof(&iter);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == key );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == key );
 		t( sf_lsn(st_r.r.scheme, v) == 10 - i );
 		if (i == 0)
 			t( sf_flags(st_r.r.scheme, v) == SVDELETE );
@@ -1581,10 +1581,10 @@ sv_writeiter_delete6(void)
 	while (ss_iteratorhas(&iter)) {
 		char *v = ss_iteratorof(&iter);
 		if (i == 0) {
-			t( *(int*)sf_field(st_r.r.scheme, 0, v) == 6 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 6 );
 			t( sf_lsn(st_r.r.scheme, v) == 12 );
 		} else {
-			t( *(int*)sf_field(st_r.r.scheme, 0, v) == 10 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 10 );
 			t( sf_lsn(st_r.r.scheme, v) == 11 );
 		}
 		t( sf_flags(st_r.r.scheme, v) == 0 );
@@ -1650,11 +1650,11 @@ sv_writeiter_delete7(void)
 	while (ss_iteratorhas(&iter)) {
 		char *v = ss_iteratorof(&iter);
 		if (i == 0) {
-			t( *(int*)sf_field(st_r.r.scheme, 0, v) == 6 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 6 );
 			t( sf_flags(st_r.r.scheme, v) == 0 );
 			t( sf_lsn(st_r.r.scheme, v) == 12 );
 		} else {
-			t( *(int*)sf_field(st_r.r.scheme, 0, v) == 10 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 10 );
 			t( sf_flags(st_r.r.scheme, v) == 0 );
 			t( sf_lsn(st_r.r.scheme, v) == 11 );
 		}
@@ -1720,21 +1720,21 @@ sv_writeiter_delete8(void)
 	while (ss_iteratorhas(&iter)) {
 		char *v = ss_iteratorof(&iter);
 		if (i == 0) {
-			t( *(int*)sf_field(st_r.r.scheme, 0, v) == 6 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 6 );
 			t( sf_flags(st_r.r.scheme, v) == 0 );
 			t( sf_lsn(st_r.r.scheme, v) == 12 );
 		} else
 		if (i == 1) {
-			t( *(int*)sf_field(st_r.r.scheme, 0, v) == 7 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 7 );
 			t( sf_flags(st_r.r.scheme, v) == SVDELETE );
 			t( sf_lsn(st_r.r.scheme, v) == 10 );
 		} else
 		if (i == 2) {
-			t( *(int*)sf_field(st_r.r.scheme, 0, v) == 7 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 7 );
 			t( sf_flags(st_r.r.scheme, v) == (SVDELETE|SVDUP) );
 			t( sf_lsn(st_r.r.scheme, v) ==  9 );
 		} else {
-			t( *(int*)sf_field(st_r.r.scheme, 0, v) == 10 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == 10 );
 			t( sf_flags(st_r.r.scheme, v) == 0 );
 			t( sf_lsn(st_r.r.scheme, v) == 11 );
 		}

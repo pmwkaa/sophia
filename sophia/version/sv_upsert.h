@@ -149,8 +149,8 @@ sv_upsertdo(svupsert *u, sr *r, svupsertnode *a, svupsertnode *b)
 		src_ptr = src;
 		src_size_ptr = src_size;
 		for (; i < r->scheme->fields_count; i++) {
-			src[i]    = sf_fieldof(r->scheme, i, a->buf.s, &src_size[i]);
-			upsert[i] = sf_fieldof(r->scheme, i, b->buf.s, &upsert_size[i]);
+			src[i]    = sf_field(r->scheme, i, a->buf.s, &src_size[i]);
+			upsert[i] = sf_field(r->scheme, i, b->buf.s, &upsert_size[i]);
 			result[i] = src[i];
 			result_size[i] = src_size[i];
 		}
@@ -158,7 +158,7 @@ sv_upsertdo(svupsert *u, sr *r, svupsertnode *a, svupsertnode *b)
 		src_ptr = NULL;
 		src_size_ptr = NULL;
 		for (; i < r->scheme->fields_count; i++) {
-			upsert[i] = sf_fieldof(r->scheme, i, b->buf.s, &upsert_size[i]);
+			upsert[i] = sf_field(r->scheme, i, b->buf.s, &upsert_size[i]);
 			result[i] = upsert[i];
 			result_size[i] = upsert_size[i];
 		}

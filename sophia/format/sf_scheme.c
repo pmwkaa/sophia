@@ -114,9 +114,9 @@ sf_compare(sfscheme *s, char *a, char *b)
 	while (part < last) {
 		sffield *key = *part;
 		uint32_t a_fieldsize;
-		char *a_field = sf_fieldof_ptr(s, key, a, &a_fieldsize);
+		char *a_field = sf_fieldptr(s, key, a, &a_fieldsize);
 		uint32_t b_fieldsize;
-		char *b_field = sf_fieldof_ptr(s, key, b, &b_fieldsize);
+		char *b_field = sf_fieldptr(s, key, b, &b_fieldsize);
 		rc = key->cmp(a_field, a_fieldsize, b_field, b_fieldsize, NULL);
 		if (rc != 0)
 			return rc;
@@ -129,7 +129,7 @@ sshot int
 sf_compareprefix(sfscheme *s, char *prefix, uint32_t prefixsize, char *key)
 {
 	uint32_t keysize;
-	key = sf_fieldof(s, 0, key, &keysize);
+	key = sf_field(s, 0, key, &keysize);
 	if (keysize < prefixsize)
 		return 0;
 	return (memcmp(prefix, key, prefixsize) == 0) ? 1 : 0;

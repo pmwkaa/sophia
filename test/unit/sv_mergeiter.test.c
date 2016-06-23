@@ -50,7 +50,7 @@ sv_mergeiter_merge_a(void)
 	i = 0;
 	while (ss_iteratorhas(&merge)) {
 		char *v = ss_iteratorof(&merge);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == i );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == i );
 		t( sf_lsn(st_r.r.scheme, v) == i );
 		t( sf_flags(st_r.r.scheme, v) == 0 );
 		ss_iteratornext(&merge);
@@ -101,7 +101,7 @@ sv_mergeiter_merge_b(void)
 	i = 0;
 	while (ss_iteratorhas(&merge)) {
 		char *v = ss_iteratorof(&merge);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == i );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == i );
 		t( sf_lsn(st_r.r.scheme, v) == i );
 		t( sf_flags(st_r.r.scheme, v) == 0 );
 		ss_iteratornext(&merge);
@@ -158,7 +158,7 @@ sv_mergeiter_merge_ab(void)
 	i = 0;
 	while (ss_iteratorhas(&merge)) {
 		char *v = ss_iteratorof(&merge);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == i );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == i );
 		t( sf_lsn(st_r.r.scheme, v) == i );
 		t( sf_flags(st_r.r.scheme, v) == 0 );
 		ss_iteratornext(&merge);
@@ -228,7 +228,7 @@ sv_mergeiter_merge_abc(void)
 	i = 0;
 	while (ss_iteratorhas(&merge)) {
 		char *v = ss_iteratorof(&merge);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == i );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == i );
 		t( sf_lsn(st_r.r.scheme, v) == i );
 		t( sf_flags(st_r.r.scheme, v) == 0 );
 		ss_iteratornext(&merge);
@@ -286,7 +286,7 @@ sv_mergeiter_merge_ba(void)
 	i = 0;
 	while (ss_iteratorhas(&merge)) {
 		char *v = ss_iteratorof(&merge);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == i );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == i );
 		t( sf_lsn(st_r.r.scheme, v) == i );
 		t( sf_flags(st_r.r.scheme, v) == 0 );
 		ss_iteratornext(&merge);
@@ -349,11 +349,11 @@ sv_mergeiter_merge_dup_ab(void)
 	while (ss_iteratorhas(&merge)) {
 		char *v = ss_iteratorof(&merge);
 		if ((i % 2) == 0) {
-			t( *(int*)sf_field(st_r.r.scheme, 0, v) == key );
+			t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == key );
 			t( sf_flags(st_r.r.scheme, v) == 0 );
 			key++;
 		} else {
-			t( *(int*)sf_field(st_r.r.scheme, 0, v) == key - 1);
+			t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == key - 1);
 			t( (sf_flags(st_r.r.scheme, v) | sv_mergeisdup(&merge)) == (0|SVDUP) );
 		}
 		ss_iteratornext(&merge);
@@ -408,7 +408,7 @@ sv_mergeiter_merge_dup_a_chain(void)
 	i = 0;
 	while (ss_iteratorhas(&merge)) {
 		char *v = ss_iteratorof(&merge);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == key );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == key );
 		if (i == 0) {
 			t( sf_flags(st_r.r.scheme, v) == 0 );
 		} else {
@@ -473,7 +473,7 @@ sv_mergeiter_merge_dup_ab_chain(void)
 	i = 0;
 	while (ss_iteratorhas(&merge)) {
 		char *v = ss_iteratorof(&merge);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == key );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == key );
 		if (i == 0) {
 			t( sf_flags(st_r.r.scheme, v) == 0 );
 		} else {
@@ -553,7 +553,7 @@ sv_mergeiter_merge_dup_abc_chain(void)
 	i = 0;
 	while (ss_iteratorhas(&merge)) {
 		char *v = ss_iteratorof(&merge);
-		t( *(int*)sf_field(st_r.r.scheme, 0, v) == key );
+		t( *(int*)sf_field(st_r.r.scheme, 0, v, &st_r.size) == key );
 		if (i == 0) {
 			t( sf_flags(st_r.r.scheme, v) == 0 );
 		} else {
