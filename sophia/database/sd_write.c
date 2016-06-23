@@ -29,7 +29,7 @@ int sd_commitpage(sdbuild *b, sr *r, ssbuf *buf)
 	}
 	/* not compressed */
 	assert(ref->msize != 0);
-	int total = ref->msize + ref->vsize + ref->ksize;
+	int total = ref->msize + ref->vsize;
 	rc = ss_bufensure(buf, r->a, total);
 	if (ssunlikely(rc == -1))
 		return -1;
@@ -37,8 +37,6 @@ int sd_commitpage(sdbuild *b, sr *r, ssbuf *buf)
 	ss_bufadvance(buf, ref->msize);
 	memcpy(buf->p, b->v.s + ref->v, ref->vsize);
 	ss_bufadvance(buf, ref->vsize);
-	memcpy(buf->p, b->k.s + ref->k, ref->ksize);
-	ss_bufadvance(buf, ref->ksize);
 	return 0;
 }
 
@@ -80,7 +78,6 @@ int sd_writepage(sr *r, ssfile *file, ssblob *blob, sdbuild *b)
 		/* uncompressed */
 		ss_iovadd(&iov, b->m.s + ref->m, ref->msize);
 		ss_iovadd(&iov, b->v.s + ref->v, ref->vsize);
-		ss_iovadd(&iov, b->k.s + ref->k, ref->ksize);
 	}
 	int rc;
 	rc = ss_filewritev(file, &iov);

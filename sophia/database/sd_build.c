@@ -19,7 +19,6 @@ void sd_buildinit(sdbuild *b)
 	ss_bufinit(&b->m);
 	ss_bufinit(&b->v);
 	ss_bufinit(&b->c);
-	ss_bufinit(&b->k);
 	b->n = 0;
 	b->compress = 0;
 	b->compress_if = NULL;
@@ -33,7 +32,6 @@ void sd_buildfree(sdbuild *b, sr *r)
 	ss_buffree(&b->m, r->a);
 	ss_buffree(&b->v, r->a);
 	ss_buffree(&b->c, r->a);
-	ss_buffree(&b->k, r->a);
 }
 
 void sd_buildreset(sdbuild *b)
@@ -42,7 +40,6 @@ void sd_buildreset(sdbuild *b)
 	ss_bufreset(&b->m);
 	ss_bufreset(&b->v);
 	ss_bufreset(&b->c);
-	ss_bufreset(&b->k);
 	b->n = 0;
 	b->vmax = 0;
 }
@@ -53,7 +50,6 @@ void sd_buildgc(sdbuild *b, sr *r, int wm)
 	ss_bufgc(&b->m, r->a, wm);
 	ss_bufgc(&b->v, r->a, wm);
 	ss_bufgc(&b->c, r->a, wm);
-	ss_bufgc(&b->k, r->a, wm);
 	b->n = 0;
 	b->vmax = 0;
 }
@@ -75,8 +71,6 @@ int sd_buildbegin(sdbuild *b, sr *r, int crc,
 	ref->msize = 0;
 	ref->v     = ss_bufused(&b->v);
 	ref->vsize = 0;
-	ref->k     = ss_bufused(&b->k);
-	ref->ksize = 0;
 	ref->c     = ss_bufused(&b->c);
 	ref->csize = 0;
 	rc = ss_bufensure(&b->m, r->a, sizeof(sdpageheader));
@@ -169,9 +163,6 @@ sd_buildcompress(sdbuild *b, sr *r)
 	rc = ss_filternext(&f, &b->c, b->v.s + ref->v, ref->vsize);
 	if (ssunlikely(rc == -1))
 		goto error;
-	rc = ss_filternext(&f, &b->c, b->k.s + ref->k, ref->ksize);
-	if (ssunlikely(rc == -1))
-		goto error;
 	rc = ss_filtercomplete(&f, &b->c);
 	if (ssunlikely(rc == -1))
 		goto error;
@@ -188,7 +179,6 @@ int sd_buildend(sdbuild *b, sr *r)
 	sdbuildref *ref = sd_buildref(b);
 	ref->msize = ss_bufused(&b->m) - ref->m;
 	ref->vsize = ss_bufused(&b->v) - ref->v;
-	ref->ksize = ss_bufused(&b->k) - ref->k;
 	ref->csize = 0;
 	/* calculate data crc (non-compressed) */
 	sdpageheader *h = sd_buildheader(b);
@@ -196,7 +186,6 @@ int sd_buildend(sdbuild *b, sr *r)
 	if (sslikely(b->crc)) {
 		crc = ss_crcp(r->crc, b->m.s + ref->m, ref->msize, 0);
 		crc = ss_crcp(r->crc, b->v.s + ref->v, ref->vsize, crc);
-		crc = ss_crcp(r->crc, b->k.s + ref->k, ref->ksize, crc);
 	}
 	h->crcdata = crc;
 	/* compression */
@@ -207,8 +196,7 @@ int sd_buildend(sdbuild *b, sr *r)
 		ref->csize = ss_bufused(&b->c) - ref->c;
 	}
 	/* update page header */
-	int total = ref->msize + ref->vsize + ref->ksize;
-	h->sizekeys = ref->ksize;
+	int total = ref->msize + ref->vsize;
 	h->sizeorigin = total - sizeof(sdpageheader);
 	h->size = h->sizeorigin;
 	if (b->compress)
@@ -226,7 +214,6 @@ int sd_buildcommit(sdbuild *b)
 	if (b->compress) {
 		ss_bufreset(&b->m);
 		ss_bufreset(&b->v);
-		ss_bufreset(&b->k);
 	}
 	b->n++;
 	return 0;

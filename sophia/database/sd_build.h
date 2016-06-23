@@ -15,12 +15,11 @@ typedef struct sdbuild sdbuild;
 struct sdbuildref {
 	uint32_t m, msize;
 	uint32_t v, vsize;
-	uint32_t k, ksize;
 	uint32_t c, csize;
 } sspacked;
 
 struct sdbuild {
-	ssbuf list, m, v, k, c;
+	ssbuf list, m, v, c;
 	ssfilterif *compress_if;
 	int compress;
 	int crc;
@@ -49,8 +48,7 @@ sd_buildoffset(sdbuild *b)
 	sdbuildref *r = sd_buildref(b);
 	if (b->compress)
 		return r->c;
-	return r->m + (ss_bufused(&b->v) - (ss_bufused(&b->v) - r->v)) +
-	              (ss_bufused(&b->k) - (ss_bufused(&b->k) - r->k));
+	return r->m + (ss_bufused(&b->v) - (ss_bufused(&b->v) - r->v));
 }
 
 static inline sdv*
