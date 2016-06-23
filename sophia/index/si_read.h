@@ -15,6 +15,7 @@ struct siread {
 	ssorder   order;
 	char     *key;
 	char     *upsert;
+	int       upsert_eq;
 	char     *prefix;
 	uint32_t  prefix_size;
 	int       has;
@@ -24,8 +25,7 @@ struct siread {
 	int       read_start;
 	int       read_disk;
 	int       read_cache;
-	int       upsert_eq;
-	sv        result;
+	svv      *result;
 	sicache  *cache;
 	sr       *r;
 	si       *index;
@@ -37,6 +37,6 @@ int  si_readopen(siread*, si*, sicache*, ssorder,
                  char*, uint32_t, int, int, int);
 int  si_readclose(siread*);
 int  si_read(siread*);
-int  si_readcommited(si*, sr*, sv*);
+int  si_readcommited(si*, sr*, svv*);
 
 #endif

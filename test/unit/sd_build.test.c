@@ -27,9 +27,7 @@ addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 	svv *v = sv_vbuild(r, pv);
 	sf_lsnset(r->scheme, sv_vpointer(v), lsn);
 	sf_flagsset(r->scheme, sv_vpointer(v), flags);
-	sv vv;
-	sv_init(&vv, &sv_vif, v, NULL);
-	sd_buildadd(b, r, &vv, flags & SVDUP);
+	sd_buildadd(b, r, sv_vpointer(v), flags & SVDUP);
 	sv_vunref(r, v);
 }
 

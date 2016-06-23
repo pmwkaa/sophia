@@ -26,7 +26,7 @@ sx_deadlock_in(sxmanager *m, sslist *mark, sx *t, sx *p)
 	for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
 	{
 		svlogv *lv = ss_iterof(ss_bufiter, &i);
-		sxv *v = lv->v.v;
+		sxv *v = lv->ptr;
 		if (v->prev == NULL)
 			continue;
 		do {
@@ -64,7 +64,7 @@ int sx_deadlock(sx *t)
 	while (ss_iterhas(ss_bufiter, &i))
 	{
 		svlogv *lv = ss_iterof(ss_bufiter, &i);
-		sxv *v = lv->v.v;
+		sxv *v = lv->ptr;
 		if (v->prev == NULL) {
 			ss_iternext(ss_bufiter, &i);
 			continue;

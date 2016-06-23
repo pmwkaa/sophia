@@ -12,7 +12,7 @@
 static inline void
 si_lru_add(si *i, svv *v)
 {
-	i->lru_intr_sum += sv_vsize(v, &i->r);
+	i->lru_intr_sum += sf_size(i->r.scheme, sv_vpointer(v));
 	if (ssunlikely(i->lru_intr_sum >= i->scheme.lru_step))
 	{
 		uint64_t lsn = sr_seq(i->r.seq, SR_LSN);

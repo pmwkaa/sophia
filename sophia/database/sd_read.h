@@ -15,7 +15,6 @@ typedef struct sdreadarg sdreadarg;
 struct sdreadarg {
 	sdindex    *index;
 	ssbuf      *buf;
-	ssbuf      *buf_xf;
 	ssbuf      *buf_read;
 	ssiter     *index_iter;
 	ssiter     *page_iter;
@@ -48,10 +47,6 @@ sd_read_page(sdread *i, sdindexpage *ref)
 
 	ss_bufreset(arg->buf);
 	int rc = ss_bufensure(arg->buf, r->a, ref->sizeorigin);
-	if (ssunlikely(rc == -1))
-		return sr_oom(r->e);
-	ss_bufreset(arg->buf_xf);
-	rc = ss_bufensure(arg->buf_xf, r->a, arg->index->h->sizevmax);
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
 
@@ -152,7 +147,6 @@ sd_read_openpage(sdread *i, char *key)
 		return -1;
 	ss_iterinit(sd_pageiter, arg->page_iter);
 	return ss_iteropen(sd_pageiter, arg->page_iter, arg->r,
-	                   arg->buf_xf,
 	                   &i->page, arg->o, key);
 }
 

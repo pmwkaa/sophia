@@ -46,7 +46,7 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 	if (ssunlikely(rc == -1))
 		goto error;
 
-	svv *v = o->v.v;
+	svv *v = o->v;
 	v->log = o->log;
 	sv_vref(v);
 	so_destroy(&o->o);
@@ -152,7 +152,7 @@ se_txdestroy(so *o)
 }
 
 static int
-se_txprepare(sx *x, sv *v, so *o, void *ptr)
+se_txprepare(sx *x, svv *v, so *o, void *ptr)
 {
 	sicache *cache = ptr;
 	sedb *db = (sedb*)o;
@@ -160,7 +160,7 @@ se_txprepare(sx *x, sv *v, so *o, void *ptr)
 	si_readopen(&rq, db->index, cache,
 	            SS_EQ,
 	            x->vlsn,
-	            sv_pointer(v),
+	            sv_vpointer(v),
 	            NULL,
 	            NULL,
 	            0,
@@ -226,8 +226,7 @@ se_txcommit(so *o)
 			svlogv *lv = ss_iterof(ss_bufiter, &i);
 			sedb *db = (sedb*)se_dbmatch_id(e, lv->index_id);
 			assert(db != NULL);
-			svv *v = lv->v.v;
-			sv_vunref(db->r, v);
+			sv_vunref(db->r, lv->v);
 		}
 	}
 	se_txend(t, 0, 0);

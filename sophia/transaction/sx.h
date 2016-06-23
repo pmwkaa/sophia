@@ -40,7 +40,7 @@ struct sxindex {
 	sslist    link;
 };
 
-typedef int (*sxpreparef)(sx*, sv*, so*, void*);
+typedef int (*sxpreparef)(sx*, svv*, so*, void*);
 
 struct sx {
 	sxtype       type;
@@ -83,7 +83,7 @@ sxstate   sx_commit(sx*);
 sxstate   sx_rollback(sx*);
 int       sx_isolation(sx*, char*, int);
 int       sx_set(sx*, sxindex*, svv*);
-int       sx_get(sx*, sxindex*, sv*, sv*);
+int       sx_get(sx*, sxindex*, svv*, svv**);
 uint64_t  sx_vlsn(sxmanager*);
 sxstate   sx_set_autocommit(sxmanager*, sxindex*, sx*, svlog*, svv*);
 sxstate   sx_get_autocommit(sxmanager*, sxindex*);

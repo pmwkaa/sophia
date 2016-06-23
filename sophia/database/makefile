@@ -1,5 +1,4 @@
-LIBSD_O = sd_v.o \
-          sd_pageiter.o \
+LIBSD_O = sd_pageiter.o \
           sd_build.o \
           sd_index.o \
           sd_indexiter.o \

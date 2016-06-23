@@ -191,6 +191,4 @@ sx_vaborted(sxv *v)
 	return v->conflict;
 }
 
-extern svif sx_vif;
-
 #endif

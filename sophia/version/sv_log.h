@@ -20,9 +20,10 @@ struct svlogindex {
 } sspacked;
 
 struct svlogv {
-	sv v;
 	uint32_t index_id;
 	uint32_t next;
+	svv     *v;
+	void    *ptr;
 } sspacked;
 
 struct svlog {
@@ -38,8 +39,8 @@ sv_logvinit(svlogv *v, uint32_t id)
 {
 	v->index_id = id;
 	v->next     = UINT32_MAX;
-	v->v.v      = NULL;
-	v->v.i      = NULL;
+	v->v        = NULL;
+	v->ptr      = NULL;
 }
 
 static inline int
@@ -135,7 +136,7 @@ sv_logadd(svlog *l, sr *r, svlogv *v)
 		index->head = n;
 	index->tail = n;
 	index->count++;
-	if (! (sv_flags(&v->v, r) & SVGET))
+	if (! (sv_vflags(v->v, r) & SVGET))
 		l->count_write++;
 	return 0;
 }
@@ -144,11 +145,12 @@ static inline void
 sv_logreplace(svlog *l, sr *r, int n, svlogv *v)
 {
 	svlogv *ov = sv_logat(l, n);
-	if (! (sv_flags(&ov->v, r) & SVGET))
+	if (! (sv_vflags(ov->v, r) & SVGET))
 		l->count_write--;
-	if (! (sv_flags(&v->v, r) & SVGET))
+	if (! (sv_vflags(v->v, r) & SVGET))
 		l->count_write++;
-	ss_bufset(&l->buf, sizeof(svlogv), n, (char*)v, sizeof(svlogv));
+	ss_bufset(&l->buf, sizeof(svlogv), n, (char*)v,
+	          sizeof(svlogv));
 }
 
 #endif

@@ -79,6 +79,6 @@ sd_buildmaxkey(sdbuild *b) {
 int sd_buildbegin(sdbuild*, sr*, int, int, ssfilterif*);
 int sd_buildend(sdbuild*, sr*);
 int sd_buildcommit(sdbuild*);
-int sd_buildadd(sdbuild*, sr*, sv*, uint8_t);
+int sd_buildadd(sdbuild*, sr*, char*, uint8_t);
 
 #endif

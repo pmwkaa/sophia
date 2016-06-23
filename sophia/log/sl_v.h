@@ -18,11 +18,9 @@ struct slv {
 	uint8_t  flags;
 } sspacked;
 
-extern svif sl_vif;
-
-static inline uint32_t
-sl_vdsn(sv *v) {
-	return ((slv*)v->v)->dsn;
+static inline char*
+sl_vpointer(slv *v) {
+	return (char*)v + sizeof(*v);
 }
 
 #endif

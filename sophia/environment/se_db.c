@@ -260,7 +260,7 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 	if (ssunlikely(rc == -1))
 		goto error;
 
-	svv *v = o->v.v;
+	svv *v = o->v;
 	sv_vref(v);
 	so_destroy(&o->o);
 
@@ -284,8 +284,7 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 	rc = sc_commit(&e->scheduler, &log, 0, 0);
 	if (ssunlikely(rc == -1)) {
 		svlogv *lv = sv_logat(&log, 0);
-		svv *v = lv->v.v;
-		sv_vunref(db->r, v);
+		sv_vunref(db->r, lv->v);
 	}
 	sv_logfree(&log, db->r);
 

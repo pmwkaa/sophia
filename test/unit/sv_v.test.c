@@ -28,17 +28,15 @@ sv_v_kv(void)
 	pv[1].pointer = value;
 	pv[1].size = sizeof(value);
 
-	svv *vv = sv_vbuild(&st_r.r, pv);
-	t( vv != NULL );
-	sv v;
-	sv_init(&v, &sv_vif, vv, NULL);
+	svv *v = sv_vbuild(&st_r.r, pv);
+	t( v != NULL );
 
-	t( sv_flags(&v, &st_r.r) == 0 );
+	t( sf_flags(st_r.r.scheme, sv_vpointer(v)) == 0 );
 
-	t( *(uint32_t*)sf_field(&st_r.scheme, 0, sv_pointer(&v)) == key );
-	t( sf_fieldsize(&st_r.scheme, 0, sv_pointer(&v)) == sizeof(key) );
+	t( *(uint32_t*)sf_field(&st_r.scheme, 0, sv_vpointer(v)) == key );
+	t( sf_fieldsize(&st_r.scheme, 0, sv_vpointer(v)) == sizeof(key) );
 
-	sv_vunref(&st_r.r, vv);
+	sv_vunref(&st_r.r, v);
 }
 
 stgroup *sv_v_group(void)

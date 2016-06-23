@@ -25,7 +25,7 @@ struct svwriteiter {
 	int       upsert;
 	uint64_t  prevlsn;
 	int       vdup;
-	sv       *v;
+	char     *v;
 	svupsert *u;
 	ssiter   *merge;
 	sr       *r;
@@ -39,11 +39,11 @@ sv_writeiter_upsert(svwriteiter *i)
 	sv_upsertreset(i->u);
 
 	/* upsert begin */
-	sv *v = ss_iterof(sv_mergeiter, i->merge);
+	char *v = ss_iterof(sv_mergeiter, i->merge);
 	assert(v != NULL);
-	assert(sv_flags(v, i->r) & SVUPSERT);
-	assert(sv_lsn(v, i->r) <= i->vlsn);
-	int rc = sv_upsertpush(i->u, i->r, sv_pointer(v));
+	assert(sf_flags(i->r->scheme, v) & SVUPSERT);
+	assert(sf_lsn(i->r->scheme, v) <= i->vlsn);
+	int rc = sv_upsertpush(i->u, i->r, v);
 	if (ssunlikely(rc == -1))
 		return -1;
 	ss_iternext(sv_mergeiter, i->merge);
@@ -53,16 +53,16 @@ sv_writeiter_upsert(svwriteiter *i)
 	for (; ss_iterhas(sv_mergeiter, i->merge); ss_iternext(sv_mergeiter, i->merge))
 	{
 		v = ss_iterof(sv_mergeiter, i->merge);
-		int flags = sv_flags(v, i->r);
-		int dup = sv_isflags(flags, SVDUP) || sv_mergeisdup(i->merge);
+		int flags = sf_flags(i->r->scheme, v);
+		int dup = sf_flagsequ(flags, SVDUP) || sv_mergeisdup(i->merge);
 		if (! dup)
 			break;
 		/* stop forming upserts on a second non-upsert stmt,
 		 * but continue to iterate stream */
 		if (last_non_upd)
 			continue;
-		last_non_upd = ! sv_isflags(flags, SVUPSERT);
-		int rc = sv_upsertpush(i->u, i->r, sv_pointer(v));
+		last_non_upd = ! sf_flagsequ(flags, SVUPSERT);
+		int rc = sv_upsertpush(i->u, i->r, v);
 		if (ssunlikely(rc == -1))
 			return -1;
 	}
@@ -86,19 +86,18 @@ sv_writeiter_next(ssiter *i)
 
 	for (; ss_iterhas(sv_mergeiter, im->merge); ss_iternext(sv_mergeiter, im->merge))
 	{
-		sv *v = ss_iterof(sv_mergeiter, im->merge);
+		char *v = ss_iterof(sv_mergeiter, im->merge);
 		/* expiration logic */
 		if (im->expire > 0) {
-			uint32_t timestamp =
-				sf_ttl(im->r->scheme, sv_pointer(v));
+			uint32_t timestamp = sf_ttl(im->r->scheme, v);
 			if ((im->now - timestamp) >= im->expire)
 				 continue;
 		}
-		uint64_t lsn = sv_lsn(v, im->r);
+		uint64_t lsn = sf_lsn(im->r->scheme, v);
 		if (lsn < im->vlsn_lru)
 			continue;
-		int flags = sv_flags(v, im->r);
-		int dup = sv_isflags(flags, SVDUP) || sv_mergeisdup(im->merge);
+		int flags = sf_flags(im->r->scheme, v);
+		int dup = sf_flagsequ(flags, SVDUP) || sv_mergeisdup(im->merge);
 		if (im->size >= im->limit) {
 			if (! dup)
 				break;
@@ -108,7 +107,7 @@ sv_writeiter_next(ssiter *i)
 			/* keep atleast one visible version for <= vlsn */
 			if (im->prevlsn <= im->vlsn) {
 				if (im->upsert) {
-					im->upsert = sv_isflags(flags, SVUPSERT);
+					im->upsert = sf_flagsequ(flags, SVUPSERT);
 				} else {
 					continue;
 				}
@@ -117,20 +116,20 @@ sv_writeiter_next(ssiter *i)
 			im->upsert = 0;
 			/* delete (stray or on branch) */
 			if (! im->save_delete) {
-				int del = sv_isflags(flags, SVDELETE);
+				int del = sf_flagsequ(flags, SVDELETE);
 				if (ssunlikely(del && (lsn <= im->vlsn))) {
 					im->prevlsn = lsn;
 					continue;
 				}
 			}
-			im->size += im->sizev + sv_size(v, im->r);
+			im->size += im->sizev + sf_size(im->r->scheme, v);
 			/* upsert (track first statement start) */
-			if (sv_isflags(flags, SVUPSERT))
+			if (sf_flagsequ(flags, SVUPSERT))
 				im->upsert = 1;
 		}
 
 		/* upsert */
-		if (sv_isflags(flags, SVUPSERT)) {
+		if (sf_flagsequ(flags, SVUPSERT)) {
 			if (! im->save_upsert) {
 				if (lsn <= im->vlsn) {
 					int rc;
@@ -139,7 +138,7 @@ sv_writeiter_next(ssiter *i)
 						return;
 					im->upsert = 0;
 					im->prevlsn = lsn;
-					im->v = &im->u->result;
+					im->v = im->u->result;
 					im->vdup = dup;
 					im->next = 0;
 					break;
@@ -169,7 +168,6 @@ sv_writeiter_open(ssiter *i, sr *r, ssiter *merge, svupsert *u,
 	svwriteiter *im = (svwriteiter*)i->priv;
 	im->u           = u;
 	im->r           = r;
-	im->merge       = merge;
 	im->limit       = limit;
 	im->size        = 0;
 	im->sizev       = sizev;
@@ -179,12 +177,13 @@ sv_writeiter_open(ssiter *i, sr *r, ssiter *merge, svupsert *u,
 	im->vlsn_lru    = vlsn_lru;
 	im->save_delete = save_delete;
 	im->save_upsert = save_upsert;
+	im->next        = 0;
+	im->prevlsn     = 0;
+	im->v           = NULL;
+	im->vdup        = 0;
+	im->upsert      = 0;
+	im->merge       = merge;
 	assert(im->merge->vif == &sv_mergeiter);
-	im->next  = 0;
-	im->prevlsn  = 0;
-	im->v = NULL;
-	im->vdup = 0;
-	im->upsert = 0;
 	sv_writeiter_next(i);
 	return 0;
 }
@@ -216,11 +215,11 @@ sv_writeiter_resume(ssiter *i)
 	im->v       = ss_iterof(sv_mergeiter, im->merge);
 	if (ssunlikely(im->v == NULL))
 		return 0;
-	im->vdup    = sv_is(im->v, im->r, SVDUP) || sv_mergeisdup(im->merge);
-	im->prevlsn = sv_lsn(im->v, im->r);
+	im->vdup    = sf_is(im->r->scheme, im->v, SVDUP) || sv_mergeisdup(im->merge);
+	im->prevlsn = sf_lsn(im->r->scheme, im->v);
 	im->next    = 1;
 	im->upsert  = 0;
-	im->size    = im->sizev + sv_size(im->v, im->r);
+	im->size    = im->sizev + sf_size(im->r->scheme, im->v);
 	return 1;
 }
 

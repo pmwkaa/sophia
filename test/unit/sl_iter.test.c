@@ -30,7 +30,8 @@ alloclogv(svlog *log, sr *r, uint8_t flags, int key)
 	svlogv logv;
 	logv.index_id = 0;
 	logv.next = 0;
-	sv_init(&logv.v, &sv_vif, v, NULL);
+	logv.v = v;
+	logv.ptr = NULL;
 	sv_logadd(log, r, &logv);
 }
 
@@ -42,7 +43,7 @@ freelog(svlog *log, sr *c)
 	ss_iteropen(ss_bufiter, &i, &log->buf, sizeof(svlogv));
 	for (; ss_iteratorhas(&i); ss_iteratornext(&i)) {
 		svlogv *v = ss_iteratorof(&i);
-		ss_free(c->a, v->v.v);
+		ss_free(c->a, v->v);
 	}
 	sv_logfree(log, c);
 }
@@ -97,8 +98,8 @@ sl_itertx_read_empty(void)
 	for (;;) {
 		// begin
 		while (ss_iteratorhas(&li)) {
-			sv *v = ss_iteratorof(&li);
-			t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 7 );
+			slv *v = ss_iteratorof(&li);
+			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 7 );
 			ss_iteratornext(&li);
 		}
 		t( sl_iter_error(&li) == 0 );
@@ -139,8 +140,8 @@ sl_itertx_read0(void)
 	for (;;) {
 		// begin
 		while (ss_iteratorhas(&li)) {
-			sv *v = ss_iteratorof(&li);
-			t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 7 );
+			slv *v = ss_iteratorof(&li);
+			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 7 );
 			ss_iteratornext(&li);
 		}
 		t( sl_iter_error(&li) == 0 );
@@ -183,16 +184,16 @@ sl_itertx_read1(void)
 	for (;;) {
 		// begin
 		t( ss_iteratorhas(&li) == 1 );
-		sv *v = ss_iteratorof(&li);
-		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 7 );
+		slv *v = ss_iteratorof(&li);
+		t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 7 );
 		ss_iteratornext(&li);
 		t( ss_iteratorhas(&li) == 1 );
 		v = ss_iteratorof(&li);
-		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 8 );
+		t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 8 );
 		ss_iteratornext(&li);
 		t( ss_iteratorhas(&li) == 1 );
 		v = ss_iteratorof(&li);
-		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 9 );
+		t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 9 );
 		ss_iteratornext(&li);
 		t( ss_iteratorhas(&li) == 0 );
 
@@ -240,16 +241,16 @@ sl_itertx_read2(void)
 	for (;;) {
 		// begin
 		t( ss_iteratorhas(&li) == 1 );
-		sv *v = ss_iteratorof(&li);
-		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 7 );
+		slv *v = ss_iteratorof(&li);
+		t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 7 );
 		ss_iteratornext(&li);
 		t( ss_iteratorhas(&li) == 1 );
 		v = ss_iteratorof(&li);
-		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 8 );
+		t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 8 );
 		ss_iteratornext(&li);
 		t( ss_iteratorhas(&li) == 1 );
 		v = ss_iteratorof(&li);
-		t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 9 );
+		t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 9 );
 		ss_iteratornext(&li);
 
 		t( ss_iteratorhas(&li) == 0 );
@@ -320,13 +321,13 @@ sl_itertx_read3(void)
 	ss_iterinit(sl_iter, &li);
 	t( ss_iteropen(sl_iter, &li, &st_r.r, &current->file, 1) == 0 );
 	for (;;) {
-		sv *v;
+		slv *v;
 		// begin
 		switch (state) {
 		case 0:
 			t( ss_iteratorhas(&li) == 1 );
 			v = ss_iteratorof(&li);
-			t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 7 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 7 );
 			ss_iteratornext(&li);
 			v = ss_iteratorof(&li);
 			t( v == NULL );
@@ -334,13 +335,13 @@ sl_itertx_read3(void)
 		case 1:
 			t( ss_iteratorhas(&li) == 1 );
 			v = ss_iteratorof(&li);
-			t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 8 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 8 );
 			ss_iteratornext(&li);
 			v = ss_iteratorof(&li);
-			t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 9 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 9 );
 			ss_iteratornext(&li);
 			v = ss_iteratorof(&li);
-			t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 10 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 10 );
 			ss_iteratornext(&li);
 			v = ss_iteratorof(&li);
 			t( v == NULL );
@@ -348,13 +349,13 @@ sl_itertx_read3(void)
 		case 2:
 			t( ss_iteratorhas(&li) == 1 );
 			v = ss_iteratorof(&li);
-			t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 11 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 11 );
 			ss_iteratornext(&li);
 			v = ss_iteratorof(&li);
-			t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 12 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 12 );
 			ss_iteratornext(&li);
 			v = ss_iteratorof(&li);
-			t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 13 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 13 );
 			ss_iteratornext(&li);
 			v = ss_iteratorof(&li);
 			t( v == NULL );
@@ -362,7 +363,7 @@ sl_itertx_read3(void)
 		case 3:
 			t( ss_iteratorhas(&li) == 1 );
 			v = ss_iteratorof(&li);
-			t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 14 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v)) == 14 );
 			ss_iteratornext(&li);
 			v = ss_iteratorof(&li);
 			t( v == NULL );

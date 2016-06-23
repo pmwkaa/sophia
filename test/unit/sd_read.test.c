@@ -27,9 +27,7 @@ addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 	svv *v = sv_vbuild(r, pv);
 	sf_lsnset(r->scheme, sv_vpointer(v), lsn);
 	sf_flagsset(r->scheme, sv_vpointer(v), flags);
-	sv vv;
-	sv_init(&vv, &sv_vif, v, NULL);
-	sd_buildadd(b, r, &vv, flags & SVDUP);
+	sd_buildadd(b, r, sv_vpointer(v), flags & SVDUP);
 	sv_vunref(r, v);
 }
 
@@ -83,7 +81,6 @@ sd_read_gt0(void)
 	sdreadarg arg = {
 		.index           = &index,
 		.buf             = &buf,
-		.buf_xf          = &xfbuf,
 		.buf_read        = NULL,
 		.index_iter      = &index_iter,
 		.page_iter       = &page_iter,
@@ -106,14 +103,14 @@ sd_read_gt0(void)
 	ss_iteropen(sd_read, &it, &arg, NULL);
 	t( ss_iteratorhas(&it) == 1 );
 
-	sv *v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 7);
+	char *v = ss_iteratorof(&it);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 7);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 8);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 8);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 9);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 9);
 	ss_iteratornext(&it);
 	t( ss_iteratorhas(&it) == 0 );
 	ss_iteratorclose(&it);
@@ -211,7 +208,6 @@ sd_read_gt1(void)
 	sdreadarg arg = {
 		.index           = &index,
 		.buf             = &buf,
-		.buf_xf          = &xfbuf,
 		.buf_read        = NULL,
 		.index_iter      = &index_iter,
 		.page_iter       = &page_iter,
@@ -236,36 +232,36 @@ sd_read_gt1(void)
 
 	/* page 0 */
 	t( ss_iteratorhas(&it) != 0 );
-	sv *v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 7);
+	char *v = ss_iteratorof(&it);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 7);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 8);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 8);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 9);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 9);
 	ss_iteratornext(&it);
 
 	/* page 1 */
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 10);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 10);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 11);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 11);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 13);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 13);
 	ss_iteratornext(&it);
 
 	/* page 2 */
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 15);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 15);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 18);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 18);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == 20);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 20);
 	ss_iteratornext(&it);
 	t( ss_iteratorhas(&it) == 0 );
 	ss_iteratorclose(&it);
@@ -360,7 +356,6 @@ sd_read_gt0_compression_zstd(void)
 	sdreadarg arg = {
 		.index           = &index,
 		.buf             = &buf,
-		.buf_xf          = &xfbuf,
 		.buf_read        = NULL,
 		.index_iter      = &index_iter,
 		.page_iter       = &page_iter,
@@ -383,14 +378,14 @@ sd_read_gt0_compression_zstd(void)
 	ss_iteropen(sd_read, &it, &arg, NULL);
 	t( ss_iteratorhas(&it) == 1 );
 
-	sv *v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &r, 0, NULL) == 7);
+	char *v = ss_iteratorof(&it);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 7);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &r, 0, NULL) == 8);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 8);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &r, 0, NULL) == 9);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 9);
 	ss_iteratornext(&it);
 	t( ss_iteratorhas(&it) == 0 );
 	ss_iteratorclose(&it);
@@ -489,7 +484,6 @@ sd_read_gt0_compression_lz4(void)
 	sdreadarg arg = {
 		.index           = &index,
 		.buf             = &buf,
-		.buf_xf          = &xfbuf,
 		.buf_read        = NULL,
 		.index_iter      = &index_iter,
 		.page_iter       = &page_iter,
@@ -512,14 +506,14 @@ sd_read_gt0_compression_lz4(void)
 	ss_iteropen(sd_read, &it, &arg, NULL);
 	t( ss_iteratorhas(&it) == 1 );
 
-	sv *v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &r, 0, NULL) == 7);
+	char *v = ss_iteratorof(&it);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 7);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &r, 0, NULL) == 8);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 8);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &r, 0, NULL) == 9);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 9);
 	ss_iteratornext(&it);
 	t( ss_iteratorhas(&it) == 0 );
 	ss_iteratorclose(&it);
@@ -649,7 +643,6 @@ sd_read_gt1_compression_zstd(void)
 	sdreadarg arg = {
 		.index           = &index,
 		.buf             = &buf,
-		.buf_xf          = &xfbuf,
 		.buf_read        = NULL,
 		.index_iter      = &index_iter,
 		.page_iter       = &page_iter,
@@ -674,36 +667,36 @@ sd_read_gt1_compression_zstd(void)
 
 	/* page 0 */
 	t( ss_iteratorhas(&it) != 0 );
-	sv *v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &r, 0, NULL) == 7);
+	char *v = ss_iteratorof(&it);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 7);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &r, 0, NULL) == 8);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 8);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &r, 0, NULL) == 9);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 9);
 	ss_iteratornext(&it);
 
 	/* page 1 */
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &r, 0, NULL) == 10);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 10);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &r, 0, NULL) == 11);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 11);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &r, 0, NULL) == 13);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 13);
 	ss_iteratornext(&it);
 
 	/* page 2 */
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &r, 0, NULL) == 15);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 15);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &r, 0, NULL) == 18);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 18);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &r, 0, NULL) == 20);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 20);
 	ss_iteratornext(&it);
 	t( ss_iteratorhas(&it) == 0 );
 	ss_iteratorclose(&it);
@@ -832,7 +825,6 @@ sd_read_gt1_compression_lz4(void)
 	sdreadarg arg = {
 		.index           = &index,
 		.buf             = &buf,
-		.buf_xf          = &xfbuf,
 		.buf_read        = NULL,
 		.index_iter      = &index_iter,
 		.page_iter       = &page_iter,
@@ -857,36 +849,36 @@ sd_read_gt1_compression_lz4(void)
 
 	/* page 0 */
 	t( ss_iteratorhas(&it) != 0 );
-	sv *v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &r, 0, NULL) == 7);
+	char *v = ss_iteratorof(&it);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 7);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &r, 0, NULL) == 8);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 8);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &r, 0, NULL) == 9);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 9);
 	ss_iteratornext(&it);
 
 	/* page 1 */
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &r, 0, NULL) == 10);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 10);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &r, 0, NULL) == 11);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 11);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &r, 0, NULL) == 13);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 13);
 	ss_iteratornext(&it);
 
 	/* page 2 */
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &r, 0, NULL) == 15);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 15);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &r, 0, NULL) == 18);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 18);
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);
-	t( *(int*)sv_field(v, &r, 0, NULL) == 20);
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == 20);
 	ss_iteratornext(&it);
 	t( ss_iteratorhas(&it) == 0 );
 	ss_iteratorclose(&it);

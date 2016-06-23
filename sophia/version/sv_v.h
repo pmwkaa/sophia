@@ -18,7 +18,12 @@ struct svv {
 	ssrbnode node;
 } sspacked;
 
-extern svif sv_vif;
+static inline svv*
+sv_vv(char *data) {
+	if (ssunlikely(data == NULL))
+		return NULL;
+	return (svv*)(data - sizeof(svv));
+}
 
 static inline char*
 sv_vpointer(svv *v) {
@@ -54,7 +59,6 @@ sv_vbuild(sr *r, sfv *fields)
 	char *ptr = sv_vpointer(v);
 	sf_write(r->scheme, fields, ptr);
 	sf_sizeset(r->scheme, sv_vpointer(v), size);
-
 	/* update runtime statistics */
 	ss_spinlock(&r->stat->lock);
 	r->stat->v_count++;

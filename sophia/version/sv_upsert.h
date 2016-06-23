@@ -20,11 +20,11 @@ struct svupsertnode {
 
 struct svupsert {
 	svupsertnode reserve[SV_UPSERTRESRV];
-	ssbuf stack;
-	ssbuf tmp;
-	int max;
-	int count;
-	sv result;
+	ssbuf        stack;
+	ssbuf        tmp;
+	int          max;
+	int          count;
+	char        *result;
 };
 
 static inline void
@@ -36,9 +36,9 @@ sv_upsertinit(svupsert *u)
 		ss_bufinit(&u->reserve[i].buf);
 		i++;
 	}
-	memset(&u->result, 0, sizeof(u->result));
-	u->max = reserve;
-	u->count = 0;
+	u->result = NULL;
+	u->count  = 0;
+	u->max    = reserve;
 	ss_bufinit_reserve(&u->stack, u->reserve, sizeof(u->reserve));
 	ss_bufinit(&u->tmp);
 }
@@ -65,10 +65,10 @@ sv_upsertreset(svupsert *u)
 		ss_bufreset(&n[i].buf);
 		i++;
 	}
-	u->count = 0;
+	u->result = NULL;
+	u->count  = 0;
 	ss_bufreset(&u->stack);
 	ss_bufreset(&u->tmp);
-	memset(&u->result, 0, sizeof(u->result));
 }
 
 static inline void
@@ -87,7 +87,7 @@ sv_upsertgc(svupsert *u, sr *r, int wm_stack, int wm_buf)
 		i++;
 	}
 	u->count = 0;
-	memset(&u->result, 0, sizeof(u->result));
+	u->result = NULL;
 }
 
 static inline int
@@ -237,7 +237,8 @@ sv_upsert(svupsert *u, sr *r)
 			return -1;
 	}
 done:
-	sv_init(&u->result, &sv_upsertvif, u->stack.s, NULL);
+	f = ss_bufat(&u->stack, sizeof(svupsertnode), 0);
+	u->result = f->buf.s;
 	return 0;
 }
 

@@ -72,8 +72,10 @@ st_svv_va(stgenerator *g, stlist *l, uint64_t lsn, uint8_t flags, va_list args)
 	sf_lsnset(g->r->scheme, sv_vpointer(v), lsn);
 	if (v == NULL || l == NULL)
 		return v;
-	assert(l->type == ST_SVV);
-	int rc = ss_bufadd(&l->list, g->r->a, &v, sizeof(svv**));
+	void *ptr = v;
+	if (l->type == ST_SVVRAW)
+		ptr = sv_vpointer(v);
+	int rc = ss_bufadd(&l->list, g->r->a, &ptr, sizeof(void**));
 	if (ssunlikely(rc == -1)) {
 		sv_vunref(g->r, v);
 		return NULL;
@@ -88,32 +90,6 @@ svv *st_svv(stgenerator *g, stlist *l, uint64_t lsn, uint8_t flags, ...)
 	svv *v = st_svv_va(g, l, lsn, flags, args);
 	va_end(args);
 	return v;
-}
-
-sv *st_sv(stgenerator *g, stlist *l, uint64_t lsn, uint8_t flags, ...)
-{
-	va_list args;
-	va_start(args, flags);
-	svv *v = st_svv_va(g, NULL, lsn, flags, args);
-	va_end(args);
-	if (v == NULL)
-		return NULL;
-	sv *vp = ss_malloc(g->r->a, sizeof(sv));
-	if (vp == NULL) {
-		sv_vunref(g->r, v);
-		return NULL;
-	}
-	sv_init(vp, &sv_vif, v, NULL);
-	if (l == NULL)
-		return vp;
-	assert(l->type == ST_SV);
-	int rc = ss_bufadd(&l->list, g->r->a, &vp, sizeof(sv**));
-	if (ssunlikely(rc == -1)) {
-		ss_free(g->r->a, vp);
-		sv_vunref(g->r, v);
-		return NULL;
-	}
-	return vp;
 }
 
 static inline void

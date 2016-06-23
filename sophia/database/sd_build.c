@@ -94,19 +94,19 @@ int sd_buildbegin(sdbuild *b, sr *r, int crc,
 }
 
 static inline int
-sd_buildadd_raw(sdbuild *b, sr *r, sv *v, uint8_t flags)
+sd_buildadd_raw(sdbuild *b, sr *r, char *v, uint8_t flags)
 {
-	uint32_t size = sv_size(v, r);
+	uint32_t size = sf_size(r->scheme, v);
 	int rc = ss_bufensure(&b->v, r->a, size);
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
-	memcpy(b->v.p, sv_pointer(v), size);
+	memcpy(b->v.p, v, size);
 	sf_flagsset(r->scheme, b->v.p, flags);
 	ss_bufadvance(&b->v, size);
 	return 0;
 }
 
-int sd_buildadd(sdbuild *b, sr *r, sv *v, uint8_t flags)
+int sd_buildadd(sdbuild *b, sr *r, char *v, uint8_t flags)
 {
 	/* prepare document metadata */
 	int rc = ss_bufensure(&b->m, r->a, sizeof(sdv));
@@ -122,11 +122,11 @@ int sd_buildadd(sdbuild *b, sr *r, sv *v, uint8_t flags)
 		return -1;
 	/* update page header */
 	h->count++;
-	uint32_t size = sv_size(v, r);
+	uint32_t size = sf_size(r->scheme, v);
 	size += sizeof(sdv) + size;
 	if (size > b->vmax)
 		b->vmax = size;
-	uint64_t lsn  = sv_lsn(v, r);
+	uint64_t lsn  = sf_lsn(r->scheme, v);
 	if (lsn > h->lsnmax)
 		h->lsnmax = lsn;
 	if (lsn < h->lsnmin)
@@ -137,8 +137,7 @@ int sd_buildadd(sdbuild *b, sr *r, sv *v, uint8_t flags)
 			h->lsnmindup = lsn;
 	}
 	if (r->scheme->has_expire) {
-		uint32_t timestamp =
-			sf_ttl(r->scheme, sv_pointer(v));
+		uint32_t timestamp = sf_ttl(r->scheme, v);
 		if (timestamp < h->tsmin)
 			h->tsmin = timestamp;
 	}

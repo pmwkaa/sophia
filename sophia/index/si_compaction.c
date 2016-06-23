@@ -313,7 +313,6 @@ int si_compact(si *index, sdc *c, siplan *plan,
 		sdreadarg arg = {
 			.index           = &b->index,
 			.buf             = &cbuf->a,
-			.buf_xf          = &cbuf->b,
 			.buf_read        = &c->d,
 			.index_iter      = &cbuf->index_iter,
 			.page_iter       = &cbuf->page_iter,

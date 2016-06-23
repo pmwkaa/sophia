@@ -437,15 +437,15 @@ static inline void
 sl_writeadd(slpool *p, sltx *t, svlog *vlog, slv *lv, svlogv *logv)
 {
 	sr *r = sv_logindex(vlog, logv->index_id)->r;
-	sv *v = &logv->v;
+	char *data = sv_vpointer(logv->v);
 	lv->dsn   = logv->index_id;
-	lv->flags = sv_flags(v, r);
-	lv->size  = sv_size(v, r);
-	lv->crc   = ss_crcp(p->r->crc, sv_pointer(v), lv->size, 0);
+	lv->flags = sf_flags(r->scheme, data);
+	lv->size  = sf_size(r->scheme, data);
+	lv->crc   = ss_crcp(p->r->crc, data, lv->size, 0);
 	lv->crc   = ss_crcs(p->r->crc, lv, sizeof(slv), lv->crc);
 	ss_iovadd(&p->iov, lv, sizeof(slv));
-	ss_iovadd(&p->iov, sv_pointer(v), lv->size);
-	((svv*)v->v)->log = t->l;
+	ss_iovadd(&p->iov, data, lv->size);
+	logv->v->log = t->l;
 }
 
 static inline int
@@ -458,11 +458,10 @@ sl_writestmt(sltx *t, svlog *vlog)
 	ss_iteropen(ss_bufiter, &i, &vlog->buf, sizeof(svlogv));
 	for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i)) {
 		svlogv *logv = ss_iterof(ss_bufiter, &i);
-		sv *v = &logv->v;
-		assert(v->i == &sv_vif);
+		svv *v = logv->v;
 		sr *r = sv_logindex(vlog, logv->index_id)->r;
-		sv_lsnset(v, r, t->lsn);
-		if (sslikely(! (sv_is(v, r, SVGET)))) {
+		sf_lsnset(r->scheme, sv_vpointer(v), t->lsn);
+		if (sslikely(! (sf_is(r->scheme, sv_vpointer(v), SVGET)))) {
 			assert(stmt == NULL);
 			stmt = logv;
 		}
@@ -517,11 +516,10 @@ sl_writestmt_multi(sltx *t, svlog *vlog)
 			lvp = 0;
 		}
 		svlogv *logv = ss_iterof(ss_bufiter, &i);
-		sv *v = &logv->v;
-		assert(v->i == &sv_vif);
+		svv *v = logv->v;
 		sr *r = sv_logindex(vlog, logv->index_id)->r;
-		sv_lsnset(v, r, t->lsn);
-		if (sv_is(v, r, SVGET))
+		sf_lsnset(r->scheme, sv_vpointer(v), t->lsn);
+		if (sf_is(r->scheme, sv_vpointer(v), SVGET))
 			continue;
 		lv = &lvbuf[lvp];
 		sl_writeadd(p, t, vlog, lv, logv);
@@ -556,7 +554,7 @@ int sl_write(sltx *t, svlog *vlog)
 		{
 			svlogv *v = ss_iterof(ss_bufiter, &i);
 			sr *r = sv_logindex(vlog, v->index_id)->r;
-			sv_lsnset(&v->v, r, t->lsn);
+			sf_lsnset(r->scheme, sv_vpointer(v->v), t->lsn);
 		}
 		return 0;
 	}

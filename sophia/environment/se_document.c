@@ -76,15 +76,13 @@ int se_document_create(sedocument *o, uint8_t flags)
 	se *e = se_of(&db->o);
 
 	assert(o->created == 0);
-	assert(o->v.v == NULL);
+	assert(o->v == NULL);
 
 	/* create document from raw data */
-	svv *v;
 	if (o->raw) {
-		v = sv_vbuildraw(db->r, o->raw);
-		if (ssunlikely(v == NULL))
+		o->v = sv_vbuildraw(db->r, o->raw);
+		if (ssunlikely(o->v == NULL))
 			return sr_oom(&e->error);
-		sv_init(&o->v, &sv_vif, v, NULL);
 		o->created = 1;
 		return 0;
 	}
@@ -100,11 +98,10 @@ int se_document_create(sedocument *o, uint8_t flags)
 		sf_autoset(&db->scheme->scheme, o->fields, &timestamp);
 	}
 
-	v = sv_vbuild(db->r, o->fields);
-	if (ssunlikely(v == NULL))
+	o->v = sv_vbuild(db->r, o->fields);
+	if (ssunlikely(o->v == NULL))
 		return sr_oom(&e->error);
-	sv_init(&o->v, &sv_vif, v, NULL);
-	sf_flagsset(db->r->scheme, sv_pointer(&o->v), flags);
+	sf_flagsset(db->r->scheme, sv_vpointer(o->v), flags);
 	o->created = 1;
 	return 0;
 }
@@ -116,7 +113,7 @@ int se_document_createkey(sedocument *o)
 
 	if (o->created)
 		return 0;
-	assert(o->v.v == NULL);
+	assert(o->v == NULL);
 
 	/* set prefix */
 	if (o->prefix) {
@@ -145,11 +142,10 @@ int se_document_createkey(sedocument *o)
 		o->fields_count_keys = db->scheme->scheme.keys_count;
 	}
 
-	svv *v = sv_vbuild(db->r, o->fields);
-	if (ssunlikely(v == NULL))
+	o->v = sv_vbuild(db->r, o->fields);
+	if (ssunlikely(o->v == NULL))
 		return sr_oom(&e->error);
-	sv_init(&o->v, &sv_vif, v, NULL);
-	sf_flagsset(db->r->scheme, sv_pointer(&o->v), SVGET);
+	sf_flagsset(db->r->scheme, sv_vpointer(o->v), SVGET);
 	o->created = 1;
 	return 0;
 }
@@ -168,13 +164,14 @@ se_document_destroy(so *o)
 	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
 	se *e = se_of(o);
 	sedb *db = (sedb*)v->o.parent;
-	if (v->v.v)
-		si_gcv(db->r, v->v.v);
-	v->v.v = NULL;
+	if (v->v)
+		si_gcv(db->r, v->v);
+	v->v = NULL;
 	if (v->prefix_copy)
 		ss_free(&e->a, v->prefix_copy);
 	v->prefix_copy = NULL;
 	v->prefix = NULL;
+	v->created = 0;
 	so_mark_destroyed(&v->o);
 	so_poolgc(&e->document, &v->o);
 	return 0;
@@ -228,8 +225,9 @@ se_document_getfield(sedocument *v, int pos, int *size)
 	assert(pos < (int)(sizeof(v->fields) / sizeof(sfv)));
 	sffield *field = sf_schemeof(&db->scheme->scheme, pos);
 	/* database result document */
-	if (v->v.v)
-		return sv_field(&v->v, db->r, field->position, (uint32_t*)size);
+	if (v->v)
+		return sf_fieldof(db->r->scheme, field->position,
+		                  sv_vpointer(v->v), (uint32_t*)size);
 	/* database field document */
 	assert(field->position < (int)(sizeof(v->fields) / sizeof(sfv)));
 	sfv *fv = &v->fields[field->position];
@@ -245,7 +243,7 @@ se_document_setstring(so *o, const char *path, void *pointer, int size)
 {
 	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
 	se *e = se_of(o);
-	if (ssunlikely(v->v.v))
+	if (ssunlikely(v->v))
 		return sr_error(&e->error, "%s", "document is read-only");
 	int opt = se_document_opt(path);
 	switch (opt) {
@@ -371,20 +369,22 @@ static soif sedocumentif =
 	.cursor       = NULL,
 };
 
-so *se_document_new(se *e, so *parent, sv *vp)
+so *se_document_new(se *e, so *parent, svv *vp)
 {
 	sedocument *v = (sedocument*)so_poolpop(&e->document);
-	if (v == NULL)
+	if (v == NULL) {
 		v = ss_malloc(&e->a, sizeof(sedocument));
-	if (ssunlikely(v == NULL)) {
-		sr_oom(&e->error);
-		return NULL;
+		if (ssunlikely(v == NULL)) {
+			sr_oom(&e->error);
+			return NULL;
+		}
 	}
 	memset(v, 0, sizeof(*v));
 	so_init(&v->o, &se_o[SEDOCUMENT], &sedocumentif, parent, &e->o);
 	v->order = SS_EQ;
+	v->v = NULL;
 	if (vp) {
-		v->v = *vp;
+		v->v = vp;
 	}
 	so_pooladd(&e->document, &v->o);
 	return &v->o;

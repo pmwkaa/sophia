@@ -15,7 +15,4 @@ struct sdv {
 	uint32_t offset;
 } sspacked;
 
-extern svif sd_vif;
-extern svif sd_vrawif;
-
 #endif

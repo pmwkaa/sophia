@@ -23,13 +23,14 @@
 static inline so*
 se_readresult(se *e, sedb *db, siread *r)
 {
-	sedocument *v = (sedocument*)se_document_new(e, r->index->object, &r->result);
+	sedocument *v =
+		(sedocument*)se_document_new(e, r->index->object, r->result);
 	if (ssunlikely(v == NULL))
 		return NULL;
 	v->read_disk    = r->read_disk;
 	v->read_cache   = r->read_cache;
 	v->read_latency = 0;
-	if (r->result.v) {
+	if (r->result) {
 		v->read_latency = ss_utime() - r->read_start;
 		sr_statget(&db->stat,
 		           v->read_latency,
@@ -66,7 +67,7 @@ so *se_read(sedb *db, sedocument *o, sx *x, uint64_t vlsn,
 	if (ssunlikely(! se_active(e)))
 		goto error;
 
-	uint64_t start  = ss_utime();
+	uint64_t start = ss_utime();
 
 	/* prepare the key */
 	int rc = se_document_validate_ro(o, &db->o);
@@ -76,26 +77,25 @@ so *se_read(sedb *db, sedocument *o, sx *x, uint64_t vlsn,
 	if (ssunlikely(rc == -1))
 		goto error;
 
-	sv vup;
-	sv_init(&vup, &sv_vif, NULL, NULL);
-
 	sedocument *ret = NULL;
+	svv *vup = NULL;
 
 	/* concurrent */
 	if (x && o->order == SS_EQ) {
 		/* note: prefix is ignored during concurrent
 		 * index search */
-		int rc = sx_get(x, &db->coindex, &o->v, &vup);
+		int rc = sx_get(x, &db->coindex, o->v, &vup);
 		if (ssunlikely(rc == -1 || rc == 2 /* delete */))
 			goto error;
-		if (rc == 1 && !sv_is(&vup, db->r, SVUPSERT)) {
-			ret = (sedocument*)se_document_new(e, &db->o, &vup);
+		if (rc == 1 && !sf_is(db->r->scheme, sv_vpointer(vup), SVUPSERT))
+		{
+			ret = (sedocument*)se_document_new(e, &db->o, vup);
 			if (sslikely(ret)) {
 				ret->cold_only = o->cold_only;
 				ret->created   = 1;
 				ret->orderset  = 1;
 			} else {
-				sv_vunref(db->r, vup.v);
+				sv_vunref(db->r, vup);
 			}
 			so_destroy(&o->o);
 			return &ret->o;
@@ -110,21 +110,21 @@ so *se_read(sedb *db, sedocument *o, sx *x, uint64_t vlsn,
 		cachegc = 1;
 		cache = si_cachepool_pop(&e->cachepool);
 		if (ssunlikely(cache == NULL)) {
-			if (vup.v)
-				sv_vunref(db->r, vup.v);
+			if (vup)
+				sv_vunref(db->r, vup);
 			sr_oom(&e->error);
 			goto error;
 		}
 	}
 
-	sv_vref(o->v.v);
+	sv_vref(o->v);
 
 	/* do read */
 	siread rq;
 	si_readopen(&rq, db->index, cache, o->order,
 	            vlsn,
-	            sv_pointer(&o->v),
-	            vup.v,
+	            sv_vpointer(o->v),
+	            vup ? sv_vpointer(vup): NULL,
 	            o->prefix_copy,
 	            o->prefix_size,
 	            o->cold_only,
@@ -141,12 +141,12 @@ so *se_read(sedb *db, sedocument *o, sx *x, uint64_t vlsn,
 	}
 
 	/* cleanup */
-	if (o->v.v)
-		sv_vunref(db->r, o->v.v);
-	if (vup.v)
-		sv_vunref(db->r, vup.v);
-	if (ret == NULL && rq.result.v)
-		sv_vunref(db->r, rq.result.v);
+	if (o->v)
+		sv_vunref(db->r, o->v);
+	if (vup)
+		sv_vunref(db->r, vup);
+	if (ret == NULL && rq.result)
+		sv_vunref(db->r, rq.result);
 	if (cachegc && cache)
 		si_cachepool_push(cache);
 

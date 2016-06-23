@@ -104,15 +104,15 @@ int sd_mergepage(sdmerge *m, uint64_t offset)
 		return -1;
 	while (ss_iterhas(sv_writeiter, &m->i))
 	{
-		sv *v = ss_iterof(sv_writeiter, &m->i);
-		uint8_t flags = sv_flags(v, m->r);
+		char *v = ss_iterof(sv_writeiter, &m->i);
+		uint8_t flags = sf_flags(m->r->scheme, v);
 		if (sv_writeiter_is_duplicate(&m->i))
 			flags |= SVDUP;
 		rc = sd_buildadd(m->build, m->r, v, flags);
 		if (ssunlikely(rc == -1))
 			return -1;
 		if (conf->amqf) {
-			ss_qfadd(m->qf, sv_hash(v, m->r));
+			ss_qfadd(m->qf, sf_hash(m->r->scheme, v));
 		}
 		ss_iternext(sv_writeiter, &m->i);
 	}

@@ -12,22 +12,23 @@
 typedef struct sdpageiter sdpageiter;
 
 struct sdpageiter {
-	sdpage *page;
-	ssbuf *xfbuf;
-	int64_t pos;
-	sdv *v;
-	sv current;
-	ssorder order;
-	char *key;
-	sr *r;
+	sdpage  *page;
+	int64_t  pos;
+	sdv     *v;
+	char    *current;
+	ssorder  order;
+	char    *key;
+	sr      *r;
 } sspacked;
 
 static inline void
 sd_pageiter_result(sdpageiter *i)
 {
-	if (ssunlikely(i->v == NULL))
+	if (ssunlikely(i->v == NULL)) {
+		i->current = NULL;
 		return;
-	sv_init(&i->current, &sd_vif, i->v, i->page->h);
+	}
+	i->current = sd_pagepointer(i->page, i->v);
 }
 
 static inline void
@@ -157,13 +158,12 @@ sd_pageiter_lt(sdpageiter *i, int e)
 }
 
 static inline int
-sd_pageiter_open(ssiter *i, sr *r, ssbuf *xfbuf, sdpage *page, ssorder o,
+sd_pageiter_open(ssiter *i, sr *r, sdpage *page, ssorder o,
                  char *key)
 {
 	sdpageiter *pi = (sdpageiter*)i->priv;
 	pi->r     = r;
 	pi->page  = page;
-	pi->xfbuf = xfbuf;
 	pi->order = o;
 	pi->key   = key;
 	pi->v     = NULL;
@@ -205,7 +205,7 @@ sd_pageiter_of(ssiter *i)
 	sdpageiter *pi = (sdpageiter*)i->priv;
 	if (ssunlikely(pi->v == NULL))
 		return NULL;
-	return &pi->current;
+	return pi->current;
 }
 
 static inline void

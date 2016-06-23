@@ -27,9 +27,7 @@ addv(sdbuild *b, sr *r, uint64_t lsn, uint8_t flags, int *key)
 	svv *v = sv_vbuild(r, pv);
 	sf_lsnset(r->scheme, sv_vpointer(v), lsn);
 	sf_flagsset(r->scheme, sv_vpointer(v), flags);
-	sv vv;
-	sv_init(&vv, &sv_vif, v, NULL);
-	sd_buildadd(b, r, &vv, flags & SVDUP);
+	sd_buildadd(b, r, sv_vpointer(v), flags & SVDUP);
 	sv_vunref(r, v);
 }
 
@@ -58,23 +56,23 @@ sd_v_test(void)
 
 	ssiter it;
 	ss_iterinit(sd_pageiter, &it);
-	ss_iteropen(sd_pageiter, &it, &st_r.r, &xfbuf, &page, SS_GTE, NULL);
+	ss_iteropen(sd_pageiter, &it, &st_r.r, &page, SS_GTE, NULL);
 	t( ss_iteratorhas(&it) != 0 );
-	sv *v = ss_iteratorof(&it);
+	char *v = ss_iteratorof(&it);
 	t( v != NULL );
 
-	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == i );
-	t( sv_lsn(v, &st_r.r) == 3 );
-	t( sv_flags(v, &st_r.r) == 0 );
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == i );
+	t( sf_lsn(st_r.r.scheme, v) == 3 );
+	t( sf_flags(st_r.r.scheme, v) == 0 );
 	ss_iteratornext(&it);
 	t( ss_iteratorhas(&it) != 0 );
 
 	v = ss_iteratorof(&it);
 	t( v != NULL );
 	
-	t( *(int*)sv_field(v, &st_r.r, 0, NULL) == j );
-	t( sv_lsn(v, &st_r.r) == 4 );
-	t( sv_flags(v, &st_r.r) == 0 );
+	t( *(int*)sf_field(st_r.r.scheme, 0, v) == j );
+	t( sf_lsn(st_r.r.scheme, v) == 4 );
+	t( sf_flags(st_r.r.scheme, v) == 0 );
 
 	ss_iteratornext(&it);
 	v = ss_iteratorof(&it);

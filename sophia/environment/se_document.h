@@ -14,7 +14,7 @@ typedef struct sedocument sedocument;
 struct sedocument {
 	so        o;
 	int       created;
-	sv        v;
+	svv      *v;
 	ssorder   order;
 	int       orderset;
 	sfv       fields[8];
@@ -36,7 +36,7 @@ struct sedocument {
 	int       read_latency;
 };
 
-so *se_document_new(se*, so*, sv*);
+so *se_document_new(se*, so*, svv*);
 int se_document_create(sedocument*, uint8_t);
 int se_document_createkey(sedocument*);
 

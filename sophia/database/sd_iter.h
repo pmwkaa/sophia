@@ -12,27 +12,26 @@
 typedef struct sditer sditer;
 
 struct sditer {
-	int validate;
-	int compression;
+	int         validate;
+	int         compression;
 	ssfilterif *compression_if;
-	ssbuf *compression_buf;
-	ssbuf *transform_buf;
-	sdindex *index;
-	char *start, *end;
-	char *page;
-	char *pagesrc;
-	sdpage pagev;
-	uint32_t pos;
-	sdv *dv;
-	sv v;
-	sr *r;
+	ssbuf      *compression_buf;
+	sdindex    *index;
+	char       *start, *end;
+	char       *page;
+	char       *pagesrc;
+	sdpage      pagev;
+	uint32_t    pos;
+	sdv        *dv;
+	char       *v;
+	sr         *r;
 } sspacked;
 
 static inline void
 sd_iterresult(sditer *i, int pos)
 {
 	i->dv = sd_pagev(&i->pagev, pos);
-	sv_init(&i->v, &sd_vif, i->dv, i->pagev.h);
+	i->v = sd_pagepointer(&i->pagev, i->dv);
 }
 
 static inline int
@@ -117,23 +116,21 @@ sd_iternextpage(sditer *i)
 static inline int
 sd_iter_open(ssiter *i, sr *r, sdindex *index, char *start, int validate,
              int compression,
-             ssbuf *compression_buf,
-             ssbuf *transform_buf)
+             ssbuf *compression_buf)
 {
 	sditer *ii = (sditer*)i->priv;
-	ii->r           = r;
-	ii->index       = index;
-	ii->start       = start;
-	ii->end         = NULL;
-	ii->page        = NULL;
-	ii->pagesrc     = NULL;
-	ii->pos         = 0;
-	ii->dv          = NULL;
-	ii->validate    = validate;
-	ii->compression = compression;
+	ii->r               = r;
+	ii->index           = index;
+	ii->start           = start;
+	ii->end             = NULL;
+	ii->page            = NULL;
+	ii->pagesrc         = NULL;
+	ii->pos             = 0;
+	ii->dv              = NULL;
+	ii->validate        = validate;
+	ii->compression     = compression;
 	ii->compression_buf = compression_buf;
-	ii->transform_buf = transform_buf;
-	memset(&ii->v, 0, sizeof(ii->v));
+	ii->v               = NULL;
 	return sd_iternextpage(ii);
 }
 
@@ -158,7 +155,7 @@ sd_iter_of(ssiter *i)
 	if (ssunlikely(ii->page == NULL))
 		return NULL;
 	assert(ii->dv != NULL);
-	return &ii->v;
+	return ii->v;
 }
 
 static inline void

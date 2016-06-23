@@ -241,12 +241,11 @@ sx_rollback_svp(sx *x, ssiter *i, int free)
 	for (; ss_iterhas(ss_bufiter, i); ss_iternext(ss_bufiter, i))
 	{
 		svlogv *lv = ss_iterof(ss_bufiter, i);
-		sxv *v = lv->v.v;
+		sxv *v = lv->ptr;
 		/* remove from index and replace head with
 		 * a first waiter */
 		sx_untrack(v);
-		/* translate log version from sxv to svv */
-		sv_init(&lv->v, &sv_vif, v->v, NULL);
+		lv->ptr = NULL;
 		if (free) {
 			sxindex *i = v->index;
 			sv_vunref(i->r, v->v);
@@ -273,8 +272,8 @@ sx_preparecb(sx *x, svlogv *v, uint64_t lsn, sxpreparef prepare, void *arg)
 	if (sslikely(lsn == x->vlsn))
 		return 0;
 	if (prepare) {
-		sxindex *i = ((sxv*)v->v.v)->index;
-		if (prepare(x, &v->v, i->object, arg))
+		sxindex *i = ((sxv*)v->ptr)->index;
+		if (prepare(x, v->v, i->object, arg))
 			return 1;
 	}
 	return 0;
@@ -293,7 +292,7 @@ sxstate sx_prepare(sx *x, sxpreparef prepare, void *arg)
 	for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
 	{
 		svlogv *lv = ss_iterof(ss_bufiter, &i);
-		sxv *v = lv->v.v;
+		sxv *v = lv->ptr;
 		if ((int)v->lo == x->log_read)
 			break;
 		if (sx_vaborted(v))
@@ -335,7 +334,7 @@ sxstate sx_commit(sx *x)
 	for (; ss_iterhas(ss_bufiter, &i); ss_iternext(ss_bufiter, &i))
 	{
 		svlogv *lv = ss_iterof(ss_bufiter, &i);
-		sxv *v = lv->v.v;
+		sxv *v = lv->ptr;
 		if ((int)v->lo == x->log_read)
 			break;
 		/* abort conflict reader */
@@ -348,10 +347,8 @@ sxstate sx_commit(sx *x)
 		sx_vabort_all(v->next);
 		/* mark stmt as commited */
 		sx_vcommit(v, csn);
-		/* translate log version from sxv to svv */
-		sv_init(&lv->v, &sv_vif, v->v, NULL);
+		lv->ptr = NULL;
 		/* schedule read stmt for gc */
-
 		sxindex *i = v->index;
 		if (sv_vflags(v->v, i->r) & SVGET) {
 			sv_vref(v->v);
@@ -414,13 +411,13 @@ int sx_set(sx *x, sxindex *index, svv *version)
 
 	svlogv lv;
 	lv.index_id = index->dsn;
-	lv.next = UINT32_MAX;
+	lv.next     = UINT32_MAX;
+	lv.v        = version;
+	lv.ptr      = NULL;
 
 	/* batch isolation: directly write into the log */
-	if (x->isolation == SX_BATCH) {
-		sv_init(&lv.v, &sv_vif, version, NULL);
+	if (x->isolation == SX_BATCH)
 		return sv_logadd(x->log, r, &lv);
-	}
 
 	/* allocate mvcc container */
 	sxv *v = sx_valloc(&m->pool, version);
@@ -428,9 +425,9 @@ int sx_set(sx *x, sxindex *index, svv *version)
 		sv_vunref(r, version);
 		return -1;
 	}
-	v->id = x->id;
+	v->id    = x->id;
 	v->index = index;
-	sv_init(&lv.v, &sx_vif, v, NULL);
+	lv.ptr   = v;
 
 	if (! (sv_vflags(version, index->r) & SVGET))
 		x->log_read = -1;
@@ -494,13 +491,13 @@ error:
 	return -1;
 }
 
-int sx_get(sx *x, sxindex *index, sv *key, sv *result)
+int sx_get(sx *x, sxindex *index, svv *key, svv **result)
 {
 	ssrbnode *n = NULL;
 	assert(x->isolation == SX_SERIALIZABLE);
 	int rc;
 	rc = sx_match(&index->i, index->r->scheme,
-	              sv_pointer(key), 0, &n);
+	              sv_vpointer(key), 0, &n);
 	if (! (rc == 0 && n))
 		goto add;
 	sxv *head = sscast(n, sxv, node);
@@ -511,13 +508,11 @@ int sx_get(sx *x, sxindex *index, sv *key, sv *result)
 		return 0;
 	if (ssunlikely(sv_vflags(v->v, index->r) & SVDELETE))
 		return 2;
-	sv vv;
-	sv_init(&vv, &sv_vif, v->v, NULL);
-	svv *ret = sv_vbuildraw(index->r, sv_pointer(&vv));
-	if (ssunlikely(ret == NULL)) {
-		rc = sr_oom(index->r->e);
+	*result = sv_vbuildraw(index->r, sv_vpointer(v->v));
+	if (ssunlikely(*result == NULL)) {
+		sr_oom(index->r->e);
+		rc = -1;
 	} else {
-		sv_init(result, &sv_vif, ret, NULL);
 		rc = 1;
 	}
 	return rc;
@@ -527,10 +522,10 @@ add:
 	 * transactional log */
 	if (x->log_read == -1)
 		x->log_read = sv_logcount(x->log);
-	rc = sx_set(x, index, key->v);
+	rc = sx_set(x, index, key);
 	if (ssunlikely(rc == -1))
 		return -1;
-	sv_vref((svv*)key->v);
+	sv_vref(key);
 	return 0;
 }
 
@@ -540,8 +535,9 @@ sxstate sx_set_autocommit(sxmanager *m, sxindex *index, sx *x, svlog *log, svv *
 		sx_init(m, x, log);
 		svlogv lv;
 		lv.index_id = index->dsn;
-		lv.next = UINT32_MAX;
-		sv_init(&lv.v, &sv_vif, v, NULL);
+		lv.next     = UINT32_MAX;
+		lv.v        = v;
+		lv.ptr      = NULL;
 		sv_logadd(x->log, index->r, &lv);
 		sr_seq(index->r->seq, SR_TSNNEXT);
 		sx_promote(x, SX_COMMIT);

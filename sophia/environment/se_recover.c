@@ -33,12 +33,11 @@ se_recover_log(se *e, sl *log)
 		return -1;
 	for (;;)
 	{
-		sv *v = ss_iteratorof(&i);
+		slv *v = ss_iteratorof(&i);
 		if (ssunlikely(v == NULL))
 			break;
 
 		/* reply transaction */
-
 		uint64_t lsn = UINT64_MAX;
 		tx = so_begin(&e->o);
 		if (ssunlikely(tx == NULL))
@@ -47,7 +46,7 @@ se_recover_log(se *e, sl *log)
 		while (ss_iteratorhas(&i)) {
 			v = ss_iteratorof(&i);
 			/* match a database */
-			uint32_t dsn = sl_vdsn(v);
+			uint32_t dsn = v->dsn;
 			if (db == NULL || db->scheme->id != dsn)
 				db = (sedb*)se_dbmatch_id(e, dsn);
 			if (ssunlikely(db == NULL)) {
@@ -55,14 +54,15 @@ se_recover_log(se *e, sl *log)
 				               " is not declared", dsn);
 				goto rlb;
 			}
-			lsn = sv_lsn(v, db->r);
+			char *data = sl_vpointer(v);
+			lsn = sf_lsn(db->r->scheme, data);
 			so *o = so_document(&db->o);
 			if (ssunlikely(o == NULL))
 				goto rlb;
-			so_setstring(o, "raw", sv_pointer(v), 0);
+			so_setstring(o, "raw", data, 0);
 			so_setstring(o, "log", log, 0);
 			
-			int flags = sv_flags(v, db->r);
+			int flags = sf_flags(db->r->scheme, data);
 			if (flags == SVDELETE) {
 				rc = so_delete(tx, o);
 			} else

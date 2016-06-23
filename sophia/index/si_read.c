@@ -39,13 +39,13 @@ int si_readopen(siread *q, si *i, sicache *c, ssorder o,
 	q->read_cache  = 0;
 	q->upsert      = upsert;
 	q->upsert_eq   = 0;
+	q->result      = NULL;
 	if (!has && sf_upserthas(&i->scheme.upsert)) {
 		if (q->order == SS_EQ) {
 			q->upsert_eq = 1;
 			q->order = SS_GTE;
 		}
 	}
-	memset(&q->result, 0, sizeof(q->result));
 	sv_mergeinit(&q->merge);
 	si_lock(i);
 	return 0;
@@ -59,18 +59,11 @@ int si_readclose(siread *q)
 }
 
 static inline int
-si_readdup(siread *q, sv *result)
+si_readdup(siread *q, char *result)
 {
-	svv *v;
-	if (sslikely(result->i == &sv_vif)) {
-		v = result->v;
-		sv_vref(v);
-	} else {
-		v = sv_vbuildraw(q->r, sv_pointer(result));
-		if (ssunlikely(v == NULL))
-			return sr_oom(q->r->e);
-	}
-	sv_init(&q->result, &sv_vif, v, NULL);
+	q->result = sv_vbuildraw(q->r, result);
+	if (ssunlikely(q->result == NULL))
+		return sr_oom(q->r->e);
 	return 1;
 }
 
@@ -97,24 +90,24 @@ si_readstat(siread *q, int cache, sinode *n, uint32_t reads)
 }
 
 static inline int
-si_getresult(siread *q, sv *v, int compare)
+si_getresult(siread *q, char *v, int compare)
 {
 	int rc;
 	if (compare) {
-		rc = sf_compare(q->r->scheme, sv_pointer(v), q->key);
+		rc = sf_compare(q->r->scheme, v, q->key);
 		if (ssunlikely(rc != 0))
 			return 0;
 	}
 	if (q->prefix) {
 		rc = sf_compareprefix(q->r->scheme,
 		                      q->prefix,
-		                      q->prefix_size, sv_pointer(v));
+		                      q->prefix_size, v);
 		if (ssunlikely(! rc))
 			return 0;
 	}
 	if (ssunlikely(q->has))
-		return sv_lsn(v, q->r) > q->vlsn;
-	if (ssunlikely(sv_is(v, q->r, SVDELETE)))
+		return sf_lsn(q->r->scheme, v) > q->vlsn;
+	if (ssunlikely(sf_is(q->r->scheme, v, SVDELETE)))
 		return 2;
 	rc = si_readdup(q, v);
 	if (ssunlikely(rc == -1))
@@ -144,17 +137,15 @@ si_getindex(siread *q, sinode *n)
 	}
 result:;
 	si_readstat(q, 1, n, 1);
-	sv *v = ss_iterof(sv_indexiter, &i);
+	char *v = ss_iterof(sv_indexiter, &i);
 	assert(v != NULL);
-	svv *visible = v->v;
+	svv *visible = (svv*)(v - sizeof(svv));
 	if (sslikely(! q->has)) {
 		visible = sv_vvisible(visible, q->r, q->vlsn);
 		if (visible == NULL)
 			return 0;
 	}
-	sv vret;
-	sv_init(&vret, &sv_vif, visible, NULL);
-	return si_getresult(q, &vret, 0);
+	return si_getresult(q, v, 0);
 }
 
 static inline int
@@ -182,7 +173,6 @@ si_getbranch(siread *q, sinode *n, sicachebranch *c)
 	sdreadarg arg = {
 		.index           = &b->index,
 		.buf             = &c->buf_a,
-		.buf_xf          = &c->buf_b,
 		.buf_read        = &q->index->readbuf,
 		.index_iter      = &c->index_iter,
 		.page_iter       = &c->page_iter,
@@ -217,7 +207,7 @@ si_getbranch(siread *q, sinode *n, sicachebranch *c)
 	ssiter j;
 	ss_iterinit(sv_readiter, &j);
 	ss_iteropen(sv_readiter, &j, q->r, &i, &q->index->u, vlsn, 1);
-	sv *v = ss_iterof(sv_readiter, &j);
+	char *v = ss_iterof(sv_readiter, &j);
 	if (ssunlikely(v == NULL))
 		return 0;
 	return si_getresult(q, v, 1);
@@ -302,7 +292,6 @@ si_rangebranch(siread *q, sinode *n, sibranch *b, svmerge *m)
 	sdreadarg arg = {
 		.index           = &b->index,
 		.buf             = &c->buf_a,
-		.buf_xf          = &c->buf_b,
 		.buf_read        = &q->index->readbuf,
 		.index_iter      = &c->index_iter,
 		.page_iter       = &c->page_iter,
@@ -357,19 +346,15 @@ next_node:
 
 	/* include external upsert statement to the query */
 	svmergesrc *s;
-	sv   *upsert_ptr;
-	sv    upsert;
 	ssbuf upsert_stream;
-	char  upsert_stream_reserve[sizeof(sv*)];
+	char  upsert_stream_reserve[sizeof(char**)];
 	if (ssunlikely(q->upsert)) {
-		sv_init(&upsert, &sv_vif, q->upsert, NULL);
 		ss_bufinit_reserve(&upsert_stream, &upsert_stream_reserve,
 		                   sizeof(upsert_stream_reserve));
-		upsert_ptr = &upsert;
-		ss_bufadd(&upsert_stream, q->r->a, &upsert_ptr, sizeof(sv*));
+		ss_bufadd(&upsert_stream, q->r->a, &q->upsert, sizeof(char**));
 		s = sv_mergeadd(m, NULL);
 		ss_iterinit(ss_bufiterref, &s->src);
-		ss_iteropen(ss_bufiterref, &s->src, &upsert_stream, sizeof(sv*));
+		ss_iteropen(ss_bufiterref, &s->src, &upsert_stream, sizeof(char**));
 	}
 
 	/* in-memory indexes */
@@ -416,7 +401,7 @@ next_node:
 	ssiter k;
 	ss_iterinit(sv_readiter, &k);
 	ss_iteropen(sv_readiter, &k, q->r, &j, &q->index->u, q->vlsn, 0);
-	sv *v = ss_iterof(sv_readiter, &k);
+	char *v = ss_iterof(sv_readiter, &k);
 	if (ssunlikely(v == NULL)) {
 		sv_mergereset(&q->merge);
 		ss_iternext(si_iter, &i);
@@ -426,13 +411,13 @@ next_node:
 	rc = 1;
 	/* convert upsert search to SS_EQ */
 	if (q->upsert_eq) {
-		rc = sf_compare(q->r->scheme, sv_pointer(v), q->key);
+		rc = sf_compare(q->r->scheme, v, q->key);
 		rc = rc == 0;
 	}
 	/* do prefix search */
 	if (q->prefix && rc) {
-		rc = sf_compareprefix(q->r->scheme, q->prefix, q->prefix_size,
-		                      sv_pointer(v));
+		rc = sf_compareprefix(q->r->scheme, q->prefix,
+		                      q->prefix_size, v);
 	}
 	if (sslikely(rc == 1)) {
 		if (ssunlikely(si_readdup(q, v) == -1))
@@ -460,17 +445,17 @@ int si_read(siread *q)
 	return -1;
 }
 
-int si_readcommited(si *index, sr *r, sv *v)
+int si_readcommited(si *index, sr *r, svv *v)
 {
 	/* search node index */
 	ssiter i;
 	ss_iterinit(si_iter, &i);
-	ss_iteropen(si_iter, &i, r, index, SS_GTE, sv_pointer(v));
+	ss_iteropen(si_iter, &i, r, index, SS_GTE, sv_vpointer(v));
 	sinode *node;
 	node = ss_iterof(si_iter, &i);
 	assert(node != NULL);
 
-	uint64_t lsn = sv_lsn(v, r);
+	uint64_t lsn = sf_lsn(r->scheme, sv_vpointer(v));
 
 	/* search branches */
 	sibranch *b;
@@ -478,8 +463,9 @@ int si_readcommited(si *index, sr *r, sv *v)
 	{
 		ss_iterinit(sd_indexiter, &i);
 		ss_iteropen(sd_indexiter, &i, r, &b->index, SS_GTE,
-		            sv_pointer(v));
-		sdindexpage *page = ss_iterof(sd_indexiter, &i);
+		            sv_vpointer(v));
+		sdindexpage *page =
+			ss_iterof(sd_indexiter, &i);
 		if (page == NULL)
 			continue;
 		if (page->lsnmax >= lsn)

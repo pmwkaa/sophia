@@ -12,6 +12,13 @@
 typedef struct sfvar sfvar;
 typedef struct sfv sfv;
 
+#define SVNONE   0
+#define SVDELETE 1
+#define SVUPSERT 2
+#define SVGET    4
+#define SVDUP    8
+#define SVBEGIN  16
+
 struct sfvar {
 	uint32_t offset;
 	uint32_t size;
@@ -34,6 +41,16 @@ sf_flags(sfscheme *s, char *data)
 {
 	assert(s->has_flags);
 	return *(uint8_t*)(data + s->offset_flags);
+}
+
+static inline int
+sf_flagsequ(uint8_t flags, uint8_t value) {
+	return (flags & value) > 0;
+}
+
+static inline int
+sf_is(sfscheme *s, char *data, uint8_t flags) {
+	return sf_flagsequ(sf_flags(s, data), flags) > 0;
 }
 
 static inline void

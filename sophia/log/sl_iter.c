@@ -24,7 +24,6 @@ struct sliter {
 	slv *next;
 	uint32_t count;
 	uint32_t pos;
-	sv current;
 	sr *r;
 } sspacked;
 
@@ -88,7 +87,6 @@ sl_iternext_of(sliter *i, slv *next, int validate)
 		return 0;
 	}
 	i->v = next;
-	sv_init(&i->current, &sl_vif, i->v, NULL);
 	return 1;
 }
 
@@ -179,9 +177,7 @@ static void*
 sl_iter_of(ssiter *i)
 {
 	sliter *li = (sliter*)i->priv;
-	if (ssunlikely(li->v == NULL))
-		return NULL;
-	return &li->current;
+	return li->v;
 }
 
 static void
@@ -197,10 +193,10 @@ sl_iter_next(ssiter *i)
 
 ssiterif sl_iter =
 {
-	.close   = sl_iter_close,
-	.has     = sl_iter_has,
-	.of      = sl_iter_of,
-	.next    = sl_iter_next
+	.close = sl_iter_close,
+	.has   = sl_iter_has,
+	.of    = sl_iter_of,
+	.next  = sl_iter_next
 };
 
 int sl_iter_error(ssiter *i)

@@ -13,7 +13,7 @@ typedef struct stlist stlist;
 
 typedef enum {
 	ST_SVV,
-	ST_SV
+	ST_SVVRAW,
 } stlisttype;
 
 struct stlist {
@@ -42,12 +42,12 @@ st_listfree(stlist *l, sr *r)
 			ss_iteratornext(&i);
 		}
 		break;
-	case ST_SV:
-		ss_iteropen(ss_bufiterref, &i, &l->list, sizeof(sv*));
+	case ST_SVVRAW:
+		ss_iteropen(ss_bufiterref, &i, &l->list, sizeof(svv*));
 		while (ss_iteratorhas(&i)) {
-			sv *v = (sv*)ss_iteratorof(&i);
-			sv_vunref(r, v->v);
-			ss_free(r->a, v);
+			char *ptr = ss_iteratorof(&i);
+			svv *v = sv_vv(ptr);
+			sv_vunref(r, v);
 			ss_iteratornext(&i);
 		}
 		break;

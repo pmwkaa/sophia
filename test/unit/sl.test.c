@@ -31,7 +31,8 @@ alloclogv(svlog *log, sr *r, uint64_t lsn, uint8_t flags, int key)
 	svlogv logv;
 	logv.index_id = 0;
 	logv.next = UINT32_MAX;
-	sv_init(&logv.v, &sv_vif, v, NULL);
+	logv.v = v;
+	logv.ptr = NULL;
 	sv_logadd(log, r, &logv);
 }
 
@@ -43,7 +44,7 @@ freelog(svlog *log, sr *c)
 	ss_iteropen(ss_bufiter, &i, &log->buf, sizeof(svlogv));
 	for (; ss_iteratorhas(&i); ss_iteratornext(&i)) {
 		svlogv *v = ss_iteratorof(&i);
-		ss_free(c->a, v->v.v);
+		ss_free(c->a, v->v);
 	}
 	sv_logfree(log, c);
 }
