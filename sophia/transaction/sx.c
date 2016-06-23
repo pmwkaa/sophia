@@ -116,7 +116,6 @@ void sx_init(sxmanager *m, sx *x, svlog *log)
 {
 	x->manager = m;
 	x->log = log;
-	x->isolation = SX_SERIALIZABLE;
 	sx_promote(x, SX_UNDEF);
 	ss_listinit(&x->deadlock);
 }
@@ -271,11 +270,11 @@ sx_preparecb(sx *x, svlogv *v, uint64_t lsn, sxpreparef prepare, void *arg)
 {
 	if (sslikely(lsn == x->vlsn))
 		return 0;
-	if (prepare) {
-		sxindex *i = ((sxv*)v->ptr)->index;
-		if (prepare(x, v->v, i->object, arg))
-			return 1;
-	}
+	if (prepare == NULL)
+		return 0;
+	sxindex *i = ((sxv*)v->ptr)->index;
+	if (prepare(x, v->v, i->object, arg))
+		return 1;
 	return 0;
 }
 
@@ -369,38 +368,6 @@ sxstate sx_commit(sx *x)
 	return SX_COMMIT;
 }
 
-int sx_isolation(sx *x, char *name, int size)
-{
-	if (x->state != SX_READY)
-		return -1;
-	if (ss_bufused(&x->log->buf) > 0)
-		goto error;
-	sxisolation isolation;
-	if (strncasecmp(name, "serializable", size) == 0)
-		isolation = SX_SERIALIZABLE;
-	else
-	if (strncasecmp(name, "batch", size) == 0)
-		isolation = SX_BATCH;
-	else
-		goto error;
-	switch (isolation) {
-	case SX_BATCH:
-		if (x->isolation != SX_SERIALIZABLE)
-			goto error;
-		sx_end(x);
-		sx_promote(x, SX_COMMIT);
-		break;
-	case SX_SERIALIZABLE:
-		if (x->isolation == SX_BATCH)
-			goto error;
-		break;
-	}
-	x->isolation = isolation;
-	return 0;
-error:
-	return -1;
-}
-
 ss_rbget(sx_match,
          sf_compare(scheme, sv_vpointer((sscast(n, sxv, node))->v), key))
 
@@ -414,10 +381,6 @@ int sx_set(sx *x, sxindex *index, svv *version)
 	lv.next     = UINT32_MAX;
 	lv.v        = version;
 	lv.ptr      = NULL;
-
-	/* batch isolation: directly write into the log */
-	if (x->isolation == SX_BATCH)
-		return sv_logadd(x->log, r, &lv);
 
 	/* allocate mvcc container */
 	sxv *v = sx_valloc(&m->pool, version);
@@ -494,7 +457,6 @@ error:
 int sx_get(sx *x, sxindex *index, svv *key, svv **result)
 {
 	ssrbnode *n = NULL;
-	assert(x->isolation == SX_SERIALIZABLE);
 	int rc;
 	rc = sx_match(&index->i, index->r->scheme,
 	              sv_vpointer(key), 0, &n);

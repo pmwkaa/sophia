@@ -105,12 +105,6 @@ se_txget(so *o, so *v)
 	if (ssunlikely(! se_active(e)))
 		goto error;
 
-	/* ensure batch transactions are write-only */
-	if (t->t.isolation == SX_BATCH) {
-		sr_error(&e->error, "%s", "transaction is in write-only mode");
-		goto error;
-	}
-
 	return se_read(db, key, &t->t, t->t.vlsn, NULL);
 error:
 	so_destroy(&key->o);
@@ -234,18 +228,6 @@ se_txcommit(so *o)
 }
 
 static int
-se_txset_string(so *o, const char *path, void *pointer, int size)
-{
-	setx *t = se_cast(o, setx*, SETX);
-	if (strcmp(path, "isolation") == 0) {
-		if (size == 0)
-			size = strlen(pointer);
-		return sx_isolation(&t->t, pointer, size);
-	}
-	return -1;
-}
-
-static int
 se_txset_int(so *o, const char *path, int64_t v)
 {
 	setx *t = se_cast(o, setx*, SETX);
@@ -271,7 +253,7 @@ static soif setxif =
 	.destroy      = se_txdestroy,
 	.free         = se_txfree,
 	.document     = NULL,
-	.setstring    = se_txset_string,
+	.setstring    = NULL,
 	.setint       = se_txset_int,
 	.getobject    = NULL,
 	.getstring    = NULL,
