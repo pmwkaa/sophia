@@ -30,10 +30,13 @@ int sd_mergeinit(sdmerge *m, sr *r, ssiter *i, sdbuild *build, ssqf *qf,
 		if (ssunlikely(rc == -1))
 			return sr_oom(r->e);
 	}
+	uint32_t sizev = 0;
+	if (! sf_schemefixed(r->scheme))
+		sizev += sizeof(uint32_t);
 	sd_indexinit(&m->index);
 	ss_iterinit(sv_writeiter, &m->i);
 	ss_iteropen(sv_writeiter, &m->i, r, i, upsert,
-	            (uint64_t)conf->size_page, sizeof(sdv),
+	            (uint64_t)conf->size_page, sizev,
 	            conf->expire,
 	            conf->timestamp,
 	            conf->vlsn,

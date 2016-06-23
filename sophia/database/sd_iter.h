@@ -22,7 +22,6 @@ struct sditer {
 	char       *pagesrc;
 	sdpage      pagev;
 	uint32_t    pos;
-	sdv        *dv;
 	char       *v;
 	sr         *r;
 } sspacked;
@@ -30,8 +29,7 @@ struct sditer {
 static inline void
 sd_iterresult(sditer *i, int pos)
 {
-	i->dv = sd_pagev(&i->pagev, pos);
-	i->v = sd_pagepointer(&i->pagev, i->dv);
+	i->v = sd_pagepointer(&i->pagev, i->r, pos);
 }
 
 static inline int
@@ -106,7 +104,6 @@ sd_iternextpage(sditer *i)
 	i->pos = 0;
 	if (ssunlikely(i->pagev.h->count == 0)) {
 		i->page = NULL;
-		i->dv = NULL;
 		return 0;
 	}
 	sd_iterresult(i, 0);
@@ -126,7 +123,6 @@ sd_iter_open(ssiter *i, sr *r, sdindex *index, char *start, int validate,
 	ii->page            = NULL;
 	ii->pagesrc         = NULL;
 	ii->pos             = 0;
-	ii->dv              = NULL;
 	ii->validate        = validate;
 	ii->compression     = compression;
 	ii->compression_buf = compression_buf;
@@ -154,7 +150,6 @@ sd_iter_of(ssiter *i)
 	sditer *ii = (sditer*)i->priv;
 	if (ssunlikely(ii->page == NULL))
 		return NULL;
-	assert(ii->dv != NULL);
 	return ii->v;
 }
 
@@ -168,7 +163,6 @@ sd_iter_next(ssiter *i)
 	if (sslikely(ii->pos < ii->pagev.h->count)) {
 		sd_iterresult(ii, ii->pos);
 	} else {
-		ii->dv = NULL;
 		sd_iternextpage(ii);
 	}
 }

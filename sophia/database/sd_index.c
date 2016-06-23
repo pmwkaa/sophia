@@ -116,8 +116,8 @@ int sd_indexadd(sdindex *i, sr *r, sdbuild *build, uint64_t offset)
 
 	/* copy keys */
 	if (ssunlikely(ph->count > 0)) {
-		char *min = sd_buildminkey(build);
-		char *max = sd_buildmaxkey(build);
+		char *min = sd_buildmin(build, r);
+		char *max = sd_buildmax(build, r);
 		rc = sd_indexadd_raw(i, r, p, min, max);
 		if (ssunlikely(rc == -1))
 			return -1;

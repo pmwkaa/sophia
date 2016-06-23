@@ -147,6 +147,12 @@ sf_schemeeq(sfscheme *a, sfscheme *b)
 	return 1;
 }
 
+static inline int
+sf_schemefixed(sfscheme *s)
+{
+	return s->var_count == s->fields_count;
+}
+
 int  sf_compare(sfscheme*, char*, char*);
 int  sf_compareprefix(sfscheme*, char*, uint32_t, char*);
 

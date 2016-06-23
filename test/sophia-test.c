@@ -174,7 +174,6 @@ main(int argc, char *argv[])
 	st_suiteadd_scene(&st_r.suite, st_scene("branch_wm_1", st_scene_branch_wm_1, 1));
 	st_suiteadd_scene(&st_r.suite, st_scene("thread_5", st_scene_thread_5, 1));
 	st_suiteadd_scene(&st_r.suite, st_scene("phase_compaction", st_scene_phase_compaction, 5));
-	st_suiteadd_scene(&st_r.suite, st_scene("phase_scheme_int", st_scene_phase_scheme_int, 3));
 	st_suiteadd_scene(&st_r.suite, st_scene("phase_storage", st_scene_phase_storage, 10));
 	st_suiteadd_scene(&st_r.suite, st_scene("phase_size", st_scene_phase_size, 3));
 	st_suiteadd_scene(&st_r.suite, st_scene("open", st_scene_open, 1));
@@ -305,91 +304,14 @@ main(int argc, char *argv[])
 	st_planadd(plan, recover_loop_group());
 	st_suiteadd(&st_r.suite, plan);
 
-	if (! full) {
-		plan = st_plan("functional_truncate_recover_fast");
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rmrf"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "init"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "scheme_u32"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rt"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "env"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "branch_wm_1"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_storage"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_compaction"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "open"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "truncate"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "truncate"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "destroy"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "env"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "branch_wm_1"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "open"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "destroy"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
-		st_planadd(plan, hermitage_group());
-		st_planadd(plan, transaction_group());
-		st_planadd(plan, cursor_group());
-		st_suiteadd(&st_r.suite, plan);
-	} else {
-		plan = st_plan("functional_truncate_recover_full");
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rmrf"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "init"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_size"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rt"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "env"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "branch_wm_1"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_scheme_int"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_storage"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_compaction"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "open"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "truncate"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "truncate"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "destroy"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "env"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "branch_wm_1"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "open"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "destroy"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
-		st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
-		st_planadd(plan, hermitage_group());
-		st_planadd(plan, transaction_group());
-		st_planadd(plan, cursor_group());
-		st_suiteadd(&st_r.suite, plan);
-	}
-
-#if 0
-	plan = st_plan("functional_full");
+	(void)full;
+	plan = st_plan("functional");
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rmrf"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "init"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_size"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "scheme_u32"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rt"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "env"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "branch_wm_1"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_scheme_int"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_storage"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_compaction"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "open"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "destroy"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
-	st_planadd(plan, transaction_group());
-	st_planadd(plan, cursor_group());
-	st_suiteadd(&st_r.suite, plan);
-
-	plan = st_plan("functional_truncate_full");
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rmrf"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "init"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_size"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rt"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "env"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "branch_wm_1"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_scheme_int"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_storage"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "phase_compaction"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "open"));
@@ -397,14 +319,18 @@ main(int argc, char *argv[])
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "truncate"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "truncate"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "destroy"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "env"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "branch_wm_1"));
+	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "open"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "destroy"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
+	st_planadd(plan, hermitage_group());
 	st_planadd(plan, transaction_group());
 	st_planadd(plan, cursor_group());
 	st_suiteadd(&st_r.suite, plan);
-#endif
 
 	plan = st_plan("multithread");
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rmrf"));

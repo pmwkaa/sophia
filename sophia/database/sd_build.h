@@ -19,12 +19,13 @@ struct sdbuildref {
 } sspacked;
 
 struct sdbuild {
-	ssbuf list, m, v, c;
+	ssbuf       list;
+	ssbuf       m, v, c;
 	ssfilterif *compress_if;
-	int compress;
-	int crc;
-	uint32_t vmax;
-	uint32_t n;
+	int         compress;
+	int         crc;
+	uint32_t    vmax;
+	uint32_t    n;
 };
 
 void sd_buildinit(sdbuild*);
@@ -42,36 +43,23 @@ sd_buildheader(sdbuild *b) {
 	return (sdpageheader*)(b->m.s + sd_buildref(b)->m);
 }
 
-static inline uint64_t
-sd_buildoffset(sdbuild *b)
+static inline char*
+sd_buildmin(sdbuild *b, sr *r ssunused)
 {
-	sdbuildref *r = sd_buildref(b);
-	if (b->compress)
-		return r->c;
-	return r->m + (ss_bufused(&b->v) - (ss_bufused(&b->v) - r->v));
-}
-
-static inline sdv*
-sd_buildmin(sdbuild *b) {
-	return (sdv*)((char*)sd_buildheader(b) + sizeof(sdpageheader));
+	sdbuildref *ref = sd_buildref(b);
+	return b->v.s + ref->v;
 }
 
 static inline char*
-sd_buildminkey(sdbuild *b) {
-	sdbuildref *r = sd_buildref(b);
-	return b->v.s + r->v + sd_buildmin(b)->offset;
-}
-
-static inline sdv*
-sd_buildmax(sdbuild *b) {
+sd_buildmax(sdbuild *b, sr *r)
+{
 	sdpageheader *h = sd_buildheader(b);
-	return (sdv*)((char*)h + sizeof(sdpageheader) + sizeof(sdv) * (h->count - 1));
-}
-
-static inline char*
-sd_buildmaxkey(sdbuild *b) {
-	sdbuildref *r = sd_buildref(b);
-	return b->v.s + r->v + sd_buildmax(b)->offset;
+	sdbuildref *ref = sd_buildref(b);
+	if (sf_schemefixed(r->scheme))
+		return b->v.s + ref->v + (r->scheme->var_offset * (h->count - 1));
+	return b->v.s + ref->v +
+	       *(uint32_t*)((char*)h + sizeof(sdpageheader) +
+	                    (sizeof(uint32_t) * (h->count - 1)));
 }
 
 int sd_buildbegin(sdbuild*, sr*, int, int, ssfilterif*);

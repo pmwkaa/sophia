@@ -14,7 +14,6 @@ typedef struct sdpageiter sdpageiter;
 struct sdpageiter {
 	sdpage  *page;
 	int64_t  pos;
-	sdv     *v;
 	char    *current;
 	ssorder  order;
 	char    *key;
@@ -24,24 +23,24 @@ struct sdpageiter {
 static inline void
 sd_pageiter_result(sdpageiter *i)
 {
-	if (ssunlikely(i->v == NULL)) {
+	if (ssunlikely(i->pos == i->page->h->count)) {
 		i->current = NULL;
 		return;
 	}
-	i->current = sd_pagepointer(i->page, i->v);
+	i->current = sd_pagepointer(i->page, i->r, i->pos);
 }
 
 static inline void
 sd_pageiter_end(sdpageiter *i)
 {
 	i->pos = i->page->h->count;
-	i->v   = NULL;
+	i->current = NULL;
 }
 
 static inline int
-sd_pageiter_cmp(sdpageiter *i, sr *r, sdv *v)
+sd_pageiter_cmp(sdpageiter *i, sr *r, uint32_t pos)
 {
-	return sf_compare(r->scheme, sd_pagepointer(i->page, v), i->key);
+	return sf_compare(r->scheme, sd_pagepointer(i->page, i->r, pos), i->key);
 }
 
 static inline int
@@ -53,7 +52,7 @@ sd_pageiter_search(sdpageiter *i)
 	while (max >= min)
 	{
 		mid = min + (max - min) / 2;
-		int rc = sd_pageiter_cmp(i, i->r, sd_pagev(i->page, mid));
+		int rc = sd_pageiter_cmp(i, i->r, mid);
 		switch (rc) {
 		case -1: min = mid + 1;
 			continue;
@@ -70,12 +69,11 @@ sd_pageiter_chain_head(sdpageiter *i, int64_t pos)
 {
 	/* find first non-duplicate key */
 	while (pos >= 0) {
-		sdv *v = sd_pagev(i->page, pos);
 		uint8_t flags =
-			sf_flags(i->r->scheme, sd_pagepointer(i->page, v));
+			sf_flags(i->r->scheme,
+			         sd_pagepointer(i->page, i->r, pos));
 		if (sslikely(! (flags & SVDUP))) {
 			i->pos = pos;
-			i->v = v;
 			return;
 		}
 		pos--;
@@ -89,12 +87,11 @@ sd_pageiter_chain_next(sdpageiter *i)
 	/* skip to next duplicate chain */
 	int64_t pos = i->pos + 1;
 	while (pos < i->page->h->count) {
-		sdv *v = sd_pagev(i->page, pos);
 		uint8_t flags =
-			sf_flags(i->r->scheme, sd_pagepointer(i->page, v));
+			sf_flags(i->r->scheme,
+			         sd_pagepointer(i->page, i->r, pos));
 		if (sslikely(! (flags & SVDUP))) {
 			i->pos = pos;
-			i->v = v;
 			return;
 		}
 		pos++;
@@ -107,16 +104,15 @@ sd_pageiter_gt(sdpageiter *i, int e)
 {
 	if (i->key == NULL) {
 		i->pos = 0;
-		i->v = sd_pagev(i->page, i->pos);
 		return 0;
 	}
 	int64_t pos = sd_pageiter_search(i);
 	if (ssunlikely(pos >= i->page->h->count))
 		pos = i->page->h->count - 1;
 	sd_pageiter_chain_head(i, pos);
-	if (i->v == NULL)
+	if (i->pos == i->page->h->count)
 		return 0;
-	int rc = sd_pageiter_cmp(i, i->r, i->v);
+	int rc = sd_pageiter_cmp(i, i->r, i->pos);
 	int match = rc == 0;
 	switch (rc) {
 		case  0:
@@ -141,9 +137,9 @@ sd_pageiter_lt(sdpageiter *i, int e)
 	if (ssunlikely(pos >= i->page->h->count))
 		pos = i->page->h->count - 1;
 	sd_pageiter_chain_head(i, pos);
-	if (i->v == NULL)
+	if (i->pos == i->page->h->count)
 		return 0;
-	int rc = sd_pageiter_cmp(i, i->r, i->v);
+	int rc = sd_pageiter_cmp(i, i->r, i->pos);
 	int match = rc == 0;
 	switch (rc) {
 		case 0:
@@ -166,7 +162,6 @@ sd_pageiter_open(ssiter *i, sr *r, sdpage *page, ssorder o,
 	pi->page  = page;
 	pi->order = o;
 	pi->key   = key;
-	pi->v     = NULL;
 	pi->pos   = 0;
 	if (ssunlikely(pi->page->h->count == 0)) {
 		sd_pageiter_end(pi);
@@ -196,15 +191,13 @@ static inline int
 sd_pageiter_has(ssiter *i)
 {
 	sdpageiter *pi = (sdpageiter*)i->priv;
-	return pi->v != NULL;
+	return pi->current != NULL;
 }
 
 static inline void*
 sd_pageiter_of(ssiter *i)
 {
 	sdpageiter *pi = (sdpageiter*)i->priv;
-	if (ssunlikely(pi->v == NULL))
-		return NULL;
 	return pi->current;
 }
 
@@ -212,7 +205,7 @@ static inline void
 sd_pageiter_next(ssiter *i)
 {
 	sdpageiter *pi = (sdpageiter*)i->priv;
-	if (pi->v == NULL)
+	if (pi->current == NULL)
 		return;
 	switch (pi->order) {
 	case SS_GTE:
@@ -222,20 +215,17 @@ sd_pageiter_next(ssiter *i)
 			sd_pageiter_end(pi);
 			return;
 		}
-		pi->v = sd_pagev(pi->page, pi->pos);
 		break;
 	case SS_LT:
 	case SS_LTE: {
 		/* key (dup) (dup) key (eof) */
-		sdv *v;
 		int64_t pos = pi->pos + 1;
 		if (pos < pi->page->h->count) {
-			v = sd_pagev(pi->page, pos);
 			uint8_t flags =
-				sf_flags(pi->r->scheme, sd_pagepointer(pi->page, v));
+				sf_flags(pi->r->scheme,
+				         sd_pagepointer(pi->page, pi->r, pos));
 			if (flags & SVDUP) {
 				pi->pos = pos;
-				pi->v   = v;
 				break;
 			}
 		}

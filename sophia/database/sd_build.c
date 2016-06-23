@@ -102,25 +102,30 @@ sd_buildadd_raw(sdbuild *b, sr *r, char *v, uint8_t flags)
 
 int sd_buildadd(sdbuild *b, sr *r, char *v, uint8_t flags)
 {
-	/* prepare document metadata */
-	int rc = ss_bufensure(&b->m, r->a, sizeof(sdv));
-	if (ssunlikely(rc == -1))
-		return sr_oom(r->e);
-	sdpageheader *h = sd_buildheader(b);
-	sdv *sv = (sdv*)b->m.p;
-	sv->offset = ss_bufused(&b->v) - sd_buildref(b)->v;
-	ss_bufadvance(&b->m, sizeof(sdv));
+	uint32_t size = sf_size(r->scheme, v);
+
+	/* store document offset */
+	int rc;
+	if (! sf_schemefixed(r->scheme)) {
+		uint32_t offset =
+			ss_bufused(&b->v) - sd_buildref(b)->v;
+		rc = ss_bufadd(&b->m, r->a, &offset, sizeof(offset));
+		if (ssunlikely(rc == -1))
+			return sr_oom(r->e);
+		size += sizeof(offset);
+	}
+
 	/* copy document */
 	rc = sd_buildadd_raw(b, r, v, flags);
 	if (ssunlikely(rc == -1))
 		return -1;
+
 	/* update page header */
+	sdpageheader *h = sd_buildheader(b);
 	h->count++;
-	uint32_t size = sf_size(r->scheme, v);
-	size += sizeof(sdv) + size;
 	if (size > b->vmax)
 		b->vmax = size;
-	uint64_t lsn  = sf_lsn(r->scheme, v);
+	uint64_t lsn = sf_lsn(r->scheme, v);
 	if (lsn > h->lsnmax)
 		h->lsnmax = lsn;
 	if (lsn < h->lsnmin)

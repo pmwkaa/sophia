@@ -27,7 +27,6 @@ void st_scene_recover(stscene*);
 
 void st_scene_phase_compaction(stscene*);
 void st_scene_phase_scheme(stscene*);
-void st_scene_phase_scheme_int(stscene*);
 void st_scene_phase_storage(stscene*);
 void st_scene_phase_size(stscene*);
 

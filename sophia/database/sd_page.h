@@ -35,27 +35,17 @@ sd_pageinit(sdpage *p, sdpageheader *h) {
 	p->h = h;
 }
 
-static inline sdv*
-sd_pagev(sdpage *p, uint32_t pos) {
+static inline char*
+sd_pagepointer(sdpage *p, sr *r, uint32_t pos)
+{
 	assert(pos < p->h->count);
-	return (sdv*)((char*)p->h + sizeof(sdpageheader) + sizeof(sdv) * pos);
-}
-
-static inline sdv*
-sd_pagemin(sdpage *p) {
-	return sd_pagev(p, 0);
-}
-
-static inline sdv*
-sd_pagemax(sdpage *p) {
-	return sd_pagev(p, p->h->count - 1);
-}
-
-static inline void*
-sd_pagepointer(sdpage *p, sdv *v) {
-	assert((sizeof(sdv) * p->h->count) + v->offset <= p->h->sizeorigin);
-	return ((char*)p->h + sizeof(sdpageheader) +
-	         sizeof(sdv) * p->h->count) + v->offset;
+	char *ptr = (char*)p->h + sizeof(sdpageheader);
+	if (sf_schemefixed(r->scheme))
+		return ptr + (r->scheme->var_offset * pos);
+	uint32_t *offset = (uint32_t*)ptr;
+	assert((sizeof(uint32_t) * p->h->count) +
+	        offset[pos] <= p->h->sizeorigin);
+	return ptr + (sizeof(uint32_t) * p->h->count) + offset[pos];
 }
 
 #endif
