@@ -59,18 +59,24 @@ sf_flagsset(sfscheme *s, char *data, uint8_t flags)
 	*(uint8_t*)(data + s->offset_flags) = flags;
 }
 
+static inline sfvar*
+sf_var(sfscheme *s, int pos, char *data)
+{
+	return &((sfvar*)(data + s->var_offset))[pos];
+}
+
 static inline uint32_t
 sf_size(sfscheme *s, char *data)
 {
-	assert(s->has_size);
-	return *(uint32_t*)(data + s->offset_size);
-}
-
-static inline void
-sf_sizeset(sfscheme *s, char *data, uint32_t size)
-{
-	assert(s->has_size);
-	*(uint32_t*)(data + s->offset_size) = size;
+	if (sslikely(s->var_count == 0 ||
+	             s->var_count == s->fields_count))
+		return s->var_offset;
+	uint32_t size = s->var_offset + (sizeof(sfvar) * s->var_count);
+	sfvar *v = sf_var(s, 0, data);
+	sfvar *end = sf_var(s, s->var_count, data);
+	for (; v < end; v++)
+		size += v->size;
+	return size;
 }
 
 static inline uint64_t
@@ -94,14 +100,13 @@ sf_fieldptr(sfscheme *s, sffield *f, char *data, uint32_t *size)
 		*size = f->fixed_size;
 		return data + f->fixed_offset;
 	}
-	uint32_t offset = 0;
+	uint32_t offset = s->var_offset + (sizeof(sfvar) * s->var_count);
 	uint32_t pos = 0;
-	register sfvar *v = &((sfvar*)(data + s->var_offset))[0];
-	for (; pos < f->position_ref; v++, pos++) {
+	sfvar *v = sf_var(s, 0, data);
+	for (; pos < f->position_ref; v++, pos++)
 		offset += v->size;
-	}
 	*size = v->size;
-	return data + s->var_offset + (sizeof(sfvar) * s->var_count) + offset;
+	return data + offset;
 }
 
 static inline char*
@@ -113,12 +118,10 @@ sf_field(sfscheme *s, int pos, char *data, uint32_t *size)
 static inline int
 sf_fieldsize(sfscheme *s, int pos, char *data)
 {
-	register sffield *f = s->fields[pos];
+	sffield *f = s->fields[pos];
 	if (sslikely(f->fixed_size > 0))
 		return f->fixed_size;
-	register sfvar *v =
-		&((sfvar*)(data + s->var_offset))[f->position_ref];
-	return v->size;
+	return sf_var(s, f->position_ref, data)->size;
 }
 
 static inline int
@@ -140,7 +143,6 @@ sf_write(sfscheme *s, sfv *v, char *dest)
 {
 	int var_value_offset =
 		s->var_offset + sizeof(sfvar) * s->var_count;
-	sfvar *var = (sfvar*)(dest + s->var_offset);
 	int i;
 	for (i = 0; i < s->fields_count; i++) {
 		sffield *f = s->fields[i];
@@ -151,11 +153,11 @@ sf_write(sfscheme *s, sfv *v, char *dest)
 				memset(dest + f->fixed_offset, 0, f->fixed_size);
 			continue;
 		}
-		sfvar *current = &var[f->position_ref];
-		current->size  = v[i].size;
+		sfvar *var = sf_var(s, f->position_ref, dest);
+		var->size = v[i].size;
 		if (sslikely(v[i].size > 0))
 			memcpy(dest + var_value_offset, v[i].pointer, v[i].size);
-		var_value_offset += current->size;
+		var_value_offset += var->size;
 	}
 }
 
@@ -194,20 +196,19 @@ sf_comparable_write(sfscheme *s, char *src, char *dest)
 	int var_value_offset =
 		s->var_offset + sizeof(sfvar) * s->var_count;
 	memcpy(dest, src, s->var_offset);
-	sfvar *var = (sfvar*)(dest + s->var_offset);
 	int i;
 	for (i = 0; i < s->fields_count; i++) {
 		sffield *f = s->fields[i];
 		if (f->fixed_size != 0)
 			continue;
-		sfvar *current = &var[f->position_ref];
+		sfvar *var = sf_var(s, f->position_ref, dest);
 		if (! f->key) {
-			current->size = 0;
+			var->size = 0;
 			continue;
 		}
-		char *ptr = sf_fieldptr(s, f, src, &current->size);
-		memcpy(dest + var_value_offset, ptr, current->size);
-		var_value_offset += current->size;
+		char *ptr = sf_fieldptr(s, f, src, &var->size);
+		memcpy(dest + var_value_offset, ptr, var->size);
+		var_value_offset += var->size;
 	}
 }
 

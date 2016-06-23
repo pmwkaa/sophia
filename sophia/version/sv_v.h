@@ -58,7 +58,6 @@ sv_vbuild(sr *r, sfv *fields)
 	memset(&v->node, 0, sizeof(v->node));
 	char *ptr = sv_vpointer(v);
 	sf_write(r->scheme, fields, ptr);
-	sf_sizeset(r->scheme, sv_vpointer(v), size);
 	/* update runtime statistics */
 	ss_spinlock(&r->stat->lock);
 	r->stat->v_count++;

@@ -42,7 +42,7 @@ sf_scheme_saveload(void)
 	t( sf_schemeload(&cmp, &st_r.a, buf.s, ss_bufused(&buf)) == 0 );
 	t( sf_schemevalidate(&cmp, &st_r.a) == 0 );
 
-	t( cmp.fields_count == 2 + 1 + 1 + 1);
+	t( cmp.fields_count == 2 + 1 + 1);
 	t( cmp.keys_count == 1 );
 	t( strcmp(cmp.fields[0]->name, "key") == 0 );
 	t( cmp.fields[0]->type == SS_U32 );
@@ -54,13 +54,9 @@ sf_scheme_saveload(void)
 	t( cmp.fields[2]->key == 0 );
 	t( cmp.fields[2]->flags == 1 );
 
-	t( cmp.fields[3]->type == SS_U32 );
+	t( cmp.fields[3]->type == SS_U64 );
 	t( cmp.fields[3]->key == 0 );
-	t( cmp.fields[3]->size == 1 );
-
-	t( cmp.fields[4]->type == SS_U64 );
-	t( cmp.fields[4]->key == 0 );
-	t( cmp.fields[4]->lsn == 1 );
+	t( cmp.fields[3]->lsn == 1 );
 
 	sf_schemefree(&cmp, &st_r.a);
 	ss_buffree(&buf, &st_r.a);

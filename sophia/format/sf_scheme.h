@@ -25,7 +25,6 @@ struct sffield {
 	char     *name;
 	char     *options;
 	int       lsn;
-	int       size;
 	int       flags;
 	int       key;
 	int       timestamp;
@@ -42,12 +41,10 @@ struct sfscheme {
 	void     *cmparg;
 	int       offset_expire;
 	int       offset_lsn;
-	int       offset_size;
 	int       offset_flags;
 	int       var_offset;
 	int       var_count;
 	int       has_lsn;
-	int       has_size;
 	int       has_flags;
 	int       has_timestamp;
 	int       has_expire;
@@ -62,7 +59,6 @@ sf_fieldnew(ssa *a, char *name)
 	f->timestamp = 0;
 	f->expire = 0;
 	f->lsn = 0;
-	f->size = 0;
 	f->flags = 0;
 	f->key = 0;
 	f->fixed_size = 0;

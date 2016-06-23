@@ -34,7 +34,7 @@ void *st_document_generate(stgenerator *g, stlist *l, void *db,
 	int i = 0;
 	while (i < g->r->scheme->fields_count) {
 		sffield *field = g->r->scheme->fields[i];
-		if (field->lsn || field->size || field->flags) {
+		if (field->lsn || field->flags) {
 			i++;
 			continue;
 		}
@@ -61,7 +61,7 @@ void st_document_eq(stgenerator *g, void *o,
 	int size = 0;
 	while (i < g->r->scheme->fields_count) {
 		sffield *field = g->r->scheme->fields[i];
-		if (field->lsn || field->size || field->flags) {
+		if (field->lsn || field->flags) {
 			i++;
 			continue;
 		}

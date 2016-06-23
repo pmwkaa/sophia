@@ -144,13 +144,11 @@ void sf_schemeinit(sfscheme *s)
 	s->var_offset = 0;
 	s->offset_expire = 0;
 	s->offset_lsn = 0;
-	s->offset_size = 0;
 	s->offset_flags = 0;
 	s->var_count  = 0;
 	s->cmp = NULL;
 	s->cmparg = NULL;
 	s->has_lsn = 0;
-	s->has_size = 0;
 	s->has_flags = 0;
 	s->has_timestamp = 0;
 	s->has_expire = 0;
@@ -260,9 +258,6 @@ sf_schemeset(sfscheme *s, sffield *f, char *opt)
 	if (strncmp(opt, "lsn", 3) == 0) {
 		f->lsn = 1;
 	} else
-	if (strncmp(opt, "size", 4) == 0) {
-		f->size = 1;
-	} else
 	if (strncmp(opt, "flags", 5) == 0) {
 		f->flags = 1;
 	} else
@@ -300,21 +295,6 @@ sf_schemevalidate(sfscheme *s, ssa *a)
 	rc = sf_schemeadd(s, a, meta_flags);
 	if (ssunlikely(rc == -1)) {
 		sf_fieldfree(meta_flags, a);
-		return -1;
-	}
-
-	/* size */
-	sffield *meta_size = sf_fieldnew(a, "_size");
-	if (ssunlikely(meta_size == NULL))
-		return -1;
-	rc = sf_fieldoptions(meta_size, a, "u32,size");
-	if (ssunlikely(rc == -1)) {
-		sf_fieldfree(meta_size, a);
-		return -1;
-	}
-	rc = sf_schemeadd(s, a, meta_size);
-	if (ssunlikely(rc == -1)) {
-		sf_fieldfree(meta_size, a);
 		return -1;
 	}
 
@@ -380,14 +360,6 @@ sf_schemevalidate(sfscheme *s, ssa *a)
 				return -1;
 			s->has_flags = 1;
 		}
-		/* size */
-		if (f->size) {
-			if (f->type != SS_U32)
-				return -1;
-			if (s->has_size)
-				return -1;
-			s->has_size = 1;
-		}
 		/* lsn */
 		if (f->lsn) {
 			if (f->type != SS_U64)
@@ -409,9 +381,6 @@ sf_schemevalidate(sfscheme *s, ssa *a)
 			else
 			if (f->lsn)
 				s->offset_lsn = f->fixed_offset;
-			else
-			if (f->size)
-				s->offset_size = f->fixed_offset;
 			else
 			if (f->flags)
 				s->offset_flags = f->fixed_offset;
@@ -467,21 +436,17 @@ int sf_schemesave(sfscheme *s, ssa *a, ssbuf *buf)
 	uint32_t v = s->fields_count;
 	if (s->has_lsn)
 		v--;
-	if (s->has_size)
-		v--;
 	if (s->has_flags)
 		v--;
 	int rc = ss_bufadd(buf, a, &v, sizeof(uint32_t));
 	if (ssunlikely(rc == -1))
 		return -1;
+	int fields_count = v;
 	int i = 0;
-	while (i < s->fields_count) {
+	while (i < fields_count) {
 		sffield *field = s->fields[i];
-		/* skip meta-fields */
-		if (field->lsn || field->size) {
-			i++;
-			continue;
-		}
+		assert(field->lsn == 0);
+		assert(field->flags == 0);
 		/* name */
 		v = strlen(field->name) + 1;
 		rc = ss_bufensure(buf, a, sizeof(uint32_t) + v);

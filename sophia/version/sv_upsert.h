@@ -192,7 +192,6 @@ sv_upsertdo(svupsert *u, sr *r, svupsertnode *a, svupsertnode *b)
 	sf_write(r->scheme, v, u->tmp.s);
 	ss_bufadvance(&u->tmp, size);
 	/* update meta-fields */
-	sf_sizeset(r->scheme, u->tmp.s, size);
 	sf_flagsset(r->scheme, u->tmp.s,
 	            sf_flags(r->scheme, b->buf.s) & ~SVUPSERT);
 

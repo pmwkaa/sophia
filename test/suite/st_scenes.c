@@ -209,7 +209,6 @@ void st_scene_truncate(stscene *s ssunused)
 		int i = 0;
 		while (i < st_r.r.scheme->fields_count) {
 			if (st_r.r.scheme->fields[i]->lsn  ||
-			    st_r.r.scheme->fields[i]->size ||
 			    st_r.r.scheme->fields[i]->flags)
 			{
 				i++;

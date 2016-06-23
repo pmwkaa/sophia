@@ -40,7 +40,7 @@ st_generator_kv(stgenerator *g, va_list args)
 	while (i < scheme->fields_count)
 	{
 		sffield *field = g->r->scheme->fields[i];
-		if (field->lsn || field->size || field->flags) {
+		if (field->lsn || field->flags) {
 			i++;
 			continue;
 		}
@@ -124,7 +124,7 @@ svv *st_svv_seed(stgenerator *g, uint32_t seed, uint32_t seed_value)
 	while (i < scheme->fields_count)
 	{
 		sffield *field = g->r->scheme->fields[i];
-		if (field->lsn || field->size || field->flags) {
+		if (field->lsn || field->flags) {
 			i++;
 			continue;
 		}
