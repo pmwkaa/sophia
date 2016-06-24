@@ -130,10 +130,12 @@ sv_logadd(svlog *l, sr *r, svlogv *v)
 		return -1;
 	svlogindex *index =
 		ss_bufat(&l->index, sizeof(svlogindex), v->index_id);
-	svlogv *tail = sv_logat(l, index->tail);
-	tail->next  = n;
-	if (index->head == UINT32_MAX)
+	if (index->head == UINT32_MAX) {
 		index->head = n;
+	} else {
+		svlogv *tail = sv_logat(l, index->tail);
+		tail->next = n;
+	}
 	index->tail = n;
 	index->count++;
 	if (! (sv_vflags(v->v, r) & SVGET))
