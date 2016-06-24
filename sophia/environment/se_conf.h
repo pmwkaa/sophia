@@ -25,6 +25,12 @@ struct seconfrt {
 	uint32_t log_files;
 	/* metric */
 	srseq    seq;
+	/* transaction */
+	srstatxm tx_stat;
+	uint32_t tx_ro;
+	uint32_t tx_rw;
+	uint32_t tx_gc;
+	uint64_t tx_vlsn;
 };
 
 struct seconf {

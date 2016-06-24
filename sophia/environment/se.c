@@ -224,6 +224,7 @@ so *se_new(void)
 	e->rep_conf = sy_conf(&e->rep);
 	sl_poolinit(&e->lp, &e->r);
 	e->lp_conf = sl_conf(&e->lp);
+	sr_statxm_init(&e->xm_stat);
 	sx_managerinit(&e->xm, &e->seq, &e->a);
 	si_cachepool_init(&e->cachepool, &e->r);
 	sc_init(&e->scheduler, &e->r, &e->lp);

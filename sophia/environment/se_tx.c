@@ -127,11 +127,8 @@ se_txend(setx *t, int rlb, int conflict)
 	se *e = se_of(&t->o);
 	sx_gc(&t->t);
 	sv_logreset(&t->log, e->db.n);
-	(void)rlb;
-	(void)conflict;
-	// XXX
-	/*uint32_t count = sv_logcount(&t->log);*/
-	/*sr_stattx(&e->stat, t->start, count, rlb, conflict);*/
+	uint32_t count = sv_logcount(&t->log);
+	sr_statxm(&e->xm_stat, t->start, count, rlb, conflict);
 	so_mark_destroyed(&t->o);
 	so_poolgc(&e->tx, &t->o);
 }
@@ -192,8 +189,7 @@ se_txcommit(so *o)
 		if (cache)
 			si_cachepool_push(cache);
 		if (s == SX_LOCK) {
-			// XXX
-			/*sr_stattx_lock(&e->stat);*/
+			sr_statxm_lock(&e->xm_stat);
 			return 2;
 		}
 		if (s == SX_ROLLBACK) {

@@ -9,7 +9,18 @@
  * BSD License
 */
 
+typedef struct srstatxm srstatxm;
 typedef struct srstat srstat;
+
+struct srstatxm {
+	/* transaction */
+	uint64_t tx;
+	uint64_t tx_rlb;
+	uint64_t tx_conflict;
+	uint64_t tx_lock;
+	ssavg    tx_latency;
+	ssavg    tx_stmts;
+};
 
 struct srstat {
 	ssspinlock lock;
@@ -39,6 +50,32 @@ struct srstat {
 	ssavg    cursor_read_cache;
 	ssavg    cursor_ops;
 };
+
+static inline void
+sr_statxm_init(srstatxm *s)
+{
+	memset(s, 0, sizeof(*s));
+	ss_avgprepare(&s->tx_latency);
+	ss_avgprepare(&s->tx_stmts);
+}
+
+static inline void
+sr_statxm(srstatxm *s, uint64_t start, uint32_t count,
+          int rlb, int conflict)
+{
+	uint64_t diff = ss_utime() - start;
+	s->tx++;
+	s->tx_rlb += rlb;
+	s->tx_conflict += conflict;
+	ss_avgupdate(&s->tx_stmts, count);
+	ss_avgupdate(&s->tx_latency, diff);
+}
+
+static inline void
+sr_statxm_lock(srstatxm *s)
+{
+	s->tx_lock++;
+}
 
 static inline void
 sr_statinit(srstat *s)

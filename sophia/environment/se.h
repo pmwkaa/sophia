@@ -32,6 +32,7 @@ struct se {
 	slconf      *lp_conf;
 	slpool       lp;
 	sxmanager    xm;
+	srstatxm     xm_stat;
 	sc           scheduler;
 	srlog        log;
 	srerror      error;

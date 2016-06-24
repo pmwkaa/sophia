@@ -218,18 +218,23 @@ se_conflog(se *e, seconfrt *rt, srconf **pc)
 	return sr_C(NULL, pc, NULL, "log", SS_UNDEF, log, SR_NS, NULL);
 }
 
-/* transaction.* */
-/*
-sr_C(&p, pc, se_confv, "tx_active_rw", SS_U32, &rt->tx_rw, SR_RO, NULL);
-sr_C(&p, pc, se_confv, "tx_active_ro", SS_U32, &rt->tx_ro, SR_RO, NULL);
-sr_C(&p, pc, se_confv, "tx", SS_U64, &rt->stat.tx, SR_RO, NULL);
-sr_C(&p, pc, se_confv, "tx_rollback", SS_U64, &rt->stat.tx_rlb, SR_RO, NULL);
-sr_C(&p, pc, se_confv, "tx_conflict", SS_U64, &rt->stat.tx_conflict, SR_RO, NULL);
-sr_C(&p, pc, se_confv, "tx_lock", SS_U64, &rt->stat.tx_lock, SR_RO, NULL);
-sr_C(&p, pc, se_confv, "tx_latency", SS_STRING, rt->stat.tx_latency.sz, SR_RO, NULL);
-sr_C(&p, pc, se_confv, "tx_ops", SS_STRING, rt->stat.tx_stmts.sz, SR_RO, NULL);
-sr_C(&p, pc, se_confv, "tx_gc_queue", SS_U32, &rt->tx_gc_queue, SR_RO, NULL);
-*/
+static inline srconf*
+se_conftransaction(se *e ssunused, seconfrt *rt, srconf **pc)
+{
+	srconf *xm = *pc;
+	srconf *p = NULL;
+	sr_C(&p, pc, se_confv, "online_rw", SS_U32, &rt->tx_rw, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "online_ro", SS_U32, &rt->tx_ro, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "commit", SS_U64, &rt->tx_stat.tx, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "rollback", SS_U64, &rt->tx_stat.tx_rlb, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "conflict", SS_U64, &rt->tx_stat.tx_conflict, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "lock", SS_U64, &rt->tx_stat.tx_lock, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "latency", SS_STRING, rt->tx_stat.tx_latency.sz, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "log", SS_STRING, rt->tx_stat.tx_stmts.sz, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "gc", SS_U32, &rt->tx_gc, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "gc_lsn", SS_U64, &rt->tx_vlsn, SR_RO, NULL);
+	return sr_C(NULL, pc, NULL, "transaction", SS_UNDEF, xm, SR_NS, NULL);
+}
 
 static inline srconf*
 se_confmetric(se *e ssunused, seconfrt *rt, srconf **pc)
@@ -760,21 +765,22 @@ se_confdebug(se *e, seconfrt *rt ssunused, srconf **pc)
 static srconf*
 se_confprepare(se *e, seconfrt *rt, srconf *c, int serialize)
 {
-	/* sophia */
 	srconf *pc = c;
-	srconf *sophia    = se_confsophia(e, rt, &pc);
-	srconf *scheduler = se_confscheduler(e, &pc, serialize);
-	srconf *metric    = se_confmetric(e, rt, &pc);
-	srconf *log       = se_conflog(e, rt, &pc);
-	srconf *backup    = se_confbackup(e, rt, &pc);
-	srconf *db        = se_confdb(e, rt, &pc, serialize);
-	srconf *debug     = se_confdebug(e, rt, &pc);
+	srconf *sophia      = se_confsophia(e, rt, &pc);
+	srconf *backup      = se_confbackup(e, rt, &pc);
+	srconf *scheduler   = se_confscheduler(e, &pc, serialize);
+	srconf *transaction = se_conftransaction(e, rt, &pc);
+	srconf *metric      = se_confmetric(e, rt, &pc);
+	srconf *log         = se_conflog(e, rt, &pc);
+	srconf *db          = se_confdb(e, rt, &pc, serialize);
+	srconf *debug       = se_confdebug(e, rt, &pc);
 
-	sophia->next    = scheduler;
-	scheduler->next = metric;
-	metric->next    = log;
-	log->next       = backup;
-	backup->next    = db;
+	sophia->next      = backup;
+	backup->next      = scheduler;
+	scheduler->next   = transaction;
+	transaction->next = metric;
+	metric->next      = log;
+	log->next         = db;
 	if (! serialize)
 		db->next = debug;
 	return sophia;
@@ -808,6 +814,13 @@ se_confrt(se *e, seconfrt *rt)
 	sr_seqlock(&e->seq);
 	rt->seq = e->seq;
 	sr_sequnlock(&e->seq);
+
+	/* transaction */
+	rt->tx_stat = e->xm_stat;
+	rt->tx_ro   = e->xm.count_rd;
+	rt->tx_rw   = e->xm.count_rw;
+	rt->tx_gc   = e->xm.count_gc;
+	rt->tx_vlsn = sx_vlsn(&e->xm);
 	return 0;
 }
 
