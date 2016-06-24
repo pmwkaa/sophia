@@ -538,6 +538,7 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc, int serialize)
 	{
 		sedb *o = (sedb*)sscast(i, so, link);
 		sr_statcopy(&o->stat, &o->statrt);
+		sr_statprepare(&o->statrt);
 		sc_profiler(&e->scheduler, &o->scp, o->index);
 		si_profilerbegin(&o->rtp, o->index);
 		si_profiler(&o->rtp);
@@ -816,6 +817,7 @@ se_confrt(se *e, seconfrt *rt)
 	sr_sequnlock(&e->seq);
 
 	/* transaction */
+	sr_statxm_prepare(&e->xm_stat);
 	rt->tx_stat = e->xm_stat;
 	rt->tx_ro   = e->xm.count_rd;
 	rt->tx_rw   = e->xm.count_rw;

@@ -126,8 +126,8 @@ se_txend(setx *t, int rlb, int conflict)
 {
 	se *e = se_of(&t->o);
 	sx_gc(&t->t);
-	sv_logreset(&t->log, e->db.n);
 	uint32_t count = sv_logcount(&t->log);
+	sv_logreset(&t->log, e->db.n);
 	sr_statxm(&e->xm_stat, t->start, count, rlb, conflict);
 	so_mark_destroyed(&t->o);
 	so_poolgc(&e->tx, &t->o);

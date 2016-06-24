@@ -55,6 +55,11 @@ static inline void
 sr_statxm_init(srstatxm *s)
 {
 	memset(s, 0, sizeof(*s));
+}
+
+static inline void
+sr_statxm_prepare(srstatxm *s)
+{
 	ss_avgprepare(&s->tx_latency);
 	ss_avgprepare(&s->tx_stmts);
 }
