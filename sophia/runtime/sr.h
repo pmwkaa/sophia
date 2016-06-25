@@ -19,6 +19,7 @@ struct sr {
 	sfscheme *scheme;
 	srseq *seq;
 	ssa *a;
+	ssa *av;
 	ssvfs *vfs;
 	srquota *quota;
 	ssinjection *i;
@@ -33,6 +34,7 @@ sr_init(sr *r,
         srlog *log,
         srerror *e,
         ssa *a,
+        ssa *av,
         ssvfs *vfs,
         srquota *quota,
         srseq *seq,
@@ -47,6 +49,7 @@ sr_init(sr *r,
 	r->log    = log;
 	r->e      = e;
 	r->a      = a;
+	r->av     = av;
 	r->vfs    = vfs;
 	r->quota  = quota;
 	r->seq    = seq;

@@ -17,6 +17,7 @@
 
 /* std */
 extern stgroup *ss_a_group(void);
+extern stgroup *ss_slaba_group(void);
 extern stgroup *ss_order_group(void);
 extern stgroup *ss_rq_group(void);
 extern stgroup *ss_qf_group(void);
@@ -190,6 +191,7 @@ main(int argc, char *argv[])
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
 	st_planadd(plan, ss_a_group());
+	st_planadd(plan, ss_slaba_group());
 	st_planadd(plan, ss_order_group());
 	st_planadd(plan, ss_rq_group());
 	st_planadd(plan, ss_qf_group());

@@ -150,7 +150,7 @@ sf_schemeeq(sfscheme *a, sfscheme *b)
 static inline int
 sf_schemefixed(sfscheme *s)
 {
-	return s->var_count == s->fields_count;
+	return s->var_count == 0;
 }
 
 int  sf_compare(sfscheme*, char*, char*);

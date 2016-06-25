@@ -174,8 +174,17 @@ se_dbscheme_set(sedb *db)
 	c->gc_period_us         = c->gc_period * 1000000;
 	c->expire_period_us     = c->expire_period * 1000000;
 	c->lru_period_us        = c->lru_period * 1000000;
-	/* enable memory quota */
 	if (s->memory_limit > 0) {
+		/* use slab allocator for fixed size schema */
+		if (sf_schemefixed(&s->scheme)) {
+			rc = ss_aopen(&db->a, &ss_slaba, &e->vfs,
+			              s->memory_limit, sizeof(svv) + s->scheme.var_offset);
+			if (ssunlikely(rc == -1)) {
+				sr_error(&e->error, "%s", "failed to init slab allocator");
+				return -1;
+			}
+		}
+		/* enable memory quota */
 		sr_quotaenable(&db->quota, 1);
 		sr_quotaset(&db->quota, s->memory_limit);
 	}
@@ -185,6 +194,7 @@ se_dbscheme_set(sedb *db)
 	db->r->upsert = &s->upsert;
 	db->r->stat   = &db->stat;
 	db->r->quota  = &db->quota;
+	db->r->av     = &db->a;
 	db->r->ptr    = db->index;
 	return 0;
 }
@@ -221,6 +231,7 @@ se_dbfree(sedb *db)
 		rcret = -1;
 	sr_statfree(&db->stat);
 	sx_indexfree(&db->coindex, &e->xm);
+	ss_aclose(&db->a);
 	so_mark_destroyed(&db->o);
 	ss_free(&e->a, db);
 	return rcret;
@@ -385,6 +396,7 @@ so *se_dbnew(se *e, char *name, int size)
 	so_init(&o->o, &se_o[SEDB], &sedbif, &e->o, &e->o);
 	sr_statinit(&o->stat);
 	sr_quotainit(&o->quota);
+	o->a = e->a;
 	o->index = si_init(&e->r, &o->o);
 	if (ssunlikely(o->index == NULL)) {
 		ss_free(&e->a, o);

@@ -41,7 +41,7 @@ ssa_realloc(void)
 
 stgroup *ss_a_group(void)
 {
-	stgroup *group = st_group("sra");
+	stgroup *group = st_group("ssa");
 	st_groupadd(group, st_test("malloc", ssa_malloc));
 	st_groupadd(group, st_test("realloc", ssa_realloc));
 	return group;

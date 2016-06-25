@@ -54,16 +54,6 @@ ss_oomamalloc(ssa *a ssunused, int size)
 	return malloc(size);
 }
 
-static inline int
-ss_oomaensure(ssa *a ssunused, int n, int size)
-{
-	if (ss_oomaevent())
-		return -1;
-	(void)n;
-	(void)size;
-	return 0;
-}
-
 static inline void*
 ss_oomarealloc(ssa *a ssunused, void *ptr, int size)
 {
@@ -83,7 +73,6 @@ ssaif ss_ooma =
 	.open    = ss_oomaopen,
 	.close   = ss_oomaclose,
 	.malloc  = ss_oomamalloc,
-	.ensure  = ss_oomaensure,
 	.realloc = ss_oomarealloc,
 	.free    = ss_oomafree 
 };

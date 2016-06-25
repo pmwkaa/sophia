@@ -304,7 +304,7 @@ sd_read_gt0_compression_zstd(void)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, NULL, &log, &error, &a, &vfs, NULL, &seq,
+	sr_init(&r, NULL, &log, &error, &a, &a, &vfs, NULL, &seq,
 	        NULL, &cmp, &ij, &stat, crc, NULL);
 
 	sdbuild b;
@@ -430,7 +430,7 @@ sd_read_gt0_compression_lz4(void)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, NULL, &log, &error, &a, &vfs, NULL, &seq,
+	sr_init(&r, NULL, &log, &error, &a, &a, &vfs, NULL, &seq,
 	        NULL, &cmp, &ij, &stat, crc, NULL);
 
 	sdbuild b;
@@ -558,7 +558,7 @@ sd_read_gt1_compression_zstd(void)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, NULL, &log, &error, &a, &vfs, NULL, &seq,
+	sr_init(&r, NULL, &log, &error, &a, &a, &vfs, NULL, &seq,
 	        NULL, &cmp, &ij, &stat, crc, NULL);
 
 	ssfile f;
@@ -740,7 +740,7 @@ sd_read_gt1_compression_lz4(void)
 	sr_seqinit(&seq);
 	sscrcf crc = ss_crc32c_function();
 	sr r;
-	sr_init(&r, NULL, &log, &error, &a, &vfs, NULL, &seq,
+	sr_init(&r, NULL, &log, &error, &a, &a, &vfs, NULL, &seq,
 	        NULL, &cmp, &ij, &stat, crc, NULL);
 
 	ssfile f;

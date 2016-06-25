@@ -49,7 +49,7 @@ static inline svv*
 sv_vbuild(sr *r, sfv *fields)
 {
 	uint32_t size = sf_writesize(r->scheme, fields);
-	svv *v = ss_malloc(r->a, sizeof(svv) + size);
+	svv *v = ss_malloc(r->av, sizeof(svv) + size);
 	if (ssunlikely(v == NULL))
 		return NULL;
 	v->refs  = 1;
@@ -70,7 +70,7 @@ static inline svv*
 sv_vbuildraw(sr *r, char *src)
 {
 	uint32_t size = sf_size(r->scheme, src);
-	svv *v = ss_malloc(r->a, sizeof(svv) + size);
+	svv *v = ss_malloc(r->av, sizeof(svv) + size);
 	if (ssunlikely(v == NULL))
 		return NULL;
 	v->refs  = 1;
@@ -103,7 +103,7 @@ sv_vunref(sr *r, svv *v)
 		r->stat->v_count--;
 		r->stat->v_allocated -= size;
 		ss_spinunlock(&r->stat->lock);
-		ss_free(r->a, v);
+		ss_free(r->av, v);
 		return 1;
 	}
 	return 0;

@@ -68,8 +68,7 @@ sf_var(sfscheme *s, int pos, char *data)
 static inline uint32_t
 sf_size(sfscheme *s, char *data)
 {
-	if (sslikely(s->var_count == 0 ||
-	             s->var_count == s->fields_count))
+	if (sslikely(sf_schemefixed(s)))
 		return s->var_offset;
 	uint32_t size = s->var_offset + (sizeof(sfvar) * s->var_count);
 	sfvar *v = sf_var(s, 0, data);

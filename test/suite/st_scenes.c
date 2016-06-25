@@ -93,6 +93,7 @@ void st_scene_rt(stscene *s ssunused)
 	        &st_r.log,
 	        &st_r.error,
 	        &st_r.a,
+	        &st_r.a,
 	        &st_r.vfs,
 	        NULL, /* quota */
 	        &st_r.seq,
