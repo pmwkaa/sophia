@@ -127,6 +127,8 @@ sf_fieldsize(sfscheme *s, int pos, char *data)
 static inline int
 sf_writesize(sfscheme *s, sfv *v)
 {
+	if (sf_schemefixed(s))
+		return s->var_offset;
 	int sum = s->var_offset;
 	int i;
 	for (i = 0; i < s->fields_count; i++) {
