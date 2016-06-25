@@ -66,7 +66,7 @@ ss_slabamalloc(ssa *a, int size ssunused)
 		s->pool_free = *(char**)slab;
 		s->pool_free_count--;
 		if (ssunlikely(s->pool_free_count == 0))
-			s-pool_free = NULL;
+			s->pool_free = NULL;
 	} else
 	if (ssunlikely(s->pool_next == s->pool_end)) {
 		slab = NULL;
