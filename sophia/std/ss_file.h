@@ -89,6 +89,11 @@ ss_filesync(ssfile *f) {
 }
 
 static inline int
+ss_filesync_range(ssfile *f, uint64_t off, uint64_t size) {
+	return ss_vfssync_file_range(f->vfs, f->fd, off, size);
+}
+
+static inline int
 ss_fileadvise(ssfile *f, int hint, uint64_t off, uint64_t len) {
 	return ss_vfsadvise(f->vfs, f->fd, hint, off, len);
 }

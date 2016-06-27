@@ -116,6 +116,14 @@ ss_testvfs_sync(ssvfs *f, int fd)
 }
 
 static int
+ss_testvfs_sync_file_range(ssvfs *f ssunused, int fd, uint64_t start, uint64_t size)
+{
+	if (ss_testvfs_call(f))
+		return -1;
+	return ss_stdvfs.sync_file_range(f, fd, start, size);
+}
+
+static int
 ss_testvfs_advise(ssvfs *f, int fd, int hint, uint64_t off, uint64_t len)
 {
 	if (ss_testvfs_call(f))
@@ -176,7 +184,7 @@ ss_testvfs_ioprio_low(ssvfs *f)
 {
 	if (ss_testvfs_call(f))
 		return -1;
-	return 0;
+	return ss_stdvfs.ioprio_low(f);
 }
 
 static int
@@ -213,27 +221,28 @@ ss_testvfs_munmap(ssvfs *f, ssmmap *m)
 
 ssvfsif ss_testvfs =
 {
-	.init          = ss_testvfs_init,
-	.free          = ss_testvfs_free,
-	.size          = ss_testvfs_size,
-	.exists        = ss_testvfs_exists,
-	.unlink        = ss_testvfs_unlink,
-	.rename        = ss_testvfs_rename,
-	.mkdir         = ss_testvfs_mkdir,
-	.rmdir         = ss_testvfs_rmdir,
-	.open          = ss_testvfs_open,
-	.close         = ss_testvfs_close,
-	.sync          = ss_testvfs_sync,
-	.advise        = ss_testvfs_advise,
-	.truncate      = ss_testvfs_truncate,
-	.pread         = ss_testvfs_pread,
-	.pwrite        = ss_testvfs_pwrite,
-	.write         = ss_testvfs_write,
-	.writev        = ss_testvfs_writev,
-	.seek          = ss_testvfs_seek,
-	.ioprio_low    = ss_testvfs_ioprio_low,
-	.mmap          = ss_testvfs_mmap,
-	.mmap_allocate = ss_testvfs_mmap_allocate,
-	.mremap        = ss_testvfs_mremap,
-	.munmap        = ss_testvfs_munmap
+	.init            = ss_testvfs_init,
+	.free            = ss_testvfs_free,
+	.size            = ss_testvfs_size,
+	.exists          = ss_testvfs_exists,
+	.unlink          = ss_testvfs_unlink,
+	.rename          = ss_testvfs_rename,
+	.mkdir           = ss_testvfs_mkdir,
+	.rmdir           = ss_testvfs_rmdir,
+	.open            = ss_testvfs_open,
+	.close           = ss_testvfs_close,
+	.sync            = ss_testvfs_sync,
+	.sync_file_range = ss_testvfs_sync_file_range,
+	.advise          = ss_testvfs_advise,
+	.truncate        = ss_testvfs_truncate,
+	.pread           = ss_testvfs_pread,
+	.pwrite          = ss_testvfs_pwrite,
+	.write           = ss_testvfs_write,
+	.writev          = ss_testvfs_writev,
+	.seek            = ss_testvfs_seek,
+	.ioprio_low      = ss_testvfs_ioprio_low,
+	.mmap            = ss_testvfs_mmap,
+	.mmap_allocate   = ss_testvfs_mmap_allocate,
+	.mremap          = ss_testvfs_mremap,
+	.munmap          = ss_testvfs_munmap
 };

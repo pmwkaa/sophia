@@ -104,7 +104,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		if (ssunlikely(rc == -1))
 			goto e0;
 		if (index->scheme.sync) {
-			rc = ss_filesync(&parent->file);
+			rc = ss_filesync_range(&parent->file, seal, parent->file.size);
 			if (ssunlikely(rc == -1)) {
 				sr_malfunction(r->e, "file '%s' sync error: %s",
 				               ss_pathof(&parent->file.path),
@@ -123,7 +123,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		if (ssunlikely(rc == -1))
 			goto e0;
 		if (index->scheme.sync == 2) {
-			rc = ss_filesync(&parent->file);
+			rc = ss_filesync_range(&parent->file, seal, sizeof(sdseal));
 			if (ssunlikely(rc == -1)) {
 				sr_malfunction(r->e, "file '%s' sync error: %s",
 				               ss_pathof(&parent->file.path),

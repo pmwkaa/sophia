@@ -86,6 +86,21 @@ ss_stdvfs_sync(ssvfs *f ssunused, int fd)
 }
 
 static int
+ss_stdvfs_sync_file_range(ssvfs *f ssunused, int fd, uint64_t off, uint64_t size)
+{
+	int rc;
+#ifdef OS_LINUX
+	rc = sync_file_range(fd, SYNC_FILE_RANGE_WRITE|SYNC_FILE_RANGE_WAIT_AFTER,
+	                     start, size);
+#else
+	rc = ss_stdvfs_sync(f, fd);
+	(void)off;
+	(void)size;
+#endif
+	return rc;
+}
+
+static int
 ss_stdvfs_advise(ssvfs *f ssunused, int fd, int hint, uint64_t off, uint64_t len)
 {
 	(void)hint;
@@ -283,27 +298,28 @@ ss_stdvfs_munmap(ssvfs *f ssunused, ssmmap *m)
 
 ssvfsif ss_stdvfs =
 {
-	.init          = ss_stdvfs_init,
-	.free          = ss_stdvfs_free,
-	.size          = ss_stdvfs_size,
-	.exists        = ss_stdvfs_exists,
-	.unlink        = ss_stdvfs_unlink,
-	.rename        = ss_stdvfs_rename,
-	.mkdir         = ss_stdvfs_mkdir,
-	.rmdir         = ss_stdvfs_rmdir,
-	.open          = ss_stdvfs_open,
-	.close         = ss_stdvfs_close,
-	.sync          = ss_stdvfs_sync,
-	.advise        = ss_stdvfs_advise,
-	.truncate      = ss_stdvfs_truncate,
-	.pread         = ss_stdvfs_pread,
-	.pwrite        = ss_stdvfs_pwrite,
-	.write         = ss_stdvfs_write,
-	.writev        = ss_stdvfs_writev,
-	.seek          = ss_stdvfs_seek,
-	.ioprio_low    = ss_stdvfs_ioprio_low,
-	.mmap          = ss_stdvfs_mmap,
-	.mmap_allocate = ss_stdvfs_mmap_allocate,
-	.mremap        = ss_stdvfs_mremap,
-	.munmap        = ss_stdvfs_munmap
+	.init            = ss_stdvfs_init,
+	.free            = ss_stdvfs_free,
+	.size            = ss_stdvfs_size,
+	.exists          = ss_stdvfs_exists,
+	.unlink          = ss_stdvfs_unlink,
+	.rename          = ss_stdvfs_rename,
+	.mkdir           = ss_stdvfs_mkdir,
+	.rmdir           = ss_stdvfs_rmdir,
+	.open            = ss_stdvfs_open,
+	.close           = ss_stdvfs_close,
+	.sync            = ss_stdvfs_sync,
+	.sync_file_range = ss_stdvfs_sync_file_range,
+	.advise          = ss_stdvfs_advise,
+	.truncate        = ss_stdvfs_truncate,
+	.pread           = ss_stdvfs_pread,
+	.pwrite          = ss_stdvfs_pwrite,
+	.write           = ss_stdvfs_write,
+	.writev          = ss_stdvfs_writev,
+	.seek            = ss_stdvfs_seek,
+	.ioprio_low      = ss_stdvfs_ioprio_low,
+	.mmap            = ss_stdvfs_mmap,
+	.mmap_allocate   = ss_stdvfs_mmap_allocate,
+	.mremap          = ss_stdvfs_mremap,
+	.munmap          = ss_stdvfs_munmap
 };
