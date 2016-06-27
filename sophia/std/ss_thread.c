@@ -9,28 +9,6 @@
 
 #include <libss.h>
 
-static inline void
-ss_threadinit(ssthread *t)
-{
-	ss_listinit(&t->link);
-	t->f = NULL;
-	memset(&t->id, 0, sizeof(t->id));
-}
-
-static inline int
-ss_threadnew(ssthread *t, ssthreadf f, void *arg)
-{
-	t->arg = arg;
-	t->f = f;
-	return pthread_create(&t->id, NULL, f, t);
-}
-
-static inline int
-ss_threadjoin(ssthread *t)
-{
-	return pthread_join(t->id, NULL);
-}
-
 int ss_threadpool_init(ssthreadpool *p)
 {
 	ss_listinit(&p->list);
@@ -45,8 +23,8 @@ int ss_threadpool_shutdown(ssthreadpool *p, ssa *a)
 	sslist *i, *n;
 	ss_listforeach_safe(&p->list, i, n) {
 		ssthread *t = sscast(i, ssthread, link);
-		rc = ss_threadjoin(t);
-		if (ssunlikely(rc == -1))
+		rc = pthread_join(t->id, NULL);
+		if (ssunlikely(rc != 0))
 			rcret = -1;
 		ss_free(a, t);
 	}
@@ -60,10 +38,14 @@ int ss_threadpool_new(ssthreadpool *p, ssa *a, int n, ssthreadf f, void *arg)
 		ssthread *t = ss_malloc(a, sizeof(*t));
 		if (ssunlikely(t == NULL))
 			goto error;
+		ss_listinit(&t->link);
 		ss_listappend(&p->list, &t->link);
 		p->n++;
-		int rc = ss_threadnew(t, f, arg);
-		if (ssunlikely(rc == -1))
+		t->f = f;
+		t->arg = arg;
+		int rc;
+		rc = pthread_create(&t->id, NULL, f, t);
+		if (ssunlikely(rc != 0))
 			goto error;
 	}
 	return 0;

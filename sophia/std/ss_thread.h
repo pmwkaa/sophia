@@ -15,10 +15,10 @@ typedef struct ssthreadpool ssthreadpool;
 typedef void *(*ssthreadf)(void*);
 
 struct ssthread {
-	pthread_t id;
-	ssthreadf f;
-	void *arg;
-	sslist link;
+	pthread_t  id;
+	ssthreadf  f;
+	void      *arg;
+	sslist     link;
 };
 
 struct ssthreadpool {

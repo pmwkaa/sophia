@@ -25,6 +25,7 @@ se_worker(void *arg)
 {
 	ssthread *self = arg;
 	se *e = self->arg;
+	ss_vfsioprio_low(&e->vfs);
 	scworker *w = sc_workerpool_pop(&e->scheduler.wp, &e->r);
 	if (ssunlikely(w == NULL))
 		return NULL;

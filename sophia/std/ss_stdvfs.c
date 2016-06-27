@@ -196,6 +196,25 @@ ss_stdvfs_seek(ssvfs *f ssunused, int fd, uint64_t off)
 }
 
 static int
+ss_stdvfs_ioprio_low(ssvfs *f ssunused)
+{
+	int rc = 0;
+#ifdef OS_LINUX
+	/* set lowest io priority (idle) to a calling thread */
+#define _IOPRIO_WHO_PROCESS 1
+#define _IOPRIO_CLASS_SHIFT 13
+#define _IOPRIO_PRIO_VALUE(class, data) \
+	(((class) << _IOPRIO_CLASS_SHIFT) | data)
+	rc = syscall(SYS_ioprio_set, _IOPRIO_WHO_PROCESS, 0,
+                 _IOPRIO_PRIO_VALUE(3, 0));
+#undef _IOPRIO_WHO_PROCESS
+#undef _IOPRIO_CLASS_SHIFT
+#undef _IOPRIO_PRIO_VALUE
+#endif
+	return rc;
+}
+
+static int
 ss_stdvfs_mmap(ssvfs *f ssunused, ssmmap *m, int fd, uint64_t size, int ro)
 {
 	int flags = PROT_READ;
@@ -282,6 +301,7 @@ ssvfsif ss_stdvfs =
 	.write         = ss_stdvfs_write,
 	.writev        = ss_stdvfs_writev,
 	.seek          = ss_stdvfs_seek,
+	.ioprio_low    = ss_stdvfs_ioprio_low,
 	.mmap          = ss_stdvfs_mmap,
 	.mmap_allocate = ss_stdvfs_mmap_allocate,
 	.mremap        = ss_stdvfs_mremap,

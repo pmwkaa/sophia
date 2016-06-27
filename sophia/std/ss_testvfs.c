@@ -172,6 +172,14 @@ ss_testvfs_seek(ssvfs *f, int fd, uint64_t off)
 }
 
 static int
+ss_testvfs_ioprio_low(ssvfs *f)
+{
+	if (ss_testvfs_call(f))
+		return -1;
+	return 0;
+}
+
+static int
 ss_testvfs_mmap(ssvfs *f, ssmmap *m, int fd, uint64_t size, int ro)
 {
 	if (ss_testvfs_call(f))
@@ -223,6 +231,7 @@ ssvfsif ss_testvfs =
 	.write         = ss_testvfs_write,
 	.writev        = ss_testvfs_writev,
 	.seek          = ss_testvfs_seek,
+	.ioprio_low    = ss_testvfs_ioprio_low,
 	.mmap          = ss_testvfs_mmap,
 	.mmap_allocate = ss_testvfs_mmap_allocate,
 	.mremap        = ss_testvfs_mremap,
