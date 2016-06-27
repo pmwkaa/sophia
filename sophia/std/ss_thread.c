@@ -53,3 +53,8 @@ error:
 	ss_threadpool_shutdown(p, a);
 	return -1;
 }
+
+int ss_thread_setname(ssthread *t, char *name)
+{
+	return pthread_setname_np(t->id, name);
+}

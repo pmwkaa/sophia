@@ -26,6 +26,7 @@ struct ssthreadpool {
 	int n;
 };
 
+int ss_thread_setname(ssthread*, char*);
 int ss_threadpool_init(ssthreadpool*);
 int ss_threadpool_shutdown(ssthreadpool*, ssa*);
 int ss_threadpool_new(ssthreadpool*, ssa*, int, ssthreadf, void*);
