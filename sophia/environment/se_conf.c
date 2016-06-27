@@ -123,6 +123,7 @@ se_confsophia(se *e, seconfrt *rt, srconf **pc)
 	sr_C(&p, pc, se_confv, "version_storage", SS_STRING, rt->version_storage, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "build", SS_STRING, rt->build, SR_RO, NULL);
 	sr_C(&p, pc, se_confsophia_status, "status", SS_STRING, NULL, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "errors", SS_U64, &rt->errors, SR_RO, NULL);
 	sr_C(&p, pc, se_confsophia_error, "error", SS_STRING, NULL, SR_RO, NULL);
 	sr_c(&p, pc, se_confv_offline, "path", SS_STRINGPTR, &e->rep_conf->path);
 	sr_c(&p, pc, se_confsophia_on_log, "on_log", SS_STRING, NULL);
@@ -801,6 +802,12 @@ se_confrt(se *e, seconfrt *rt)
 	         SR_VERSION_STORAGE_B - '0');
 	snprintf(rt->build, sizeof(rt->build), "%s",
 	         SR_VERSION_COMMIT);
+
+	/* error */
+	ss_spinlock(&e->error.lock);
+	rt->errors = e->error.errors;
+	ss_spinunlock(&e->error.lock);
+
 	/* log */
 	rt->log_files = sl_poolfiles(&e->lp);
 

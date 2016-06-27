@@ -17,6 +17,8 @@ struct seconfrt {
 	char     version[16];
 	char     version_storage[16];
 	char     build[32];
+	/* error */
+	uint64_t errors;
 	/* scheduler */
 	uint32_t backup_active;
 	uint32_t backup_last;
