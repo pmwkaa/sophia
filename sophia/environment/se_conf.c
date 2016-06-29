@@ -593,6 +593,8 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc, int serialize)
 		sr_C(&p, pc, se_confv, "get_latency", SS_STRING, o->statrt.get_latency.sz, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "get_read_disk", SS_STRING, o->statrt.get_read_disk.sz, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "get_read_cache", SS_STRING, o->statrt.get_read_cache.sz, SR_RO, NULL);
+		sr_C(&p, pc, se_confv, "pread", SS_U64, &o->statrt.pread, SR_RO, NULL);
+		sr_C(&p, pc, se_confv, "pread_latency", SS_STRING, o->statrt.pread_latency.sz, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "cursor", SS_U64, &o->statrt.cursor, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "cursor_latency", SS_STRING, o->statrt.cursor_latency.sz, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "cursor_read_disk", SS_STRING, o->statrt.cursor_read_disk.sz, SR_RO, NULL);

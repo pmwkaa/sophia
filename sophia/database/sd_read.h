@@ -52,6 +52,7 @@ sd_read_page(sdread *i, sdindexpage *ref)
 
 	i->reads++;
 
+	uint64_t start;
 	/* in-memory mode only offsets */
 	uint64_t branch_start_offset =
 		arg->index->h->offset - arg->index->h->total - sizeof(sdseal);
@@ -72,6 +73,7 @@ sd_read_page(sdread *i, sdindexpage *ref)
 			rc = ss_bufensure(arg->buf_read, r->a, ref->size);
 			if (ssunlikely(rc == -1))
 				return sr_oom(r->e);
+			start = ss_utime();
 			rc = ss_filepread(arg->file, ref->offset, arg->buf_read->s, ref->size);
 			if (ssunlikely(rc == -1)) {
 				sr_error(r->e, "db file '%s' read error: %s",
@@ -79,6 +81,7 @@ sd_read_page(sdread *i, sdindexpage *ref)
 				         strerror(errno));
 				return -1;
 			}
+			sr_statpread(r->stat, start);
 			ss_bufadvance(arg->buf_read, ref->size);
 			page_pointer = arg->buf_read->s;
 		}
@@ -125,6 +128,7 @@ sd_read_page(sdread *i, sdindexpage *ref)
 	}
 
 	/* default */
+	start = ss_utime();
 	rc = ss_filepread(arg->file, ref->offset, arg->buf->s, ref->sizeorigin);
 	if (ssunlikely(rc == -1)) {
 		sr_error(r->e, "db file '%s' read error: %s",
@@ -132,6 +136,7 @@ sd_read_page(sdread *i, sdindexpage *ref)
 		         strerror(errno));
 		return -1;
 	}
+	sr_statpread(r->stat, start);
 	ss_bufadvance(arg->buf, ref->sizeorigin);
 	sd_pageinit(&i->page, (sdpageheader*)(arg->buf->s));
 	return 0;

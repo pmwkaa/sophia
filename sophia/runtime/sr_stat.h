@@ -43,6 +43,9 @@ struct srstat {
 	ssavg    get_read_disk;
 	ssavg    get_read_cache;
 	ssavg    get_latency;
+	/* pread */
+	uint64_t pread;
+	ssavg    pread_latency;
 	/* cursor */
 	uint64_t cursor;
 	ssavg    cursor_latency;
@@ -104,6 +107,7 @@ sr_statprepare(srstat *s)
 	ss_avgprepare(&s->get_read_disk);
 	ss_avgprepare(&s->get_read_cache);
 	ss_avgprepare(&s->get_latency);
+	ss_avgprepare(&s->pread_latency);
 	ss_avgprepare(&s->cursor_latency);
 	ss_avgprepare(&s->cursor_read_disk);
 	ss_avgprepare(&s->cursor_read_cache);
@@ -156,6 +160,16 @@ sr_statget(srstat *s, uint64_t diff, int read_disk, int read_cache)
 	ss_avgupdate(&s->get_read_disk, read_disk);
 	ss_avgupdate(&s->get_read_cache, read_cache);
 	ss_avgupdate(&s->get_latency, diff);
+	ss_spinunlock(&s->lock);
+}
+
+static inline void
+sr_statpread(srstat *s, uint64_t start)
+{
+	uint64_t diff = ss_utime() - start;
+	ss_spinlock(&s->lock);
+	s->pread++;
+	ss_avgupdate(&s->pread_latency, diff);
 	ss_spinunlock(&s->lock);
 }
 
