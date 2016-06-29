@@ -164,8 +164,10 @@ sr_statget(srstat *s, uint64_t diff, int read_disk, int read_cache)
 }
 
 static inline void
-sr_statpread(srstat *s, uint64_t start)
+sr_statpread(srstat *s, uint64_t start, int from_compaction)
 {
+	if (from_compaction)
+		return;
 	uint64_t diff = ss_utime() - start;
 	ss_spinlock(&s->lock);
 	s->pread++;

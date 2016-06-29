@@ -311,6 +311,7 @@ int si_compact(si *index, sdc *c, siplan *plan,
 			compression_if = index->scheme.compression_cold_if;
 		}
 		sdreadarg arg = {
+			.from_compaction = 1,
 			.index           = &b->index,
 			.buf             = &cbuf->a,
 			.buf_read        = &c->d,

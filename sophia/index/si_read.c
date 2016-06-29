@@ -171,6 +171,7 @@ si_getbranch(siread *q, sinode *n, sicachebranch *c)
 		compression_if = scheme->compression_cold_if;
 	}
 	sdreadarg arg = {
+		.from_compaction = 0,
 		.index           = &b->index,
 		.buf             = &c->buf_a,
 		.buf_read        = &q->index->readbuf,
@@ -290,6 +291,7 @@ si_rangebranch(siread *q, sinode *n, sibranch *b, svmerge *m)
 		compression_if = scheme->compression_cold_if;
 	}
 	sdreadarg arg = {
+		.from_compaction = 0,
 		.index           = &b->index,
 		.buf             = &c->buf_a,
 		.buf_read        = &q->index->readbuf,

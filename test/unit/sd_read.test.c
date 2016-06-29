@@ -79,6 +79,7 @@ sd_read_gt0(void)
 	ssiter page_iter;
 
 	sdreadarg arg = {
+		.from_compaction = 0,
 		.index           = &index,
 		.buf             = &buf,
 		.buf_read        = NULL,
@@ -206,6 +207,7 @@ sd_read_gt1(void)
 	ssiter page_iter;
 
 	sdreadarg arg = {
+		.from_compaction = 0,
 		.index           = &index,
 		.buf             = &buf,
 		.buf_read        = NULL,
@@ -354,6 +356,7 @@ sd_read_gt0_compression_zstd(void)
 	ssiter page_iter;
 
 	sdreadarg arg = {
+		.from_compaction = 0,
 		.index           = &index,
 		.buf             = &buf,
 		.buf_read        = NULL,
@@ -482,6 +485,7 @@ sd_read_gt0_compression_lz4(void)
 	ssiter page_iter;
 
 	sdreadarg arg = {
+		.from_compaction = 0,
 		.index           = &index,
 		.buf             = &buf,
 		.buf_read        = NULL,
@@ -641,6 +645,7 @@ sd_read_gt1_compression_zstd(void)
 	ssiter page_iter;
 
 	sdreadarg arg = {
+		.from_compaction = 0,
 		.index           = &index,
 		.buf             = &buf,
 		.buf_read        = NULL,
@@ -823,6 +828,7 @@ sd_read_gt1_compression_lz4(void)
 	ssiter page_iter;
 
 	sdreadarg arg = {
+		.from_compaction = 0,
 		.index           = &index,
 		.buf             = &buf,
 		.buf_read        = NULL,

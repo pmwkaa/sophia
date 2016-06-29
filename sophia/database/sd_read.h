@@ -22,6 +22,7 @@ struct sdreadarg {
 	ssblob     *memory;
 	ssfile     *file;
 	ssorder     o;
+	int         from_compaction;
 	int         has;
 	uint64_t    has_vlsn;
 	int         use_memory;
@@ -81,7 +82,7 @@ sd_read_page(sdread *i, sdindexpage *ref)
 				         strerror(errno));
 				return -1;
 			}
-			sr_statpread(r->stat, start);
+			sr_statpread(r->stat, start, arg->from_compaction);
 			ss_bufadvance(arg->buf_read, ref->size);
 			page_pointer = arg->buf_read->s;
 		}
@@ -136,7 +137,7 @@ sd_read_page(sdread *i, sdindexpage *ref)
 		         strerror(errno));
 		return -1;
 	}
-	sr_statpread(r->stat, start);
+	sr_statpread(r->stat, start, arg->from_compaction);
 	ss_bufadvance(arg->buf, ref->sizeorigin);
 	sd_pageinit(&i->page, (sdpageheader*)(arg->buf->s));
 	return 0;
