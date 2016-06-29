@@ -73,7 +73,7 @@ si_backupend(si *index, sdc *c, siplan *plan)
 		ss_fileclose(&file);
 		return -1;
 	}
-	/* sync? */
+	ss_fileadvise(&file, 0, 0, file.size);
 	rc = ss_fileclose(&file);
 	if (ssunlikely(rc == -1)) {
 		sr_error(r->e, "backup db file '%s' close error: %s",
@@ -124,7 +124,7 @@ int si_backup(si *index, sdc *c, siplan *plan)
 		ss_fileclose(&file);
 		return -1;
 	}
-	/* sync? */
+	ss_fileadvise(&file, 0, 0, file.size);
 	rc = ss_fileclose(&file);
 	if (ssunlikely(rc == -1)) {
 		sr_error(r->e, "backup db file '%s' close error: %s",
