@@ -33,7 +33,7 @@
 #include <fcntl.h>
 #include <dirent.h>
 #include <errno.h>
-#ifdef OS_LINUX
+#ifdef __linux__
 #include <sys/syscall.h>
 #endif
 /* crc */

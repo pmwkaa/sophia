@@ -89,9 +89,10 @@ static int
 ss_stdvfs_sync_file_range(ssvfs *f ssunused, int fd, uint64_t off, uint64_t size)
 {
 	int rc;
-#ifdef OS_LINUX
-	rc = sync_file_range(fd, SYNC_FILE_RANGE_WRITE|SYNC_FILE_RANGE_WAIT_AFTER,
-	                     start, size);
+#ifdef __linux__
+	rc = sync_file_range(fd, off, size,
+	                     SYNC_FILE_RANGE_WRITE|
+	                     SYNC_FILE_RANGE_WAIT_AFTER);
 #else
 	rc = ss_stdvfs_sync(f, fd);
 	(void)off;
@@ -214,14 +215,14 @@ static int
 ss_stdvfs_ioprio_low(ssvfs *f ssunused)
 {
 	int rc = 0;
-#ifdef OS_LINUX
+#ifdef __linux__
 	/* set lowest io priority (idle) to a calling thread */
 #define _IOPRIO_WHO_PROCESS 1
 #define _IOPRIO_CLASS_SHIFT 13
 #define _IOPRIO_PRIO_VALUE(class, data) \
 	(((class) << _IOPRIO_CLASS_SHIFT) | data)
 	rc = syscall(SYS_ioprio_set, _IOPRIO_WHO_PROCESS, 0,
-                 _IOPRIO_PRIO_VALUE(3, 0));
+	             _IOPRIO_PRIO_VALUE(3, 0));
 #undef _IOPRIO_WHO_PROCESS
 #undef _IOPRIO_CLASS_SHIFT
 #undef _IOPRIO_PRIO_VALUE
