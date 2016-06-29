@@ -81,6 +81,7 @@ int si_snapshot(si *index, siplan *plan)
 		               path, strerror(errno));
 		goto error;
 	}
+	ss_fileadvise(&file, 0, 0, file.size);
 
 	SS_INJECTION(r->i, SS_INJECTION_SI_SNAPSHOT_0,
 	             ss_fileclose(&file);

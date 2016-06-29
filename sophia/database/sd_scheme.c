@@ -70,6 +70,7 @@ int sd_schemewrite(sdscheme *c, sr *r, char *path, int sync)
 		if (ssunlikely(rc == -1))
 			goto error;
 	}
+	ss_fileadvise(&meta, 0, 0, meta.size);
 	rc = ss_fileclose(&meta);
 	if (ssunlikely(rc == -1))
 		goto error;
