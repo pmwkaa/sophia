@@ -163,7 +163,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 	if (index->scheme.mmap) {
 		ss_mmapinit(&parent->map_swap);
 		rc = ss_vfsmmap(r->vfs, &parent->map_swap, parent->file.fd,
-		              parent->file.size, 1);
+		                parent->file.size, 1);
 		if (ssunlikely(rc == -1)) {
 			sr_malfunction(r->e, "db file '%s' mmap error: %s",
 			               ss_pathof(&parent->file.path),
