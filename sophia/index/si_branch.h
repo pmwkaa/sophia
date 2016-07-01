@@ -65,9 +65,9 @@ static inline int
 si_branchload(sibranch *b, sr *r, ssfile *file)
 {
 	sdindexheader *h = b->index.h;
-	uint64_t offset = h->offset - h->total - sizeof(sdseal);
-	uint64_t size   = h->total + sizeof(sdseal) + sizeof(sdindexheader) +
-	                  h->size + h->extension;
+	uint64_t offset = h->offset - h->total;
+	uint64_t size   = h->total + sizeof(sdindexheader) +
+	                  h->size + h->extension + sizeof(sdseal);
 	assert(b->copy.s == NULL);
 	int rc;
 	rc = ss_blobensure(&b->copy, size);

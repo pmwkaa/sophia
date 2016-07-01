@@ -119,16 +119,6 @@ ss_filepread(ssfile *f, uint64_t off, void *buf, int size)
 }
 
 static inline int
-ss_filepwrite(ssfile *f, uint64_t off, void *buf, int size)
-{
-	int64_t rc = ss_vfspwrite(f->vfs, f->fd, off, buf, size);
-	if (ssunlikely(rc == -1))
-		return -1;
-	assert(rc == size);
-	return rc;
-}
-
-static inline int
 ss_filewrite(ssfile *f, void *buf, int size)
 {
 	int64_t rc = ss_vfswrite(f->vfs, f->fd, buf, size);

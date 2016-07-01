@@ -56,7 +56,7 @@ sd_read_page(sdread *i, sdindexpage *ref)
 	uint64_t start;
 	/* in-memory mode only offsets */
 	uint64_t branch_start_offset =
-		arg->index->h->offset - arg->index->h->total - sizeof(sdseal);
+		arg->index->h->offset - arg->index->h->total;
 	uint64_t branch_ref_offset =
 		ref->offset - branch_start_offset;
 

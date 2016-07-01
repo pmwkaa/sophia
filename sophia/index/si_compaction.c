@@ -73,12 +73,6 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 	{
 		assert(branch == NULL);
 
-		/* write open seal */
-		uint64_t seal = parent->file.size;
-		rc = sd_writeseal(r, &parent->file, blob);
-		if (ssunlikely(rc == -1))
-			goto e0;
-
 		/* write pages */
 		uint64_t offset = parent->file.size;
 		while ((rc = sd_mergepage(&merge, offset)) == 1)
@@ -104,7 +98,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		if (ssunlikely(rc == -1))
 			goto e0;
 		if (index->scheme.sync) {
-			rc = ss_filesync_range(&parent->file, seal, parent->file.size);
+			rc = ss_filesync_range(&parent->file, offset, parent->file.size);
 			if (ssunlikely(rc == -1)) {
 				sr_malfunction(r->e, "file '%s' sync error: %s",
 				               ss_pathof(&parent->file.path),
@@ -119,11 +113,12 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		             return -1);
 
 		/* seal the branch */
-		rc = sd_seal(r, &parent->file, blob, &merge.index, seal);
+		offset = parent->file.size;
+		rc = sd_writeseal(r, &parent->file, blob, &merge.index);
 		if (ssunlikely(rc == -1))
 			goto e0;
 		if (index->scheme.sync == 2) {
-			rc = ss_filesync_range(&parent->file, seal, sizeof(sdseal));
+			rc = ss_filesync_range(&parent->file, offset, sizeof(sdseal));
 			if (ssunlikely(rc == -1)) {
 				sr_malfunction(r->e, "file '%s' sync error: %s",
 				               ss_pathof(&parent->file.path),

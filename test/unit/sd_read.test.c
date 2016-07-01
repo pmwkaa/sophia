@@ -51,7 +51,7 @@ sd_read_gt0(void)
 	t( sd_indexbegin(&index, &st_r.r) == 0 );
 
 	int rc;
-	rc = sd_indexadd(&index, &st_r.r, &b, sizeof(sdseal));
+	rc = sd_indexadd(&index, &st_r.r, &b, 0);
 	t( rc == 0 );
 
 	sdid id;
@@ -60,11 +60,10 @@ sd_read_gt0(void)
 	ssfile f;
 	ss_fileinit(&f, &st_r.vfs);
 	t( ss_filenew(&f, "./0000.db") == 0 );
-	t( sd_writeseal(&st_r.r, &f, NULL) == 0 );
 	t( sd_writepage(&st_r.r, &f, NULL, &b) == 0 );
 	t( sd_indexcommit(&index, &st_r.r, &id, NULL, f.size) == 0 );
 	t( sd_writeindex(&st_r.r, &f, NULL, &index) == 0 );
-	t( sd_seal(&st_r.r, &f, NULL, &index, 0) == 0 );
+	t( sd_writeseal(&st_r.r, &f, NULL, &index) == 0 );
 
 	ssmmap map;
 	t( ss_vfsmmap(&st_r.vfs, &map, f.fd, f.size, 1) == 0 );
@@ -132,7 +131,6 @@ sd_read_gt1(void)
 	ssfile f;
 	ss_fileinit(&f, &st_r.vfs);
 	t( ss_filenew(&f, "./0000.db") == 0 );
-	t( sd_writeseal(&st_r.r, &f, NULL) == 0 );
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -192,7 +190,7 @@ sd_read_gt1(void)
 
 	t( sd_indexcommit(&index, &st_r.r, &id, NULL, f.size) == 0 );
 	t( sd_writeindex(&st_r.r, &f, NULL, &index) == 0 );
-	t( sd_seal(&st_r.r, &f, NULL, &index, 0) == 0 );
+	t( sd_writeseal(&st_r.r, &f, NULL, &index) == 0 );
 
 	ssmmap map;
 	t( ss_vfsmmap(&st_r.vfs, &map, f.fd, f.size, 1) == 0 );
@@ -326,7 +324,7 @@ sd_read_gt0_compression_zstd(void)
 	t( sd_indexbegin(&index, &r) == 0 );
 
 	int rc;
-	rc = sd_indexadd(&index, &r, &b, sizeof(sdseal));
+	rc = sd_indexadd(&index, &r, &b, 0);
 	t( rc == 0 );
 
 	sdid id;
@@ -335,11 +333,10 @@ sd_read_gt0_compression_zstd(void)
 	ssfile f;
 	ss_fileinit(&f, &vfs);
 	t( ss_filenew(&f, "./0000.db") == 0 );
-	t( sd_writeseal(&r, &f, NULL) == 0 );
 	t( sd_writepage(&r, &f, NULL, &b) == 0 );
 	t( sd_indexcommit(&index, &r, &id, NULL, f.size) == 0 );
 	t( sd_writeindex(&r, &f, NULL, &index) == 0 );
-	t( sd_seal(&r, &f, NULL, &index, 0) == 0 );
+	t( sd_writeseal(&r, &f, NULL, &index) == 0 );
 
 	t( sd_buildcommit(&b) == 0 );
 
@@ -453,7 +450,7 @@ sd_read_gt0_compression_lz4(void)
 	t( sd_indexbegin(&index, &r) == 0 );
 
 	int rc;
-	rc = sd_indexadd(&index, &r, &b, sizeof(sdseal));
+	rc = sd_indexadd(&index, &r, &b, 0);
 	t( rc == 0 );
 
 	sdid id;
@@ -464,11 +461,10 @@ sd_read_gt0_compression_lz4(void)
 	ssfile f;
 	ss_fileinit(&f, &vfs);
 	t( ss_filenew(&f, "./0000.db") == 0 );
-	t( sd_writeseal(&r, &f, NULL) == 0 );
 	t( sd_writepage(&r, &f, NULL, &b) == 0 );
 	t( sd_indexcommit(&index, &r, &id, NULL, f.size) == 0 );
 	t( sd_writeindex(&r, &f, NULL, &index) == 0 );
-	t( sd_seal(&r, &f, NULL, &index, 0) == 0 );
+	t( sd_writeseal(&r, &f, NULL, &index) == 0 );
 
 	ssmmap map;
 	t( ss_vfsmmap(&st_r.vfs, &map, f.fd, f.size, 1) == 0 );
@@ -568,7 +564,6 @@ sd_read_gt1_compression_zstd(void)
 	ssfile f;
 	ss_fileinit(&f, &vfs);
 	t( ss_filenew(&f, "./0000.db") == 0 );
-	t( sd_writeseal(&r, &f, NULL) == 0 );
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -630,7 +625,7 @@ sd_read_gt1_compression_zstd(void)
 	t( sd_indexcommit(&index, &r, &id, NULL, f.size) == 0 );
 
 	t( sd_writeindex(&r, &f, NULL, &index) == 0 );
-	t( sd_seal(&r, &f, NULL, &index, 0) == 0 );
+	t( sd_writeseal(&r, &f, NULL, &index) == 0 );
 
 	ssmmap map;
 	t( ss_vfsmmap(&st_r.vfs, &map, f.fd, f.size, 1) == 0 );
@@ -751,7 +746,6 @@ sd_read_gt1_compression_lz4(void)
 	ssfile f;
 	ss_fileinit(&f, &vfs);
 	t( ss_filenew(&f, "./0000.db") == 0 );
-	t( sd_writeseal(&r, &f, NULL) == 0 );
 
 	sdbuild b;
 	sd_buildinit(&b);
@@ -813,7 +807,7 @@ sd_read_gt1_compression_lz4(void)
 	t( sd_indexcommit(&index, &r, &id, NULL, f.size) == 0 );
 
 	t( sd_writeindex(&r, &f, NULL, &index) == 0 );
-	t( sd_seal(&r, &f, NULL, &index, 0) == 0 );
+	t( sd_writeseal(&r, &f, NULL, &index) == 0 );
 
 	ssmmap map;
 	t( ss_vfsmmap(&st_r.vfs, &map, f.fd, f.size, 1) == 0 );

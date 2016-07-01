@@ -141,17 +141,20 @@ si_noderecover(sinode *n, sr *r, sdsnapshotnode *sn, int in_memory)
 			return si_noderecover_snapshot(n, r, sn);
 	}
 
-	/* recover branches */
+	/* recover branches (backwards) */
 	sibranch *b = NULL;
-	ssiter i;
-	ss_iterinit(sd_recover, &i);
-	ss_iteropen(sd_recover, &i, r, &n->file);
-	int first = 1;
+	sibranch *branch = NULL;
+	int branch_count = 0;
 	int rc;
+	ssiter i;
+	ss_iterinit(sd_iter, &i);
+	rc = ss_iteropen(sd_iter, &i, r, &n->file);
+	if (ssunlikely(rc == -1))
+		return -1;
 	while (ss_iteratorhas(&i))
 	{
 		sdindexheader *h = ss_iteratorof(&i);
-		if (first) {
+		if (sd_iter_isroot(&i)) {
 			b = &n->self;
 		} else {
 			b = si_branchnew(r);
@@ -171,22 +174,30 @@ si_noderecover(sinode *n, sr *r, sdsnapshotnode *sn, int in_memory)
 				goto e0;
 		}
 
-		b->next   = n->branch;
-		n->branch = b;
-		n->branch_count++;
+		b->next = branch;
+		branch = b;
+		branch_count++;
 
-		first = 0;
 		ss_iteratornext(&i);
 	}
-	rc = sd_recover_complete(&i);
+	rc = sd_iter_iserror(&i);
 	if (ssunlikely(rc == -1))
 		goto e1;
 	ss_iteratorclose(&i);
 
+	/* set original branch order */
+	b = branch;
+	while (b) {
+		sibranch *next = b->next;
+		b->next = n->branch;
+		n->branch = b;
+		b = next;
+	}
+	n->branch_count = branch_count;
 	n->in_memory = in_memory;
 	return 0;
 e0:
-	if (b && !first)
+	if (b && b != &n->self)
 		si_branchfree(b, r);
 e1:
 	ss_iteratorclose(&i);
@@ -198,8 +209,7 @@ int si_nodeopen(sinode *n, sr *r, sischeme *scheme, sspath *path,
 {
 	int rc = ss_fileopen(&n->file, path->path);
 	if (ssunlikely(rc == -1)) {
-		sr_malfunction(r->e, "db file '%s' open error: %s "
-		               "(please ensure storage version compatibility)",
+		sr_malfunction(r->e, "db file '%s' open error: %s",
 		               ss_pathof(&n->file.path),
 		               strerror(errno));
 		return -1;

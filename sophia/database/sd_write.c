@@ -40,28 +40,6 @@ int sd_commitpage(sdbuild *b, sr *r, ssbuf *buf)
 	return 0;
 }
 
-int sd_writeseal(sr *r, ssfile *file, ssblob *blob)
-{
-	sdseal seal;
-	sd_sealset_open(&seal, r);
-	SS_INJECTION(r->i, SS_INJECTION_SD_BUILD_1,
-	             seal.crc++); /* corrupt seal */
-	int rc;
-	rc = ss_filewrite(file, &seal, sizeof(seal));
-	if (ssunlikely(rc == -1)) {
-		sr_malfunction(r->e, "file '%s' write error: %s",
-		               ss_pathof(&file->path),
-		               strerror(errno));
-		return -1;
-	}
-	if (blob) {
-		rc = ss_blobadd(blob, &seal, sizeof(seal));
-		if (ssunlikely(rc == -1))
-			return sr_oom_malfunction(r->e);
-	}
-	return 0;
-}
-
 int sd_writepage(sr *r, ssfile *file, ssblob *blob, sdbuild *b)
 {
 	SS_INJECTION(r->i, SS_INJECTION_SD_BUILD_0,
@@ -118,12 +96,14 @@ int sd_writeindex(sr *r, ssfile *file, ssblob *blob, sdindex *index)
 	return 0;
 }
 
-int sd_seal(sr *r, ssfile *file, ssblob *blob, sdindex *index, uint64_t offset)
+int sd_writeseal(sr *r, ssfile *file, ssblob *blob, sdindex *index)
 {
 	sdseal seal;
-	sd_sealset_close(&seal, r, index->h);
+	sd_sealcreate(&seal, r, index->h);
+	SS_INJECTION(r->i, SS_INJECTION_SD_BUILD_1,
+	             seal.crc++); /* corrupt seal */
 	int rc;
-	rc = ss_filepwrite(file, offset, &seal, sizeof(seal));
+	rc = ss_filewrite(file, &seal, sizeof(seal));
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "file '%s' write error: %s",
 		               ss_pathof(&file->path),
@@ -131,8 +111,9 @@ int sd_seal(sr *r, ssfile *file, ssblob *blob, sdindex *index, uint64_t offset)
 		return -1;
 	}
 	if (blob) {
-		assert(blob->map.size >= sizeof(seal));
-		memcpy(blob->map.p, &seal, sizeof(seal));
+		rc = ss_blobadd(blob, &seal, sizeof(seal));
+		if (ssunlikely(rc == -1))
+			return sr_oom_malfunction(r->e);
 	}
 	return 0;
 }

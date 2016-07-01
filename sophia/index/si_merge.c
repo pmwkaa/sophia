@@ -197,12 +197,6 @@ si_split(si *index, sdc *c, ssbuf *result,
 			n->in_memory = 1;
 		}
 
-		/* write open seal */
-		uint64_t seal = n->file.size;
-		rc = sd_writeseal(r, &n->file, blob);
-		if (ssunlikely(rc == -1))
-			goto error;
-
 		/* write pages */
 		uint64_t offset = n->file.size;
 		while ((rc = sd_mergepage(&merge, offset)) == 1) {
@@ -223,8 +217,8 @@ si_split(si *index, sdc *c, ssbuf *result,
 		if (ssunlikely(rc == -1))
 			goto error;
 
-		/* update seal */
-		rc = sd_seal(r, &n->file, blob, &merge.index, seal);
+		/* write seal */
+		rc = sd_writeseal(r, &n->file, blob, &merge.index);
 		if (ssunlikely(rc == -1))
 			goto error;
 

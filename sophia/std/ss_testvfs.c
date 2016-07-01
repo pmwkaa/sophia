@@ -148,14 +148,6 @@ ss_testvfs_pread(ssvfs *f, int fd, uint64_t off, void *buf, int size)
 }
 
 static int64_t
-ss_testvfs_pwrite(ssvfs *f, int fd, uint64_t off, void *buf, int size)
-{
-	if (ss_testvfs_call(f))
-		return -1;
-	return ss_stdvfs.pwrite(f, fd, off, buf, size);
-}
-
-static int64_t
 ss_testvfs_write(ssvfs *f, int fd, void *buf, int size)
 {
 	if (ss_testvfs_call(f))
@@ -236,7 +228,6 @@ ssvfsif ss_testvfs =
 	.advise          = ss_testvfs_advise,
 	.truncate        = ss_testvfs_truncate,
 	.pread           = ss_testvfs_pread,
-	.pwrite          = ss_testvfs_pwrite,
 	.write           = ss_testvfs_write,
 	.writev          = ss_testvfs_writev,
 	.seek            = ss_testvfs_seek,

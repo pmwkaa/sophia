@@ -90,15 +90,10 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 	if (ssunlikely(rc == -1))
 		goto e1;
 	sd_buildend(&build, r);
-	rc = sd_indexadd(&index, r, &build, sizeof(sdseal));
+	rc = sd_indexadd(&index, r, &build, 0);
 	if (ssunlikely(rc == -1))
 		goto e1;
 
-	/* write seal */
-	uint64_t seal = n->file.size;
-	rc = sd_writeseal(r, &n->file, blob);
-	if (ssunlikely(rc == -1))
-		goto e1;
 	/* write page */
 	rc = sd_writepage(r, &n->file, blob, &build);
 	if (ssunlikely(rc == -1))
@@ -118,8 +113,8 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 	rc = sd_writeindex(r, &n->file, blob, &index);
 	if (ssunlikely(rc == -1))
 		goto e1;
-	/* close seal */
-	rc = sd_seal(r, &n->file, blob, &index, seal);
+	/* write seal */
+	rc = sd_writeseal(r, &n->file, blob, &index);
 	if (ssunlikely(rc == -1))
 		goto e1;
 	if (blob) {

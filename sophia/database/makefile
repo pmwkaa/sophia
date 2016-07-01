@@ -3,7 +3,7 @@ LIBSD_O = sd_pageiter.o \
           sd_index.o \
           sd_indexiter.o \
           sd_merge.o \
-          sd_recover.o \
+          sd_iter.o \
           sd_read.o \
           sd_write.o \
           sd_scheme.o \

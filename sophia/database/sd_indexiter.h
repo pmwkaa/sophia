@@ -12,12 +12,12 @@
 typedef struct sdindexiter sdindexiter;
 
 struct sdindexiter {
-	sdindex *index;
+	sdindex     *index;
 	sdindexpage *v;
-	int pos;
-	ssorder cmp;
-	char *key;
-	sr *r;
+	int          pos;
+	ssorder      cmp;
+	char        *key;
+	sr          *r;
 } sspacked;
 
 static inline int

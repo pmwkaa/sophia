@@ -142,23 +142,6 @@ ss_stdvfs_pread(ssvfs *f ssunused, int fd, uint64_t off, void *buf, int size)
 }
 
 static int64_t
-ss_stdvfs_pwrite(ssvfs *f ssunused, int fd, uint64_t off, void *buf, int size)
-{
-	int n = 0;
-	do {
-		int r;
-		do {
-			r = pwrite(fd, (char*)buf + n, size - n, off + n);
-		} while (r == -1 && errno == EINTR);
-		if (r <= 0)
-			return -1;
-		n += r;
-	} while (n != size);
-
-	return n;
-}
-
-static int64_t
 ss_stdvfs_write(ssvfs *f ssunused, int fd, void *buf, int size)
 {
 	int n = 0;
@@ -314,7 +297,6 @@ ssvfsif ss_stdvfs =
 	.advise          = ss_stdvfs_advise,
 	.truncate        = ss_stdvfs_truncate,
 	.pread           = ss_stdvfs_pread,
-	.pwrite          = ss_stdvfs_pwrite,
 	.write           = ss_stdvfs_write,
 	.writev          = ss_stdvfs_writev,
 	.seek            = ss_stdvfs_seek,

@@ -28,7 +28,6 @@ struct ssvfsif {
 	int     (*advise)(ssvfs*, int, int, uint64_t, uint64_t);
 	int     (*truncate)(ssvfs*, int, uint64_t);
 	int64_t (*pread)(ssvfs*, int, uint64_t, void*, int);
-	int64_t (*pwrite)(ssvfs*, int, uint64_t, void*, int);
 	int64_t (*write)(ssvfs*, int, void*, int);
 	int64_t (*writev)(ssvfs*, int, ssiov*);
 	int64_t (*seek)(ssvfs*, int, uint64_t);
