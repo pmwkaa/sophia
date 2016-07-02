@@ -43,7 +43,6 @@ se_dbscheme_init(sedb *db, char *name, int size)
 	scheme->mmap                   = 0;
 	scheme->storage                = SI_SCACHE;
 	scheme->node_size              = 64 * 1024 * 1024;
-	scheme->node_compact_load      = 0;
 	scheme->node_page_size         = 128 * 1024;
 	scheme->node_page_checksum     = 1;
 	scheme->compression_cold       = 0;

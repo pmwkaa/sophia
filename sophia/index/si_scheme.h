@@ -56,7 +56,6 @@ struct sischeme {
 	uint64_t      node_size;
 	uint32_t      node_page_size;
 	uint32_t      node_page_checksum;
-	uint32_t      node_compact_load;
 	uint32_t      expire;
 	uint32_t      compression_cold;
 	char         *compression_cold_sz;

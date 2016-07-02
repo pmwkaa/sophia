@@ -268,19 +268,8 @@ int si_compact(si *index, sdc *c, siplan *plan,
 	if (ssunlikely(rc == -1))
 		return -1;
 
-	/* read node file into memory */
 	int use_mmap = index->scheme.mmap;
 	ssmmap *map = &node->map;
-	ssmmap  preload;
-	if (index->scheme.node_compact_load) {
-		rc = si_noderead(node, r, &c->c);
-		if (ssunlikely(rc == -1))
-			return -1;
-		preload.p = c->c.s;
-		preload.size = ss_bufused(&c->c);
-		map = &preload;
-		use_mmap = 1;
-	}
 
 	/* include vindex into merge process */
 	svmergesrc *s;

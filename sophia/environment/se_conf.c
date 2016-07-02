@@ -549,7 +549,6 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc, int serialize)
 		srconf *compaction = *pc;
 		p = NULL;
 		sr_C(&p, pc, se_confv_dboffline, "node_size", SS_U64, &o->scheme->node_size, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "node_preload", SS_U32, &o->scheme->node_compact_load, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "page_size", SS_U32, &o->scheme->node_page_size, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "page_checksum", SS_U32, &o->scheme->node_page_checksum, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "checkpoint_wm", SS_U32, &o->scheme->compaction.checkpoint_wm, 0, o);
