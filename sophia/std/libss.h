@@ -47,7 +47,6 @@
 #include <ss_filterof.h>
 #include <ss_iter.h>
 #include <ss_bufiter.h>
-#include <ss_blob.h>
 #include <ss_avg.h>
 
 #endif

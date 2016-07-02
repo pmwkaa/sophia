@@ -144,22 +144,6 @@ spr_cmd_expire(void)
 }
 
 static inline void
-spr_cmd_lru(void)
-{
-	if (! spr_start)
-		return;
-	sp_setint(spr_env, "db.test.compaction.lru", 0);
-}
-
-static inline void
-spr_cmd_anticache(void)
-{
-	if (! spr_start)
-		return;
-	sp_setint(spr_env, "db.test.compaction.anticache", 0);
-}
-
-static inline void
 spr_cmd_backup(void)
 {
 	if (! spr_start)
@@ -178,8 +162,6 @@ static inline void spr_cmd_help(void)
 	printf(" snapshot   -- schedule snapshot operation\n");
 	printf(" gc         -- schedule garbage collection\n");
 	printf(" expire     -- schedule expire operation\n");
-	printf(" lru        -- schedule lru operation\n");
-	printf(" anticache  -- schedule anticache operation\n");
 	printf(" backup     -- schedule backup operation\n");
 	printf(" help       -- this help\n");
 	printf(" exit       -- stop and quit\n");
@@ -235,14 +217,6 @@ spr_execute(char *cmd, int size)
 	if (strcmp(argv[0], "expire") == 0) {
 		spr_cmd_expire();
 		printf("expire is in progress\n");
-	} else
-	if (strcmp(argv[0], "lru") == 0) {
-		spr_cmd_lru();
-		printf("lru is in progress\n");
-	} else
-	if (strcmp(argv[0], "anticache") == 0) {
-		spr_cmd_anticache();
-		printf("anticache is in progress\n");
 	} else
 	if (strcmp(argv[0], "backup") == 0) {
 		spr_cmd_backup();

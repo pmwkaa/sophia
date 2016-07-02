@@ -25,7 +25,6 @@ struct sdmergeconf {
 	ssfilterif *compression_if;
 	uint32_t    amqf;
 	uint64_t    vlsn;
-	uint64_t    vlsn_lru;
 	uint32_t    save_delete;
 	uint32_t    save_upsert;
 };

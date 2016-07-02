@@ -79,10 +79,6 @@ extern stgroup *compact_group(void);
 extern stgroup *compact_delete_group(void);
 extern stgroup *gc_group(void);
 extern stgroup *expire_group(void);
-extern stgroup *lru_group(void);
-
-/* cache */
-extern stgroup *anticache_group(void);
 
 /* functional */
 extern stgroup *transaction_group(void);
@@ -174,7 +170,7 @@ main(int argc, char *argv[])
 	st_suiteadd_scene(&st_r.suite, st_scene("branch_wm_1", st_scene_branch_wm_1, 1));
 	st_suiteadd_scene(&st_r.suite, st_scene("thread_5", st_scene_thread_5, 1));
 	st_suiteadd_scene(&st_r.suite, st_scene("phase_compaction", st_scene_phase_compaction, 5));
-	st_suiteadd_scene(&st_r.suite, st_scene("phase_storage", st_scene_phase_storage, 10));
+	st_suiteadd_scene(&st_r.suite, st_scene("phase_storage", st_scene_phase_storage, 7));
 	st_suiteadd_scene(&st_r.suite, st_scene("phase_size", st_scene_phase_size, 3));
 	st_suiteadd_scene(&st_r.suite, st_scene("open", st_scene_open, 1));
 	st_suiteadd_scene(&st_r.suite, st_scene("destroy", st_scene_destroy, 1));
@@ -268,17 +264,6 @@ main(int argc, char *argv[])
 	st_planadd(plan, compact_delete_group());
 	st_planadd(plan, gc_group());
 	st_planadd(plan, expire_group());
-	st_planadd(plan, lru_group());
-	st_suiteadd(&st_r.suite, plan);
-
-	plan = st_plan("cache");
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rmrf"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "init"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "rt"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "test"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
-	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
-	st_planadd(plan, anticache_group());
 	st_suiteadd(&st_r.suite, plan);
 
 	plan = st_plan("memory");

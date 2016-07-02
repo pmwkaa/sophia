@@ -79,8 +79,6 @@ int si_plannertrace(siplan *p, uint32_t id, sstrace *t)
 		break;
 	case SI_SNAPSHOT: plan = "snapshot";
 		break;
-	case SI_ANTICACHE: plan = "anticache";
-		break;
 	}
 	if (p->node) {
 		ss_trace(t, "%s <%" PRIu32 ":%020" PRIu64 ".db>",
@@ -336,82 +334,6 @@ si_plannerpeek_snapshot(siplanner *p, siplan *plan)
 }
 
 static inline siplannerrc
-si_plannerpeek_anticache(siplanner *p, siplan *plan)
-{
-	si *index = p->i;
-	if (index->scheme.storage != SI_SANTI_CACHE)
-		return SI_PNONE;
-	siplannerrc rc = SI_PNONE;
-	sinode *n;
-	ssrqnode *pn = NULL;
-	while ((pn = ss_rqprev(&p->temp, pn))) {
-		n = sscast(pn, sinode, nodetemp);
-		if (n->flags & SI_LOCK) {
-			rc = SI_PRETRY;
-			continue;
-		}
-		if (n->ac >= plan->a)
-			continue;
-		n->ac = plan->a;
-		uint64_t size = si_nodesize(n) + n->used;
-		if (size <= plan->b) {
-			/* promote */
-			if (n->in_memory)
-				continue;
-			plan->c = size;
-			n->flags |= SI_PROMOTE;
-		} else {
-			/* revoke in_memory flag */
-			if (! n->in_memory)
-				continue;
-			plan->c = 0;
-			n->flags |= SI_REVOKE;
-		}
-		goto match;
-	}
-	return rc;
-match:
-	si_nodelock(n);
-	plan->node = n;
-	return SI_PMATCH;
-}
-
-static inline siplannerrc
-si_plannerpeek_lru(siplanner *p, siplan *plan)
-{
-	si *index = p->i;
-	if (sslikely(! index->scheme.lru))
-		return SI_PNONE;
-	if (! index->lru_run_lsn) {
-		index->lru_run_lsn = si_lru_vlsn_of(index);
-		if (sslikely(index->lru_run_lsn == 0))
-			return SI_PNONE;
-	}
-	siplannerrc rc = SI_PNONE;
-	sinode *n;
-	ssrqnode *pn = NULL;
-	while ((pn = ss_rqprev(&p->compact, pn))) {
-		n = sscast(pn, sinode, nodecompact);
-		sdindexheader *h = n->self.index.h;
-		if (h->lsnmin < index->lru_run_lsn) {
-			if (n->flags & SI_LOCK) {
-				rc = SI_PRETRY;
-				continue;
-			}
-			goto match;
-		}
-	}
-
-	if (rc == SI_PNONE)
-		index->lru_run_lsn = 0;
-	return rc;
-match:
-	si_nodelock(n);
-	plan->node = n;
-	return SI_PMATCH;
-}
-
-static inline siplannerrc
 si_plannerpeek_nodegc(siplanner *p, siplan *plan)
 {
 	si *index = p->i;
@@ -457,10 +379,6 @@ si_planner(siplanner *p, siplan *plan)
 		return si_plannerpeek_backup(p, plan);
 	case SI_SNAPSHOT:
 		return si_plannerpeek_snapshot(p, plan);
-	case SI_ANTICACHE:
-		return si_plannerpeek_anticache(p, plan);
-	case SI_LRU:
-		return si_plannerpeek_lru(p, plan);
 	}
 	return -1;
 }

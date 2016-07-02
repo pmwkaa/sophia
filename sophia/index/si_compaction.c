@@ -22,19 +22,9 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 	sr *r = &index->r;
 	sibranch *branch = NULL;
 
-	/* in-memory mode blob */
-	int rc;
-	ssblob copy, *blob = NULL;
-	if (parent->in_memory) {
-		ss_blobinit(&copy, r->vfs);
-		rc = ss_blobensure(&copy, 10ULL * 1024 * 1024);
-		if (ssunlikely(rc == -1))
-			return sr_oom_malfunction(r->e);
-		blob = &copy;
-	}
-
 	svmerge vmerge;
 	sv_mergeinit(&vmerge);
+	int rc;
 	rc = sv_mergeprepare(&vmerge, r, 1);
 	if (ssunlikely(rc == -1))
 		return -1;
@@ -59,7 +49,6 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		.compression_if = index->scheme.compression_hot_if,
 		.amqf           = index->scheme.amqf,
 		.vlsn           = vlsn,
-		.vlsn_lru       = 0,
 		.save_delete    = 1,
 		.save_upsert    = 1
 	};
@@ -77,7 +66,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		uint64_t offset = parent->file.size;
 		while ((rc = sd_mergepage(&merge, offset)) == 1)
 		{
-			rc = sd_writepage(r, &parent->file, blob, merge.build);
+			rc = sd_writepage(r, &parent->file, merge.build);
 			if (ssunlikely(rc == -1))
 				goto e0;
 			offset = parent->file.size;
@@ -94,7 +83,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 			goto e0;
 
 		/* write index */
-		rc = sd_writeindex(r, &parent->file, blob, &merge.index);
+		rc = sd_writeindex(r, &parent->file, &merge.index);
 		if (ssunlikely(rc == -1))
 			goto e0;
 		if (index->scheme.sync) {
@@ -114,7 +103,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 
 		/* seal the branch */
 		offset = parent->file.size;
-		rc = sd_writeseal(r, &parent->file, blob, &merge.index);
+		rc = sd_writeseal(r, &parent->file, &merge.index);
 		if (ssunlikely(rc == -1))
 			goto e0;
 		if (index->scheme.sync == 2) {
@@ -145,15 +134,6 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 	if (ssunlikely(branch == NULL))
 		return 0;
 
-	/* in-memory mode support */
-	if (blob) {
-		rc = ss_blobfit(blob);
-		if (ssunlikely(rc == -1)) {
-			ss_blobfree(blob);
-			goto e1;
-		}
-		branch->copy = copy;
-	}
 	/* mmap support */
 	if (index->scheme.mmap) {
 		ss_mmapinit(&parent->map_swap);
@@ -171,9 +151,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 	return 0;
 e0:
 	sd_mergefree(&merge);
-	if (blob)
-		ss_blobfree(blob);
-		sv_mergefree(&vmerge, r->a);
+	sv_mergefree(&vmerge, r->a);
 	return -1;
 e1:
 	si_branchfree(branch, r);
@@ -249,7 +227,6 @@ int si_branch(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 
 int si_compact(si *index, sdc *c, siplan *plan,
                uint64_t vlsn,
-               uint64_t vlsn_lru,
                ssiter *vindex,
                uint64_t vindex_used)
 {
@@ -301,7 +278,6 @@ int si_compact(si *index, sdc *c, siplan *plan,
 			.buf_read        = &c->d,
 			.index_iter      = &cbuf->index_iter,
 			.page_iter       = &cbuf->page_iter,
-			.use_memory      = node->in_memory,
 			.use_mmap        = use_mmap,
 			.use_mmap_copy   = 0,
 			.use_compression = compression,
@@ -309,7 +285,6 @@ int si_compact(si *index, sdc *c, siplan *plan,
 			.has             = 0,
 			.has_vlsn        = 0,
 			.o               = SS_GTE,
-			.memory          = &b->copy,
 			.mmap            = map,
 			.file            = &node->file,
 			.r               = r
@@ -326,14 +301,12 @@ int si_compact(si *index, sdc *c, siplan *plan,
 	ssiter i;
 	ss_iterinit(sv_mergeiter, &i);
 	ss_iteropen(sv_mergeiter, &i, r, &merge, SS_GTE);
-	rc = si_merge(index, c, node, vlsn, vlsn_lru, &i, size_stream, count);
+	rc = si_merge(index, c, node, vlsn, &i, size_stream, count);
 	sv_mergefree(&merge, r->a);
 	return rc;
 }
 
-int si_compact_index(si *index, sdc *c, siplan *plan,
-                     uint64_t vlsn,
-                     uint64_t vlsn_lru)
+int si_compact_index(si *index, sdc *c, siplan *plan, uint64_t vlsn)
 {
 	sinode *node = plan->node;
 
@@ -351,5 +324,5 @@ int si_compact_index(si *index, sdc *c, siplan *plan,
 	ssiter i;
 	ss_iterinit(sv_indexiter, &i);
 	ss_iteropen(sv_indexiter, &i, &index->r, vindex, SS_GTE, NULL);
-	return si_compact(index, c, plan, vlsn, vlsn_lru, &i, size_stream);
+	return si_compact(index, c, plan, vlsn, &i, size_stream);
 }

@@ -13,7 +13,6 @@ typedef struct svwriteiter svwriteiter;
 
 struct svwriteiter {
 	uint64_t  vlsn;
-	uint64_t  vlsn_lru;
 	uint64_t  limit;
 	uint64_t  size;
 	uint32_t  sizev;
@@ -94,8 +93,6 @@ sv_writeiter_next(ssiter *i)
 				 continue;
 		}
 		uint64_t lsn = sf_lsn(im->r->scheme, v);
-		if (lsn < im->vlsn_lru)
-			continue;
 		int flags = sf_flags(im->r->scheme, v);
 		int dup = sf_flagsequ(flags, SVDUP) || sv_mergeisdup(im->merge);
 		if (im->size >= im->limit) {
@@ -161,7 +158,6 @@ sv_writeiter_open(ssiter *i, sr *r, ssiter *merge, svupsert *u,
                   uint32_t expire,
                   uint32_t timestamp,
                   uint64_t vlsn,
-                  uint64_t vlsn_lru,
                   int save_delete,
                   int save_upsert)
 {
@@ -174,7 +170,6 @@ sv_writeiter_open(ssiter *i, sr *r, ssiter *merge, svupsert *u,
 	im->expire      = expire;
 	im->now         = timestamp;
 	im->vlsn        = vlsn;
-	im->vlsn_lru    = vlsn_lru;
 	im->save_delete = save_delete;
 	im->save_upsert = save_upsert;
 	im->next        = 0;

@@ -40,7 +40,7 @@ int sd_commitpage(sdbuild *b, sr *r, ssbuf *buf)
 	return 0;
 }
 
-int sd_writepage(sr *r, ssfile *file, ssblob *blob, sdbuild *b)
+int sd_writepage(sr *r, ssfile *file, sdbuild *b)
 {
 	SS_INJECTION(r->i, SS_INJECTION_SD_BUILD_0,
 	             sr_malfunction(r->e, "%s", "error injection");
@@ -65,20 +65,10 @@ int sd_writepage(sr *r, ssfile *file, ssblob *blob, sdbuild *b)
 		               strerror(errno));
 		return -1;
 	}
-	if (blob) {
-		int i = 0;
-		while (i < iov.iovc) {
-			struct iovec *v = &iovv[i];
-			rc = ss_blobadd(blob, v->iov_base, v->iov_len);
-			if (ssunlikely(rc == -1))
-				return sr_oom_malfunction(r->e);
-			i++;
-		}
-	}
 	return 0;
 }
 
-int sd_writeindex(sr *r, ssfile *file, ssblob *blob, sdindex *index)
+int sd_writeindex(sr *r, ssfile *file, sdindex *index)
 {
 	int rc;
 	rc = ss_filewrite(file, index->i.s, ss_bufused(&index->i));
@@ -88,15 +78,10 @@ int sd_writeindex(sr *r, ssfile *file, ssblob *blob, sdindex *index)
 		               strerror(errno));
 		return -1;
 	}
-	if (blob) {
-		rc = ss_blobadd(blob, index->i.s, ss_bufused(&index->i));
-		if (ssunlikely(rc == -1))
-			return sr_oom_malfunction(r->e);
-	}
 	return 0;
 }
 
-int sd_writeseal(sr *r, ssfile *file, ssblob *blob, sdindex *index)
+int sd_writeseal(sr *r, ssfile *file, sdindex *index)
 {
 	sdseal seal;
 	sd_sealcreate(&seal, r, index->h);
@@ -109,11 +94,6 @@ int sd_writeseal(sr *r, ssfile *file, ssblob *blob, sdindex *index)
 		               ss_pathof(&file->path),
 		               strerror(errno));
 		return -1;
-	}
-	if (blob) {
-		rc = ss_blobadd(blob, &seal, sizeof(seal));
-		if (ssunlikely(rc == -1))
-			return sr_oom_malfunction(r->e);
 	}
 	return 0;
 }

@@ -36,25 +36,21 @@ se_dbscheme_init(sedb *db, char *name, int size)
 		goto error;
 	memcpy(scheme->name, name, size);
 	scheme->name[size] = 0;
-	scheme->id                     = id;
-	scheme->memory_limit           = 0;
-	scheme->memory_limit_anticache = 0;
-	scheme->sync                   = 2;
-	scheme->mmap                   = 0;
-	scheme->storage                = SI_SCACHE;
-	scheme->node_size              = 64 * 1024 * 1024;
-	scheme->node_page_size         = 128 * 1024;
-	scheme->node_page_checksum     = 1;
-	scheme->compression_cold       = 0;
-	scheme->compression_cold_if    = &ss_nonefilter;
-	scheme->compression_hot        = 0;
-	scheme->compression_hot_if     = &ss_nonefilter;
-	scheme->temperature            = 0;
-	scheme->expire                 = 0;
-	scheme->amqf                   = 0;
-	scheme->lru                    = 0;
-	scheme->lru_step               = 128 * 1024;
-	scheme->buf_gc_wm              = 1024 * 1024;
+	scheme->id                  = id;
+	scheme->memory_limit        = 0;
+	scheme->sync                = 2;
+	scheme->mmap                = 0;
+	scheme->node_size           = 64 * 1024 * 1024;
+	scheme->node_page_size      = 128 * 1024;
+	scheme->node_page_checksum  = 1;
+	scheme->compression_cold    = 0;
+	scheme->compression_cold_if = &ss_nonefilter;
+	scheme->compression_hot     = 0;
+	scheme->compression_hot_if  = &ss_nonefilter;
+	scheme->temperature         = 0;
+	scheme->expire              = 0;
+	scheme->amqf                = 0;
+	scheme->buf_gc_wm           = 1024 * 1024;
 	scheme->storage_sz = ss_strdup(&e->a, "cache");
 	if (ssunlikely(scheme->storage_sz == NULL))
 		goto error;
@@ -116,19 +112,6 @@ se_dbscheme_set(sedb *db)
 		sr_error(&e->error, "incomplete scheme", s->name);
 		return -1;
 	}
-	/* storage */
-	if (strcmp(s->storage_sz, "cache") == 0) {
-		s->storage = SI_SCACHE;
-	} else
-	if (strcmp(s->storage_sz, "anti-cache") == 0) {
-		s->storage = SI_SANTI_CACHE;
-	} else
-	if (strcmp(s->storage_sz, "in-memory") == 0) {
-		s->storage = SI_SIN_MEMORY;
-	} else {
-		sr_error(&e->error, "unknown storage type '%s'", s->storage_sz);
-		return -1;
-	}
 	/* compression cold */
 	s->compression_cold_if = ss_filterof(s->compression_cold_sz);
 	if (ssunlikely(s->compression_cold_if == NULL)) {
@@ -169,10 +152,8 @@ se_dbscheme_set(sedb *db)
 	/* convert periodic times from sec to usec */
 	c->branch_age_period_us = c->branch_age_period * 1000000;
 	c->snapshot_period_us   = c->snapshot_period * 1000000;
-	c->anticache_period_us  = c->anticache_period * 1000000;
 	c->gc_period_us         = c->gc_period * 1000000;
 	c->expire_period_us     = c->expire_period * 1000000;
-	c->lru_period_us        = c->lru_period * 1000000;
 	if (s->memory_limit > 0) {
 		/* use slab allocator for fixed size schema */
 		if (sf_schemefixed(&s->scheme)) {

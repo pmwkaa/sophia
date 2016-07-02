@@ -29,9 +29,6 @@ struct sinode {
 	uint64_t   update_time;
 	uint32_t   used;
 	uint32_t   backup;
-	uint64_t   lru;
-	uint64_t   ac;
-	uint32_t   in_memory;
 	sibranch   self;
 	sibranch  *branch;
 	uint32_t   branch_count;

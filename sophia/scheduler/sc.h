@@ -14,11 +14,10 @@ typedef struct sctask sctask;
 typedef struct sc sc;
 
 enum {
-	SC_QBRANCH  = 0,
-	SC_QGC      = 1,
-	SC_QEXPIRE  = 2,
-	SC_QLRU     = 3,
-	SC_QBACKUP  = 4,
+	SC_QBRANCH = 0,
+	SC_QGC     = 1,
+	SC_QEXPIRE = 2,
+	SC_QBACKUP = 3,
 	SC_QMAX
 };
 
@@ -33,20 +32,12 @@ struct scdb {
 	uint64_t  age_time;
 	uint32_t  expire;
 	uint64_t  expire_time;
-	uint64_t  anticache_asn;
-	uint64_t  anticache_asn_last;
-	uint64_t  anticache_storage;
-	uint64_t  anticache_limit;
-	uint64_t  anticache_time;
-	uint64_t  anticache;
 	uint64_t  snapshot_ssn;
 	uint64_t  snapshot_ssn_last;
 	uint64_t  snapshot_time;
 	uint64_t  snapshot;
 	uint64_t  gc_time;
 	uint32_t  gc;
-	uint64_t  lru_time;
-	uint32_t  lru;
 	uint32_t  backup;
 };
 

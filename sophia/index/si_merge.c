@@ -144,27 +144,25 @@ si_split(si *index, sdc *c, ssbuf *result,
          uint64_t  size_node,
          uint64_t  size_stream,
          uint32_t  stream,
-         uint64_t  vlsn,
-         uint64_t  vlsn_lru)
+         uint64_t  vlsn)
 {
 	sr *r = &index->r;
 	uint32_t timestamp = ss_timestamp();
 	int rc;
 	sdmergeconf mergeconf = {
-		.stream           = stream,
-		.size_stream      = size_stream,
-		.size_node        = size_node,
-		.size_page        = index->scheme.node_page_size,
-		.checksum         = index->scheme.node_page_checksum,
-		.expire           = index->scheme.expire,
-		.timestamp        = timestamp,
-		.compression      = index->scheme.compression_cold,
-		.compression_if   = index->scheme.compression_cold_if,
-		.amqf             = index->scheme.amqf,
-		.vlsn             = vlsn,
-		.vlsn_lru         = vlsn_lru,
-		.save_delete      = 0,
-		.save_upsert      = 0
+		.stream         = stream,
+		.size_stream    = size_stream,
+		.size_node      = size_node,
+		.size_page      = index->scheme.node_page_size,
+		.checksum       = index->scheme.node_page_checksum,
+		.expire         = index->scheme.expire,
+		.timestamp      = timestamp,
+		.compression    = index->scheme.compression_cold,
+		.compression_if = index->scheme.compression_cold_if,
+		.amqf           = index->scheme.amqf,
+		.vlsn           = vlsn,
+		.save_delete    = 0,
+		.save_upsert    = 0
 	};
 	sinode *n = NULL;
 	sdmerge merge;
@@ -188,19 +186,10 @@ si_split(si *index, sdc *c, ssbuf *result,
 		n->branch = &n->self;
 		n->branch_count++;
 
-		ssblob *blob = NULL;
-		if (parent->in_memory) {
-			blob = &n->self.copy;
-			rc = ss_blobensure(blob, index->scheme.node_size);
-			if (ssunlikely(rc == -1))
-				goto error;
-			n->in_memory = 1;
-		}
-
 		/* write pages */
 		uint64_t offset = n->file.size;
 		while ((rc = sd_mergepage(&merge, offset)) == 1) {
-			rc = sd_writepage(r, &n->file, blob, merge.build);
+			rc = sd_writepage(r, &n->file, merge.build);
 			if (ssunlikely(rc == -1))
 				goto error;
 			offset = n->file.size;
@@ -213,21 +202,15 @@ si_split(si *index, sdc *c, ssbuf *result,
 			goto error;
 
 		/* write index */
-		rc = sd_writeindex(r, &n->file, blob, &merge.index);
+		rc = sd_writeindex(r, &n->file, &merge.index);
 		if (ssunlikely(rc == -1))
 			goto error;
 
 		/* write seal */
-		rc = sd_writeseal(r, &n->file, blob, &merge.index);
+		rc = sd_writeseal(r, &n->file, &merge.index);
 		if (ssunlikely(rc == -1))
 			goto error;
 
-		/* in-memory mode */
-		if (blob) {
-			rc = ss_blobfit(blob);
-			if (ssunlikely(rc == -1))
-				goto error;
-		}
 		/* mmap mode */
 		if (index->scheme.mmap) {
 			rc = si_nodemap(n, r);
@@ -257,7 +240,6 @@ error:
 
 int si_merge(si *index, sdc *c, sinode *node,
              uint64_t vlsn,
-             uint64_t vlsn_lru,
              ssiter *stream,
              uint64_t size_stream,
              uint32_t n_stream)
@@ -277,8 +259,7 @@ int si_merge(si *index, sdc *c, sinode *node,
 	              index->scheme.node_size,
 	              size_stream,
 	              n_stream,
-	              vlsn,
-	              vlsn_lru);
+	              vlsn);
 	if (ssunlikely(rc == -1))
 		return -1;
 

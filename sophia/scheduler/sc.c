@@ -25,7 +25,6 @@ int sc_init(sc *s, sr *r, slpool *lp)
 	s->prio[SC_QBRANCH]         = 1;
 	s->prio[SC_QGC]             = 1;
 	s->prio[SC_QEXPIRE]         = 1;
-	s->prio[SC_QLRU]            = 1;
 	s->prio[SC_QBACKUP]         = 1;
 	/* backup */
 	s->backup_bsn               = 0;
@@ -57,20 +56,12 @@ sc_prepare(scdb *db)
 	db->age_time            = now;
 	db->expire              = 0;
 	db->expire_time         = now;
-	db->anticache_asn       = 0;
-	db->anticache_asn_last  = 0;
-	db->anticache_time      = now;
-	db->anticache           = 0;
-	db->anticache_storage   = 0;
-	db->anticache_limit     = 0;
 	db->snapshot_ssn        = 0;
 	db->snapshot_ssn_last   = 0;
 	db->snapshot_time       = now;
 	db->snapshot            = 0;
 	db->gc                  = 0;
 	db->gc_time             = now;
-	db->lru                 = 0;
-	db->lru_time            = now;
 	db->backup              = 0;
 	return 0;
 }

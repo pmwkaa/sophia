@@ -12,12 +12,6 @@
 typedef struct sicompaction sicompaction;
 typedef struct sischeme sischeme;
 
-typedef enum {
-	SI_SCACHE,
-	SI_SANTI_CACHE,
-	SI_SIN_MEMORY
-} sistorage;
-
 struct sicompaction {
 	uint32_t mode;
 	uint64_t checkpoint_wm;
@@ -30,15 +24,11 @@ struct sicompaction {
 	uint32_t branch_age_wm;
 	uint32_t snapshot_period;
 	uint64_t snapshot_period_us;
-	uint32_t anticache_period;
-	uint64_t anticache_period_us;
 	uint32_t expire_period;
 	uint64_t expire_period_us;
 	uint32_t gc_period;
 	uint64_t gc_period_us;
 	uint32_t gc_wm;
-	uint32_t lru_period;
-	uint64_t lru_period_us;
 };
 
 struct sischeme {
@@ -47,12 +37,10 @@ struct sischeme {
 	char         *path;
 	char         *path_backup;
 	uint32_t      mmap;
-	sistorage     storage;
 	sicompaction  compaction;
 	char         *storage_sz;
 	uint32_t      sync;
 	uint64_t      memory_limit;
-	uint64_t      memory_limit_anticache;
 	uint64_t      node_size;
 	uint32_t      node_page_size;
 	uint32_t      node_page_checksum;
@@ -65,8 +53,6 @@ struct sischeme {
 	ssfilterif   *compression_hot_if;
 	uint32_t      temperature;
 	uint32_t      amqf;
-	uint64_t      lru;
-	uint32_t      lru_step;
 	uint32_t      buf_gc_wm;
 	sfupsert      upsert;
 	sfscheme      scheme;

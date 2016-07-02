@@ -128,7 +128,7 @@ github_112(void)
 	t( sp_open(env) == 0 );
 	void *db = sp_getobject(env, "db.test");
 	t( db != NULL );
-	char *s = sp_getstring(env, "db.test.compaction.lru", NULL);
+	char *s = sp_getstring(env, "db.test.compaction.gc", NULL);
 	t( s == NULL );
 	t( sp_destroy(env) == 0 );
 }

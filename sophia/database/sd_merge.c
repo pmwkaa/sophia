@@ -40,7 +40,6 @@ int sd_mergeinit(sdmerge *m, sr *r, ssiter *i, sdbuild *build, ssqf *qf,
 	            conf->expire,
 	            conf->timestamp,
 	            conf->vlsn,
-	            conf->vlsn_lru,
 	            conf->save_delete,
 	            conf->save_upsert);
 	return 0;

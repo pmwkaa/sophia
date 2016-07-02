@@ -39,24 +39,6 @@ sc_task_checkpoint_done(scdb *db)
 }
 
 static inline void
-sc_task_anticache(sc *s, scdb *db)
-{
-	db->anticache = 1;
-	db->anticache_storage = db->anticache_limit;
-	db->anticache_asn = sr_seq(s->r->seq, SR_ASNNEXT);
-}
-
-static inline void
-sc_task_anticache_done(scdb *db, uint64_t now)
-{
-	db->anticache = 0;
-	db->anticache_asn_last = db->anticache_asn;
-	db->anticache_asn = 0;
-	db->anticache_storage = 0;
-	db->anticache_time = now;
-}
-
-static inline void
 sc_task_snapshot(sc *s, scdb *db)
 {
 	db->snapshot = 1;
@@ -96,19 +78,6 @@ sc_task_gc_done(scdb *db, uint64_t now)
 {
 	db->gc = 0;
 	db->gc_time = now;
-}
-
-static inline void
-sc_task_lru(scdb *db)
-{
-	db->lru = 1;
-}
-
-static inline void
-sc_task_lru_done(scdb *db, uint64_t now)
-{
-	db->lru = 0;
-	db->lru_time = now;
 }
 
 static inline void

@@ -36,10 +36,8 @@ struct siplanner {
 #define SI_BACKUP        128
 #define SI_BACKUPEND     256
 #define SI_SNAPSHOT      512
-#define SI_ANTICACHE     1024
-#define SI_LRU           2048
-#define SI_NODEGC        4096
-#define SI_EXPIRE        8192
+#define SI_NODEGC        1024
+#define SI_EXPIRE        2048
 
 struct siplan {
 	int plan;
@@ -61,12 +59,7 @@ struct siplan {
 	 *   b: percent
 	 * expire:
 	 *   a: ttl
-	 * lru:
 	 * temperature:
-	 * anticache:
-	 *   a: asn
-	 *   b: available
-	 *   c: *node_size
 	 * snapshot:
 	 *   a: ssn
 	 * backup:

@@ -61,16 +61,6 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 	n->branch = &n->self;
 	n->branch_count++;
 
-	/* in-memory mode support */
-	ssblob *blob = NULL;
-	if (i->scheme.storage == SI_SIN_MEMORY) {
-		blob = &n->self.copy;
-		rc = ss_blobensure(blob, 4096);
-		if (ssunlikely(rc == -1))
-			goto e0;
-		n->in_memory = 1;
-	}
-
 	/* create index with one empty page */
 	sdindex index;
 	sd_indexinit(&index);
@@ -95,7 +85,7 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 		goto e1;
 
 	/* write page */
-	rc = sd_writepage(r, &n->file, blob, &build);
+	rc = sd_writepage(r, &n->file, &build);
 	if (ssunlikely(rc == -1))
 		goto e1;
 	/* amqf */
@@ -110,18 +100,13 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 		goto e1;
 	ss_qffree(&f, r->a);
 	/* write index */
-	rc = sd_writeindex(r, &n->file, blob, &index);
+	rc = sd_writeindex(r, &n->file, &index);
 	if (ssunlikely(rc == -1))
 		goto e1;
 	/* write seal */
-	rc = sd_writeseal(r, &n->file, blob, &index);
+	rc = sd_writeseal(r, &n->file, &index);
 	if (ssunlikely(rc == -1))
 		goto e1;
-	if (blob) {
-		rc = ss_blobfit(blob);
-		if (ssunlikely(rc == -1))
-			goto e1;
-	}
 	if (i->scheme.mmap) {
 		rc = si_nodemap(n, r);
 		if (ssunlikely(rc == -1))
@@ -470,8 +455,6 @@ si_tracksnapshot(sitrack *track, sr *r, si *i, sdsnapshot *s)
 	sdsnapshotheader *h = sd_snapshot_header(s);
 	i->read_cache = h->read_cache;
 	i->read_disk  = h->read_disk;
-	i->lru_v      = h->lru_v;
-	i->lru_steps  = h->lru_steps;
 	return 0;
 }
 

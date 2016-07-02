@@ -177,7 +177,6 @@ si_getbranch(siread *q, sinode *n, sicachebranch *c)
 		.buf_read        = &q->index->readbuf,
 		.index_iter      = &c->index_iter,
 		.page_iter       = &c->page_iter,
-		.use_memory      = n->in_memory,
 		.use_mmap        = scheme->mmap,
 		.use_mmap_copy   = 0,
 		.use_compression = compression,
@@ -186,7 +185,6 @@ si_getbranch(siread *q, sinode *n, sicachebranch *c)
 		.has_vlsn        = q->vlsn,
 		.o               = SS_GTE,
 		.mmap            = &n->map,
-		.memory          = &b->copy,
 		.file            = &n->file,
 		.r               = q->r
 	};
@@ -297,7 +295,6 @@ si_rangebranch(siread *q, sinode *n, sibranch *b, svmerge *m)
 		.buf_read        = &q->index->readbuf,
 		.index_iter      = &c->index_iter,
 		.page_iter       = &c->page_iter,
-		.use_memory      = n->in_memory,
 		.use_mmap        = scheme->mmap,
 		.use_mmap_copy   = 1,
 		.use_compression = compression,
@@ -305,7 +302,6 @@ si_rangebranch(siread *q, sinode *n, sibranch *b, svmerge *m)
 		.has             = 0,
 		.has_vlsn        = 0,
 		.o               = q->order,
-		.memory          = &b->copy,
 		.mmap            = &n->map,
 		.file            = &n->file,
 		.r               = q->r

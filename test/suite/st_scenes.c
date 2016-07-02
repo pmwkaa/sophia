@@ -343,20 +343,13 @@ void st_scene_phase_storage(stscene *s)
 		break;
 	case 1:
 		if (st_r.verbose) {
-			fprintf(st_r.output, ".storage_in_memory");
-			fflush(st_r.output);
-		}
-		t( sp_setstring(st_r.env, "db.test.storage", "in-memory", 0) == 0 );
-		break;
-	case 2:
-		if (st_r.verbose) {
 			fprintf(st_r.output, ".storage_compression_cold");
 			fflush(st_r.output);
 		}
 		t( sp_setstring(st_r.env, "db.test.compression_cold", "lz4", 0) == 0 );
 		t( sp_setstring(st_r.env, "db.test.compression_hot", "none", 0) == 0 );
 		break;
-	case 3:
+	case 2:
 		if (st_r.verbose) {
 			fprintf(st_r.output, ".storage_compression_hot");
 			fflush(st_r.output);
@@ -364,7 +357,7 @@ void st_scene_phase_storage(stscene *s)
 		t( sp_setstring(st_r.env, "db.test.compression_cold", "none", 0) == 0 );
 		t( sp_setstring(st_r.env, "db.test.compression_hot", "lz4", 0) == 0 );
 		break;
-	case 4:
+	case 3:
 		if (st_r.verbose) {
 			fprintf(st_r.output, ".storage_compression_full");
 			fflush(st_r.output);
@@ -372,14 +365,14 @@ void st_scene_phase_storage(stscene *s)
 		t( sp_setstring(st_r.env, "db.test.compression_cold", "lz4", 0) == 0 );
 		t( sp_setstring(st_r.env, "db.test.compression_hot", "lz4", 0) == 0 );
 		break;
-	case 5:
+	case 4:
 		if (st_r.verbose) {
 			fprintf(st_r.output, ".storage_mmap");
 			fflush(st_r.output);
 		}
 		t( sp_setint(st_r.env, "db.test.mmap", 1) == 0 );
 		break;
-	case 6:
+	case 5:
 		if (st_r.verbose) {
 			fprintf(st_r.output, ".storage_mmap_compression_cold");
 			fflush(st_r.output);
@@ -387,23 +380,7 @@ void st_scene_phase_storage(stscene *s)
 		t( sp_setint(st_r.env, "db.test.mmap", 1) == 0 );
 		t( sp_setstring(st_r.env, "db.test.compression_cold", "lz4", 0) == 0 );
 		break;
-	case 7:
-		if (st_r.verbose) {
-			fprintf(st_r.output, ".storage_in_memory_mmap");
-			fflush(st_r.output);
-		}
-		t( sp_setstring(st_r.env, "db.test.storage", "in-memory", 0) == 0 );
-		t( sp_setint(st_r.env, "db.test.mmap", 1) == 0 );
-		break;
-	case 8:
-		if (st_r.verbose) {
-			fprintf(st_r.output, ".storage_in_memory_compression");
-			fflush(st_r.output);
-		}
-		t( sp_setstring(st_r.env, "db.test.storage", "in-memory", 0) == 0 );
-		t( sp_setstring(st_r.env, "db.test.compression_cold", "lz4", 0) == 0 );
-		break;
-	case 9:
+	case 6:
 		if (st_r.verbose) {
 			fprintf(st_r.output, ".storage_amqf");
 			fflush(st_r.output);

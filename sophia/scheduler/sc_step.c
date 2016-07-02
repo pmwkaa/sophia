@@ -46,8 +46,7 @@ sc_execute(sctask *t, scworker *w, uint64_t vlsn)
 {
 	si *index = t->db->index;
 	si_plannertrace(&t->plan, index->scheme.id, &w->trace);
-	uint64_t vlsn_lru = si_lru_vlsn(index);
-	return si_execute(index, &w->dc, &t->plan, vlsn, vlsn_lru);
+	return si_execute(index, &w->dc, &t->plan, vlsn);
 }
 
 static inline int
@@ -93,18 +92,12 @@ sc_taskend(sc *s, sctask *t)
 		break;
 	case SI_SNAPSHOT:
 		break;
-	case SI_ANTICACHE:
-		break;
 	case SI_EXPIRE:
 		db->workers[SC_QEXPIRE]--;
 		t->gc = 1;
 		break;
 	case SI_GC:
 		db->workers[SC_QGC]--;
-		t->gc = 1;
-		break;
-	case SI_LRU:
-		db->workers[SC_QLRU]--;
 		t->gc = 1;
 		break;
 	}
@@ -164,31 +157,6 @@ sc_do(sc *s, sctask *task)
 	rc = si_plan(db->index, &task->plan);
 	if (rc == SI_PMATCH)
 		return rc;
-
-	/* anti-cache */
-	if (db->anticache) {
-		task->plan.plan = SI_ANTICACHE;
-		task->plan.a = db->anticache_asn;
-		task->plan.b = db->anticache_storage;
-		rc = si_plan(db->index, &task->plan);
-		switch (rc) {
-		case SI_PMATCH:
-			task->db = db;
-			uint64_t size = task->plan.c;
-			if (size > 0) {
-				if (ssunlikely(size > db->anticache_storage))
-					db->anticache_storage  = 0;
-				else
-					db->anticache_storage -= size;
-			}
-			return rc;
-		case SI_PNONE:
-			sc_task_anticache_done(db, task->time);
-			break;
-		case SI_PRETRY:
-			break;
-		}
-	}
 
 	/* backup */
 	if (db->backup)
@@ -287,24 +255,6 @@ sc_do(sc *s, sctask *task)
 		}
 	}
 
-	/* lru */
-	if (db->lru) {
-		task->plan.plan = SI_LRU;
-		rc = sc_plan(s, task, SC_QLRU);
-		switch (rc) {
-		case SI_PMATCH:
-			if (c->mode == 1)
-				task->plan.plan = SI_COMPACT_INDEX;
-			db->workers[SC_QLRU]++;
-			return SI_PMATCH;
-		case SI_PNONE:
-			sc_task_lru_done(db, task->time);
-			break;
-		case SI_PRETRY:
-			break;
-		}
-	}
-
 	/* aging */
 	if (db->age) {
 		task->plan.plan = SI_AGE;
@@ -393,11 +343,6 @@ sc_periodic(sc *s, sctask *task)
 		if ((task->time - db->snapshot_time) >= c->snapshot_period_us)
 			sc_task_snapshot(s, db);
 	}
-	/* anti-cache */
-	if (c->anticache_period && db->anticache == 0) {
-		if ((task->time - db->anticache_time) >= c->anticache_period_us)
-			sc_task_anticache(s, db);
-	}
 	/* expire */
 	if (c->expire_period && db->expire == 0) {
 		if ((task->time - db->expire_time) >= c->expire_period_us)
@@ -407,11 +352,6 @@ sc_periodic(sc *s, sctask *task)
 	if (c->gc_period && db->gc == 0) {
 		if ((task->time - db->gc_time) >= c->gc_period_us)
 			sc_task_gc(db);
-	}
-	/* lru */
-	if (c->lru_period && db->lru == 0) {
-		if ((task->time - db->lru_time) >= c->lru_period_us)
-			sc_task_lru(db);
 	}
 	/* aging */
 	if (c->branch_age_period && db->age == 0) {

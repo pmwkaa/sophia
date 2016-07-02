@@ -19,13 +19,11 @@ struct sdreadarg {
 	ssiter     *index_iter;
 	ssiter     *page_iter;
 	ssmmap     *mmap;
-	ssblob     *memory;
 	ssfile     *file;
 	ssorder     o;
 	int         from_compaction;
 	int         has;
 	uint64_t    has_vlsn;
-	int         use_memory;
 	int         use_mmap;
 	int         use_mmap_copy;
 	int         use_compression;
@@ -46,27 +44,19 @@ sd_read_page(sdread *i, sdindexpage *ref)
 	sdreadarg *arg = &i->ra;
 	sr *r = arg->r;
 
+	i->reads++;
+
 	ss_bufreset(arg->buf);
 	int rc = ss_bufensure(arg->buf, r->a, ref->sizeorigin);
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
 
-	i->reads++;
-
 	uint64_t start;
-	/* in-memory mode only offsets */
-	uint64_t branch_start_offset =
-		arg->index->h->offset - arg->index->h->total;
-	uint64_t branch_ref_offset =
-		ref->offset - branch_start_offset;
 
 	/* compression */
 	if (arg->use_compression)
 	{
 		char *page_pointer;
-		if (arg->use_memory) {
-			page_pointer = arg->memory->map.p + branch_ref_offset;
-		} else
 		if (arg->use_mmap) {
 			page_pointer = arg->mmap->p + ref->offset;
 		} else {
@@ -108,12 +98,6 @@ sd_read_page(sdread *i, sdindexpage *ref)
 		}
 		ss_filterfree(&f);
 		sd_pageinit(&i->page, (sdpageheader*)arg->buf->s);
-		return 0;
-	}
-
-	/* in-memory mode */
-	if (arg->use_memory) {
-		sd_pageinit(&i->page, (sdpageheader*)(arg->memory->map.p + branch_ref_offset));
 		return 0;
 	}
 

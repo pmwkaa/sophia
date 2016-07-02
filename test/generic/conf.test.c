@@ -64,7 +64,6 @@ conf_validation0(void)
 
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == -1 );
 	t( sp_setint(env, "db.test.memory_limit", 0) == -1 );
-	t( sp_setint(env, "db.test.memory_limit_anticache", 0) == -1 );
 
 	t( sp_setint(env, "log.enable", 0) == -1 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == -1 );
@@ -108,44 +107,6 @@ conf_validation1(void)
 	t( sp_setstring(env, "scheduler.run", NULL, 0) == 0 );
 	t( sp_getobject(env, "scheduler.run") == NULL );
 
-	t( sp_destroy(env) == 0 );
-}
-
-static int
-conf_validation_upsert_op(int count,
-                          char **src,    uint32_t *src_size,
-                          char **upsert, uint32_t *upsert_size,
-                          char **result, uint32_t *result_size,
-                          void *arg)
-{
-	(void)count;
-	(void)src;
-	(void)src_size;
-	(void)upsert;
-	(void)upsert_size;
-	(void)result;
-	(void)result_size;
-	(void)arg;
-	return -1;
-}
-
-static void
-conf_validation_upsert(void)
-{
-	void *env = sp_env();
-	t( env != NULL );
-	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "log.enable", 0) == 0 );
-	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "log.sync", 0) == 0 );
-	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
-	t( sp_setstring(env, "db", "test", 0) == 0 );
-	void *db = sp_getobject(env, "db.test");
-	t( db != NULL );
-	t( sp_setint(env, "db.test.sync", 0) == 0 );
-	t( sp_setstring(env, "db.test.upsert", conf_validation_upsert_op, 0) == 0 );
-	t( sp_setstring(env, "db.test.storage", "bad", 0) == 0 );
-	t( sp_open(env) == -1 );
 	t( sp_destroy(env) == 0 );
 }
 
@@ -231,7 +192,6 @@ stgroup *conf_group(void)
 	st_groupadd(group, st_test("error_injection", conf_error_injection));
 	st_groupadd(group, st_test("validation0", conf_validation0));
 	st_groupadd(group, st_test("validation1", conf_validation1));
-	st_groupadd(group, st_test("validation_upsert", conf_validation_upsert));
 	st_groupadd(group, st_test("empty_key", conf_empty_key));
 	st_groupadd(group, st_test("cursor", conf_cursor));
 	return group;

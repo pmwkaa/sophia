@@ -287,104 +287,6 @@ mt_set_get_kv_multipart(void)
 }
 
 static void
-mt_set_get_anticache(void)
-{
-	void *env = sp_env();
-	t( env != NULL );
-	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "scheduler.threads", 5) == 0 );
-	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
-	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.memory_limit_anticache", 500 * 1024) == 0 );
-	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.storage", "anti-cache", 0) == 0 );
-	t( sp_setint(env, "db.test.sync", 0) == 0 );
-	t( sp_setint(env, "db.test.temperature", 1) == 0 );
-	t( sp_setint(env, "db.test.compaction.node_size", 100 * 1024) == 0 );
-	t( sp_setint(env, "db.test.compaction.page_size", 8 * 1024) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
-	void *db = sp_getobject(env, "db.test");
-	t( db != NULL );
-	t( sp_open(env) == 0 );
-
-	uint32_t n = 700000;
-	uint32_t i, k;
-
-	char value[100];
-	memset(value, 0, sizeof(value));
-
-	srand(82351);
-	for (i = 0; i < n; i++) {
-		k = rand();
-		void *o = sp_document(db);
-		t( o != NULL );
-		t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
-		t( sp_setstring(o, "value", value, sizeof(value)) == 0 );
-		t( sp_set(db, o) == 0 );
-		print_current(i);
-	}
-
-	srand(82351);
-	for (i = 0; i < n; i++) {
-		k = rand();
-		void *o = sp_document(db);
-		t( o != NULL );
-		t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
-		o = sp_get(db, o);
-		t( o != NULL );
-		sp_destroy(o);
-		print_current(i);
-	}
-
-	t( sp_destroy(env) == 0 );
-}
-
-static void
-mt_set_lru(void)
-{
-	void *env = sp_env();
-	t( env != NULL );
-	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "scheduler.threads", 5) == 0 );
-	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
-	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 500000) == 0 );
-	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setint(env, "db.test.lru", 1 * 1024 * 1024) == 0 );
-	t( sp_setint(env, "db.test.sync", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
-	void *db = sp_getobject(env, "db.test");
-	t( db != NULL );
-	t( sp_open(env) == 0 );
-
-	uint32_t n = 700000;
-	uint32_t i, k;
-
-	char value[100];
-	memset(value, 0, sizeof(value));
-
-	srand(82351);
-	for (i = 0; i < n; i++) {
-		k = rand();
-		void *o = sp_document(db);
-		t( o != NULL );
-		t( sp_setstring(o, "key", &k, sizeof(k)) == 0 );
-		t( sp_setstring(o, "value", value, sizeof(value)) == 0 );
-		t( sp_set(db, o) == 0 );
-		print_current(i);
-	}
-
-	int64_t size = sp_getint(env, "db.test.index.size");
-	fprintf(st_r.output, " (cache: 1Mb, size: %"PRIu64")", size);
-
-	t( sp_destroy(env) == 0 );
-}
-
-static void
 mt_set_expire(void)
 {
 	void *env = sp_env();
@@ -432,8 +334,6 @@ stgroup *multithread_be_group(void)
 	st_groupadd(group, st_test("set_snapshot_recover_get", mt_set_snapshot_recover_get));
 	st_groupadd(group, st_test("set_checkpoint_get", mt_set_checkpoint_get));
 	st_groupadd(group, st_test("set_get_kv_multipart", mt_set_get_kv_multipart));
-	st_groupadd(group, st_test("set_get_anticache", mt_set_get_anticache));
-	st_groupadd(group, st_test("set_lru", mt_set_lru));
 	st_groupadd(group, st_test("set_expire", mt_set_expire));
 	return group;
 }

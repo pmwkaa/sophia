@@ -57,10 +57,6 @@ int si_snapshot(si *index, siplan *plan)
 		}
 	}
 	sd_snapshot_commit(&snapshot, r,
-	                   index->lru_v,
-	                   index->lru_steps,
-	                   index->lru_intr_lsn,
-	                   index->lru_intr_sum,
 	                   index->read_disk,
 	                   index->read_cache);
 	si_unlock(index);

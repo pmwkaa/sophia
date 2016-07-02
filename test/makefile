@@ -52,8 +52,6 @@ STS_TESTS = unit/ss_a.test.o \
             compaction/compact_delete.test.o \
             compaction/gc.test.o \
             compaction/expire.test.o \
-            compaction/lru.test.o \
-            cache/anticache.test.o \
             functional/hermitage.test.o \
             functional/transaction.test.o \
             functional/cursor.test.o \

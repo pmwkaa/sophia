@@ -25,13 +25,10 @@ sinode *si_nodenew(sr *r)
 	}
 	n->recover = 0;
 	n->backup = 0;
-	n->lru = 0;
-	n->ac = 0;
 	n->flags = 0;
 	n->update_time = 0;
 	n->used = 0;
-	n->in_memory = 0;
-	si_branchinit(&n->self, r);
+	si_branchinit(&n->self);
 	n->branch = NULL;
 	n->branch_count = 0;
 	n->temperature = 0;
@@ -132,13 +129,12 @@ si_noderecover_snapshot(sinode *n, sr *r, sdsnapshotnode *sn)
 }
 
 static inline int
-si_noderecover(sinode *n, sr *r, sdsnapshotnode *sn, int in_memory)
+si_noderecover(sinode *n, sr *r, sdsnapshotnode *sn)
 {
 	/* fast recover from snapshot file */
 	if (sn) {
 		n->temperature_reads = sn->temperature_reads;
-		if (! in_memory)
-			return si_noderecover_snapshot(n, r, sn);
+		return si_noderecover_snapshot(n, r, sn);
 	}
 
 	/* recover branches (backwards) */
@@ -168,12 +164,6 @@ si_noderecover(sinode *n, sr *r, sdsnapshotnode *sn, int in_memory)
 			goto e0;
 		si_branchset(b, &index);
 
-		if (in_memory) {
-			rc = si_branchload(b, r, &n->file);
-			if (ssunlikely(rc == -1))
-				goto e0;
-		}
-
 		b->next = branch;
 		branch = b;
 		branch_count++;
@@ -194,7 +184,6 @@ si_noderecover(sinode *n, sr *r, sdsnapshotnode *sn, int in_memory)
 		b = next;
 	}
 	n->branch_count = branch_count;
-	n->in_memory = in_memory;
 	return 0;
 e0:
 	if (b && b != &n->self)
@@ -221,10 +210,7 @@ int si_nodeopen(sinode *n, sr *r, sischeme *scheme, sspath *path,
 		               strerror(errno));
 		return -1;
 	}
-	int in_memory = 0;
-	if (scheme->storage == SI_SIN_MEMORY)
-		in_memory = 1;
-	rc = si_noderecover(n, r, sn, in_memory);
+	rc = si_noderecover(n, r, sn);
 	if (ssunlikely(rc == -1))
 		return -1;
 	if (scheme->mmap) {
@@ -272,7 +258,6 @@ si_nodefree_branches(sinode *n, sr *r)
 		p = next;
 	}
 	sd_indexfree(&n->self.index, r);
-	ss_blobfree(&n->self.copy);
 }
 
 int si_nodefree(sinode *n, sr *r, int gc)

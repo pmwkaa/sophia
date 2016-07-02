@@ -41,7 +41,6 @@ int sc_ctl_branch(sc *s, uint64_t vlsn, si *index)
 	if (ssunlikely(w == NULL))
 		return -1;
 	while (1) {
-		uint64_t vlsn_lru = si_lru_vlsn(index);
 		siplan plan = {
 			.plan = SI_BRANCH,
 			.a    = index->scheme.compaction.branch_wm,
@@ -52,7 +51,7 @@ int sc_ctl_branch(sc *s, uint64_t vlsn, si *index)
 		rc = si_plan(index, &plan);
 		if (rc == 0)
 			break;
-		rc = si_execute(index, &w->dc, &plan, vlsn, vlsn_lru);
+		rc = si_execute(index, &w->dc, &plan, vlsn);
 		if (ssunlikely(rc == -1))
 			break;
 	}
@@ -70,7 +69,6 @@ int sc_ctl_compact(sc *s, uint64_t vlsn, si *index)
 	if (ssunlikely(w == NULL))
 		return -1;
 	while (1) {
-		uint64_t vlsn_lru = si_lru_vlsn(index);
 		siplan plan = {
 			.plan = SI_COMPACT,
 			.a    = index->scheme.compaction.compact_wm,
@@ -81,7 +79,7 @@ int sc_ctl_compact(sc *s, uint64_t vlsn, si *index)
 		rc = si_plan(index, &plan);
 		if (rc == 0)
 			break;
-		rc = si_execute(index, &w->dc, &plan, vlsn, vlsn_lru);
+		rc = si_execute(index, &w->dc, &plan, vlsn);
 		if (ssunlikely(rc == -1))
 			break;
 	}
@@ -99,7 +97,6 @@ int sc_ctl_compact_index(sc *s, uint64_t vlsn, si *index)
 	if (ssunlikely(w == NULL))
 		return -1;
 	while (1) {
-		uint64_t vlsn_lru = si_lru_vlsn(index);
 		siplan plan = {
 			.plan = SI_COMPACT_INDEX,
 			.a    = index->scheme.compaction.branch_wm,
@@ -110,21 +107,12 @@ int sc_ctl_compact_index(sc *s, uint64_t vlsn, si *index)
 		rc = si_plan(index, &plan);
 		if (rc == 0)
 			break;
-		rc = si_execute(index, &w->dc, &plan, vlsn, vlsn_lru);
+		rc = si_execute(index, &w->dc, &plan, vlsn);
 		if (ssunlikely(rc == -1))
 			break;
 	}
 	sc_workerpool_push(&s->wp, w);
 	return rc;
-}
-
-int sc_ctl_anticache(sc *s, si *index)
-{
-	ss_mutexlock(&s->lock);
-	scdb *db = sc_of(s, index);
-	sc_task_anticache(s, db);
-	ss_mutexunlock(&s->lock);
-	return 0;
 }
 
 int sc_ctl_snapshot(sc *s, si *index)
@@ -159,15 +147,6 @@ int sc_ctl_gc(sc *s, si *index)
 	ss_mutexlock(&s->lock);
 	scdb *db = sc_of(s, index);
 	sc_task_gc(db);
-	ss_mutexunlock(&s->lock);
-	return 0;
-}
-
-int sc_ctl_lru(sc *s, si *index)
-{
-	ss_mutexlock(&s->lock);
-	scdb *db = sc_of(s, index);
-	sc_task_lru(db);
 	ss_mutexunlock(&s->lock);
 	return 0;
 }

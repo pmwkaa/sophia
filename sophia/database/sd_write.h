@@ -11,8 +11,8 @@
 
 int sd_commitpage(sdbuild*, sr*, ssbuf*);
 
-int sd_writepage(sr*, ssfile*, ssblob*, sdbuild*);
-int sd_writeindex(sr*, ssfile*, ssblob*, sdindex*);
-int sd_writeseal(sr*, ssfile*, ssblob*, sdindex*);
+int sd_writepage(sr*, ssfile*, sdbuild*);
+int sd_writeindex(sr*, ssfile*, sdindex*);
+int sd_writeseal(sr*, ssfile*, sdindex*);
 
 #endif
