@@ -6,8 +6,8 @@
 [Sophia](http://sophia.systems) is advanced transactional [MVCC](http://en.wikipedia.org/wiki/Multiversion_concurrency_control)
 key-value/row storage library.
 
-Optimized for Updates and Range-Scans. It can efficiently work with large volumes of ordered data, such as<br>
-a time-series, events, logs, counters, metrics, etc.
+Optimized for Updates and Range-Scans. It can efficiently work with large volumes of ordered data,<br>
+such as a time-series, events, logs, counters, metrics, etc.
 
 **Features**
 
@@ -21,17 +21,13 @@ a time-series, events, logs, counters, metrics, etc.
 * Secondary indexes
 * Multi-Statement and Single-Statement Transactions (cross-database)
 * Serialized Snapshot Isolation (SSI)
-* Persistent RAM Storage mode
-* Anti-Cache Storage mode
-* LRU Storage
 * AMQ Filter (approximate member query filter) based on Quotient Filter
 * Upsert (fast write-only 'update or insert' operation)
 * Consistent Cursors
 * Prefix search
 * Automatic garbage-collection
 * Automatic key-expire
-* Online/Versional database creation and asynchronous shutdown/drop
-* Asynchronous Online/Hot Backup
+* Hot Backup
 * Compression (no fixed-size blocks, no-holes, supported: lz4, zstd)
 * Compression for hot and cold data (distinct compression types)
 * Optimizations for faster recovery with large datasets (snapshot)
