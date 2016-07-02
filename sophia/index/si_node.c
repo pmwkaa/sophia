@@ -98,7 +98,10 @@ si_noderecover_snapshot(sinode *n, sr *r, sdsnapshotnode *sn)
 	int first = 1;
 	int rc;
 	while (i < sn->branch_count) {
-		sdindexheader *h = (sdindexheader*)p;
+		sdindexheader *h =
+			(sdindexheader*)
+				(p + sn->size - sizeof(sdindexheader));
+
 		sibranch *b;
 		if (first) {
 			b = &n->self;
@@ -298,18 +301,9 @@ int si_noderead(sinode *n, sr *r, ssbuf *dest)
 	return 0;
 }
 
-int si_nodeseal(sinode *n, sr *r, sischeme *scheme)
+int si_noderename_seal(sinode *n, sr *r, sischeme *scheme)
 {
 	int rc;
-	if (scheme->sync) {
-		rc = ss_filesync(&n->file);
-		if (ssunlikely(rc == -1)) {
-			sr_malfunction(r->e, "db file '%s' sync error: %s",
-			               ss_pathof(&n->file.path),
-			               strerror(errno));
-			return -1;
-		}
-	}
 	sspath path;
 	ss_pathcompound(&path, scheme->path,
 	                n->self.id.parent, n->self.id.id,
@@ -324,7 +318,21 @@ int si_nodeseal(sinode *n, sr *r, sischeme *scheme)
 	return 0;
 }
 
-int si_nodecomplete(sinode *n, sr *r, sischeme *scheme)
+int si_noderename_inprogress(sinode *n, sr *r, sischeme *scheme, sdid *id)
+{
+	sspath path;
+	ss_pathcompound(&path, scheme->path,
+	                n->self.id.id, id->id, ".db.inprogress");
+	int rc = ss_filerename(&n->file, path.path);
+	if (ssunlikely(rc == -1)) {
+		sr_malfunction(r->e, "db file '%s' rename error: %s",
+		               ss_pathof(&n->file.path),
+		               strerror(errno));
+	}
+	return rc;
+}
+
+int si_noderename_complete(sinode *n, sr *r, sischeme *scheme)
 {
 	sspath path;
 	ss_path(&path, scheme->path, n->self.id.id, ".db");

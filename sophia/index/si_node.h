@@ -20,8 +20,9 @@ typedef struct sinode sinode;
 #define SI_RDB        32
 #define SI_RDB_DBI    64
 #define SI_RDB_DBSEAL 128
-#define SI_RDB_UNDEF  256
-#define SI_RDB_REMOVE 512
+#define SI_RDB_DBINPR 256
+#define SI_RDB_UNDEF  512
+#define SI_RDB_REMOVE 1024
 
 struct sinode {
 	uint32_t   recover;
@@ -55,8 +56,9 @@ int si_nodemap(sinode*, sr*);
 int si_noderead(sinode*, sr*, ssbuf*);
 int si_nodegc_index(sr*, svindex*);
 int si_nodegc(sinode*, sr*, sischeme*);
-int si_nodeseal(sinode*, sr*, sischeme*);
-int si_nodecomplete(sinode*, sr*, sischeme*);
+int si_noderename_seal(sinode*, sr*, sischeme*);
+int si_noderename_inprogress(sinode*, sr*, sischeme*, sdid*);
+int si_noderename_complete(sinode*, sr*, sischeme*);
 
 static inline void
 si_nodelock(sinode *node) {

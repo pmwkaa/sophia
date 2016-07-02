@@ -19,34 +19,31 @@ struct sditer {
 	ssfile        *file;
 	int            corrupt;
 	sdindexheader *v;
-	sdindexheader *actual;
-	sdseal        *seal;
 	ssmmap         map;
 	sr            *r;
 } sspacked;
 
 static int
-sd_iternext_of(sditer *i, sdseal *seal)
+sd_iternext_of(sditer *i, sdindexheader *index)
 {
-	if (seal == NULL)
+	if (ssunlikely(index == NULL))
 		return 0;
 
-	char *eof = i->map.p + i->map.size;
-	char *pointer = i->map.p + seal->index_offset;
+	char *start = i->map.p + index->offset;
 
 	int sanity_check = 0;
-	sanity_check += (pointer >= (char*)seal);
-	sanity_check += (pointer + sizeof(sdindexheader)) > eof;
+	sanity_check += (start >= (char*)index);
+	sanity_check +=
+		((char*)index - start) != index->size + index->extension;
 
-	/* validate index pointer */
+	/* validate index header */
 	if (ssunlikely(sanity_check > 0)) {
-		sr_malfunction(i->r->e, "corrupted db file '%s': bad seal",
+		sr_malfunction(i->r->e, "corrupted db file '%s': bad index header",
 		               ss_pathof(&i->file->path));
 		i->corrupt = 1;
 		i->v = NULL;
 		return -1;
 	}
-	sdindexheader *index = (sdindexheader*)(pointer);
 
 	/* validate index crc */
 	uint32_t crc = ss_crcs(i->r->crc, index, sizeof(sdindexheader), 0);
@@ -58,29 +55,7 @@ sd_iternext_of(sditer *i, sdseal *seal)
 		return -1;
 	}
 
-	/* validate index size */
-	char *end = pointer + sizeof(sdindexheader) + index->size +
-	            index->extension;
-	if (ssunlikely(end > eof)) {
-		sr_malfunction(i->r->e, "corrupted db file '%s': bad index size",
-		               ss_pathof(&i->file->path));
-		i->corrupt = 1;
-		i->v = NULL;
-		return -1;
-	}
-
-	/* validate seal */
-	int rc = sd_sealvalidate(seal, i->r, index);
-	if (ssunlikely(rc == -1)) {
-		sr_malfunction(i->r->e, "corrupted db file '%s': bad seal",
-		               ss_pathof(&i->file->path));
-		i->corrupt = 1;
-		i->v = NULL;
-		return -1;
-	}
-	i->seal   = seal;
-	i->actual = index;
-	i->v      = index;
+	i->v = index;
 	return 1;
 }
 
@@ -90,7 +65,7 @@ int sd_iter_open(ssiter *i, sr *r, ssfile *file)
 	memset(ri, 0, sizeof(*ri));
 	ri->r = r;
 	ri->file = file;
-	if (ssunlikely(ri->file->size < (sizeof(sdseal) + sizeof(sdindexheader)))) {
+	if (ssunlikely(ri->file->size < sizeof(sdindexheader))) {
 		sr_malfunction(ri->r->e, "corrupted db file '%s': bad size",
 		               ss_pathof(&ri->file->path));
 		ri->corrupt = 1;
@@ -103,10 +78,10 @@ int sd_iter_open(ssiter *i, sr *r, ssfile *file)
 		               strerror(errno));
 		return -1;
 	}
-	sdseal *seal =
-		(sdseal*)((char*)ri->map.p +
-		          (ri->file->size - sizeof(sdseal)));
-	rc = sd_iternext_of(ri, seal);
+	sdindexheader *header =
+		(sdindexheader*)((char*)ri->map.p +
+		          (ri->file->size - sizeof(sdindexheader)));
+	rc = sd_iternext_of(ri, header);
 	if (ssunlikely(rc == -1))
 		ss_vfsmunmap(r->vfs, &ri->map);
 	return rc;
@@ -139,13 +114,16 @@ sd_iternext(ssiter *i)
 	sditer *ri = (sditer*)i->priv;
 	if (ssunlikely(ri->v == NULL))
 		return;
-	char *next = (char*)ri->v - ri->v->total;
+	char *next =
+		((char*)ri->v -
+		        ri->v->extension -
+		        ri->v->size - ri->v->total);
 	if (next == ri->map.p) {
 		ri->v = NULL;
 		return;
 	}
-	next = next - sizeof(sdseal);
-	sd_iternext_of(ri, (sdseal*)next);
+	next = next - sizeof(sdindexheader);
+	sd_iternext_of(ri, (sdindexheader*)next);
 }
 
 ssiterif sd_iter =
@@ -181,6 +159,9 @@ int sd_iter_isroot(ssiter *i)
 {
 	sditer *ri = (sditer*)i->priv;
 	assert(ri->v != NULL);
-	char *next = (char*)ri->v - ri->v->total;
+	char *next =
+		((char*)ri->v -
+		        ri->v->extension -
+		        ri->v->size - ri->v->total);
 	return next == ri->map.p;
 }

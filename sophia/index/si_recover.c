@@ -21,6 +21,9 @@
 	000000003.db
 	(4)
 
+	branching
+	000000001.000000003.db.inprogress  (5)
+
 	1. remove incomplete, mark parent as having incomplete
 	2. find parent, mark as having seal
 	3. add
@@ -28,6 +31,7 @@
 		a. if parent has incomplete and seal - remove both
 		b. if parent has incomplete - remove incomplete
 		c. if parent has seal - remove parent, complete seal
+	5. panic (auto-recover)
 
 	see: snapshot recover
 	see: scheme recover
@@ -64,7 +68,7 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 	/* create index with one empty page */
 	sdindex index;
 	sd_indexinit(&index);
-	rc = sd_indexbegin(&index, r);
+	rc = sd_indexbegin(&index);
 	if (ssunlikely(rc == -1))
 		goto e0;
 
@@ -101,10 +105,6 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 	ss_qffree(&f, r->a);
 	/* write index */
 	rc = sd_writeindex(r, &n->file, &index);
-	if (ssunlikely(rc == -1))
-		goto e1;
-	/* write seal */
-	rc = sd_writeseal(r, &n->file, &index);
 	if (ssunlikely(rc == -1))
 		goto e1;
 	if (i->scheme.mmap) {
@@ -152,7 +152,7 @@ si_deploy(si *i, sr *r, int create_directory)
 	             si_nodefree(n, r, 0);
 	             sr_malfunction(r->e, "%s", "error injection");
 	             return -1);
-	rc = si_nodecomplete(n, r, &i->scheme);
+	rc = si_noderename_complete(n, r, &i->scheme);
 	if (ssunlikely(rc == -1)) {
 		si_nodefree(n, r, 1);
 		return -1;
@@ -184,6 +184,7 @@ si_process(char *name, uint64_t *nsn, uint64_t *parent)
 	/* id.db */
 	/* id.id.db.incomplete */
 	/* id.id.db.seal */
+	/* id.id.db.inprogress */
 	/* id.id.db.gc */
 	char *token = name;
 	int64_t id = si_processid(&token);
@@ -205,6 +206,9 @@ si_process(char *name, uint64_t *nsn, uint64_t *parent)
 	*nsn = id;
 	if (strcmp(token, ".db.incomplete") == 0)
 		return SI_RDB_DBI;
+	else
+	if (strcmp(token, ".db.inprogress") == 0)
+		return SI_RDB_DBINPR;
 	else
 	if (strcmp(token, ".db.seal") == 0)
 		return SI_RDB_DBSEAL;
@@ -287,6 +291,11 @@ si_trackdir(sitrack *track, sr *r, si *i)
 				goto error;
 			}
 			continue;
+		case SI_RDB_DBINPR:
+			/* node file needs a repair */
+			sr_malfunction(r->e, "corrupted database repository: %s",
+			               i->scheme.path);
+			goto error;
 		}
 		assert(rc == SI_RDB);
 
@@ -363,7 +372,7 @@ si_trackvalidate(sitrack *track, ssbuf *buf, sr *r, si *i)
 			}
 			if (! (n->recover & SI_RDB_REMOVE)) {
 				/* complete node */
-				int rc = si_nodecomplete(n, r, &i->scheme);
+				int rc = si_noderename_complete(n, r, &i->scheme);
 				if (ssunlikely(rc == -1))
 					return -1;
 				n->recover = SI_RDB;

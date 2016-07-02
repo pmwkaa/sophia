@@ -48,7 +48,7 @@ sd_read_gt0(void)
 
 	sdindex index;
 	sd_indexinit(&index);
-	t( sd_indexbegin(&index, &st_r.r) == 0 );
+	t( sd_indexbegin(&index) == 0 );
 
 	int rc;
 	rc = sd_indexadd(&index, &st_r.r, &b, 0);
@@ -63,7 +63,6 @@ sd_read_gt0(void)
 	t( sd_writepage(&st_r.r, &f, &b) == 0 );
 	t( sd_indexcommit(&index, &st_r.r, &id, NULL, f.size) == 0 );
 	t( sd_writeindex(&st_r.r, &f, &index) == 0 );
-	t( sd_writeseal(&st_r.r, &f, &index) == 0 );
 
 	ssmmap map;
 	t( ss_vfsmmap(&st_r.vfs, &map, f.fd, f.size, 1) == 0 );
@@ -146,7 +145,7 @@ sd_read_gt1(void)
 
 	sdindex index;
 	sd_indexinit(&index);
-	t( sd_indexbegin(&index, &st_r.r) == 0 );
+	t( sd_indexbegin(&index) == 0 );
 
 	int rc;
 	rc = sd_indexadd(&index, &st_r.r, &b, poff);
@@ -188,7 +187,6 @@ sd_read_gt1(void)
 
 	t( sd_indexcommit(&index, &st_r.r, &id, NULL, f.size) == 0 );
 	t( sd_writeindex(&st_r.r, &f, &index) == 0 );
-	t( sd_writeseal(&st_r.r, &f, &index) == 0 );
 
 	ssmmap map;
 	t( ss_vfsmmap(&st_r.vfs, &map, f.fd, f.size, 1) == 0 );
@@ -317,7 +315,7 @@ sd_read_gt0_compression_zstd(void)
 
 	sdindex index;
 	sd_indexinit(&index);
-	t( sd_indexbegin(&index, &r) == 0 );
+	t( sd_indexbegin(&index) == 0 );
 
 	int rc;
 	rc = sd_indexadd(&index, &r, &b, 0);
@@ -332,7 +330,6 @@ sd_read_gt0_compression_zstd(void)
 	t( sd_writepage(&r, &f, &b) == 0 );
 	t( sd_indexcommit(&index, &r, &id, NULL, f.size) == 0 );
 	t( sd_writeindex(&r, &f, &index) == 0 );
-	t( sd_writeseal(&r, &f, &index) == 0 );
 
 	sd_buildreset(&b);
 
@@ -441,7 +438,7 @@ sd_read_gt0_compression_lz4(void)
 
 	sdindex index;
 	sd_indexinit(&index);
-	t( sd_indexbegin(&index, &r) == 0 );
+	t( sd_indexbegin(&index) == 0 );
 
 	int rc;
 	rc = sd_indexadd(&index, &r, &b, 0);
@@ -458,7 +455,6 @@ sd_read_gt0_compression_lz4(void)
 	t( sd_writepage(&r, &f, &b) == 0 );
 	t( sd_indexcommit(&index, &r, &id, NULL, f.size) == 0 );
 	t( sd_writeindex(&r, &f, &index) == 0 );
-	t( sd_writeseal(&r, &f, &index) == 0 );
 
 	ssmmap map;
 	t( ss_vfsmmap(&st_r.vfs, &map, f.fd, f.size, 1) == 0 );
@@ -573,7 +569,7 @@ sd_read_gt1_compression_zstd(void)
 
 	sdindex index;
 	sd_indexinit(&index);
-	t( sd_indexbegin(&index, &r) == 0 );
+	t( sd_indexbegin(&index) == 0 );
 
 	int rc;
 	rc = sd_indexadd(&index, &r, &b, poff);
@@ -615,7 +611,6 @@ sd_read_gt1_compression_zstd(void)
 	t( sd_indexcommit(&index, &r, &id, NULL, f.size) == 0 );
 
 	t( sd_writeindex(&r, &f, &index) == 0 );
-	t( sd_writeseal(&r, &f, &index) == 0 );
 
 	ssmmap map;
 	t( ss_vfsmmap(&st_r.vfs, &map, f.fd, f.size, 1) == 0 );
@@ -751,7 +746,7 @@ sd_read_gt1_compression_lz4(void)
 
 	sdindex index;
 	sd_indexinit(&index);
-	t( sd_indexbegin(&index, &r) == 0 );
+	t( sd_indexbegin(&index) == 0 );
 
 	int rc;
 	rc = sd_indexadd(&index, &r, &b, poff);
@@ -793,7 +788,6 @@ sd_read_gt1_compression_lz4(void)
 	t( sd_indexcommit(&index, &r, &id, NULL, f.size) == 0 );
 
 	t( sd_writeindex(&r, &f, &index) == 0 );
-	t( sd_writeseal(&r, &f, &index) == 0 );
 
 	ssmmap map;
 	t( ss_vfsmmap(&st_r.vfs, &map, f.fd, f.size, 1) == 0 );

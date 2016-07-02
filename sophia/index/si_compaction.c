@@ -58,6 +58,15 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 	if (ssunlikely(rc == -1))
 		return -1;
 
+	sdid id = {
+		.parent = parent->self.id.id,
+		.flags  = SD_IDBRANCH,
+		.id     = sr_seq(r->seq, SR_NSNNEXT)
+	};
+	rc = si_noderename_inprogress(parent, r, &index->scheme, &id);
+	if (ssunlikely(rc == -1))
+		goto e0;
+
 	while ((rc = sd_merge(&merge)) > 0)
 	{
 		assert(branch == NULL);
@@ -73,11 +82,6 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		}
 		if (ssunlikely(rc == -1))
 			goto e0;
-		sdid id = {
-			.parent = parent->self.id.id,
-			.flags  = SD_IDBRANCH,
-			.id     = sr_seq(r->seq, SR_NSNNEXT)
-		};
 		rc = sd_mergecommit(&merge, &id, parent->file.size);
 		if (ssunlikely(rc == -1))
 			goto e0;
@@ -89,7 +93,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		if (index->scheme.sync) {
 			rc = ss_filesync_range(&parent->file, offset, parent->file.size);
 			if (ssunlikely(rc == -1)) {
-				sr_malfunction(r->e, "file '%s' sync error: %s",
+				sr_malfunction(r->e, "db file '%s' sync error: %s",
 				               ss_pathof(&parent->file.path),
 				               strerror(errno));
 				goto e0;
@@ -101,20 +105,9 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		             sr_malfunction(r->e, "%s", "error injection");
 		             return -1);
 
-		/* seal the branch */
-		offset = parent->file.size;
-		rc = sd_writeseal(r, &parent->file, &merge.index);
+		rc = si_noderename_complete(parent, r, &index->scheme);
 		if (ssunlikely(rc == -1))
 			goto e0;
-		if (index->scheme.sync == 2) {
-			rc = ss_filesync_range(&parent->file, offset, sizeof(sdseal));
-			if (ssunlikely(rc == -1)) {
-				sr_malfunction(r->e, "file '%s' sync error: %s",
-				               ss_pathof(&parent->file.path),
-				               strerror(errno));
-				goto e0;
-			}
-		}
 
 		/* create new branch object */
 		branch = si_branchnew(r);

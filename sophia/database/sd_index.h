@@ -34,7 +34,6 @@ struct sdindexheader {
 	uint64_t  dupmin;
 	uint32_t  extension;
 	uint8_t   extensions;
-	char      reserve[31];
 } sspacked;
 
 struct sdindexamqf {
@@ -57,13 +56,14 @@ struct sdindexpage {
 
 struct sdindex {
 	ssbuf i, v;
+	sdindexheader  build;
 	sdindexheader *h;
 };
 
 static inline char*
 sd_indexpage_min(sdindex *i, sdindexpage *p) {
-	return (char*)i->i.s + sizeof(sdindexheader) +
-	             (i->h->count * sizeof(sdindexpage)) + p->offsetindex;
+	return (char*)i->i.s + (i->h->count * sizeof(sdindexpage)) +
+	              p->offsetindex;
 }
 
 static inline char*
@@ -86,16 +86,15 @@ sd_indexfree(sdindex *i, sr *r) {
 
 static inline sdindexheader*
 sd_indexheader(sdindex *i) {
-	return (sdindexheader*)(i->i.s);
+	assert(i->i.s != NULL);
+	return (sdindexheader*)(i->i.p - sizeof(sdindexheader));
 }
 
 static inline sdindexpage*
 sd_indexpage(sdindex *i, uint32_t pos)
 {
 	assert(pos < i->h->count);
-	char *p = (char*)ss_bufat(&i->i, sizeof(sdindexpage), pos);
-   	p += sizeof(sdindexheader);
-	return (sdindexpage*)p;
+	return ss_bufat(&i->i, sizeof(sdindexpage), pos);
 }
 
 static inline sdindexpage*
@@ -111,33 +110,31 @@ sd_indexmax(sdindex *i) {
 static inline uint32_t
 sd_indexkeys(sdindex *i)
 {
-	if (ssunlikely(i->i.s == NULL))
-		return 0;
+	assert(i->h != NULL);
 	return sd_indexheader(i)->keys;
 }
 
 static inline uint32_t
 sd_indextotal(sdindex *i)
 {
-	if (ssunlikely(i->i.s == NULL))
-		return 0;
+	assert(i->h != NULL);
 	return sd_indexheader(i)->total;
 }
 
 static inline uint32_t
 sd_indexsize_ext(sdindexheader *h)
 {
-	return sizeof(sdindexheader) + h->size + h->extension;
+	return h->size + h->extension + sizeof(sdindexheader);
 }
 
 static inline sdindexamqf*
 sd_indexamqf(sdindex *i) {
 	sdindexheader *h = sd_indexheader(i);
 	assert(h->extensions & SD_INDEXEXT_AMQF);
-	return (sdindexamqf*)(i->i.s + sizeof(sdindexheader) + h->size);
+	return (sdindexamqf*)(i->i.s + h->size);
 }
 
-int sd_indexbegin(sdindex*, sr*);
+int sd_indexbegin(sdindex*);
 int sd_indexcommit(sdindex*, sr*, sdid*, ssqf*, uint64_t);
 int sd_indexadd(sdindex*, sr*, sdbuild*, uint64_t);
 int sd_indexcopy(sdindex*, sr*, sdindexheader*);

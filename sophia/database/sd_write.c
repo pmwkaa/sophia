@@ -77,20 +77,3 @@ int sd_writeindex(sr *r, ssfile *file, sdindex *index)
 	}
 	return 0;
 }
-
-int sd_writeseal(sr *r, ssfile *file, sdindex *index)
-{
-	sdseal seal;
-	sd_sealcreate(&seal, r, index->h);
-	SS_INJECTION(r->i, SS_INJECTION_SD_BUILD_1,
-	             seal.crc++); /* corrupt seal */
-	int rc;
-	rc = ss_filewrite(file, &seal, sizeof(seal));
-	if (ssunlikely(rc == -1)) {
-		sr_malfunction(r->e, "file '%s' write error: %s",
-		               ss_pathof(&file->path),
-		               strerror(errno));
-		return -1;
-	}
-	return 0;
-}

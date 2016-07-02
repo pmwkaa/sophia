@@ -13,12 +13,9 @@
 #include <libsv.h>
 #include <libsd.h>
 
-int sd_indexbegin(sdindex *i, sr *r)
+int sd_indexbegin(sdindex *i)
 {
-	int rc = ss_bufensure(&i->i, r->a, sizeof(sdindexheader));
-	if (ssunlikely(rc == -1))
-		return sr_oom(r->e);
-	sdindexheader *h = sd_indexheader(i);
+	sdindexheader *h = &i->build;
 	sr_version_storage(&h->version);
 	h->crc         = 0;
 	h->size        = 0;
@@ -35,10 +32,8 @@ int sd_indexbegin(sdindex *i, sr *r)
 	h->offset      = 0;
 	h->dupkeys     = 0;
 	h->dupmin      = UINT64_MAX;
-	memset(h->reserve, 0, sizeof(h->reserve));
 	sd_idinit(&h->id, 0, 0, 0);
 	i->h = NULL;
-	ss_bufadvance(&i->i, sizeof(sdindexheader));
 	return 0;
 }
 
@@ -52,11 +47,13 @@ int sd_indexcommit(sdindex *i, sr *r, sdid *id, ssqf *qf, uint64_t offset)
 		size_extension += sizeof(sdindexamqf);
 		size_extension += qf->qf_table_size;
 	}
-	int rc = ss_bufensure(&i->i, r->a, size + size_extension);
+	int rc = ss_bufensure(&i->i, r->a, size + size_extension + sizeof(sdindexheader));
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
+	/* min/max pairs */
 	memcpy(i->i.p, i->v.s, size);
 	ss_bufadvance(&i->i, size);
+	/* extension */
 	if (qf) {
 		sdindexamqf *qh = (sdindexamqf*)(i->i.p);
 		qh->q       = qf->qf_qbits;
@@ -68,12 +65,16 @@ int sd_indexcommit(sdindex *i, sr *r, sdid *id, ssqf *qf, uint64_t offset)
 		ss_bufadvance(&i->i, qf->qf_table_size);
 	}
 	ss_buffree(&i->v, r->a);
+	/* header */
+	sdindexheader *h = &i->build;
+	h->offset     = offset;
+	h->id         = *id;
+	h->extension  = size_extension;
+	h->extensions = extensions;
+	h->crc = ss_crcs(r->crc, h, sizeof(sdindexheader), 0);
+	memcpy(i->i.p, &i->build, sizeof(sdindexheader));
+	ss_bufadvance(&i->i, sizeof(sdindexheader));
 	i->h = sd_indexheader(i);
-	i->h->offset     = offset;
-	i->h->id         = *id;
-	i->h->extension  = size_extension;
-	i->h->extensions = extensions;
-	i->h->crc = ss_crcs(r->crc, i->h, sizeof(sdindexheader), 0);
 	return 0;
 }
 
@@ -124,7 +125,7 @@ int sd_indexadd(sdindex *i, sr *r, sdbuild *build, uint64_t offset)
 	}
 
 	/* update index info */
-	sdindexheader *h = sd_indexheader(i);
+	sdindexheader *h = &i->build;
 	h->count++;
 	h->size  += sizeof(sdindexpage) + p->sizemin + p->sizemax;
 	h->keys  += ph->count;
@@ -151,7 +152,8 @@ int sd_indexcopy(sdindex *i, sr *r, sdindexheader *h)
 	int rc = ss_bufensure(&i->i, r->a, size);
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
-	memcpy(i->i.s, (char*)h, size);
+	char *start = (char*)h - (h->size + h->extension);
+	memcpy(i->i.s, start, size);
 	ss_bufadvance(&i->i, size);
 	i->h = sd_indexheader(i);
 	return 0;

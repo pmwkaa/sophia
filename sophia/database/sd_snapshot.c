@@ -56,7 +56,8 @@ int sd_snapshot_addbranch(sdsnapshot *s, sr *r, sdindexheader *h)
 	int rc = ss_bufensure(&s->buf, r->a, size);
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
-	memcpy(s->buf.p, (void*)h, size);
+	char *start = (char*)h - (h->size + h->extension);
+	memcpy(s->buf.p, start, size);
 	ss_bufadvance(&s->buf, size);
 	sdsnapshotnode *n = (sdsnapshotnode*)(s->buf.s + s->current);
 	n->size += size;

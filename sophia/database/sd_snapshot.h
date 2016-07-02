@@ -30,7 +30,7 @@ struct sdsnapshotnode {
 	uint32_t branch_count;
 	uint64_t temperature_reads;
 	uint64_t reserve[4];
-	/* sdindexheader[] */
+	/* index */
 } sspacked;
 
 struct sdsnapshot {

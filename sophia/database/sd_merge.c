@@ -67,7 +67,7 @@ int sd_merge(sdmerge *m)
 		return 0;
 	sdmergeconf *conf = m->conf;
 	sd_indexinit(&m->index);
-	int rc = sd_indexbegin(&m->index, m->r);
+	int rc = sd_indexbegin(&m->index);
 	if (ssunlikely(rc == -1))
 		return -1;
 	if (conf->amqf)
@@ -124,14 +124,14 @@ int sd_mergepage(sdmerge *m, uint64_t offset)
 	rc = sd_indexadd(&m->index, m->r, m->build, offset);
 	if (ssunlikely(rc == -1))
 		return -1;
-	m->current = sd_indextotal(&m->index);
+	m->current = m->index.build.total;
 	m->resume  = 1;
 	return 1;
 }
 
 int sd_mergecommit(sdmerge *m, sdid *id, uint64_t offset)
 {
-	m->processed += sd_indextotal(&m->index);
+	m->processed += m->index.build.total;
 	ssqf *qf = NULL;
 	if (m->conf->amqf)
 		qf = m->qf;

@@ -206,11 +206,6 @@ si_split(si *index, sdc *c, ssbuf *result,
 		if (ssunlikely(rc == -1))
 			goto error;
 
-		/* write seal */
-		rc = sd_writeseal(r, &n->file, &merge.index);
-		if (ssunlikely(rc == -1))
-			goto error;
-
 		/* mmap mode */
 		if (index->scheme.mmap) {
 			rc = si_nodemap(n, r);
@@ -355,7 +350,16 @@ int si_merge(si *index, sdc *c, sinode *node,
 	while (ss_iterhas(ss_bufiterref, &i))
 	{
 		n  = ss_iterof(ss_bufiterref, &i);
-		rc = si_nodeseal(n, r, &index->scheme);
+		if (index->scheme.sync) {
+			rc = ss_filesync(&n->file);
+			if (ssunlikely(rc == -1)) {
+				sr_malfunction(r->e, "db file '%s' sync error: %s",
+				               ss_pathof(&n->file.path),
+				               strerror(errno));
+				return -1;
+			}
+		}
+		rc = si_noderename_seal(n, r, &index->scheme);
 		if (ssunlikely(rc == -1)) {
 			si_nodefree(node, r, 0);
 			return -1;
@@ -398,7 +402,7 @@ int si_merge(si *index, sdc *c, sinode *node,
 	while (ss_iterhas(ss_bufiterref, &i))
 	{
 		n = ss_iterof(ss_bufiterref, &i);
-		rc = si_nodecomplete(n, r, &index->scheme);
+		rc = si_noderename_complete(n, r, &index->scheme);
 		if (ssunlikely(rc == -1))
 			return -1;
 		SS_INJECTION(r->i, SS_INJECTION_SI_COMPACTION_4,
