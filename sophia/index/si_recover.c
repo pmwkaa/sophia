@@ -114,7 +114,6 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 	}
 	si_branchset(&n->self, &index);
 
-	sd_buildcommit(&build);
 	sd_buildfree(&build, r);
 	return n;
 e1:

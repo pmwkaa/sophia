@@ -151,7 +151,7 @@ sd_read_gt1(void)
 	int rc;
 	rc = sd_indexadd(&index, &st_r.r, &b, poff);
 	t( rc == 0 );
-	t( sd_buildcommit(&b) == 0 );
+	sd_buildreset(&b);
 
 	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 	key = 10;
@@ -166,7 +166,7 @@ sd_read_gt1(void)
 
 	rc = sd_indexadd(&index, &st_r.r, &b, poff);
 	t( rc == 0 );
-	t( sd_buildcommit(&b) == 0 );
+	sd_buildreset(&b);
 
 	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
 	key = 15;
@@ -181,7 +181,7 @@ sd_read_gt1(void)
 
 	rc = sd_indexadd(&index, &st_r.r, &b, poff);
 	t( rc == 0 );
-	t( sd_buildcommit(&b) == 0 );
+	sd_buildreset(&b);
 
 	sdid id;
 	memset(&id, 0, sizeof(id));
@@ -334,7 +334,7 @@ sd_read_gt0_compression_zstd(void)
 	t( sd_writeindex(&r, &f, &index) == 0 );
 	t( sd_writeseal(&r, &f, &index) == 0 );
 
-	t( sd_buildcommit(&b) == 0 );
+	sd_buildreset(&b);
 
 	ssmmap map;
 	t( ss_vfsmmap(&st_r.vfs, &map, f.fd, f.size, 1) == 0 );
@@ -463,7 +463,7 @@ sd_read_gt0_compression_lz4(void)
 	ssmmap map;
 	t( ss_vfsmmap(&st_r.vfs, &map, f.fd, f.size, 1) == 0 );
 
-	t( sd_buildcommit(&b) == 0 );
+	sd_buildreset(&b);
 
 	ssbuf buf;
 	ss_bufinit(&buf);
@@ -578,7 +578,6 @@ sd_read_gt1_compression_zstd(void)
 	int rc;
 	rc = sd_indexadd(&index, &r, &b, poff);
 	t( rc == 0 );
-	t( sd_buildcommit(&b) == 0 );
 	sd_buildreset(&b);
 
 	t( sd_buildbegin(&b, &r, 1, 1, &ss_zstdfilter) == 0);
@@ -594,7 +593,6 @@ sd_read_gt1_compression_zstd(void)
 
 	rc = sd_indexadd(&index, &r, &b, poff);
 	t( rc == 0 );
-	t( sd_buildcommit(&b) == 0 );
 	sd_buildreset(&b);
 
 	t( sd_buildbegin(&b, &r, 1, 1, &ss_zstdfilter) == 0);
@@ -610,7 +608,7 @@ sd_read_gt1_compression_zstd(void)
 
 	rc = sd_indexadd(&index, &r, &b, poff);
 	t( rc == 0 );
-	t( sd_buildcommit(&b) == 0 );
+	sd_buildreset(&b);
 
 	sdid id;
 	memset(&id, 0, sizeof(id));
@@ -758,7 +756,6 @@ sd_read_gt1_compression_lz4(void)
 	int rc;
 	rc = sd_indexadd(&index, &r, &b, poff);
 	t( rc == 0 );
-	t( sd_buildcommit(&b) == 0 );
 	sd_buildreset(&b);
 
 	t( sd_buildbegin(&b, &r, 1, 1, &ss_lz4filter) == 0);
@@ -774,7 +771,6 @@ sd_read_gt1_compression_lz4(void)
 
 	rc = sd_indexadd(&index, &r, &b, poff);
 	t( rc == 0 );
-	t( sd_buildcommit(&b) == 0 );
 	sd_buildreset(&b);
 
 	t( sd_buildbegin(&b, &r, 1, 1, &ss_lz4filter) == 0);
@@ -790,7 +786,7 @@ sd_read_gt1_compression_lz4(void)
 
 	rc = sd_indexadd(&index, &r, &b, poff);
 	t( rc == 0 );
-	t( sd_buildcommit(&b) == 0 );
+	sd_buildreset(&b);
 
 	sdid id;
 	memset(&id, 0, sizeof(id));

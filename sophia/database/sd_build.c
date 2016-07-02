@@ -15,11 +15,9 @@
 
 void sd_buildinit(sdbuild *b)
 {
-	ss_bufinit(&b->list);
 	ss_bufinit(&b->m);
 	ss_bufinit(&b->v);
 	ss_bufinit(&b->c);
-	b->n = 0;
 	b->compress = 0;
 	b->compress_if = NULL;
 	b->crc = 0;
@@ -28,7 +26,6 @@ void sd_buildinit(sdbuild *b)
 
 void sd_buildfree(sdbuild *b, sr *r)
 {
-	ss_buffree(&b->list, r->a);
 	ss_buffree(&b->m, r->a);
 	ss_buffree(&b->v, r->a);
 	ss_buffree(&b->c, r->a);
@@ -36,21 +33,17 @@ void sd_buildfree(sdbuild *b, sr *r)
 
 void sd_buildreset(sdbuild *b)
 {
-	ss_bufreset(&b->list);
 	ss_bufreset(&b->m);
 	ss_bufreset(&b->v);
 	ss_bufreset(&b->c);
-	b->n = 0;
 	b->vmax = 0;
 }
 
 void sd_buildgc(sdbuild *b, sr *r, int wm)
 {
-	ss_bufgc(&b->list, r->a, wm);
 	ss_bufgc(&b->m, r->a, wm);
 	ss_bufgc(&b->v, r->a, wm);
 	ss_bufgc(&b->c, r->a, wm);
-	b->n = 0;
 	b->vmax = 0;
 }
 
@@ -62,17 +55,6 @@ int sd_buildbegin(sdbuild *b, sr *r, int crc,
 	b->compress = compress;
 	b->compress_if = compress_if;
 	int rc;
-	rc = ss_bufensure(&b->list, r->a, sizeof(sdbuildref));
-	if (ssunlikely(rc == -1))
-		return sr_oom(r->e);
-	sdbuildref *ref =
-		(sdbuildref*)ss_bufat(&b->list, sizeof(sdbuildref), b->n);
-	ref->m     = ss_bufused(&b->m);
-	ref->msize = 0;
-	ref->v     = ss_bufused(&b->v);
-	ref->vsize = 0;
-	ref->c     = ss_bufused(&b->c);
-	ref->csize = 0;
 	rc = ss_bufensure(&b->m, r->a, sizeof(sdpageheader));
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
@@ -82,7 +64,6 @@ int sd_buildbegin(sdbuild *b, sr *r, int crc,
 	h->lsnmindup = UINT64_MAX;
 	h->tsmin     = UINT32_MAX;
 	h->reserve   = 0;
-	ss_bufadvance(&b->list, sizeof(sdbuildref));
 	ss_bufadvance(&b->m, sizeof(sdpageheader));
 	return 0;
 }
@@ -107,8 +88,7 @@ int sd_buildadd(sdbuild *b, sr *r, char *v, uint8_t flags)
 	/* store document offset */
 	int rc;
 	if (! sf_schemefixed(r->scheme)) {
-		uint32_t offset =
-			ss_bufused(&b->v) - sd_buildref(b)->v;
+		uint32_t offset = ss_bufused(&b->v);
 		rc = ss_bufadd(&b->m, r->a, &offset, sizeof(offset));
 		if (ssunlikely(rc == -1))
 			return sr_oom(r->e);
@@ -153,7 +133,6 @@ sd_buildcompress(sdbuild *b, sr *r)
 		return -1;
 	ss_bufadvance(&b->c, sizeof(sdpageheader));
 	/* compression (including meta-data) */
-	sdbuildref *ref = sd_buildref(b);
 	ssfilter f;
 	rc = ss_filterinit(&f, b->compress_if, r->a, SS_FINPUT);
 	if (ssunlikely(rc == -1))
@@ -161,11 +140,11 @@ sd_buildcompress(sdbuild *b, sr *r)
 	rc = ss_filterstart(&f, &b->c);
 	if (ssunlikely(rc == -1))
 		goto error;
-	rc = ss_filternext(&f, &b->c, b->m.s + ref->m + sizeof(sdpageheader),
-	                   ref->msize - sizeof(sdpageheader));
+	rc = ss_filternext(&f, &b->c, b->m.s + sizeof(sdpageheader),
+	                   ss_bufused(&b->m) - sizeof(sdpageheader));
 	if (ssunlikely(rc == -1))
 		goto error;
-	rc = ss_filternext(&f, &b->c, b->v.s + ref->v, ref->vsize);
+	rc = ss_filternext(&f, &b->c, b->v.s, ss_bufused(&b->v));
 	if (ssunlikely(rc == -1))
 		goto error;
 	rc = ss_filtercomplete(&f, &b->c);
@@ -180,17 +159,12 @@ error:
 
 int sd_buildend(sdbuild *b, sr *r)
 {
-	/* update sizes */
-	sdbuildref *ref = sd_buildref(b);
-	ref->msize = ss_bufused(&b->m) - ref->m;
-	ref->vsize = ss_bufused(&b->v) - ref->v;
-	ref->csize = 0;
 	/* calculate data crc (non-compressed) */
 	sdpageheader *h = sd_buildheader(b);
 	uint32_t crc = 0;
 	if (sslikely(b->crc)) {
-		crc = ss_crcp(r->crc, b->m.s + ref->m, ref->msize, 0);
-		crc = ss_crcp(r->crc, b->v.s + ref->v, ref->vsize, crc);
+		crc = ss_crcp(r->crc, b->m.s, ss_bufused(&b->m), 0);
+		crc = ss_crcp(r->crc, b->v.s, ss_bufused(&b->v), crc);
 	}
 	h->crcdata = crc;
 	/* compression */
@@ -198,28 +172,17 @@ int sd_buildend(sdbuild *b, sr *r)
 		int rc = sd_buildcompress(b, r);
 		if (ssunlikely(rc == -1))
 			return -1;
-		ref->csize = ss_bufused(&b->c) - ref->c;
 	}
 	/* update page header */
-	int total = ref->msize + ref->vsize;
+	int total = ss_bufused(&b->m) + ss_bufused(&b->v);
 	h->sizeorigin = total - sizeof(sdpageheader);
 	h->size = h->sizeorigin;
 	if (b->compress)
-		h->size = ref->csize - sizeof(sdpageheader);
+		h->size = ss_bufused(&b->c) - sizeof(sdpageheader);
 	else
 		h->size = h->sizeorigin;
 	h->crc = ss_crcs(r->crc, h, sizeof(sdpageheader), 0);
 	if (b->compress)
-		memcpy(b->c.s + ref->c, h, sizeof(sdpageheader));
-	return 0;
-}
-
-int sd_buildcommit(sdbuild *b)
-{
-	if (b->compress) {
-		ss_bufreset(&b->m);
-		ss_bufreset(&b->v);
-	}
-	b->n++;
+		memcpy(b->c.s, h, sizeof(sdpageheader));
 	return 0;
 }

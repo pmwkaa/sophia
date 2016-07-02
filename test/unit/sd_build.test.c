@@ -108,18 +108,6 @@ sd_build_compression_zstd(void)
 	t( h->count == 3 );
 	t( h->lsnmin == 1 );
 	t( h->lsnmax == 3 );
-	sd_buildcommit(&b);
-
-	t( sd_buildbegin(&b, &r, 1, 1, &ss_zstdfilter) == 0);
-	addv(&b, &r, 3, 0, &i);
-	addv(&b, &r, 2, 0, &j);
-	addv(&b, &r, 1, 0, &k);
-	sd_buildend(&b, &r);
-	h = sd_buildheader(&b);
-	t( h->count == 3 );
-	t( h->lsnmin == 1 );
-	t( h->lsnmax == 3 );
-	sd_buildcommit(&b);
 
 	sd_buildfree(&b, &r);
 	sf_schemefree(&cmp, &a);
@@ -170,18 +158,6 @@ sd_build_compression_lz4(void)
 	t( h->count == 3 );
 	t( h->lsnmin == 1 );
 	t( h->lsnmax == 3 );
-	sd_buildcommit(&b);
-
-	t( sd_buildbegin(&b, &r, 1, 1, &ss_zstdfilter) == 0);
-	addv(&b, &r, 3, 0, &i);
-	addv(&b, &r, 2, 0, &j);
-	addv(&b, &r, 1, 0, &k);
-	sd_buildend(&b, &r);
-	h = sd_buildheader(&b);
-	t( h->count == 3 );
-	t( h->lsnmin == 1 );
-	t( h->lsnmax == 3 );
-	sd_buildcommit(&b);
 
 	sd_buildfree(&b, &r);
 	sf_schemefree(&cmp, &a);
