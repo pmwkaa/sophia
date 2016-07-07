@@ -65,7 +65,7 @@ int si_snapshot(si *index, siplan *plan)
 	char path[PATH_MAX];
 	snprintf(path, sizeof(path), "%s/index.incomplete",
 	         index->scheme.path);
-	rc = ss_filenew(&file, path);
+	rc = ss_filenew(&file, path, 0);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "index file '%s' create error: %s",
 		               path, strerror(errno));

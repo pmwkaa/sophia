@@ -43,7 +43,7 @@ si_backupend(si *index, sdc *c, siplan *plan)
 	/* read scheme file */
 	ssfile file;
 	ss_fileinit(&file, r->vfs);
-	rc = ss_fileopen(&file, src);
+	rc = ss_fileopen(&file, src, 0);
 	if (ssunlikely(rc == -1)) {
 		sr_error(r->e, "backup db file '%s' open error: %s",
 		         src, strerror(errno));
@@ -60,7 +60,7 @@ si_backupend(si *index, sdc *c, siplan *plan)
 
 	/* write scheme file */
 	ss_fileinit(&file, r->vfs);
-	rc = ss_filenew(&file, dst);
+	rc = ss_filenew(&file, dst, 0);
 	if (ssunlikely(rc == -1)) {
 		sr_error(r->e, "backup db file '%s' create error: %s",
 		         dst, strerror(errno));
@@ -111,7 +111,7 @@ int si_backup(si *index, sdc *c, siplan *plan)
 	ss_path(&path, dst, node->self.id.id, ".db");
 	ssfile file;
 	ss_fileinit(&file, r->vfs);
-	rc = ss_filenew(&file, path.path);
+	rc = ss_filenew(&file, path.path, 0);
 	if (ssunlikely(rc == -1)) {
 		sr_error(r->e, "backup db file '%s' create error: %s",
 		         path.path, strerror(errno));

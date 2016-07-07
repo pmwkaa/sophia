@@ -24,6 +24,8 @@ struct sdmergeconf {
 	uint32_t    compression;
 	ssfilterif *compression_if;
 	uint32_t    amqf;
+	uint32_t    direct_io;
+	uint32_t    direct_io_page_size;
 	uint64_t    vlsn;
 	uint32_t    save_delete;
 	uint32_t    save_upsert;

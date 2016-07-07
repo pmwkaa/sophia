@@ -37,8 +37,10 @@ struct sischeme {
 	char         *path;
 	char         *path_backup;
 	uint32_t      mmap;
+	uint32_t      direct_io;
+	uint32_t      direct_io_page_size;
+	uint32_t      direct_io_buffer_size;
 	sicompaction  compaction;
-	char         *storage_sz;
 	uint32_t      sync;
 	uint64_t      memory_limit;
 	uint64_t      node_size;

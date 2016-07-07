@@ -199,7 +199,7 @@ e1:
 int si_nodeopen(sinode *n, sr *r, sischeme *scheme, sspath *path,
                 sdsnapshotnode *sn)
 {
-	int rc = ss_fileopen(&n->file, path->path);
+	int rc = ss_fileopen(&n->file, path->path, scheme->direct_io);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' open error: %s",
 		               ss_pathof(&n->file.path),
@@ -229,7 +229,7 @@ int si_nodecreate(sinode *n, sr *r, sischeme *scheme, sdid *id)
 	sspath path;
 	ss_pathcompound(&path, scheme->path, id->parent, id->id,
 	                ".db.incomplete");
-	int rc = ss_filenew(&n->file, path.path);
+	int rc = ss_filenew(&n->file, path.path, scheme->direct_io);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' create error: %s",
 		               path.path, strerror(errno));

@@ -12,8 +12,8 @@
 typedef struct sibranch sibranch;
 
 struct sibranch {
-	sdid id;
-	sdindex index;
+	sdid      id;
+	sdindex   index;
 	sibranch *link;
 	sibranch *next;
 } sspacked;

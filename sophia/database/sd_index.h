@@ -32,6 +32,7 @@ struct sdindexheader {
 	uint64_t  lsnmax;
 	uint32_t  dupkeys;
 	uint64_t  dupmin;
+	uint16_t  align;
 	uint32_t  extension;
 	uint8_t   extensions;
 } sspacked;
@@ -124,7 +125,7 @@ sd_indextotal(sdindex *i)
 static inline uint32_t
 sd_indexsize_ext(sdindexheader *h)
 {
-	return h->size + h->extension + sizeof(sdindexheader);
+	return h->align + h->size + h->extension + sizeof(sdindexheader);
 }
 
 static inline sdindexamqf*
@@ -135,7 +136,7 @@ sd_indexamqf(sdindex *i) {
 }
 
 int sd_indexbegin(sdindex*);
-int sd_indexcommit(sdindex*, sr*, sdid*, ssqf*, uint64_t);
+int sd_indexcommit(sdindex*, sr*, sdid*, ssqf*, uint32_t, uint64_t);
 int sd_indexadd(sdindex*, sr*, sdbuild*, uint64_t);
 int sd_indexcopy(sdindex*, sr*, sdindexheader*);
 

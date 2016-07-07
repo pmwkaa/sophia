@@ -135,5 +135,8 @@ int sd_mergecommit(sdmerge *m, sdid *id, uint64_t offset)
 	ssqf *qf = NULL;
 	if (m->conf->amqf)
 		qf = m->qf;
-	return sd_indexcommit(&m->index, m->r, id, qf, offset);
+	uint32_t align = 0;
+	if (m->conf->direct_io)
+		align = m->conf->direct_io_page_size;
+	return sd_indexcommit(&m->index, m->r, id, qf, align, offset);
 }

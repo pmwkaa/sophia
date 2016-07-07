@@ -15,6 +15,7 @@
 #include <sd_build.h>
 #include <sd_index.h>
 #include <sd_indexiter.h>
+#include <sd_directio.h>
 #include <sd_c.h>
 #include <sd_merge.h>
 #include <sd_read.h>

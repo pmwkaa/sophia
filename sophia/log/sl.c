@@ -54,7 +54,7 @@ sl_open(slpool *p, uint64_t id)
 		return NULL;
 	sspath path;
 	ss_path(&path, p->conf.path, id, ".log");
-	int rc = ss_fileopen(&l->file, path.path);
+	int rc = ss_fileopen(&l->file, path.path, 0);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(p->r->e, "log file '%s' open error: %s",
 		               ss_pathof(&l->file.path),
@@ -75,7 +75,7 @@ sl_new(slpool *p, uint64_t id)
 		return NULL;
 	sspath path;
 	ss_path(&path, p->conf.path, id, ".log");
-	int rc = ss_filenew(&l->file, path.path);
+	int rc = ss_filenew(&l->file, path.path, 0);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(p->r->e, "log file '%s' create error: %s",
 		               path.path, strerror(errno));
@@ -342,7 +342,7 @@ int sl_poolcopy(slpool *p, char *dest, ssbuf *buf)
 		ss_path(&path, dest, l->id, ".log");
 		ssfile file;
 		ss_fileinit(&file, p->r->vfs);
-		int rc = ss_filenew(&file, path.path);
+		int rc = ss_filenew(&file, path.path, 0);
 		if (ssunlikely(rc == -1)) {
 			sr_error(p->r->e, "log file '%s' create error: %s",
 			         path.path, strerror(errno));

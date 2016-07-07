@@ -32,12 +32,15 @@ int sd_indexbegin(sdindex *i)
 	h->offset      = 0;
 	h->dupkeys     = 0;
 	h->dupmin      = UINT64_MAX;
+	h->align       = 0;
 	sd_idinit(&h->id, 0, 0, 0);
 	i->h = NULL;
 	return 0;
 }
 
-int sd_indexcommit(sdindex *i, sr *r, sdid *id, ssqf *qf, uint64_t offset)
+int sd_indexcommit(sdindex *i, sr *r, sdid *id, ssqf *qf,
+                   uint32_t align,
+                   uint64_t offset)
 {
 	int size = ss_bufused(&i->v);
 	int size_extension = 0;
@@ -47,7 +50,14 @@ int sd_indexcommit(sdindex *i, sr *r, sdid *id, ssqf *qf, uint64_t offset)
 		size_extension += sizeof(sdindexamqf);
 		size_extension += qf->qf_table_size;
 	}
-	int rc = ss_bufensure(&i->i, r->a, size + size_extension + sizeof(sdindexheader));
+	/* calculate index align for direct_io */
+	int size_meta  = size + size_extension + sizeof(sdindexheader);
+	int size_align = 0;
+	if (align) {
+		size_align += align - ((offset + size_meta + ss_bufused(&i->i)) % align);
+		size_meta  += size_align;
+	}
+	int rc = ss_bufensure(&i->i, r->a, size_meta);
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
 	/* min/max pairs */
@@ -65,8 +75,14 @@ int sd_indexcommit(sdindex *i, sr *r, sdid *id, ssqf *qf, uint64_t offset)
 		ss_bufadvance(&i->i, qf->qf_table_size);
 	}
 	ss_buffree(&i->v, r->a);
-	/* header */
 	sdindexheader *h = &i->build;
+	/* align */
+	if (size_align) {
+		h->align = size_align;
+		memset(i->i.p, 0, size_align);
+		ss_bufadvance(&i->i, size_align);
+	}
+	/* header */
 	h->offset     = offset;
 	h->id         = *id;
 	h->extension  = size_extension;
@@ -152,7 +168,7 @@ int sd_indexcopy(sdindex *i, sr *r, sdindexheader *h)
 	int rc = ss_bufensure(&i->i, r->a, size);
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
-	char *start = (char*)h - (h->size + h->extension);
+	char *start = (char*)h - (h->align + h->size + h->extension);
 	memcpy(i->i.s, start, size);
 	ss_bufadvance(&i->i, size);
 	i->h = sd_indexheader(i);

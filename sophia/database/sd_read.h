@@ -27,16 +27,84 @@ struct sdreadarg {
 	int         use_mmap;
 	int         use_mmap_copy;
 	int         use_compression;
+	int         use_direct_io;
+	int         direct_io_page_size;
 	ssfilterif *compression_if;
 	sr         *r;
 };
 
 struct sdread {
-	sdreadarg ra;
+	sdreadarg    ra;
 	sdindexpage *ref;
-	sdpage page;
-	int reads;
+	sdpage       page;
+	int          reads;
 } sspacked;
+
+static inline int
+sd_read_direct_io(sdread *i, ssbuf *buf, sdindexpage *ref,
+                  char **page_pointer)
+{
+	sdreadarg *arg = &i->ra;
+	sr *r = arg->r;
+
+	/* calculate aligned offset and size */
+	uint32_t page_size    = arg->direct_io_page_size;
+	uint64_t offset_align = ref->offset % page_size;
+	uint64_t offset       = ref->offset - offset_align;
+	uint64_t size         = ref->size + offset_align;
+	uint64_t size_align   = size % page_size;
+	if (size_align > 0) {
+		size += page_size - size % page_size;
+	}
+
+	/* allocate and align buffer */
+	ss_bufreset(buf);
+	int rc;
+	rc = ss_bufensure(buf, r->a, size + page_size);
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
+	char *buf_aligned =
+		(char*)((((intptr_t)buf->s + page_size - 1) / page_size) * page_size);
+	assert((buf->e - buf_aligned) >= ref->size);
+
+	/* read */
+	uint64_t start = ss_utime();
+	rc = ss_filepread(arg->file, offset, buf_aligned, size);
+	if (ssunlikely(rc == -1)) {
+		sr_error(r->e, "db file '%s' read error: %s",
+		         ss_pathof(&arg->file->path),
+		         strerror(errno));
+		printf("read error\n");
+		return -1;
+	}
+	sr_statpread(r->stat, start, arg->from_compaction);
+	ss_bufadvance(buf, ref->size);
+	*page_pointer = buf_aligned + offset_align;
+	return 0;
+}
+
+static inline int
+sd_read_do(sdread *i, ssbuf *buf, sdindexpage *ref,
+           char **page_pointer)
+{
+	sdreadarg *arg = &i->ra;
+	if (arg->use_direct_io)
+		return sd_read_direct_io(i, buf, ref, page_pointer);
+	sr *r = arg->r;
+	uint64_t start = ss_utime();
+	int rc;
+	rc = ss_filepread(arg->file, ref->offset, buf->s, ref->size);
+	if (ssunlikely(rc == -1)) {
+		sr_error(r->e, "db file '%s' read error: %s",
+		         ss_pathof(&arg->file->path),
+		         strerror(errno));
+		return -1;
+	}
+	sr_statpread(r->stat, start, arg->from_compaction);
+	ss_bufadvance(buf, ref->size);
+	*page_pointer = buf->s;
+	return 0;
+}
 
 static inline int
 sd_read_page(sdread *i, sdindexpage *ref)
@@ -51,12 +119,10 @@ sd_read_page(sdread *i, sdindexpage *ref)
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
 
-	uint64_t start;
-
 	/* compression */
+	char *page_pointer;
 	if (arg->use_compression)
 	{
-		char *page_pointer;
 		if (arg->use_mmap) {
 			page_pointer = arg->mmap->p + ref->offset;
 		} else {
@@ -64,17 +130,9 @@ sd_read_page(sdread *i, sdindexpage *ref)
 			rc = ss_bufensure(arg->buf_read, r->a, ref->size);
 			if (ssunlikely(rc == -1))
 				return sr_oom(r->e);
-			start = ss_utime();
-			rc = ss_filepread(arg->file, ref->offset, arg->buf_read->s, ref->size);
-			if (ssunlikely(rc == -1)) {
-				sr_error(r->e, "db file '%s' read error: %s",
-				         ss_pathof(&arg->file->path),
-				         strerror(errno));
+			rc = sd_read_do(i, arg->buf_read, ref, &page_pointer);
+			if (ssunlikely(rc == -1))
 				return -1;
-			}
-			sr_statpread(r->stat, start, arg->from_compaction);
-			ss_bufadvance(arg->buf_read, ref->size);
-			page_pointer = arg->buf_read->s;
 		}
 
 		/* copy header */
@@ -113,17 +171,10 @@ sd_read_page(sdread *i, sdindexpage *ref)
 	}
 
 	/* default */
-	start = ss_utime();
-	rc = ss_filepread(arg->file, ref->offset, arg->buf->s, ref->sizeorigin);
-	if (ssunlikely(rc == -1)) {
-		sr_error(r->e, "db file '%s' read error: %s",
-		         ss_pathof(&arg->file->path),
-		         strerror(errno));
+	rc = sd_read_do(i, arg->buf, ref, &page_pointer);
+	if (ssunlikely(rc == -1))
 		return -1;
-	}
-	sr_statpread(r->stat, start, arg->from_compaction);
-	ss_bufadvance(arg->buf, ref->sizeorigin);
-	sd_pageinit(&i->page, (sdpageheader*)(arg->buf->s));
+	sd_pageinit(&i->page, (sdpageheader*)page_pointer);
 	return 0;
 }
 

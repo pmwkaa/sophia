@@ -36,24 +36,24 @@ se_dbscheme_init(sedb *db, char *name, int size)
 		goto error;
 	memcpy(scheme->name, name, size);
 	scheme->name[size] = 0;
-	scheme->id                  = id;
-	scheme->memory_limit        = 0;
-	scheme->sync                = 1;
-	scheme->mmap                = 0;
-	scheme->node_size           = 64 * 1024 * 1024;
-	scheme->node_page_size      = 128 * 1024;
-	scheme->node_page_checksum  = 1;
-	scheme->compression_cold    = 0;
-	scheme->compression_cold_if = &ss_nonefilter;
-	scheme->compression_hot     = 0;
-	scheme->compression_hot_if  = &ss_nonefilter;
-	scheme->temperature         = 0;
-	scheme->expire              = 0;
-	scheme->amqf                = 0;
-	scheme->buf_gc_wm           = 1024 * 1024;
-	scheme->storage_sz = ss_strdup(&e->a, "cache");
-	if (ssunlikely(scheme->storage_sz == NULL))
-		goto error;
+	scheme->id                    = id;
+	scheme->memory_limit          = 0;
+	scheme->sync                  = 1;
+	scheme->mmap                  = 0;
+	scheme->direct_io             = 0;
+	scheme->direct_io_page_size   = 4096;
+	scheme->direct_io_buffer_size = 8 * 1024 * 1024;
+	scheme->node_size             = 64 * 1024 * 1024;
+	scheme->node_page_size        = 128 * 1024;
+	scheme->node_page_checksum    = 1;
+	scheme->compression_cold      = 0;
+	scheme->compression_cold_if   = &ss_nonefilter;
+	scheme->compression_hot       = 0;
+	scheme->compression_hot_if    = &ss_nonefilter;
+	scheme->temperature           = 0;
+	scheme->expire                = 0;
+	scheme->amqf                  = 0;
+	scheme->buf_gc_wm             = 1024 * 1024;
 	scheme->compression_cold_sz =
 		ss_strdup(&e->a, scheme->compression_cold_if->name);
 	if (ssunlikely(scheme->compression_cold_sz == NULL))
@@ -110,6 +110,11 @@ se_dbscheme_set(sedb *db)
 	rc = sf_schemevalidate(&s->scheme, &e->a);
 	if (ssunlikely(rc == -1)) {
 		sr_error(&e->error, "incomplete scheme", s->name);
+		return -1;
+	}
+	/* validate io settings */
+	if (s->mmap && s->direct_io) {
+		sr_error(&e->error, "%s", "incompatible options: mmap and direct_io");
 		return -1;
 	}
 	/* compression cold */

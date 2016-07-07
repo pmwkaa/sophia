@@ -73,10 +73,6 @@ void si_schemefree(sischeme *s, sr *r)
 		ss_free(r->a, s->path_backup);
 		s->path_backup = NULL;
 	}
-	if (s->storage_sz) {
-		ss_free(r->a, s->storage_sz);
-		s->storage_sz = NULL;
-	}
 	if (s->compression_cold_sz) {
 		ss_free(r->a, s->compression_cold_sz);
 		s->compression_cold_sz = NULL;

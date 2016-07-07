@@ -628,9 +628,9 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc, int serialize)
 		sr_C(&p, pc, se_confv, "name", SS_STRINGPTR, &o->scheme->name, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "id", SS_U32, &o->scheme->id, SR_RO, o);
 		sr_C(&p, pc, se_confv_dboffline, "path", SS_STRINGPTR, &o->scheme->path, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "storage", SS_STRINGPTR, &o->scheme->storage_sz, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "memory_limit", SS_U64, &o->scheme->memory_limit, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "mmap", SS_U32, &o->scheme->mmap, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "direct_io", SS_U32, &o->scheme->direct_io, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "sync", SS_U32, &o->scheme->sync, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "temperature", SS_U32, &o->scheme->temperature, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "amqf", SS_U32, &o->scheme->amqf, 0, o);

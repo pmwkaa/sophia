@@ -22,9 +22,18 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 	sr *r = &index->r;
 	sibranch *branch = NULL;
 
+	/* prepare direct_io stream */
+	int rc;
+	if (index->scheme.direct_io) {
+		rc = sd_directio_prepare(&c->direct_io, r,
+		                         index->scheme.direct_io_page_size,
+		                         index->scheme.direct_io_buffer_size);
+		if (ssunlikely(rc == -1))
+			return sr_oom(r->e);
+	}
+
 	svmerge vmerge;
 	sv_mergeinit(&vmerge);
-	int rc;
 	rc = sv_mergeprepare(&vmerge, r, 1);
 	if (ssunlikely(rc == -1))
 		return -1;
@@ -38,19 +47,21 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 	/* merge iter is not used */
 	uint32_t timestamp = ss_timestamp();
 	sdmergeconf mergeconf = {
-		.stream         = vindex->count,
-		.size_stream    = UINT32_MAX,
-		.size_node      = UINT64_MAX,
-		.size_page      = index->scheme.node_page_size,
-		.checksum       = index->scheme.node_page_checksum,
-		.expire         = index->scheme.expire,
-		.timestamp      = timestamp,
-		.compression    = index->scheme.compression_hot,
-		.compression_if = index->scheme.compression_hot_if,
-		.amqf           = index->scheme.amqf,
-		.vlsn           = vlsn,
-		.save_delete    = 1,
-		.save_upsert    = 1
+		.stream              = vindex->count,
+		.size_stream         = UINT32_MAX,
+		.size_node           = UINT64_MAX,
+		.size_page           = index->scheme.node_page_size,
+		.checksum            = index->scheme.node_page_checksum,
+		.expire              = index->scheme.expire,
+		.timestamp           = timestamp,
+		.compression         = index->scheme.compression_hot,
+		.compression_if      = index->scheme.compression_hot_if,
+		.amqf                = index->scheme.amqf,
+		.direct_io           = index->scheme.direct_io,
+		.direct_io_page_size = index->scheme.direct_io_page_size,
+		.vlsn                = vlsn,
+		.save_delete         = 1,
+		.save_upsert         = 1
 	};
 	sdmerge merge;
 	rc = sd_mergeinit(&merge, r, &i, &c->build, &c->qf,
@@ -72,26 +83,30 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		assert(branch == NULL);
 
 		/* write pages */
-		uint64_t offset = parent->file.size;
+		uint64_t start = parent->file.size;
+		uint64_t offset = start;
 		while ((rc = sd_mergepage(&merge, offset)) == 1)
 		{
-			rc = sd_writepage(r, &parent->file, merge.build);
+			rc = sd_writepage(r, &parent->file, &c->direct_io, merge.build);
 			if (ssunlikely(rc == -1))
 				goto e0;
-			offset = parent->file.size;
+			offset = parent->file.size + sd_directio_size(&c->direct_io);
 		}
 		if (ssunlikely(rc == -1))
 			goto e0;
-		rc = sd_mergecommit(&merge, &id, parent->file.size);
+
+		offset = parent->file.size + sd_directio_size(&c->direct_io);
+		rc = sd_mergecommit(&merge, &id, offset);
 		if (ssunlikely(rc == -1))
 			goto e0;
 
 		/* write index */
-		rc = sd_writeindex(r, &parent->file, &merge.index);
+		rc = sd_writeindex(r, &parent->file, &c->direct_io, &merge.index);
 		if (ssunlikely(rc == -1))
 			goto e0;
+
 		if (index->scheme.sync) {
-			rc = ss_filesync_range(&parent->file, offset, parent->file.size);
+			rc = ss_filesync_range(&parent->file, start, parent->file.size);
 			if (ssunlikely(rc == -1)) {
 				sr_malfunction(r->e, "db file '%s' sync error: %s",
 				               ss_pathof(&parent->file.path),
@@ -227,8 +242,17 @@ int si_compact(si *index, sdc *c, siplan *plan,
 	sinode *node = plan->node;
 	assert(node->flags & SI_LOCK);
 
-	/* prepare for compaction */
+	/* prepare direct_io stream */
 	int rc;
+	if (index->scheme.direct_io) {
+		rc = sd_directio_prepare(&c->direct_io, r,
+		                         index->scheme.direct_io_page_size,
+		                         index->scheme.direct_io_buffer_size);
+		if (ssunlikely(rc == -1))
+			return sr_oom(r->e);
+	}
+
+	/* prepare for compaction */
 	rc = sd_censure(c, r, node->branch_count);
 	if (ssunlikely(rc == -1))
 		return sr_oom_malfunction(r->e);
@@ -265,27 +289,29 @@ int si_compact(si *index, sdc *c, siplan *plan,
 			compression_if = index->scheme.compression_cold_if;
 		}
 		sdreadarg arg = {
-			.from_compaction = 1,
-			.index           = &b->index,
-			.buf             = &cbuf->a,
-			.buf_read        = &c->d,
-			.index_iter      = &cbuf->index_iter,
-			.page_iter       = &cbuf->page_iter,
-			.use_mmap        = use_mmap,
-			.use_mmap_copy   = 0,
-			.use_compression = compression,
-			.compression_if  = compression_if,
-			.has             = 0,
-			.has_vlsn        = 0,
-			.o               = SS_GTE,
-			.mmap            = map,
-			.file            = &node->file,
-			.r               = r
+			.from_compaction     = 1,
+			.index               = &b->index,
+			.buf                 = &cbuf->a,
+			.buf_read            = &c->d,
+			.index_iter          = &cbuf->index_iter,
+			.page_iter           = &cbuf->page_iter,
+			.use_mmap            = use_mmap,
+			.use_mmap_copy       = 0,
+			.use_compression     = compression,
+			.use_direct_io       = index->scheme.direct_io,
+			.direct_io_page_size = index->scheme.direct_io_page_size,
+			.compression_if      = compression_if,
+			.has                 = 0,
+			.has_vlsn            = 0,
+			.o                   = SS_GTE,
+			.mmap                = map,
+			.file                = &node->file,
+			.r                   = r
 		};
 		ss_iterinit(sd_read, &s->src);
 		int rc = ss_iteropen(sd_read, &s->src, &arg, NULL);
 		if (ssunlikely(rc == -1))
-			return sr_oom_malfunction(r->e);
+			return -1;
 		size_stream += sd_indextotal(&b->index);
 		count += sd_indexkeys(&b->index);
 		cbuf = cbuf->next;

@@ -12,11 +12,11 @@
 typedef struct ssfile ssfile;
 
 struct ssfile {
-	int fd;
-	uint64_t size;
-	int creat;
-	sspath path;
-	ssvfs *vfs;
+	int       fd;
+	uint64_t  size;
+	int       creat;
+	sspath    path;
+	ssvfs    *vfs;
 } sspacked;
 
 static inline void
@@ -51,13 +51,21 @@ ss_fileopen_as(ssfile *f, char *path, int flags)
 }
 
 static inline int
-ss_fileopen(ssfile *f, char *path) {
-	return ss_fileopen_as(f, path, O_RDWR);
+ss_fileopen(ssfile *f, char *path, int direct_io)
+{
+	int flags = O_RDWR;
+	if (direct_io)
+		flags |= O_DIRECT;
+	return ss_fileopen_as(f, path, flags);
 }
 
 static inline int
-ss_filenew(ssfile *f, char *path) {
-	return ss_fileopen_as(f, path, O_RDWR|O_CREAT);
+ss_filenew(ssfile *f, char *path, int direct_io)
+{
+	int flags = O_RDWR|O_CREAT;
+	if (direct_io)
+		flags |= O_DIRECT;
+	return ss_fileopen_as(f, path, flags);
 }
 
 static inline int

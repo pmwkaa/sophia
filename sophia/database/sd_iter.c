@@ -34,7 +34,7 @@ sd_iternext_of(sditer *i, sdindexheader *index)
 	int sanity_check = 0;
 	sanity_check += (start >= (char*)index);
 	sanity_check +=
-		((char*)index - start) != index->size + index->extension;
+		((char*)index - start) != index->align + index->size + index->extension;
 
 	/* validate index header */
 	if (ssunlikely(sanity_check > 0)) {
@@ -116,6 +116,7 @@ sd_iternext(ssiter *i)
 		return;
 	char *next =
 		((char*)ri->v -
+		        ri->v->align -
 		        ri->v->extension -
 		        ri->v->size - ri->v->total);
 	if (next == ri->map.p) {
@@ -161,6 +162,7 @@ int sd_iter_isroot(ssiter *i)
 	assert(ri->v != NULL);
 	char *next =
 		((char*)ri->v -
+		        ri->v->align -
 		        ri->v->extension -
 		        ri->v->size - ri->v->total);
 	return next == ri->map.p;

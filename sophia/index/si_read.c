@@ -171,22 +171,24 @@ si_getbranch(siread *q, sinode *n, sicachebranch *c)
 		compression_if = scheme->compression_cold_if;
 	}
 	sdreadarg arg = {
-		.from_compaction = 0,
-		.index           = &b->index,
-		.buf             = &c->buf_a,
-		.buf_read        = &q->index->readbuf,
-		.index_iter      = &c->index_iter,
-		.page_iter       = &c->page_iter,
-		.use_mmap        = scheme->mmap,
-		.use_mmap_copy   = 0,
-		.use_compression = compression,
-		.compression_if  = compression_if,
-		.has             = q->has,
-		.has_vlsn        = q->vlsn,
-		.o               = SS_GTE,
-		.mmap            = &n->map,
-		.file            = &n->file,
-		.r               = q->r
+		.from_compaction     = 0,
+		.index               = &b->index,
+		.buf                 = &c->buf_a,
+		.buf_read            = &q->index->readbuf,
+		.index_iter          = &c->index_iter,
+		.page_iter           = &c->page_iter,
+		.use_mmap            = scheme->mmap,
+		.use_mmap_copy       = 0,
+		.use_compression     = compression,
+		.use_direct_io       = scheme->direct_io,
+		.direct_io_page_size = scheme->direct_io_page_size,
+		.compression_if      = compression_if,
+		.has                 = q->has,
+		.has_vlsn            = q->vlsn,
+		.o                   = SS_GTE,
+		.mmap                = &n->map,
+		.file                = &n->file,
+		.r                   = q->r
 	};
 	ss_iterinit(sd_read, &c->i);
 	rc = ss_iteropen(sd_read, &c->i, &arg, q->key);
@@ -289,22 +291,24 @@ si_rangebranch(siread *q, sinode *n, sibranch *b, svmerge *m)
 		compression_if = scheme->compression_cold_if;
 	}
 	sdreadarg arg = {
-		.from_compaction = 0,
-		.index           = &b->index,
-		.buf             = &c->buf_a,
-		.buf_read        = &q->index->readbuf,
-		.index_iter      = &c->index_iter,
-		.page_iter       = &c->page_iter,
-		.use_mmap        = scheme->mmap,
-		.use_mmap_copy   = 1,
-		.use_compression = compression,
-		.compression_if  = compression_if,
-		.has             = 0,
-		.has_vlsn        = 0,
-		.o               = q->order,
-		.mmap            = &n->map,
-		.file            = &n->file,
-		.r               = q->r
+		.from_compaction     = 0,
+		.index               = &b->index,
+		.buf                 = &c->buf_a,
+		.buf_read            = &q->index->readbuf,
+		.index_iter          = &c->index_iter,
+		.page_iter           = &c->page_iter,
+		.use_mmap            = scheme->mmap,
+		.use_mmap_copy       = 1,
+		.use_compression     = compression,
+		.use_direct_io       = scheme->direct_io,
+		.direct_io_page_size = scheme->direct_io_page_size,
+		.compression_if      = compression_if,
+		.has                 = 0,
+		.has_vlsn            = 0,
+		.o                   = q->order,
+		.mmap                = &n->map,
+		.file                = &n->file,
+		.r                   = q->r
 	};
 	ss_iterinit(sd_read, &c->i);
 	int rc = ss_iteropen(sd_read, &c->i, &arg, q->key);

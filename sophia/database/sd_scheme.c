@@ -59,7 +59,7 @@ int sd_schemewrite(sdscheme *c, sr *r, char *path, int sync)
 {
 	ssfile meta;
 	ss_fileinit(&meta, r->vfs);
-	int rc = ss_filenew(&meta, path);
+	int rc = ss_filenew(&meta, path, 0);
 	if (ssunlikely(rc == -1))
 		goto error;
 	rc = ss_filewrite(&meta, c->buf.s, ss_bufused(&c->buf));
@@ -96,7 +96,7 @@ int sd_schemerecover(sdscheme *c, sr *r, char *path)
 		return sr_oom(r->e);
 	ssfile meta;
 	ss_fileinit(&meta, r->vfs);
-	rc = ss_fileopen(&meta, path);
+	rc = ss_fileopen(&meta, path, 0);
 	if (ssunlikely(rc == -1))
 		goto error;
 	rc = ss_filepread(&meta, 0, c->buf.s, size);

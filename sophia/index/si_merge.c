@@ -150,19 +150,21 @@ si_split(si *index, sdc *c, ssbuf *result,
 	uint32_t timestamp = ss_timestamp();
 	int rc;
 	sdmergeconf mergeconf = {
-		.stream         = stream,
-		.size_stream    = size_stream,
-		.size_node      = size_node,
-		.size_page      = index->scheme.node_page_size,
-		.checksum       = index->scheme.node_page_checksum,
-		.expire         = index->scheme.expire,
-		.timestamp      = timestamp,
-		.compression    = index->scheme.compression_cold,
-		.compression_if = index->scheme.compression_cold_if,
-		.amqf           = index->scheme.amqf,
-		.vlsn           = vlsn,
-		.save_delete    = 0,
-		.save_upsert    = 0
+		.stream              = stream,
+		.size_stream         = size_stream,
+		.size_node           = size_node,
+		.size_page           = index->scheme.node_page_size,
+		.checksum            = index->scheme.node_page_checksum,
+		.expire              = index->scheme.expire,
+		.timestamp           = timestamp,
+		.compression         = index->scheme.compression_cold,
+		.compression_if      = index->scheme.compression_cold_if,
+		.amqf                = index->scheme.amqf,
+		.direct_io           = index->scheme.direct_io,
+		.direct_io_page_size = index->scheme.direct_io_page_size,
+		.vlsn                = vlsn,
+		.save_delete         = 0,
+		.save_upsert         = 0
 	};
 	sinode *n = NULL;
 	sdmerge merge;
@@ -187,22 +189,24 @@ si_split(si *index, sdc *c, ssbuf *result,
 		n->branch_count++;
 
 		/* write pages */
-		uint64_t offset = n->file.size;
+		uint64_t offset;
+		offset = n->file.size + sd_directio_size(&c->direct_io);
 		while ((rc = sd_mergepage(&merge, offset)) == 1) {
-			rc = sd_writepage(r, &n->file, merge.build);
+			rc = sd_writepage(r, &n->file, &c->direct_io, merge.build);
 			if (ssunlikely(rc == -1))
 				goto error;
-			offset = n->file.size;
+			offset = n->file.size + sd_directio_size(&c->direct_io);
 		}
 		if (ssunlikely(rc == -1))
 			goto error;
 
-		rc = sd_mergecommit(&merge, &id, n->file.size);
+		offset = n->file.size + sd_directio_size(&c->direct_io);
+		rc = sd_mergecommit(&merge, &id, offset);
 		if (ssunlikely(rc == -1))
 			goto error;
 
 		/* write index */
-		rc = sd_writeindex(r, &n->file, &merge.index);
+		rc = sd_writeindex(r, &n->file, &c->direct_io, &merge.index);
 		if (ssunlikely(rc == -1))
 			goto error;
 

@@ -62,6 +62,8 @@ spr_cmd_start(void)
 	sp_setstring(spr_env, "backup.path", "_test_backup", 0);
 	sp_setstring(spr_env, "db", "test", 0);
 
+	sp_setint(spr_env, "db.test.direct_io", 1);
+
 	sp_setstring(spr_env, "db.test.scheme", "key", 0);
 	sp_setstring(spr_env, "db.test.scheme.key", "u32,key(0)", 0);
 	sp_setstring(spr_env, "db.test.scheme", "value", 0);

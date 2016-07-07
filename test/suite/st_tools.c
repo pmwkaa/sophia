@@ -26,7 +26,7 @@ int touch(char *path, char *name) {
 	snprintf(file, sizeof(file), "%s/%s", path, name);
 	ssfile f;
 	ss_fileinit(&f, &st_r.vfs);
-	int rc = ss_filenew(&f, file);
+	int rc = ss_filenew(&f, file, 0);
 	ss_fileclose(&f);
 	return rc;
 }

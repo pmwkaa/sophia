@@ -77,6 +77,16 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 
 	sdbuild build;
 	sd_buildinit(&build);
+
+	sddirectio direct_io;
+	sd_directio_init(&direct_io);
+	if (i->scheme.direct_io) {
+		rc = sd_directio_prepare(&direct_io, r,
+		                         i->scheme.direct_io_page_size,
+		                         i->scheme.direct_io_buffer_size);
+		if (ssunlikely(rc == -1))
+			goto e1;
+	}
 	rc = sd_buildbegin(&build, r,
 	                   i->scheme.node_page_checksum,
 	                   i->scheme.compression_cold,
@@ -89,7 +99,7 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 		goto e1;
 
 	/* write page */
-	rc = sd_writepage(r, &n->file, &build);
+	rc = sd_writepage(r, &n->file, &direct_io, &build);
 	if (ssunlikely(rc == -1))
 		goto e1;
 	/* amqf */
@@ -99,12 +109,16 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 			goto e1;
 		qf = &f;
 	}
-	rc = sd_indexcommit(&index, r, &id, qf, n->file.size);
+	uint32_t align = 0;
+	if (i->scheme.direct_io)
+		align = i->scheme.direct_io_page_size;
+	rc = sd_indexcommit(&index, r, &id, qf, align,
+	                    n->file.size + sd_directio_size(&direct_io));
 	if (ssunlikely(rc == -1))
 		goto e1;
 	ss_qffree(&f, r->a);
 	/* write index */
-	rc = sd_writeindex(r, &n->file, &index);
+	rc = sd_writeindex(r, &n->file, &direct_io, &index);
 	if (ssunlikely(rc == -1))
 		goto e1;
 	if (i->scheme.mmap) {
@@ -114,9 +128,11 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 	}
 	si_branchset(&n->self, &index);
 
+	sd_directio_free(&direct_io, r);
 	sd_buildfree(&build, r);
 	return n;
 e1:
+	sd_directio_free(&direct_io, r);
 	ss_qffree(&f, r->a);
 	sd_indexfree(&index, r);
 	sd_buildfree(&build, r);
@@ -562,7 +578,7 @@ si_recoversnapshot(si *i, sr *r, sdsnapshot *s)
 		return sr_oom_malfunction(r->e);
 	ssfile file;
 	ss_fileinit(&file, r->vfs);
-	rc = ss_fileopen(&file, path);
+	rc = ss_fileopen(&file, path, 0);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "index file '%s' open error: %s",
 		               path, strerror(errno));
