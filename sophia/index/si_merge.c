@@ -190,23 +190,23 @@ si_split(si *index, sdc *c, ssbuf *result,
 
 		/* write pages */
 		uint64_t offset;
-		offset = n->file.size + sd_directio_size(&c->direct_io);
+		offset = sd_iosize(&c->io, &n->file);
 		while ((rc = sd_mergepage(&merge, offset)) == 1) {
-			rc = sd_writepage(r, &n->file, &c->direct_io, merge.build);
+			rc = sd_writepage(r, &n->file, &c->io, merge.build);
 			if (ssunlikely(rc == -1))
 				goto error;
-			offset = n->file.size + sd_directio_size(&c->direct_io);
+			offset = sd_iosize(&c->io, &n->file);
 		}
 		if (ssunlikely(rc == -1))
 			goto error;
 
-		offset = n->file.size + sd_directio_size(&c->direct_io);
+		offset = sd_iosize(&c->io, &n->file);
 		rc = sd_mergecommit(&merge, &id, offset);
 		if (ssunlikely(rc == -1))
 			goto error;
 
 		/* write index */
-		rc = sd_writeindex(r, &n->file, &c->direct_io, &merge.index);
+		rc = sd_writeindex(r, &n->file, &c->io, &merge.index);
 		if (ssunlikely(rc == -1))
 			goto error;
 

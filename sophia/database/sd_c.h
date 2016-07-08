@@ -22,7 +22,7 @@ struct sdcbuf {
 };
 
 struct sdc {
-	sddirectio direct_io;
+	sdio io;
 	sdbuild build;
 	ssqf qf;
 	svupsert upsert;
@@ -37,7 +37,7 @@ struct sdc {
 static inline void
 sd_cinit(sdc *sc)
 {
-	sd_directio_init(&sc->direct_io);
+	sd_ioinit(&sc->io);
 	sv_upsertinit(&sc->upsert);
 	sd_buildinit(&sc->build);
 	ss_qfinit(&sc->qf);
@@ -52,7 +52,7 @@ sd_cinit(sdc *sc)
 static inline void
 sd_cfree(sdc *sc, sr *r)
 {
-	sd_directio_free(&sc->direct_io, r);
+	sd_iofree(&sc->io, r);
 	sd_buildfree(&sc->build, r);
 	ss_qffree(&sc->qf, r->a);
 	sv_upsertfree(&sc->upsert, r);
@@ -92,7 +92,7 @@ sd_cgc(sdc *sc, sr *r, int wm)
 static inline void
 sd_creset(sdc *sc, sr *r ssunused)
 {
-	sd_directio_reset(&sc->direct_io);
+	sd_ioreset(&sc->io);
 	sd_buildreset(&sc->build);
 	ss_qfreset(&sc->qf);
 	sv_upsertreset(&sc->upsert);

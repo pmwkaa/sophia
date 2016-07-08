@@ -46,6 +46,9 @@ sd_read_gt0(void)
 	addv(&b, &st_r.r, 5, 0, &key);
 	sd_buildend(&b, &st_r.r);
 
+	sdio io;
+	sd_ioinit(&io);
+
 	sdindex index;
 	sd_indexinit(&index);
 	t( sd_indexbegin(&index) == 0 );
@@ -62,7 +65,7 @@ sd_read_gt0(void)
 	t( ss_filenew(&f, "./0000.db", 0) == 0 );
 	t( sd_writepage(&st_r.r, &f, NULL, &b) == 0 );
 	t( sd_indexcommit(&index, &st_r.r, &id, NULL, 0, f.size) == 0 );
-	t( sd_writeindex(&st_r.r, &f, NULL, &index) == 0 );
+	t( sd_writeindex(&st_r.r, &f, &io, &index) == 0 );
 
 	ssmmap map;
 	t( ss_vfsmmap(&st_r.vfs, &map, f.fd, f.size, 1) == 0 );
@@ -131,6 +134,9 @@ sd_read_gt1(void)
 	ss_fileinit(&f, &st_r.vfs);
 	t( ss_filenew(&f, "./0000.db", 0) == 0 );
 
+	sdio io;
+	sd_ioinit(&io);
+
 	sdbuild b;
 	sd_buildinit(&b);
 	t( sd_buildbegin(&b, &st_r.r, 1, 0, NULL) == 0);
@@ -188,7 +194,7 @@ sd_read_gt1(void)
 	memset(&id, 0, sizeof(id));
 
 	t( sd_indexcommit(&index, &st_r.r, &id, NULL, 0, f.size) == 0 );
-	t( sd_writeindex(&st_r.r, &f, NULL, &index) == 0 );
+	t( sd_writeindex(&st_r.r, &f, &io, &index) == 0 );
 
 	ssmmap map;
 	t( ss_vfsmmap(&st_r.vfs, &map, f.fd, f.size, 1) == 0 );
@@ -317,6 +323,9 @@ sd_read_gt0_compression_lz4(void)
 	addv(&b, &r, 5, 0, &key);
 	t( sd_buildend(&b, &r) == 0 );
 
+	sdio io;
+	sd_ioinit(&io);
+
 	sdindex index;
 	sd_indexinit(&index);
 	t( sd_indexbegin(&index) == 0 );
@@ -335,7 +344,7 @@ sd_read_gt0_compression_lz4(void)
 	t( ss_filenew(&f, "./0000.db", 0) == 0 );
 	t( sd_writepage(&r, &f, NULL, &b) == 0 );
 	t( sd_indexcommit(&index, &r, &id, NULL, 0, f.size) == 0 );
-	t( sd_writeindex(&r, &f, NULL, &index) == 0 );
+	t( sd_writeindex(&r, &f, &io, &index) == 0 );
 
 	ssmmap map;
 	t( ss_vfsmmap(&st_r.vfs, &map, f.fd, f.size, 1) == 0 );
@@ -450,6 +459,9 @@ sd_read_gt1_compression_lz4(void)
 	uint64_t poff = f.size;
 	t( sd_writepage(&r, &f, NULL, &b) == 0 );
 
+	sdio io;
+	sd_ioinit(&io);
+
 	sdindex index;
 	sd_indexinit(&index);
 	t( sd_indexbegin(&index) == 0 );
@@ -493,7 +505,7 @@ sd_read_gt1_compression_lz4(void)
 	memset(&id, 0, sizeof(id));
 	t( sd_indexcommit(&index, &r, &id, NULL, 0, f.size) == 0 );
 
-	t( sd_writeindex(&r, &f, NULL, &index) == 0 );
+	t( sd_writeindex(&r, &f, &io, &index) == 0 );
 
 	ssmmap map;
 	t( ss_vfsmmap(&st_r.vfs, &map, f.fd, f.size, 1) == 0 );

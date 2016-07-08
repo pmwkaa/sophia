@@ -25,9 +25,10 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 	/* prepare direct_io stream */
 	int rc;
 	if (index->scheme.direct_io) {
-		rc = sd_directio_prepare(&c->direct_io, r,
-		                         index->scheme.direct_io_page_size,
-		                         index->scheme.direct_io_buffer_size);
+		rc = sd_ioprepare(&c->io, r,
+		                  index->scheme.direct_io,
+		                  index->scheme.direct_io_page_size,
+		                  index->scheme.direct_io_buffer_size);
 		if (ssunlikely(rc == -1))
 			return sr_oom(r->e);
 	}
@@ -87,21 +88,21 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		uint64_t offset = start;
 		while ((rc = sd_mergepage(&merge, offset)) == 1)
 		{
-			rc = sd_writepage(r, &parent->file, &c->direct_io, merge.build);
+			rc = sd_writepage(r, &parent->file, &c->io, merge.build);
 			if (ssunlikely(rc == -1))
 				goto e0;
-			offset = parent->file.size + sd_directio_size(&c->direct_io);
+			offset = sd_iosize(&c->io, &parent->file);
 		}
 		if (ssunlikely(rc == -1))
 			goto e0;
 
-		offset = parent->file.size + sd_directio_size(&c->direct_io);
+		offset = sd_iosize(&c->io, &parent->file);
 		rc = sd_mergecommit(&merge, &id, offset);
 		if (ssunlikely(rc == -1))
 			goto e0;
 
 		/* write index */
-		rc = sd_writeindex(r, &parent->file, &c->direct_io, &merge.index);
+		rc = sd_writeindex(r, &parent->file, &c->io, &merge.index);
 		if (ssunlikely(rc == -1))
 			goto e0;
 
@@ -245,9 +246,10 @@ int si_compact(si *index, sdc *c, siplan *plan,
 	/* prepare direct_io stream */
 	int rc;
 	if (index->scheme.direct_io) {
-		rc = sd_directio_prepare(&c->direct_io, r,
-		                         index->scheme.direct_io_page_size,
-		                         index->scheme.direct_io_buffer_size);
+		rc = sd_ioprepare(&c->io, r,
+		                  index->scheme.direct_io,
+		                  index->scheme.direct_io_page_size,
+		                  index->scheme.direct_io_buffer_size);
 		if (ssunlikely(rc == -1))
 			return sr_oom(r->e);
 	}

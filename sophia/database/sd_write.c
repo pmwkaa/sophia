@@ -38,22 +38,22 @@ int sd_commitpage(sdbuild *b, sr *r, ssbuf *buf)
 	return 0;
 }
 
-int sd_writepage(sr *r, ssfile *file, sddirectio *io, sdbuild *b)
+int sd_writepage(sr *r, ssfile *file, sdio *io, sdbuild *b)
 {
 	SS_INJECTION(r->i, SS_INJECTION_SD_BUILD_0,
 	             sr_malfunction(r->e, "%s", "error injection");
 	             return -1);
 	int rc;
-	if (sd_directio_inuse(io)) {
+	if (io && io->direct) {
 		if (ss_bufused(&b->c) > 0) {
-			rc = sd_directio_write(io, file, r, b->c.s, ss_bufused(&b->c));
+			rc = sd_iowrite(io, r, file, b->c.s, ss_bufused(&b->c));
 			if (ssunlikely(rc == -1))
 				return -1;
 		} else {
-			rc = sd_directio_write(io, file, r, b->m.s, ss_bufused(&b->m));
+			rc = sd_iowrite(io, r, file, b->m.s, ss_bufused(&b->m));
 			if (ssunlikely(rc == -1))
 				return -1;
-			rc = sd_directio_write(io, file, r, b->v.s, ss_bufused(&b->v));
+			rc = sd_iowrite(io, r, file, b->v.s, ss_bufused(&b->v));
 			if (ssunlikely(rc == -1))
 				return -1;
 		}
@@ -80,29 +80,15 @@ int sd_writepage(sr *r, ssfile *file, sddirectio *io, sdbuild *b)
 	return 0;
 }
 
-int sd_writeindex(sr *r, ssfile *file, sddirectio *io, sdindex *index)
+int sd_writeindex(sr *r, ssfile *file, sdio *io, sdindex *index)
 {
 	int rc;
-	if (sd_directio_inuse(io)) {
-		rc = sd_directio_write(io, file, r, index->i.s, ss_bufused(&index->i));
-		if (ssunlikely(rc == -1))
-			return -1;
-		rc = sd_directio_flush(io, file);
-		if (ssunlikely(rc == -1)) {
-			sr_malfunction(r->e, "file '%s' write error: %s",
-			               ss_pathof(&file->path),
-			               strerror(errno));
-			return -1;
-		}
-		assert((ss_bufused(&io->buf) - io->size_align) == 0);
-		return 0;
-	}
-	rc = ss_filewrite(file, index->i.s, ss_bufused(&index->i));
-	if (ssunlikely(rc == -1)) {
-		sr_malfunction(r->e, "file '%s' write error: %s",
-		               ss_pathof(&file->path),
-		               strerror(errno));
+	rc = sd_iowrite(io, r, file, index->i.s, ss_bufused(&index->i));
+	if (ssunlikely(rc == -1))
 		return -1;
-	}
+	rc = sd_ioflush(io, r, file);
+	if (ssunlikely(rc == -1))
+		return -1;
+	assert((ss_bufused(&io->buf) - io->size_align) == 0);
 	return 0;
 }
