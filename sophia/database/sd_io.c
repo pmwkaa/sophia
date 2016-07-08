@@ -120,3 +120,60 @@ int sd_iowrite(sdio *s, sr *r, ssfile *f, char *buf, int size)
 	}
 	return 0;
 }
+
+static inline int
+sd_ioread_direct(sdio *s, sr *r, ssfile *f, uint64_t offset,
+                 char *buf, int size, int from_compaction,
+                 char **buf_align)
+{
+	uint32_t page_size = s->size_page;
+
+	/* align buffer */
+	char *buf_aligned =
+		(char*)((((intptr_t)buf + page_size - 1) / page_size) * page_size);
+
+	/* calculate aligned offset and size */
+	uint64_t offset_align = offset % page_size;
+	offset -= offset_align;
+	size   += offset_align;
+	uint64_t size_align   = size % page_size;
+	if (size_align > 0) {
+		size += page_size - size % page_size;
+	}
+
+	/* read */
+	uint64_t start = ss_utime();
+	int rc;
+	rc = ss_filepread(f, offset, buf_aligned, size);
+	if (ssunlikely(rc == -1)) {
+		sr_error(r->e, "db file '%s' read error: %s",
+		         ss_pathof(&f->path),
+		         strerror(errno));
+		return -1;
+	}
+	sr_statpread(r->stat, start, from_compaction);
+	*buf_align = buf_aligned + offset_align;
+	return 0;
+}
+
+int sd_ioread(sdio *s, sr *r, ssfile *f, uint64_t offset,
+              char *buf, int size, int from_compaction,
+              char **buf_align)
+{
+	if (s->direct)
+		return sd_ioread_direct(s, r, f, offset, buf, size,
+		                        from_compaction,
+		                        buf_align);
+	uint64_t start = ss_utime();
+	int rc;
+	rc = ss_filepread(f, offset, buf, size);
+	if (ssunlikely(rc == -1)) {
+		sr_error(r->e, "db file '%s' read error: %s",
+		         ss_pathof(&f->path),
+		         strerror(errno));
+		return -1;
+	}
+	sr_statpread(r->stat, start, from_compaction);
+	*buf_align = buf;
+	return 0;
+}

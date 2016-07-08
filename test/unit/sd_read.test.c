@@ -81,6 +81,7 @@ sd_read_gt0(void)
 
 	sdreadarg arg = {
 		.from_compaction     = 0,
+		.io                  = &io,
 		.index               = &index,
 		.buf                 = &buf,
 		.buf_read            = NULL,
@@ -210,6 +211,7 @@ sd_read_gt1(void)
 
 	sdreadarg arg = {
 		.from_compaction     = 0,
+		.io                  = &io,
 		.index               = &index,
 		.buf                 = &buf,
 		.buf_read            = NULL,
@@ -362,6 +364,7 @@ sd_read_gt0_compression_lz4(void)
 
 	sdreadarg arg = {
 		.from_compaction     = 0,
+		.io                  = &io,
 		.index               = &index,
 		.buf                 = &buf,
 		.buf_read            = NULL,
@@ -521,6 +524,7 @@ sd_read_gt1_compression_lz4(void)
 
 	sdreadarg arg = {
 		.from_compaction     = 0,
+		.io                  = &io,
 		.index               = &index,
 		.buf                 = &buf,
 		.buf_read            = NULL,

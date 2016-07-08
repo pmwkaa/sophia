@@ -292,6 +292,7 @@ int si_compact(si *index, sdc *c, siplan *plan,
 		}
 		sdreadarg arg = {
 			.from_compaction     = 1,
+			.io                  = &c->io,
 			.index               = &b->index,
 			.buf                 = &cbuf->a,
 			.buf_read            = &c->d,

@@ -29,5 +29,6 @@ int sd_ioprepare(sdio*, sr*, int, uint32_t, uint32_t);
 int sd_ioreset(sdio*);
 int sd_ioflush(sdio*, sr*, ssfile*);
 int sd_iowrite(sdio*, sr*, ssfile*, char*, int);
+int sd_ioread(sdio*, sr*, ssfile*, uint64_t, char*, int, int, char**);
 
 #endif

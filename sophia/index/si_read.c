@@ -172,6 +172,7 @@ si_getbranch(siread *q, sinode *n, sicachebranch *c)
 	}
 	sdreadarg arg = {
 		.from_compaction     = 0,
+		.io                  = &q->index->rdc.io,
 		.index               = &b->index,
 		.buf                 = &c->buf_a,
 		.buf_read            = &q->index->rdc.d,
@@ -292,6 +293,7 @@ si_rangebranch(siread *q, sinode *n, sibranch *b, svmerge *m)
 	}
 	sdreadarg arg = {
 		.from_compaction     = 0,
+		.io                  = &q->index->rdc.io,
 		.index               = &b->index,
 		.buf                 = &c->buf_a,
 		.buf_read            = &q->index->rdc.d,
@@ -433,6 +435,15 @@ next_node:
 
 int si_read(siread *q)
 {
+	int rc;
+	if (q->index->scheme.direct_io) {
+		rc = sd_ioprepare(&q->index->rdc.io, q->r,
+		                  q->index->scheme.direct_io,
+		                  q->index->scheme.direct_io_page_size,
+		                  q->index->scheme.direct_io_buffer_size);
+		if (ssunlikely(rc == -1))
+			return sr_oom(q->r->e);
+	}
 	switch (q->order) {
 	case SS_EQ:
 		return si_get(q);

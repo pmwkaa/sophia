@@ -13,6 +13,7 @@ typedef struct sdread sdread;
 typedef struct sdreadarg sdreadarg;
 
 struct sdreadarg {
+	sdio       *io;
 	sdindex    *index;
 	ssbuf      *buf;
 	ssbuf      *buf_read;
@@ -41,81 +42,16 @@ struct sdread {
 } sspacked;
 
 static inline int
-sd_read_direct_io(sdread *i, ssbuf *buf, sdindexpage *ref,
-                  char **page_pointer)
-{
-	sdreadarg *arg = &i->ra;
-	sr *r = arg->r;
-
-	/* calculate aligned offset and size */
-	uint32_t page_size    = arg->direct_io_page_size;
-	uint64_t offset_align = ref->offset % page_size;
-	uint64_t offset       = ref->offset - offset_align;
-	uint64_t size         = ref->size + offset_align;
-	uint64_t size_align   = size % page_size;
-	if (size_align > 0) {
-		size += page_size - size % page_size;
-	}
-
-	/* allocate and align buffer */
-	ss_bufreset(buf);
-	int rc;
-	rc = ss_bufensure(buf, r->a, size + page_size);
-	if (ssunlikely(rc == -1))
-		return sr_oom(r->e);
-	char *buf_aligned =
-		(char*)((((intptr_t)buf->s + page_size - 1) / page_size) * page_size);
-	assert((buf->e - buf_aligned) >= ref->size);
-
-	/* read */
-	uint64_t start = ss_utime();
-	rc = ss_filepread(arg->file, offset, buf_aligned, size);
-	if (ssunlikely(rc == -1)) {
-		sr_error(r->e, "db file '%s' read error: %s",
-		         ss_pathof(&arg->file->path),
-		         strerror(errno));
-		printf("read error\n");
-		return -1;
-	}
-	sr_statpread(r->stat, start, arg->from_compaction);
-	ss_bufadvance(buf, ref->size);
-	*page_pointer = buf_aligned + offset_align;
-	return 0;
-}
-
-static inline int
-sd_read_do(sdread *i, ssbuf *buf, sdindexpage *ref,
-           char **page_pointer)
-{
-	sdreadarg *arg = &i->ra;
-	if (arg->use_direct_io)
-		return sd_read_direct_io(i, buf, ref, page_pointer);
-	sr *r = arg->r;
-	uint64_t start = ss_utime();
-	int rc;
-	rc = ss_filepread(arg->file, ref->offset, buf->s, ref->size);
-	if (ssunlikely(rc == -1)) {
-		sr_error(r->e, "db file '%s' read error: %s",
-		         ss_pathof(&arg->file->path),
-		         strerror(errno));
-		return -1;
-	}
-	sr_statpread(r->stat, start, arg->from_compaction);
-	ss_bufadvance(buf, ref->size);
-	*page_pointer = buf->s;
-	return 0;
-}
-
-static inline int
 sd_read_page(sdread *i, sdindexpage *ref)
 {
 	sdreadarg *arg = &i->ra;
 	sr *r = arg->r;
 
+	int page_align = arg->io->size_page * 2;
 	i->reads++;
 
 	ss_bufreset(arg->buf);
-	int rc = ss_bufensure(arg->buf, r->a, ref->sizeorigin);
+	int rc = ss_bufensure(arg->buf, r->a, ref->sizeorigin + page_align);
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
 
@@ -127,12 +63,16 @@ sd_read_page(sdread *i, sdindexpage *ref)
 			page_pointer = arg->mmap->p + ref->offset;
 		} else {
 			ss_bufreset(arg->buf_read);
-			rc = ss_bufensure(arg->buf_read, r->a, ref->size);
+			rc = ss_bufensure(arg->buf_read, r->a, ref->size + page_align);
 			if (ssunlikely(rc == -1))
 				return sr_oom(r->e);
-			rc = sd_read_do(i, arg->buf_read, ref, &page_pointer);
+			rc = sd_ioread(arg->io, r, arg->file, ref->offset,
+			               arg->buf_read->s, ref->size,
+			               arg->from_compaction,
+			               &page_pointer);
 			if (ssunlikely(rc == -1))
 				return -1;
+			ss_bufadvance(arg->buf_read, ref->size);
 		}
 
 		/* copy header */
@@ -171,9 +111,13 @@ sd_read_page(sdread *i, sdindexpage *ref)
 	}
 
 	/* default */
-	rc = sd_read_do(i, arg->buf, ref, &page_pointer);
+	rc = sd_ioread(arg->io, r, arg->file, ref->offset,
+	               arg->buf->s, ref->size,
+	               arg->from_compaction,
+	               &page_pointer);
 	if (ssunlikely(rc == -1))
 		return -1;
+	ss_bufadvance(arg->buf, ref->size);
 	sd_pageinit(&i->page, (sdpageheader*)page_pointer);
 	return 0;
 }
