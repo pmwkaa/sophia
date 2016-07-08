@@ -174,7 +174,7 @@ si_getbranch(siread *q, sinode *n, sicachebranch *c)
 		.from_compaction     = 0,
 		.index               = &b->index,
 		.buf                 = &c->buf_a,
-		.buf_read            = &q->index->readbuf,
+		.buf_read            = &q->index->rdc.d,
 		.index_iter          = &c->index_iter,
 		.page_iter           = &c->page_iter,
 		.use_mmap            = scheme->mmap,
@@ -207,7 +207,7 @@ si_getbranch(siread *q, sinode *n, sicachebranch *c)
 		vlsn = UINT64_MAX;
 	ssiter j;
 	ss_iterinit(sv_readiter, &j);
-	ss_iteropen(sv_readiter, &j, q->r, &i, &q->index->u, vlsn, 1);
+	ss_iteropen(sv_readiter, &j, q->r, &i, &q->index->rdc.upsert, vlsn, 1);
 	char *v = ss_iterof(sv_readiter, &j);
 	if (ssunlikely(v == NULL))
 		return 0;
@@ -294,7 +294,7 @@ si_rangebranch(siread *q, sinode *n, sibranch *b, svmerge *m)
 		.from_compaction     = 0,
 		.index               = &b->index,
 		.buf                 = &c->buf_a,
-		.buf_read            = &q->index->readbuf,
+		.buf_read            = &q->index->rdc.d,
 		.index_iter          = &c->index_iter,
 		.page_iter           = &c->page_iter,
 		.use_mmap            = scheme->mmap,
@@ -402,7 +402,7 @@ next_node:
 	ss_iteropen(sv_mergeiter, &j, q->r, m, q->order);
 	ssiter k;
 	ss_iterinit(sv_readiter, &k);
-	ss_iteropen(sv_readiter, &k, q->r, &j, &q->index->u, q->vlsn, 0);
+	ss_iteropen(sv_readiter, &k, q->r, &j, &q->index->rdc.upsert, q->vlsn, 0);
 	char *v = ss_iterof(sv_readiter, &k);
 	if (ssunlikely(v == NULL)) {
 		sv_mergereset(&q->merge);

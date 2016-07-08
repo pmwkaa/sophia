@@ -26,8 +26,7 @@ si *si_init(sr *r, so *object)
 		ss_free(r->a, i);
 		return NULL;
 	}
-	ss_bufinit(&i->readbuf);
-	sv_upsertinit(&i->u);
+	sd_cinit(&i->rdc);
 	ss_rbinit(&i->i);
 	ss_mutexinit(&i->lock);
 	si_schemeinit(&i->scheme);
@@ -70,8 +69,7 @@ int si_close(si *i)
 	if (i->i.root)
 		si_truncate(i->i.root, &i->r);
 	i->i.root = NULL;
-	sv_upsertfree(&i->u, &i->r);
-	ss_buffree(&i->readbuf, i->r.a);
+	sd_cfree(&i->rdc, &i->r);
 	si_plannerfree(&i->p, i->r.a);
 	ss_mutexfree(&i->lock);
 	si_schemefree(&i->scheme, &i->r);

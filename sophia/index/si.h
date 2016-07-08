@@ -25,8 +25,7 @@ struct si {
 	uint64_t   size;
 	uint32_t   gc_count;
 	sslist     gc;
-	ssbuf      readbuf;
-	svupsert   u;
+	sdc        rdc;
 	sischeme   scheme;
 	so        *object;
 	sr         r;
