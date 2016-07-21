@@ -56,5 +56,10 @@ error:
 
 int ss_thread_setname(ssthread *t, char *name)
 {
-	return pthread_setname_np(t->id, name);
+	#if defined(__APPLE__)
+		(void)t;
+		return pthread_setname_np(name);
+	#else
+		return pthread_setname_np(t->id, name);
+	#endif
 }

@@ -30,12 +30,22 @@ ss_fileinit(ssfile *f, ssvfs *vfs)
 }
 
 static inline int
-ss_fileopen_as(ssfile *f, char *path, int flags)
+ss_fileopen_as(ssfile *f, char *path, int direct_io, int flags)
 {
 	f->creat = (flags & O_CREAT ? 1 : 0);
+#if !defined(__APPLE__)
+	if (direct_io)
+		flags |= O_DIRECT;
+#else
+	(void)direct_io;
+#endif
 	f->fd = ss_vfsopen(f->vfs, path, flags, 0644);
 	if (ssunlikely(f->fd == -1))
 		return -1;
+#if defined(__APPLE__)
+	if (direct_io)
+		fcntl(f->fd, F_NOCACHE, 1);
+#endif
 	ss_pathset(&f->path, "%s", path);
 	f->size = 0;
 	if (f->creat)
@@ -53,19 +63,13 @@ ss_fileopen_as(ssfile *f, char *path, int flags)
 static inline int
 ss_fileopen(ssfile *f, char *path, int direct_io)
 {
-	int flags = O_RDWR;
-	if (direct_io)
-		flags |= O_DIRECT;
-	return ss_fileopen_as(f, path, flags);
+	return ss_fileopen_as(f, path, direct_io, O_RDWR);
 }
 
 static inline int
 ss_filenew(ssfile *f, char *path, int direct_io)
 {
-	int flags = O_RDWR|O_CREAT;
-	if (direct_io)
-		flags |= O_DIRECT;
-	return ss_fileopen_as(f, path, flags);
+	return ss_fileopen_as(f, path, direct_io, O_RDWR|O_CREAT);
 }
 
 static inline int
