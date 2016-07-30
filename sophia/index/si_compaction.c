@@ -65,8 +65,8 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		.save_upsert         = 1
 	};
 	sdmerge merge;
-	rc = sd_mergeinit(&merge, r, &i, &c->build, &c->qf,
-	                  &c->upsert, &mergeconf);
+	rc = sd_mergeinit(&merge, r, &i, &c->build, &c->build_index,
+	                  &c->qf, &c->upsert, &mergeconf);
 	if (ssunlikely(rc == -1))
 		return -1;
 
@@ -97,7 +97,7 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 			goto e0;
 
 		offset = sd_iosize(&c->io, &parent->file);
-		rc = sd_mergecommit(&merge, &id, offset);
+		rc = sd_mergeend(&merge, &id, offset);
 		if (ssunlikely(rc == -1))
 			goto e0;
 

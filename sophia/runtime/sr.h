@@ -41,7 +41,7 @@ sr_init(sr *r,
         sfupsert *upsert,
         sfscheme *scheme,
         ssinjection *i,
-		srstat *stat,
+        srstat *stat,
         sscrcf crc,
         void *ptr)
 {

@@ -51,10 +51,12 @@ sd_read_gt0(void)
 
 	sdindex index;
 	sd_indexinit(&index);
-	t( sd_indexbegin(&index) == 0 );
+	sdbuildindex bi;
+	sd_buildindex_init(&bi);
+	t( sd_buildindex_begin(&bi) == 0 );
 
 	int rc;
-	rc = sd_indexadd(&index, &st_r.r, &b, 0);
+	rc = sd_buildindex_add(&bi, &st_r.r, &b, 0);
 	t( rc == 0 );
 
 	sdid id;
@@ -64,7 +66,8 @@ sd_read_gt0(void)
 	ss_fileinit(&f, &st_r.vfs);
 	t( ss_filenew(&f, "./0000.db", 0) == 0 );
 	t( sd_writepage(&st_r.r, &f, NULL, &b) == 0 );
-	t( sd_indexcommit(&index, &st_r.r, &id, NULL, 0, f.size) == 0 );
+	t( sd_buildindex_end(&bi, &st_r.r, &id, NULL, 0, f.size) == 0 );
+	t( sd_indexcopy_buf(&index, &st_r.r, &bi.v, &bi.m) == 0 );
 	t( sd_writeindex(&st_r.r, &f, &io, &index) == 0 );
 
 	ssmmap map;
@@ -124,6 +127,7 @@ sd_read_gt0(void)
 
 	sd_indexfree(&index, &st_r.r);
 	sd_buildfree(&b, &st_r.r);
+	sd_buildindex_free(&bi, &st_r.r);
 	ss_buffree(&xfbuf, &st_r.a);
 	ss_buffree(&buf, &st_r.a);
 }
@@ -154,10 +158,12 @@ sd_read_gt1(void)
 
 	sdindex index;
 	sd_indexinit(&index);
-	t( sd_indexbegin(&index) == 0 );
+	sdbuildindex bi;
+	sd_buildindex_init(&bi);
+	t( sd_buildindex_begin(&bi) == 0 );
 
 	int rc;
-	rc = sd_indexadd(&index, &st_r.r, &b, poff);
+	rc = sd_buildindex_add(&bi, &st_r.r, &b, poff);
 	t( rc == 0 );
 	sd_buildreset(&b);
 
@@ -172,7 +178,7 @@ sd_read_gt1(void)
 	poff = f.size;
 	t( sd_writepage(&st_r.r, &f, NULL, &b) == 0 );
 
-	rc = sd_indexadd(&index, &st_r.r, &b, poff);
+	rc = sd_buildindex_add(&bi, &st_r.r, &b, poff);
 	t( rc == 0 );
 	sd_buildreset(&b);
 
@@ -187,14 +193,15 @@ sd_read_gt1(void)
 	poff = f.size;
 	t( sd_writepage(&st_r.r, &f, NULL, &b) == 0 );
 
-	rc = sd_indexadd(&index, &st_r.r, &b, poff);
+	rc = sd_buildindex_add(&bi, &st_r.r, &b, poff);
 	t( rc == 0 );
 	sd_buildreset(&b);
 
 	sdid id;
 	memset(&id, 0, sizeof(id));
 
-	t( sd_indexcommit(&index, &st_r.r, &id, NULL, 0, f.size) == 0 );
+	t( sd_buildindex_end(&bi, &st_r.r, &id, NULL, 0, f.size) == 0 );
+	t( sd_indexcopy_buf(&index, &st_r.r, &bi.v, &bi.m) == 0 );
 	t( sd_writeindex(&st_r.r, &f, &io, &index) == 0 );
 
 	ssmmap map;
@@ -278,6 +285,7 @@ sd_read_gt1(void)
 
 	sd_indexfree(&index, &st_r.r);
 	sd_buildfree(&b, &st_r.r);
+	sd_buildindex_free(&bi, &st_r.r);
 	ss_buffree(&xfbuf, &st_r.a);
 	ss_buffree(&buf, &st_r.a);
 }
@@ -330,22 +338,23 @@ sd_read_gt0_compression_lz4(void)
 
 	sdindex index;
 	sd_indexinit(&index);
-	t( sd_indexbegin(&index) == 0 );
+	sdbuildindex bi;
+	sd_buildindex_init(&bi);
+	t( sd_buildindex_begin(&bi) == 0 );
 
 	int rc;
-	rc = sd_indexadd(&index, &r, &b, 0);
+	rc = sd_buildindex_add(&bi, &r, &b, 0);
 	t( rc == 0 );
 
 	sdid id;
 	memset(&id, 0, sizeof(id));
 
-	t( sd_indexcommit(&index, &r, &id, NULL, 0, 0) == 0 );
-
 	ssfile f;
 	ss_fileinit(&f, &vfs);
 	t( ss_filenew(&f, "./0000.db", 0) == 0 );
 	t( sd_writepage(&r, &f, NULL, &b) == 0 );
-	t( sd_indexcommit(&index, &r, &id, NULL, 0, f.size) == 0 );
+	t( sd_buildindex_end(&bi, &r, &id, NULL, 0, f.size) == 0 );
+	t( sd_indexcopy_buf(&index, &st_r.r, &bi.v, &bi.m) == 0 );
 	t( sd_writeindex(&r, &f, &io, &index) == 0 );
 
 	ssmmap map;
@@ -407,6 +416,7 @@ sd_read_gt0_compression_lz4(void)
 
 	sd_indexfree(&index, &r);
 	sd_buildfree(&b, &r);
+	sd_buildindex_free(&bi, &r);
 
 	ss_buffree(&xfbuf, &a);
 	ss_buffree(&buf, &a);
@@ -467,10 +477,12 @@ sd_read_gt1_compression_lz4(void)
 
 	sdindex index;
 	sd_indexinit(&index);
-	t( sd_indexbegin(&index) == 0 );
+	sdbuildindex bi;
+	sd_buildindex_init(&bi);
+	t( sd_buildindex_begin(&bi) == 0 );
 
 	int rc;
-	rc = sd_indexadd(&index, &r, &b, poff);
+	rc = sd_buildindex_add(&bi, &r, &b, poff);
 	t( rc == 0 );
 	sd_buildreset(&b);
 
@@ -485,7 +497,7 @@ sd_read_gt1_compression_lz4(void)
 	poff = f.size;
 	t( sd_writepage(&r, &f, NULL, &b) == 0 );
 
-	rc = sd_indexadd(&index, &r, &b, poff);
+	rc = sd_buildindex_add(&bi, &r, &b, poff);
 	t( rc == 0 );
 	sd_buildreset(&b);
 
@@ -500,14 +512,14 @@ sd_read_gt1_compression_lz4(void)
 	poff = f.size;
 	t( sd_writepage(&r, &f, NULL, &b) == 0 );
 
-	rc = sd_indexadd(&index, &r, &b, poff);
+	rc = sd_buildindex_add(&bi, &r, &b, poff);
 	t( rc == 0 );
 	sd_buildreset(&b);
 
 	sdid id;
 	memset(&id, 0, sizeof(id));
-	t( sd_indexcommit(&index, &r, &id, NULL, 0, f.size) == 0 );
-
+	t( sd_buildindex_end(&bi, &r, &id, NULL, 0, f.size) == 0 );
+	t( sd_indexcopy_buf(&index, &st_r.r, &bi.v, &bi.m) == 0 );
 	t( sd_writeindex(&r, &f, &io, &index) == 0 );
 
 	ssmmap map;
@@ -591,6 +603,7 @@ sd_read_gt1_compression_lz4(void)
 
 	sd_indexfree(&index, &r);
 	sd_buildfree(&b, &r);
+	sd_buildindex_free(&bi, &r);
 	ss_buffree(&buf, &a);
 	ss_buffree(&xfbuf, &a);
 	sf_schemefree(&cmp, &a);

@@ -168,7 +168,8 @@ si_split(si *index, sdc *c, ssbuf *result,
 	};
 	sinode *n = NULL;
 	sdmerge merge;
-	rc = sd_mergeinit(&merge, r, i, &c->build, &c->qf, &c->upsert, &mergeconf);
+	rc = sd_mergeinit(&merge, r, i, &c->build, &c->build_index,
+	                  &c->qf, &c->upsert, &mergeconf);
 	if (ssunlikely(rc == -1))
 		return -1;
 	while ((rc = sd_merge(&merge)) > 0)
@@ -201,7 +202,7 @@ si_split(si *index, sdc *c, ssbuf *result,
 			goto error;
 
 		offset = sd_iosize(&c->io, &n->file);
-		rc = sd_mergecommit(&merge, &id, offset);
+		rc = sd_mergeend(&merge, &id, offset);
 		if (ssunlikely(rc == -1))
 			goto error;
 

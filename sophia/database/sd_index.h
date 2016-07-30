@@ -56,15 +56,13 @@ struct sdindexpage {
 } sspacked;
 
 struct sdindex {
-	ssbuf i, v;
-	sdindexheader  build;
+	ssbuf i;
 	sdindexheader *h;
 };
 
 static inline char*
 sd_indexpage_min(sdindex *i, sdindexpage *p) {
-	return (char*)i->i.s + (i->h->count * sizeof(sdindexpage)) +
-	              p->offsetindex;
+	return (char*)i->i.s + p->offsetindex;
 }
 
 static inline char*
@@ -75,14 +73,12 @@ sd_indexpage_max(sdindex *i, sdindexpage *p) {
 static inline void
 sd_indexinit(sdindex *i) {
 	ss_bufinit(&i->i);
-	ss_bufinit(&i->v);
 	i->h = NULL;
 }
 
 static inline void
 sd_indexfree(sdindex *i, sr *r) {
 	ss_buffree(&i->i, r->a);
-	ss_buffree(&i->v, r->a);
 }
 
 static inline sdindexheader*
@@ -95,7 +91,12 @@ static inline sdindexpage*
 sd_indexpage(sdindex *i, uint32_t pos)
 {
 	assert(pos < i->h->count);
-	return ss_bufat(&i->i, sizeof(sdindexpage), pos);
+	sdindexpage *index =
+		(sdindexpage*)
+			((char*)i->h - (i->h->align +
+			                i->h->extension +
+			               (i->h->count * sizeof(sdindexpage))));
+	return &index[pos];
 }
 
 static inline sdindexpage*
@@ -135,9 +136,35 @@ sd_indexamqf(sdindex *i) {
 	return (sdindexamqf*)(i->i.s + h->size);
 }
 
-int sd_indexbegin(sdindex*);
-int sd_indexcommit(sdindex*, sr*, sdid*, ssqf*, uint32_t, uint64_t);
-int sd_indexadd(sdindex*, sr*, sdbuild*, uint64_t);
-int sd_indexcopy(sdindex*, sr*, sdindexheader*);
+static inline int
+sd_indexcopy(sdindex *i, sr *r, sdindexheader *h)
+{
+	int size = sd_indexsize_ext(h);
+	int rc = ss_bufensure(&i->i, r->a, size);
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
+	char *start = (char*)h - (h->align + h->size + h->extension);
+	memcpy(i->i.s, start, size);
+	ss_bufadvance(&i->i, size);
+	i->h = sd_indexheader(i);
+	return 0;
+}
+
+static inline int
+sd_indexcopy_buf(sdindex *i, sr *r, ssbuf *v, ssbuf *m)
+{
+	sdindexheader *h = (sdindexheader*)(m->p - sizeof(sdindexheader));
+	int size = sd_indexsize_ext(h);
+	assert(size == (ss_bufused(v) + ss_bufused(m)));
+	int rc = ss_bufensure(&i->i, r->a, size);
+	if (ssunlikely(rc == -1))
+		return sr_oom(r->e);
+	memcpy(i->i.s, v->s, ss_bufused(v));
+	ss_bufadvance(&i->i, ss_bufused(v));
+	memcpy(i->i.p, m->s, ss_bufused(m));
+	ss_bufadvance(&i->i, ss_bufused(m));
+	i->h = sd_indexheader(i);
+	return 0;
+}
 
 #endif

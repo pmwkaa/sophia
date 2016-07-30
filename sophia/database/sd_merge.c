@@ -13,18 +13,21 @@
 #include <libsv.h>
 #include <libsd.h>
 
-int sd_mergeinit(sdmerge *m, sr *r, ssiter *i, sdbuild *build, ssqf *qf,
-                 svupsert *upsert, sdmergeconf *conf)
+int sd_mergeinit(sdmerge *m, sr *r, ssiter *i,
+                 sdbuild *build,
+                 sdbuildindex *build_index,
+                 ssqf *qf, svupsert *upsert, sdmergeconf *conf)
 {
-	m->conf      = conf;
-	m->build     = build;
-	m->qf        = qf;
-	m->r         = r;
-	m->merge     = i;
-	m->processed = 0;
-	m->current   = 0;
-	m->limit     = 0;
-	m->resume    = 0;
+	m->conf        = conf;
+	m->build       = build;
+	m->build_index = build_index;
+	m->qf          = qf;
+	m->r           = r;
+	m->merge       = i;
+	m->processed   = 0;
+	m->current     = 0;
+	m->limit       = 0;
+	m->resume      = 0;
 	if (conf->amqf) {
 		int rc = ss_qfensure(qf, r->a, conf->stream);
 		if (ssunlikely(rc == -1))
@@ -67,7 +70,8 @@ int sd_merge(sdmerge *m)
 		return 0;
 	sdmergeconf *conf = m->conf;
 	sd_indexinit(&m->index);
-	int rc = sd_indexbegin(&m->index);
+	sd_buildindex_reset(m->build_index);
+	int rc = sd_buildindex_begin(m->build_index);
 	if (ssunlikely(rc == -1))
 		return -1;
 	if (conf->amqf)
@@ -121,22 +125,30 @@ int sd_mergepage(sdmerge *m, uint64_t offset)
 	rc = sd_buildend(m->build, m->r);
 	if (ssunlikely(rc == -1))
 		return -1;
-	rc = sd_indexadd(&m->index, m->r, m->build, offset);
+	rc = sd_buildindex_add(m->build_index, m->r, m->build, offset);
 	if (ssunlikely(rc == -1))
 		return -1;
-	m->current = m->index.build.total;
+	m->current = m->build_index->build.total;
 	m->resume  = 1;
 	return 1;
 }
 
-int sd_mergecommit(sdmerge *m, sdid *id, uint64_t offset)
+int sd_mergeend(sdmerge *m, sdid *id, uint64_t offset)
 {
-	m->processed += m->index.build.total;
+	m->processed += m->build_index->build.total;
 	ssqf *qf = NULL;
 	if (m->conf->amqf)
 		qf = m->qf;
 	uint32_t align = 0;
 	if (m->conf->direct_io)
 		align = m->conf->direct_io_page_size;
-	return sd_indexcommit(&m->index, m->r, id, qf, align, offset);
+	int rc = sd_buildindex_end(m->build_index, m->r, id, qf, align, offset);
+	if (ssunlikely(rc == -1))
+		return -1;
+	rc = sd_indexcopy_buf(&m->index, m->r,
+	                      &m->build_index->v,
+	                      &m->build_index->m);
+	if (ssunlikely(rc == -1))
+		return -1;
+	return 0;
 }

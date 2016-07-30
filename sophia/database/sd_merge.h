@@ -32,24 +32,25 @@ struct sdmergeconf {
 };
 
 struct sdmerge {
-	sdindex     index;
-	ssiter      *merge;
-	ssiter      i;
-	sdmergeconf *conf;
-	sr          *r;
-	sdbuild     *build;
-	ssqf        *qf;
-	uint64_t    processed;
-	uint64_t    current;
-	uint64_t    limit;
-	int         resume;
+	sdindex      index;
+	ssiter       *merge;
+	ssiter       i;
+	sdmergeconf  *conf;
+	sr           *r;
+	sdbuild      *build;
+	sdbuildindex *build_index;
+	ssqf         *qf;
+	uint64_t     processed;
+	uint64_t     current;
+	uint64_t     limit;
+	int          resume;
 };
 
-int sd_mergeinit(sdmerge*, sr*, ssiter*, sdbuild*, ssqf*, svupsert*,
-                 sdmergeconf*);
+int sd_mergeinit(sdmerge*, sr*, ssiter*, sdbuild*, sdbuildindex*,
+                 ssqf*, svupsert*, sdmergeconf*);
 int sd_mergefree(sdmerge*);
 int sd_merge(sdmerge*);
 int sd_mergepage(sdmerge*, uint64_t);
-int sd_mergecommit(sdmerge*, sdid*, uint64_t);
+int sd_mergeend(sdmerge*, sdid*, uint64_t);
 
 #endif

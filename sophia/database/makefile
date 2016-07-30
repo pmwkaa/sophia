@@ -1,6 +1,6 @@
 LIBSD_O = sd_pageiter.o \
           sd_build.o \
-          sd_index.o \
+          sd_buildindex.o \
           sd_indexiter.o \
           sd_merge.o \
           sd_read.o \

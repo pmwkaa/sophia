@@ -12,9 +12,10 @@
 #include <sd_id.h>
 #include <sd_page.h>
 #include <sd_pageiter.h>
-#include <sd_build.h>
 #include <sd_index.h>
 #include <sd_indexiter.h>
+#include <sd_build.h>
+#include <sd_buildindex.h>
 #include <sd_merge.h>
 #include <sd_iter.h>
 #include <sd_scheme.h>
