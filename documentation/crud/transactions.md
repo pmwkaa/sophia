@@ -17,7 +17,7 @@ are used on a database object.
 As a part of a transactional statement a key-value document must be prepared using
 [sp_document()](../api/sp_document.md) method.
 
-First argument of [sp_document()](../api/sp_document.md) method must be an database object.
+First argument of [sp_document()](../api/sp_document.md) method must be a database object.
 
 Object must be prepared by setting **key** and **value** fields, where value is optional.
 It is important that while setting **key** and **value** fields, only pointers are copied. Real
@@ -36,7 +36,7 @@ sp_set(o, "key", "hello", 0);
 sp_delete(db, o);
 ```
 
-[sp_get(database)](../api/sp_get.md) method returns an document that is semantically equal to
+[sp_get(database)](../api/sp_get.md) method returns a document that is semantically equal to
 [sp_document(database)](../api/sp_document.md), but is read-only.
 
 Example:
