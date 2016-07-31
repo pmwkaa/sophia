@@ -278,7 +278,7 @@ size_t LZ4F_getFrameInfo(LZ4F_decompressionContext_t ctx,
  * LZ4F_getFrameInfo() can also be used *after* starting decompression, on a valid LZ4F_decompressionContext_t.
  * The number of bytes read from srcBuffer will be provided within *srcSizePtr (necessarily <= original value).
  * You are expected to resume decompression from where it stopped (srcBuffer + *srcSizePtr)
- * The function result is an hint of how many srcSize bytes LZ4F_decompress() expects for next call,
+ * The function result is a hint of how many srcSize bytes LZ4F_decompress() expects for next call,
  *                        or an error code which can be tested using LZ4F_isError().
  */
 
@@ -301,7 +301,7 @@ size_t LZ4F_decompress(LZ4F_decompressionContext_t ctx,
  * dstBuffer is supposed to be flushed between each call to the function, since its content will be overwritten.
  * dst arguments can be changed at will with each consecutive call to the function.
  *
- * The function result is an hint of how many srcSize bytes LZ4F_decompress() expects for next call.
+ * The function result is a hint of how many srcSize bytes LZ4F_decompress() expects for next call.
  * Schematically, it's the size of the current (or remaining) compressed block + header of next block.
  * Respecting the hint provides some boost to performance, since it does skip intermediate buffers.
  * This is just a hint, you can always provide any srcSize you want.
@@ -4660,7 +4660,7 @@ static size_t LZ4F_decodeHeader(LZ4F_dctx_internal_t* dctxPtr, const void* srcVo
 * LZ4F_getFrameInfo() can also be used *after* starting decompression, on a valid LZ4F_decompressionContext_t.
 * The number of bytes read from srcBuffer will be provided within *srcSizePtr (necessarily <= original value).
 * You are expected to resume decompression from where it stopped (srcBuffer + *srcSizePtr)
-* The function result is an hint of the better srcSize to use for next call to LZ4F_decompress,
+* The function result is a hint of the better srcSize to use for next call to LZ4F_decompress,
 * or an error code which can be tested using LZ4F_isError().
 */
 LZ4F_errorCode_t LZ4F_getFrameInfo(LZ4F_decompressionContext_t decompressionContext, LZ4F_frameInfo_t* frameInfoPtr, const void* srcBuffer, size_t* srcSizePtr)
@@ -4768,7 +4768,7 @@ static void LZ4F_updateDict(LZ4F_dctx_internal_t* dctxPtr, const BYTE* dstPtr, s
 * If the number of bytes read is < number of bytes provided, then the decompression operation is not complete.
 * You will have to call it again, continuing from where it stopped.
 *
-* The function result is an hint of the better srcSize to use for next call to LZ4F_decompress.
+* The function result is a hint of the better srcSize to use for next call to LZ4F_decompress.
 * Basically, it's the size of the current (or remaining) compressed block + header of next block.
 * Respecting the hint provides some boost to performance, since it allows less buffer shuffling.
 * Note that this is just a hint, you can always provide any srcSize you want.
