@@ -25,7 +25,7 @@ It is possible to enable and combine [compression](compression.md) and [RAM Stor
 Prefix Compression
 ------------------
 
-Prefix compression is implemented by compressing mulit-part keys duplicates
+Prefix compression is implemented by compressing multi-part keys duplicates
 during compaction process.
 
 To enable key compression:
