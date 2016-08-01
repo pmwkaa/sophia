@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 	 *
 	 * The only difference between crud.c is that
 	 * first argument to sp_set(), sp_get() and sp_delete() is
-	 * an transaction object (not database).
+	 * a transaction object (not database).
 	*/
 
 	/* open or create environment and database */

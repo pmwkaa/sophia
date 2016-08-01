@@ -44,7 +44,7 @@ sp_setint(env, "db.test.mmap", 1);
 ```
 
 It is a good idea to try this mode, even if your dataset is rather small or you need to handle
-a large ratio of read request with an predictable pattern.
+a large ratio of read request with a predictable pattern.
 
 Disadvantage of mmap mode, in comparison to RAM Storage, is a possible unpredictable
 latency behaviour and a OS cache warmup period after recovery.

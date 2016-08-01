@@ -19,7 +19,7 @@ sp\_delete(**transaction**, document): do a key deletion as a part of multi-stat
 
 As a part of a transactional statement a key-value document must be prepared using
 [sp\_document()](../api/sp_document.md) method. First argument of [sp\_document()](../api/sp_document.md)
-method must be an database object.
+method must be a database object.
 
 Object must be prepared by setting **key** fields. Value is not used for delete operation.
 It is important that while setting **key** fields, only pointers are copied. Real

@@ -1,7 +1,7 @@
 
 **NAME**
 
-sp\_drop - schedule an database drop or an object deletion
+sp\_drop - schedule a database drop or an object deletion
 
 **SYNOPSIS**
 

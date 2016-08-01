@@ -17,7 +17,7 @@ sp\_get(**database**, document): do a single-statement transaction read.
 
 sp\_get(**transaction**, document): do a key search as a part of multi-statement transaction visibility.
 
-[sp_get()](sp_get.md) method returns an document that is semantically equal to
+[sp_get()](sp_get.md) method returns a document that is semantically equal to
 [sp_document()](sp_document.md), but is read-only.
 
 For additional information take a look at [sp\_begin()](sp_begin.md)
