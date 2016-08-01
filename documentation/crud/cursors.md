@@ -22,7 +22,7 @@ Example (traverse a database in increasing order):
 void *cursor = sp_cursor(env);
 void *o = sp_document(db);
 sp_setstring(o, "order", ">=", 0);
-while ((o = sp_get(c, o))) {
+while ((o = sp_get(cursor, o))) {
 	char *key = sp_getstring(o, "key", NULL);
 	char *value = sp_getstring(o, "value", NULL);
 	printf("%s = %s\n", key, value);
