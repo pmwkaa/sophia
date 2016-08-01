@@ -20,7 +20,7 @@ examined to see if backup process is in progress or being succesfully completed.
 
 Additionally, **scheduler.event\_on\_backup** can be enabled
 which will result in asynchronous notifications using **scheduler.on\_event** function and
-[sp_poll()](../api/sp_poll.md). This might be helpful for a *event loop* integration.
+[sp_poll()](../api/sp_poll.md). This might be helpful for an *event loop* integration.
 
 Backups being made as a part of a common database workflow. It is possible to change backup
 priorities using [compaction redzone](../conf/compaction.md) settings.
