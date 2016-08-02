@@ -24,7 +24,7 @@ key-value pair with any additional metadata.
 ```C
 void *o = sp_document(db);
 sp_setstring(o, "key", "hello", 0);
-sp_setstring(o, "value", "world", 0));
+sp_setstring(o, "value", "world", 0);
 sp_set(db, o);
 ```
 

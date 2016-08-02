@@ -27,7 +27,7 @@ and [Transactions](../crud/transactions.md).
 
 ```C
 void *o = sp_document(db);
-sp_set(o, "key", "hello", 0);
+sp_setstring(o, "key", "hello", 0);
 void *result = sp_get(db, o);
 if (result) {
 	int valuesize;
