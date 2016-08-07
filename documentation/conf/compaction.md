@@ -6,7 +6,7 @@ Compaction
 |---|---|---|
 | compaction.redzone | int | To create a new redzone, write a percent value into *compaction* namespace. |
 | compaction.redzone.mode | int | Set compaction mode. Mode 1: branch-less mode (strict 2-level storage), 2: checkpoint, 3: branch + compaction (default). |
-| compaction.redzone.compact\_wm | int | Compaction operation starts when a number of node branches reaches this watermark. Cant be less than two. |
+| compaction.redzone.compact\_wm | int | Compaction operation starts when a number of node branches reaches this watermark. Cannot be less than two. |
 | compaction.redzone.compact\_mode | int | Set read-intensive or write-intensive compaction strategy mode. 0 - by number of branches, 1 - by temperature. |
 | compaction.redzone.branch\_prio | int | Priority of branch operation. Priority is measured by a maximum number of executing workers. |
 | compaction.redzone.branch\_wm | int | Branch operation starts when a size of in-memory key index reaches this watermark value. Measured in bytes. |

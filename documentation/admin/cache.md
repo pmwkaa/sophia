@@ -13,7 +13,7 @@ another one or more databases. Caching database is used to store records
 which are read from main database. Caching database can be placed in [RAM](ram.md) or
 Flash, while main database can be stored on HDD. Caching database has the same storage
 format as a main database, it is also involved in [Compaction](compaction.md).
-It must has an exact index [keys types](database.md) as the main database.
+It must have an exact index [keys types](database.md) as the main database.
 
 Following variable can be set to put a database into a cache mode:
 **db.database_name.cache_mode**. To assign a caching database for main database
@@ -92,5 +92,5 @@ Cursor operation [sp\_cursor()](../api/sp_cursor.md) does not use caching databa
 can separately be used with caching or main database.
 
 *Please note*: since [sp\_get()](../api/sp_get.md) statements are not involved in Write-Ahead Log,
-some of a latest updates may be lost in cache database after recovery. These are records
+some of the latest updates may be lost in cache database after recovery. These are records
 which yet remain in-memory and yet being dumped to disk by compaction.

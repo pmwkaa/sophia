@@ -14,7 +14,7 @@ Sophia implements the mode by introducing so-called index *Temperature*. The Tem
 are the most frequently accessed for read (hot). These nodes are periodically elected and promoted to
 be put **in-memory**. Previously elected nodes are unloaded if they do not fit into memory limit.
 
-Following variable can be set to enable anti-cache mode and set the memory limit: **db.database_name.storage**
+Following variables can be set to enable anti-cache mode and set the memory limit: **db.database_name.storage**
 and **memory.anticache**.
 
 ```C

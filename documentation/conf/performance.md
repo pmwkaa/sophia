@@ -32,7 +32,7 @@ Performance
 | performance.cursor\_read\_disk | string, ro | Average disk reads by Cursor operation. |
 | performance.cursor\_read\_cache | string, ro | Average cache reads by Cursor operation. |
 | performance.cursor\_ops | string, ro | Average number of keys read by Cursor operation. |
-| performance.req\_queue | int, ro | Number of waiting request in async queue. |
-| performance.req\_ready | int, ro | Number of ready request in async queue. |
-| performance.req\_active | int, ro | Number of active request in async queue. |
-| performance.reqs | int, ro | Current number of request in async queue. |
+| performance.req\_queue | int, ro | Number of waiting requests in async queue. |
+| performance.req\_ready | int, ro | Number of ready requests in async queue. |
+| performance.req\_active | int, ro | Number of active requests in async queue. |
+| performance.reqs | int, ro | Current number of requests in async queue. |

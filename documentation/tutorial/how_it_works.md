@@ -185,9 +185,9 @@ performed in following structures:
 3. each node branch: strictly starting from the last one
 
 Branch format is highly optimized to reduce disk access during reads. Internally each
-Branch consist of **Region Index** and **Sorted Regions**.
+Branch consists of **Region Index** and **Sorted Regions**.
 
-So basically, this structures splits whole Branch range of keys into smaller
+So basically, these structures split whole Branch range of keys into smaller
 regions. Region Index holds information about every Regions stored in the
 Branch, their min/max values and meta-data.
 
