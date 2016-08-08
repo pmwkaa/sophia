@@ -20,7 +20,6 @@ int si_readopen(siread *q, si *i, sicache *c, ssorder o,
                 char *key,
                 char *upsert,
                 char *prefix, uint32_t prefix_size,
-                int cold_only,
                 int has,
                 int read_start)
 {
@@ -33,7 +32,6 @@ int si_readopen(siread *q, si *i, sicache *c, ssorder o,
 	q->prefix      = prefix;
 	q->prefix_size = prefix_size;
 	q->has         = has;
-	q->cold_only   = cold_only;
 	q->read_start  = read_start;
 	q->read_disk   = 0;
 	q->read_cache  = 0;
@@ -245,18 +243,12 @@ si_get(siread *q)
 	rc = sv_mergeprepare(m, q->r, 1);
 	assert(rc == 0);
 	sicachebranch *b;
-	if (q->cold_only) {
-		b = si_cacheseek(q->cache, &node->self);
-		assert(b != NULL);
+	b = q->cache->branch;
+	while (b && b->branch) {
 		rc = si_getbranch(q, node, b);
-	} else {
-		b = q->cache->branch;
-		while (b && b->branch) {
-			rc = si_getbranch(q, node, b);
-			if (rc != 0)
-				break;
-			b = b->next;
-		}
+		if (rc != 0)
+			break;
+		b = b->next;
 	}
 
 	si_lock(q->index);
@@ -383,19 +375,12 @@ next_node:
 		sr_oom(q->r->e);
 		return -1;
 	}
-
-	if (q->cold_only) {
-		rc = si_rangebranch(q, node, &node->self, m);
+	sibranch *b = node->branch;
+	while (b) {
+		rc = si_rangebranch(q, node, b, m);
 		if (ssunlikely(rc == -1 || rc == 2))
 			return rc;
-	} else {
-		sibranch *b = node->branch;
-		while (b) {
-			rc = si_rangebranch(q, node, b, m);
-			if (ssunlikely(rc == -1 || rc == 2))
-				return rc;
-			b = b->next;
-		}
+		b = b->next;
 	}
 
 	/* merge and filter data stream */

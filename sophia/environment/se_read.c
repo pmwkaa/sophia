@@ -55,7 +55,6 @@ se_readresult(se *e, sedb *db, siread *r)
 		v->prefix_size = r->prefix_size;
 	}
 
-	v->cold_only = r->cold_only;
 	v->created   = 1;
 	return &v->o;
 }
@@ -91,9 +90,8 @@ so *se_read(sedb *db, sedocument *o, sx *x, uint64_t vlsn,
 		{
 			ret = (sedocument*)se_document_new(e, &db->o, vup);
 			if (sslikely(ret)) {
-				ret->cold_only = o->cold_only;
-				ret->created   = 1;
-				ret->orderset  = 1;
+				ret->created  = 1;
+				ret->orderset = 1;
 			} else {
 				sv_vunref(db->r, vup);
 			}
@@ -127,7 +125,6 @@ so *se_read(sedb *db, sedocument *o, sx *x, uint64_t vlsn,
 	            vup ? sv_vpointer(vup): NULL,
 	            o->prefix_copy,
 	            o->prefix_size,
-	            o->cold_only,
 	            0,
 	            start);
 	rc = si_read(&rq);

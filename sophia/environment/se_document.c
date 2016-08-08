@@ -36,7 +36,6 @@ enum {
 	SE_DOCUMENT_PREFIX,
 	SE_DOCUMENT_LOG,
 	SE_DOCUMENT_RAW,
-	SE_DOCUMENT_COLD_ONLY,
 	SE_DOCUMENT_UNKNOWN
 };
 
@@ -61,10 +60,6 @@ se_document_opt(const char *path)
 	case 'r':
 		if (sslikely(strcmp(path, "raw") == 0))
 			return SE_DOCUMENT_RAW;
-		break;
-	case 'c':
-		if (sslikely(strcmp(path, "cold_only") == 0))
-			return SE_DOCUMENT_COLD_ONLY;
 		break;
 	}
 	return SE_DOCUMENT_FIELD;
@@ -340,20 +335,6 @@ se_document_getstring(so *o, const char *path, int *size)
 	return NULL;
 }
 
-static int
-se_document_setint(so *o, const char *path, int64_t num)
-{
-	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
-	switch (se_document_opt(path)) {
-	case SE_DOCUMENT_COLD_ONLY:
-		v->cold_only = num;
-		break;
-	default:
-		return -1;
-	}
-	return 0;
-}
-
 static soif sedocumentif =
 {
 	.open         = NULL,
@@ -361,7 +342,7 @@ static soif sedocumentif =
 	.free         = se_document_free,
 	.document     = NULL,
 	.setstring    = se_document_setstring,
-	.setint       = se_document_setint,
+	.setint       = NULL,
 	.getobject    = NULL,
 	.getstring    = se_document_getstring,
 	.getint       = NULL,

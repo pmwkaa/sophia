@@ -28,8 +28,6 @@ struct sedocument {
 	/* recover */
 	void     *raw;
 	void     *log;
-	/* read options */
-	int       cold_only;
 	/* stats */
 	int       read_disk;
 	int       read_cache;

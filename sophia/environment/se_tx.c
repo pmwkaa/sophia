@@ -155,7 +155,6 @@ se_txprepare(sx *x, svv *v, so *o, void *ptr)
 	            NULL,
 	            NULL,
 	            0,
-	            0,
 	            1,
 	            0);
 	int rc = si_read(&rq);
