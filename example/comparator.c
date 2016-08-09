@@ -43,8 +43,8 @@ int main(int argc, char *argv[])
 	void *env = sp_env();
 	sp_setstring(env, "sophia.path", "_test", 0);
 	sp_setstring(env, "db", "test", 0);
-	sp_setstring(env, "db.test.index.comparator", (char*)(intptr_t)comparator, 0);
-	sp_setstring(env, "db.test.index.comparator_arg", NULL, 0);
+	sp_setstring(env, "db.test.comparator", (char*)(intptr_t)comparator, 0);
+	sp_setstring(env, "db.test.comparator_arg", NULL, 0);
 	sp_setstring(env, "db.test.scheme", "document,key(0)", 0);
 	sp_setstring(env, "db.test.scheme.key", "string", 0);
 
