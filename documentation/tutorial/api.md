@@ -14,9 +14,7 @@ Methods semantic may slightly change depending on used object.
 All functions return either 0 on success, or -1 on error. The only exception are
 functions that return a pointer. In that case NULL might indicate an error.
 
-[sp_error()](../api/sp_error.md) function can be used to check if any fatal errors occured leading
-to complete database shutdown. All created objects must be freed by
-[sp_destroy()](../api/sp_destroy.md) function.
+All created objects must be freed by [sp_destroy()](../api/sp_destroy.md) function.
 
 All methods are thread-safe and atomic.
 
@@ -31,9 +29,6 @@ Please take a look at the [API](../api/sp_env.md) manual section for additional 
 * [sp_getint()](../api/sp_getint.md)
 * [sp_open()](../api/sp_open.md)
 * [sp_destroy()](../api/sp_destroy.md)
-* [sp_error()](../api/sp_error.md)
-* [sp_poll()](../api/sp_poll.md)
-* [sp_drop()](../api/sp_drop.md)
 * [sp_set()](../api/sp_set.md)
 * [sp_upsert()](../api/sp_upsert.md)
 * [sp_delete()](../api/sp_delete.md)

@@ -16,6 +16,4 @@ sp_setint(env, "db.test.amqf", 1);
 By default the filter is turned off, because normally there is no need for it. But there
 are some cases, when it can be useful.
 
-The filter should be used to reduce [LRU](lru.md) washout in [Persistent Caching](cache.md).
-
 Sophia uses the [Quotient Filter](https://en.wikipedia.org/wiki/Quotient_filter) for the AMQF purpose.

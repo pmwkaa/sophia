@@ -1,6 +1,6 @@
 
 {
-	"plugins": [ "github", "ungrey", "collapsible-menu", "hide-published-with", "edit-link", "code_tomorrow_scheme"],
+	"plugins": [ "github", "ungrey", "collapsible-menu", "hide-published-with", "edit-link"],
 	"pluginsConfig": {
 		"github": {
 			"url": "https://github.com/pmwkaa/sophia.git"

@@ -13,15 +13,6 @@ Basic workflow is simple:
    [sp_commit()](../api/sp_commit.md), [sp_destroy()](../api/sp_destroy.md)
 6. on finish: [sp_destroy()](../api/sp_destroy.md) the environment object
 
-<br>
-
-<center>
-<img src="workflow.svg"></img>
-</center>
-
-<br>
-<br>
-
 ```C
 void *env = sp_env();
 sp_setstring(env, "sophia.path", "./storage", 0);
