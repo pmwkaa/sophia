@@ -91,55 +91,8 @@ si_nodeclose(sinode *n, sr *r, int gc)
 }
 
 static inline int
-si_noderecover_snapshot(sinode *n, sr *r, sdsnapshotnode *sn)
+si_noderecover(sinode *n, sr *r)
 {
-	char *p = (char*)sn + sizeof(sdsnapshotnode);
-	uint32_t i = 0;
-	int first = 1;
-	int rc;
-	while (i < sn->branch_count) {
-		sdindexheader *h =
-			(sdindexheader*)
-				(p + sn->size - sizeof(sdindexheader));
-
-		sibranch *b;
-		if (first) {
-			b = &n->self;
-		} else {
-			b = si_branchnew(r);
-			if (ssunlikely(b == NULL))
-				return -1;
-		}
-
-		sdindex index;
-		sd_indexinit(&index);
-		rc = sd_indexcopy(&index, r, h);
-		if (ssunlikely(rc == -1)) {
-			if (! first)
-				si_branchfree(b, r);
-			return -1;
-		}
-		si_branchset(b, &index);
-
-		b->next   = n->branch;
-		n->branch = b;
-		n->branch_count++;
-		first = 0;
-		p += sd_indexsize_ext(h);
-		i++;
-	}
-	return 0;
-}
-
-static inline int
-si_noderecover(sinode *n, sr *r, sdsnapshotnode *sn)
-{
-	/* fast recover from snapshot file */
-	if (sn) {
-		n->temperature_reads = sn->temperature_reads;
-		return si_noderecover_snapshot(n, r, sn);
-	}
-
 	/* recover branches (backwards) */
 	sibranch *b = NULL;
 	sibranch *branch = NULL;
@@ -196,8 +149,7 @@ e1:
 	return -1;
 }
 
-int si_nodeopen(sinode *n, sr *r, sischeme *scheme, sspath *path,
-                sdsnapshotnode *sn)
+int si_nodeopen(sinode *n, sr *r, sischeme *scheme, sspath *path)
 {
 	int rc = ss_fileopen(&n->file, path->path, scheme->direct_io);
 	if (ssunlikely(rc == -1)) {
@@ -213,7 +165,7 @@ int si_nodeopen(sinode *n, sr *r, sischeme *scheme, sspath *path,
 		               strerror(errno));
 		return -1;
 	}
-	rc = si_noderecover(n, r, sn);
+	rc = si_noderecover(n, r);
 	if (ssunlikely(rc == -1))
 		return -1;
 	if (scheme->mmap) {

@@ -77,8 +77,6 @@ int si_plannertrace(siplan *p, uint32_t id, sstrace *t)
 	case SI_BACKUP:
 	case SI_BACKUPEND: plan = "backup";
 		break;
-	case SI_SNAPSHOT: plan = "snapshot";
-		break;
 	}
 	if (p->node) {
 		ss_trace(t, "%s <%" PRIu32 ":%020" PRIu64 ".db>",
@@ -320,20 +318,6 @@ match:
 }
 
 static inline siplannerrc
-si_plannerpeek_snapshot(siplanner *p, siplan *plan)
-{
-	si *index = p->i;
-	if (index->snapshot >= plan->a)
-		return SI_PNONE;
-	if (index->snapshot_run) {
-		/* snaphot inprogress */
-		return SI_PRETRY;
-	}
-	index->snapshot_run = 1;
-	return SI_PMATCH;
-}
-
-static inline siplannerrc
 si_plannerpeek_nodegc(siplanner *p, siplan *plan)
 {
 	si *index = p->i;
@@ -377,8 +361,6 @@ si_planner(siplanner *p, siplan *plan)
 		return si_plannerpeek_age(p, plan);
 	case SI_BACKUP:
 		return si_plannerpeek_backup(p, plan);
-	case SI_SNAPSHOT:
-		return si_plannerpeek_snapshot(p, plan);
 	}
 	return -1;
 }

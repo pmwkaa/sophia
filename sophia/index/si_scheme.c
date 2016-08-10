@@ -45,7 +45,6 @@ si_schemecompaction_init(sicompaction *c)
 	c->branch_age        = 0;
 	c->branch_age_period = 0;
 	c->branch_age_wm     = 1 * 1024 * 1024;
-	c->snapshot_period   = 0;
 	c->expire_period     = 0;
 	c->gc_period         = 60;
 	c->gc_wm             = 30;

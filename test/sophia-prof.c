@@ -122,14 +122,6 @@ spr_cmd_checkpoint(void)
 }
 
 static inline void
-spr_cmd_snapshot(void)
-{
-	if (! spr_start)
-		return;
-	sp_setint(spr_env, "db.test.compaction.snapshot", 0);
-}
-
-static inline void
 spr_cmd_gc(void)
 {
 	if (! spr_start)
@@ -161,7 +153,6 @@ static inline void spr_cmd_help(void)
 	printf(" [c]ontinue -- continue profiling\n");
 	printf(" [i]nfo     -- show sophia statistics\n");
 	printf(" checkpoint -- schedule checkpoint operation\n");
-	printf(" snapshot   -- schedule snapshot operation\n");
 	printf(" gc         -- schedule garbage collection\n");
 	printf(" expire     -- schedule expire operation\n");
 	printf(" backup     -- schedule backup operation\n");
@@ -207,10 +198,6 @@ spr_execute(char *cmd, int size)
 	if (strcmp(argv[0], "checkpoint") == 0) {
 		spr_cmd_checkpoint();
 		printf("checkpoint is in progress\n");
-	} else
-	if (strcmp(argv[0], "snapshot") == 0) {
-		spr_cmd_snapshot();
-		printf("snapshot is in progress\n");
 	} else
 	if (strcmp(argv[0], "gc") == 0) {
 		spr_cmd_gc();

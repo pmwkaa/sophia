@@ -35,7 +35,6 @@ struct siplanner {
 #define SI_TEMP          64
 #define SI_BACKUP        128
 #define SI_BACKUPEND     256
-#define SI_SNAPSHOT      512
 #define SI_NODEGC        1024
 #define SI_EXPIRE        2048
 
@@ -60,8 +59,6 @@ struct siplan {
 	 * expire:
 	 *   a: ttl
 	 * temperature:
-	 * snapshot:
-	 *   a: ssn
 	 * backup:
 	 *   a: bsn
 	 */

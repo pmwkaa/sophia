@@ -18,8 +18,6 @@ struct si {
 	int        n;
 	uint64_t   update_time;
 	uint32_t   backup;
-	uint32_t   snapshot_run;
-	uint64_t   snapshot;
 	uint64_t   read_disk;
 	uint64_t   read_cache;
 	uint64_t   size;

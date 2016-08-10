@@ -115,15 +115,6 @@ int sc_ctl_compact_index(sc *s, uint64_t vlsn, si *index)
 	return rc;
 }
 
-int sc_ctl_snapshot(sc *s, si *index)
-{
-	ss_mutexlock(&s->lock);
-	scdb *db = sc_of(s, index);
-	sc_task_snapshot(s, db);
-	ss_mutexunlock(&s->lock);
-	return 0;
-}
-
 int sc_ctl_checkpoint(sc *s, si *index)
 {
 	ss_mutexlock(&s->lock);

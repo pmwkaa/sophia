@@ -245,7 +245,6 @@ se_confmetric(se *e ssunused, seconfrt *rt, srconf **pc)
 	sr_C(&p, pc, se_confv, "lsn",  SS_U64, &rt->seq.lsn, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "tsn",  SS_U64, &rt->seq.tsn, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "nsn",  SS_U64, &rt->seq.nsn, SR_RO, NULL);
-	sr_C(&p, pc, se_confv, "ssn",  SS_U64, &rt->seq.ssn, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "dsn",  SS_U32, &rt->seq.dsn, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "bsn",  SS_U32, &rt->seq.bsn, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "lfsn", SS_U64, &rt->seq.lfsn, SR_RO, NULL);
@@ -404,16 +403,6 @@ se_confdb_checkpoint(srconf *c, srconfstmt *s)
 }
 
 static inline int
-se_confdb_snapshot(srconf *c, srconfstmt *s)
-{
-	if (s->op != SR_WRITE)
-		return se_confv(c, s);
-	sedb *db = c->value;
-	se *e = se_of(&db->o);
-	return sc_ctl_snapshot(&e->scheduler, db->index);
-}
-
-static inline int
 se_confdb_gc(srconf *c, srconfstmt *s)
 {
 	if (s->op != SR_WRITE)
@@ -537,7 +526,6 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc, int serialize)
 		sr_C(&p, pc, se_confv_dboffline, "branch_age", SS_U32, &o->scheme->compaction.branch_age, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "branch_age_period", SS_U32, &o->scheme->compaction.branch_age_period, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "branch_age_wm", SS_U32, &o->scheme->compaction.branch_age_wm, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "snapshot_period", SS_U32, &o->scheme->compaction.snapshot_period, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "expire_period", SS_U32, &o->scheme->compaction.expire_period, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "gc_wm", SS_U32, &o->scheme->compaction.gc_wm, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "gc_period", SS_U32, &o->scheme->compaction.gc_period, 0, o);
@@ -546,7 +534,6 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc, int serialize)
 			sr_c(&p, pc, se_confdb_compact, "compact", SS_FUNCTION, o);
 			sr_c(&p, pc, se_confdb_compact_index, "compact_index", SS_FUNCTION, o);
 			sr_c(&p, pc, se_confdb_checkpoint, "checkpoint", SS_FUNCTION, o);
-			sr_c(&p, pc, se_confdb_snapshot, "snapshot", SS_FUNCTION, o);
 			sr_c(&p, pc, se_confdb_gc, "gc", SS_FUNCTION, o);
 			sr_c(&p, pc, se_confdb_expire, "expire", SS_FUNCTION, o);
 		}
@@ -581,9 +568,6 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc, int serialize)
 		sr_C(&p, pc, se_confv, "checkpoint", SS_U32, &o->scp.state.checkpoint, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "checkpoint_lsn", SS_U64, &o->scp.state.checkpoint_lsn, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "checkpoint_lsn_last", SS_U64, &o->scp.state.checkpoint_lsn_last, SR_RO, NULL);
-		sr_C(&p, pc, se_confv, "snapshot", SS_U32, &o->scp.state.snapshot, SR_RO, NULL);
-		sr_C(&p, pc, se_confv, "snapshot_ssn", SS_U64, &o->scp.state.snapshot_ssn, SR_RO, NULL);
-		sr_C(&p, pc, se_confv, "snapshot_ssn_last", SS_U64, &o->scp.state.snapshot_ssn_last, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "gc", SS_U32, &o->scp.state.gc, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "expire", SS_U32, &o->scp.state.expire, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "backup", SS_U32, &o->scp.state.backup, SR_RO, NULL);
@@ -594,7 +578,6 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc, int serialize)
 		sr_C(&p, pc, se_confv, "memory_used", SS_U64, &o->rtp.memory_used, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "size", SS_U64, &o->rtp.total_node_size, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "size_uncompressed", SS_U64, &o->rtp.total_node_origin_size, SR_RO, NULL);
-		sr_C(&p, pc, se_confv, "size_snapshot", SS_U64, &o->rtp.total_snapshot_size, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "size_amqf", SS_U64, &o->rtp.total_amqf_size, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "count", SS_U64, &o->rtp.count, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "count_dup", SS_U64, &o->rtp.count_dup, SR_RO, NULL);
@@ -724,9 +707,6 @@ se_confdebug(se *e, seconfrt *rt ssunused, srconf **pc)
 	sr_c(&p, pc, se_confv, "si_compaction_3", SS_U32, &e->ei.e[5]);
 	sr_c(&p, pc, se_confv, "si_compaction_4", SS_U32, &e->ei.e[6]);
 	sr_c(&p, pc, se_confv, "si_recover_0",    SS_U32, &e->ei.e[7]);
-	sr_c(&p, pc, se_confv, "si_snapshot_0",   SS_U32, &e->ei.e[8]);
-	sr_c(&p, pc, se_confv, "si_snapshot_1",   SS_U32, &e->ei.e[9]);
-	sr_c(&p, pc, se_confv, "si_snapshot_2",   SS_U32, &e->ei.e[10]);
 	sr_C(&prev, pc, NULL, "error_injection", SS_UNDEF, ei, SR_NS, NULL);
 	srconf *debug = prev;
 	return sr_C(NULL, pc, NULL, "debug", SS_UNDEF, debug, SR_NS, NULL);

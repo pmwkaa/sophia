@@ -20,8 +20,6 @@
 #include <sd_iter.h>
 #include <sd_scheme.h>
 #include <sd_schemeiter.h>
-#include <sd_snapshot.h>
-#include <sd_snapshotiter.h>
 #include <sd_io.h>
 #include <sd_read.h>
 #include <sd_write.h>

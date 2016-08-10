@@ -38,8 +38,6 @@ si *si_init(sr *r, so *object)
 	i->read_disk    = 0;
 	i->read_cache   = 0;
 	i->backup       = 0;
-	i->snapshot_run = 0;
-	i->snapshot     = 0;
 	i->n            = 0;
 	i->object       = object;
 	return i;
@@ -138,9 +136,6 @@ si_execute(si *i, sdc *c, siplan *plan, uint64_t vlsn)
 		break;
 	case SI_COMPACT_INDEX:
 		rc = si_compact_index(i, c, plan, vlsn);
-		break;
-	case SI_SNAPSHOT:
-		rc = si_snapshot(i, plan);
 		break;
 	case SI_BACKUP:
 	case SI_BACKUPEND:

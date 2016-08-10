@@ -156,7 +156,6 @@ se_dbscheme_set(sedb *db)
 	}
 	/* convert periodic times from sec to usec */
 	c->branch_age_period_us = c->branch_age_period * 1000000;
-	c->snapshot_period_us   = c->snapshot_period * 1000000;
 	c->gc_period_us         = c->gc_period * 1000000;
 	c->expire_period_us     = c->expire_period * 1000000;
 	if (s->memory_limit > 0) {

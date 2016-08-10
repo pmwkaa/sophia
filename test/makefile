@@ -34,7 +34,6 @@ STS_TESTS = unit/ss_a.test.o \
             generic/scheme.test.o \
             generic/rev.test.o \
             generic/backup.test.o \
-            generic/snapshot.test.o \
             generic/checkpoint.test.o \
             generic/prefix.test.o \
             generic/transaction_md.test.o \

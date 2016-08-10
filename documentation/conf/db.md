@@ -28,7 +28,6 @@ Database can be created, opened or deleted only before environment startup.
 | db.name.index.memory\_used | int, ro | Memory used by database for in-memory key indexes in bytes. |
 | db.name.index.size | int, ro | Sum of nodes size in bytes (compressed). This is equal to the full database size. |
 | db.name.index.size\_uncompressed | int, ro | Full database size before the compression. |
-| db.name.index.size\_snapshot | int, ro | Snapshot file size. |
 | db.name.index.size\_amqf | int, ro | Total size used by AMQ Filter. |
 | db.name.index.count | int, ro | Total number of keys stored in database. This includes transactional duplicates and not yet-merged duplicates. |
 | db.name.index.count\_dup | int, ro | Total number of transactional duplicates. |

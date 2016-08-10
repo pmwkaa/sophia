@@ -132,7 +132,6 @@ int si_profiler(siprofiler *p)
 			p->count += b->index.h->keys;
 			p->count_dup += b->index.h->dupkeys;
 			int indexsize = sd_indexsize_ext(b->index.h);
-			p->total_snapshot_size += indexsize;
 			p->total_node_size += indexsize + b->index.h->total;
 			p->total_node_origin_size += indexsize + b->index.h->totalorigin;
 			p->total_page_count += b->index.h->count;

@@ -90,8 +90,6 @@ sc_taskend(sc *s, sctask *t)
 	case SI_BACKUPEND:
 		db->workers[SC_QBACKUP]--;
 		break;
-	case SI_SNAPSHOT:
-		break;
 	case SI_EXPIRE:
 		db->workers[SC_QEXPIRE]--;
 		t->gc = 1;
@@ -133,22 +131,6 @@ sc_do(sc *s, sctask *task)
 			 * tasks in checkpoint mode */
 			si_planinit(&task->plan);
 			return rc;
-		}
-	}
-
-	/* snapshot */
-	if (db->snapshot) {
-		task->plan.plan = SI_SNAPSHOT;
-		task->plan.a = db->snapshot_ssn;
-		rc = si_plan(db->index, &task->plan);
-		switch (rc) {
-		case SI_PMATCH:
-			return rc;
-		case SI_PNONE:
-			sc_task_snapshot_done(db, task->time);
-			break;
-		case SI_PRETRY:
-			break;
 		}
 	}
 
@@ -337,11 +319,6 @@ sc_periodic(sc *s, sctask *task)
 			sc_task_checkpoint(s, db);
 			return;
 		}
-	}
-	/* snapshot */
-	if (c->snapshot_period && db->snapshot == 0) {
-		if ((task->time - db->snapshot_time) >= c->snapshot_period_us)
-			sc_task_snapshot(s, db);
 	}
 	/* expire */
 	if (c->expire_period && db->expire == 0) {

@@ -15,7 +15,6 @@
     * [MMAP mode](admin/mmap.md)
     * [AMQ Filter](admin/amqf.md)
     * [Compession](admin/compression.md)
-    * [Snapshot](admin/snapshot.md)
     * [Backup and Restore](admin/backup.md)
     * [Compaction](admin/compaction.md)
     * [Monitoring](admin/monitoring.md)

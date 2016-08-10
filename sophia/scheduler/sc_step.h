@@ -39,22 +39,6 @@ sc_task_checkpoint_done(scdb *db)
 }
 
 static inline void
-sc_task_snapshot(sc *s, scdb *db)
-{
-	db->snapshot = 1;
-	db->snapshot_ssn = sr_seq(s->r->seq, SR_SSNNEXT);
-}
-
-static inline void
-sc_task_snapshot_done(scdb *db, uint64_t now)
-{
-	db->snapshot = 0;
-	db->snapshot_ssn_last = db->snapshot_ssn;
-	db->snapshot_ssn = 0;
-	db->snapshot_time = now;
-}
-
-static inline void
 sc_task_expire(scdb *db)
 {
 	db->expire = 1;

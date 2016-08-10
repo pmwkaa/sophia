@@ -33,7 +33,6 @@
 		c. if parent has seal - remove parent, complete seal
 	5. panic (auto-recover)
 
-	see: snapshot recover
 	see: scheme recover
 	see: test/crash/durability.test.c
 */
@@ -297,7 +296,7 @@ si_trackdir(sitrack *track, sr *r, si *i)
 			node->recover = SI_RDB_DBSEAL;
 			ss_pathcompound(&path, i->scheme.path, id_parent, id,
 			                ".db.seal");
-			rc = si_nodeopen(node, r, &i->scheme, &path, NULL);
+			rc = si_nodeopen(node, r, &i->scheme, &path);
 			if (ssunlikely(rc == -1)) {
 				si_nodefree(node, r, 0);
 				goto error;
@@ -323,11 +322,6 @@ si_trackdir(sitrack *track, sr *r, si *i)
 		}
 		assert(rc == SI_RDB);
 
-		head = si_trackget(track, id);
-		if (head != NULL && (head->recover & SI_RDB)) {
-			/* loaded by snapshot */
-			continue;
-		}
 
 		/* recover node */
 		node = si_nodenew(r);
@@ -335,7 +329,7 @@ si_trackdir(sitrack *track, sr *r, si *i)
 			goto error;
 		node->recover = SI_RDB;
 		ss_path(&path, i->scheme.path, id, ".db");
-		rc = si_nodeopen(node, r, &i->scheme, &path, NULL);
+		rc = si_nodeopen(node, r, &i->scheme, &path);
 		if (ssunlikely(rc == -1)) {
 			si_nodefree(node, r, 0);
 			goto error;
@@ -343,6 +337,7 @@ si_trackdir(sitrack *track, sr *r, si *i)
 		si_trackmetrics(track, node);
 
 		/* track node */
+		head = si_trackget(track, id);
 		if (sslikely(head == NULL)) {
 			si_trackset(track, node);
 		} else {
@@ -447,49 +442,6 @@ si_recovercomplete(sitrack *track, sr *r, si *index, ssbuf *buf)
 	return 0;
 }
 
-static inline int
-si_tracksnapshot(sitrack *track, sr *r, si *i, sdsnapshot *s)
-{
-	/* read snapshot */
-	ssiter iter;
-	ss_iterinit(sd_snapshotiter, &iter);
-	int rc;
-	rc = ss_iteropen(sd_snapshotiter, &iter, r, s);
-	if (ssunlikely(rc == -1))
-		return -1;
-	for (; ss_iterhas(sd_snapshotiter, &iter);
-	      ss_iternext(sd_snapshotiter, &iter))
-	{
-		sdsnapshotnode *n = ss_iterof(sd_snapshotiter, &iter);
-		/* skip updated nodes */
-		sspath path;
-		ss_path(&path, i->scheme.path, n->id, ".db");
-		rc = ss_vfsexists(r->vfs, path.path);
-		if (! rc)
-			continue;
-		uint64_t size = ss_vfssize(r->vfs, path.path);
-		if (size != n->size_file)
-			continue;
-		/* recover node */
-		sinode *node = si_nodenew(r);
-		if (ssunlikely(node == NULL))
-			return -1;
-		node->recover = SI_RDB;
-		rc = si_nodeopen(node, r, &i->scheme, &path, n);
-		if (ssunlikely(rc == -1)) {
-			si_nodefree(node, r, 0);
-			return -1;
-		}
-		si_trackmetrics(track, node);
-		si_trackset(track, node);
-	}
-	/* recover index temperature (read stats) */
-	sdsnapshotheader *h = sd_snapshot_header(s);
-	i->read_cache = h->read_cache;
-	i->read_disk  = h->read_disk;
-	return 0;
-}
-
 static inline void
 si_recoversize(si *i)
 {
@@ -502,18 +454,13 @@ si_recoversize(si *i)
 }
 
 static inline int
-si_recoverindex(si *i, sr *r, sdsnapshot *s)
+si_recoverindex(si *i, sr *r)
 {
 	sitrack track;
 	si_trackinit(&track);
 	ssbuf buf;
 	ss_bufinit(&buf);
 	int rc;
-	if (sd_snapshot_is(s)) {
-		rc = si_tracksnapshot(&track, r, i, s);
-		if (ssunlikely(rc == -1))
-			goto error;
-	}
 	rc = si_trackdir(&track, r, i);
 	if (ssunlikely(rc == -1))
 		goto error;
@@ -539,71 +486,6 @@ error:
 	return -1;
 }
 
-static inline int
-si_recoversnapshot(si *i, sr *r, sdsnapshot *s)
-{
-	/* recovery stages:
-
-	   snapshot            (1) ok
-	   snapshot.incomplete (2) remove snapshot.incomplete
-	   snapshot            (3) remove snapshot.incomplete, load snapshot
-	   snapshot.incomplete
-	*/
-
-	/* recover snapshot file (crash recover) */
-	int snapshot = 0;
-	int snapshot_incomplete = 0;
-
-	char path[1024];
-	snprintf(path, sizeof(path), "%s/index", i->scheme.path);
-	snapshot = ss_vfsexists(r->vfs, path);
-	snprintf(path, sizeof(path), "%s/index.incomplete", i->scheme.path);
-	snapshot_incomplete = ss_vfsexists(r->vfs, path);
-
-	int rc;
-	if (snapshot_incomplete) {
-		rc = ss_vfsunlink(r->vfs, path);
-		if (ssunlikely(rc == -1)) {
-			sr_malfunction(r->e, "index file '%s' unlink error: %s",
-			               path, strerror(errno));
-			return -1;
-		}
-	}
-	if (! snapshot)
-		return 0;
-
-	/* read snapshot file */
-	snprintf(path, sizeof(path), "%s/index", i->scheme.path);
-
-	ssize_t size = ss_vfssize(r->vfs, path);
-	if (ssunlikely(size == -1)) {
-		sr_malfunction(r->e, "index file '%s' read error: %s",
-		               path, strerror(errno));
-		return -1;
-	}
-	rc = ss_bufensure(&s->buf, r->a, size);
-	if (ssunlikely(rc == -1))
-		return sr_oom_malfunction(r->e);
-	ssfile file;
-	ss_fileinit(&file, r->vfs);
-	rc = ss_fileopen(&file, path, 0);
-	if (ssunlikely(rc == -1)) {
-		sr_malfunction(r->e, "index file '%s' open error: %s",
-		               path, strerror(errno));
-		return -1;
-	}
-	rc = ss_filepread(&file, 0, s->buf.s, size);
-	if (ssunlikely(rc == -1)) {
-		sr_malfunction(r->e, "index file '%s' read error: %s",
-		               path, strerror(errno));
-		ss_fileclose(&file);
-		return -1;
-	}
-	ss_bufadvance(&s->buf, size);
-	ss_fileclose(&file);
-	return 0;
-}
-
 int si_recover(si *i)
 {
 	sr *r = &i->r;
@@ -615,15 +497,7 @@ int si_recover(si *i)
 	if (ssunlikely(rc == -1))
 		return -1;
 	r->scheme = &i->scheme.scheme;
-	sdsnapshot snapshot;
-	sd_snapshot_init(&snapshot);
-	rc = si_recoversnapshot(i, r, &snapshot);
-	if (ssunlikely(rc == -1)) {
-		sd_snapshot_free(&snapshot, r);
-		return -1;
-	}
-	rc = si_recoverindex(i, r, &snapshot);
-	sd_snapshot_free(&snapshot, r);
+	rc = si_recoverindex(i, r);
 	if (sslikely(rc <= 0))
 		return rc;
 deploy:

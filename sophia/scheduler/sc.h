@@ -32,10 +32,6 @@ struct scdb {
 	uint64_t  age_time;
 	uint32_t  expire;
 	uint64_t  expire_time;
-	uint64_t  snapshot_ssn;
-	uint64_t  snapshot_ssn_last;
-	uint64_t  snapshot_time;
-	uint64_t  snapshot;
 	uint64_t  gc_time;
 	uint32_t  gc;
 	uint32_t  backup;

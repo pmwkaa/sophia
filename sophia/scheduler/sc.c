@@ -56,10 +56,6 @@ sc_prepare(scdb *db)
 	db->age_time            = now;
 	db->expire              = 0;
 	db->expire_time         = now;
-	db->snapshot_ssn        = 0;
-	db->snapshot_ssn_last   = 0;
-	db->snapshot_time       = now;
-	db->snapshot            = 0;
 	db->gc                  = 0;
 	db->gc_time             = now;
 	db->backup              = 0;

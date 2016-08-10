@@ -8,9 +8,7 @@ LIBSD_O = sd_pageiter.o \
           sd_io.o \
           sd_iter.o \
           sd_scheme.o \
-          sd_schemeiter.o \
-          sd_snapshot.o \
-          sd_snapshotiter.o
+          sd_schemeiter.o
 LIBSD_OBJECTS = $(addprefix database/, $(LIBSD_O))
 OBJECTS = $(LIBSD_O)
 ifndef buildworld

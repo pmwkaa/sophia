@@ -22,8 +22,6 @@ struct sicompaction {
 	uint32_t branch_age_period;
 	uint64_t branch_age_period_us;
 	uint32_t branch_age_wm;
-	uint32_t snapshot_period;
-	uint64_t snapshot_period_us;
 	uint32_t expire_period;
 	uint64_t expire_period_us;
 	uint32_t gc_period;

@@ -282,24 +282,6 @@ workflow_compaction(void *env, void *db)
 	return 0;
 }
 
-static inline int
-workflow_snapshot(void *env, void *db)
-{
-	int rc = sp_setint(env, "db.test.compaction.snapshot", 0);
-	if (rc == -1)
-		return -1;
-	rc = sp_setint(env, "scheduler.run", 0);
-	if (rc == -1)
-		return -1;
-	rc = sp_setint(env, "scheduler.run", 0);
-	if (rc == -1)
-		return -1;
-	rc = sp_setint(env, "scheduler.run", 0);
-	if (rc == -1)
-		return -1;
-	return 0;
-}
-
 void
 workflow_test(char *injection)
 {
@@ -334,12 +316,6 @@ workflow_test(char *injection)
 		}
 		/* branch + compaction */
 		rc = workflow_compaction(env, db);
-		if (rc == -1) {
-			sp_destroy(env);
-			continue;
-		}
-		/* snapshot */
-		rc = workflow_snapshot(env, db);
 		if (rc == -1) {
 			sp_destroy(env);
 			continue;
