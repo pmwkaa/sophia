@@ -33,8 +33,6 @@ struct sinode {
 	sibranch   self;
 	sibranch  *branch;
 	uint32_t   branch_count;
-	uint32_t   temperature;
-	uint64_t   temperature_reads;
 	uint16_t   refs;
 	ssspinlock reflock;
 	svindex    i0, i1;
@@ -43,7 +41,6 @@ struct sinode {
 	ssrbnode   node;
 	ssrqnode   nodecompact;
 	ssrqnode   nodebranch;
-	ssrqnode   nodetemp;
 	sslist     gc;
 	sslist     commit;
 } sspacked;

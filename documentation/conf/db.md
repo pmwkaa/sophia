@@ -16,7 +16,6 @@ Database can be created, opened or deleted only before environment startup.
 | db.name.mmap | int | Enable or disable mmap mode. |
 | db.name.direct\_io | int | Enable or disable O\_DIRECT mode. |
 | db.name.sync | int | Sync node file on the branch creation or compaction completion. |
-| db.name.temperature | int | Track index temperature. |
 | db.name.expire | int | Enable or disable key expire. |
 | db.name.compression | string | Specify compression driver. Supported: lz4, zstd, none (default). |
 | db.name.comparator | function | Set custom comparator function (example: [comparator.c](https://github.com/pmwkaa/sophia/blob/master/example/comparator.c)). |
@@ -30,10 +29,6 @@ Database can be created, opened or deleted only before environment startup.
 | db.name.index.count\_dup | int, ro | Total number of transactional duplicates. |
 | db.name.index.read\_disk | int, ro | Number of disk reads since start. |
 | db.name.index.read\_cache | int, ro | Number of cache reads since start. |
-| db.name.index.temperature\_avg | int, ro | Average index temperature. |
-| db.name.index.temperature\_min | int, ro | Min index node temperature. |
-| db.name.index.temperature\_max | int, ro | Max index node temperature. |
-| db.name.index.temperature\_histogram | string, ro | Index temperature distribution histogram. |
 | db.name.index.node\_count | int, ro | Number of active nodes. |
 | db.name.index.branch\_count | int, ro | Total number of branches. |
 | db.name.index.branch\_avg | int, ro | Average number of branches per node. |

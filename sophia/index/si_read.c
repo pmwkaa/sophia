@@ -66,7 +66,7 @@ si_readdup(siread *q, char *result)
 }
 
 static inline void
-si_readstat(siread *q, int cache, sinode *n, uint32_t reads)
+si_readstat(siread *q, int cache, uint32_t reads)
 {
 	si *i = q->index;
 	if (cache) {
@@ -75,15 +75,6 @@ si_readstat(siread *q, int cache, sinode *n, uint32_t reads)
 	} else {
 		i->read_disk += reads;
 		q->read_disk += reads;
-	}
-	/* update temperature */
-	if (i->scheme.temperature) {
-		n->temperature_reads += reads;
-		uint64_t total = i->read_disk + i->read_cache;
-		if (ssunlikely(total == 0))
-			return;
-		n->temperature = (n->temperature_reads * 100ULL) / total;
-		si_plannerupdate(&q->index->p, SI_TEMP, n);
 	}
 }
 
@@ -134,7 +125,7 @@ si_getindex(siread *q, sinode *n)
 		return 0;
 	}
 result:;
-	si_readstat(q, 1, n, 1);
+	si_readstat(q, 1, 1);
 	char *v = ss_iterof(sv_indexiter, &i);
 	assert(v != NULL);
 	svv *visible = (svv*)(v - sizeof(svv));
@@ -177,7 +168,7 @@ si_getbranch(siread *q, sinode *n, sicachebranch *c)
 	ss_iterinit(sd_read, &c->i);
 	rc = ss_iteropen(sd_read, &c->i, &arg, q->key);
 	int reads = sd_read_stat(&c->i);
-	si_readstat(q, 0, n, reads);
+	si_readstat(q, 0, reads);
 	if (ssunlikely(rc <= 0))
 		return rc;
 	/* prepare sources */
@@ -249,7 +240,7 @@ si_rangebranch(siread *q, sinode *n, sibranch *b, svmerge *m)
 	/* iterate cache */
 	if (ss_iterhas(sd_read, &c->i)) {
 		svmergesrc *s = sv_mergeadd(m, &c->i);
-		si_readstat(q, 1, n, 1);
+		si_readstat(q, 1, 1);
 		s->ptr = c;
 		return 1;
 	}
@@ -283,7 +274,7 @@ si_rangebranch(siread *q, sinode *n, sibranch *b, svmerge *m)
 	ss_iterinit(sd_read, &c->i);
 	int rc = ss_iteropen(sd_read, &c->i, &arg, q->key);
 	int reads = sd_read_stat(&c->i);
-	si_readstat(q, 0, n, reads);
+	si_readstat(q, 0, reads);
 	if (ssunlikely(rc == -1))
 		return -1;
 	if (ssunlikely(! ss_iterhas(sd_read, &c->i)))

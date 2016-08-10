@@ -187,8 +187,8 @@ github_118(void)
 	sp_destroy(o);
 
 	t( sp_getint(env, "db.test.index.count") == 1 );
-	char *sz = sp_getstring(env, "db.test.index.temperature_histogram", NULL);
-	t( strcmp(sz, "[0]:1-1 ") == 0 );
+	char *sz = sp_getstring(env, "sophia.status", NULL);
+	t( strcmp(sz, "online") == 0 );
 	free(sz);
 
 	t( sp_destroy(env) == 0 );

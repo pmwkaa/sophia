@@ -21,7 +21,6 @@ typedef enum {
 struct siplanner {
 	ssrq branch;
 	ssrq compact;
-	ssrq temp;
 	void *i;
 };
 
@@ -31,11 +30,10 @@ struct siplanner {
 #define SI_COMPACT_INDEX 8
 #define SI_CHECKPOINT    16
 #define SI_GC            32
-#define SI_TEMP          64
-#define SI_BACKUP        128
-#define SI_BACKUPEND     256
-#define SI_NODEGC        1024
-#define SI_EXPIRE        2048
+#define SI_BACKUP        64
+#define SI_BACKUPEND     128
+#define SI_NODEGC        256
+#define SI_EXPIRE        512
 
 struct siplan {
 	int plan;
@@ -54,7 +52,6 @@ struct siplan {
 	 *   b: percent
 	 * expire:
 	 *   a: ttl
-	 * temperature:
 	 * backup:
 	 *   a: bsn
 	 */

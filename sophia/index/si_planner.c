@@ -36,12 +36,6 @@ int si_plannerinit(siplanner *p, ssa *a, void *i)
 		ss_rqfree(&p->compact, a);
 		return -1;
 	}
-	rc = ss_rqinit(&p->temp, a, 1, 100);
-	if (ssunlikely(rc == -1)) {
-		ss_rqfree(&p->compact, a);
-		ss_rqfree(&p->branch, a);
-		return -1;
-	}
 	p->i = i;
 	return 0;
 }
@@ -50,7 +44,6 @@ int si_plannerfree(siplanner *p, ssa *a)
 {
 	ss_rqfree(&p->compact, a);
 	ss_rqfree(&p->branch, a);
-	ss_rqfree(&p->temp, a);
 	return 0;
 }
 
@@ -69,8 +62,6 @@ int si_plannertrace(siplan *p, uint32_t id, sstrace *t)
 	case SI_GC: plan = "gc";
 		break;
 	case SI_EXPIRE: plan = "expire";
-		break;
-	case SI_TEMP: plan = "temperature";
 		break;
 	case SI_BACKUP:
 	case SI_BACKUPEND: plan = "backup";
@@ -92,8 +83,6 @@ int si_plannerupdate(siplanner *p, int mask, sinode *n)
 		ss_rqupdate(&p->branch, &n->nodebranch, n->used);
 	if (mask & SI_COMPACT)
 		ss_rqupdate(&p->compact, &n->nodecompact, n->branch_count);
-	if (mask & SI_TEMP)
-		ss_rqupdate(&p->temp, &n->nodetemp, n->temperature);
 	return 0;
 }
 
@@ -103,8 +92,6 @@ int si_plannerremove(siplanner *p, int mask, sinode *n)
 		ss_rqdelete(&p->branch, &n->nodebranch);
 	if (mask & SI_COMPACT)
 		ss_rqdelete(&p->compact, &n->nodecompact);
-	if (mask & SI_TEMP)
-		ss_rqdelete(&p->temp, &n->nodetemp);
 	return 0;
 }
 
@@ -212,28 +199,6 @@ match:
 }
 
 static inline siplannerrc
-si_plannerpeek_compact_temperature(siplanner *p, siplan *plan)
-{
-	/* try to peek a hottest node with number of
-	 * branches >= watermark */
-	sinode *n;
-	ssrqnode *pn = NULL;
-	while ((pn = ss_rqprev(&p->temp, pn))) {
-		n = sscast(pn, sinode, nodetemp);
-		if (n->flags & SI_LOCK)
-			continue;
-		if (n->branch_count >= plan->a)
-			goto match;
-		return SI_PNONE;
-	}
-	return SI_PNONE;
-match:
-	si_nodelock(n);
-	plan->node = n;
-	return SI_PMATCH;
-}
-
-static inline siplannerrc
 si_plannerpeek_gc(siplanner *p, siplan *plan)
 {
 	/* try to peek a node with a biggest number
@@ -320,8 +285,6 @@ si_planner(siplanner *p, siplan *plan)
 	case SI_COMPACT_INDEX:
 		return si_plannerpeek_branch(p, plan);
 	case SI_COMPACT:
-		if (plan->b == 1)
-			return si_plannerpeek_compact_temperature(p, plan);
 		return si_plannerpeek_compact(p, plan);
 	case SI_NODEGC:
 		return si_plannerpeek_nodegc(p, plan);

@@ -48,7 +48,6 @@ se_dbscheme_init(sedb *db, char *name, int size)
 	scheme->node_page_checksum    = 1;
 	scheme->compression           = 0;
 	scheme->compression_if        = &ss_nonefilter;
-	scheme->temperature           = 0;
 	scheme->expire                = 0;
 	scheme->buf_gc_wm             = 1024 * 1024;
 	scheme->compression_sz =

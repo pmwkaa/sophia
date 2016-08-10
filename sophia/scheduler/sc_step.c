@@ -259,7 +259,6 @@ sc_do(sc *s, sctask *task)
 	/* compaction */
 	task->plan.plan = SI_COMPACT;
 	task->plan.a = c->compact_wm;
-	task->plan.b = c->compact_mode;
 	rc = si_plan(db->index, &task->plan);
 	if (rc == SI_PMATCH)
 		return SI_PMATCH;

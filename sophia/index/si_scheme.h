@@ -16,7 +16,6 @@ struct sicompaction {
 	uint32_t mode;
 	uint64_t checkpoint_wm;
 	uint32_t compact_wm;
-	uint32_t compact_mode;
 	uint32_t branch_wm;
 	uint32_t expire_period;
 	uint64_t expire_period_us;
@@ -44,7 +43,6 @@ struct sischeme {
 	uint32_t      compression;
 	char         *compression_sz;
 	ssfilterif   *compression_if;
-	uint32_t      temperature;
 	uint32_t      buf_gc_wm;
 	sfupsert      upsert;
 	sfscheme      scheme;

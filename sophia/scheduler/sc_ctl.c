@@ -72,7 +72,7 @@ int sc_ctl_compact(sc *s, uint64_t vlsn, si *index)
 		siplan plan = {
 			.plan = SI_COMPACT,
 			.a    = index->scheme.compaction.compact_wm,
-			.b    = index->scheme.compaction.compact_mode,
+			.b    = 0,
 			.c    = 0,
 			.node = NULL
 		};
