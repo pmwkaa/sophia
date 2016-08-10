@@ -10,11 +10,8 @@
 */
 
 typedef struct sdindexheader sdindexheader;
-typedef struct sdindexamqf sdindexamqf;
 typedef struct sdindexpage sdindexpage;
 typedef struct sdindex sdindex;
-
-#define SD_INDEXEXT_AMQF 1
 
 struct sdindexheader {
 	uint32_t  crc;
@@ -33,15 +30,6 @@ struct sdindexheader {
 	uint32_t  dupkeys;
 	uint64_t  dupmin;
 	uint16_t  align;
-	uint32_t  extension;
-	uint8_t   extensions;
-} sspacked;
-
-struct sdindexamqf {
-	uint8_t  q, r;
-	uint32_t entries;
-	uint32_t size;
-	uint64_t table[];
 } sspacked;
 
 struct sdindexpage {
@@ -94,7 +82,6 @@ sd_indexpage(sdindex *i, uint32_t pos)
 	sdindexpage *index =
 		(sdindexpage*)
 			((char*)i->h - (i->h->align +
-			                i->h->extension +
 			               (i->h->count * sizeof(sdindexpage))));
 	return &index[pos];
 }
@@ -126,14 +113,7 @@ sd_indextotal(sdindex *i)
 static inline uint32_t
 sd_indexsize_ext(sdindexheader *h)
 {
-	return h->align + h->size + h->extension + sizeof(sdindexheader);
-}
-
-static inline sdindexamqf*
-sd_indexamqf(sdindex *i) {
-	sdindexheader *h = sd_indexheader(i);
-	assert(h->extensions & SD_INDEXEXT_AMQF);
-	return (sdindexamqf*)(i->i.s + h->size);
+	return h->align + h->size + sizeof(sdindexheader);
 }
 
 static inline int
@@ -143,7 +123,7 @@ sd_indexcopy(sdindex *i, sr *r, sdindexheader *h)
 	int rc = ss_bufensure(&i->i, r->a, size);
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
-	char *start = (char*)h - (h->align + h->size + h->extension);
+	char *start = (char*)h - (h->align + h->size);
 	memcpy(i->i.s, start, size);
 	ss_bufadvance(&i->i, size);
 	i->h = sd_indexheader(i);

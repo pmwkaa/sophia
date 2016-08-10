@@ -52,7 +52,6 @@ struct sischeme {
 	char         *compression_hot_sz;
 	ssfilterif   *compression_hot_if;
 	uint32_t      temperature;
-	uint32_t      amqf;
 	uint32_t      buf_gc_wm;
 	sfupsert      upsert;
 	sfscheme      scheme;

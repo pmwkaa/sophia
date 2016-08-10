@@ -150,14 +150,8 @@ static inline int
 si_getbranch(siread *q, sinode *n, sicachebranch *c)
 {
 	sibranch *b = c->branch;
-	/* amqf */
 	sischeme *scheme = &q->index->scheme;
 	int rc;
-	if (scheme->amqf) {
-		rc = si_amqfhas_branch(q->r, b, q->key);
-		if (sslikely(! rc))
-			return 0;
-	}
 	/* choose compression type */
 	int compression;
 	ssfilterif *compression_if;

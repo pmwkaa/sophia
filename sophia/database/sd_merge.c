@@ -16,23 +16,17 @@
 int sd_mergeinit(sdmerge *m, sr *r, ssiter *i,
                  sdbuild *build,
                  sdbuildindex *build_index,
-                 ssqf *qf, svupsert *upsert, sdmergeconf *conf)
+                 svupsert *upsert, sdmergeconf *conf)
 {
 	m->conf        = conf;
 	m->build       = build;
 	m->build_index = build_index;
-	m->qf          = qf;
 	m->r           = r;
 	m->merge       = i;
 	m->processed   = 0;
 	m->current     = 0;
 	m->limit       = 0;
 	m->resume      = 0;
-	if (conf->amqf) {
-		int rc = ss_qfensure(qf, r->a, conf->stream);
-		if (ssunlikely(rc == -1))
-			return sr_oom(r->e);
-	}
 	uint32_t sizev = 0;
 	if (! sf_schemefixed(r->scheme))
 		sizev += sizeof(uint32_t);
@@ -74,8 +68,6 @@ int sd_merge(sdmerge *m)
 	int rc = sd_buildindex_begin(m->build_index);
 	if (ssunlikely(rc == -1))
 		return -1;
-	if (conf->amqf)
-		ss_qfreset(m->qf);
 	m->current = 0;
 	m->limit   = 0;
 	uint64_t processed = m->processed;
@@ -117,9 +109,6 @@ int sd_mergepage(sdmerge *m, uint64_t offset)
 		rc = sd_buildadd(m->build, m->r, v, flags);
 		if (ssunlikely(rc == -1))
 			return -1;
-		if (conf->amqf) {
-			ss_qfadd(m->qf, sf_hash(m->r->scheme, v));
-		}
 		ss_iternext(sv_writeiter, &m->i);
 	}
 	rc = sd_buildend(m->build, m->r);
@@ -136,13 +125,10 @@ int sd_mergepage(sdmerge *m, uint64_t offset)
 int sd_mergeend(sdmerge *m, sdid *id, uint64_t offset)
 {
 	m->processed += m->build_index->build.total;
-	ssqf *qf = NULL;
-	if (m->conf->amqf)
-		qf = m->qf;
 	uint32_t align = 0;
 	if (m->conf->direct_io)
 		align = m->conf->direct_io_page_size;
-	int rc = sd_buildindex_end(m->build_index, m->r, id, qf, align, offset);
+	int rc = sd_buildindex_end(m->build_index, m->r, id, align, offset);
 	if (ssunlikely(rc == -1))
 		return -1;
 	rc = sd_indexcopy_buf(&m->index, m->r,

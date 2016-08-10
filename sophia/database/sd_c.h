@@ -25,7 +25,6 @@ struct sdc {
 	sdio io;
 	sdbuild build;
 	sdbuildindex build_index;
-	ssqf qf;
 	svupsert upsert;
 	ssbuf a;        /* result */
 	ssbuf b;        /* redistribute buffer */
@@ -42,7 +41,6 @@ sd_cinit(sdc *sc)
 	sv_upsertinit(&sc->upsert);
 	sd_buildinit(&sc->build);
 	sd_buildindex_init(&sc->build_index);
-	ss_qfinit(&sc->qf);
 	ss_bufinit(&sc->a);
 	ss_bufinit(&sc->b);
 	ss_bufinit(&sc->c);
@@ -57,7 +55,6 @@ sd_cfree(sdc *sc, sr *r)
 	sd_iofree(&sc->io, r);
 	sd_buildfree(&sc->build, r);
 	sd_buildindex_free(&sc->build_index, r);
-	ss_qffree(&sc->qf, r->a);
 	sv_upsertfree(&sc->upsert, r);
 	ss_buffree(&sc->a, r->a);
 	ss_buffree(&sc->b, r->a);
@@ -79,7 +76,6 @@ sd_cgc(sdc *sc, sr *r, int wm)
 {
 	sd_buildgc(&sc->build, r, wm);
 	sd_buildindex_gc(&sc->build_index, r, wm);
-	ss_qfgc(&sc->qf, r->a, wm);
 	sv_upsertgc(&sc->upsert, r, 600, 512);
 	ss_bufgc(&sc->a, r->a, wm);
 	ss_bufgc(&sc->b, r->a, wm);
@@ -99,7 +95,6 @@ sd_creset(sdc *sc, sr *r ssunused)
 	sd_ioreset(&sc->io);
 	sd_buildreset(&sc->build);
 	sd_buildindex_reset(&sc->build_index);
-	ss_qfreset(&sc->qf);
 	sv_upsertreset(&sc->upsert);
 	ss_bufreset(&sc->a);
 	ss_bufreset(&sc->b);

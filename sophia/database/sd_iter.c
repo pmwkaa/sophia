@@ -34,7 +34,7 @@ sd_iternext_of(sditer *i, sdindexheader *index)
 	int sanity_check = 0;
 	sanity_check += (start >= (char*)index);
 	sanity_check +=
-		((char*)index - start) != index->align + index->size + index->extension;
+		((char*)index - start) != index->align + index->size;
 
 	/* validate index header */
 	if (ssunlikely(sanity_check > 0)) {
@@ -117,7 +117,6 @@ sd_iternext(ssiter *i)
 	char *next =
 		((char*)ri->v -
 		        ri->v->align -
-		        ri->v->extension -
 		        ri->v->size - ri->v->total);
 	if (next == ri->map.p) {
 		ri->v = NULL;
@@ -141,8 +140,7 @@ ssiterif sd_iter =
 	char *eof =
 		(char*)ri->map.p +
 		       ri->actual->offset + sizeof(sdindexheader) +
-		       ri->actual->size +
-		       ri->actual->extension;
+		       ri->actual->size;
 	uint64_t file_size = eof - ri->map.p;
 	int rc = ss_fileresize(ri->file, file_size);
 	if (ssunlikely(rc == -1))
@@ -163,7 +161,6 @@ int sd_iter_isroot(ssiter *i)
 	char *next =
 		((char*)ri->v -
 		        ri->v->align -
-		        ri->v->extension -
 		        ri->v->size - ri->v->total);
 	return next == ri->map.p;
 }

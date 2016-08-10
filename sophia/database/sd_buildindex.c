@@ -47,8 +47,6 @@ int sd_buildindex_begin(sdbuildindex *i)
 	h->keys        = 0;
 	h->total       = 0;
 	h->totalorigin = 0;
-	h->extension   = 0;
-	h->extensions  = 0;
 	h->lsnmin      = UINT64_MAX;
 	h->lsnmax      = 0;
 	h->tsmin       = UINT32_MAX;
@@ -61,19 +59,12 @@ int sd_buildindex_begin(sdbuildindex *i)
 	return 0;
 }
 
-int sd_buildindex_end(sdbuildindex *i, sr *r, sdid *id, ssqf *qf,
+int sd_buildindex_end(sdbuildindex *i, sr *r, sdid *id,
                       uint32_t align,
                       uint64_t offset)
 {
-	int size_extension = 0;
-	int extensions = 0;
-	if (qf) {
-		extensions = SD_INDEXEXT_AMQF;
-		size_extension += sizeof(sdindexamqf);
-		size_extension += qf->qf_table_size;
-	}
 	/* calculate index align for direct_io */
-	int size_meta  = size_extension + sizeof(sdindexheader);
+	int size_meta  = sizeof(sdindexheader);
 	int size_align = 0;
 	if (align) {
 		size_align += align - ((offset +
@@ -85,17 +76,6 @@ int sd_buildindex_end(sdbuildindex *i, sr *r, sdid *id, ssqf *qf,
 	int rc = ss_bufensure(&i->m, r->a, size_meta);
 	if (ssunlikely(rc == -1))
 		return sr_oom(r->e);
-	/* extension */
-	if (qf) {
-		sdindexamqf *qh = (sdindexamqf*)(i->m.p);
-		qh->q       = qf->qf_qbits;
-		qh->r       = qf->qf_rbits;
-		qh->entries = qf->qf_entries;
-		qh->size    = qf->qf_table_size;
-		ss_bufadvance(&i->m, sizeof(sdindexamqf));
-		memcpy(i->m.p, qf->qf_table, qf->qf_table_size);
-		ss_bufadvance(&i->m, qf->qf_table_size);
-	}
 	/* align */
 	sdindexheader *h = &i->build;
 	if (size_align) {
@@ -104,10 +84,8 @@ int sd_buildindex_end(sdbuildindex *i, sr *r, sdid *id, ssqf *qf,
 		ss_bufadvance(&i->m, size_align);
 	}
 	/* header */
-	h->offset     = offset;
-	h->id         = *id;
-	h->extension  = size_extension;
-	h->extensions = extensions;
+	h->offset = offset;
+	h->id     = *id;
 	h->crc = ss_crcs(r->crc, h, sizeof(sdindexheader), 0);
 	memcpy(i->m.p, &i->build, sizeof(sdindexheader));
 	ss_bufadvance(&i->m, sizeof(sdindexheader));

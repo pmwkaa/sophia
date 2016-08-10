@@ -159,7 +159,6 @@ si_split(si *index, sdc *c, ssbuf *result,
 		.timestamp           = timestamp,
 		.compression         = index->scheme.compression_cold,
 		.compression_if      = index->scheme.compression_cold_if,
-		.amqf                = index->scheme.amqf,
 		.direct_io           = index->scheme.direct_io,
 		.direct_io_page_size = index->scheme.direct_io_page_size,
 		.vlsn                = vlsn,
@@ -169,7 +168,7 @@ si_split(si *index, sdc *c, ssbuf *result,
 	sinode *n = NULL;
 	sdmerge merge;
 	rc = sd_mergeinit(&merge, r, i, &c->build, &c->build_index,
-	                  &c->qf, &c->upsert, &mergeconf);
+	                  &c->upsert, &mergeconf);
 	if (ssunlikely(rc == -1))
 		return -1;
 	while ((rc = sd_merge(&merge)) > 0)

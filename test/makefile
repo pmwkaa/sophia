@@ -5,7 +5,6 @@ STS_TESTS = unit/ss_a.test.o \
             unit/ss_slaba.test.o \
             unit/ss_order.test.o \
             unit/ss_rq.test.o \
-            unit/ss_qf.test.o \
             unit/ss_ht.test.o \
             unit/ss_zstdfilter.test.o \
             unit/ss_lz4filter.test.o \
@@ -41,7 +40,6 @@ STS_TESTS = unit/ss_a.test.o \
             generic/cursor_cache.test.o \
             generic/cursor_md.test.o \
             generic/upsert.test.o \
-            generic/amqf.test.o \
             generic/secondary_index.test.o \
             issues/github.test.o \
             compaction/log.test.o \

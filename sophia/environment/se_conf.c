@@ -578,7 +578,6 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc, int serialize)
 		sr_C(&p, pc, se_confv, "memory_used", SS_U64, &o->rtp.memory_used, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "size", SS_U64, &o->rtp.total_node_size, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "size_uncompressed", SS_U64, &o->rtp.total_node_origin_size, SR_RO, NULL);
-		sr_C(&p, pc, se_confv, "size_amqf", SS_U64, &o->rtp.total_amqf_size, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "count", SS_U64, &o->rtp.count, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "count_dup", SS_U64, &o->rtp.count_dup, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "read_disk", SS_U64, &o->rtp.read_disk, SR_RO, NULL);
@@ -615,7 +614,6 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc, int serialize)
 		sr_C(&p, pc, se_confv_dboffline, "direct_io", SS_U32, &o->scheme->direct_io, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "sync", SS_U32, &o->scheme->sync, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "temperature", SS_U32, &o->scheme->temperature, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "amqf", SS_U32, &o->scheme->amqf, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "expire", SS_U32, &o->scheme->expire, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "compression_hot", SS_STRINGPTR, &o->scheme->compression_hot_sz, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "compression_cold", SS_STRINGPTR, &o->scheme->compression_cold_sz, 0, o);

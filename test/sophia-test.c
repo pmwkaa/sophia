@@ -20,7 +20,6 @@ extern stgroup *ss_a_group(void);
 extern stgroup *ss_slaba_group(void);
 extern stgroup *ss_order_group(void);
 extern stgroup *ss_rq_group(void);
-extern stgroup *ss_qf_group(void);
 extern stgroup *ss_ht_group(void);
 extern stgroup *ss_zstdfilter_group(void);
 extern stgroup *ss_lz4filter_group(void);
@@ -64,7 +63,6 @@ extern stgroup *transaction_misc_group(void);
 extern stgroup *cursor_cache_group(void);
 extern stgroup *cursor_md_group(void);
 extern stgroup *upsert_group(void);
-extern stgroup *amqf_group(void);
 extern stgroup *secondary_index_group(void);
 
 /* issues */
@@ -168,7 +166,7 @@ main(int argc, char *argv[])
 	st_suiteadd_scene(&st_r.suite, st_scene("branch_wm_1", st_scene_branch_wm_1, 1));
 	st_suiteadd_scene(&st_r.suite, st_scene("thread_5", st_scene_thread_5, 1));
 	st_suiteadd_scene(&st_r.suite, st_scene("phase_compaction", st_scene_phase_compaction, 5));
-	st_suiteadd_scene(&st_r.suite, st_scene("phase_storage", st_scene_phase_storage, 9));
+	st_suiteadd_scene(&st_r.suite, st_scene("phase_storage", st_scene_phase_storage, 8));
 	st_suiteadd_scene(&st_r.suite, st_scene("phase_size", st_scene_phase_size, 3));
 	st_suiteadd_scene(&st_r.suite, st_scene("open", st_scene_open, 1));
 	st_suiteadd_scene(&st_r.suite, st_scene("destroy", st_scene_destroy, 1));
@@ -188,7 +186,6 @@ main(int argc, char *argv[])
 	st_planadd(plan, ss_slaba_group());
 	st_planadd(plan, ss_order_group());
 	st_planadd(plan, ss_rq_group());
-	st_planadd(plan, ss_qf_group());
 	st_planadd(plan, ss_ht_group());
 	st_planadd(plan, ss_zstdfilter_group());
 	st_planadd(plan, ss_lz4filter_group());
@@ -233,7 +230,6 @@ main(int argc, char *argv[])
 	st_planadd(plan, cursor_cache_group());
 	st_planadd(plan, cursor_md_group());
 	st_planadd(plan, upsert_group());
-	st_planadd(plan, amqf_group());
 	st_planadd(plan, secondary_index_group());
 	st_suiteadd(&st_r.suite, plan);
 

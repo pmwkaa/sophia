@@ -23,7 +23,6 @@ struct sdmergeconf {
 	uint32_t    timestamp;
 	uint32_t    compression;
 	ssfilterif *compression_if;
-	uint32_t    amqf;
 	uint32_t    direct_io;
 	uint32_t    direct_io_page_size;
 	uint64_t    vlsn;
@@ -39,7 +38,6 @@ struct sdmerge {
 	sr           *r;
 	sdbuild      *build;
 	sdbuildindex *build_index;
-	ssqf         *qf;
 	uint64_t     processed;
 	uint64_t     current;
 	uint64_t     limit;
@@ -47,7 +45,7 @@ struct sdmerge {
 };
 
 int sd_mergeinit(sdmerge*, sr*, ssiter*, sdbuild*, sdbuildindex*,
-                 ssqf*, svupsert*, sdmergeconf*);
+                 svupsert*, sdmergeconf*);
 int sd_mergefree(sdmerge*);
 int sd_merge(sdmerge*);
 int sd_mergepage(sdmerge*, uint64_t);

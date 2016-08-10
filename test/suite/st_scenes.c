@@ -383,19 +383,12 @@ void st_scene_phase_storage(stscene *s)
 		break;
 	case 6:
 		if (st_r.verbose) {
-			fprintf(st_r.output, ".storage_amqf");
-			fflush(st_r.output);
-		}
-		t( sp_setint(st_r.env, "db.test.amqf", 1) == 0 );
-		break;
-	case 7:
-		if (st_r.verbose) {
 			fprintf(st_r.output, ".storage_direct_io");
 			fflush(st_r.output);
 		}
 		t( sp_setint(st_r.env, "db.test.direct_io", 1) == 0 );
 		break;
-	case 8:
+	case 7:
 		if (st_r.verbose) {
 			fprintf(st_r.output, ".storage_direct_io_compression_full");
 			fflush(st_r.output);

@@ -66,7 +66,7 @@ sd_read_gt0(void)
 	ss_fileinit(&f, &st_r.vfs);
 	t( ss_filenew(&f, "./0000.db", 0) == 0 );
 	t( sd_writepage(&st_r.r, &f, NULL, &b) == 0 );
-	t( sd_buildindex_end(&bi, &st_r.r, &id, NULL, 0, f.size) == 0 );
+	t( sd_buildindex_end(&bi, &st_r.r, &id, 0, f.size) == 0 );
 	t( sd_indexcopy_buf(&index, &st_r.r, &bi.v, &bi.m) == 0 );
 	t( sd_writeindex(&st_r.r, &f, &io, &index) == 0 );
 
@@ -200,7 +200,7 @@ sd_read_gt1(void)
 	sdid id;
 	memset(&id, 0, sizeof(id));
 
-	t( sd_buildindex_end(&bi, &st_r.r, &id, NULL, 0, f.size) == 0 );
+	t( sd_buildindex_end(&bi, &st_r.r, &id, 0, f.size) == 0 );
 	t( sd_indexcopy_buf(&index, &st_r.r, &bi.v, &bi.m) == 0 );
 	t( sd_writeindex(&st_r.r, &f, &io, &index) == 0 );
 
@@ -353,7 +353,7 @@ sd_read_gt0_compression_lz4(void)
 	ss_fileinit(&f, &vfs);
 	t( ss_filenew(&f, "./0000.db", 0) == 0 );
 	t( sd_writepage(&r, &f, NULL, &b) == 0 );
-	t( sd_buildindex_end(&bi, &r, &id, NULL, 0, f.size) == 0 );
+	t( sd_buildindex_end(&bi, &r, &id, 0, f.size) == 0 );
 	t( sd_indexcopy_buf(&index, &st_r.r, &bi.v, &bi.m) == 0 );
 	t( sd_writeindex(&r, &f, &io, &index) == 0 );
 
@@ -518,7 +518,7 @@ sd_read_gt1_compression_lz4(void)
 
 	sdid id;
 	memset(&id, 0, sizeof(id));
-	t( sd_buildindex_end(&bi, &r, &id, NULL, 0, f.size) == 0 );
+	t( sd_buildindex_end(&bi, &r, &id, 0, f.size) == 0 );
 	t( sd_indexcopy_buf(&index, &st_r.r, &bi.v, &bi.m) == 0 );
 	t( sd_writeindex(&r, &f, &io, &index) == 0 );
 

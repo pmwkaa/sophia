@@ -52,7 +52,6 @@ se_dbscheme_init(sedb *db, char *name, int size)
 	scheme->compression_hot_if    = &ss_nonefilter;
 	scheme->temperature           = 0;
 	scheme->expire                = 0;
-	scheme->amqf                  = 0;
 	scheme->buf_gc_wm             = 1024 * 1024;
 	scheme->compression_cold_sz =
 		ss_strdup(&e->a, scheme->compression_cold_if->name);

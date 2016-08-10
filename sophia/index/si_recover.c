@@ -76,9 +76,6 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 	if (ssunlikely(rc == -1))
 		goto e0;
 
-	ssqf f, *qf = NULL;
-	ss_qfinit(&f);
-
 	sdio io;
 	sd_ioinit(&io);
 	if (i->scheme.direct_io) {
@@ -104,20 +101,12 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 	rc = sd_writepage(r, &n->file, &io, &build);
 	if (ssunlikely(rc == -1))
 		goto e1;
-	/* amqf */
-	if (i->scheme.amqf) {
-		rc = ss_qfensure(&f, r->a, 0);
-		if (ssunlikely(rc == -1))
-			goto e1;
-		qf = &f;
-	}
 	uint32_t align = 0;
 	if (i->scheme.direct_io)
 		align = i->scheme.direct_io_page_size;
-	rc = sd_buildindex_end(&build_index, r, &id, qf, align, sd_iosize(&io, &n->file));
+	rc = sd_buildindex_end(&build_index, r, &id, align, sd_iosize(&io, &n->file));
 	if (ssunlikely(rc == -1))
 		goto e1;
-	ss_qffree(&f, r->a);
 
 	/* write index */
 	rc = sd_indexcopy_buf(&index, r, &build_index.v, &build_index.m);
@@ -139,7 +128,6 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 	return n;
 e1:
 	sd_iofree(&io, r);
-	ss_qffree(&f, r->a);
 	sd_indexfree(&index, r);
 	sd_buildfree(&build, r);
 	sd_buildindex_free(&build_index, r);
