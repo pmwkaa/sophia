@@ -14,8 +14,6 @@ typedef enum {
 	SR_DSNNEXT,
 	SR_NSN,
 	SR_NSNNEXT,
-	SR_ASN,
-	SR_ASNNEXT,
 	SR_SSN,
 	SR_SSNNEXT,
 	SR_BSN,
@@ -30,15 +28,13 @@ typedef enum {
 
 typedef struct {
 	ssspinlock lock;
-	uint64_t lsn;
-	uint64_t tsn;
-	uint64_t nsn;
-	uint64_t ssn;
-	uint64_t asn;
-	uint64_t rsn;
-	uint64_t lfsn;
-	uint32_t dsn;
-	uint32_t bsn;
+	uint32_t   dsn;
+	uint64_t   nsn;
+	uint64_t   ssn;
+	uint32_t   bsn;
+	uint64_t   lsn;
+	uint64_t   lfsn;
+	uint64_t   tsn;
 } srseq;
 
 static inline void
@@ -86,10 +82,6 @@ sr_seqdo(srseq *n, srseqop op)
 	case SR_SSN:       v = n->ssn;
 		break;
 	case SR_SSNNEXT:   v = ++n->ssn;
-		break;
-	case SR_ASN:       v = n->asn;
-		break;
-	case SR_ASNNEXT:   v = ++n->asn;
 		break;
 	case SR_BSN:       v = n->bsn;
 		break;
