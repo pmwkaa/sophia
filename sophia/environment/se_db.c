@@ -46,20 +46,14 @@ se_dbscheme_init(sedb *db, char *name, int size)
 	scheme->node_size             = 64 * 1024 * 1024;
 	scheme->node_page_size        = 128 * 1024;
 	scheme->node_page_checksum    = 1;
-	scheme->compression_cold      = 0;
-	scheme->compression_cold_if   = &ss_nonefilter;
-	scheme->compression_hot       = 0;
-	scheme->compression_hot_if    = &ss_nonefilter;
+	scheme->compression           = 0;
+	scheme->compression_if        = &ss_nonefilter;
 	scheme->temperature           = 0;
 	scheme->expire                = 0;
 	scheme->buf_gc_wm             = 1024 * 1024;
-	scheme->compression_cold_sz =
-		ss_strdup(&e->a, scheme->compression_cold_if->name);
-	if (ssunlikely(scheme->compression_cold_sz == NULL))
-		goto error;
-	scheme->compression_hot_sz =
-		ss_strdup(&e->a, scheme->compression_hot_if->name);
-	if (ssunlikely(scheme->compression_hot_sz == NULL))
+	scheme->compression_sz =
+		ss_strdup(&e->a, scheme->compression_if->name);
+	if (ssunlikely(scheme->compression_sz == NULL))
 		goto error;
 	sf_upsertinit(&scheme->upsert);
 	sf_schemeinit(&scheme->scheme);
@@ -116,22 +110,14 @@ se_dbscheme_set(sedb *db)
 		sr_error(&e->error, "%s", "incompatible options: mmap and direct_io");
 		return -1;
 	}
-	/* compression cold */
-	s->compression_cold_if = ss_filterof(s->compression_cold_sz);
-	if (ssunlikely(s->compression_cold_if == NULL)) {
+	/* compression */
+	s->compression_if = ss_filterof(s->compression_sz);
+	if (ssunlikely(s->compression_if == NULL)) {
 		sr_error(&e->error, "unknown compression type '%s'",
-		         s->compression_cold_sz);
+		         s->compression_sz);
 		return -1;
 	}
-	s->compression_cold = s->compression_cold_if != &ss_nonefilter;
-	/* compression hot */
-	s->compression_hot_if = ss_filterof(s->compression_hot_sz);
-	if (ssunlikely(s->compression_hot_if == NULL)) {
-		sr_error(&e->error, "unknown compression type '%s'",
-		         s->compression_hot_sz);
-		return -1;
-	}
-	s->compression_hot = s->compression_hot_if != &ss_nonefilter;
+	s->compression = s->compression_if != &ss_nonefilter;
 	/* path */
 	if (s->path == NULL) {
 		char path[1024];

@@ -55,8 +55,8 @@ si_branchcreate(si *index, sdc *c, sinode *parent, svindex *vindex, uint64_t vls
 		.checksum            = index->scheme.node_page_checksum,
 		.expire              = index->scheme.expire,
 		.timestamp           = timestamp,
-		.compression         = index->scheme.compression_hot,
-		.compression_if      = index->scheme.compression_hot_if,
+		.compression         = index->scheme.compression,
+		.compression_if      = index->scheme.compression_if,
 		.direct_io           = index->scheme.direct_io,
 		.direct_io_page_size = index->scheme.direct_io_page_size,
 		.vlsn                = vlsn,
@@ -280,15 +280,6 @@ int si_compact(si *index, sdc *c, siplan *plan,
 	while (b) {
 		s = sv_mergeadd(&merge, NULL);
 		/* choose compression type */
-		int compression;
-		ssfilterif *compression_if;
-		if (! si_branchis_root(b)) {
-			compression    = index->scheme.compression_hot;
-			compression_if = index->scheme.compression_hot_if;
-		} else {
-			compression    = index->scheme.compression_cold;
-			compression_if = index->scheme.compression_cold_if;
-		}
 		sdreadarg arg = {
 			.from_compaction     = 1,
 			.io                  = &c->io,
@@ -299,10 +290,10 @@ int si_compact(si *index, sdc *c, siplan *plan,
 			.page_iter           = &cbuf->page_iter,
 			.use_mmap            = use_mmap,
 			.use_mmap_copy       = 0,
-			.use_compression     = compression,
+			.use_compression     = index->scheme.compression,
 			.use_direct_io       = index->scheme.direct_io,
 			.direct_io_page_size = index->scheme.direct_io_page_size,
-			.compression_if      = compression_if,
+			.compression_if      = index->scheme.compression_if,
 			.has                 = 0,
 			.has_vlsn            = 0,
 			.o                   = SS_GTE,

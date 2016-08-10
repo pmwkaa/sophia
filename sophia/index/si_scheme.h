@@ -45,12 +45,9 @@ struct sischeme {
 	uint32_t      node_page_size;
 	uint32_t      node_page_checksum;
 	uint32_t      expire;
-	uint32_t      compression_cold;
-	char         *compression_cold_sz;
-	ssfilterif   *compression_cold_if;
-	uint32_t      compression_hot;
-	char         *compression_hot_sz;
-	ssfilterif   *compression_hot_if;
+	uint32_t      compression;
+	char         *compression_sz;
+	ssfilterif   *compression_if;
 	uint32_t      temperature;
 	uint32_t      buf_gc_wm;
 	sfupsert      upsert;
