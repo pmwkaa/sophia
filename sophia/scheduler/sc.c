@@ -52,8 +52,6 @@ sc_prepare(scdb *db)
 	db->checkpoint_lsn      = 0;
 	db->checkpoint_lsn_last = 0;
 	db->checkpoint          = 0;
-	db->age                 = 0;
-	db->age_time            = now;
 	db->expire              = 0;
 	db->expire_time         = now;
 	db->gc                  = 0;

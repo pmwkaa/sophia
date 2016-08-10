@@ -18,10 +18,6 @@ struct sicompaction {
 	uint32_t compact_wm;
 	uint32_t compact_mode;
 	uint32_t branch_wm;
-	uint32_t branch_age;
-	uint32_t branch_age_period;
-	uint64_t branch_age_period_us;
-	uint32_t branch_age_wm;
 	uint32_t expire_period;
 	uint64_t expire_period_us;
 	uint32_t gc_period;

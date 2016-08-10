@@ -28,8 +28,6 @@ struct scdb {
 	uint64_t  checkpoint_lsn_last;
 	uint64_t  checkpoint_lsn;
 	uint32_t  checkpoint;
-	uint32_t  age;
-	uint64_t  age_time;
 	uint32_t  expire;
 	uint64_t  expire_time;
 	uint64_t  gc_time;

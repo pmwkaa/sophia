@@ -126,7 +126,6 @@ si_execute(si *i, sdc *c, siplan *plan, uint64_t vlsn)
 		break;
 	case SI_CHECKPOINT:
 	case SI_BRANCH:
-	case SI_AGE:
 		rc = si_branch(i, c, plan, vlsn);
 		break;
 	case SI_EXPIRE:

@@ -65,19 +65,6 @@ sc_task_gc_done(scdb *db, uint64_t now)
 }
 
 static inline void
-sc_task_age(scdb *db)
-{
-	db->age = 1;
-}
-
-static inline void
-sc_task_age_done(scdb *db, uint64_t now)
-{
-	db->age = 0;
-	db->age_time = now;
-}
-
-static inline void
 sc_task_backup(scdb *db)
 {
 	db->backup = 1;

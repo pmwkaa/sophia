@@ -523,9 +523,6 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc, int serialize)
 		sr_C(&p, pc, se_confv_dboffline, "compact_wm", SS_U32, &o->scheme->compaction.compact_wm, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "compact_mode", SS_U32, &o->scheme->compaction.compact_mode, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "branch_wm", SS_U32, &o->scheme->compaction.branch_wm, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "branch_age", SS_U32, &o->scheme->compaction.branch_age, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "branch_age_period", SS_U32, &o->scheme->compaction.branch_age_period, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "branch_age_wm", SS_U32, &o->scheme->compaction.branch_age_wm, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "expire_period", SS_U32, &o->scheme->compaction.expire_period, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "gc_wm", SS_U32, &o->scheme->compaction.gc_wm, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "gc_period", SS_U32, &o->scheme->compaction.gc_period, 0, o);

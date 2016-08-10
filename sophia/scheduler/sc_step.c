@@ -79,7 +79,6 @@ sc_taskend(sc *s, sctask *t)
 	scdb *db = t->db;
 	switch (t->plan.plan) {
 	case SI_BRANCH:
-	case SI_AGE:
 	case SI_CHECKPOINT:
 		db->workers[SC_QBRANCH]--;
 		t->gc = 1;
@@ -237,26 +236,6 @@ sc_do(sc *s, sctask *task)
 		}
 	}
 
-	/* aging */
-	if (db->age) {
-		task->plan.plan = SI_AGE;
-		task->plan.a = c->branch_age * 1000000; /* ms */
-		task->plan.b = c->branch_age_wm;
-		rc = sc_plan(s, task, SC_QBRANCH);
-		switch (rc) {
-		case SI_PMATCH:
-			if (c->mode == 1)
-				task->plan.plan = SI_COMPACT_INDEX;
-			db->workers[SC_QBRANCH]++;
-			return SI_PMATCH;
-		case SI_PNONE:
-			sc_task_age_done(db, task->time);
-			break;
-		case SI_PRETRY:
-			break;
-		}
-	}
-
 	/* compact_index (merge directly with in-memory index) */
 	if (c->mode == 1) {
 		task->plan.plan = SI_COMPACT_INDEX;
@@ -329,11 +308,6 @@ sc_periodic(sc *s, sctask *task)
 	if (c->gc_period && db->gc == 0) {
 		if ((task->time - db->gc_time) >= c->gc_period_us)
 			sc_task_gc(db);
-	}
-	/* aging */
-	if (c->branch_age_period && db->age == 0) {
-		if ((task->time - db->age_time) >= c->branch_age_period_us)
-			sc_task_age(db);
 	}
 }
 

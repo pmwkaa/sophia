@@ -60,8 +60,6 @@ int si_plannertrace(siplan *p, uint32_t id, sstrace *t)
 	switch (p->plan) {
 	case SI_BRANCH: plan = "branch";
 		break;
-	case SI_AGE: plan = "age";
-		break;
 	case SI_COMPACT: plan = "compact";
 		break;
 	case SI_CHECKPOINT: plan = "checkpoint";
@@ -183,30 +181,6 @@ si_plannerpeek_branch(siplanner *p, siplan *plan)
 		if (n->used >= plan->a)
 			goto match;
 		return SI_PNONE;
-	}
-	return SI_PNONE;
-match:
-	si_nodelock(n);
-	plan->node = n;
-	return SI_PMATCH;
-}
-
-static inline siplannerrc
-si_plannerpeek_age(siplanner *p, siplan *plan)
-{
-	/* try to peek a node with update >= a and in-memory
-	 * index size >= b */
-
-	/* full scan */
-	uint64_t now = ss_utime();
-	sinode *n = NULL;
-	ssrqnode *pn = NULL;
-	while ((pn = ss_rqprev(&p->branch, pn))) {
-		n = sscast(pn, sinode, nodebranch);
-		if (n->flags & SI_LOCK)
-			continue;
-		if (n->used >= plan->b && ((now - n->update_time) >= plan->a))
-			goto match;
 	}
 	return SI_PNONE;
 match:
@@ -357,8 +331,6 @@ si_planner(siplanner *p, siplan *plan)
 		return si_plannerpeek_expire(p, plan);
 	case SI_CHECKPOINT:
 		return si_plannerpeek_checkpoint(p, plan);
-	case SI_AGE:
-		return si_plannerpeek_age(p, plan);
 	case SI_BACKUP:
 		return si_plannerpeek_backup(p, plan);
 	}

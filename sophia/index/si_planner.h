@@ -27,7 +27,6 @@ struct siplanner {
 
 /* plan */
 #define SI_BRANCH        1
-#define SI_AGE           2
 #define SI_COMPACT       4
 #define SI_COMPACT_INDEX 8
 #define SI_CHECKPOINT    16
@@ -42,9 +41,6 @@ struct siplan {
 	int plan;
 	/* branch:
 	 *   a: index_size
-	 * age:
-	 *   a: ttl
-	 *   b: ttl_wm
 	 * compact:
 	 *   a: branches
 	 *   b: mode

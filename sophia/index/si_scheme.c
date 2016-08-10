@@ -33,17 +33,14 @@ enum {
 static inline void
 si_schemecompaction_init(sicompaction *c)
 {
-	c->mode              = 0; /* 0: create branches, 1: compact from memory */
-	c->checkpoint_wm     = 90;
-	c->compact_wm        = 2;
-	c->compact_mode      = 0; /* 0: temperature, 1: branch */
-	c->branch_wm         = 10 * 1024 * 1024;
-	c->branch_age        = 0;
-	c->branch_age_period = 0;
-	c->branch_age_wm     = 1 * 1024 * 1024;
-	c->expire_period     = 0;
-	c->gc_period         = 60;
-	c->gc_wm             = 30;
+	c->mode           = 0; /* 0: create branches, 1: compact from memory */
+	c->checkpoint_wm  = 90;
+	c->compact_wm     = 2;
+	c->compact_mode   = 0; /* 0: temperature, 1: branch */
+	c->branch_wm      = 10 * 1024 * 1024;
+	c->expire_period  = 0;
+	c->gc_period      = 60;
+	c->gc_wm          = 30;
 }
 
 void si_schemeinit(sischeme *s)
