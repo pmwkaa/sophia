@@ -27,7 +27,6 @@ Bindings for the most common languages are available [here](http://sophia.system
 * Secondary indexes
 * Multi-Statement and Single-Statement Transactions (cross-database)
 * Serialized Snapshot Isolation (SSI)
-* AMQ Filter (approximate member query filter) based on Quotient Filter
 * Upsert (fast write-only 'update or insert' operation)
 * Consistent Cursors
 * Prefix search

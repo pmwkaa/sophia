@@ -17,7 +17,6 @@ Database can be created, opened or deleted only before environment startup.
 | db.name.direct\_io | int | Enable or disable O\_DIRECT mode. |
 | db.name.sync | int | Sync node file on the branch creation or compaction completion. |
 | db.name.temperature | int | Track index temperature. |
-| db.name.amqf | int | Enable or disable AMQ Filter. |
 | db.name.expire | int | Enable or disable key expire. |
 | db.name.compression\_cold | string | Specify compression driver. Supported: lz4, zstd, none (default). |
 | db.name.compression\_hot | string | Specify compression driver for branches. |
@@ -28,7 +27,6 @@ Database can be created, opened or deleted only before environment startup.
 | db.name.index.memory\_used | int, ro | Memory used by database for in-memory key indexes in bytes. |
 | db.name.index.size | int, ro | Sum of nodes size in bytes (compressed). This is equal to the full database size. |
 | db.name.index.size\_uncompressed | int, ro | Full database size before the compression. |
-| db.name.index.size\_amqf | int, ro | Total size used by AMQ Filter. |
 | db.name.index.count | int, ro | Total number of keys stored in database. This includes transactional duplicates and not yet-merged duplicates. |
 | db.name.index.count\_dup | int, ro | Total number of transactional duplicates. |
 | db.name.index.read\_disk | int, ro | Number of disk reads since start. |

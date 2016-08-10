@@ -13,7 +13,6 @@
     * [Version](admin/version.md)
     * [Managing Databases](admin/database.md)
     * [MMAP mode](admin/mmap.md)
-    * [AMQ Filter](admin/amqf.md)
     * [Compession](admin/compression.md)
     * [Backup and Restore](admin/backup.md)
     * [Compaction](admin/compaction.md)
