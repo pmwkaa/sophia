@@ -13,9 +13,6 @@ typedef struct sicompaction sicompaction;
 typedef struct sischeme sischeme;
 
 struct sicompaction {
-	uint32_t mode;
-	uint64_t checkpoint_wm;
-	uint32_t compact_wm;
 	uint32_t branch_wm;
 	uint32_t expire_period;
 	uint64_t expire_period_us;

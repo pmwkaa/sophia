@@ -56,7 +56,7 @@ recover_loop(void)
 				sp_destroy(o);
 				i++;
 			}
-			t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+			t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 		}
 
 		srand(seed);

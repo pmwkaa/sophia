@@ -36,7 +36,6 @@ profiler_count(void)
 	t( db != NULL );
 	t( sp_open(env) == 0 );
 
-	t( sp_getint(env, "db.test.index.branch_count") == 1 );
 	t( sp_getint(env, "db.test.index.node_count") == 1 );
 
 	int i = 0;
@@ -48,10 +47,9 @@ profiler_count(void)
 		i++;
 	}
 
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	t( sp_getint(env, "db.test.index.count") == 100 );
-	t( sp_getint(env, "db.test.index.branch_count") == 2 );
 
 	i = 0;
 	while ( i < 10 ) {
@@ -63,7 +61,6 @@ profiler_count(void)
 	}
 
 	t( sp_getint(env, "db.test.index.count") == 110 );
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 	t( sp_getint(env, "db.test.index.count") == 100 );
 

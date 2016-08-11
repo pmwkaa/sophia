@@ -30,7 +30,7 @@ void si_commit(sitx *x)
 	ss_listforeach_safe(&x->nodelist, i, n) {
 		sinode *node = sscast(i, sinode, commit);
 		ss_listinit(&node->commit);
-		si_plannerupdate(&x->index->p, SI_BRANCH, node);
+		si_plannerupdate(&x->index->p, node);
 	}
 	si_unlock(x->index);
 }

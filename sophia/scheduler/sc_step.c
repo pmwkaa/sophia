@@ -78,12 +78,8 @@ sc_taskend(sc *s, sctask *t)
 	ss_mutexlock(&s->lock);
 	scdb *db = t->db;
 	switch (t->plan.plan) {
-	case SI_BRANCH:
-	case SI_CHECKPOINT:
-		db->workers[SC_QBRANCH]--;
-		t->gc = 1;
-		break;
 	case SI_COMPACT_INDEX:
+		t->gc = 1;
 		break;
 	case SI_BACKUP:
 	case SI_BACKUPEND:
@@ -112,26 +108,6 @@ sc_do(sc *s, sctask *task)
 	sicompaction *c = &db->index->scheme.compaction;
 
 	ss_trace(&task->w->trace, "%s", "schedule");
-
-	/* checkpoint */
-	if (db->checkpoint) {
-		task->plan.plan = SI_CHECKPOINT;
-		task->plan.a = db->checkpoint_lsn;
-		rc = si_plan(db->index, &task->plan);
-		switch (rc) {
-		case SI_PMATCH:
-			db->workers[SC_QBRANCH]++;
-			return rc;
-		case SI_PNONE:
-			sc_task_checkpoint_done(db);
-			break;
-		case SI_PRETRY:
-			/* do not start additional compaction
-			 * tasks in checkpoint mode */
-			si_planinit(&task->plan);
-			return rc;
-		}
-	}
 
 	/* node delayed gc */
 	task->plan.plan = SI_NODEGC;
@@ -204,8 +180,6 @@ sc_do(sc *s, sctask *task)
 		rc = sc_plan(s, task, SC_QEXPIRE);
 		switch (rc) {
 		case SI_PMATCH:
-			if (c->mode == 1)
-				task->plan.plan = SI_COMPACT_INDEX;
 			db->workers[SC_QEXPIRE]++;
 			return SI_PMATCH;
 		case SI_PNONE:
@@ -224,8 +198,6 @@ sc_do(sc *s, sctask *task)
 		rc = sc_plan(s, task, SC_QGC);
 		switch (rc) {
 		case SI_PMATCH:
-			if (c->mode == 1)
-				task->plan.plan = SI_COMPACT_INDEX;
 			db->workers[SC_QGC]++;
 			return SI_PMATCH;
 		case SI_PNONE:
@@ -237,28 +209,8 @@ sc_do(sc *s, sctask *task)
 	}
 
 	/* compact_index (merge directly with in-memory index) */
-	if (c->mode == 1) {
-		task->plan.plan = SI_COMPACT_INDEX;
-		task->plan.a = c->branch_wm;
-		rc = si_plan(db->index, &task->plan);
-		if (rc == SI_PMATCH)
-			return SI_PMATCH;
-		si_planinit(&task->plan);
-		return SI_PNONE;
-	}
-
-	/* branching */
-	task->plan.plan = SI_BRANCH;
+	task->plan.plan = SI_COMPACT_INDEX;
 	task->plan.a = c->branch_wm;
-	rc = sc_plan(s, task, SC_QBRANCH);
-	if (rc == SI_PMATCH) {
-		db->workers[SC_QBRANCH]++;
-		return SI_PMATCH;
-	}
-
-	/* compaction */
-	task->plan.plan = SI_COMPACT;
-	task->plan.a = c->compact_wm;
 	rc = si_plan(db->index, &task->plan);
 	if (rc == SI_PMATCH)
 		return SI_PMATCH;
@@ -279,25 +231,6 @@ sc_periodic(sc *s, sctask *task)
 	scdb *db = task->db;
 	sicompaction *c = &db->index->scheme.compaction;
 
-	/* checkpoint.
-	 *
-	 * start checkpoint process per-database when it reaches
-	 * its memory limit.
-	 *
-	 * do not plan other tasks, when checkpoint is
-	 * in-progress.
-	*/
-	if (db->checkpoint)
-		return;
-	if (db->index->scheme.memory_limit > 0) {
-		uint32_t usage =
-			sr_quotaused_percent(db->index->r.quota,
-			                     db->index->r.stat);
-		if (usage >= c->checkpoint_wm) {
-			sc_task_checkpoint(s, db);
-			return;
-		}
-	}
 	/* expire */
 	if (c->expire_period && db->expire == 0) {
 		if ((task->time - db->expire_time) >= c->expire_period_us)

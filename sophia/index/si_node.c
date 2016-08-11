@@ -39,7 +39,6 @@ sinode *si_nodenew(sr *r)
 	sv_indexinit(&n->i0);
 	sv_indexinit(&n->i1);
 	ss_rbinitnode(&n->node);
-	ss_rqinitnode(&n->nodecompact);
 	ss_rqinitnode(&n->nodebranch);
 	ss_listinit(&n->gc);
 	ss_listinit(&n->commit);
@@ -265,20 +264,6 @@ int si_noderename_seal(sinode *n, sr *r, sischeme *scheme)
 		return -1;
 	}
 	return 0;
-}
-
-int si_noderename_inprogress(sinode *n, sr *r, sischeme *scheme, sdid *id)
-{
-	sspath path;
-	ss_pathcompound(&path, scheme->path,
-	                n->self.id.id, id->id, ".db.inprogress");
-	int rc = ss_filerename(&n->file, path.path);
-	if (ssunlikely(rc == -1)) {
-		sr_malfunction(r->e, "db file '%s' rename error: %s",
-		               ss_pathof(&n->file.path),
-		               strerror(errno));
-	}
-	return rc;
 }
 
 int si_noderename_complete(sinode *n, sr *r, sischeme *scheme)

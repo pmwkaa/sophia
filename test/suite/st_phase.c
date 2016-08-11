@@ -18,31 +18,14 @@
 void st_phase_commit(void)
 {
 	void *env = st_r.env;
-
 	switch (st_r.phase_compaction_scene) {
 	case 0: break;
 	case 1:
-		t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
-		break;
-	case 2:
-		t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 		t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 		break;
-	case 3:
+	case 2:
 		t( sp_setint(env, "log.rotate", 0) == 0 );
 		t( sp_setint(env, "log.gc", 0) == 0 );
-		break;
-	case 4:
-		if (st_r.phase_compaction == 0) {
-			t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
-			t( sp_setint(env, "log.rotate", 0) == 0 );
-			t( sp_setint(env, "log.gc", 0) == 0 );
-			st_r.phase_compaction = 1;
-		} else
-		if (st_r.phase_compaction == 1) {
-			t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
-			st_r.phase_compaction = 0;
-		}
 		break;
 	default: t(0);
 	}

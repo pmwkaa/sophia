@@ -15,7 +15,7 @@ Database can be created, opened or deleted only before environment startup.
 | db.name.memory\_limit | int | Set memory limit in bytes (0 - disabled). |
 | db.name.mmap | int | Enable or disable mmap mode. |
 | db.name.direct\_io | int | Enable or disable O\_DIRECT mode. |
-| db.name.sync | int | Sync node file on the branch creation or compaction completion. |
+| db.name.sync | int | Sync node file on compaction completion. |
 | db.name.expire | int | Enable or disable key expire. |
 | db.name.compression | string | Specify compression driver. Supported: lz4, zstd, none (default). |
 | db.name.comparator | function | Set custom comparator function (example: [comparator.c](https://github.com/pmwkaa/sophia/blob/master/example/comparator.c)). |
@@ -30,8 +30,4 @@ Database can be created, opened or deleted only before environment startup.
 | db.name.index.read\_disk | int, ro | Number of disk reads since start. |
 | db.name.index.read\_cache | int, ro | Number of cache reads since start. |
 | db.name.index.node\_count | int, ro | Number of active nodes. |
-| db.name.index.branch\_count | int, ro | Total number of branches. |
-| db.name.index.branch\_avg | int, ro | Average number of branches per node. |
-| db.name.index.branch\_max | int, ro | Maximum number of branches per node. |
-| db.name.index.branch\_histogram | string, ro | Branch histogram distribution through all nodes. |
 | db.name.index.page\_count | int, ro | Total number of pages. |

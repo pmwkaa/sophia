@@ -15,19 +15,12 @@ struct siprofiler {
 	uint32_t  total_node_count;
 	uint64_t  total_node_size;
 	uint64_t  total_node_origin_size;
-	uint32_t  total_branch_count;
-	uint32_t  total_branch_avg;
-	uint32_t  total_branch_max;
 	uint32_t  total_page_count;
 	uint64_t  memory_used;
 	uint64_t  count;
 	uint64_t  count_dup;
 	uint64_t  read_disk;
 	uint64_t  read_cache;
-	int       histogram_branch[20];
-	int       histogram_branch_20plus;
-	char      histogram_branch_sz[256];
-	char     *histogram_branch_ptr;
 	si       *i;
 } sspacked;
 

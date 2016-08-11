@@ -33,7 +33,6 @@ STS_TESTS = unit/ss_a.test.o \
             generic/scheme.test.o \
             generic/rev.test.o \
             generic/backup.test.o \
-            generic/checkpoint.test.o \
             generic/prefix.test.o \
             generic/transaction_md.test.o \
             generic/transaction_misc.test.o \
@@ -43,7 +42,6 @@ STS_TESTS = unit/ss_a.test.o \
             generic/secondary_index.test.o \
             issues/github.test.o \
             compaction/log.test.o \
-            compaction/branch.test.o \
             compaction/compact.test.o \
             compaction/compact_delete.test.o \
             compaction/gc.test.o \

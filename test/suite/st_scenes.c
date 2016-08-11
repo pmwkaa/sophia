@@ -243,19 +243,11 @@ void st_scene_phase_compaction(stscene *s)
 		fflush(st_r.output);
 		break;
 	case 1:
-		fprintf(st_r.output, ".branch");
-		fflush(st_r.output);
-		break;
-	case 2:
 		fprintf(st_r.output, ".compact");
 		fflush(st_r.output);
 		break;
-	case 3:
+	case 2:
 		fprintf(st_r.output, ".logrotate_gc");
-		fflush(st_r.output);
-		break;
-	case 4:
-		fprintf(st_r.output, ".branch_compact");
 		fflush(st_r.output);
 		break;
 	default: assert(0);

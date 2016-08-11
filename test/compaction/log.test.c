@@ -61,7 +61,7 @@ log_gc(void)
 
 	t( sp_setint(env, "log.rotate", 0) == 0 );
 	t( sp_getint(env, "log.files") == 3 );
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 	t( sp_setint(env, "log.gc", 0) == 0 );
 	t( sp_getint(env, "log.files") == 1 );
 
@@ -220,7 +220,7 @@ log_recover1(void)
 
 	t( sp_setint(env, "log.rotate", 0) == 0 );
 	t( sp_getint(env, "log.files") == 3 );
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 	t( sp_setint(env, "log.gc", 0) == 0 );
 	t( sp_getint(env, "log.files") == 1 );
 

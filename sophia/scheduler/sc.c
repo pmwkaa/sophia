@@ -22,7 +22,6 @@ int sc_init(sc *s, sr *r, slpool *lp)
 {
 	ss_mutexinit(&s->lock);
 	/* task priorities */
-	s->prio[SC_QBRANCH]         = 1;
 	s->prio[SC_QGC]             = 1;
 	s->prio[SC_QEXPIRE]         = 1;
 	s->prio[SC_QBACKUP]         = 1;
@@ -49,14 +48,11 @@ static inline int
 sc_prepare(scdb *db)
 {
 	uint64_t now = ss_utime();
-	db->checkpoint_lsn      = 0;
-	db->checkpoint_lsn_last = 0;
-	db->checkpoint          = 0;
-	db->expire              = 0;
-	db->expire_time         = now;
-	db->gc                  = 0;
-	db->gc_time             = now;
-	db->backup              = 0;
+	db->expire      = 0;
+	db->expire_time = now;
+	db->gc          = 0;
+	db->gc_time     = now;
+	db->backup      = 0;
 	return 0;
 }
 

@@ -45,7 +45,7 @@ leak_set(void)
 	t( sp_set(db, o) == 0 );
 
 	t( sp_getint(env, "db.test.stat.documents") == 2 );
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 	t( sp_getint(env, "db.test.stat.documents") == 0 );
 
 	t( sp_destroy(env) == 0 );
@@ -85,7 +85,7 @@ leak_set_get(void)
 	sp_destroy(o);
 	t( sp_getint(env, "db.test.stat.documents") == 1 );
 
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 	t( sp_getint(env, "db.test.stat.documents") == 0 );
 
 	t( sp_destroy(env) == 0 );
@@ -127,7 +127,7 @@ leak_set_cursor(void)
 	sp_destroy(cursor);
 
 	t( sp_getint(env, "db.test.stat.documents") == 10 );
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 	t( sp_getint(env, "db.test.stat.documents") == 0 );
 
 	t( sp_destroy(env) == 0 );
@@ -170,7 +170,7 @@ leak_tx_set_commit(void)
 	t( sp_commit(b) == 0 );
 
 	t( sp_getint(env, "db.test.stat.documents") == 2 );
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 	t( sp_getint(env, "db.test.stat.documents") == 0 );
 
 	t( sp_destroy(env) == 0 );
@@ -214,7 +214,7 @@ leak_tx_set_get_commit(void)
 	t( sp_commit(b) == 0 );
 
 	t( sp_getint(env, "db.test.stat.documents") == 1 );
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 	t( sp_getint(env, "db.test.stat.documents") == 0 );
 
 	t( sp_destroy(env) == 0 );
@@ -300,7 +300,7 @@ leak_tx_tx_set_commit(void)
 	t( sp_commit(b) == 0 );
 
 	t( sp_getint(env, "db.test.stat.documents") == 2 );
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 	t( sp_getint(env, "db.test.stat.documents") == 0 );
 
 	t( sp_commit(a) == 0 );
@@ -397,7 +397,7 @@ leak_tx_tx_set_get_commit0(void)
 
 	t( sp_commit(a) == 0 );
 	t( sp_getint(env, "db.test.stat.documents") == 1 );
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 	t( sp_getint(env, "db.test.stat.documents") == 0 );
 
 	t( sp_destroy(env) == 0 );
@@ -445,7 +445,7 @@ leak_tx_tx_set_get_commit1(void)
 
 	t( sp_commit(a) == 0 );
 	t( sp_getint(env, "db.test.stat.documents") == 1 );
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 	t( sp_getint(env, "db.test.stat.documents") == 0 );
 
 	t( sp_destroy(env) == 0 );
@@ -506,7 +506,7 @@ leak_tx_tx_tx_set_get_commit0(void)
 	t( sp_commit(c) == 0 );
 	t( sp_getint(env, "db.test.stat.documents") == 3 );
 
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 	t( sp_getint(env, "db.test.stat.documents") == 0 );
 
 	t( sp_destroy(env) == 0 );
@@ -567,7 +567,7 @@ leak_tx_tx_tx_set_get_commit1(void)
 	t( sp_commit(a) == 0 );
 	t( sp_getint(env, "db.test.stat.documents") == 3 );
 
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 	t( sp_getint(env, "db.test.stat.documents") == 0 );
 
 	t( sp_destroy(env) == 0 );

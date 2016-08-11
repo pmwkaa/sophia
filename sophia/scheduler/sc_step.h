@@ -24,21 +24,6 @@ sc_next(sc *s) {
 }
 
 static inline void
-sc_task_checkpoint(sc *s, scdb *db)
-{
-	db->checkpoint_lsn = sr_seq(s->r->seq, SR_LSN);
-	db->checkpoint = 1;
-}
-
-static inline void
-sc_task_checkpoint_done(scdb *db)
-{
-	db->checkpoint = 0;
-	db->checkpoint_lsn_last = db->checkpoint_lsn;
-	db->checkpoint_lsn = 0;
-}
-
-static inline void
 sc_task_expire(scdb *db)
 {
 	db->expire = 1;

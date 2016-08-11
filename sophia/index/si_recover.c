@@ -21,9 +21,6 @@
 	000000003.db
 	(4)
 
-	branching
-	000000001.000000003.db.inprogress  (5)
-
 	1. remove incomplete, mark parent as having incomplete
 	2. find parent, mark as having seal
 	3. add
@@ -169,7 +166,7 @@ si_deploy(si *i, sr *r, int create_directory)
 		return -1;
 	}
 	si_insert(i, n);
-	si_plannerupdate(&i->p, SI_COMPACT|SI_BRANCH, n);
+	si_plannerupdate(&i->p, n);
 	i->size = si_nodesize(n);
 	return 1;
 }
@@ -195,7 +192,6 @@ si_process(char *name, uint64_t *nsn, uint64_t *parent)
 	/* id.db */
 	/* id.id.db.incomplete */
 	/* id.id.db.seal */
-	/* id.id.db.inprogress */
 	/* id.id.db.gc */
 	char *token = name;
 	int64_t id = si_processid(&token);
@@ -217,9 +213,6 @@ si_process(char *name, uint64_t *nsn, uint64_t *parent)
 	*nsn = id;
 	if (strcmp(token, ".db.incomplete") == 0)
 		return SI_RDB_DBI;
-	else
-	if (strcmp(token, ".db.inprogress") == 0)
-		return SI_RDB_DBINPR;
 	else
 	if (strcmp(token, ".db.seal") == 0)
 		return SI_RDB_DBSEAL;
@@ -302,11 +295,6 @@ si_trackdir(sitrack *track, sr *r, si *i)
 				goto error;
 			}
 			continue;
-		case SI_RDB_DBINPR:
-			/* node file needs a repair */
-			sr_malfunction(r->e, "corrupted database repository: %s",
-			               i->scheme.path);
-			goto error;
 		}
 		assert(rc == SI_RDB);
 
@@ -424,7 +412,7 @@ si_recovercomplete(sitrack *track, sr *r, si *index, ssbuf *buf)
 		}
 		n->recover = SI_RDB;
 		si_insert(index, n);
-		si_plannerupdate(&index->p, SI_COMPACT|SI_BRANCH, n);
+		si_plannerupdate(&index->p, n);
 		ss_iternext(ss_bufiterref, &i);
 	}
 	return 0;

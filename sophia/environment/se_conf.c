@@ -360,28 +360,6 @@ se_confdb_upsertarg(srconf *c, srconfstmt *s)
 }
 
 static inline int
-se_confdb_branch(srconf *c, srconfstmt *s)
-{
-	if (s->op != SR_WRITE)
-		return se_confv(c, s);
-	sedb *db = c->value;
-	se *e = se_of(&db->o);
-	uint64_t vlsn = sx_vlsn(&e->xm);
-	return sc_ctl_branch(&e->scheduler, vlsn, db->index);
-}
-
-static inline int
-se_confdb_compact(srconf *c, srconfstmt *s)
-{
-	if (s->op != SR_WRITE)
-		return se_confv(c, s);
-	sedb *db = c->value;
-	se *e = se_of(&db->o);
-	uint64_t vlsn = sx_vlsn(&e->xm);
-	return sc_ctl_compact(&e->scheduler, vlsn, db->index);
-}
-
-static inline int
 se_confdb_compact_index(srconf *c, srconfstmt *s)
 {
 	if (s->op != SR_WRITE)
@@ -390,16 +368,6 @@ se_confdb_compact_index(srconf *c, srconfstmt *s)
 	se *e = se_of(&db->o);
 	uint64_t vlsn = sx_vlsn(&e->xm);
 	return sc_ctl_compact_index(&e->scheduler, vlsn, db->index);
-}
-
-static inline int
-se_confdb_checkpoint(srconf *c, srconfstmt *s)
-{
-	if (s->op != SR_WRITE)
-		return se_confv(c, s);
-	sedb *db = c->value;
-	se *e = se_of(&db->o);
-	return sc_ctl_checkpoint(&e->scheduler, db->index);
 }
 
 static inline int
@@ -519,17 +487,12 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc, int serialize)
 		sr_C(&p, pc, se_confv_dboffline, "node_size", SS_U64, &o->scheme->node_size, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "page_size", SS_U32, &o->scheme->node_page_size, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "page_checksum", SS_U32, &o->scheme->node_page_checksum, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "checkpoint_wm", SS_U32, &o->scheme->compaction.checkpoint_wm, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "compact_wm", SS_U32, &o->scheme->compaction.compact_wm, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "branch_wm", SS_U32, &o->scheme->compaction.branch_wm, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "expire_period", SS_U32, &o->scheme->compaction.expire_period, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "gc_wm", SS_U32, &o->scheme->compaction.gc_wm, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "gc_period", SS_U32, &o->scheme->compaction.gc_period, 0, o);
 		if (! serialize) {
-			sr_c(&p, pc, se_confdb_branch, "branch", SS_FUNCTION, o);
-			sr_c(&p, pc, se_confdb_compact, "compact", SS_FUNCTION, o);
-			sr_c(&p, pc, se_confdb_compact_index, "compact_index", SS_FUNCTION, o);
-			sr_c(&p, pc, se_confdb_checkpoint, "checkpoint", SS_FUNCTION, o);
+			sr_c(&p, pc, se_confdb_compact_index, "compact", SS_FUNCTION, o);
 			sr_c(&p, pc, se_confdb_gc, "gc", SS_FUNCTION, o);
 			sr_c(&p, pc, se_confdb_expire, "expire", SS_FUNCTION, o);
 		}
@@ -561,9 +524,6 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc, int serialize)
 		/* scheduler */
 		srconf *scheduler = *pc;
 		p = NULL;
-		sr_C(&p, pc, se_confv, "checkpoint", SS_U32, &o->scp.state.checkpoint, SR_RO, NULL);
-		sr_C(&p, pc, se_confv, "checkpoint_lsn", SS_U64, &o->scp.state.checkpoint_lsn, SR_RO, NULL);
-		sr_C(&p, pc, se_confv, "checkpoint_lsn_last", SS_U64, &o->scp.state.checkpoint_lsn_last, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "gc", SS_U32, &o->scp.state.gc, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "expire", SS_U32, &o->scp.state.expire, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "backup", SS_U32, &o->scp.state.backup, SR_RO, NULL);
@@ -579,10 +539,6 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc, int serialize)
 		sr_C(&p, pc, se_confv, "read_disk", SS_U64, &o->rtp.read_disk, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "read_cache", SS_U64, &o->rtp.read_cache, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "node_count", SS_U32, &o->rtp.total_node_count, SR_RO, NULL);
-		sr_C(&p, pc, se_confv, "branch_count", SS_U32, &o->rtp.total_branch_count, SR_RO, NULL);
-		sr_C(&p, pc, se_confv, "branch_avg", SS_U32, &o->rtp.total_branch_avg, SR_RO, NULL);
-		sr_C(&p, pc, se_confv, "branch_max", SS_U32, &o->rtp.total_branch_max, SR_RO, NULL);
-		sr_C(&p, pc, se_confv, "branch_histogram", SS_STRINGPTR, &o->rtp.histogram_branch_ptr, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "page_count", SS_U32, &o->rtp.total_page_count, SR_RO, NULL);
 
 		/* scheme */
@@ -688,13 +644,12 @@ se_confdebug(se *e, seconfrt *rt ssunused, srconf **pc)
 	sr_c(&p, pc, se_confdebug_oom, "oom",     SS_U32, &e->ei.oom);
 	sr_c(&p, pc, se_confdebug_io, "io",       SS_U32, &e->ei.io);
 	sr_c(&p, pc, se_confv, "sd_build_0",      SS_U32, &e->ei.e[0]);
-	sr_c(&p, pc, se_confv, "si_branch_0",     SS_U32, &e->ei.e[1]);
-	sr_c(&p, pc, se_confv, "si_compaction_0", SS_U32, &e->ei.e[2]);
-	sr_c(&p, pc, se_confv, "si_compaction_1", SS_U32, &e->ei.e[3]);
-	sr_c(&p, pc, se_confv, "si_compaction_2", SS_U32, &e->ei.e[4]);
-	sr_c(&p, pc, se_confv, "si_compaction_3", SS_U32, &e->ei.e[5]);
-	sr_c(&p, pc, se_confv, "si_compaction_4", SS_U32, &e->ei.e[6]);
-	sr_c(&p, pc, se_confv, "si_recover_0",    SS_U32, &e->ei.e[7]);
+	sr_c(&p, pc, se_confv, "si_compaction_0", SS_U32, &e->ei.e[1]);
+	sr_c(&p, pc, se_confv, "si_compaction_1", SS_U32, &e->ei.e[2]);
+	sr_c(&p, pc, se_confv, "si_compaction_2", SS_U32, &e->ei.e[3]);
+	sr_c(&p, pc, se_confv, "si_compaction_3", SS_U32, &e->ei.e[4]);
+	sr_c(&p, pc, se_confv, "si_compaction_4", SS_U32, &e->ei.e[5]);
+	sr_c(&p, pc, se_confv, "si_recover_0",    SS_U32, &e->ei.e[6]);
 	sr_C(&prev, pc, NULL, "error_injection", SS_UNDEF, ei, SR_NS, NULL);
 	srconf *debug = prev;
 	return sr_C(NULL, pc, NULL, "debug", SS_UNDEF, debug, SR_NS, NULL);

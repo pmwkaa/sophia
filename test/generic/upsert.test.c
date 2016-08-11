@@ -120,50 +120,6 @@ upsert_upsert_get_scheme(void)
 }
 
 static void
-upsert_upsert_get_branch0(void)
-{
-	upsert_ops = 0;
-
-	void *env = sp_env();
-	t( env != NULL );
-	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
-	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
-	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
-	t( sp_setint(env, "db.test.sync", 0) == 0 );
-	t( sp_setstring(env, "db.test.upsert", upsert_operator_orphan, 0) == 0 );
-	t( sp_open(env) == 0 );
-	void *db = sp_getobject(env, "db.test");
-	t( db != NULL );
-
-	void *o = sp_document(db);
-	int up = 777;
-	int i = 0;
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
-	t( sp_upsert(db, o) == 0 );
-
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
-	t( upsert_ops == 0 );
-
-	o = sp_document(db);
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	o = sp_get(db, o);
-	t( o != NULL );
-	t( *(int*)sp_getstring(o, "value", NULL) == up );
-	sp_destroy(o);
-
-	t( upsert_ops == 1 );
-
-	t( sp_destroy(env) == 0 );
-}
-
-static void
 upsert_upsert_get_compact(void)
 {
 	upsert_ops = 0;
@@ -192,7 +148,6 @@ upsert_upsert_get_compact(void)
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	t( upsert_ops == 1 );
@@ -256,104 +211,6 @@ upsert_set_upsert_get_scheme(void)
 }
 
 static void
-upsert_set_upsert_get_branch0(void)
-{
-	upsert_ops = 0;
-
-	void *env = sp_env();
-	t( env != NULL );
-	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
-	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
-	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
-	t( sp_setint(env, "db.test.sync", 0) == 0 );
-	t( sp_setstring(env, "db.test..upsert", upsert_operator, 0) == 0 );
-	t( sp_open(env) == 0 );
-	void *db = sp_getobject(env, "db.test");
-	t( db != NULL );
-
-	void *o = sp_document(db);
-	int i = 0;
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
-	t( sp_set(db, o) == 0 );
-
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
-
-	o = sp_document(db);
-	int up = 777;
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
-	t( sp_upsert(db, o) == 0 );
-
-	o = sp_document(db);
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	o = sp_get(db, o);
-	t( o != NULL );
-	t( *(int*)sp_getstring(o, "value", NULL) == up );
-	sp_destroy(o);
-
-	t( upsert_ops == 1 );
-
-	t( sp_destroy(env) == 0 );
-}
-
-static void
-upsert_set_upsert_get_branch1(void)
-{
-	upsert_ops = 0;
-
-	void *env = sp_env();
-	t( env != NULL );
-	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
-	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
-	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
-	t( sp_setint(env, "db.test.sync", 0) == 0 );
-	t( sp_setstring(env, "db.test.upsert", upsert_operator, 0) == 0 );
-	t( sp_open(env) == 0 );
-	void *db = sp_getobject(env, "db.test");
-	t( db != NULL );
-
-	void *o = sp_document(db);
-	int i = 0;
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
-	t( sp_set(db, o) == 0 );
-
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
-
-	o = sp_document(db);
-	int up = 777;
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
-	t( sp_upsert(db, o) == 0 );
-
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
-
-	o = sp_document(db);
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	o = sp_get(db, o);
-	t( o != NULL );
-	t( *(int*)sp_getstring(o, "value", NULL) == up );
-	sp_destroy(o);
-
-	t( upsert_ops == 1 );
-
-	t( sp_destroy(env) == 0 );
-}
-
-static void
 upsert_set_upsert_get_compact(void)
 {
 	upsert_ops = 0;
@@ -381,7 +238,7 @@ upsert_set_upsert_get_compact(void)
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	o = sp_document(db);
 	int up = 777;
@@ -389,7 +246,6 @@ upsert_set_upsert_get_compact(void)
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	o = sp_document(db);
@@ -457,174 +313,6 @@ upsert_set_upsert_upsert_get_scheme(void)
 }
 
 static void
-upsert_set_upsert_upsert_get_branch0(void)
-{
-	upsert_ops = 0;
-
-	void *env = sp_env();
-	t( env != NULL );
-	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
-	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
-	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
-	t( sp_setint(env, "db.test.sync", 0) == 0 );
-	t( sp_setstring(env, "db.test.upsert", upsert_operator, 0) == 0 );
-	t( sp_open(env) == 0 );
-	void *db = sp_getobject(env, "db.test");
-	t( db != NULL );
-
-	void *o = sp_document(db);
-	int i = 0;
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
-	t( sp_set(db, o) == 0 );
-
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
-
-	o = sp_document(db);
-	int up0 = 777;
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_setstring(o, "value", &up0, sizeof(up0)) == 0 );
-	t( sp_upsert(db, o) == 0 );
-
-	o = sp_document(db);
-	int up1 = 778;
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_setstring(o, "value", &up1, sizeof(up1)) == 0 );
-	t( sp_upsert(db, o) == 0 );
-
-	o = sp_document(db);
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	o = sp_get(db, o);
-	t( o != NULL );
-	t( *(int*)sp_getstring(o, "value", NULL) == up1 );
-	sp_destroy(o);
-
-	t( upsert_ops == 2 );
-
-	t( sp_destroy(env) == 0 );
-}
-
-static void
-upsert_set_upsert_upsert_get_branch1(void)
-{
-	upsert_ops = 0;
-
-	void *env = sp_env();
-	t( env != NULL );
-	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
-	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
-	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
-	t( sp_setint(env, "db.test.sync", 0) == 0 );
-	t( sp_setstring(env, "db.test.upsert", upsert_operator, 0) == 0 );
-	t( sp_open(env) == 0 );
-	void *db = sp_getobject(env, "db.test");
-	t( db != NULL );
-
-	void *o = sp_document(db);
-	int i = 0;
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
-	t( sp_set(db, o) == 0 );
-
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
-
-	o = sp_document(db);
-	int up0 = 777;
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_setstring(o, "value", &up0, sizeof(up0)) == 0 );
-	t( sp_upsert(db, o) == 0 );
-
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
-
-	o = sp_document(db);
-	int up1 = 778;
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_setstring(o, "value", &up1, sizeof(up1)) == 0 );
-	t( sp_upsert(db, o) == 0 );
-
-	o = sp_document(db);
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	o = sp_get(db, o);
-	t( o != NULL );
-	t( *(int*)sp_getstring(o, "value", NULL) == up1 );
-	sp_destroy(o);
-
-	t( upsert_ops == 2 );
-
-	t( sp_destroy(env) == 0 );
-}
-
-static void
-upsert_set_upsert_upsert_get_branch2(void)
-{
-	upsert_ops = 0;
-
-	void *env = sp_env();
-	t( env != NULL );
-	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
-	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
-	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
-	t( sp_setint(env, "db.test.sync", 0) == 0 );
-	t( sp_setstring(env, "db.test.upsert", upsert_operator, 0) == 0 );
-	t( sp_open(env) == 0 );
-	void *db = sp_getobject(env, "db.test");
-	t( db != NULL );
-
-	void *o = sp_document(db);
-	int i = 0;
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
-	t( sp_set(db, o) == 0 );
-
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
-
-	o = sp_document(db);
-	int up0 = 777;
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_setstring(o, "value", &up0, sizeof(up0)) == 0 );
-	t( sp_upsert(db, o) == 0 );
-
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
-
-	o = sp_document(db);
-	int up1 = 778;
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_setstring(o, "value", &up1, sizeof(up1)) == 0 );
-	t( sp_upsert(db, o) == 0 );
-
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
-
-	o = sp_document(db);
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	o = sp_get(db, o);
-	t( o != NULL );
-	t( *(int*)sp_getstring(o, "value", NULL) == up1 );
-	sp_destroy(o);
-
-	t( upsert_ops == 2 );
-
-	t( sp_destroy(env) == 0 );
-}
-
-static void
 upsert_set_upsert_upsert_get_compact(void)
 {
 	upsert_ops = 0;
@@ -652,7 +340,7 @@ upsert_set_upsert_upsert_get_compact(void)
 	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	o = sp_document(db);
 	int up0 = 777;
@@ -660,7 +348,7 @@ upsert_set_upsert_upsert_get_compact(void)
 	t( sp_setstring(o, "value", &up0, sizeof(up0)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	o = sp_document(db);
 	int up1 = 778;
@@ -668,7 +356,6 @@ upsert_set_upsert_upsert_get_compact(void)
 	t( sp_setstring(o, "value", &up1, sizeof(up1)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	o = sp_document(db);
@@ -677,66 +364,6 @@ upsert_set_upsert_upsert_get_compact(void)
 	t( o != NULL );
 	t( *(int*)sp_getstring(o, "value", NULL) == up1 );
 	sp_destroy(o);
-
-	t( upsert_ops == 2 );
-
-	t( sp_destroy(env) == 0 );
-}
-
-static void
-upsert_set_upsert_upsert_get_cursor(void)
-{
-	upsert_ops = 0;
-
-	void *env = sp_env();
-	t( env != NULL );
-	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
-	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
-	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
-	t( sp_setint(env, "db.test.sync", 0) == 0 );
-	t( sp_setstring(env, "db.test.upsert", upsert_operator, 0) == 0 );
-	t( sp_open(env) == 0 );
-	void *db = sp_getobject(env, "db.test");
-	t( db != NULL );
-
-	void *o = sp_document(db);
-	int i = 0;
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
-	t( sp_set(db, o) == 0 );
-
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
-
-	o = sp_document(db);
-	int up0 = 777;
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_setstring(o, "value", &up0, sizeof(up0)) == 0 );
-	t( sp_upsert(db, o) == 0 );
-
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
-
-	o = sp_document(db);
-	int up1 = 778;
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_setstring(o, "value", &up1, sizeof(up1)) == 0 );
-	t( sp_upsert(db, o) == 0 );
-
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
-
-	o = sp_document(db);
-	t( o != NULL );
-	void *cur = sp_cursor(env);
-	o = sp_get(cur, o);
-	t( *(int*)sp_getstring(o, "value", NULL) == up1 );
-	o = sp_get(cur, o);
-	t( o == NULL );
-	sp_destroy(cur);
 
 	t( upsert_ops == 2 );
 
@@ -810,112 +437,6 @@ upsert_set_delete_upsert_get_scheme(void)
 }
 
 static void
-upsert_set_delete_upsert_get_branch0(void)
-{
-	upsert_ops = 0;
-
-	void *env = sp_env();
-	t( env != NULL );
-	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
-	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
-	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
-	t( sp_setint(env, "db.test.sync", 0) == 0 );
-	t( sp_setstring(env, "db.test.upsert", upsert_operator_delete, 0) == 0 );
-	t( sp_open(env) == 0 );
-	void *db = sp_getobject(env, "db.test");
-	t( db != NULL );
-
-	void *o = sp_document(db);
-	int i = 0;
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
-	t( sp_set(db, o) == 0 );
-
-	o = sp_document(db);
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_delete(db, o) == 0 );
-
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
-
-	o = sp_document(db);
-	int up = 777;
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
-	t( sp_upsert(db, o) == 0 );
-
-	o = sp_document(db);
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	o = sp_get(db, o);
-	t( o != NULL );
-	t( *(int*)sp_getstring(o, "value", NULL) == up );
-	sp_destroy(o);
-
-	t( upsert_ops == 1 );
-
-	t( sp_destroy(env) == 0 );
-}
-
-static void
-upsert_set_delete_upsert_get_branch1(void)
-{
-	upsert_ops = 0;
-
-	void *env = sp_env();
-	t( env != NULL );
-	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
-	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
-	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
-	t( sp_setint(env, "db.test.sync", 0) == 0 );
-	t( sp_setstring(env, "db.test.upsert", upsert_operator_delete, 0) == 0 );
-	t( sp_open(env) == 0 );
-	void *db = sp_getobject(env, "db.test");
-	t( db != NULL );
-
-	void *o = sp_document(db);
-	int i = 0;
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
-	t( sp_set(db, o) == 0 );
-
-	o = sp_document(db);
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_delete(db, o) == 0 );
-
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
-
-	o = sp_document(db);
-	int up = 777;
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
-	t( sp_upsert(db, o) == 0 );
-
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
-
-	o = sp_document(db);
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	o = sp_get(db, o);
-	t( o != NULL );
-	t( *(int*)sp_getstring(o, "value", NULL) == up );
-	sp_destroy(o);
-
-	t( upsert_ops == 1 );
-
-	t( sp_destroy(env) == 0 );
-}
-
-static void
 upsert_set_delete_upsert_get_compact(void)
 {
 	upsert_ops = 0;
@@ -947,7 +468,7 @@ upsert_set_delete_upsert_get_compact(void)
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_delete(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	o = sp_document(db);
 	int up = 777;
@@ -955,7 +476,6 @@ upsert_set_delete_upsert_get_compact(void)
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	o = sp_document(db);
@@ -1017,104 +537,6 @@ upsert_delete_upsert_get_scheme(void)
 }
 
 static void
-upsert_delete_upsert_get_branch0(void)
-{
-	upsert_ops = 0;
-
-	void *env = sp_env();
-	t( env != NULL );
-	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
-	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
-	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
-	t( sp_setint(env, "db.test.sync", 0) == 0 );
-	t( sp_setstring(env, "db.test.upsert", upsert_operator_delete, 0) == 0 );
-	t( sp_open(env) == 0 );
-	void *db = sp_getobject(env, "db.test");
-	t( db != NULL );
-
-	void *o = sp_document(db);
-	int i = 0;
-	o = sp_document(db);
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_delete(db, o) == 0 );
-
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
-
-	o = sp_document(db);
-	int up = 777;
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
-	t( sp_upsert(db, o) == 0 );
-
-	o = sp_document(db);
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	o = sp_get(db, o);
-	t( o != NULL );
-	t( *(int*)sp_getstring(o, "value", NULL) == up );
-	sp_destroy(o);
-
-	t( upsert_ops == 1 );
-
-	t( sp_destroy(env) == 0 );
-}
-
-static void
-upsert_delete_upsert_get_branch1(void)
-{
-	upsert_ops = 0;
-
-	void *env = sp_env();
-	t( env != NULL );
-	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
-	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
-	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
-	t( sp_setint(env, "db.test.sync", 0) == 0 );
-	t( sp_setstring(env, "db.test.upsert", upsert_operator_delete, 0) == 0 );
-	t( sp_open(env) == 0 );
-	void *db = sp_getobject(env, "db.test");
-	t( db != NULL );
-
-	void *o = sp_document(db);
-	int i = 0;
-	o = sp_document(db);
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_delete(db, o) == 0 );
-
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
-
-	o = sp_document(db);
-	int up = 777;
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
-	t( sp_upsert(db, o) == 0 );
-
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
-
-	o = sp_document(db);
-	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
-	o = sp_get(db, o);
-	t( o != NULL );
-	t( *(int*)sp_getstring(o, "value", NULL) == up );
-	sp_destroy(o);
-
-	t( upsert_ops == 1 );
-
-	t( sp_destroy(env) == 0 );
-}
-
-static void
 upsert_delete_upsert_get_compact(void)
 {
 	upsert_ops = 0;
@@ -1142,7 +564,7 @@ upsert_delete_upsert_get_compact(void)
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_delete(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	o = sp_document(db);
 	int up = 777;
@@ -1150,7 +572,6 @@ upsert_delete_upsert_get_compact(void)
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	o = sp_document(db);
@@ -1589,7 +1010,6 @@ upsert_cursor5(void)
 	t( sp_setstring(o, "value", &up0, sizeof(up0)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	void *cur = sp_cursor(env);
@@ -1646,7 +1066,6 @@ upsert_cursor6(void)
 	t( sp_setstring(o, "value", &up0, sizeof(up0)) == 0 );
 	t( sp_upsert(db, o) == 0 );
 
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	void *cur = sp_cursor(env);
@@ -1689,20 +1108,18 @@ upsert_test0(void)
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_upsert(db, o) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_set(db, o) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	up = 778;
 	o = sp_document(db);
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_upsert(db, o) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
-
 	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	void *cur = sp_cursor(env);
@@ -1749,9 +1166,6 @@ upsert_test1(void)
 	t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
 	t( sp_setstring(o, "value", &up, sizeof(up)) == 0 );
 	t( sp_upsert(db, o) == 0 );
-
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 
 	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
@@ -1813,25 +1227,14 @@ stgroup *upsert_group(void)
 	stgroup *group = st_group("upsert");
 	st_groupadd(group, st_test("no_operator", upsert_no_operator));
 	st_groupadd(group, st_test("upsert_get_scheme", upsert_upsert_get_scheme));
-	st_groupadd(group, st_test("upsert_get_branch0", upsert_upsert_get_branch0));
 	st_groupadd(group, st_test("upsert_get_compact", upsert_upsert_get_compact));
 	st_groupadd(group, st_test("set_upsert_get_scheme", upsert_set_upsert_get_scheme));
-	st_groupadd(group, st_test("set_upsert_get_branch0", upsert_set_upsert_get_branch0));
-	st_groupadd(group, st_test("set_upsert_get_branch1", upsert_set_upsert_get_branch1));
 	st_groupadd(group, st_test("set_upsert_get_compact", upsert_set_upsert_get_compact));
 	st_groupadd(group, st_test("set_upsert_upsert_get_scheme", upsert_set_upsert_upsert_get_scheme));
-	st_groupadd(group, st_test("set_upsert_upsert_get_branch0", upsert_set_upsert_upsert_get_branch0));
-	st_groupadd(group, st_test("set_upsert_upsert_get_branch1", upsert_set_upsert_upsert_get_branch1));
-	st_groupadd(group, st_test("set_upsert_upsert_get_branch2", upsert_set_upsert_upsert_get_branch2));
 	st_groupadd(group, st_test("set_upsert_upsert_get_compact", upsert_set_upsert_upsert_get_compact));
-	st_groupadd(group, st_test("set_upsert_upsert_get_cursor", upsert_set_upsert_upsert_get_cursor));
 	st_groupadd(group, st_test("set_delete_upsert_get_scheme", upsert_set_delete_upsert_get_scheme));
-	st_groupadd(group, st_test("set_delete_upsert_get_branch0", upsert_set_delete_upsert_get_branch0));
-	st_groupadd(group, st_test("set_delete_upsert_get_branch1", upsert_set_delete_upsert_get_branch1));
 	st_groupadd(group, st_test("set_delete_upsert_get_compact", upsert_set_delete_upsert_get_compact));
 	st_groupadd(group, st_test("delete_upsert_get_scheme", upsert_delete_upsert_get_scheme));
-	st_groupadd(group, st_test("delete_upsert_get_branch0", upsert_delete_upsert_get_branch0));
-	st_groupadd(group, st_test("delete_upsert_get_branch1", upsert_delete_upsert_get_branch1));
 	st_groupadd(group, st_test("delete_upsert_get_compact", upsert_delete_upsert_get_compact));
 	st_groupadd(group, st_test("sx_set_upsert_get", upsert_sx_set_upsert_get));
 	st_groupadd(group, st_test("sx_upsert_upsert", upsert_sx_upsert_upsert));

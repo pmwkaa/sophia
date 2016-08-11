@@ -121,24 +121,20 @@ si_execute(si *i, sdc *c, siplan *plan, uint64_t vlsn)
 {
 	int rc = -1;
 	switch (plan->plan) {
-	case SI_NODEGC:
-		rc = si_nodefree(plan->node, &i->r, 1);
-		break;
-	case SI_CHECKPOINT:
-	case SI_BRANCH:
-		rc = si_branch(i, c, plan, vlsn);
-		break;
-	case SI_EXPIRE:
-	case SI_GC:
-	case SI_COMPACT:
-		rc = si_compact(i, c, plan, vlsn, NULL, 0);
-		break;
 	case SI_COMPACT_INDEX:
+	case SI_GC:
+	case SI_EXPIRE:
 		rc = si_compact_index(i, c, plan, vlsn);
 		break;
 	case SI_BACKUP:
 	case SI_BACKUPEND:
 		rc = si_backup(i, c, plan);
+		break;
+	case SI_NODEGC:
+		rc = si_nodefree(plan->node, &i->r, 1);
+		break;
+	default:
+		assert(0);
 		break;
 	}
 	/* garbage collect buffers */

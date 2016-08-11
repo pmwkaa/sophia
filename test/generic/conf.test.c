@@ -36,9 +36,9 @@ conf_error_injection(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
-	t( sp_getint(env, "debug.error_injection.si_branch_0") == 0 );
-	t( sp_setint(env, "debug.error_injection.si_branch_0", 1) == 0 );
-	t( sp_getint(env, "debug.error_injection.si_branch_0") == 1 );
+	t( sp_getint(env, "debug.error_injection.sd_build_0") == 0 );
+	t( sp_setint(env, "debug.error_injection.sd_build_0", 1) == 0 );
+	t( sp_getint(env, "debug.error_injection.sd_build_0") == 1 );
 	t( sp_destroy(env) == 0 );
 }
 

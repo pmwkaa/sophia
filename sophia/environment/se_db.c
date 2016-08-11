@@ -134,10 +134,6 @@ se_dbscheme_set(sedb *db)
 	}
 	/* compaction settings */
 	sicompaction *c = &s->compaction;
-	if (c->compact_wm <= 1) {
-		sr_error(&e->error, "%s", "bad compaction.compact_wm value");
-		return -1;
-	}
 	/* convert periodic times from sec to usec */
 	c->gc_period_us     = c->gc_period * 1000000;
 	c->expire_period_us = c->expire_period * 1000000;

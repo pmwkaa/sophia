@@ -226,8 +226,8 @@ secondary_index_test_nonunique0(void)
 	t( sp_set(tx, so) == 0 );
 	t( sp_commit(tx) == 0 );
 
-	t( sp_setint(env, "db.primary.compaction.branch", 0) == 0 );
-	t( sp_setint(env, "db.secondary.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.primary.compaction.compact", 0) == 0 );
+	t( sp_setint(env, "db.secondary.compaction.compact", 0) == 0 );
 
 	uint32_t current_a = 0;
 	uint32_t current_b = 0;

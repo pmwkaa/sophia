@@ -42,7 +42,7 @@ cursor_cache_test0(void)
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	void *cur = sp_cursor(env);
 	i = 0;
@@ -88,7 +88,7 @@ cursor_cache_test1(void)
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 	i = 185;
 	while (i < 370) {
 		void *o = sp_document(db);
@@ -99,7 +99,7 @@ cursor_cache_test1(void)
 		i++;
 	}
 	t( i == 370 );
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	void *cur = sp_cursor(env);
 	t( cur != NULL );
@@ -111,8 +111,8 @@ cursor_cache_test1(void)
 	}
 	t( sp_destroy(cur) == 0 );
 
-	t( sp_getint(env, "db.test.index.read_disk") == 2 );
-	t( sp_getint(env, "db.test.index.read_cache") == 553 );
+	t( sp_getint(env, "db.test.index.read_disk") == 1 );
+	t( sp_getint(env, "db.test.index.read_cache") == 369 );
 	t( sp_destroy(env) == 0 );
 }
 
@@ -143,7 +143,7 @@ cursor_cache_invalidate(void)
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	i = 185;
 	while (i < 370) {
@@ -155,7 +155,7 @@ cursor_cache_invalidate(void)
 		i++;
 	}
 	t( i == 370 );
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	void *o = sp_document(db);
 	t( o != NULL );
@@ -170,15 +170,15 @@ cursor_cache_invalidate(void)
 	while ((o = sp_get(cur, o))) {
 		t( *(int*)sp_getstring(o, "key", NULL) == i );
 		if (i == 200) {
-			t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+			t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 		}
 		i++;
 	}
 	t( i == 371 );
 	t( sp_destroy(cur) == 0 );
 
-	t( sp_getint(env, "db.test.index.read_disk") == 3 );
-	t( sp_getint(env, "db.test.index.read_cache") == 722 );
+	t( sp_getint(env, "db.test.index.read_disk") == 2 );
+	t( sp_getint(env, "db.test.index.read_cache") == 369 );
 
 	t( sp_destroy(env) == 0 );
 }

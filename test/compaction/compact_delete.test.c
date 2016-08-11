@@ -43,7 +43,6 @@ compact_delete_node0(void)
 		t( sp_set(db, o) == 0 );
 		key++;
 	}
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	key = 0;
@@ -54,7 +53,6 @@ compact_delete_node0(void)
 		t( sp_delete(db, o) == 0 );
 		key++;
 	}
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	t( sp_destroy(env) == 0 );
@@ -91,7 +89,6 @@ compact_delete_node1(void)
 		t( sp_set(db, o) == 0 );
 		key++;
 	}
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	t( sp_getint(env, "db.test.index.node_count") == 2 );
@@ -105,7 +102,6 @@ compact_delete_node1(void)
 		key++;
 	}
 
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	t( sp_getint(env, "db.test.index.node_count") == 1 );
@@ -125,7 +121,6 @@ compact_delete_node1(void)
 	sp_destroy(cur);
 	t( key == 13000 );
 
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	t( sp_getint(env, "db.test.index.node_count") == 1 );
@@ -161,7 +156,6 @@ compact_delete0(void)
 		key++;
 	}
 
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	key = 0;
@@ -172,7 +166,7 @@ compact_delete0(void)
 		t( sp_delete(db, o) == 0 );
 		key++;
 	}
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	void *o = sp_document(db);
 	t( o != NULL );
@@ -217,7 +211,6 @@ compact_delete1(void)
 		key++;
 	}
 
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	key = 0;
@@ -229,7 +222,6 @@ compact_delete1(void)
 		key++;
 	}
 
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	void *o = sp_document(db);
@@ -275,7 +267,6 @@ compact_delete_cursor(void)
 		key++;
 	}
 
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	key = 0;
@@ -286,7 +277,7 @@ compact_delete_cursor(void)
 		t( sp_delete(db, o) == 0 );
 		key++;
 	}
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	void *o = sp_document(db);
 	t( o != NULL );

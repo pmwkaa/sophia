@@ -56,7 +56,7 @@ gc_test0(void)
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	i = 0;
 	void *o = sp_document(db);
@@ -133,7 +133,7 @@ gc_test1(void)
 		t( sp_set(db, o) == 0 );
 		i++;
 	}
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	i = 0;
 	void *o = sp_document(db);
@@ -210,7 +210,7 @@ gc_test2(void)
 	}
 
 	void *t0 = sp_begin(env);
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	i = 0;
 	void *o = sp_document(db);
@@ -288,7 +288,6 @@ gc_test3(void)
 		i++;
 	}
 
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
 
 	i = 0;

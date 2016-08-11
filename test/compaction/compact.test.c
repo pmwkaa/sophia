@@ -16,7 +16,7 @@
 #include <libst.h>
 
 static void
-compact_branch(void)
+compact_test(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -43,41 +43,7 @@ compact_branch(void)
 		t( sp_set(db, o) == 0 );
 		key++;
 	}
-	t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );
 	t( sp_setint(env, "db.test.compaction.compact", 0) == 0 );
-
-	t( sp_destroy(env) == 0 );
-}
-
-static void
-compact_index(void)
-{
-	void *env = sp_env();
-	t( env != NULL );
-	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
-	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
-	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
-	t( sp_setint(env, "db.test.sync", 0) == 0 );
-	void *db = sp_getobject(env, "db.test");
-	t( db != NULL );
-	t( sp_open(env) == 0 );
-
-	int key = 0;
-	while (key < 20) {
-		void *o = sp_document(db);
-		t( o != NULL );
-		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
-		t( sp_setstring(o, "value", &key, sizeof(key)) == 0 );
-		t( sp_set(db, o) == 0 );
-		key++;
-	}
-	t( sp_setint(env, "db.test.compaction.compact_index", 0) == 0 );
 
 	key = 0;
 	while (key < 20) {
@@ -94,7 +60,7 @@ compact_index(void)
 }
 
 static void
-compact_directio(void)
+compact_test_directio(void)
 {
 	void *env = sp_env();
 	t( env != NULL );
@@ -125,14 +91,6 @@ compact_directio(void)
 		t( sp_setstring(o, "key", &key, sizeof(key)) == 0 );
 		t( sp_setstring(o, "value", value, sizeof(value)) == 0 );
 		t( sp_set(db, o) == 0 );
-		if ((key % 10000) == 0 && key > 0) {
-			if (sp_setint(env, "db.test.compaction.branch", 0) == -1) {
-				char *e = sp_getstring(env, "sophia.error", NULL);
-				printf("%s, %d\n", (e) ? e: "null", errno);
-				t( 0 );
-			}
-			/*t( sp_setint(env, "db.test.compaction.branch", 0) == 0 );*/
-		}
 		key++;
 	}
 
@@ -156,8 +114,7 @@ compact_directio(void)
 stgroup *compact_group(void)
 {
 	stgroup *group = st_group("compact");
-	st_groupadd(group, st_test("by_branch", compact_branch));
-	st_groupadd(group, st_test("scheme", compact_index));
-	st_groupadd(group, st_test("direct_io", compact_directio));
+	st_groupadd(group, st_test("test", compact_test));
+	st_groupadd(group, st_test("test_direct_io", compact_test_directio));
 	return group;
 }

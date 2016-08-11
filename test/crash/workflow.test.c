@@ -225,8 +225,7 @@ workflow_upsert(void *env, void *db)
 static inline int
 workflow_compaction(void *env, void *db)
 {
-	/* branch oom */
-	int rc = sp_setint(env, "db.test.compaction.branch", 0);
+	int rc = sp_setint(env, "db.test.compaction.compact", 0);
 	if (rc == -1)
 		return -1;
 	uint32_t key = 123;
@@ -251,10 +250,9 @@ workflow_compaction(void *env, void *db)
 		key++;
 		count++;
 	}
-	rc = sp_setint(env, "db.test.compaction.branch", 0);
+	rc = sp_setint(env, "db.test.compaction.compact", 0);
 	if (rc == -1)
 		return -1;
-	/* put some statements in log */
 	while (count < 15) {
 		void *o = sp_document(db);
 		if (o == NULL)
@@ -275,7 +273,6 @@ workflow_compaction(void *env, void *db)
 		key++;
 		count++;
 	}
-	/* compaction oom */
 	rc = sp_setint(env, "db.test.compaction.compact", 0);
 	if (rc == -1)
 		return -1;
@@ -314,7 +311,7 @@ workflow_test(char *injection)
 			sp_destroy(env);
 			continue;
 		}
-		/* branch + compaction */
+		/* compaction */
 		rc = workflow_compaction(env, db);
 		if (rc == -1) {
 			sp_destroy(env);

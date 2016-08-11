@@ -56,7 +56,6 @@ extern stgroup *deadlock_group(void);
 extern stgroup *scheme_group(void);
 extern stgroup *rev_group(void);
 extern stgroup *backup_group(void);
-extern stgroup *checkpoint_group(void);
 extern stgroup *prefix_group(void);
 extern stgroup *transaction_md_group(void);
 extern stgroup *transaction_misc_group(void);
@@ -70,7 +69,6 @@ extern stgroup *github_group(void);
 
 /* compaction */
 extern stgroup *log_group(void);
-extern stgroup *branch_group(void);
 extern stgroup *compact_group(void);
 extern stgroup *compact_delete_group(void);
 extern stgroup *gc_group(void);
@@ -165,7 +163,7 @@ main(int argc, char *argv[])
 	st_suiteadd_scene(&st_r.suite, st_scene("env", st_scene_env, 1));
 	st_suiteadd_scene(&st_r.suite, st_scene("branch_wm_1", st_scene_branch_wm_1, 1));
 	st_suiteadd_scene(&st_r.suite, st_scene("thread_5", st_scene_thread_5, 1));
-	st_suiteadd_scene(&st_r.suite, st_scene("phase_compaction", st_scene_phase_compaction, 5));
+	st_suiteadd_scene(&st_r.suite, st_scene("phase_compaction", st_scene_phase_compaction, 3));
 	st_suiteadd_scene(&st_r.suite, st_scene("phase_storage", st_scene_phase_storage, 6));
 	st_suiteadd_scene(&st_r.suite, st_scene("phase_size", st_scene_phase_size, 3));
 	st_suiteadd_scene(&st_r.suite, st_scene("open", st_scene_open, 1));
@@ -223,7 +221,6 @@ main(int argc, char *argv[])
 	st_planadd(plan, scheme_group());
 	st_planadd(plan, rev_group());
 	st_planadd(plan, backup_group());
-	st_planadd(plan, checkpoint_group());
 	st_planadd(plan, prefix_group());
 	st_planadd(plan, transaction_md_group());
 	st_planadd(plan, transaction_misc_group());
@@ -251,7 +248,6 @@ main(int argc, char *argv[])
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "gc"));
 	st_planadd_scene(plan, st_suitescene_of(&st_r.suite, "pass"));
 	st_planadd(plan, log_group());
-	st_planadd(plan, branch_group());
 	st_planadd(plan, compact_group());
 	st_planadd(plan, compact_delete_group());
 	st_planadd(plan, gc_group());
