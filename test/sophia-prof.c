@@ -114,14 +114,6 @@ spr_cmd_info(void)
 }
 
 static inline void
-spr_cmd_checkpoint(void)
-{
-	if (! spr_start)
-		return;
-	sp_setint(spr_env, "db.test.compaction.checkpoint", 0);
-}
-
-static inline void
 spr_cmd_gc(void)
 {
 	if (! spr_start)
@@ -152,7 +144,6 @@ static inline void spr_cmd_help(void)
 	printf(" [p]ause    -- pause/continue profiling\n");
 	printf(" [c]ontinue -- continue profiling\n");
 	printf(" [i]nfo     -- show sophia statistics\n");
-	printf(" checkpoint -- schedule checkpoint operation\n");
 	printf(" gc         -- schedule garbage collection\n");
 	printf(" expire     -- schedule expire operation\n");
 	printf(" backup     -- schedule backup operation\n");
@@ -194,10 +185,6 @@ spr_execute(char *cmd, int size)
 	if (strcmp(argv[0], "i") == 0 ||
 	    strcmp(argv[0], "info") == 0) {
 		spr_cmd_info();
-	} else
-	if (strcmp(argv[0], "checkpoint") == 0) {
-		spr_cmd_checkpoint();
-		printf("checkpoint is in progress\n");
 	} else
 	if (strcmp(argv[0], "gc") == 0) {
 		spr_cmd_gc();

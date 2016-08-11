@@ -1,7 +1,6 @@
 LIBSS_O = ss_time.o \
           ss_ooma.o \
           ss_stda.o \
-          ss_slaba.o \
           ss_rb.o \
           ss_bufiter.o \
           ss_thread.o \

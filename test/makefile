@@ -2,7 +2,6 @@
 # sophia test-suite
 
 STS_TESTS = unit/ss_a.test.o \
-            unit/ss_slaba.test.o \
             unit/ss_order.test.o \
             unit/ss_rq.test.o \
             unit/ss_ht.test.o \

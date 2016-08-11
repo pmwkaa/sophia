@@ -138,15 +138,6 @@ se_dbscheme_set(sedb *db)
 	c->gc_period_us     = c->gc_period * 1000000;
 	c->expire_period_us = c->expire_period * 1000000;
 	if (s->memory_limit > 0) {
-		/* use slab allocator for fixed size schema */
-		if (sf_schemefixed(&s->scheme)) {
-			rc = ss_aopen(&db->a, &ss_slaba, &e->vfs,
-			              s->memory_limit, sizeof(svv) + s->scheme.var_offset);
-			if (ssunlikely(rc == -1)) {
-				sr_error(&e->error, "%s", "failed to init slab allocator");
-				return -1;
-			}
-		}
 		/* enable memory quota */
 		sr_quotaenable(&db->quota, 1);
 		sr_quotaset(&db->quota, s->memory_limit);
