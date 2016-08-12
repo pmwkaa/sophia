@@ -261,53 +261,6 @@ mt_multi_stmt_conflict1(void)
 	t( sp_destroy(env) == 0 );
 }
 
-static void
-mt_quota(void)
-{
-	void *env = sp_env();
-	t( env != NULL );
-	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
-	/* branch_wm should hit compaction.e zone */
-	t( sp_setint(env, "scheduler.threads", 5) == 0 );
-	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
-	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
-	t( sp_setint(env, "log.sync", 0) == 0 );
-	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.memory_limit", 524288) == 0 ); /* 512k */
-	t( sp_setint(env, "db.test.compaction.branch_wm", 500000) == 0 );
-	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
-	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
-	t( sp_setint(env, "db.test.sync", 0) == 0 );
-	void *db = sp_getobject(env, "db.test");
-	t( db != NULL );
-	t( sp_open(env) == 0 );
-
-	char value[1000];
-	memset(value, 0, sizeof(value));
-	int hit = 0;
-	int i = 0;
-	while (i < 20000) { /* ~ 20Mb */
-		int rc;
-		do {
-			void *o = sp_document(db);
-			assert(o != NULL);
-			sp_setstring(o, "key", &i, sizeof(i));
-			sp_setstring(o, "value", value, sizeof(value));
-			rc = sp_set(db, o);
-			if (rc == -1) {
-				hit++;
-				ss_sleep(10000000);
-			}
-		} while (rc == -1);
-		i++;
-	}
-	fprintf(st_r.output, " (quota hit: %d)", hit);
-	fflush(st_r.output);
-	t( sp_destroy(env) == 0 );
-}
-
 stgroup *multithread_group(void)
 {
 	stgroup *group = st_group("mt");
@@ -315,6 +268,5 @@ stgroup *multithread_group(void)
 	st_groupadd(group, st_test("multi_stmt", mt_multi_stmt));
 	st_groupadd(group, st_test("multi_stmt_conflict0", mt_multi_stmt_conflict0));
 	st_groupadd(group, st_test("multi_stmt_conflict1", mt_multi_stmt_conflict1));
-	st_groupadd(group, st_test("quota", mt_quota));
 	return group;
 }

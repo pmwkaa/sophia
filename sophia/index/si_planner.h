@@ -24,7 +24,6 @@ struct siplanner {
 };
 
 /* plan */
-#define SI_BRANCH        1
 #define SI_COMPACT_INDEX 8
 #define SI_GC            32
 #define SI_BACKUP        64

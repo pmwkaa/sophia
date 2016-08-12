@@ -30,15 +30,8 @@ se_txwrite(setx *t, sedocument *o, uint8_t flags)
 	if (ssunlikely(! se_active(e)))
 		goto error;
 
-	/* ensure memory quota */
-	int rc;
-	rc = sr_quota(&db->quota, &db->stat);
-	if (ssunlikely(rc)) {
-		sr_error(&e->error, "%s", "memory quota limit reached");
-		goto error;
-	}
-
 	/* create document */
+	int rc;
 	rc = se_document_validate(o, &db->o);
 	if (ssunlikely(rc == -1))
 		goto error;

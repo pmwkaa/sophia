@@ -37,7 +37,7 @@ se_dbscheme_init(sedb *db, char *name, int size)
 	memcpy(scheme->name, name, size);
 	scheme->name[size] = 0;
 	scheme->id                    = id;
-	scheme->memory_limit          = 0;
+	scheme->cache                 = 0;
 	scheme->sync                  = 1;
 	scheme->mmap                  = 0;
 	scheme->direct_io             = 0;
@@ -137,17 +137,11 @@ se_dbscheme_set(sedb *db)
 	/* convert periodic times from sec to usec */
 	c->gc_period_us     = c->gc_period * 1000000;
 	c->expire_period_us = c->expire_period * 1000000;
-	if (s->memory_limit > 0) {
-		/* enable memory quota */
-		sr_quotaenable(&db->quota, 1);
-		sr_quotaset(&db->quota, s->memory_limit);
-	}
 
 	/* .. */
 	db->r->scheme = &s->scheme;
 	db->r->upsert = &s->upsert;
 	db->r->stat   = &db->stat;
-	db->r->quota  = &db->quota;
 	db->r->av     = &db->a;
 	db->r->ptr    = db->index;
 	return 0;
@@ -209,15 +203,8 @@ se_dbwrite(sedb *db, sedocument *o, uint8_t flags)
 	if (ssunlikely(! se_active(e)))
 		goto error;
 
-	/* ensure memory quota */
-	int rc;
-	rc = sr_quota(&db->quota, &db->stat);
-	if (ssunlikely(rc)) {
-		sr_error(&e->error, "%s", "memory quota limit reached");
-		goto error;
-	}
-
 	/* create document */
+	int rc;
 	rc = se_document_validate(o, &db->o);
 	if (ssunlikely(rc == -1))
 		goto error;
@@ -349,7 +336,6 @@ so *se_dbnew(se *e, char *name, int size)
 	memset(o, 0, sizeof(*o));
 	so_init(&o->o, &se_o[SEDB], &sedbif, &e->o, &e->o);
 	sr_statinit(&o->stat);
-	sr_quotainit(&o->quota);
 	o->a = e->a;
 	o->index = si_init(&e->r, &o->o);
 	if (ssunlikely(o->index == NULL)) {

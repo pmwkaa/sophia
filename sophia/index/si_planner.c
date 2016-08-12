@@ -46,13 +46,13 @@ int si_plannertrace(siplan *p, uint32_t id, sstrace *t)
 {
 	char *plan = NULL;
 	switch (p->plan) {
-	case SI_BRANCH: plan = "branch";
-		break;
-	case SI_NODEGC: plan = "node gc";
+	case SI_COMPACT_INDEX: plan = "compaction";
 		break;
 	case SI_GC: plan = "gc";
 		break;
 	case SI_EXPIRE: plan = "expire";
+		break;
+	case SI_NODEGC: plan = "node gc";
 		break;
 	case SI_BACKUP:
 	case SI_BACKUPEND: plan = "backup";
@@ -218,7 +218,6 @@ siplannerrc
 si_planner(siplanner *p, siplan *plan)
 {
 	switch (plan->plan) {
-	case SI_BRANCH:
 	case SI_COMPACT_INDEX:
 		return si_plannerpeek_branch(p, plan);
 	case SI_NODEGC:

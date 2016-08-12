@@ -21,7 +21,6 @@ struct sr {
 	ssa *a;
 	ssa *av;
 	ssvfs *vfs;
-	srquota *quota;
 	ssinjection *i;
 	srstat *stat;
 	sscrcf crc;
@@ -36,7 +35,6 @@ sr_init(sr *r,
         ssa *a,
         ssa *av,
         ssvfs *vfs,
-        srquota *quota,
         srseq *seq,
         sfupsert *upsert,
         sfscheme *scheme,
@@ -51,7 +49,6 @@ sr_init(sr *r,
 	r->a      = a;
 	r->av     = av;
 	r->vfs    = vfs;
-	r->quota  = quota;
 	r->seq    = seq;
 	r->scheme = scheme;
 	r->upsert = upsert;

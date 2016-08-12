@@ -63,7 +63,7 @@ conf_validation0(void)
 	t( sp_open(env) == 0 );
 
 	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == -1 );
-	t( sp_setint(env, "db.test.memory_limit", 0) == -1 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == -1 );
 
 	t( sp_setint(env, "log.enable", 0) == -1 );
 	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == -1 );

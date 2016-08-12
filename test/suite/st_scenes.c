@@ -95,7 +95,6 @@ void st_scene_rt(stscene *s ssunused)
 	        &st_r.a,
 	        &st_r.a,
 	        &st_r.vfs,
-	        NULL, /* quota */
 	        &st_r.seq,
 	        NULL, /* upsert */
 	        &st_r.scheme,

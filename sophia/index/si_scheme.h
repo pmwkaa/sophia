@@ -32,7 +32,7 @@ struct sischeme {
 	uint32_t      direct_io_buffer_size;
 	sicompaction  compaction;
 	uint32_t      sync;
-	uint64_t      memory_limit;
+	uint64_t      cache;
 	uint64_t      node_size;
 	uint32_t      node_page_size;
 	uint32_t      node_page_checksum;
