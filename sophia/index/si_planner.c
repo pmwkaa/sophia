@@ -60,7 +60,7 @@ int si_plannertrace(siplan *p, uint32_t id, sstrace *t)
 	}
 	if (p->node) {
 		ss_trace(t, "%s <%" PRIu32 ":%020" PRIu64 ".db>",
-		         plan, id, p->node->self.id.id);
+		         plan, id, p->node->id);
 	} else {
 		ss_trace(t, "%s <%" PRIu32 ">",
 		         plan, id);
@@ -145,7 +145,7 @@ si_plannerpeek_gc(siplanner *p, siplan *plan)
 	ssrqnode *pn = NULL;
 	while ((pn = ss_rqprev(&p->branch, pn))) {
 		n = sscast(pn, sinode, nodebranch);
-		sdindexheader *h = n->self.index.h;
+		sdindexheader *h = n->index.h;
 		if (sslikely(h->dupkeys == 0) || (h->dupmin >= plan->a))
 			continue;
 		uint32_t used = (h->dupkeys * 100) / h->keys;
@@ -174,7 +174,7 @@ si_plannerpeek_expire(siplanner *p, siplan *plan)
 	ssrqnode *pn = NULL;
 	while ((pn = ss_rqprev(&p->branch, pn))) {
 		n = sscast(pn, sinode, nodebranch);
-		sdindexheader *h = n->self.index.h;
+		sdindexheader *h = n->index.h;
 		if (h->tsmin == UINT32_MAX)
 			continue;
 		uint32_t diff = now - h->tsmin;

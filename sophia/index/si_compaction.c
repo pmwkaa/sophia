@@ -36,12 +36,9 @@ int si_compact(si *index, sdc *c, siplan *plan,
 	}
 
 	/* prepare for compaction */
-	rc = sd_censure(c, r, node->branch_count);
-	if (ssunlikely(rc == -1))
-		return sr_oom_malfunction(r->e);
 	svmerge merge;
 	sv_mergeinit(&merge);
-	rc = sv_mergeprepare(&merge, r, node->branch_count + 1);
+	rc = sv_mergeprepare(&merge, r, 1 + 1);
 	if (ssunlikely(rc == -1))
 		return -1;
 
@@ -57,40 +54,36 @@ int si_compact(si *index, sdc *c, siplan *plan,
 		size_stream = vindex_used;
 	}
 
-	sdcbuf *cbuf = c->head;
-	sibranch *b = node->branch;
-	while (b) {
-		s = sv_mergeadd(&merge, NULL);
-		sdreadarg arg = {
-			.from_compaction     = 1,
-			.io                  = &c->io,
-			.index               = &b->index,
-			.buf                 = &cbuf->a,
-			.buf_read            = &c->d,
-			.index_iter          = &cbuf->index_iter,
-			.page_iter           = &cbuf->page_iter,
-			.use_mmap            = use_mmap,
-			.use_mmap_copy       = 0,
-			.use_compression     = index->scheme.compression,
-			.use_direct_io       = index->scheme.direct_io,
-			.direct_io_page_size = index->scheme.direct_io_page_size,
-			.compression_if      = index->scheme.compression_if,
-			.has                 = 0,
-			.has_vlsn            = 0,
-			.o                   = SS_GTE,
-			.mmap                = map,
-			.file                = &node->file,
-			.r                   = r
-		};
-		ss_iterinit(sd_read, &s->src);
-		int rc = ss_iteropen(sd_read, &s->src, &arg, NULL);
-		if (ssunlikely(rc == -1))
-			return -1;
-		size_stream += sd_indextotal(&b->index);
-		count += sd_indexkeys(&b->index);
-		cbuf = cbuf->next;
-		b = b->next;
-	}
+	sdcbuf *cbuf = &c->e;
+	s = sv_mergeadd(&merge, NULL);
+	sdreadarg arg = {
+		.from_compaction     = 1,
+		.io                  = &c->io,
+		.index               = &node->index,
+		.buf                 = &cbuf->a,
+		.buf_read            = &c->d,
+		.index_iter          = &cbuf->index_iter,
+		.page_iter           = &cbuf->page_iter,
+		.use_mmap            = use_mmap,
+		.use_mmap_copy       = 0,
+		.use_compression     = index->scheme.compression,
+		.use_direct_io       = index->scheme.direct_io,
+		.direct_io_page_size = index->scheme.direct_io_page_size,
+		.compression_if      = index->scheme.compression_if,
+		.has                 = 0,
+		.has_vlsn            = 0,
+		.o                   = SS_GTE,
+		.mmap                = map,
+		.file                = &node->file,
+		.r                   = r
+	};
+	ss_iterinit(sd_read, &s->src);
+	rc = ss_iteropen(sd_read, &s->src, &arg, NULL);
+	if (ssunlikely(rc == -1))
+		return -1;
+	size_stream += sd_indextotal(&node->index);
+	count += sd_indexkeys(&node->index);
+
 	ssiter i;
 	ss_iterinit(sv_mergeiter, &i);
 	ss_iteropen(sv_mergeiter, &i, r, &merge, SS_GTE);

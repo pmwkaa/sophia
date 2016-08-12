@@ -77,16 +77,16 @@ int si_close(si *i)
 
 ss_rbget(si_match,
          sf_compare(scheme,
-                    sd_indexpage_min(&(sscast(n, sinode, node))->self.index,
-                                     sd_indexmin(&(sscast(n, sinode, node))->self.index)),
+                    sd_indexpage_min(&(sscast(n, sinode, node))->index,
+                                     sd_indexmin(&(sscast(n, sinode, node))->index)),
                     key))
 
 int si_insert(si *i, sinode *n)
 {
-	sdindexpage *min = sd_indexmin(&n->self.index);
+	sdindexpage *min = sd_indexmin(&n->index);
 	ssrbnode *p = NULL;
 	int rc = si_match(&i->i, i->r.scheme,
-	                  sd_indexpage_min(&n->self.index, min),
+	                  sd_indexpage_min(&n->index, min),
 	                  min->sizemin, &p);
 	assert(! (rc == 0 && p));
 	ss_rbset(&i->i, p, rc, &n->node);

@@ -108,7 +108,7 @@ int si_backup(si *index, sdc *c, siplan *plan)
 
 	/* copy */
 	sspath path;
-	ss_path(&path, dst, node->self.id.id, ".db");
+	ss_path(&path, dst, node->id, ".db");
 	ssfile file;
 	ss_fileinit(&file, r->vfs);
 	rc = ss_filenew(&file, path.path, 0);

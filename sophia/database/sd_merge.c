@@ -122,13 +122,13 @@ int sd_mergepage(sdmerge *m, uint64_t offset)
 	return 1;
 }
 
-int sd_mergeend(sdmerge *m, sdid *id, uint64_t offset)
+int sd_mergeend(sdmerge *m, uint64_t offset)
 {
 	m->processed += m->build_index->build.total;
 	uint32_t align = 0;
 	if (m->conf->direct_io)
 		align = m->conf->direct_io_page_size;
-	int rc = sd_buildindex_end(m->build_index, m->r, id, align, offset);
+	int rc = sd_buildindex_end(m->build_index, m->r, align, offset);
 	if (ssunlikely(rc == -1))
 		return -1;
 	rc = sd_indexcopy_buf(&m->index, m->r,

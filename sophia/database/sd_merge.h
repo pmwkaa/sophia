@@ -49,6 +49,6 @@ int sd_mergeinit(sdmerge*, sr*, ssiter*, sdbuild*, sdbuildindex*,
 int sd_mergefree(sdmerge*);
 int sd_merge(sdmerge*);
 int sd_mergepage(sdmerge*, uint64_t);
-int sd_mergeend(sdmerge*, sdid*, uint64_t);
+int sd_mergeend(sdmerge*, uint64_t);
 
 #endif

@@ -15,8 +15,7 @@ typedef struct sinode sinode;
 #define SI_LOCK       1
 #define SI_ROTATE     2
 #define SI_SPLIT      4
-#define SI_PROMOTE    8
-#define SI_REVOKE     16
+
 #define SI_RDB        32
 #define SI_RDB_DBI    64
 #define SI_RDB_DBSEAL 128
@@ -24,16 +23,16 @@ typedef struct sinode sinode;
 #define SI_RDB_REMOVE 512
 
 struct sinode {
+	uint64_t   id;
+	uint64_t   id_parent;
 	uint32_t   recover;
 	uint16_t   flags;
 	uint64_t   update_time;
 	uint32_t   used;
 	uint32_t   backup;
-	sibranch   self;
-	sibranch  *branch;
-	uint32_t   branch_count;
 	uint16_t   refs;
 	ssspinlock reflock;
+	sdindex    index;
 	svindex    i0, i1;
 	ssfile     file;
 	ssmmap     map, map_swap;
@@ -43,9 +42,9 @@ struct sinode {
 	sslist     commit;
 } sspacked;
 
-sinode *si_nodenew(sr*);
+sinode *si_nodenew(sr*, uint64_t, uint64_t);
 int si_nodeopen(sinode*, sr*, sischeme*, sspath*);
-int si_nodecreate(sinode*, sr*, sischeme*, sdid*);
+int si_nodecreate(sinode*, sr*, sischeme*);
 int si_nodefree(sinode*, sr*, int);
 int si_nodemap(sinode*, sr*);
 int si_noderead(sinode*, sr*, ssbuf*);
@@ -138,10 +137,10 @@ si_nodeof(ssrbnode *node) {
 static inline int
 si_nodecmp(sinode *n, char *key, sfscheme *s)
 {
-	sdindexpage *min = sd_indexmin(&n->self.index);
-	sdindexpage *max = sd_indexmax(&n->self.index);
-	int l = sf_compare(s, sd_indexpage_min(&n->self.index, min), key);
-	int r = sf_compare(s, sd_indexpage_max(&n->self.index, max), key);
+	sdindexpage *min = sd_indexmin(&n->index);
+	sdindexpage *max = sd_indexmax(&n->index);
+	int l = sf_compare(s, sd_indexpage_min(&n->index, min), key);
+	int r = sf_compare(s, sd_indexpage_max(&n->index, max), key);
 	/* inside range */
 	if (l <= 0 && r >= 0)
 		return 0;
@@ -156,13 +155,9 @@ si_nodecmp(sinode *n, char *key, sfscheme *s)
 static inline uint64_t
 si_nodesize(sinode *n)
 {
-	uint64_t size = 0;
-	sibranch *b = n->branch;
-	while (b) {
-		size += sd_indexsize_ext(b->index.h) +
-		        sd_indextotal(&b->index);
-		b = b->next;
-	}
+	uint64_t size =
+		sd_indexsize_ext(n->index.h) +
+		sd_indextotal(&n->index);
 	return size;
 }
 

@@ -9,30 +9,21 @@
  * BSD License
 */
 
-typedef struct sicachebranch sicachebranch;
 typedef struct sicache sicache;
 typedef struct sicachepool sicachepool;
 
-struct sicachebranch {
-	sibranch *branch;
-	sdindexpage *ref;
-	sdpage page;
-	ssiter i;
-	ssiter page_iter;
-	ssiter index_iter;
-	ssbuf buf_a;
-	ssbuf buf_b;
-	int open;
-	sicachebranch *next;
-} sspacked;
-
 struct sicache {
-	sicachebranch *path;
-	sicachebranch *branch;
-	uint32_t count;
-	uint64_t nsn;
-	sinode *node;
-	sicache *next;
+	uint64_t     nsn;
+	int          open;
+	sinode      *node;
+	sdindexpage *ref;
+	sdpage       page;
+	ssiter       i;
+	ssiter       page_iter;
+	ssiter       index_iter;
+	ssbuf        buf_a;
+	ssbuf        buf_b;
+	sicache     *next;
 	sicachepool *pool;
 };
 
@@ -45,167 +36,49 @@ struct sicachepool {
 static inline void
 si_cacheinit(sicache *c, sicachepool *pool)
 {
-	c->path   = NULL;
-	c->branch = NULL;
-	c->count  = 0;
-	c->node   = NULL;
-	c->nsn    = 0;
-	c->next   = NULL;
-	c->pool   = pool;
+	c->node = NULL;
+	c->nsn  = 0;
+	c->next = NULL;
+	c->pool = pool;
+	c->open = 0;
+	memset(&c->i, 0, sizeof(c->i));
+	ss_iterinit(sd_read, &c->i);
+	ss_bufinit(&c->buf_a);
+	ss_bufinit(&c->buf_b);
 }
 
 static inline void
 si_cachefree(sicache *c)
 {
-	ssa *a = c->pool->r->a;
-	sicachebranch *next;
-	sicachebranch *cb = c->path;
-	while (cb) {
-		next = cb->next;
-		ss_buffree(&cb->buf_a, a);
-		ss_buffree(&cb->buf_b, a);
-		ss_free(a, cb);
-		cb = next;
-	}
+	ss_buffree(&c->buf_a, c->pool->r->a);
+	ss_buffree(&c->buf_b, c->pool->r->a);
 }
 
 static inline void
 si_cachereset(sicache *c)
 {
-	sicachebranch *cb = c->path;
-	while (cb) {
-		ss_bufreset(&cb->buf_a);
-		ss_bufreset(&cb->buf_b);
-		cb->branch = NULL;
-		cb->ref = NULL;
-		ss_iterclose(sd_read, &cb->i);
-		cb->open = 0;
-		cb = cb->next;
-	}
-	c->branch = NULL;
+	ss_bufreset(&c->buf_a);
+	ss_bufreset(&c->buf_b);
+	ss_iterclose(sd_read, &c->i);
+	c->ref    = NULL;
+	c->open   = 0;
 	c->node   = NULL;
 	c->nsn    = 0;
-	c->count  = 0;
-}
-
-static inline sicachebranch*
-si_cacheadd(sicache *c, sibranch *b)
-{
-	sicachebranch *nb =
-		ss_malloc(c->pool->r->a, sizeof(sicachebranch));
-	if (ssunlikely(nb == NULL))
-		return NULL;
-	nb->branch  = b;
-	nb->ref     = NULL;
-	memset(&nb->i, 0, sizeof(nb->i));
-	ss_iterinit(sd_read, &nb->i);
-	nb->open    = 0;
-	nb->next    = NULL;
-	ss_bufinit(&nb->buf_a);
-	ss_bufinit(&nb->buf_b);
-	return nb;
 }
 
 static inline int
 si_cachevalidate(sicache *c, sinode *n)
 {
-	if (sslikely(c->node == n && c->nsn == n->self.id.id))
-	{
-		if (sslikely(n->branch_count == c->count)) {
-			c->branch = c->path;
-			return 0;
-		}
-		assert(n->branch_count > c->count);
-		/* c b a */
-		/* e d c b a */
-		sicachebranch *head = NULL;
-		sicachebranch *last = NULL;
-		sicachebranch *cb = c->path;
-		sibranch *b = n->branch;
-		while (b) {
-			if (cb->branch == b) {
-				assert(last != NULL);
-				last->next = cb;
-				break;
-			}
-			sicachebranch *nb = si_cacheadd(c, b);
-			if (ssunlikely(nb == NULL))
-				return -1;
-			if (! head)
-				head = nb;
-			if (last)
-				last->next = nb;
-			last = nb;
-			b = b->next;
-		}
-		c->path   = head;
-		c->count  = n->branch_count;
-		c->branch = c->path;
+	if (sslikely(c->node == n && c->nsn == n->id))
 		return 0;
-	}
-	sicachebranch *last = c->path;
-	sicachebranch *cb = last;
-	sibranch *b = n->branch;
-	while (cb && b) {
-		cb->branch = b;
-		cb->ref = NULL;
-		cb->open = 0;
-		ss_iterclose(sd_read, &cb->i);
-		ss_bufreset(&cb->buf_a);
-		ss_bufreset(&cb->buf_b);
-		last = cb;
-		cb = cb->next;
-		b  = b->next;
-	}
-	while (cb) {
-		cb->branch = NULL;
-		cb->ref = NULL;
-		cb->open = 0;
-		ss_iterclose(sd_read, &cb->i);
-		ss_bufreset(&cb->buf_a);
-		ss_bufreset(&cb->buf_b);
-		cb = cb->next;
-	}
-	while (b) {
-		cb = si_cacheadd(c, b);
-		if (ssunlikely(cb == NULL))
-			return -1;
-		if (last)
-			last->next = cb;
-		last = cb;
-		if (c->path == NULL)
-			c->path = cb;
-		b = b->next;
-	}
-	c->count  = n->branch_count;
-	c->node   = n;
-	c->nsn    = n->self.id.id;
-	c->branch = c->path;
+	ss_iterclose(sd_read, &c->i);
+	ss_bufreset(&c->buf_a);
+	ss_bufreset(&c->buf_b);
+	c->ref  = NULL;
+	c->open = 0;
+	c->node = n;
+	c->nsn  = n->id;
 	return 0;
-}
-
-static inline sicachebranch*
-si_cacheseek(sicache *c, sibranch *seek)
-{
-	while (c->branch) {
-		sicachebranch *cb = c->branch;
-		c->branch = c->branch->next;
-		if (sslikely(cb->branch == seek))
-			return cb;
-	}
-	return NULL;
-}
-
-static inline sicachebranch*
-si_cachefollow(sicache *c, sibranch *seek)
-{
-	while (c->branch) {
-		sicachebranch *cb = c->branch;
-		c->branch = c->branch->next;
-		if (sslikely(cb->branch == seek))
-			return cb;
-	}
-	return NULL;
 }
 
 static inline void

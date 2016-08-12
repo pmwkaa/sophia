@@ -55,13 +55,10 @@ int sd_buildindex_begin(sdbuildindex *i)
 	h->dupmin      = UINT64_MAX;
 	h->align       = 0;
 	sr_version_storage(&h->version);
-	sd_idinit(&h->id, 0, 0, 0);
 	return 0;
 }
 
-int sd_buildindex_end(sdbuildindex *i, sr *r, sdid *id,
-                      uint32_t align,
-                      uint64_t offset)
+int sd_buildindex_end(sdbuildindex *i, sr *r, uint32_t align, uint64_t offset)
 {
 	/* calculate index align for direct_io */
 	int size_meta  = sizeof(sdindexheader);
@@ -85,7 +82,6 @@ int sd_buildindex_end(sdbuildindex *i, sr *r, sdid *id,
 	}
 	/* header */
 	h->offset = offset;
-	h->id     = *id;
 	h->crc = ss_crcs(r->crc, h, sizeof(sdindexheader), 0);
 	memcpy(i->m.p, &i->build, sizeof(sdindexheader));
 	ss_bufadvance(&i->m, sizeof(sdindexheader));

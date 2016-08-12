@@ -46,20 +46,14 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 {
 	sr *r = &i->r;
 	/* create node */
-	sinode *n = si_nodenew(r);
+	uint64_t id = sr_seq(r->seq, SR_NSNNEXT);
+	sinode *n = si_nodenew(r, id, parent);
 	if (ssunlikely(n == NULL))
 		return NULL;
-	sdid id = {
-		.parent = parent,
-		.flags  = 0,
-		.id     = sr_seq(r->seq, SR_NSNNEXT)
-	};
 	int rc;
-	rc = si_nodecreate(n, r, &i->scheme, &id);
+	rc = si_nodecreate(n, r, &i->scheme);
 	if (ssunlikely(rc == -1))
 		goto e0;
-	n->branch = &n->self;
-	n->branch_count++;
 
 	/* create index with one empty page */
 	sdbuild build;
@@ -101,7 +95,7 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 	uint32_t align = 0;
 	if (i->scheme.direct_io)
 		align = i->scheme.direct_io_page_size;
-	rc = sd_buildindex_end(&build_index, r, &id, align, sd_iosize(&io, &n->file));
+	rc = sd_buildindex_end(&build_index, r, align, sd_iosize(&io, &n->file));
 	if (ssunlikely(rc == -1))
 		goto e1;
 
@@ -117,7 +111,7 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 		if (ssunlikely(rc == -1))
 			goto e1;
 	}
-	si_branchset(&n->self, &index);
+	n->index = index;
 
 	sd_iofree(&io, r);
 	sd_buildfree(&build, r);
@@ -249,10 +243,9 @@ si_trackdir(sitrack *track, sr *r, si *i)
 			 * incomplete compaction process */
 			head = si_trackget(track, id_parent);
 			if (sslikely(head == NULL)) {
-				head = si_nodenew(r);
+				head = si_nodenew(r, id_parent, 0 /* XXX */);
 				if (ssunlikely(head == NULL))
 					goto error;
-				head->self.id.id = id_parent;
 				head->recover = SI_RDB_UNDEF;
 				si_trackset(track, head);
 			}
@@ -271,7 +264,7 @@ si_trackdir(sitrack *track, sr *r, si *i)
 			}
 			assert(rc == SI_RDB_DBSEAL);
 			/* recover 'sealed' node */
-			node = si_nodenew(r);
+			node = si_nodenew(r, id, id_parent);
 			if (ssunlikely(node == NULL))
 				goto error;
 			node->recover = SI_RDB_DBSEAL;
@@ -300,7 +293,7 @@ si_trackdir(sitrack *track, sr *r, si *i)
 
 
 		/* recover node */
-		node = si_nodenew(r);
+		node = si_nodenew(r, id, id_parent);
 		if (ssunlikely(node == NULL))
 			goto error;
 		node->recover = SI_RDB;
@@ -350,14 +343,14 @@ si_trackvalidate(sitrack *track, ssbuf *buf, sr *r, si *i)
 		case SI_RDB|SI_RDB_DBSEAL:
 		case SI_RDB_UNDEF|SI_RDB_DBSEAL: {
 			/* match and remove any leftover ancestor */
-			sinode *ancestor = si_trackget(track, n->self.id.parent);
+			sinode *ancestor = si_trackget(track, n->id_parent);
 			if (ancestor && (ancestor != n))
 				ancestor->recover |= SI_RDB_REMOVE;
 			break;
 		}
 		case SI_RDB_DBSEAL: {
 			/* find parent */
-			sinode *parent = si_trackget(track, n->self.id.parent);
+			sinode *parent = si_trackget(track, n->id_parent);
 			if (parent) {
 				/* schedule node for removal, if has incomplete merges */
 				if (parent->recover & SI_RDB_DBI)

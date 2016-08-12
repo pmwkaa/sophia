@@ -138,16 +138,15 @@ result:;
 }
 
 static inline int
-si_getbranch(siread *q, sinode *n, sicachebranch *c)
+si_getbranch(siread *q, sinode *n, sicache *c)
 {
-	sibranch *b = c->branch;
 	sischeme *scheme = &q->index->scheme;
 	int rc;
 	/* choose compression type */
 	sdreadarg arg = {
 		.from_compaction     = 0,
 		.io                  = &q->index->rdc.io,
-		.index               = &b->index,
+		.index               = &n->index,
 		.buf                 = &c->buf_a,
 		.buf_read            = &q->index->rdc.d,
 		.index_iter          = &c->index_iter,
@@ -218,14 +217,8 @@ si_get(siread *q)
 	svmerge *m = &q->merge;
 	rc = sv_mergeprepare(m, q->r, 1);
 	assert(rc == 0);
-	sicachebranch *b;
-	b = q->cache->branch;
-	while (b && b->branch) {
-		rc = si_getbranch(q, node, b);
-		if (rc != 0)
-			break;
-		b = b->next;
-	}
+
+	rc = si_getbranch(q, node, q->cache);
 
 	si_lock(q->index);
 	si_nodeview_close(&view);
@@ -233,10 +226,10 @@ si_get(siread *q)
 }
 
 static inline int
-si_rangebranch(siread *q, sinode *n, sibranch *b, svmerge *m)
+si_rangebranch(siread *q, sinode *n, svmerge *m)
 {
-	sicachebranch *c = si_cachefollow(q->cache, b);
-	assert(c->branch == b);
+	sicache *c = q->cache;
+	assert(c->node == n);
 	/* iterate cache */
 	if (ss_iterhas(sd_read, &c->i)) {
 		svmergesrc *s = sv_mergeadd(m, &c->i);
@@ -253,7 +246,7 @@ si_rangebranch(siread *q, sinode *n, sibranch *b, svmerge *m)
 	sdreadarg arg = {
 		.from_compaction     = 0,
 		.io                  = &q->index->rdc.io,
-		.index               = &b->index,
+		.index               = &n->index,
 		.buf                 = &c->buf_a,
 		.buf_read            = &q->index->rdc.d,
 		.index_iter          = &c->index_iter,
@@ -300,7 +293,7 @@ next_node:
 
 	/* prepare sources */
 	svmerge *m = &q->merge;
-	int count = node->branch_count + 2 + 1;
+	int count = 1 + 2 + 1;
 	int rc = sv_mergeprepare(m, q->r, count);
 	if (ssunlikely(rc == -1)) {
 		sr_errorreset(q->r->e);
@@ -342,13 +335,9 @@ next_node:
 		sr_oom(q->r->e);
 		return -1;
 	}
-	sibranch *b = node->branch;
-	while (b) {
-		rc = si_rangebranch(q, node, b, m);
-		if (ssunlikely(rc == -1 || rc == 2))
-			return rc;
-		b = b->next;
-	}
+	rc = si_rangebranch(q, node, m);
+	if (ssunlikely(rc == -1 || rc == 2))
+		return rc;
 
 	/* merge and filter data stream */
 	ssiter j;
@@ -422,19 +411,14 @@ int si_readcommited(si *index, sr *r, svv *v)
 
 	uint64_t lsn = sf_lsn(r->scheme, sv_vpointer(v));
 
-	/* search branches */
-	sibranch *b;
-	for (b = node->branch; b; b = b->next)
-	{
-		ss_iterinit(sd_indexiter, &i);
-		ss_iteropen(sd_indexiter, &i, r, &b->index, SS_GTE,
-		            sv_vpointer(v));
-		sdindexpage *page =
-			ss_iterof(sd_indexiter, &i);
-		if (page == NULL)
-			continue;
-		if (page->lsnmax >= lsn)
-			return 1;
-	}
+	/* search branch */
+	ss_iterinit(sd_indexiter, &i);
+	ss_iteropen(sd_indexiter, &i, r, &node->index, SS_GTE,
+	            sv_vpointer(v));
+	sdindexpage *page = ss_iterof(sd_indexiter, &i);
+	if (page == NULL)
+		return 0;
+	if (page->lsnmax >= lsn)
+		return 1;
 	return 0;
 }

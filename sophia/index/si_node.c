@@ -16,23 +16,23 @@
 #include <libsd.h>
 #include <libsi.h>
 
-sinode *si_nodenew(sr *r)
+sinode *si_nodenew(sr *r, uint64_t id, uint64_t id_parent)
 {
 	sinode *n = (sinode*)ss_malloc(r->a, sizeof(sinode));
 	if (ssunlikely(n == NULL)) {
 		sr_oom_malfunction(r->e);
 		return NULL;
 	}
-	n->recover = 0;
-	n->backup = 0;
-	n->flags = 0;
+	n->id          = id;
+	n->id_parent   = id_parent;
+	n->recover     = 0;
+	n->backup      = 0;
+	n->flags       = 0;
 	n->update_time = 0;
-	n->used = 0;
-	si_branchinit(&n->self);
-	n->branch = NULL;
-	n->branch_count = 0;
-	n->refs = 0;
+	n->used        = 0;
+	n->refs        = 0;
 	ss_spinlockinit(&n->reflock);
+	sd_indexinit(&n->index);
 	ss_fileinit(&n->file, r->vfs);
 	ss_mmapinit(&n->map);
 	ss_mmapinit(&n->map_swap);
@@ -89,58 +89,34 @@ si_nodeclose(sinode *n, sr *r, int gc)
 static inline int
 si_noderecover(sinode *n, sr *r)
 {
-	/* recover branches (backwards) */
-	sibranch *b = NULL;
-	sibranch *branch = NULL;
-	int branch_count = 0;
 	int rc;
 	ssiter i;
 	ss_iterinit(sd_iter, &i);
 	rc = ss_iteropen(sd_iter, &i, r, &n->file);
 	if (ssunlikely(rc == -1))
 		return -1;
+
 	while (ss_iteratorhas(&i))
 	{
 		sdindexheader *h = ss_iteratorof(&i);
-		if (sd_iter_isroot(&i)) {
-			b = &n->self;
-		} else {
-			b = si_branchnew(r);
-			if (ssunlikely(b == NULL))
-				goto e0;
-		}
+
 		sdindex index;
 		sd_indexinit(&index);
 		rc = sd_indexcopy(&index, r, h);
 		if (ssunlikely(rc == -1))
-			goto e0;
-		si_branchset(b, &index);
-
-		b->next = branch;
-		branch = b;
-		branch_count++;
+			goto error;
+		n->index = index;
 
 		ss_iteratornext(&i);
 	}
+
 	rc = sd_iter_iserror(&i);
 	if (ssunlikely(rc == -1))
-		goto e1;
+		goto error;
 	ss_iteratorclose(&i);
-
-	/* set original branch order */
-	b = branch;
-	while (b) {
-		sibranch *next = b->next;
-		b->next = n->branch;
-		n->branch = b;
-		b = next;
-	}
-	n->branch_count = branch_count;
 	return 0;
-e0:
-	if (b && b != &n->self)
-		si_branchfree(b, r);
-e1:
+
+error:
 	ss_iteratorclose(&i);
 	return -1;
 }
@@ -172,10 +148,10 @@ int si_nodeopen(sinode *n, sr *r, sischeme *scheme, sspath *path)
 	return 0;
 }
 
-int si_nodecreate(sinode *n, sr *r, sischeme *scheme, sdid *id)
+int si_nodecreate(sinode *n, sr *r, sischeme *scheme)
 {
 	sspath path;
-	ss_pathcompound(&path, scheme->path, id->parent, id->id,
+	ss_pathcompound(&path, scheme->path, n->id_parent, n->id,
 	                ".db.incomplete");
 	int rc = ss_filenew(&n->file, path.path, scheme->direct_io);
 	if (ssunlikely(rc == -1)) {
@@ -198,19 +174,6 @@ int si_nodemap(sinode *n, sr *r)
 	return 0;
 }
 
-static inline void
-si_nodefree_branches(sinode *n, sr *r)
-{
-	sibranch *p = n->branch;
-	sibranch *next = NULL;
-	while (p && p != &n->self) {
-		next = p->next;
-		si_branchfree(p, r);
-		p = next;
-	}
-	sd_indexfree(&n->self.index, r);
-}
-
 int si_nodefree(sinode *n, sr *r, int gc)
 {
 	int rcret = 0;
@@ -225,7 +188,7 @@ int si_nodefree(sinode *n, sr *r, int gc)
 			rcret = -1;
 		}
 	}
-	si_nodefree_branches(n, r);
+	sd_indexfree(&n->index, r);
 	rc = si_nodeclose(n, r, gc);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
@@ -253,8 +216,7 @@ int si_noderename_seal(sinode *n, sr *r, sischeme *scheme)
 {
 	int rc;
 	sspath path;
-	ss_pathcompound(&path, scheme->path,
-	                n->self.id.parent, n->self.id.id,
+	ss_pathcompound(&path, scheme->path, n->id_parent, n->id,
 	                ".db.seal");
 	rc = ss_filerename(&n->file, path.path);
 	if (ssunlikely(rc == -1)) {
@@ -269,7 +231,7 @@ int si_noderename_seal(sinode *n, sr *r, sischeme *scheme)
 int si_noderename_complete(sinode *n, sr *r, sischeme *scheme)
 {
 	sspath path;
-	ss_path(&path, scheme->path, n->self.id.id, ".db");
+	ss_path(&path, scheme->path, n->id, ".db");
 	int rc = ss_filerename(&n->file, path.path);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' rename error: %s",
@@ -282,7 +244,7 @@ int si_noderename_complete(sinode *n, sr *r, sischeme *scheme)
 int si_nodegc(sinode *n, sr *r, sischeme *scheme)
 {
 	sspath path;
-	ss_path(&path, scheme->path, n->self.id.id, ".db.gc");
+	ss_path(&path, scheme->path, n->id, ".db.gc");
 	int rc = ss_filerename(&n->file, path.path);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(r->e, "db file '%s' rename error: %s",

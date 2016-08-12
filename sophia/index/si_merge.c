@@ -58,9 +58,9 @@ si_redistribute(si *index, sr *r, sdc *c, sinode *node, ssbuf *result)
 		{
 			svv *v = ss_iterof(ss_bufiterref, &i);
 			v->next = NULL;
-			sdindexpage *page = sd_indexmin(&p->self.index);
+			sdindexpage *page = sd_indexmin(&p->index);
 			rc = sf_compare(r->scheme, sv_vpointer(v),
-			                sd_indexpage_min(&p->self.index, page));
+			                sd_indexpage_min(&p->index, page));
 			if (ssunlikely(rc >= 0))
 				break;
 			sv_indexset(&prev->i0, r, v);
@@ -174,19 +174,13 @@ si_split(si *index, sdc *c, ssbuf *result,
 	while ((rc = sd_merge(&merge)) > 0)
 	{
 		/* create new node */
-		n = si_nodenew(r);
+		uint64_t id = sr_seq(index->r.seq, SR_NSNNEXT);
+		n = si_nodenew(r, id, parent->id);
 		if (ssunlikely(n == NULL))
 			goto error;
-		sdid id = {
-			.parent = parent->self.id.id,
-			.flags  = 0,
-			.id     = sr_seq(index->r.seq, SR_NSNNEXT)
-		};
-		rc = si_nodecreate(n, r, &index->scheme, &id);
+		rc = si_nodecreate(n, r, &index->scheme);
 		if (ssunlikely(rc == -1))
 			goto error;
-		n->branch = &n->self;
-		n->branch_count++;
 
 		/* write pages */
 		uint64_t offset;
@@ -201,7 +195,7 @@ si_split(si *index, sdc *c, ssbuf *result,
 			goto error;
 
 		offset = sd_iosize(&c->io, &n->file);
-		rc = sd_mergeend(&merge, &id, offset);
+		rc = sd_mergeend(&merge, offset);
 		if (ssunlikely(rc == -1))
 			goto error;
 
@@ -224,7 +218,7 @@ si_split(si *index, sdc *c, ssbuf *result,
 			goto error;
 		}
 
-		si_branchset(&n->self, &merge.index);
+		n->index = merge.index;
 	}
 	if (ssunlikely(rc == -1))
 		goto error;
@@ -279,7 +273,7 @@ int si_merge(si *index, sdc *c, sinode *node,
 	sinode *n;
 	if (ssunlikely(count == 0 && count_index == 1))
 	{
-		n = si_bootstrap(index, node->self.id.id);
+		n = si_bootstrap(index, node->id);
 		if (ssunlikely(n == NULL))
 			return -1;
 		rc = ss_bufadd(result, r->a, &n, sizeof(sinode*));

@@ -14,14 +14,12 @@ typedef struct sinodeview sinodeview;
 struct sinodeview {
 	sinode   *node;
 	uint16_t  flags;
-	uint32_t  branch_count;
 };
 
 static inline void
 si_nodeview_init(sinodeview *v, sinode *node)
 {
 	v->node         = node;
-	v->branch_count = node->branch_count;
 	v->flags        = node->flags;
 }
 

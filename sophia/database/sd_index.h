@@ -16,7 +16,6 @@ typedef struct sdindex sdindex;
 struct sdindexheader {
 	uint32_t  crc;
 	srversion version;
-	sdid      id;
 	uint64_t  offset;
 	uint32_t  size;
 	uint32_t  sizevmax;

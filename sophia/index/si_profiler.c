@@ -43,13 +43,12 @@ int si_profiler(siprofiler *p)
 		memory_used += n->i0.used;
 		memory_used += n->i1.used;
 
-		sibranch *b = &n->self;
-		p->count += b->index.h->keys;
-		p->count_dup += b->index.h->dupkeys;
-		int indexsize = sd_indexsize_ext(b->index.h);
-		p->total_node_size += indexsize + b->index.h->total;
-		p->total_node_origin_size += indexsize + b->index.h->totalorigin;
-		p->total_page_count += b->index.h->count;
+		p->count += n->index.h->keys;
+		p->count_dup += n->index.h->dupkeys;
+		int indexsize = sd_indexsize_ext(n->index.h);
+		p->total_node_size += indexsize + n->index.h->total;
+		p->total_node_origin_size += indexsize + n->index.h->totalorigin;
+		p->total_page_count += n->index.h->count;
 
 		pn = ss_rbnext(&p->i->i, pn);
 	}

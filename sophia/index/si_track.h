@@ -38,19 +38,15 @@ si_trackfree(sitrack *t, sr *r) {
 static inline void
 si_trackmetrics(sitrack *t, sinode *n)
 {
-	sibranch *b = n->branch;
-	while (b) {
-		sdindexheader *h = b->index.h;
-		if (b->id.parent > t->nsn)
-			t->nsn = b->id.parent;
-		if (b->id.id > t->nsn)
-			t->nsn = b->id.id;
-		if (h->lsnmin != UINT64_MAX && h->lsnmin > t->lsn)
-			t->lsn = h->lsnmin;
-		if (h->lsnmax > t->lsn)
-			t->lsn = h->lsnmax;
-		b = b->next;
-	}
+	sdindexheader *h = n->index.h;
+	if (n->id_parent > t->nsn)
+		t->nsn = n->id_parent;
+	if (n->id > t->nsn)
+		t->nsn = n->id;
+	if (h->lsnmin != UINT64_MAX && h->lsnmin > t->lsn)
+		t->lsn = h->lsnmin;
+	if (h->lsnmax > t->lsn)
+		t->lsn = h->lsnmax;
 }
 
 static inline void
@@ -60,14 +56,14 @@ si_tracknsn(sitrack *t, uint64_t nsn)
 		t->nsn = nsn;
 }
 
-ss_rbget(si_trackmatch, ss_cmp((sscast(n, sinode, node))->self.id.id, sscastu64(key)))
+ss_rbget(si_trackmatch, ss_cmp((sscast(n, sinode, node))->id, sscastu64(key)))
 
 static inline void
 si_trackset(sitrack *t, sinode *n)
 {
 	ssrbnode *p = NULL;
-	int rc = si_trackmatch(&t->i, NULL, (char*)&n->self.id.id,
-	                       sizeof(n->self.id.id), &p);
+	int rc = si_trackmatch(&t->i, NULL, (char*)&n->id,
+	                       sizeof(n->id), &p);
 	assert(! (rc == 0 && p));
 	ss_rbset(&t->i, p, rc, &n->node);
 	t->count++;
