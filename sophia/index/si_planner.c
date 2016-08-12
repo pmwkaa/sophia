@@ -121,8 +121,9 @@ si_plannerpeek_memory(siplanner *p, siplan *plan)
 
 	/* calculate peek wm */
 	si *index = (si*)p->i;
-	uint64_t cache_per_node =
-		index->scheme.compaction.cache / index->n;
+	double cache_per_node =
+		(double)index->scheme.compaction.cache /
+		(double)index->n;
 	if (cache_per_node >= index->scheme.compaction.node_size)
 		cache_per_node = index->scheme.compaction.node_size;
 	sinode *n;
