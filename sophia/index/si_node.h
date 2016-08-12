@@ -36,7 +36,7 @@ struct sinode {
 	ssfile     file;
 	ssmmap     map, map_swap;
 	ssrbnode   node;
-	ssrqnode   nodebranch;
+	ssrqnode   nodememory;
 	sslist     gc;
 	sslist     commit;
 } sspacked;

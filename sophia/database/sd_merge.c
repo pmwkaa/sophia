@@ -36,9 +36,7 @@ int sd_mergeinit(sdmerge *m, sr *r, ssiter *i,
 	            (uint64_t)conf->size_page, sizev,
 	            conf->expire,
 	            conf->timestamp,
-	            conf->vlsn,
-	            conf->save_delete,
-	            conf->save_upsert);
+	            conf->vlsn);
 	return 0;
 }
 

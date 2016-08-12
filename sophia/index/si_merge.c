@@ -158,9 +158,7 @@ si_split(si *index, sdc *c, ssbuf *result,
 		.compression_if      = index->scheme.compression_if,
 		.direct_io           = index->scheme.direct_io,
 		.direct_io_page_size = index->scheme.direct_io_page_size,
-		.vlsn                = vlsn,
-		.save_delete         = 0,
-		.save_upsert         = 0
+		.vlsn                = vlsn
 	};
 	sinode *n = NULL;
 	sdmerge merge;

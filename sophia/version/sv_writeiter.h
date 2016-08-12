@@ -18,8 +18,6 @@ struct svwriteiter {
 	uint32_t  sizev;
 	uint32_t  expire;
 	uint32_t  now;
-	int       save_delete;
-	int       save_upsert;
 	int       next;
 	int       upsert;
 	uint64_t  prevlsn;
@@ -111,13 +109,11 @@ sv_writeiter_next(ssiter *i)
 			}
 		} else {
 			im->upsert = 0;
-			/* delete (stray or on branch) */
-			if (! im->save_delete) {
-				int del = sf_flagsequ(flags, SVDELETE);
-				if (ssunlikely(del && (lsn <= im->vlsn))) {
-					im->prevlsn = lsn;
-					continue;
-				}
+			/* delete (stray) */
+			int del = sf_flagsequ(flags, SVDELETE);
+			if (ssunlikely(del && (lsn <= im->vlsn))) {
+				im->prevlsn = lsn;
+				continue;
 			}
 			im->size += im->sizev + sf_size(im->r->scheme, v);
 			/* upsert (track first statement start) */
@@ -127,19 +123,17 @@ sv_writeiter_next(ssiter *i)
 
 		/* upsert */
 		if (sf_flagsequ(flags, SVUPSERT)) {
-			if (! im->save_upsert) {
-				if (lsn <= im->vlsn) {
-					int rc;
-					rc = sv_writeiter_upsert(im);
-					if (ssunlikely(rc == -1))
-						return;
-					im->upsert = 0;
-					im->prevlsn = lsn;
-					im->v = im->u->result;
-					im->vdup = dup;
-					im->next = 0;
-					break;
-				}
+			if (lsn <= im->vlsn) {
+				int rc;
+				rc = sv_writeiter_upsert(im);
+				if (ssunlikely(rc == -1))
+					return;
+				im->upsert = 0;
+				im->prevlsn = lsn;
+				im->v = im->u->result;
+				im->vdup = dup;
+				im->next = 0;
+				break;
 			}
 		}
 
@@ -157,27 +151,23 @@ sv_writeiter_open(ssiter *i, sr *r, ssiter *merge, svupsert *u,
                   uint32_t sizev,
                   uint32_t expire,
                   uint32_t timestamp,
-                  uint64_t vlsn,
-                  int save_delete,
-                  int save_upsert)
+                  uint64_t vlsn)
 {
 	svwriteiter *im = (svwriteiter*)i->priv;
-	im->u           = u;
-	im->r           = r;
-	im->limit       = limit;
-	im->size        = 0;
-	im->sizev       = sizev;
-	im->expire      = expire;
-	im->now         = timestamp;
-	im->vlsn        = vlsn;
-	im->save_delete = save_delete;
-	im->save_upsert = save_upsert;
-	im->next        = 0;
-	im->prevlsn     = 0;
-	im->v           = NULL;
-	im->vdup        = 0;
-	im->upsert      = 0;
-	im->merge       = merge;
+	im->u       = u;
+	im->r       = r;
+	im->limit   = limit;
+	im->size    = 0;
+	im->sizev   = sizev;
+	im->expire  = expire;
+	im->now     = timestamp;
+	im->vlsn    = vlsn;
+	im->next    = 0;
+	im->prevlsn = 0;
+	im->v       = NULL;
+	im->vdup    = 0;
+	im->upsert  = 0;
+	im->merge   = merge;
 	assert(im->merge->vif == &sv_mergeiter);
 	sv_writeiter_next(i);
 	return 0;

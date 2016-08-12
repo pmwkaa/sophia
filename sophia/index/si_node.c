@@ -38,7 +38,7 @@ sinode *si_nodenew(sr *r, uint64_t id, uint64_t id_parent)
 	sv_indexinit(&n->i0);
 	sv_indexinit(&n->i1);
 	ss_rbinitnode(&n->node);
-	ss_rqinitnode(&n->nodebranch);
+	ss_rqinitnode(&n->nodememory);
 	ss_listinit(&n->gc);
 	ss_listinit(&n->commit);
 	return n;

@@ -138,7 +138,7 @@ result:;
 }
 
 static inline int
-si_getbranch(siread *q, sinode *n, sicache *c)
+si_getfile(siread *q, sinode *n, sicache *c)
 {
 	sischeme *scheme = &q->index->scheme;
 	int rc;
@@ -218,7 +218,7 @@ si_get(siread *q)
 	rc = sv_mergeprepare(m, q->r, 1);
 	assert(rc == 0);
 
-	rc = si_getbranch(q, node, q->cache);
+	rc = si_getfile(q, node, q->cache);
 
 	si_lock(q->index);
 	si_nodeview_close(&view);
@@ -226,7 +226,7 @@ si_get(siread *q)
 }
 
 static inline int
-si_rangebranch(siread *q, sinode *n, svmerge *m)
+si_rangefile(siread *q, sinode *n, svmerge *m)
 {
 	sicache *c = q->cache;
 	assert(c->node == n);
@@ -329,13 +329,13 @@ next_node:
 		            q->key);
 	}
 
-	/* cache and branches */
+	/* read from file */
 	rc = si_cachevalidate(q->cache, node);
 	if (ssunlikely(rc == -1)) {
 		sr_oom(q->r->e);
 		return -1;
 	}
-	rc = si_rangebranch(q, node, m);
+	rc = si_rangefile(q, node, m);
 	if (ssunlikely(rc == -1 || rc == 2))
 		return rc;
 
@@ -411,7 +411,7 @@ int si_readcommited(si *index, sr *r, svv *v)
 
 	uint64_t lsn = sf_lsn(r->scheme, sv_vpointer(v));
 
-	/* search branch */
+	/* search index */
 	ss_iterinit(sd_indexiter, &i);
 	ss_iteropen(sd_indexiter, &i, r, &node->index, SS_GTE,
 	            sv_vpointer(v));

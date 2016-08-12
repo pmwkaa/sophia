@@ -62,8 +62,6 @@ spr_cmd_start(void)
 	sp_setstring(spr_env, "backup.path", "_test_backup", 0);
 	sp_setstring(spr_env, "db", "test", 0);
 
-	sp_setint(spr_env, "db.test.direct_io", 1);
-
 	sp_setstring(spr_env, "db.test.scheme", "key", 0);
 	sp_setstring(spr_env, "db.test.scheme.key", "u32,key(0)", 0);
 	sp_setstring(spr_env, "db.test.scheme", "value", 0);
@@ -71,7 +69,7 @@ spr_cmd_start(void)
 	sp_setstring(spr_env, "db.test.scheme", "ttl", 0);
 	sp_setstring(spr_env, "db.test.scheme.ttl", "u32,timestamp,expire", 0);
 
-	/*sp_setint(spr_env, "db.test.expire", 10);*/
+	sp_setint(spr_env, "db.test.expire", 1);
 
 	spr_db = sp_getobject(spr_env, "db.test");
 	int rc;

@@ -26,8 +26,6 @@ struct sdmergeconf {
 	uint32_t    direct_io;
 	uint32_t    direct_io_page_size;
 	uint64_t    vlsn;
-	uint32_t    save_delete;
-	uint32_t    save_upsert;
 };
 
 struct sdmerge {

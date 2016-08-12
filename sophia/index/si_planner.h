@@ -19,7 +19,7 @@ typedef enum {
 } siplannerrc;
 
 struct siplanner {
-	ssrq branch;
+	ssrq  memory;
 	void *i;
 };
 

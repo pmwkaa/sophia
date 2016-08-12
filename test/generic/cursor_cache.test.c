@@ -186,8 +186,8 @@ cursor_cache_invalidate(void)
 stgroup *cursor_cache_group(void)
 {
 	stgroup *group = st_group("cursor_cache");
-	st_groupadd(group, st_test("single_branch", cursor_cache_test0));
-	st_groupadd(group, st_test("double_branch", cursor_cache_test1));
+	st_groupadd(group, st_test("test0", cursor_cache_test0));
+	st_groupadd(group, st_test("test1", cursor_cache_test1));
 	st_groupadd(group, st_test("invalidate", cursor_cache_invalidate));
 	return group;
 }

@@ -29,7 +29,7 @@ int si_plannerinit(siplanner *p, ssa *a, void *i)
 {
 	/* 1Mb step up to 4Gb */
 	int rc;
-	rc = ss_rqinit(&p->branch, a, 1024 * 1024, 4000);
+	rc = ss_rqinit(&p->memory, a, 1024 * 1024, 4000);
 	if (ssunlikely(rc == -1))
 		return -1;
 	p->i = i;
@@ -38,7 +38,7 @@ int si_plannerinit(siplanner *p, ssa *a, void *i)
 
 int si_plannerfree(siplanner *p, ssa *a)
 {
-	ss_rqfree(&p->branch, a);
+	ss_rqfree(&p->memory, a);
 	return 0;
 }
 
@@ -70,13 +70,13 @@ int si_plannertrace(siplan *p, uint32_t id, sstrace *t)
 
 int si_plannerupdate(siplanner *p, sinode *n)
 {
-	ss_rqupdate(&p->branch, &n->nodebranch, n->used);
+	ss_rqupdate(&p->memory, &n->nodememory, n->used);
 	return 0;
 }
 
 int si_plannerremove(siplanner *p, sinode *n)
 {
-	ss_rqdelete(&p->branch, &n->nodebranch);
+	ss_rqdelete(&p->memory, &n->nodememory);
 	return 0;
 }
 
@@ -89,8 +89,8 @@ si_plannerpeek_backup(siplanner *p, siplan *plan)
 	siplannerrc rc = SI_PNONE;
 	sinode *n;
 	ssrqnode *pn = NULL;
-	while ((pn = ss_rqprev(&p->branch, pn))) {
-		n = sscast(pn, sinode, nodebranch);
+	while ((pn = ss_rqprev(&p->memory, pn))) {
+		n = sscast(pn, sinode, nodememory);
 		if (n->backup < plan->a) {
 			if (n->flags & SI_LOCK) {
 				rc = SI_PRETRY;
@@ -115,7 +115,7 @@ match:
 }
 
 static inline siplannerrc
-si_plannerpeek_branch(siplanner *p, siplan *plan)
+si_plannerpeek_memory(siplanner *p, siplan *plan)
 {
 	/* try to peek a node with a biggest in-memory index */
 
@@ -127,8 +127,8 @@ si_plannerpeek_branch(siplanner *p, siplan *plan)
 		cache_per_node = index->scheme.compaction.node_size;
 	sinode *n;
 	ssrqnode *pn = NULL;
-	while ((pn = ss_rqprev(&p->branch, pn))) {
-		n = sscast(pn, sinode, nodebranch);
+	while ((pn = ss_rqprev(&p->memory, pn))) {
+		n = sscast(pn, sinode, nodememory);
 		if (n->flags & SI_LOCK)
 			continue;
 		if (n->used >= cache_per_node)
@@ -145,13 +145,13 @@ match:
 static inline siplannerrc
 si_plannerpeek_gc(siplanner *p, siplan *plan)
 {
-	/* try to peek a node with a biggest number
-	 * of branches which is ready for gc */
+	/* try to peek a node with a biggest in-memory index
+	 * which is ready for gc */
 	siplannerrc rc = SI_PNONE;
 	sinode *n;
 	ssrqnode *pn = NULL;
-	while ((pn = ss_rqprev(&p->branch, pn))) {
-		n = sscast(pn, sinode, nodebranch);
+	while ((pn = ss_rqprev(&p->memory, pn))) {
+		n = sscast(pn, sinode, nodememory);
 		sdindexheader *h = n->index.h;
 		if (sslikely(h->dupkeys == 0) || (h->dupmin >= plan->a))
 			continue;
@@ -179,8 +179,8 @@ si_plannerpeek_expire(siplanner *p, siplan *plan)
 	uint32_t now = ss_timestamp();
 	sinode *n = NULL;
 	ssrqnode *pn = NULL;
-	while ((pn = ss_rqprev(&p->branch, pn))) {
-		n = sscast(pn, sinode, nodebranch);
+	while ((pn = ss_rqprev(&p->memory, pn))) {
+		n = sscast(pn, sinode, nodememory);
 		sdindexheader *h = n->index.h;
 		if (h->tsmin == UINT32_MAX)
 			continue;
@@ -226,7 +226,7 @@ si_planner(siplanner *p, siplan *plan)
 {
 	switch (plan->plan) {
 	case SI_COMPACT_INDEX:
-		return si_plannerpeek_branch(p, plan);
+		return si_plannerpeek_memory(p, plan);
 	case SI_NODEGC:
 		return si_plannerpeek_nodegc(p, plan);
 	case SI_GC:
