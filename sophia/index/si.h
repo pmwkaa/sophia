@@ -16,11 +16,9 @@ struct si {
 	siplanner  p;
 	ssrb       i;
 	int        n;
-	uint64_t   update_time;
 	uint32_t   backup;
 	uint64_t   read_disk;
 	uint64_t   read_cache;
-	uint64_t   size;
 	uint32_t   gc_count;
 	sslist     gc;
 	sdc        rdc;

@@ -23,14 +23,13 @@ sinode *si_nodenew(sr *r, uint64_t id, uint64_t id_parent)
 		sr_oom_malfunction(r->e);
 		return NULL;
 	}
-	n->id          = id;
-	n->id_parent   = id_parent;
-	n->recover     = 0;
-	n->backup      = 0;
-	n->flags       = 0;
-	n->update_time = 0;
-	n->used        = 0;
-	n->refs        = 0;
+	n->id        = id;
+	n->id_parent = id_parent;
+	n->recover   = 0;
+	n->backup    = 0;
+	n->flags     = 0;
+	n->used      = 0;
+	n->refs      = 0;
 	ss_spinlockinit(&n->reflock);
 	sd_indexinit(&n->index);
 	ss_fileinit(&n->file, r->vfs);

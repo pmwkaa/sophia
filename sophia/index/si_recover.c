@@ -161,7 +161,6 @@ si_deploy(si *i, sr *r, int create_directory)
 	}
 	si_insert(i, n);
 	si_plannerupdate(&i->p, n);
-	i->size = si_nodesize(n);
 	return 1;
 }
 
@@ -243,7 +242,7 @@ si_trackdir(sitrack *track, sr *r, si *i)
 			 * incomplete compaction process */
 			head = si_trackget(track, id_parent);
 			if (sslikely(head == NULL)) {
-				head = si_nodenew(r, id_parent, 0 /* XXX */);
+				head = si_nodenew(r, id_parent, UINT64_MAX);
 				if (ssunlikely(head == NULL))
 					goto error;
 				head->recover = SI_RDB_UNDEF;
@@ -411,17 +410,6 @@ si_recovercomplete(sitrack *track, sr *r, si *index, ssbuf *buf)
 	return 0;
 }
 
-static inline void
-si_recoversize(si *i)
-{
-	ssrbnode *pn = ss_rbmin(&i->i);
-	while (pn) {
-		sinode *n = sscast(pn, sinode, node);
-		i->size += si_nodesize(n);
-		pn = ss_rbnext(&i->i, pn);
-	}
-}
-
 static inline int
 si_recoverindex(si *i, sr *r)
 {
@@ -446,7 +434,6 @@ si_recoverindex(si *i, sr *r)
 		r->seq->nsn = track.nsn;
 	if (track.lsn > r->seq->lsn)
 		r->seq->lsn = track.lsn;
-	si_recoversize(i);
 	ss_buffree(&buf, r->a);
 	return 0;
 error:

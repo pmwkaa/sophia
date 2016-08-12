@@ -16,10 +16,9 @@
 #include <libsd.h>
 #include <libsi.h>
 
-static inline int si_set(sitx *x, svv *v, uint64_t time)
+static inline int si_set(sitx *x, svv *v)
 {
 	si *index = x->index;
-	index->update_time = time;
 	/* match node */
 	ssiter i;
 	ss_iterinit(si_iter, &i);
@@ -33,14 +32,12 @@ static inline int si_set(sitx *x, svv *v, uint64_t time)
 	sv_indexget(vindex, &index->r, &pos, v);
 	sv_indexupdate(vindex, &index->r, &pos, v);
 	/* update node */
-	node->update_time = index->update_time;
 	node->used += sv_vsize(v, &index->r);
 	si_txtrack(x, node);
 	return 0;
 }
 
-void si_write(sitx *x, svlog *l, svlogindex *li, uint64_t time,
-              int recover)
+void si_write(sitx *x, svlog *l, svlogindex *li, int recover)
 {
 	sr *r = &x->index->r;
 	svlogv *cv = sv_logat(l, li->head);
@@ -58,7 +55,7 @@ void si_write(sitx *x, svlog *l, svlogindex *li, uint64_t time,
 			sv_vunref(r, v);
 			goto next;
 		}
-		si_set(x, v, time);
+		si_set(x, v);
 next:
 		cv = sv_logat(l, cv->next);
 		c--;

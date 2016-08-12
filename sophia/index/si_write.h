@@ -9,6 +9,6 @@
  * BSD License
 */
 
-void si_write(sitx*, svlog*, svlogindex*, uint64_t, int);
+void si_write(sitx*, svlog*, svlogindex*, int);
 
 #endif

@@ -32,14 +32,12 @@ si *si_init(sr *r, so *object)
 	si_schemeinit(&i->scheme);
 	ss_listinit(&i->link);
 	ss_listinit(&i->gc);
-	i->gc_count     = 0;
-	i->update_time  = 0;
-	i->size         = 0;
-	i->read_disk    = 0;
-	i->read_cache   = 0;
-	i->backup       = 0;
-	i->n            = 0;
-	i->object       = object;
+	i->gc_count   = 0;
+	i->read_disk  = 0;
+	i->read_cache = 0;
+	i->backup     = 0;
+	i->n          = 0;
+	i->object     = object;
 	return i;
 }
 

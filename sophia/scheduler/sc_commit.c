@@ -31,7 +31,6 @@ int sc_commit(sc *s, svlog *log, uint64_t lsn, int recover)
 	sl_commit(&tl);
 
 	/* index */
-	uint64_t now = ss_utime();
 	svlogindex *i   = (svlogindex*)log->index.s;
 	svlogindex *end = (svlogindex*)log->index.p;
 	for (; i < end; i++) {
@@ -40,7 +39,7 @@ int sc_commit(sc *s, svlog *log, uint64_t lsn, int recover)
 		si *index = i->r->ptr;
 		sitx x;
 		si_begin(&x, index);
-		si_write(&x, log, i, now, recover);
+		si_write(&x, log, i, recover);
 		si_commit(&x);
 	}
 	return 0;

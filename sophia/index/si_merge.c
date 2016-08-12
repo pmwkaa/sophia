@@ -76,9 +76,8 @@ si_redistribute(si *index, sr *r, sdc *c, sinode *node, ssbuf *result)
 }
 
 static inline void
-si_redistribute_set(si *index, sr *r, uint64_t now, svv *v)
+si_redistribute_set(si *index, sr *r, svv *v)
 {
-	index->update_time = now;
 	/* match node */
 	ssiter i;
 	ss_iterinit(si_iter, &i);
@@ -88,7 +87,6 @@ si_redistribute_set(si *index, sr *r, uint64_t now, svv *v)
 	/* update node */
 	svindex *vindex = si_nodeindex(node);
 	sv_indexset(vindex, r, v);
-	node->update_time = index->update_time;
 	node->used += sv_vsize(v, &index->r);
 	/* schedule node */
 	si_plannerupdate(&index->p, node);
@@ -110,13 +108,12 @@ si_redistribute_index(si *index, sr *r, sdc *c, sinode *node)
 	}
 	if (ssunlikely(ss_bufused(&c->b) == 0))
 		return 0;
-	uint64_t now = ss_utime();
 	ss_iterinit(ss_bufiterref, &i);
 	ss_iteropen(ss_bufiterref, &i, &c->b, sizeof(svv*));
 	while (ss_iterhas(ss_bufiterref, &i)) {
 		svv *v = ss_iterof(ss_bufiterref, &i);
 		v->next = NULL;
-		si_redistribute_set(index, r, now, v);
+		si_redistribute_set(index, r, v);
 		ss_iternext(ss_bufiterref, &i);
 	}
 	return 0;
@@ -290,7 +287,6 @@ int si_merge(si *index, sdc *c, sinode *node,
 	svindex *j = si_nodeindex(node);
 	si_plannerremove(&index->p, node);
 	si_nodesplit(node);
-	index->size -= si_nodesize(node);
 	switch (count) {
 	case 0: /* delete */
 		si_remove(index, node);
@@ -300,7 +296,6 @@ int si_merge(si *index, sdc *c, sinode *node,
 		n = *(sinode**)result->s;
 		n->i0 = *j;
 		n->used = j->used;
-		index->size += si_nodesize(n);
 		si_nodelock(n);
 		si_replace(index, node, n);
 		si_plannerupdate(&index->p, n);
@@ -316,7 +311,6 @@ int si_merge(si *index, sdc *c, sinode *node,
 		ss_iteropen(ss_bufiterref, &i, result, sizeof(sinode*));
 		n = ss_iterof(ss_bufiterref, &i);
 		n->used = n->i0.used;
-		index->size += si_nodesize(n);
 		si_nodelock(n);
 		si_replace(index, node, n);
 		si_plannerupdate(&index->p, n);
@@ -324,7 +318,6 @@ int si_merge(si *index, sdc *c, sinode *node,
 		     ss_iternext(ss_bufiterref, &i)) {
 			n = ss_iterof(ss_bufiterref, &i);
 			n->used = n->i0.used;
-			index->size += si_nodesize(n);
 			si_nodelock(n);
 			si_insert(index, n);
 			si_plannerupdate(&index->p, n);

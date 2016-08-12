@@ -27,8 +27,7 @@ struct sinode {
 	uint64_t   id_parent;
 	uint32_t   recover;
 	uint16_t   flags;
-	uint64_t   update_time;
-	uint32_t   used;
+	uint64_t   used;
 	uint32_t   backup;
 	uint16_t   refs;
 	ssspinlock reflock;
@@ -150,15 +149,6 @@ si_nodecmp(sinode *n, char *key, sfscheme *s)
 	/* key < range */
 	assert(r == 1);
 	return 1;
-}
-
-static inline uint64_t
-si_nodesize(sinode *n)
-{
-	uint64_t size =
-		sd_indexsize_ext(n->index.h) +
-		sd_indextotal(&n->index);
-	return size;
 }
 
 #endif
