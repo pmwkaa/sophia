@@ -53,6 +53,12 @@ void *spr_worker(void *arg)
 	return NULL;
 }
 
+static void
+spr_log(char *trace, void *arg)
+{
+	printf("%s\n", trace);
+}
+
 static inline int
 spr_cmd_start(void)
 {
@@ -60,16 +66,12 @@ spr_cmd_start(void)
 	spr_env = sp_env();
 	sp_setstring(spr_env, "sophia.path", "_test_sophia", 0);
 	sp_setstring(spr_env, "backup.path", "_test_backup", 0);
+	sp_setstring(spr_env, "sophia.on_log", (void*)(uintptr_t)spr_log, 0);
 	sp_setstring(spr_env, "db", "test", 0);
-
 	sp_setstring(spr_env, "db.test.scheme", "key", 0);
-	sp_setstring(spr_env, "db.test.scheme.key", "u32,key(0)", 0);
+	sp_setstring(spr_env, "db.test.scheme.key", "string,key(0)", 0);
 	sp_setstring(spr_env, "db.test.scheme", "value", 0);
 	sp_setstring(spr_env, "db.test.scheme.value", "string", 0);
-	sp_setstring(spr_env, "db.test.scheme", "ttl", 0);
-	sp_setstring(spr_env, "db.test.scheme.ttl", "u32,timestamp,expire", 0);
-
-	sp_setint(spr_env, "db.test.expire", 1);
 
 	spr_db = sp_getobject(spr_env, "db.test");
 	int rc;
