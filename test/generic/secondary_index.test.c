@@ -26,7 +26,7 @@ secondary_index_test_unique0(void)
 
 	/* unique */
 	t( sp_setstring(env, "db", "primary", 0) == 0 );
-	t( sp_setint(env, "db.primary.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.primary.compaction.cache", 0) == 0 );
 	t( sp_setstring(env, "db.primary.scheme", "a", 0) == 0 );
 	t( sp_setstring(env, "db.primary.scheme.a", "u32,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.primary.scheme", "b", 0) == 0 );
@@ -35,7 +35,7 @@ secondary_index_test_unique0(void)
 
 	/* unique */
 	t( sp_setstring(env, "db", "secondary", 0) == 0 );
-	t( sp_setint(env, "db.secondary.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.secondary.compaction.cache", 0) == 0 );
 	t( sp_setstring(env, "db.secondary.scheme", "a", 0) == 0 );
 	t( sp_setstring(env, "db.secondary.scheme.a", "u32", 0) == 0 );
 	t( sp_setstring(env, "db.secondary.scheme", "b", 0) == 0 );
@@ -146,7 +146,7 @@ secondary_index_test_nonunique0(void)
 
 	/* unique */
 	t( sp_setstring(env, "db", "primary", 0) == 0 );
-	t( sp_setint(env, "db.primary.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.primary.compaction.cache", 0) == 0 );
 	t( sp_setstring(env, "db.primary.scheme", "a", 0) == 0 );
 	t( sp_setstring(env, "db.primary.scheme.a", "u32,key(0)", 0) == 0 );
 	t( sp_setstring(env, "db.primary.scheme", "b", 0) == 0 );
@@ -155,7 +155,7 @@ secondary_index_test_nonunique0(void)
 
 	/* non-unique */
 	t( sp_setstring(env, "db", "secondary", 0) == 0 );
-	t( sp_setint(env, "db.secondary.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.secondary.compaction.cache", 0) == 0 );
 	t( sp_setstring(env, "db.secondary.scheme", "a", 0) == 0 );
 	t( sp_setstring(env, "db.secondary.scheme.a", "u32,key(1)", 0) == 0 );
 	t( sp_setstring(env, "db.secondary.scheme", "b", 0) == 0 );

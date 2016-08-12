@@ -43,9 +43,6 @@ int sc_ctl_compact_index(sc *s, uint64_t vlsn, si *index)
 	while (1) {
 		siplan plan = {
 			.plan = SI_COMPACT_INDEX,
-			.a    = index->scheme.compaction.branch_wm,
-			.b    = 0,
-			.c    = 0,
 			.node = NULL
 		};
 		rc = si_plan(index, &plan);

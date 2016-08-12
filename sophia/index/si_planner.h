@@ -24,25 +24,22 @@ struct siplanner {
 };
 
 /* plan */
-#define SI_COMPACT_INDEX 8
-#define SI_GC            32
-#define SI_BACKUP        64
-#define SI_BACKUPEND     128
-#define SI_NODEGC        256
-#define SI_EXPIRE        512
+#define SI_COMPACT_INDEX 1
+#define SI_EXPIRE        2
+#define SI_GC            4
+#define SI_NODEGC        8
+#define SI_BACKUP        16
+#define SI_BACKUPEND     32
 
 struct siplan {
 	int plan;
-	/* branch:
-	 *   a: index_size
-	 * compact_index:
-	 *   a: index_size
-	 * nodegc:
+	/* compact_index:
 	 * gc:
 	 *   a: lsn
 	 *   b: percent
 	 * expire:
 	 *   a: ttl
+	 * nodegc:
 	 * backup:
 	 *   a: bsn
 	 */

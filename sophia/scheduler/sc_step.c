@@ -210,7 +210,6 @@ sc_do(sc *s, sctask *task)
 
 	/* compact_index (merge directly with in-memory index) */
 	task->plan.plan = SI_COMPACT_INDEX;
-	task->plan.a = c->branch_wm;
 	rc = si_plan(db->index, &task->plan);
 	if (rc == SI_PMATCH)
 		return SI_PMATCH;

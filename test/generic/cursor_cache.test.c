@@ -27,7 +27,7 @@ cursor_cache_test0(void)
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_open(env) == 0 );
 
 	void *db = sp_getobject(env, "db.test");
@@ -73,7 +73,7 @@ cursor_cache_test1(void)
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_open(env) == 0 );
 
 	void *db = sp_getobject(env, "db.test");
@@ -128,7 +128,7 @@ cursor_cache_invalidate(void)
 	t( sp_setstring(env, "db.test.scheme", "value", 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setint(env, "scheduler.threads", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_open(env) == 0 );
 
 	void *db = sp_getobject(env, "db.test");

@@ -118,13 +118,20 @@ static inline siplannerrc
 si_plannerpeek_branch(siplanner *p, siplan *plan)
 {
 	/* try to peek a node with a biggest in-memory index */
+
+	/* calculate peek wm */
+	si *index = (si*)p->i;
+	uint64_t cache_per_node =
+		index->scheme.compaction.cache / index->n;
+	if (cache_per_node >= index->scheme.compaction.node_size)
+		cache_per_node = index->scheme.compaction.node_size;
 	sinode *n;
 	ssrqnode *pn = NULL;
 	while ((pn = ss_rqprev(&p->branch, pn))) {
 		n = sscast(pn, sinode, nodebranch);
 		if (n->flags & SI_LOCK)
 			continue;
-		if (n->used >= plan->a)
+		if (n->used >= cache_per_node)
 			goto match;
 		return SI_PNONE;
 	}

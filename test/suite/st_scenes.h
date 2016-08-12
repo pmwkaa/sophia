@@ -18,7 +18,7 @@ void st_scene_rt(stscene*);
 void st_scene_gc(stscene*);
 
 void st_scene_env(stscene*);
-void st_scene_branch_wm_1(stscene*);
+void st_scene_cache_0(stscene*);
 void st_scene_thread_5(stscene*);
 void st_scene_open(stscene*);
 void st_scene_destroy(stscene*);

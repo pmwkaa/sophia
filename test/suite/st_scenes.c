@@ -157,9 +157,9 @@ void st_scene_env(stscene *s ssunused)
 	t( st_r.db != NULL );
 }
 
-void st_scene_branch_wm_1(stscene *s ssunused)
+void st_scene_cache_0(stscene *s ssunused)
 {
-	t( sp_setint(st_r.env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(st_r.env, "db.test.compaction.cache", 0) == 0 );
 }
 
 void st_scene_thread_5(stscene *s ssunused)

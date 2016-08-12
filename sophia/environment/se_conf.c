@@ -484,11 +484,10 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc, int serialize)
 		/* compaction */
 		srconf *compaction = *pc;
 		p = NULL;
-		sr_C(&p, pc, se_confv_dboffline, "cache", SS_U64, &o->scheme->cache, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "node_size", SS_U64, &o->scheme->node_size, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "page_size", SS_U32, &o->scheme->node_page_size, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "page_checksum", SS_U32, &o->scheme->node_page_checksum, 0, o);
-		sr_C(&p, pc, se_confv_dboffline, "branch_wm", SS_U32, &o->scheme->compaction.branch_wm, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "cache", SS_U64, &o->scheme->compaction.cache, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "node_size", SS_U64, &o->scheme->compaction.node_size, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "page_size", SS_U32, &o->scheme->compaction.node_page_size, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "page_checksum", SS_U32, &o->scheme->compaction.node_page_checksum, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "expire_period", SS_U32, &o->scheme->compaction.expire_period, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "gc_wm", SS_U32, &o->scheme->compaction.gc_wm, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "gc_period", SS_U32, &o->scheme->compaction.gc_period, 0, o);

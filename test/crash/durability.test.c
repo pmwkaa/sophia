@@ -26,7 +26,7 @@ durability_deploy0(void)
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
@@ -50,7 +50,7 @@ durability_deploy0(void)
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
@@ -72,7 +72,7 @@ durability_deploy0(void)
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
@@ -98,7 +98,7 @@ durability_build0(void)
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
@@ -139,7 +139,7 @@ durability_build0(void)
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
@@ -162,7 +162,7 @@ durability_compact0(void)
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
@@ -203,7 +203,7 @@ durability_compact0(void)
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
@@ -247,7 +247,7 @@ durability_compact1(void)
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
@@ -289,7 +289,7 @@ durability_compact1(void)
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
@@ -335,7 +335,7 @@ durability_compact2(void)
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
@@ -377,7 +377,7 @@ durability_compact2(void)
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
@@ -423,7 +423,7 @@ durability_compact3(void)
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_setint(env, "db.test.compaction.node_size", 60) == 0 );
 	t( sp_setint(env, "db.test.compaction.page_size", 60) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
@@ -462,7 +462,7 @@ durability_compact3(void)
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
@@ -503,7 +503,7 @@ durability_compact4(void)
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_setint(env, "db.test.compaction.node_size", 45) == 0 );
 	t( sp_setint(env, "db.test.compaction.page_size", 45) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
@@ -542,7 +542,7 @@ durability_compact4(void)
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
@@ -585,7 +585,7 @@ durability_compact5(void)
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_setint(env, "db.test.compaction.node_size", 45) == 0 );
 	t( sp_setint(env, "db.test.compaction.page_size", 45) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
@@ -624,7 +624,7 @@ durability_compact5(void)
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
@@ -667,7 +667,7 @@ durability_compact6(void)
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_setint(env, "db.test.compaction.node_size", 45) == 0 );
 	t( sp_setint(env, "db.test.compaction.page_size", 45) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
@@ -706,7 +706,7 @@ durability_compact6(void)
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
@@ -749,7 +749,7 @@ durability_compact7(void)
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_setint(env, "db.test.compaction.node_size", 45) == 0 );
 	t( sp_setint(env, "db.test.compaction.page_size", 45) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
@@ -789,7 +789,7 @@ durability_compact7(void)
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
@@ -832,7 +832,7 @@ durability_gc0(void)
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
@@ -855,7 +855,7 @@ durability_gc0(void)
 	t( sp_setint(env, "log.sync", 0) == 0 );
 	t( sp_setint(env, "log.rotate_sync", 0) == 0 );
 	t( sp_setstring(env, "db", "test", 0) == 0 );
-	t( sp_setint(env, "db.test.compaction.branch_wm", 1) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
 	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );

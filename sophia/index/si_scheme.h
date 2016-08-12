@@ -13,7 +13,10 @@ typedef struct sicompaction sicompaction;
 typedef struct sischeme sischeme;
 
 struct sicompaction {
-	uint32_t branch_wm;
+	uint64_t cache;
+	uint64_t node_size;
+	uint32_t node_page_size;
+	uint32_t node_page_checksum;
 	uint32_t expire_period;
 	uint64_t expire_period_us;
 	uint32_t gc_period;
@@ -32,10 +35,6 @@ struct sischeme {
 	uint32_t      direct_io_buffer_size;
 	sicompaction  compaction;
 	uint32_t      sync;
-	uint64_t      cache;
-	uint64_t      node_size;
-	uint32_t      node_page_size;
-	uint32_t      node_page_checksum;
 	uint32_t      expire;
 	uint32_t      compression;
 	char         *compression_sz;

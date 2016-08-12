@@ -78,7 +78,7 @@ sinode *si_bootstrap(si *i, uint64_t parent)
 			goto e1;
 	}
 	rc = sd_buildbegin(&build, r,
-	                   i->scheme.node_page_checksum,
+	                   i->scheme.compaction.node_page_checksum,
 	                   i->scheme.compression,
 	                   i->scheme.compression_if);
 	if (ssunlikely(rc == -1))

@@ -55,7 +55,7 @@ workflow_open(void *env)
 	rc = sp_setstring(env, "db", "test", 0);
 	if (rc == -1)
 		return NULL;
-	rc = sp_setint(env, "db.test.compaction.branch_wm", 1);
+	rc = sp_setint(env, "db.test.compaction.cache", 0);
 	if (rc == -1)
 		return NULL;
 	rc = sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0);

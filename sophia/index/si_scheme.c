@@ -24,19 +24,20 @@ enum {
 	SI_SCHEME_NODE_SIZE,
 	SI_SCHEME_NODE_PAGE_SIZE,
 	SI_SCHEME_NODE_PAGE_CHECKSUM,
-	SI_SCHEME_SYNC,
 	SI_SCHEME_COMPRESSION,
-	SI_SCHEME_CACHE_MODE,
 	SI_SCHEME_EXPIRE
 };
 
 static inline void
 si_schemecompaction_init(sicompaction *c)
 {
-	c->branch_wm     = 10 * 1024 * 1024;
-	c->expire_period = 0;
-	c->gc_period     = 60;
-	c->gc_wm         = 30;
+	c->cache              = 4ULL * 1024 * 1024 * 1024;
+	c->expire_period      = 0;
+	c->gc_period          = 60;
+	c->gc_wm              = 30;
+	c->node_size          = 64 * 1024 * 1024;
+	c->node_page_size     = 128 * 1024;
+	c->node_page_checksum = 1;
 }
 
 void si_schemeinit(sischeme *s)
@@ -99,23 +100,18 @@ int si_schemedeploy(sischeme *s, sr *r)
 		goto error;
 	ss_buffree(&buf, r->a);
 	rc = sd_schemeadd(&c, r, SI_SCHEME_NODE_SIZE, SS_U64,
-	                  &s->node_size,
-	                  sizeof(s->node_size));
+	                  &s->compaction.node_size,
+	                  sizeof(s->compaction.node_size));
 	if (ssunlikely(rc == -1))
 		goto error;
 	rc = sd_schemeadd(&c, r, SI_SCHEME_NODE_PAGE_SIZE, SS_U32,
-	                  &s->node_page_size,
-	                  sizeof(s->node_page_size));
+	                  &s->compaction.node_page_size,
+	                  sizeof(s->compaction.node_page_size));
 	if (ssunlikely(rc == -1))
 		goto error;
 	rc = sd_schemeadd(&c, r, SI_SCHEME_NODE_PAGE_CHECKSUM, SS_U32,
-	                  &s->node_page_checksum,
-	                  sizeof(s->node_page_checksum));
-	if (ssunlikely(rc == -1))
-		goto error;
-	rc = sd_schemeadd(&c, r, SI_SCHEME_SYNC, SS_U32,
-	                  &s->sync,
-	                  sizeof(s->sync));
+	                  &s->compaction.node_page_checksum,
+	                  sizeof(s->compaction.node_page_checksum));
 	if (ssunlikely(rc == -1))
 		goto error;
 	rc = sd_schemeadd(&c, r, SI_SCHEME_COMPRESSION, SS_STRING,
@@ -187,10 +183,10 @@ int si_schemerecover(sischeme *s, sr *r)
 			break;
 		}
 		case SI_SCHEME_NODE_SIZE:
-			s->node_size = sd_schemeu64(opt);
+			s->compaction.node_size = sd_schemeu64(opt);
 			break;
 		case SI_SCHEME_NODE_PAGE_SIZE:
-			s->node_page_size = sd_schemeu32(opt);
+			s->compaction.node_page_size = sd_schemeu32(opt);
 			break;
 		case SI_SCHEME_COMPRESSION: {
 			char *name = sd_schemesz(opt);

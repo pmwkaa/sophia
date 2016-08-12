@@ -37,15 +37,11 @@ se_dbscheme_init(sedb *db, char *name, int size)
 	memcpy(scheme->name, name, size);
 	scheme->name[size] = 0;
 	scheme->id                    = id;
-	scheme->cache                 = 0;
 	scheme->sync                  = 1;
 	scheme->mmap                  = 0;
 	scheme->direct_io             = 0;
 	scheme->direct_io_page_size   = 4096;
 	scheme->direct_io_buffer_size = 8 * 1024 * 1024;
-	scheme->node_size             = 64 * 1024 * 1024;
-	scheme->node_page_size        = 128 * 1024;
-	scheme->node_page_checksum    = 1;
 	scheme->compression           = 0;
 	scheme->compression_if        = &ss_nonefilter;
 	scheme->expire                = 0;
