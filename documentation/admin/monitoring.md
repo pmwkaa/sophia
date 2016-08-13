@@ -2,7 +2,7 @@
 Monitoring
 ----------
 
-Database monitoring is possible by [getting](../tutorial/configuration.md) current dynamic statistics and configuration via
+Database monitoring is possible by getting current [dynamic statistics](../tutorial/configuration.md) and configuration via
 [sp_env()](../api/sp_env.md) object.
 
 To get per-thread backtrace see [Scheduler](../conf/scheduler.md),

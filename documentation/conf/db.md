@@ -12,7 +12,6 @@ Database can be created, opened or deleted only before environment startup.
 | db.name.name | string, ro | Get database name |
 | db.name.id | int | Database's sequential id number. This number is used in the transaction log for the database identification. |
 | db.name.path | string | Set folder to store database data. If variable is not set, it will be automatically set as **sophia.path/database_name**. |
-| db.name.memory\_limit | int | Set memory limit in bytes (0 - disabled). |
 | db.name.mmap | int | Enable or disable mmap mode. |
 | db.name.direct\_io | int | Enable or disable O\_DIRECT mode. |
 | db.name.sync | int | Sync node file on compaction completion. |

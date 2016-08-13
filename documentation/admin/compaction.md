@@ -2,9 +2,9 @@
 Compaction
 ----------
 
-Sophia Scheduler is responsible for planning all background tasks.
+Sophia scheduler is responsible for planning all background tasks.
 
-The schedule handles following tasks: garbage collection, node compaction, log ration, and so on.
+The schedule handles following tasks: garbage collection, node compaction, expire, log ration, and so on.
 
 Sophia has multi-thread scallable compaction. Number of active background
 workers (threads) can be set using **scheduler.threads** variable.

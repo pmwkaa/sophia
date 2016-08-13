@@ -6,7 +6,6 @@
     * [Sophia API](tutorial/api.md)
     * [Common Workflow](tutorial/workflow.md)
     * [Configuration](tutorial/configuration.md)
-    * [How It Works](tutorial/how_it_works.md)
     * [Examples](tutorial/examples.md)
     * [BSD License](tutorial/license.md)
 * Administration
@@ -53,4 +52,3 @@
     * [sp\_cursor](api/sp_cursor.md)
     * [sp\_begin](api/sp_begin.md)
     * [sp\_commit](api/sp_commit.md)
-
