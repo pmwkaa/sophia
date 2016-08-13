@@ -40,6 +40,8 @@ analitycs, events, logs, counters, metrics, etc.
 * Automatic key-expire
 * Hot Backup
 * Compression (no fixed-size blocks, no-holes, supported: lz4, zstd)
+* Direct IO support
+* Use mmap or pread access methods
 * Easy to use (minimalistic API)
 * Easy to write bindings (FFI-friendly)
 * Easy to built-in (amalgamated source)

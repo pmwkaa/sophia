@@ -41,7 +41,7 @@ int sc_ctl_compact_index(sc *s, uint64_t vlsn, si *index)
 	if (ssunlikely(w == NULL))
 		return -1;
 	siplan plan = {
-		.plan = SI_COMPACT_INDEX,
+		.plan = SI_COMPACTION,
 		.node = NULL
 	};
 	rc = si_plan(index, &plan);

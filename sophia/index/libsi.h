@@ -21,7 +21,6 @@
 #include <si_read.h>
 #include <si_iter.h>
 #include <si_backup.h>
-#include <si_merge.h>
 #include <si_compaction.h>
 #include <si_track.h>
 #include <si_recover.h>

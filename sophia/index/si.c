@@ -119,10 +119,10 @@ si_execute(si *i, sdc *c, siplan *plan, uint64_t vlsn)
 {
 	int rc = -1;
 	switch (plan->plan) {
-	case SI_COMPACT_INDEX:
+	case SI_COMPACTION:
 	case SI_GC:
 	case SI_EXPIRE:
-		rc = si_compact_index(i, c, plan, vlsn);
+		rc = si_compaction(i, c, plan, vlsn);
 		break;
 	case SI_BACKUP:
 	case SI_BACKUPEND:

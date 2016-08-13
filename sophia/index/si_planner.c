@@ -46,7 +46,7 @@ int si_plannertrace(siplan *p, uint32_t id, sstrace *t)
 {
 	char *plan = NULL;
 	switch (p->plan) {
-	case SI_COMPACT_INDEX: plan = "compaction";
+	case SI_COMPACTION: plan = "compaction";
 		break;
 	case SI_GC: plan = "gc";
 		break;
@@ -226,7 +226,7 @@ siplannerrc
 si_planner(siplanner *p, siplan *plan)
 {
 	switch (plan->plan) {
-	case SI_COMPACT_INDEX:
+	case SI_COMPACTION:
 		return si_plannerpeek_memory(p, plan);
 	case SI_NODEGC:
 		return si_plannerpeek_nodegc(p, plan);

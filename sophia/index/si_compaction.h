@@ -9,7 +9,6 @@
  * BSD License
 */
 
-int si_compact(si*, sdc*, siplan*, uint64_t, ssiter*, uint64_t);
-int si_compact_index(si*, sdc*, siplan*, uint64_t);
+int si_compaction(si*, sdc*, siplan*, uint64_t);
 
 #endif

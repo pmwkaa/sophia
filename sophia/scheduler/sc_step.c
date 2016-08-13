@@ -78,7 +78,7 @@ sc_taskend(sc *s, sctask *t)
 	ss_mutexlock(&s->lock);
 	scdb *db = t->db;
 	switch (t->plan.plan) {
-	case SI_COMPACT_INDEX:
+	case SI_COMPACTION:
 		t->gc = 1;
 		break;
 	case SI_BACKUP:
@@ -209,7 +209,7 @@ sc_do(sc *s, sctask *task)
 	}
 
 	/* compact_index (merge directly with in-memory index) */
-	task->plan.plan = SI_COMPACT_INDEX;
+	task->plan.plan = SI_COMPACTION;
 	rc = si_plan(db->index, &task->plan);
 	if (rc == SI_PMATCH)
 		return SI_PMATCH;
