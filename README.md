@@ -16,12 +16,9 @@ It adopts to expected write rate, total capacity and cache size.
 **What is it good for?**
 
 For server environment, which requires
-lowest latency access (both read and write), predictable behaviour, optimized storage schema and transaction guarantees.
-
+lowest latency write and read, predictable behaviour, optimized storage schema and transaction guarantees.
 It can efficiently work with large volumes of ordered data, such as a time-series,
 analitycs, events, logs, counters, metrics, etc.
-
-Bindings for the most common languages are available [here](http://sophia.systems/drivers.html).
 
 **Features**
 
