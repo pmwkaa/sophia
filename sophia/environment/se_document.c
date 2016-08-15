@@ -131,8 +131,8 @@ int se_document_createkey(sedocument *o)
 			o->fields[0].pointer = o->prefix;
 			o->fields[0].size = o->prefix_size;
 		}
-		sf_limitset(&e->limit, &db->scheme->scheme,
-		             o->fields, o->order);
+		sf_limitapply(&db->limit, &db->scheme->scheme,
+		              o->fields, o->order);
 		o->fields_count = db->scheme->scheme.fields_count;
 		o->fields_count_keys = db->scheme->scheme.keys_count;
 	}
@@ -187,10 +187,14 @@ se_document_setfield(sedocument *v, int pos, void *pointer, int size)
 	if (size == 0)
 		size = strlen(pointer);
 	int fieldsize_max;
-	if (field->key) {
-		fieldsize_max = 1024;
+	if (field->fixed_size > 0) {
+		fieldsize_max = field->fixed_size;
 	} else {
-		fieldsize_max = 2 * 1024 * 1024;
+		if (field->key) {
+			fieldsize_max = db->limit.string_max_size;
+		} else {
+			fieldsize_max = db->limit.field_max_size;
+		}
 	}
 	if (ssunlikely(size > fieldsize_max)) {
 		sr_error(&e->error, "field '%s' is too big (%d limit)",

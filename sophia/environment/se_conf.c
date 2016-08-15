@@ -360,14 +360,14 @@ se_confdb_upsertarg(srconf *c, srconfstmt *s)
 }
 
 static inline int
-se_confdb_compact_index(srconf *c, srconfstmt *s)
+se_confdb_compaction(srconf *c, srconfstmt *s)
 {
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
 	sedb *db = c->value;
 	se *e = se_of(&db->o);
 	uint64_t vlsn = sx_vlsn(&e->xm);
-	return sc_ctl_compact_index(&e->scheduler, vlsn, db->index);
+	return sc_ctl_compaction(&e->scheduler, vlsn, db->index);
 }
 
 static inline int
@@ -492,10 +492,16 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc, int serialize)
 		sr_C(&p, pc, se_confv_dboffline, "gc_wm", SS_U32, &o->scheme->compaction.gc_wm, 0, o);
 		sr_C(&p, pc, se_confv_dboffline, "gc_period", SS_U32, &o->scheme->compaction.gc_period, 0, o);
 		if (! serialize) {
-			sr_c(&p, pc, se_confdb_compact_index, "compact", SS_FUNCTION, o);
+			sr_c(&p, pc, se_confdb_compaction, "compact", SS_FUNCTION, o);
 			sr_c(&p, pc, se_confdb_gc, "gc", SS_FUNCTION, o);
 			sr_c(&p, pc, se_confdb_expire, "expire", SS_FUNCTION, o);
 		}
+
+		/* limit */
+		srconf *limit = *pc;
+		p = NULL;
+		sr_C(&p, pc, se_confv_dboffline, "field", SS_U32, &o->limit.field_max_size, 0, o);
+		sr_C(&p, pc, se_confv_dboffline, "key", SS_U32, &o->limit.string_max_size, SR_RO, o);
 
 		/* stat */
 		srconf *stat = *pc;
@@ -569,6 +575,7 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc, int serialize)
 
 		/* .. */
 		sr_C(&p, pc, NULL, "compaction", SS_UNDEF, compaction, SR_NS, o);
+		sr_C(&p, pc, NULL, "limit", SS_UNDEF, limit, SR_NS, o);
 		sr_C(&p, pc, NULL, "stat", SS_UNDEF, stat, SR_NS, o);
 		sr_C(&p, pc, NULL, "scheduler", SS_UNDEF, scheduler, SR_NS, o);
 		sr_C(&p, pc, NULL, "index", SS_UNDEF, index, SR_NS, o);

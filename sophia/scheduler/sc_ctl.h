@@ -10,8 +10,7 @@
 */
 
 int sc_ctl_call(sc*, uint64_t);
-int sc_ctl_compact(sc*, uint64_t, si*);
-int sc_ctl_compact_index(sc*, uint64_t, si*);
+int sc_ctl_compaction(sc*, uint64_t, si*);
 int sc_ctl_expire(sc*, si*);
 int sc_ctl_gc(sc*, si*);
 int sc_ctl_backup(sc*);

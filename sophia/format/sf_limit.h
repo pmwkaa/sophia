@@ -12,25 +12,27 @@
 typedef struct sflimit sflimit;
 
 struct sflimit {
-	uint8_t  u8_min;
-	uint8_t  u8_max;
-	uint16_t u16_min;
-	uint16_t u16_max;
-	uint32_t u32_min;
-	uint32_t u32_max;
-	uint64_t u64_min;
-	uint64_t u64_max;
-	int64_t  i64_min;
-	int64_t  i64_max;
-	char    *string_min;
-	int      string_min_size;
-	char    *string_max;
-	int      string_max_size;
+	uint8_t   u8_min;
+	uint8_t   u8_max;
+	uint16_t  u16_min;
+	uint16_t  u16_max;
+	uint32_t  u32_min;
+	uint32_t  u32_max;
+	uint64_t  u64_min;
+	uint64_t  u64_max;
+	int64_t   i64_min;
+	int64_t   i64_max;
+	char     *string_min;
+	uint32_t  string_min_size;
+	char     *string_max;
+	uint32_t  string_max_size;
+	uint32_t  field_max_size;
 };
 
 static inline int
 sf_limitinit(sflimit *b, ssa *a)
 {
+	b->field_max_size = 2 * 1024 * 1024;
 	b->u8_min  = 0;
 	b->u8_max  = UINT8_MAX;
 	b->u16_min = 0;
@@ -59,7 +61,7 @@ sf_limitfree(sflimit *b, ssa *a)
 }
 
 static inline void
-sf_limitset(sflimit *b, sfscheme *s, sfv *fields, ssorder order)
+sf_limitapply(sflimit *b, sfscheme *s, sfv *fields, ssorder order)
 {
 	int i;
 	for (i = 0; i < s->fields_count; i++) {

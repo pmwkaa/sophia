@@ -21,6 +21,7 @@ struct sedb {
 	sr        *r;
 	ssa        a;
 	sxindex    coindex;
+	sflimit    limit;
 	srstat     stat;
 	srstat     statrt;
 };

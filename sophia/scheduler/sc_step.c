@@ -208,7 +208,7 @@ sc_do(sc *s, sctask *task)
 		}
 	}
 
-	/* compact_index (merge directly with in-memory index) */
+	/* compaction */
 	task->plan.plan = SI_COMPACTION;
 	rc = si_plan(db->index, &task->plan);
 	if (rc == SI_PMATCH)

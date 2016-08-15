@@ -173,6 +173,7 @@ se_dbfree(sedb *db)
 	rc = si_close(db->index);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
+	sf_limitfree(&db->limit, &e->a);
 	sr_statfree(&db->stat);
 	sx_indexfree(&db->coindex, &e->xm);
 	ss_aclose(&db->a);
@@ -332,17 +333,25 @@ so *se_dbnew(se *e, char *name, int size)
 	memset(o, 0, sizeof(*o));
 	so_init(&o->o, &se_o[SEDB], &sedbif, &e->o, &e->o);
 	sr_statinit(&o->stat);
+	int rc;
+	rc = sf_limitinit(&o->limit, &e->a);
+	if (ssunlikely(rc == -1)) {
+		ss_free(&e->a, o);
+		return NULL;
+	}
 	o->a = e->a;
 	o->index = si_init(&e->r, &o->o);
 	if (ssunlikely(o->index == NULL)) {
+		sf_limitfree(&o->limit, &e->a);
 		ss_free(&e->a, o);
 		return NULL;
 	}
 	o->r = si_r(o->index);
 	o->scheme = si_scheme(o->index);
-	int rc;
+
 	rc = se_dbscheme_init(o, name, size);
 	if (ssunlikely(rc == -1)) {
+		sf_limitfree(&o->limit, &e->a);
 		si_close(o->index);
 		ss_free(&e->a, o);
 		return NULL;

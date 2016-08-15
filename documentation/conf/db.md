@@ -21,6 +21,8 @@ Database can be created, opened or deleted only before environment startup.
 | db.name.comparator\_arg | string | Set custom comparator function arg. |
 | db.name.upsert | function | Set upsert callback function. |
 | db.name.upsert\_arg | string | Set upsert function argument. |
+| db.name.limit.key | int, ro | Scheme key size limit. |
+| db.name.limit.field | int | Scheme field size limit. |
 | db.name.index.memory\_used | int, ro | Memory used by database for in-memory key indexes in bytes. |
 | db.name.index.size | int, ro | Sum of nodes size in bytes (compressed). This is equal to the full database size. |
 | db.name.index.size\_uncompressed | int, ro | Full database size before the compression. |

@@ -31,7 +31,7 @@ int sc_ctl_call(sc *s, uint64_t vlsn)
 	return rc;
 }
 
-int sc_ctl_compact_index(sc *s, uint64_t vlsn, si *index)
+int sc_ctl_compaction(sc *s, uint64_t vlsn, si *index)
 {
 	sr *r = s->r;
 	int rc = sr_statusactive(r->status);

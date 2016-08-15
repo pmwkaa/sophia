@@ -36,7 +36,6 @@ struct se {
 	sc           scheduler;
 	srlog        log;
 	srerror      error;
-	sflimit      limit;
 	ssinjection  ei;
 	sr           r;
 };

@@ -148,7 +148,6 @@ se_destroy(so *o)
 	si_cachepool_free(&e->cachepool);
 	se_conffree(&e->conf);
 	ss_mutexfree(&e->apilock);
-	sf_limitfree(&e->limit, &e->a);
 
 	sr_seqfree(&e->seq);
 	sr_statusfree(&e->status);
@@ -217,7 +216,6 @@ so *se_new(void)
 	sr_seqinit(&e->seq);
 	sr_loginit(&e->log);
 	sr_errorinit(&e->error, &e->log);
-	sf_limitinit(&e->limit, &e->a);
 	sscrcf crc = ss_crc32c_function();
 	sr_init(&e->r, &e->status, &e->log, &e->error, &e->a, NULL,
 	        &e->vfs, &e->seq, NULL, NULL,
