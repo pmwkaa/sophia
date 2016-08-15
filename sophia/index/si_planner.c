@@ -27,9 +27,9 @@ int si_planinit(siplan *p)
 
 int si_plannerinit(siplanner *p, ssa *a, void *i)
 {
-	/* 1Mb step up to 4Gb */
+	/* 1Mb step up to 32Gb */
 	int rc;
-	rc = ss_rqinit(&p->memory, a, 1024 * 1024, 4000);
+	rc = ss_rqinit(&p->memory, a, 1024 * 1024, 32000);
 	if (ssunlikely(rc == -1))
 		return -1;
 	p->i = i;

@@ -232,8 +232,8 @@ se_conftransaction(se *e ssunused, seconfrt *rt, srconf **pc)
 	sr_C(&p, pc, se_confv, "lock", SS_U64, &rt->tx_stat.tx_lock, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "latency", SS_STRING, rt->tx_stat.tx_latency.sz, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "log", SS_STRING, rt->tx_stat.tx_stmts.sz, SR_RO, NULL);
+	sr_C(&p, pc, se_confv, "vlsn", SS_U64, &rt->tx_vlsn, SR_RO, NULL);
 	sr_C(&p, pc, se_confv, "gc", SS_U32, &rt->tx_gc, SR_RO, NULL);
-	sr_C(&p, pc, se_confv, "gc_lsn", SS_U64, &rt->tx_vlsn, SR_RO, NULL);
 	return sr_C(NULL, pc, NULL, "transaction", SS_UNDEF, xm, SR_NS, NULL);
 }
 
