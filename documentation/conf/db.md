@@ -19,7 +19,7 @@ Database can be created, opened or deleted only before environment startup.
 | db.name.compression | string | Specify compression driver. Supported: lz4, zstd, none (default). |
 | db.name.comparator | function | Set custom comparator function (example: [comparator.c](https://github.com/pmwkaa/sophia/blob/master/example/comparator.c)). |
 | db.name.comparator\_arg | string | Set custom comparator function arg. |
-| db.name.upsert | function | Set upsert callback function. |
+| db.name.upsert | function | Set upsert callback function (example: [upsert.c](https://github.com/pmwkaa/sophia/blob/master/example/upsert.c). |
 | db.name.upsert\_arg | string | Set upsert function argument. |
 | db.name.limit.key | int, ro | Scheme key size limit. |
 | db.name.limit.field | int | Scheme field size limit. |

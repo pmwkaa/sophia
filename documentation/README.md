@@ -23,7 +23,7 @@ For server environment, which requires
 lowest latency access (both read and write), predictable behaviour, optimized storage schema and transaction guarantees.
 
 It can efficiently work with large volumes of ordered data, such as a time-series,
-analitycs, events, logs, counters, metrics, etc.
+analytics, events, logs, counters, metrics, full-text search, common key-value, etc.
 
 Bindings for the most common languages are available [here](http://sophia.systems/drivers.html).
 
@@ -34,11 +34,12 @@ Bindings for the most common languages are available [here](http://sophia.system
 * Optimistic, non-blocking concurrency with N-writers and M-readers
 * Pure Append-Only
 * Unique data storage architecture
+* Fast: O(1) worst for read, write and range scan operations
 * Multi-threaded compaction
 * Multi-databases support (sharing a single write-ahead log)
 * Multi-Statement and Single-Statement Transactions (cross-database)
 * Serialized Snapshot Isolation (SSI)
-* Optimized storage schema (row numeric types has a zero-cost storage)
+* Optimized storage schema (numeric types has zero-cost storage)
 * Can be used to build Secondary Indexes
 * Upsert (fast write-only 'update or insert' operation)
 * Consistent Cursors
@@ -49,10 +50,7 @@ Bindings for the most common languages are available [here](http://sophia.system
 * Compression (no fixed-size blocks, no-holes, supported: lz4, zstd)
 * Direct IO support
 * Use mmap or pread access methods
-* Easy to use (minimalistic API)
-* Easy to write bindings (FFI-friendly)
-* Easy to built-in (amalgamated source)
+* Simple and easy to use (minimalistic API, FFI-friendly, amalgamated)
 * Implemented as small *C-written* library with zero dependencies
 * Carefully tested
 * Open Source Software, BSD
-

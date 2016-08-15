@@ -12,5 +12,5 @@ Transaction Manager
 | transaction.lock | int, ro | Total number of transaction locks. |
 | transaction.latency | string, ro | Average transaction latency from begin till commit. |
 | transaction.log | string, ro | Average transaction log length. |
+| transaction.vlsn | int, ro | Current VLSN. |
 | transaction.gc | int, ro | SSI GC queue size. |
-| transaction.gc\_lsn | int, ro | Current VLSN. |
