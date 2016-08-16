@@ -12,6 +12,7 @@ Sophia is RAM-Disk hybrid storage. It is designed to provide best possible on-di
 in time. It has guaranteed *O(1)* worst case complexity for read, write and range scan operations.
 
 It adopts to expected write rate, total capacity and cache size.
+Memory requirements for common HDD and Flash drives can be seen [Here](http://sophia.systems/v2.2/admin/memory_requirements).
 
 **What is it good for?**
 

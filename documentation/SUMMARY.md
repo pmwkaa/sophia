@@ -10,6 +10,7 @@
     * [BSD License](tutorial/license.md)
 * Administration
     * [Version](admin/version.md)
+    * [Memory Requirements](admin/memory_requirements.md)
     * [Managing Databases](admin/database.md)
     * [MMAP mode](admin/mmap.md)
     * [Compession](admin/compression.md)

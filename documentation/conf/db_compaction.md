@@ -4,7 +4,7 @@ Database Compaction settings
 
 | name | type | description  |
 |---|---|---|
-| db.name.compaction.cache | int | Total write cache size used for compaction. |
+| db.name.compaction.cache | int | Total write cache size used for compaction (see [memory requirements](../admin/memory_requirements.md)). |
 | db.name.compaction.node\_size | int | Set a node file size in bytes. Node file can grow up to two times the size before the old node file is being split. |
 | db.name.compaction.page\_size | int | Set size of a page to use. |
 | db.name.compaction.page\_checksum | int | Check checksum during compaction. |
