@@ -11,7 +11,7 @@ key-value/row storage library.
 Sophia is RAM-Disk hybrid storage. It is designed to provide best possible on-disk performance without degradation
 in time. It has guaranteed *O(1)* worst case complexity for read, write and range scan operations.
 
-It adopts to expected write rate, total capacity and cache size.
+It adopts to expected write rate, total capacity and cache size.<br>
 Memory requirements for common HDD and Flash drives can be seen [Here](http://sophia.systems/v2.2/admin/memory_requirements).
 
 **What is it good for?**
