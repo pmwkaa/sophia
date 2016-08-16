@@ -15,7 +15,8 @@ key-value/row storage library. Open-Source, available free of charge under terms
 Sophia is RAM-Disk hybrid storage. It is designed to provide best possible on-disk performance without degradation
 in time. It has guaranteed *O(1)* worst case complexity for read, write and range scan operations.
 
-It adopts to expected write rate, total capacity and cache size.
+It adopts to expected write rate, total capacity and cache size. Memory requirements for common HDD and Flash
+drives can be seen [Here](admin/memory_requirements.md).
 
 ### What is it good for?
 
