@@ -144,7 +144,7 @@ void st_scene_env(stscene *s ssunused)
 	t( sp_setstring(env, "db", "test", 0) == 0 );
 	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
 	t( sp_setint(env, "db.test.sync", 0) == 0 );
-	t( sp_setint(env, "db.test.mmap", 0) == 0 );
+	t( sp_setint(env, "db.test.mmap", 1) == 0 );
 	t( sp_setint(env, "db.test.direct_io", 0) == 0 );
 	t( sp_setint(env, "db.test.compaction.page_checksum", 1) == 0 );
 	t( sp_setstring(env, "db.test.compression", "none", 0) == 0 );
@@ -341,17 +341,17 @@ void st_scene_phase_storage(stscene *s)
 		break;
 	case 2:
 		if (st_r.verbose) {
-			fprintf(st_r.output, ".storage_mmap");
+			fprintf(st_r.output, ".storage_pread");
 			fflush(st_r.output);
 		}
-		t( sp_setint(st_r.env, "db.test.mmap", 1) == 0 );
+		t( sp_setint(st_r.env, "db.test.mmap", 0) == 0 );
 		break;
 	case 3:
 		if (st_r.verbose) {
-			fprintf(st_r.output, ".storage_mmap_compression");
+			fprintf(st_r.output, ".storage_pread_compression");
 			fflush(st_r.output);
 		}
-		t( sp_setint(st_r.env, "db.test.mmap", 1) == 0 );
+		t( sp_setint(st_r.env, "db.test.mmap", 0) == 0 );
 		t( sp_setstring(st_r.env, "db.test.compression", "lz4", 0) == 0 );
 		break;
 	case 4:
@@ -359,6 +359,7 @@ void st_scene_phase_storage(stscene *s)
 			fprintf(st_r.output, ".storage_direct_io");
 			fflush(st_r.output);
 		}
+		t( sp_setint(st_r.env, "db.test.mmap", 0) == 0 );
 		t( sp_setint(st_r.env, "db.test.direct_io", 1) == 0 );
 		break;
 	case 5:
@@ -366,6 +367,7 @@ void st_scene_phase_storage(stscene *s)
 			fprintf(st_r.output, ".storage_direct_io_compression");
 			fflush(st_r.output);
 		}
+		t( sp_setint(st_r.env, "db.test.mmap", 0) == 0 );
 		t( sp_setint(st_r.env, "db.test.direct_io", 1) == 0 );
 		t( sp_setstring(st_r.env, "db.test.compression", "lz4", 0) == 0 );
 		break;

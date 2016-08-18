@@ -38,7 +38,7 @@ se_dbscheme_init(sedb *db, char *name, int size)
 	scheme->name[size] = 0;
 	scheme->id                    = id;
 	scheme->sync                  = 1;
-	scheme->mmap                  = 0;
+	scheme->mmap                  = 1;
 	scheme->direct_io             = 0;
 	scheme->direct_io_page_size   = 4096;
 	scheme->direct_io_buffer_size = 8 * 1024 * 1024;
