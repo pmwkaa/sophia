@@ -12,7 +12,7 @@
 #include <libsr.h>
 #include <libso.h>
 #include <libsv.h>
-#include <libsl.h>
+#include <libsw.h>
 #include <libsd.h>
 #include <libsi.h>
 #include <libsx.h>
@@ -191,7 +191,7 @@ se_conflog_rotate(srconf *c, srconfstmt *s)
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
 	se *e = s->ptr;
-	return sl_poolrotate(&e->lp);
+	return sw_managerrotate(&e->wm);
 }
 
 static inline int
@@ -200,7 +200,7 @@ se_conflog_gc(srconf *c, srconfstmt *s)
 	if (s->op != SR_WRITE)
 		return se_confv(c, s);
 	se *e = s->ptr;
-	return sl_poolgc(&e->lp);
+	return sw_managergc(&e->wm);
 }
 
 static inline srconf*
@@ -208,11 +208,11 @@ se_conflog(se *e, seconfrt *rt, srconf **pc)
 {
 	srconf *log = *pc;
 	srconf *p = NULL;
-	sr_c(&p, pc, se_confv_offline, "enable", SS_U32, &e->lp_conf->enable);
-	sr_c(&p, pc, se_confv_offline, "path", SS_STRINGPTR, &e->lp_conf->path);
-	sr_c(&p, pc, se_confv_offline, "sync", SS_U32, &e->lp_conf->sync_on_write);
-	sr_c(&p, pc, se_confv_offline, "rotate_wm", SS_U32, &e->lp_conf->rotatewm);
-	sr_c(&p, pc, se_confv_offline, "rotate_sync", SS_U32, &e->lp_conf->sync_on_rotate);
+	sr_c(&p, pc, se_confv_offline, "enable", SS_U32, &e->wm_conf->enable);
+	sr_c(&p, pc, se_confv_offline, "path", SS_STRINGPTR, &e->wm_conf->path);
+	sr_c(&p, pc, se_confv_offline, "sync", SS_U32, &e->wm_conf->sync_on_write);
+	sr_c(&p, pc, se_confv_offline, "rotate_wm", SS_U32, &e->wm_conf->rotatewm);
+	sr_c(&p, pc, se_confv_offline, "rotate_sync", SS_U32, &e->wm_conf->sync_on_rotate);
 	sr_c(&p, pc, se_conflog_rotate, "rotate", SS_FUNCTION, NULL);
 	sr_c(&p, pc, se_conflog_gc, "gc", SS_FUNCTION, NULL);
 	sr_C(&p, pc, se_confv, "files", SS_U32, &rt->log_files, SR_RO, NULL);
@@ -706,7 +706,7 @@ se_confrt(se *e, seconfrt *rt)
 	ss_spinunlock(&e->error.lock);
 
 	/* log */
-	rt->log_files = sl_poolfiles(&e->lp);
+	rt->log_files = sw_managerfiles(&e->wm);
 
 	/* backup */
 	ss_mutexlock(&e->scheduler.lock);
@@ -884,9 +884,9 @@ int se_confvalidate(seconf *c)
 		return -1;
 	}
 	char path[1024];
-	if (e->lp_conf->path == NULL) {
+	if (e->wm_conf->path == NULL) {
 		snprintf(path, sizeof(path), "%s/log", e->rep_conf->path);
-		int rc = sl_confset_path(e->lp_conf, &e->a, path);
+		int rc = sw_confset_path(e->wm_conf, &e->a, path);
 		if (ssunlikely(rc == -1))
 			return sr_oom(&e->error);
 	}

@@ -10,7 +10,7 @@ SOPHIA_DIRS     = std \
                   runtime \
                   object \
                   version \
-                  log \
+                  wal \
                   database \
                   index \
                   transaction \

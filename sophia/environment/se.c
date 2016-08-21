@@ -12,7 +12,7 @@
 #include <libsr.h>
 #include <libso.h>
 #include <libsv.h>
-#include <libsl.h>
+#include <libsw.h>
 #include <libsd.h>
 #include <libsi.h>
 #include <libsx.h>
@@ -137,7 +137,7 @@ se_destroy(so *o)
 	rc = so_pooldestroy(&e->document);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
-	rc = sl_poolshutdown(&e->lp);
+	rc = sw_managershutdown(&e->wm);
 	if (ssunlikely(rc == -1))
 		rcret = -1;
 	rc = sy_close(&e->rep, &e->r);
@@ -222,12 +222,12 @@ so *se_new(void)
 	        &e->ei, NULL, crc, NULL);
 	sy_init(&e->rep);
 	e->rep_conf = sy_conf(&e->rep);
-	sl_poolinit(&e->lp, &e->r);
-	e->lp_conf = sl_conf(&e->lp);
+	sw_managerinit(&e->wm, &e->r);
+	e->wm_conf = sw_conf(&e->wm);
 	sr_statxm_init(&e->xm_stat);
 	sx_managerinit(&e->xm, &e->seq, &e->a);
 	si_cachepool_init(&e->cachepool, &e->r);
-	sc_init(&e->scheduler, &e->r, &e->lp);
+	sc_init(&e->scheduler, &e->r, &e->wm);
 	return &e->o;
 error:
 	sr_statusfree(&e->status);

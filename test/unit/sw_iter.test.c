@@ -12,7 +12,7 @@
 #include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
-#include <libsl.h>
+#include <libsw.h>
 #include <libsd.h>
 #include <libst.h>
 
@@ -49,16 +49,16 @@ freelog(svlog *log, sr *c)
 }
 
 static void
-sl_itertx(void)
+sw_itertx(void)
 {
-	slpool lp;
-	t( sl_poolinit(&lp, &st_r.r) == 0 );
-	slconf *conf = sl_conf(&lp);
+	swmanager lp;
+	t( sw_managerinit(&lp, &st_r.r) == 0 );
+	swconf *conf = sw_conf(&lp);
 	conf->path     = strdup(st_r.conf->log_dir);
 	conf->enable   = 1;
 	conf->rotatewm = 1000;
-	t( sl_poolopen(&lp) == 0 );
-	t( sl_poolrotate(&lp) == 0 );
+	t( sw_manageropen(&lp) == 0 );
+	t( sw_managerrotate(&lp) == 0 );
 
 	svlog log;
 	sv_loginit(&log, &st_r.r, 1);
@@ -66,224 +66,224 @@ sl_itertx(void)
 
 	alloclogv(&log, &st_r.r, 0, 7);
 
-	sltx ltx;
-	t( sl_begin(&lp, &ltx, 0, 0) == 0 );
-	t( sl_write(&ltx, &log) == 0 );
-	t( sl_commit(&ltx) == 0 );
+	swtx ltx;
+	t( sw_begin(&lp, &ltx, 0, 0) == 0 );
+	t( sw_write(&ltx, &log) == 0 );
+	t( sw_commit(&ltx) == 0 );
 
 	freelog(&log, &st_r.r);
-	t( sl_poolshutdown(&lp) == 0 );
+	t( sw_managershutdown(&lp) == 0 );
 }
 
 static void
-sl_itertx_read_empty(void)
+sw_itertx_read_empty(void)
 {
-	slpool lp;
-	t( sl_poolinit(&lp, &st_r.r) == 0 );
-	slconf *conf = sl_conf(&lp);
+	swmanager lp;
+	t( sw_managerinit(&lp, &st_r.r) == 0 );
+	swconf *conf = sw_conf(&lp);
 	conf->path     = strdup(st_r.conf->log_dir);
 	conf->enable   = 1;
 	conf->rotatewm = 1000;
-	t( sl_poolopen(&lp) == 0 );
-	t( sl_poolrotate(&lp) == 0 );
+	t( sw_manageropen(&lp) == 0 );
+	t( sw_managerrotate(&lp) == 0 );
 	svlog log;
 	sv_loginit(&log, &st_r.r, 1);
 	sv_loginit_index(&log, 0, &st_r.r);
 	freelog(&log, &st_r.r);
 
-	sl *current = sscast(lp.list.prev, sl, link);
+	sw *current = sscast(lp.list.prev, sw, link);
 	ssiter li;
-	ss_iterinit(sl_iter, &li);
-	t( ss_iteropen(sl_iter, &li, &st_r.r, &current->file, 1) == 0 );
+	ss_iterinit(sw_iter, &li);
+	t( ss_iteropen(sw_iter, &li, &st_r.r, &current->file, 1) == 0 );
 	for (;;) {
 		// begin
 		while (ss_iteratorhas(&li)) {
-			slv *v = ss_iteratorof(&li);
-			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 7 );
+			swv *v = ss_iteratorof(&li);
+			t( *(int*)sf_field(st_r.r.scheme, 0, sw_vpointer(v), &st_r.size) == 7 );
 			ss_iteratornext(&li);
 		}
-		t( sl_iter_error(&li) == 0 );
+		t( sw_iter_error(&li) == 0 );
 		// commit
-		if (! sl_iter_continue(&li) )
+		if (! sw_iter_continue(&li) )
 			break;
 	}
 	ss_iteratorclose(&li);
 
-	t( sl_poolshutdown(&lp) == 0 );
+	t( sw_managershutdown(&lp) == 0 );
 }
 
 static void
-sl_itertx_read0(void)
+sw_itertx_read0(void)
 {
-	slpool lp;
-	t( sl_poolinit(&lp, &st_r.r) == 0 );
-	slconf *conf = sl_conf(&lp);
+	swmanager lp;
+	t( sw_managerinit(&lp, &st_r.r) == 0 );
+	swconf *conf = sw_conf(&lp);
 	conf->path     = strdup(st_r.conf->log_dir);
 	conf->enable   = 1;
 	conf->rotatewm = 1000;
-	t( sl_poolopen(&lp) == 0 );
-	t( sl_poolrotate(&lp) == 0 );
+	t( sw_manageropen(&lp) == 0 );
+	t( sw_managerrotate(&lp) == 0 );
 	svlog log;
 	sv_loginit(&log, &st_r.r, 1);
 	sv_loginit_index(&log, 0, &st_r.r);
 	alloclogv(&log, &st_r.r, 0, 7);
-	sltx ltx;
-	t( sl_begin(&lp, &ltx, 0, 0) == 0 );
-	t( sl_write(&ltx, &log) == 0 );
-	t( sl_commit(&ltx) == 0 );
+	swtx ltx;
+	t( sw_begin(&lp, &ltx, 0, 0) == 0 );
+	t( sw_write(&ltx, &log) == 0 );
+	t( sw_commit(&ltx) == 0 );
 	freelog(&log, &st_r.r);
 
-	sl *current = sscast(lp.list.prev, sl, link);
+	sw *current = sscast(lp.list.prev, sw, link);
 	ssiter li;
-	ss_iterinit(sl_iter, &li);
-	t( ss_iteropen(sl_iter, &li, &st_r.r, &current->file, 1) == 0 );
+	ss_iterinit(sw_iter, &li);
+	t( ss_iteropen(sw_iter, &li, &st_r.r, &current->file, 1) == 0 );
 	for (;;) {
 		// begin
 		while (ss_iteratorhas(&li)) {
-			slv *v = ss_iteratorof(&li);
-			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 7 );
+			swv *v = ss_iteratorof(&li);
+			t( *(int*)sf_field(st_r.r.scheme, 0, sw_vpointer(v), &st_r.size) == 7 );
 			ss_iteratornext(&li);
 		}
-		t( sl_iter_error(&li) == 0 );
+		t( sw_iter_error(&li) == 0 );
 		// commit
-		if (! sl_iter_continue(&li) )
+		if (! sw_iter_continue(&li) )
 			break;
 	}
 	ss_iteratorclose(&li);
 
-	t( sl_poolshutdown(&lp) == 0 );
+	t( sw_managershutdown(&lp) == 0 );
 }
 
 static void
-sl_itertx_read1(void)
+sw_itertx_read1(void)
 {
-	slpool lp;
-	t( sl_poolinit(&lp, &st_r.r) == 0 );
-	slconf *conf = sl_conf(&lp);
+	swmanager lp;
+	t( sw_managerinit(&lp, &st_r.r) == 0 );
+	swconf *conf = sw_conf(&lp);
 	conf->path     = strdup(st_r.conf->log_dir);
 	conf->enable   = 1;
 	conf->rotatewm = 1000;
-	t( sl_poolopen(&lp) == 0 );
-	t( sl_poolrotate(&lp) == 0 );
+	t( sw_manageropen(&lp) == 0 );
+	t( sw_managerrotate(&lp) == 0 );
 	svlog log;
 	sv_loginit(&log, &st_r.r, 1);
 	sv_loginit_index(&log, 0, &st_r.r);
 	alloclogv(&log, &st_r.r, 0, 7);
 	alloclogv(&log, &st_r.r, 0, 8);
 	alloclogv(&log, &st_r.r, 0, 9);
-	sltx ltx;
-	t( sl_begin(&lp, &ltx, 0, 0) == 0 );
-	t( sl_write(&ltx, &log) == 0 );
-	t( sl_commit(&ltx) == 0 );
+	swtx ltx;
+	t( sw_begin(&lp, &ltx, 0, 0) == 0 );
+	t( sw_write(&ltx, &log) == 0 );
+	t( sw_commit(&ltx) == 0 );
 	freelog(&log, &st_r.r);
 
-	sl *current = sscast(lp.list.prev, sl, link);
+	sw *current = sscast(lp.list.prev, sw, link);
 	ssiter li;
-	ss_iterinit(sl_iter, &li);
-	t( ss_iteropen(sl_iter, &li, &st_r.r, &current->file, 1) == 0 );
+	ss_iterinit(sw_iter, &li);
+	t( ss_iteropen(sw_iter, &li, &st_r.r, &current->file, 1) == 0 );
 	for (;;) {
 		// begin
 		t( ss_iteratorhas(&li) == 1 );
-		slv *v = ss_iteratorof(&li);
-		t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 7 );
+		swv *v = ss_iteratorof(&li);
+		t( *(int*)sf_field(st_r.r.scheme, 0, sw_vpointer(v), &st_r.size) == 7 );
 		ss_iteratornext(&li);
 		t( ss_iteratorhas(&li) == 1 );
 		v = ss_iteratorof(&li);
-		t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 8 );
+		t( *(int*)sf_field(st_r.r.scheme, 0, sw_vpointer(v), &st_r.size) == 8 );
 		ss_iteratornext(&li);
 		t( ss_iteratorhas(&li) == 1 );
 		v = ss_iteratorof(&li);
-		t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 9 );
+		t( *(int*)sf_field(st_r.r.scheme, 0, sw_vpointer(v), &st_r.size) == 9 );
 		ss_iteratornext(&li);
 		t( ss_iteratorhas(&li) == 0 );
 
-		t( sl_iter_error(&li) == 0 );
+		t( sw_iter_error(&li) == 0 );
 		// commit
-		if (! sl_iter_continue(&li) )
+		if (! sw_iter_continue(&li) )
 			break;
 	}
 	ss_iteratorclose(&li);
 
-	t( sl_poolshutdown(&lp) == 0 );
+	t( sw_managershutdown(&lp) == 0 );
 }
 
 static void
-sl_itertx_read2(void)
+sw_itertx_read2(void)
 {
-	slpool lp;
-	t( sl_poolinit(&lp, &st_r.r) == 0 );
-	slconf *conf = sl_conf(&lp);
+	swmanager lp;
+	t( sw_managerinit(&lp, &st_r.r) == 0 );
+	swconf *conf = sw_conf(&lp);
 	conf->path     = strdup(st_r.conf->log_dir);
 	conf->enable   = 1;
 	conf->rotatewm = 1000;
-	t( sl_poolopen(&lp) == 0 );
-	t( sl_poolrotate(&lp) == 0 );
+	t( sw_manageropen(&lp) == 0 );
+	t( sw_managerrotate(&lp) == 0 );
 	svlog log;
 	sv_loginit(&log, &st_r.r, 1);
 	sv_loginit_index(&log, 0, &st_r.r);
 	alloclogv(&log, &st_r.r, 0, 7);
 	alloclogv(&log, &st_r.r, 0, 8);
 	alloclogv(&log, &st_r.r, 0, 9);
-	sltx ltx;
-	t( sl_begin(&lp, &ltx, 0, 0) == 0 );
-	t( sl_write(&ltx, &log) == 0 );
-	t( sl_commit(&ltx) == 0 );
+	swtx ltx;
+	t( sw_begin(&lp, &ltx, 0, 0) == 0 );
+	t( sw_write(&ltx, &log) == 0 );
+	t( sw_commit(&ltx) == 0 );
 
-	t( sl_begin(&lp, &ltx, 0, 0) == 0 );
-	t( sl_write(&ltx, &log) == 0 );
-	t( sl_commit(&ltx) == 0 );
+	t( sw_begin(&lp, &ltx, 0, 0) == 0 );
+	t( sw_write(&ltx, &log) == 0 );
+	t( sw_commit(&ltx) == 0 );
 	freelog(&log, &st_r.r);
 
-	sl *current = sscast(lp.list.prev, sl, link);
+	sw *current = sscast(lp.list.prev, sw, link);
 	ssiter li;
-	ss_iterinit(sl_iter, &li);
-	t( ss_iteropen(sl_iter, &li, &st_r.r, &current->file, 1) == 0 );
+	ss_iterinit(sw_iter, &li);
+	t( ss_iteropen(sw_iter, &li, &st_r.r, &current->file, 1) == 0 );
 	for (;;) {
 		// begin
 		t( ss_iteratorhas(&li) == 1 );
-		slv *v = ss_iteratorof(&li);
-		t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 7 );
+		swv *v = ss_iteratorof(&li);
+		t( *(int*)sf_field(st_r.r.scheme, 0, sw_vpointer(v), &st_r.size) == 7 );
 		ss_iteratornext(&li);
 		t( ss_iteratorhas(&li) == 1 );
 		v = ss_iteratorof(&li);
-		t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 8 );
+		t( *(int*)sf_field(st_r.r.scheme, 0, sw_vpointer(v), &st_r.size) == 8 );
 		ss_iteratornext(&li);
 		t( ss_iteratorhas(&li) == 1 );
 		v = ss_iteratorof(&li);
-		t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 9 );
+		t( *(int*)sf_field(st_r.r.scheme, 0, sw_vpointer(v), &st_r.size) == 9 );
 		ss_iteratornext(&li);
 
 		t( ss_iteratorhas(&li) == 0 );
-		t( sl_iter_error(&li) == 0 );
+		t( sw_iter_error(&li) == 0 );
 		// commit
-		if (! sl_iter_continue(&li) )
+		if (! sw_iter_continue(&li) )
 			break;
 	}
 	ss_iteratorclose(&li);
 
-	t( sl_poolshutdown(&lp) == 0 );
+	t( sw_managershutdown(&lp) == 0 );
 }
 
 static void
-sl_itertx_read3(void)
+sw_itertx_read3(void)
 {
-	slpool lp;
-	t( sl_poolinit(&lp, &st_r.r) == 0 );
-	slconf *conf = sl_conf(&lp);
+	swmanager lp;
+	t( sw_managerinit(&lp, &st_r.r) == 0 );
+	swconf *conf = sw_conf(&lp);
 	conf->path     = strdup(st_r.conf->log_dir);
 	conf->enable   = 1;
 	conf->rotatewm = 1000;
-	t( sl_poolopen(&lp) == 0 );
-	t( sl_poolrotate(&lp) == 0 );
+	t( sw_manageropen(&lp) == 0 );
+	t( sw_managerrotate(&lp) == 0 );
 	svlog log;
 
 	sv_loginit(&log, &st_r.r, 1);
 	sv_loginit_index(&log, 0, &st_r.r);
 	alloclogv(&log, &st_r.r, 0, 7); /* single stmt */
-	sltx ltx;
-	t( sl_begin(&lp, &ltx, 0, 0) == 0 );
-	t( sl_write(&ltx, &log) == 0 );
-	t( sl_commit(&ltx) == 0 );
+	swtx ltx;
+	t( sw_begin(&lp, &ltx, 0, 0) == 0 );
+	t( sw_write(&ltx, &log) == 0 );
+	t( sw_commit(&ltx) == 0 );
 	freelog(&log, &st_r.r);
 
 	sv_loginit(&log, &st_r.r, 1);
@@ -291,9 +291,9 @@ sl_itertx_read3(void)
 	alloclogv(&log, &st_r.r, 0, 8); /* multi stmt */
 	alloclogv(&log, &st_r.r, 0, 9);
 	alloclogv(&log, &st_r.r, 0, 10);
-	t( sl_begin(&lp, &ltx, 0, 0) == 0 );
-	t( sl_write(&ltx, &log) == 0 );
-	t( sl_commit(&ltx) == 0 );
+	t( sw_begin(&lp, &ltx, 0, 0) == 0 );
+	t( sw_write(&ltx, &log) == 0 );
+	t( sw_commit(&ltx) == 0 );
 	freelog(&log, &st_r.r);
 
 	sv_loginit(&log, &st_r.r, 1);
@@ -301,33 +301,33 @@ sl_itertx_read3(void)
 	alloclogv(&log, &st_r.r, 0, 11); /* multi stmt */
 	alloclogv(&log, &st_r.r, 0, 12);
 	alloclogv(&log, &st_r.r, 0, 13);
-	t( sl_begin(&lp, &ltx, 0, 0) == 0 );
-	t( sl_write(&ltx, &log) == 0 );
-	t( sl_commit(&ltx) == 0 );
+	t( sw_begin(&lp, &ltx, 0, 0) == 0 );
+	t( sw_write(&ltx, &log) == 0 );
+	t( sw_commit(&ltx) == 0 );
 	freelog(&log, &st_r.r);
 
 	sv_loginit(&log, &st_r.r, 1);
 	sv_loginit_index(&log, 0, &st_r.r);
 	alloclogv(&log, &st_r.r, 0, 14); /* single stmt */
-	t( sl_begin(&lp, &ltx, 0, 0) == 0 );
-	t( sl_write(&ltx, &log) == 0 );
-	t( sl_commit(&ltx) == 0 );
+	t( sw_begin(&lp, &ltx, 0, 0) == 0 );
+	t( sw_write(&ltx, &log) == 0 );
+	t( sw_commit(&ltx) == 0 );
 	freelog(&log, &st_r.r);
 
 	int state = 0;
 
-	sl *current = sscast(lp.list.prev, sl, link);
+	sw *current = sscast(lp.list.prev, sw, link);
 	ssiter li;
-	ss_iterinit(sl_iter, &li);
-	t( ss_iteropen(sl_iter, &li, &st_r.r, &current->file, 1) == 0 );
+	ss_iterinit(sw_iter, &li);
+	t( ss_iteropen(sw_iter, &li, &st_r.r, &current->file, 1) == 0 );
 	for (;;) {
-		slv *v;
+		swv *v;
 		// begin
 		switch (state) {
 		case 0:
 			t( ss_iteratorhas(&li) == 1 );
 			v = ss_iteratorof(&li);
-			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 7 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sw_vpointer(v), &st_r.size) == 7 );
 			ss_iteratornext(&li);
 			v = ss_iteratorof(&li);
 			t( v == NULL );
@@ -335,13 +335,13 @@ sl_itertx_read3(void)
 		case 1:
 			t( ss_iteratorhas(&li) == 1 );
 			v = ss_iteratorof(&li);
-			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 8 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sw_vpointer(v), &st_r.size) == 8 );
 			ss_iteratornext(&li);
 			v = ss_iteratorof(&li);
-			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 9 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sw_vpointer(v), &st_r.size) == 9 );
 			ss_iteratornext(&li);
 			v = ss_iteratorof(&li);
-			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 10 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sw_vpointer(v), &st_r.size) == 10 );
 			ss_iteratornext(&li);
 			v = ss_iteratorof(&li);
 			t( v == NULL );
@@ -349,13 +349,13 @@ sl_itertx_read3(void)
 		case 2:
 			t( ss_iteratorhas(&li) == 1 );
 			v = ss_iteratorof(&li);
-			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 11 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sw_vpointer(v), &st_r.size) == 11 );
 			ss_iteratornext(&li);
 			v = ss_iteratorof(&li);
-			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 12 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sw_vpointer(v), &st_r.size) == 12 );
 			ss_iteratornext(&li);
 			v = ss_iteratorof(&li);
-			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 13 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sw_vpointer(v), &st_r.size) == 13 );
 			ss_iteratornext(&li);
 			v = ss_iteratorof(&li);
 			t( v == NULL );
@@ -363,31 +363,31 @@ sl_itertx_read3(void)
 		case 3:
 			t( ss_iteratorhas(&li) == 1 );
 			v = ss_iteratorof(&li);
-			t( *(int*)sf_field(st_r.r.scheme, 0, sl_vpointer(v), &st_r.size) == 14 );
+			t( *(int*)sf_field(st_r.r.scheme, 0, sw_vpointer(v), &st_r.size) == 14 );
 			ss_iteratornext(&li);
 			v = ss_iteratorof(&li);
 			t( v == NULL );
 			break;
 		}
 		// commit
-		if (! sl_iter_continue(&li) )
+		if (! sw_iter_continue(&li) )
 			break;
 		state++;
 	}
 	ss_iteratorclose(&li);
 	t( state == 3);
 
-	t( sl_poolshutdown(&lp) == 0 );
+	t( sw_managershutdown(&lp) == 0 );
 }
 
-stgroup *sl_iter_group(void)
+stgroup *sw_iter_group(void)
 {
-	stgroup *group = st_group("sliter");
-	st_groupadd(group, st_test("tx", sl_itertx));
-	st_groupadd(group, st_test("tx_read_empty", sl_itertx_read_empty));
-	st_groupadd(group, st_test("tx_read0", sl_itertx_read0));
-	st_groupadd(group, st_test("tx_read1", sl_itertx_read1));
-	st_groupadd(group, st_test("tx_read2", sl_itertx_read2));
-	st_groupadd(group, st_test("tx_read3", sl_itertx_read3));
+	stgroup *group = st_group("switer");
+	st_groupadd(group, st_test("tx", sw_itertx));
+	st_groupadd(group, st_test("tx_read_empty", sw_itertx_read_empty));
+	st_groupadd(group, st_test("tx_read0", sw_itertx_read0));
+	st_groupadd(group, st_test("tx_read1", sw_itertx_read1));
+	st_groupadd(group, st_test("tx_read2", sw_itertx_read2));
+	st_groupadd(group, st_test("tx_read3", sw_itertx_read3));
 	return group;
 }

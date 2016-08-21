@@ -12,7 +12,7 @@
 #include <libsr.h>
 #include <libso.h>
 #include <libsv.h>
-#include <libsl.h>
+#include <libsw.h>
 #include <libsd.h>
 #include <libsi.h>
 #include <libsx.h>
@@ -21,19 +21,19 @@
 #include <libse.h>
 
 static int
-se_recover_log(se *e, sl *log)
+se_recover_log(se *e, sw *log)
 {
 	so *tx = NULL;
 	sedb *db = NULL;
 	ssiter i;
-	ss_iterinit(sl_iter, &i);
+	ss_iterinit(sw_iter, &i);
 	int processed = 0;
-	int rc = ss_iteropen(sl_iter, &i, &e->r, &log->file, 1);
+	int rc = ss_iteropen(sw_iter, &i, &e->r, &log->file, 1);
 	if (ssunlikely(rc == -1))
 		return -1;
 	for (;;)
 	{
-		slv *v = ss_iteratorof(&i);
+		swv *v = ss_iteratorof(&i);
 		if (ssunlikely(v == NULL))
 			break;
 
@@ -54,7 +54,7 @@ se_recover_log(se *e, sl *log)
 				               " is not declared", dsn);
 				goto rlb;
 			}
-			char *data = sl_vpointer(v);
+			char *data = sw_vpointer(v);
 			lsn = sf_lsn(db->r->scheme, data);
 			so *o = so_document(&db->o);
 			if (ssunlikely(o == NULL))
@@ -80,14 +80,14 @@ se_recover_log(se *e, sl *log)
 				sr_log(&e->log, " %.1fM processed", processed / 1000000.0);
 			ss_iteratornext(&i);
 		}
-		if (ssunlikely(sl_iter_error(&i)))
+		if (ssunlikely(sw_iter_error(&i)))
 			goto rlb;
 
 		so_setint(tx, "lsn", lsn);
 		rc = so_commit(tx);
 		if (ssunlikely(rc != 0))
 			goto error;
-		rc = sl_iter_continue(&i);
+		rc = sw_iter_continue(&i);
 		if (ssunlikely(rc == -1))
 			goto error;
 		if (rc == 0)
@@ -105,13 +105,13 @@ error:
 static inline int
 se_recover_logpool(se *e)
 {
-	sr_log(&e->log, "loading journals '%s'", e->lp_conf->path);
+	sr_log(&e->log, "loading journals '%s'", e->wm_conf->path);
 	uint32_t current = 1;
 	sslist *i;
-	ss_listforeach(&e->lp.list, i) {
-		sl *log = sscast(i, sl, link);
+	ss_listforeach(&e->wm.list, i) {
+		sw *log = sscast(i, sw, link);
 		sr_log(&e->log, "(%" PRIu32 "/%" PRIu32 ") %020" PRIu64".log",
-		       current, e->lp.n, log->id);
+		       current, e->wm.n, log->id);
 		int rc = se_recover_log(e, log);
 		if (ssunlikely(rc == -1))
 			return -1;
@@ -122,7 +122,7 @@ se_recover_logpool(se *e)
 
 int se_recover(se *e)
 {
-	int rc = sl_poolopen(&e->lp);
+	int rc = sw_manageropen(&e->wm);
 	if (ssunlikely(rc == -1))
 		goto error;
 	rc = se_recover_logpool(e);

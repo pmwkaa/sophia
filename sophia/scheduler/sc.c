@@ -13,12 +13,12 @@
 #include <libso.h>
 #include <libsv.h>
 #include <libsd.h>
-#include <libsl.h>
+#include <libsw.h>
 #include <libsi.h>
 #include <libsy.h>
 #include <libsc.h>
 
-int sc_init(sc *s, sr *r, slpool *lp)
+int sc_init(sc *s, sr *r, swmanager *wm)
 {
 	ss_mutexinit(&s->lock);
 	/* task priorities */
@@ -38,7 +38,7 @@ int sc_init(sc *s, sr *r, slpool *lp)
 	s->count                    = 0;
 	s->rr                       = 0;
 	s->r                        = r;
-	s->lp                       = lp;
+	s->wm                       = wm;
 	ss_threadpool_init(&s->tp);
 	sc_workerpool_init(&s->wp);
 	return 0;

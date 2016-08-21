@@ -11,9 +11,9 @@
 #include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
-#include <libsl.h>
+#include <libsw.h>
 
-void sl_confinit(slconf *c)
+void sw_confinit(swconf *c)
 {
 	c->enable         = 1;
 	c->path           = NULL;
@@ -22,13 +22,13 @@ void sl_confinit(slconf *c)
 	c->sync_on_rotate = 1;
 }
 
-void sl_conffree(slconf *c, ssa *a)
+void sw_conffree(swconf *c, ssa *a)
 {
 	if (c->path)
 		ss_free(a, c->path);
 }
 
-int sl_confset_path(slconf *c, ssa *a, char *path)
+int sw_confset_path(swconf *c, ssa *a, char *path)
 {
 	char *sz = ss_strdup(a, path);
 	if (ssunlikely(sz == NULL))

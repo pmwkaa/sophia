@@ -1,5 +1,5 @@
-#ifndef SL_CONF_H_
-#define SL_CONF_H_
+#ifndef SW_CONF_H_
+#define SW_CONF_H_
 
 /*
  * sophia database
@@ -9,9 +9,9 @@
  * BSD License
 */
 
-typedef struct slconf slconf;
+typedef struct swconf swconf;
 
-struct slconf {
+struct swconf {
 	uint32_t  enable;
 	char     *path;
 	uint32_t  sync_on_rotate;
@@ -19,8 +19,8 @@ struct slconf {
 	uint32_t  rotatewm;
 };
 
-void sl_confinit(slconf*);
-void sl_conffree(slconf*, ssa*);
-int  sl_confset_path(slconf*, ssa*, char*);
+void sw_confinit(swconf*);
+void sw_conffree(swconf*, ssa*);
+int  sw_confset_path(swconf*, ssa*, char*);
 
 #endif

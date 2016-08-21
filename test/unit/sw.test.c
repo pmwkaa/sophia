@@ -12,7 +12,7 @@
 #include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
-#include <libsl.h>
+#include <libsw.h>
 #include <libsd.h>
 #include <libst.h>
 
@@ -50,16 +50,16 @@ freelog(svlog *log, sr *c)
 }
 
 static void
-sl_begin_commit(void)
+sw_begin_commit(void)
 {
-	slpool lp;
-	t( sl_poolinit(&lp, &st_r.r) == 0 );
-	slconf *conf = sl_conf(&lp);
+	swmanager lp;
+	t( sw_managerinit(&lp, &st_r.r) == 0 );
+	swconf *conf = sw_conf(&lp);
 	conf->path     = strdup(st_r.conf->log_dir);
 	conf->enable   = 1;
 	conf->rotatewm = 1000;
-	t( sl_poolopen(&lp) == 0 );
-	t( sl_poolrotate(&lp) == 0 );
+	t( sw_manageropen(&lp) == 0 );
+	t( sw_managerrotate(&lp) == 0 );
 
 	svlog log;
 	sv_loginit(&log, &st_r.r, 1);
@@ -67,26 +67,26 @@ sl_begin_commit(void)
 
 	alloclogv(&log, &st_r.r, 0, 0, 7);
 
-	sltx ltx;
-	t( sl_begin(&lp, &ltx, 0, 0) == 0 );
-	t( sl_write(&ltx, &log) == 0 );
-	t( sl_commit(&ltx) == 0 );
+	swtx ltx;
+	t( sw_begin(&lp, &ltx, 0, 0) == 0 );
+	t( sw_write(&ltx, &log) == 0 );
+	t( sw_commit(&ltx) == 0 );
 
 	freelog(&log, &st_r.r);
-	t( sl_poolshutdown(&lp) == 0 );
+	t( sw_managershutdown(&lp) == 0 );
 }
 
 static void
-sl_begin_rollback(void)
+sw_begin_rollback(void)
 {
-	slpool lp;
-	t( sl_poolinit(&lp, &st_r.r) == 0 );
-	slconf *conf = sl_conf(&lp);
+	swmanager lp;
+	t( sw_managerinit(&lp, &st_r.r) == 0 );
+	swconf *conf = sw_conf(&lp);
 	conf->path     = strdup(st_r.conf->log_dir);
 	conf->enable   = 1;
 	conf->rotatewm = 1000;
-	t( sl_poolopen(&lp) == 0 );
-	t( sl_poolrotate(&lp) == 0 );
+	t( sw_manageropen(&lp) == 0 );
+	t( sw_managerrotate(&lp) == 0 );
 
 	svlog log;
 	sv_loginit(&log, &st_r.r, 1);
@@ -94,19 +94,19 @@ sl_begin_rollback(void)
 
 	alloclogv(&log, &st_r.r, 0, 0, 7);
 
-	sltx ltx;
-	t( sl_begin(&lp, &ltx, 0, 0) == 0 );
-	t( sl_write(&ltx, &log) == 0 );
-	t( sl_rollback(&ltx) == 0 );
+	swtx ltx;
+	t( sw_begin(&lp, &ltx, 0, 0) == 0 );
+	t( sw_write(&ltx, &log) == 0 );
+	t( sw_rollback(&ltx) == 0 );
 
 	freelog(&log, &st_r.r);
-	t( sl_poolshutdown(&lp) == 0 );
+	t( sw_managershutdown(&lp) == 0 );
 }
 
-stgroup *sl_group(void)
+stgroup *sw_group(void)
 {
-	stgroup *group = st_group("sl");
-	st_groupadd(group, st_test("begin_commit", sl_begin_commit));
-	st_groupadd(group, st_test("begin_rollback", sl_begin_rollback));
+	stgroup *group = st_group("sw");
+	st_groupadd(group, st_test("begin_commit", sw_begin_commit));
+	st_groupadd(group, st_test("begin_rollback", sw_begin_rollback));
 	return group;
 }

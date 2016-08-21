@@ -11,12 +11,12 @@
 #include <libsf.h>
 #include <libsr.h>
 #include <libsv.h>
-#include <libsl.h>
+#include <libsw.h>
 
-static inline sl*
-sl_alloc(slpool *p, uint64_t id)
+static inline sw*
+sw_alloc(swmanager *p, uint64_t id)
 {
-	sl *l = ss_malloc(p->r->a, sizeof(*l));
+	sw *l = ss_malloc(p->r->a, sizeof(*l));
 	if (ssunlikely(l == NULL)) {
 		sr_oom_malfunction(p->r->e);
 		return NULL;
@@ -32,7 +32,7 @@ sl_alloc(slpool *p, uint64_t id)
 }
 
 static inline int
-sl_close(slpool *p, sl *l)
+sw_close(swmanager *p, sw *l)
 {
 	int rc = ss_fileclose(&l->file);
 	if (ssunlikely(rc == -1)) {
@@ -46,10 +46,10 @@ sl_close(slpool *p, sl *l)
 	return rc;
 }
 
-static inline sl*
-sl_open(slpool *p, uint64_t id)
+static inline sw*
+sw_open(swmanager *p, uint64_t id)
 {
-	sl *l = sl_alloc(p, id);
+	sw *l = sw_alloc(p, id);
 	if (ssunlikely(l == NULL))
 		return NULL;
 	sspath path;
@@ -63,14 +63,14 @@ sl_open(slpool *p, uint64_t id)
 	}
 	return l;
 error:
-	sl_close(p, l);
+	sw_close(p, l);
 	return NULL;
 }
 
-static inline sl*
-sl_new(slpool *p, uint64_t id)
+static inline sw*
+sw_new(swmanager *p, uint64_t id)
 {
-	sl *l = sl_alloc(p, id);
+	sw *l = sw_alloc(p, id);
 	if (ssunlikely(l == NULL))
 		return NULL;
 	sspath path;
@@ -92,15 +92,15 @@ sl_new(slpool *p, uint64_t id)
 	}
 	return l;
 error:
-	sl_close(p, l);
+	sw_close(p, l);
 	return NULL;
 }
 
-int sl_poolinit(slpool *p, sr *r)
+int sw_managerinit(swmanager *p, sr *r)
 {
 	ss_spinlockinit(&p->lock);
 	ss_listinit(&p->list);
-	sl_confinit(&p->conf);
+	sw_confinit(&p->conf);
 	p->n    = 0;
 	p->r    = r;
 	p->gc   = 1;
@@ -113,7 +113,7 @@ int sl_poolinit(slpool *p, sr *r)
 }
 
 static inline int
-sl_poolcreate(slpool *p)
+sw_managercreate(swmanager *p)
 {
 	int rc;
 	rc = ss_vfsmkdir(p->r->vfs, p->conf.path, 0755);
@@ -124,25 +124,25 @@ sl_poolcreate(slpool *p)
 }
 
 static inline int
-sl_poolrecover(slpool *p)
+sw_managerrecover(swmanager *p)
 {
 	ssbuf list;
 	ss_bufinit(&list);
-	sldirtype types[] =
+	swdirtype types[] =
 	{
 		{ "log", 1, 0 },
 		{ NULL,  0, 0 }
 	};
-	int rc = sl_dirread(&list, p->r->a, types, p->conf.path);
+	int rc = sw_dirread(&list, p->r->a, types, p->conf.path);
 	if (ssunlikely(rc == -1))
 		return sr_malfunction(p->r->e, "log directory '%s' open error",
 		                      p->conf.path);
 	ssiter i;
 	ss_iterinit(ss_bufiter, &i);
-	ss_iteropen(ss_bufiter, &i, &list, sizeof(sldirid));
+	ss_iteropen(ss_bufiter, &i, &list, sizeof(swdirid));
 	while(ss_iterhas(ss_bufiter, &i)) {
-		sldirid *id = ss_iterof(ss_bufiter, &i);
-		sl *l = sl_open(p, id->id);
+		swdirid *id = ss_iterof(ss_bufiter, &i);
+		sw *l = sw_open(p, id->id);
 		if (ssunlikely(l == NULL)) {
 			ss_buffree(&list, p->r->a);
 			return -1;
@@ -154,7 +154,7 @@ sl_poolrecover(slpool *p)
 	}
 	ss_buffree(&list, p->r->a);
 	if (p->n) {
-		sl *last = sscast(p->list.prev, sl, link);
+		sw *last = sscast(p->list.prev, sw, link);
 		last->gc.complete = 0;
 		rc = ss_fileseek(&last->file, last->file.size);
 		if (ssunlikely(rc == -1)) {
@@ -168,39 +168,39 @@ sl_poolrecover(slpool *p)
 	return 0;
 }
 
-int sl_poolopen(slpool *p)
+int sw_manageropen(swmanager *p)
 {
 	if (ssunlikely(! p->conf.enable))
 		return 0;
 	int exists = ss_vfsexists(p->r->vfs, p->conf.path);
 	int rc;
 	if (! exists) {
-		rc = sl_poolcreate(p);
+		rc = sw_managercreate(p);
 		if (ssunlikely(rc == -1))
 			return -1;
-		rc = sl_poolrotate(p);
+		rc = sw_managerrotate(p);
 		if (ssunlikely(rc == -1))
 			return -1;
 	} else {
-		rc = sl_poolrecover(p);
+		rc = sw_managerrecover(p);
 		if (ssunlikely(rc == -1))
 			return -1;
 	}
 	return 0;
 }
 
-int sl_poolrotate(slpool *p)
+int sw_managerrotate(swmanager *p)
 {
 	if (ssunlikely(! p->conf.enable))
 		return 0;
 	uint64_t lfsn = sr_seq(p->r->seq, SR_LFSNNEXT);
-	sl *l = sl_new(p, lfsn);
+	sw *l = sw_new(p, lfsn);
 	if (ssunlikely(l == NULL))
 		return -1;
-	sl *log = NULL;
+	sw *log = NULL;
 	ss_spinlock(&p->lock);
 	if (p->n)
-		log = sscast(p->list.prev, sl, link);
+		log = sscast(p->list.prev, sw, link);
 	ss_listappend(&p->list, &l->link);
 	p->n++;
 	ss_spinunlock(&p->lock);
@@ -221,40 +221,40 @@ int sl_poolrotate(slpool *p)
 	return 0;
 }
 
-int sl_poolrotate_ready(slpool *p)
+int sw_managerrotate_ready(swmanager *p)
 {
 	if (ssunlikely(! p->conf.enable))
 		return 0;
 	ss_spinlock(&p->lock);
 	assert(p->n > 0);
-	sl *l = sscast(p->list.prev, sl, link);
+	sw *l = sscast(p->list.prev, sw, link);
 	int ready = ss_gcrotateready(&l->gc, p->conf.rotatewm);
 	ss_spinunlock(&p->lock);
 	return ready;
 }
 
-int sl_poolshutdown(slpool *p)
+int sw_managershutdown(swmanager *p)
 {
 	int rcret = 0;
 	int rc;
 	if (p->n) {
 		sslist *i, *n;
 		ss_listforeach_safe(&p->list, i, n) {
-			sl *l = sscast(i, sl, link);
-			rc = sl_close(p, l);
+			sw *l = sscast(i, sw, link);
+			rc = sw_close(p, l);
 			if (ssunlikely(rc == -1))
 				rcret = -1;
 		}
 	}
 	if (p->iov.v)
 		ss_free(p->r->a, p->iov.v);
-	sl_conffree(&p->conf, p->r->a);
+	sw_conffree(&p->conf, p->r->a);
 	ss_spinlockfree(&p->lock);
 	return rcret;
 }
 
 static inline int
-sl_gc(slpool *p, sl *l)
+sw_gc(swmanager *p, sw *l)
 {
 	int rc;
 	rc = ss_vfsunlink(p->r->vfs, ss_pathof(&l->file.path));
@@ -263,13 +263,13 @@ sl_gc(slpool *p, sl *l)
 		                      ss_pathof(&l->file.path),
 		                      strerror(errno));
 	}
-	rc = sl_close(p, l);
+	rc = sw_close(p, l);
 	if (ssunlikely(rc == -1))
 		return -1;
 	return 1;
 }
 
-int sl_poolgc_enable(slpool *p, int enable)
+int sw_managergc_enable(swmanager *p, int enable)
 {
 	ss_spinlock(&p->lock);
 	p->gc = enable;
@@ -277,7 +277,7 @@ int sl_poolgc_enable(slpool *p, int enable)
 	return 0;
 }
 
-int sl_poolgc(slpool *p)
+int sw_managergc(swmanager *p)
 {
 	if (ssunlikely(! p->conf.enable))
 		return 0;
@@ -287,10 +287,10 @@ int sl_poolgc(slpool *p)
 			ss_spinunlock(&p->lock);
 			return 0;
 		}
-		sl *current = NULL;
+		sw *current = NULL;
 		sslist *i;
 		ss_listforeach(&p->list, i) {
-			sl *l = sscast(i, sl, link);
+			sw *l = sscast(i, sw, link);
 			if (sslikely(! ss_gcgarbage(&l->gc)))
 				continue;
 			ss_listunlink(&l->link);
@@ -300,7 +300,7 @@ int sl_poolgc(slpool *p)
 		}
 		ss_spinunlock(&p->lock);
 		if (current) {
-			int rc = sl_gc(p, current);
+			int rc = sw_gc(p, current);
 			if (ssunlikely(rc == -1))
 				return -1;
 		} else {
@@ -310,7 +310,7 @@ int sl_poolgc(slpool *p)
 	return 0;
 }
 
-int sl_poolfiles(slpool *p)
+int sw_managerfiles(swmanager *p)
 {
 	ss_spinlock(&p->lock);
 	int n = p->n;
@@ -318,14 +318,14 @@ int sl_poolfiles(slpool *p)
 	return n;
 }
 
-int sl_poolcopy(slpool *p, char *dest, ssbuf *buf)
+int sw_managercopy(swmanager *p, char *dest, ssbuf *buf)
 {
 	sslist list;
 	ss_listinit(&list);
 	ss_spinlock(&p->lock);
 	sslist *i;
 	ss_listforeach(&p->list, i) {
-		sl *l = sscast(i, sl, link);
+		sw *l = sscast(i, sw, link);
 		if (ss_gcinprogress(&l->gc))
 			break;
 		ss_listappend(&list, &l->linkcopy);
@@ -336,7 +336,7 @@ int sl_poolcopy(slpool *p, char *dest, ssbuf *buf)
 	sslist *n;
 	ss_listforeach_safe(&list, i, n)
 	{
-		sl *l = sscast(i, sl, linkcopy);
+		sw *l = sscast(i, sw, linkcopy);
 		ss_listinit(&l->linkcopy);
 		sspath path;
 		ss_path(&path, dest, l->id, ".log");
@@ -383,7 +383,7 @@ int sl_poolcopy(slpool *p, char *dest, ssbuf *buf)
 	return 0;
 }
 
-int sl_begin(slpool *p, sltx *t, uint64_t lsn, int recover)
+int sw_begin(swmanager *p, swtx *t, uint64_t lsn, int recover)
 {
 	ss_spinlock(&p->lock);
 	if (sslikely(lsn == 0)) {
@@ -402,7 +402,7 @@ int sl_begin(slpool *p, sltx *t, uint64_t lsn, int recover)
 	if (! p->conf.enable)
 		return 0;
 	assert(p->n > 0);
-	sl *l = sscast(p->list.prev, sl, link);
+	sw *l = sscast(p->list.prev, sw, link);
 	ss_mutexlock(&l->filelock);
 	t->svp = ss_filesvp(&l->file);
 	t->l = l;
@@ -410,7 +410,7 @@ int sl_begin(slpool *p, sltx *t, uint64_t lsn, int recover)
 	return 0;
 }
 
-int sl_commit(sltx *t)
+int sw_commit(swtx *t)
 {
 	if (t->p->conf.enable)
 		ss_mutexunlock(&t->l->filelock);
@@ -418,7 +418,7 @@ int sl_commit(sltx *t)
 	return 0;
 }
 
-int sl_rollback(sltx *t)
+int sw_rollback(swtx *t)
 {
 	int rc = 0;
 	if (t->p->conf.enable) {
@@ -434,7 +434,7 @@ int sl_rollback(sltx *t)
 }
 
 static inline void
-sl_writeadd(slpool *p, sltx *t, svlog *vlog, slv *lv, svlogv *logv)
+sw_writeadd(swmanager *p, swtx *t, svlog *vlog, swv *lv, svlogv *logv)
 {
 	sr *r = sv_logindex(vlog, logv->index_id)->r;
 	char *data = sv_vpointer(logv->v);
@@ -442,16 +442,16 @@ sl_writeadd(slpool *p, sltx *t, svlog *vlog, slv *lv, svlogv *logv)
 	lv->flags = sf_flags(r->scheme, data);
 	lv->size  = sf_size(r->scheme, data);
 	lv->crc   = ss_crcp(p->r->crc, data, lv->size, 0);
-	lv->crc   = ss_crcs(p->r->crc, lv, sizeof(slv), lv->crc);
-	ss_iovadd(&p->iov, lv, sizeof(slv));
+	lv->crc   = ss_crcs(p->r->crc, lv, sizeof(swv), lv->crc);
+	ss_iovadd(&p->iov, lv, sizeof(swv));
 	ss_iovadd(&p->iov, data, lv->size);
 	logv->v->log = t->l;
 }
 
 static inline int
-sl_writestmt(sltx *t, svlog *vlog)
+sw_writestmt(swtx *t, svlog *vlog)
 {
-	slpool *p = t->p;
+	swmanager *p = t->p;
 	svlogv *stmt = NULL;
 	ssiter i;
 	ss_iterinit(ss_bufiter, &i);
@@ -467,8 +467,8 @@ sl_writestmt(sltx *t, svlog *vlog)
 		}
 	}
 	assert(stmt != NULL);
-	slv lv;
-	sl_writeadd(t->p, t, vlog, &lv, stmt);
+	swv lv;
+	sw_writeadd(t->p, t, vlog, &lv, stmt);
 	int rc = ss_filewritev(&t->l->file, &p->iov);
 	if (ssunlikely(rc == -1)) {
 		sr_malfunction(p->r->e, "log file '%s' write error: %s",
@@ -482,21 +482,21 @@ sl_writestmt(sltx *t, svlog *vlog)
 }
 
 static int
-sl_writestmt_multi(sltx *t, svlog *vlog)
+sw_writestmt_multi(swtx *t, svlog *vlog)
 {
-	slpool *p = t->p;
-	sl *l = t->l;
-	slv lvbuf[510]; /* 1 + 510 per syscall */
+	swmanager *p = t->p;
+	sw *l = t->l;
+	swv lvbuf[510]; /* 1 + 510 per syscall */
 	int lvp;
 	int rc;
 	lvp = 0;
 	/* transaction header */
-	slv *lv = &lvbuf[0];
+	swv *lv = &lvbuf[0];
 	lv->dsn   = 0;
 	lv->flags = SVBEGIN;
 	lv->size  = sv_logcount_write(vlog);
-	lv->crc   = ss_crcs(p->r->crc, lv, sizeof(slv), 0);
-	ss_iovadd(&p->iov, lv, sizeof(slv));
+	lv->crc   = ss_crcs(p->r->crc, lv, sizeof(swv), 0);
+	ss_iovadd(&p->iov, lv, sizeof(swv));
 	lvp++;
 	/* body */
 	ssiter i;
@@ -522,7 +522,7 @@ sl_writestmt_multi(sltx *t, svlog *vlog)
 		if (sf_is(r->scheme, sv_vpointer(v), SVGET))
 			continue;
 		lv = &lvbuf[lvp];
-		sl_writeadd(p, t, vlog, lv, logv);
+		sw_writeadd(p, t, vlog, lv, logv);
 		lvp++;
 	}
 	if (sslikely(ss_iovhas(&p->iov))) {
@@ -539,7 +539,7 @@ sl_writestmt_multi(sltx *t, svlog *vlog)
 	return 0;
 }
 
-int sl_write(sltx *t, svlog *vlog)
+int sw_write(swtx *t, svlog *vlog)
 {
 	int count = sv_logcount_write(vlog);
 	/* fast path for log-disabled, recover or
@@ -562,9 +562,9 @@ int sl_write(sltx *t, svlog *vlog)
 	/* write single or multi-stmt transaction */
 	int rc;
 	if (sslikely(count == 1)) {
-		rc = sl_writestmt(t, vlog);
+		rc = sw_writestmt(t, vlog);
 	} else {
-		rc = sl_writestmt_multi(t, vlog);
+		rc = sw_writestmt_multi(t, vlog);
 	}
 	if (ssunlikely(rc == -1))
 		return -1;

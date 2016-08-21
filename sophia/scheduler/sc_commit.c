@@ -13,7 +13,7 @@
 #include <libso.h>
 #include <libsv.h>
 #include <libsd.h>
-#include <libsl.h>
+#include <libsw.h>
 #include <libsi.h>
 #include <libsy.h>
 #include <libsc.h>
@@ -21,14 +21,14 @@
 int sc_commit(sc *s, svlog *log, uint64_t lsn, int recover)
 {
 	/* write-ahead log */
-	sltx tl;
-	sl_begin(s->lp, &tl, lsn, recover);
-	int rc = sl_write(&tl, log);
+	swtx tl;
+	sw_begin(s->wm, &tl, lsn, recover);
+	int rc = sw_write(&tl, log);
 	if (ssunlikely(rc == -1)) {
-		sl_rollback(&tl);
+		sw_rollback(&tl);
 		return -1;
 	}
-	sl_commit(&tl);
+	sw_commit(&tl);
 
 	/* index */
 	svlogindex *i   = (svlogindex*)log->index.s;

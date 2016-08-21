@@ -12,13 +12,13 @@
 #include <libsr.h>
 #include <libso.h>
 #include <libsv.h>
-#include <libsl.h>
+#include <libsw.h>
 #include <libsd.h>
 #include <libsi.h>
 
 void si_gcv(sr *r, svv *v)
 {
-	sl *log = (sl*)v->log;
+	sw *log = (sw*)v->log;
 	if (sv_vunref(r, v)) {
 		if (log)
 			ss_gcsweep(&log->gc, 1);

@@ -1,5 +1,5 @@
-#ifndef SL_V_H_
-#define SL_V_H_
+#ifndef SW_V_H_
+#define SW_V_H_
 
 /*
  * sophia database
@@ -9,9 +9,9 @@
  * BSD License
 */
 
-typedef struct slv slv;
+typedef struct swv swv;
 
-struct slv {
+struct swv {
 	uint32_t crc;
 	uint32_t dsn;
 	uint32_t size;
@@ -19,7 +19,7 @@ struct slv {
 } sspacked;
 
 static inline char*
-sl_vpointer(slv *v) {
+sw_vpointer(swv *v) {
 	return (char*)v + sizeof(*v);
 }
 

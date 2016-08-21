@@ -13,7 +13,7 @@
 #include <libso.h>
 #include <libsv.h>
 #include <libsd.h>
-#include <libsl.h>
+#include <libsw.h>
 #include <libsi.h>
 #include <libsy.h>
 #include <libsc.h>
@@ -22,9 +22,9 @@ static inline int
 sc_rotate(sc *s, scworker *w)
 {
 	ss_trace(&w->trace, "%s", "log rotation");
-	int rc = sl_poolrotate_ready(s->lp);
+	int rc = sw_managerrotate_ready(s->wm);
 	if (rc) {
-		rc = sl_poolrotate(s->lp);
+		rc = sw_managerrotate(s->wm);
 		if (ssunlikely(rc == -1))
 			return -1;
 	}
@@ -35,7 +35,7 @@ static inline int
 sc_gc(sc *s, scworker *w)
 {
 	ss_trace(&w->trace, "%s", "log gc");
-	int rc = sl_poolgc(s->lp);
+	int rc = sw_managergc(s->wm);
 	if (ssunlikely(rc == -1))
 		return -1;
 	return 0;

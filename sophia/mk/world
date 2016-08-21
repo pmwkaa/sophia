@@ -11,7 +11,7 @@ OPLATFORM = $(LIBSS_OBJECTS) \
             $(LIBSR_OBJECTS) \
             $(LIBSO_OBJECTS) \
             $(LIBSV_OBJECTS) \
-            $(LIBSL_OBJECTS) \
+            $(LIBSW_OBJECTS) \
             $(LIBSD_OBJECTS) \
             $(LIBSI_OBJECTS) \
             $(LIBSX_OBJECTS) \

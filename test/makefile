@@ -14,8 +14,8 @@ STS_TESTS = unit/ss_a.test.o \
             unit/sv_indexiter.test.o \
             unit/sv_mergeiter.test.o \
             unit/sv_writeiter.test.o \
-            unit/sl.test.o \
-            unit/sl_iter.test.o \
+            unit/sw.test.o \
+            unit/sw_iter.test.o \
             unit/sd_build.test.o \
             unit/sd_v.test.o \
             unit/sd_read.test.o \
@@ -58,7 +58,7 @@ STS_TESTS = unit/ss_a.test.o \
             multithread/multithread_be.test.o \
             memory/leak.test.o
 
-SOPHIA_DIRS    = std format runtime object version log database \
+SOPHIA_DIRS    = std format runtime object version wal database \
                  index \
                  transaction \
                  repository \

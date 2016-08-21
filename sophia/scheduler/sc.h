@@ -60,11 +60,11 @@ struct sc {
 	/* pools */
 	ssthreadpool  tp;
 	scworkerpool  wp;
-	slpool       *lp;
+	swmanager    *wm;
 	sr           *r;
 };
 
-int sc_init(sc*, sr*, slpool*);
+int sc_init(sc*, sr*, swmanager*);
 int sc_set(sc*, uint32_t);
 int sc_setbackup(sc*, char*);
 int sc_run(sc*, ssthreadf, void*, int);

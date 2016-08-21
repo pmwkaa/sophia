@@ -13,7 +13,7 @@
 #include <libso.h>
 #include <libsv.h>
 #include <libsd.h>
-#include <libsl.h>
+#include <libsw.h>
 #include <libsi.h>
 #include <libsy.h>
 #include <libsc.h>
@@ -25,11 +25,11 @@ int sc_backupstart(sc *s)
 	 *
 	 * disable log garbage-collection
 	*/
-	sl_poolgc_enable(s->lp, 0);
+	sw_managergc_enable(s->wm, 0);
 	ss_mutexlock(&s->lock);
 	if (ssunlikely(s->backup > 0)) {
 		ss_mutexunlock(&s->lock);
-		sl_poolgc_enable(s->lp, 1);
+		sw_managergc_enable(s->wm, 1);
 		/* in progress */
 		return 1;
 	}
@@ -103,7 +103,7 @@ int sc_backupend(sc *s, scworker *w)
 
 	/* force log rotation */
 	ss_trace(&w->trace, "%s", "log rotation for backup");
-	int rc = sl_poolrotate(s->lp);
+	int rc = sw_managerrotate(s->wm);
 	if (ssunlikely(rc == -1))
 		return -1;
 
@@ -113,7 +113,7 @@ int sc_backupend(sc *s, scworker *w)
 	char path[1024];
 	snprintf(path, sizeof(path), "%s/%" PRIu32 ".incomplete/log",
 	         s->backup_path, s->backup_bsn);
-	rc = sl_poolcopy(s->lp, path, &w->dc.c);
+	rc = sw_managercopy(s->wm, path, &w->dc.c);
 	if (ssunlikely(rc == -1))
 		return -1;
 
@@ -131,7 +131,7 @@ int sc_backupend(sc *s, scworker *w)
 	}
 
 	/* enable log gc */
-	sl_poolgc_enable(s->lp, 1);
+	sw_managergc_enable(s->wm, 1);
 
 	/* complete */
 	ss_mutexlock(&s->lock);
@@ -146,7 +146,7 @@ int sc_backupend(sc *s, scworker *w)
 
 int sc_backupstop(sc *s)
 {
-	sl_poolgc_enable(s->lp, 1);
+	sw_managergc_enable(s->wm, 1);
 	ss_mutexlock(&s->lock);
 	s->backup = 0;
 	s->backup_bsn_last_complete = 0;

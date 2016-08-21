@@ -29,8 +29,8 @@ struct se {
 	sicachepool  cachepool;
 	syconf      *rep_conf;
 	sy           rep;
-	slconf      *lp_conf;
-	slpool       lp;
+	swconf      *wm_conf;
+	swmanager    wm;
 	sxmanager    xm;
 	srstatxm     xm_stat;
 	sc           scheduler;
