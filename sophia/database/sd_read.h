@@ -47,7 +47,7 @@ sd_read_page(sdread *i, sdindexpage *ref)
 	sdreadarg *arg = &i->ra;
 	sr *r = arg->r;
 
-	int page_align = arg->io->size_page * 2;
+	int page_align = arg->io->size_page * 4;
 	i->reads++;
 
 	ss_bufreset(arg->buf);
