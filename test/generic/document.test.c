@@ -185,6 +185,60 @@ document_hints(void)
 	sp_destroy(env);
 }
 
+static void
+document_setint(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "a", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.a", "u8", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "b", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.b", "u16", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "c", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.c", "u32", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "d", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme.d", "u64", 0) == 0 );
+
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(env) == 0 );
+
+	void *o = sp_document(db);
+	t( sp_setint(o, "key", 28) == 0 );
+	t( sp_setint(o, "a", INT8_MAX) == 0 );
+	t( sp_setint(o, "b", INT16_MAX) == 0 );
+	t( sp_setint(o, "c", INT32_MAX) == 0 );
+	t( sp_setint(o, "d", INT64_MAX) == 0 );
+	t( sp_getint(o, "key") == 28 );
+	t( sp_getint(o, "a") == INT8_MAX );
+	t( sp_getint(o, "b") == INT16_MAX );
+	t( sp_getint(o, "c") == INT32_MAX );
+	t( sp_getint(o, "d") == INT64_MAX );
+	t( sp_set(db, o) == 0 );
+
+	o = sp_document(db);
+	t(o != NULL);
+	t( sp_setint(o, "key", 28) == 0);
+	o = sp_get(db, o);
+	t( o != NULL );
+	t( sp_getint(o, "key") == 28 );
+	t( sp_getint(o, "a") == INT8_MAX );
+	t( sp_getint(o, "b") == INT16_MAX );
+	t( sp_getint(o, "c") == INT32_MAX );
+	t( sp_getint(o, "d") == INT64_MAX );
+	sp_destroy(o);
+
+	t( sp_destroy(env) == 0 );
+}
+
 stgroup *document_group(void)
 {
 	stgroup *group = st_group("document");
@@ -193,5 +247,6 @@ stgroup *document_group(void)
 	st_groupadd(group, st_test("readonly0", document_readonly0));
 	st_groupadd(group, st_test("readonly1", document_readonly1));
 	st_groupadd(group, st_test("hints", document_hints));
+	st_groupadd(group, st_test("setint", document_setint));
 	return group;
 }

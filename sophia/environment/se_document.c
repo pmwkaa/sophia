@@ -173,6 +173,53 @@ se_document_destroy(so *o)
 }
 
 static inline int
+se_document_setfield_numeric(sedocument *v, int pos, int64_t num)
+{
+	se *e = se_of(&v->o);
+	sedb *db = (sedb*)v->o.parent;
+	if (ssunlikely(pos >= db->scheme->scheme.fields_count)) {
+		sr_error(&e->error, "%s", "incorrect field position");
+		return -1;
+	}
+	assert(pos < (int)(sizeof(v->fields) / sizeof(sfv)));
+	sffield *field = sf_schemeof(&db->scheme->scheme, pos);
+	sfv *fv = &v->fields[pos];
+	if (fv->pointer == NULL) {
+		v->fields_count++;
+		if (field->key)
+			v->fields_count_keys++;
+	}
+	fv->pointer = (void*)&fv->numeric;
+	switch (field->type) {
+	case SS_U8:
+	case SS_U8REV:
+		fv->numeric.u8 = num;
+		fv->size = sizeof(fv->numeric.u8);
+		break;
+	case SS_U16:
+	case SS_U16REV:
+		fv->numeric.u16 = num;
+		fv->size = sizeof(fv->numeric.u16);
+		break;
+	case SS_U32:
+	case SS_U32REV:
+		fv->numeric.u32 = num;
+		fv->size = sizeof(fv->numeric.u32);
+		break;
+	case SS_U64:
+	case SS_U64REV:
+		fv->numeric.u64 = num;
+		fv->size = sizeof(fv->numeric.u64);
+		break;
+	default:
+		sr_error(&e->error, "%s", "numeric field type expected");
+		return -1;
+	}
+	sr_statfield(&db->stat, fv->size);
+	return 0;
+}
+
+static inline int
 se_document_setfield(sedocument *v, int pos, void *pointer, int size)
 {
 	se *e = se_of(&v->o);
@@ -297,6 +344,29 @@ se_document_setstring(so *o, const char *path, void *pointer, int size)
 	return 0;
 }
 
+static int
+se_document_setint(so *o, const char *path, int64_t num)
+{
+	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
+	se *e = se_of(o);
+	if (ssunlikely(v->v))
+		return sr_error(&e->error, "%s", "document is read-only");
+	int opt = se_document_opt(path);
+	switch (opt) {
+	case SE_DOCUMENT_FIELD: {
+		sedb *db = (sedb*)v->o.parent;
+		sffield *field = sf_schemefind(&db->scheme->scheme, (char*)path);
+		if (ssunlikely(field == NULL))
+			return -1;
+		return se_document_setfield_numeric(v, field->position, num);
+	}
+	default:
+		return -1;
+	}
+	return 0;
+}
+
+
 static void*
 se_document_getstring(so *o, const char *path, int *size)
 {
@@ -339,6 +409,37 @@ se_document_getstring(so *o, const char *path, int *size)
 	return NULL;
 }
 
+static int64_t
+se_document_getint(so *o, const char *path)
+{
+	sedocument *v = se_cast(o, sedocument*, SEDOCUMENT);
+	int opt = se_document_opt(path);
+	switch (opt) {
+	case SE_DOCUMENT_FIELD: {
+		/* match field */
+		sedb *db = (sedb*)o->parent;
+		sffield *field = sf_schemefind(&db->scheme->scheme, (char*)path);
+		if (ssunlikely(field == NULL))
+			return -1;
+		if (ssunlikely(field->fixed_size == 0))
+			return -1;
+		void *pointer = se_document_getfield(v, field->position, NULL);
+		switch (field->type) {
+		case SS_U8:
+		case SS_U8REV:  return *(uint8_t*)pointer;
+		case SS_U16:
+		case SS_U16REV: return *(uint16_t*)pointer;
+		case SS_U32:
+		case SS_U32REV: return *(uint32_t*)pointer;
+		case SS_U64:
+		case SS_U64REV: return *(uint64_t*)pointer;
+		default:        return -1;
+		}
+	}
+	}
+	return -1;
+}
+
 static soif sedocumentif =
 {
 	.open         = NULL,
@@ -346,10 +447,10 @@ static soif sedocumentif =
 	.free         = se_document_free,
 	.document     = NULL,
 	.setstring    = se_document_setstring,
-	.setint       = NULL,
+	.setint       = se_document_setint,
 	.getobject    = NULL,
 	.getstring    = se_document_getstring,
-	.getint       = NULL,
+	.getint       = se_document_getint,
 	.set          = NULL,
 	.upsert       = NULL,
 	.del          = NULL,

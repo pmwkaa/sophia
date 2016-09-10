@@ -43,9 +43,9 @@ int main(int argc, char *argv[])
 		for (j = 0; j <= 2; j++) {
 			for (k = 0; k <= 2; k++) {
 				void *o = sp_document(db);
-				sp_setstring(o, "key",   &i, sizeof(i));
-				sp_setstring(o, "key_j", &j, sizeof(j));
-				sp_setstring(o, "key_k", &k, sizeof(k));
+				sp_setint(o, "key",   i);
+				sp_setint(o, "key_j", j);
+				sp_setint(o, "key_k", k);
 				rc = sp_set(db, o);
 				if (rc == -1)
 					goto error;
@@ -58,9 +58,9 @@ int main(int argc, char *argv[])
 	j = 2;
 	k = 0;
 	void *o = sp_document(db);
-	sp_setstring(o, "key",   &i, sizeof(i));
-	sp_setstring(o, "key_j", &j, sizeof(j));
-	sp_setstring(o, "key_k", &k, sizeof(k));
+	sp_setint(o, "key",   1);
+	sp_setint(o, "key_j", 2);
+	sp_setint(o, "key_k", 0);
 	o = sp_get(db, o);
 	assert(o != NULL);
 	sp_destroy(o);
@@ -69,9 +69,9 @@ int main(int argc, char *argv[])
 	void *cursor = sp_cursor(env);
 	o = sp_document(db);
 	while ((o = sp_get(cursor, o))) {
-		i = *(uint32_t*)sp_getstring(o, "key", NULL);
-		j = *(uint32_t*)sp_getstring(o, "key_j", NULL);
-		k = *(uint32_t*)sp_getstring(o, "key_k", NULL);
+		i = sp_getint(o, "key");
+		j = sp_getint(o, "key_j");
+		k = sp_getint(o, "key_k");
 		printf("%"PRIu32".%"PRIu32".%"PRIu32 "\n", i, j, k);
 	}
 	sp_destroy(cursor);
