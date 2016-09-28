@@ -16,30 +16,31 @@
 #include <sophia.h>
 
 static int
-upsert_callback(char **result,
-                char **key, int *key_size, int key_count,
-                char *src, int src_size,
-                char *upsert, int upsert_size,
+upsert_callback(int count,
+                char **src,    uint32_t *src_size,
+                char **upsert, uint32_t *upsert_size,
+                char **result, uint32_t *result_size,
                 void *arg)
 {
-	(void)key;
-	(void)key_size;
-	(void)key_count;
+	(void)count;
 	(void)arg;
-
-	assert(upsert != NULL);
-	char *c = malloc(upsert_size);
-	if (c == NULL)
-		return -1;
-	*result = c;
+	(void)src_size;
+	(void)upsert_size;
+	(void)result_size;
+	/* by default all result keys are automatically
+	 * initialized the ones in upsert */
 	if (src == NULL) {
-		memcpy(c, upsert, upsert_size);
-		return upsert_size;
+		/* Handle first upsert as insert */
+		return 0;
 	}
-	assert(src_size == upsert_size);
-	memcpy(c, src, src_size);
-	*(uint32_t*)c += *(uint32_t*)upsert;
-	return upsert_size;
+	/* copy value field from upsert */
+	result[1] = malloc(sizeof(uint32_t));
+	if (result[1] == NULL)
+		return -1;
+	/* increment "id" field */
+	*((uint32_t*)result[1]) =
+		*(uint32_t*)src[1] + *(uint32_t*)upsert[1];
+	return 0;
 }
 
 int main(int argc, char *argv[])
@@ -54,27 +55,33 @@ int main(int argc, char *argv[])
 	 * Example:
 	 *
 	 * Use upsert operation to update a key value by
-	 * incrementing it.
+	 * incrementing it. This example (program) can be run
+	 * multiple times.
 	*/
 
 	/* open or create environment and database */
 	void *env = sp_env();
 	sp_setstring(env, "sophia.path", "_test", 0);
 	sp_setstring(env, "db", "test", 0);
-	sp_setstring(env, "db.test.index.upsert", (char*)(intptr_t)upsert_callback, 0);
+	sp_setstring(env, "db.test.upsert", (char*)(intptr_t)upsert_callback, 0);
+	sp_setstring(env, "db", "key", 0);
+	sp_setstring(env, "db.test.scheme", "key", 0);
+	sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0);
+	sp_setstring(env, "db.test.scheme", "id", 0);
+	sp_setstring(env, "db.test.scheme.id", "u32", 0);
 	void *db = sp_getobject(env, "db.test");
 	int rc = sp_open(env);
 	if (rc == -1)
 		goto error;
 
-	/* schedule key increment */
+	/* increment key 10 times */
 	uint32_t key = 1234;
 	uint32_t increment = 1;
 	int i = 0;
 	while (i < 10) {
 		void *o = sp_document(db);
 		sp_setstring(o, "key", &key, sizeof(key));
-		sp_setstring(o, "value", &increment, sizeof(increment));
+		sp_setint(o, "id", increment);
 		rc = sp_upsert(db, o);
 		if (rc == -1)
 			goto error;
@@ -87,9 +94,7 @@ int main(int argc, char *argv[])
 	o = sp_get(db, o);
 	if (o == NULL)
 		goto error;
-	char *ptr = sp_getstring(o, "value", NULL);
-	printf("get result: %d\n", *(uint32_t*)ptr);
-	assert(*(uint32_t*)ptr >= 10);
+	printf("get result: %d\n", (int)sp_getint(o, "id"));
 	sp_destroy(o);
 
 	/* finish work */
