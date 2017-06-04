@@ -73,7 +73,10 @@ else
 STS_COVERAGE   =
 endif
 STS_CFLAGS     = $(SOPHIA_INCLUDE) -D_GNU_SOURCE=1 -g -O0 -Wall -I. -I../sophia -Isuite/ -pthread
-STS_LDFLAGS    = ../sophia.o -pthread -lm -lrt $(STS_COVERAGE)
+STS_LDFLAGS    = ../sophia.o -pthread -lm $(STS_COVERAGE)
+ifeq ($(shell uname), Linux)
+  STS_LDFLAGS += -lrt
+endif
 STS_OBJECTS    = suite/st_r.o \
                  suite/st_suite.o \
                  suite/st_generator.o \
