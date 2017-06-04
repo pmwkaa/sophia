@@ -3,6 +3,7 @@
 	<a href="http://sphia.org"><img src="http://sophia.systems/sophia.png" /></a><br>
 </p>
 <br>
+
 [Sophia](http://sophia.systems) is advanced transactional [MVCC](http://en.wikipedia.org/wiki/Multiversion_concurrency_control)
 key-value/row storage library.
 
