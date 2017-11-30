@@ -69,10 +69,11 @@ int main(int argc, char *argv[])
 	sp_setstring(env, "db.test.scheme.key", "u32,key(0)", 0);
 	sp_setstring(env, "db.test.scheme", "id", 0);
 	sp_setstring(env, "db.test.scheme.id", "u32", 0);
-	void *db = sp_getobject(env, "db.test");
 	int rc = sp_open(env);
 	if (rc == -1)
 		goto error;
+
+	void *db = sp_getobject(env, "db.test");
 
 	/* increment key 10 times */
 	uint32_t key = 1234;

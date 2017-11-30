@@ -30,10 +30,11 @@ int main(int argc, char *argv[])
 	sp_setstring(env, "db.test.scheme.key",   "u32,key(0)", 0);
 	sp_setstring(env, "db.test.scheme.key_j", "u32,key(1)", 0);
 	sp_setstring(env, "db.test.scheme.key_k", "u32,key(2)", 0);
-	void *db = sp_getobject(env, "db.test");
 	int rc = sp_open(env);
 	if (rc == -1)
 		goto error;
+
+	void *db = sp_getobject(env, "db.test");
 
 	/* set */
 	uint32_t i = 0;
