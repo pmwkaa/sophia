@@ -117,6 +117,60 @@ cursor_cache_test1(void)
 }
 
 static void
+cursor_cache_test2(void)
+{
+	// Create the first DB.
+	{
+		void *env = sp_env();
+
+		t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+		t( sp_setstring(env, "db", "db1", 0) == 0 );
+		t( sp_open(env) == 0 );
+
+		void *db = sp_getobject(env, "db.db1");
+		t( db != NULL );
+
+		int i = 0;
+		while (i < 10) {
+			void *o = sp_document(db);
+			t( o != NULL );
+			t( sp_setstring(o, "key", &i, sizeof(i)) == 0 );
+			t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
+			t( sp_set(db, o) == 0 );
+			i++;
+		}
+
+		t( sp_destroy(env) == 0 );
+	}
+
+	// Create the second DB.
+	{
+		void *env = sp_env();
+
+		t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+		t( sp_setstring(env, "db", "db2", 0) == 0 );
+		t( sp_open(env) == 0 );
+
+		void *db = sp_getobject(env, "db.db2");
+		t( db != NULL );
+
+		void *cur = sp_cursor(env);
+		t( cur != NULL );
+		void *o = sp_document(db);
+		sp_setstring(o, "order", ">=", 0);
+
+		int count = 0;
+		while ((o = sp_get(cur, o)))
+			++count;
+		t(count == 0);
+
+		t( sp_destroy(cur) == 0 );
+
+		t( sp_destroy(env) == 0 );
+	}
+}
+
+static void
 cursor_cache_invalidate(void)
 {
 	void *env = sp_env();
@@ -188,6 +242,7 @@ stgroup *cursor_cache_group(void)
 	stgroup *group = st_group("cursor_cache");
 	st_groupadd(group, st_test("test0", cursor_cache_test0));
 	st_groupadd(group, st_test("test1", cursor_cache_test1));
+	st_groupadd(group, st_test("test2", cursor_cache_test2));
 	st_groupadd(group, st_test("invalidate", cursor_cache_invalidate));
 	return group;
 }
