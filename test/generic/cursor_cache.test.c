@@ -116,6 +116,17 @@ cursor_cache_test1(void)
 	t( sp_destroy(env) == 0 );
 }
 
+#define TEST(expr)                                                             \
+  do {                                                                         \
+    const int rv = expr;                                                       \
+    if (rv != 0) {                                                             \
+      int size;                                                                \
+      char *error = sp_getstring(env, "sophia.error", &size);                  \
+      printf("\nTest failed: " #expr " with error: %d: %s\n", rv, error);      \
+      exit(1);                                                                 \
+    }                                                                          \
+  } while (0)
+
 static void
 cursor_cache_test2(void)
 {
@@ -125,6 +136,7 @@ cursor_cache_test2(void)
 
 		t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 		t( sp_setstring(env, "db", "db1", 0) == 0 );
+		TEST( sp_setint(env, "db.db1.id", 1001) );
 		t( sp_open(env) == 0 );
 
 		void *db = sp_getobject(env, "db.db1");
@@ -149,6 +161,7 @@ cursor_cache_test2(void)
 
 		t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
 		t( sp_setstring(env, "db", "db2", 0) == 0 );
+		TEST( sp_setint(env, "db.db1.id", 1001) );
 		t( sp_open(env) == 0 );
 
 		void *db = sp_getobject(env, "db.db2");
