@@ -250,7 +250,8 @@ ss_stdvfs_mremap(ssvfs *f ssunused, ssmmap *m, uint64_t size)
 #if  defined(__APPLE__) || \
      defined(__FreeBSD__) || \
     (defined(__FreeBSD_kernel__) && defined(__GLIBC__)) || \
-     defined(__DragonFly__)
+     defined(__DragonFly__) || \
+     defined(__NetBSD__)
 	p = mmap(NULL, size, PROT_READ|PROT_WRITE,
 	         MAP_PRIVATE|MAP_ANON, -1, 0);
 	if (p == MAP_FAILED)

@@ -59,6 +59,8 @@ int ss_thread_setname(ssthread *t, char *name)
 	#if defined(__APPLE__)
 		(void)t;
 		return pthread_setname_np(name);
+	#elif defined(__NetBSD__)
+		return pthread_setname_np(t->id, "%s", (void*)name);
 	#else
 		return pthread_setname_np(t->id, name);
 	#endif
