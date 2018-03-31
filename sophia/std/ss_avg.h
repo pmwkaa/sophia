@@ -16,7 +16,7 @@ struct ssavg {
 	uint64_t total;
 	uint32_t min, max;
 	double   avg;
-	char sz[32];
+	char     sz[32];
 };
 
 static inline void
@@ -24,9 +24,9 @@ ss_avginit(ssavg *a)
 {
 	a->count = 0;
 	a->total = 0;
-	a->min = 0;
-	a->max = 0;
-	a->avg = 0;
+	a->min   = UINT32_MAX;
+	a->max   = 0;
+	a->avg   = 0;
 }
 
 static inline void
@@ -44,8 +44,11 @@ ss_avgupdate(ssavg *a, uint32_t v)
 static inline void
 ss_avgprepare(ssavg *a)
 {
+	uint32_t min = a->min;
+	if (ssunlikely(min == UINT32_MAX))
+		min = 0;
 	snprintf(a->sz, sizeof(a->sz), "%"PRIu32" %"PRIu32" %.1f",
-	         a->min, a->max, a->avg);
+	         min, a->max, a->avg);
 }
 
 #endif
