@@ -29,6 +29,9 @@ struct scdb {
 	uint64_t  gc_time;
 	uint32_t  gc;
 	uint32_t  backup;
+	uint32_t  checkpoint;
+	uint64_t  checkpoint_vlsn;
+	uint64_t  checkpoint_time;
 };
 
 struct sctask {

@@ -46,6 +46,8 @@ int si_plannertrace(siplan *p, uint32_t id, sstrace *t)
 {
 	char *plan = NULL;
 	switch (p->plan) {
+	case SI_CHECKPOINT: plan = "checkpoint";
+		break;
 	case SI_COMPACTION: plan = "compaction";
 		break;
 	case SI_GC: plan = "gc";
@@ -108,6 +110,32 @@ si_plannerpeek_backup(siplanner *p, siplan *plan)
 	return SI_PMATCH;
 	}
 	return SI_PNONE;
+match:
+	si_nodelock(n);
+	plan->node = n;
+	return SI_PMATCH;
+}
+
+static inline siplannerrc
+si_plannerpeek_checkpoint(siplanner *p, siplan *plan)
+{
+	/* try to peek a node which has min
+	 * lsn <= required value
+	*/
+	siplannerrc rc = SI_PNONE;
+	sinode *n;
+	ssrqnode *pn = NULL;
+	while ((pn = ss_rqprev(&p->memory, pn))) {
+		n = sscast(pn, sinode, nodememory);
+		if (n->i0.lsnmin <= plan->a) {
+			if (n->flags & SI_LOCK) {
+				rc = SI_PRETRY;
+				continue;
+			}
+			goto match;
+		}
+	}
+	return rc;
 match:
 	si_nodelock(n);
 	plan->node = n;
@@ -226,6 +254,8 @@ siplannerrc
 si_planner(siplanner *p, siplan *plan)
 {
 	switch (plan->plan) {
+	case SI_CHECKPOINT:
+		return si_plannerpeek_checkpoint(p, plan);
 	case SI_COMPACTION:
 		return si_plannerpeek_memory(p, plan);
 	case SI_NODEGC:

@@ -48,11 +48,14 @@ static inline int
 sc_prepare(scdb *db)
 {
 	uint64_t now = ss_utime();
-	db->expire      = 0;
-	db->expire_time = now;
-	db->gc          = 0;
-	db->gc_time     = now;
-	db->backup      = 0;
+	db->checkpoint      = 0;
+	db->checkpoint_time = now;
+	db->checkpoint_vlsn = 0;
+	db->expire          = 0;
+	db->expire_time     = now;
+	db->gc              = 0;
+	db->gc_time         = now;
+	db->backup          = 0;
 	return 0;
 }
 

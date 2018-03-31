@@ -69,6 +69,15 @@ int sc_ctl_gc(sc *s, si *index)
 	return 0;
 }
 
+int sc_ctl_checkpoint(sc *s, uint64_t vlsn, si *index)
+{
+	ss_mutexlock(&s->lock);
+	scdb *db = sc_of(s, index);
+	sc_task_checkpoint(db, vlsn);
+	ss_mutexunlock(&s->lock);
+	return 0;
+}
+
 int sc_ctl_backup(sc *s)
 {
 	int rc = sc_backupstart(s);

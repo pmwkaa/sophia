@@ -78,6 +78,7 @@ sc_taskend(sc *s, sctask *t)
 	ss_mutexlock(&s->lock);
 	scdb *db = t->db;
 	switch (t->plan.plan) {
+	case SI_CHECKPOINT:
 	case SI_COMPACTION:
 		t->gc = 1;
 		break;
@@ -108,6 +109,22 @@ sc_do(sc *s, sctask *task)
 	sicompaction *c = &db->index->scheme.compaction;
 
 	ss_trace(&task->w->trace, "%s", "schedule");
+
+	/* checkpoint */
+	if (db->checkpoint) {
+		task->plan.plan = SI_CHECKPOINT;
+		task->plan.a = db->checkpoint_vlsn;
+		rc = si_plan(db->index, &task->plan);
+		switch (rc) {
+		case SI_PMATCH:
+			return rc;
+		case SI_PNONE:
+			sc_task_checkpoint_done(db, task->time);
+			break;
+		case SI_PRETRY:
+			break;
+		}
+	}
 
 	/* node delayed gc */
 	task->plan.plan = SI_NODEGC;

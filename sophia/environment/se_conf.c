@@ -381,6 +381,17 @@ se_confdb_gc(srconf *c, srconfstmt *s)
 }
 
 static inline int
+se_confdb_checkpoint(srconf *c, srconfstmt *s)
+{
+	if (s->op != SR_WRITE)
+		return se_confv(c, s);
+	sedb *db = c->value;
+	se *e = se_of(&db->o);
+	uint64_t vlsn = sx_vlsn(&e->xm);
+	return sc_ctl_checkpoint(&e->scheduler, vlsn, db->index);
+}
+
+static inline int
 se_confdb_expire(srconf *c, srconfstmt *s)
 {
 	if (s->op != SR_WRITE)
@@ -495,6 +506,7 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc, int serialize)
 			sr_c(&p, pc, se_confdb_compaction, "compact", SS_FUNCTION, o);
 			sr_c(&p, pc, se_confdb_gc, "gc", SS_FUNCTION, o);
 			sr_c(&p, pc, se_confdb_expire, "expire", SS_FUNCTION, o);
+			sr_c(&p, pc, se_confdb_checkpoint, "checkpoint", SS_FUNCTION, o);
 		}
 
 		/* limit */
@@ -530,6 +542,7 @@ se_confdb(se *e, seconfrt *rt ssunused, srconf **pc, int serialize)
 		/* scheduler */
 		srconf *scheduler = *pc;
 		p = NULL;
+		sr_C(&p, pc, se_confv, "checkpoint", SS_U32, &o->scp.state.checkpoint, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "gc", SS_U32, &o->scp.state.gc, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "expire", SS_U32, &o->scp.state.expire, SR_RO, NULL);
 		sr_C(&p, pc, se_confv, "backup", SS_U32, &o->scp.state.backup, SR_RO, NULL);

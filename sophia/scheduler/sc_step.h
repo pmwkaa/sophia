@@ -24,6 +24,21 @@ sc_next(sc *s) {
 }
 
 static inline void
+sc_task_checkpoint(scdb *db, uint64_t vlsn)
+{
+	db->checkpoint = 1;
+	db->checkpoint_vlsn = vlsn;
+}
+
+static inline void
+sc_task_checkpoint_done(scdb *db, uint64_t now)
+{
+	db->checkpoint = 0;
+	db->checkpoint_vlsn = 0;
+	db->checkpoint_time = now;
+}
+
+static inline void
 sc_task_expire(scdb *db)
 {
 	db->expire = 1;

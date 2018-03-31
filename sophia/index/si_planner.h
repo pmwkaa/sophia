@@ -24,16 +24,18 @@ struct siplanner {
 };
 
 /* plan */
-#define SI_COMPACTION 1
-#define SI_EXPIRE     2
-#define SI_GC         4
-#define SI_NODEGC     8
-#define SI_BACKUP     16
-#define SI_BACKUPEND  32
+#define SI_CHECKPOINT 1
+#define SI_COMPACTION 2
+#define SI_EXPIRE     4
+#define SI_GC         8
+#define SI_NODEGC     16
+#define SI_BACKUP     32
+#define SI_BACKUPEND  64
 
 struct siplan {
 	int plan;
-	/* compaction:
+	/* checkpoint:
+	 * compaction:
 	 * gc:
 	 *   a: lsn
 	 *   b: percent

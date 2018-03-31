@@ -119,6 +119,7 @@ si_execute(si *i, sdc *c, siplan *plan, uint64_t vlsn)
 {
 	int rc = -1;
 	switch (plan->plan) {
+	case SI_CHECKPOINT:
 	case SI_COMPACTION:
 	case SI_GC:
 	case SI_EXPIRE:

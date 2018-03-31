@@ -122,6 +122,14 @@ spr_cmd_gc(void)
 }
 
 static inline void
+spr_cmd_checkpoint(void)
+{
+	if (! spr_start)
+		return;
+	sp_setint(spr_env, "db.test.compaction.checkpoint", 0);
+}
+
+static inline void
 spr_cmd_expire(void)
 {
 	if (! spr_start)
@@ -189,6 +197,10 @@ spr_execute(char *cmd, int size)
 	if (strcmp(argv[0], "gc") == 0) {
 		spr_cmd_gc();
 		printf("gc is in progress\n");
+	} else
+	if (strcmp(argv[0], "checkpoint") == 0) {
+		spr_cmd_checkpoint();
+		printf("checkpoint is in progress\n");
 	} else
 	if (strcmp(argv[0], "expire") == 0) {
 		spr_cmd_expire();
