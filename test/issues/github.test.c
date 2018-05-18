@@ -281,6 +281,64 @@ github_123(void)
 	rmrf("./abc_log");
 }
 
+static void
+github_164(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+	t( sp_open(env) == 0 );
+
+	/* set up */
+	void *o = sp_document(db);
+	sp_setstring(o, "key", "key1", 5);
+	sp_setstring(o, "value", "value1", 7);
+	t( sp_set(db, o) == 0 );
+
+	/* begin transaction TX1*/
+	void *tx1 = sp_begin(env);
+
+	/* READ KEY1 */
+	o = sp_document(db);
+	sp_setstring(o, "key", "key1", 5);
+	o = sp_get(tx1, o);
+	if (o) {
+		t( strcmp( sp_getstring(o, "value", NULL), "value1") == 0 );
+		sp_destroy(o);
+	}
+
+	/* ----------------------------- NEW TX2 ----------------------------- */
+	void *tx2 = sp_begin(env);
+
+	o = sp_document(db);
+	sp_setstring(o, "key", "key1", 5);
+	sp_setstring(o, "value", "value2", 7);
+	t( sp_set(tx2, o) == 0 );
+	t( sp_commit(tx2) == 0 );
+
+	/* ---------------------------- END OF TX2 --------------------------- */
+
+	/* get key1 again tx1*/
+	o = sp_document(db);
+	sp_setstring(o, "key", "key1", 5);
+	o = sp_get(tx1, o);
+	if (o) {
+		t( strcmp( sp_getstring(o, "value", NULL), "value1") == 0 );
+		sp_destroy(o);
+	}
+
+	/* commit transaction */
+	t( sp_commit(tx1) == 0 );
+	t( sp_destroy(env) == 0 );
+}
+
 stgroup *github_group(void)
 {
 	stgroup *group = st_group("github");
@@ -291,5 +349,6 @@ stgroup *github_group(void)
 	st_groupadd(group, st_test("ticket_118", github_118));
 	st_groupadd(group, st_test("ticket_120", github_120));
 	st_groupadd(group, st_test("ticket_123", github_123));
+	st_groupadd(group, st_test("ticket_164", github_164));
 	return group;
 }

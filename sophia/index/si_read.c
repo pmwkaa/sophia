@@ -133,6 +133,7 @@ result:;
 		visible = sv_vvisible(visible, q->r, q->vlsn);
 		if (visible == NULL)
 			return 0;
+		v = (char*)visible + sizeof(svv);
 	}
 	return si_getresult(q, v, 0);
 }
