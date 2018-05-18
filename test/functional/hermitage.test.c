@@ -330,6 +330,46 @@ hermitage_g2_two_edges1(void)
 	commit(T1, 0);
 }
 
+static void
+hermitage_gh_164(void)
+{
+	/*
+	 * This test is not part of the Hermitage tests.
+	 *
+	 * source: https://github.com/pmwkaa/sophia/issues/164
+	*/
+	set(st_r.db, 'A', 5);
+	set(st_r.db, 'B', 5);
+
+	/* t0 */
+	void *T1 = begin();
+
+	/* t1 */
+	get(T1, 'A', 5);
+
+	/* t2 */
+	void *T2 = begin();
+
+	/* t3 */
+	get(T2, 'A', 5);
+	get(T2, 'B', 5);
+
+	/* t4 */
+	set(T2, 'A', 6);
+	set(T2, 'B', 4);
+
+	/* t5 */
+	commit(T2, 0); /* OK */
+
+	/* t6 */
+	get(T1, 'B', 5);
+
+	/* - - - - - */
+
+	get(T1, 'A', 5);
+	commit(T1, 0); /* OK, since T1 was read-only transaction */
+}
+
 stgroup *hermitage_group(void)
 {
 	stgroup *group = st_group("hermitage");
@@ -346,5 +386,6 @@ stgroup *hermitage_group(void)
 	st_groupadd(group, st_test("g2", hermitage_g2));
 	st_groupadd(group, st_test("g2_two_edges0", hermitage_g2_two_edges0));
 	st_groupadd(group, st_test("g2_two_edges1", hermitage_g2_two_edges1));
+	st_groupadd(group, st_test("gh_164", hermitage_gh_164));
 	return group;
 }
