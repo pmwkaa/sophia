@@ -70,7 +70,7 @@ prefix_test0(void)
 	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "order", ">=", 0) == 0 );
-	t( sp_setstring(o, "prefix", prefix, sizeof(prefix) - 1) == 0 );
+	t( sp_setstring(o, "prefix", prefix, strlen(prefix)) == 0 );
 
 	o = sp_get(c, o);
 	t( o != NULL );
@@ -145,9 +145,10 @@ prefix_test1(void)
 	o = sp_document(db);
 	t( o != NULL );
 	t( sp_setstring(o, "order", "<=", 0) == 0 );
-	t( sp_setstring(o, "prefix", prefix, sizeof(prefix)) == 0 );
+	t( sp_setstring(o, "prefix", prefix, strlen(prefix)) == 0 );
 
 	o = sp_get(c, o);
+    t( o != NULL);
 	t( strcmp((char*)sp_getstring(o, "key", NULL), "ab") == 0 );
 	o = sp_get(c, o);
 	t( o == NULL );
