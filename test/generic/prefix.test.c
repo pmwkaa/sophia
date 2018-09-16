@@ -34,60 +34,60 @@ prefix_test0(void)
 
 	char key[] = "a";
 	void *o = sp_document(db);
-	t( o != NULL );
-	t( sp_setstring(o, "key", key, sizeof(key)) == 0 );
-	t( sp_set(db, o) == 0 );
-
-	char keyb[] = "ab";
-	o = sp_document(db);
-	t( o != NULL );
-	t( sp_setstring(o, "key", keyb, sizeof(keyb)) == 0 );
-	t( sp_set(db, o) == 0 );
-
-	char keyc[] = "aba";
-	o = sp_document(db);
-	t( o != NULL );
-	t( sp_setstring(o, "key", keyc, sizeof(keyc)) == 0 );
-	t( sp_set(db, o) == 0 );
+	t(o != NULL);
+	t(sp_setstring(o, "key", key, sizeof(key)) == 0);
+	t_api(sp_set(db, o));
 
 	char keyd[] = "abac";
 	o = sp_document(db);
-	t( o != NULL );
-	t( sp_setstring(o, "key", keyd, sizeof(keyd)) == 0 );
-	t( sp_set(db, o) == 0 );
+	t(o != NULL);
+	t_api(sp_setstring(o, "key", keyd, sizeof(keyd)));
+	t_api(sp_set(db, o));
+
+	char keyc[] = "aba";
+	o = sp_document(db);
+	t(o != NULL);
+	t(sp_setstring(o, "key", keyc, sizeof(keyc)) == 0);
+	t_api(sp_set(db, o));
+
+	char keyb[] = "ab";
+	o = sp_document(db);
+	t(o != NULL);
+	t(sp_setstring(o, "key", keyb, sizeof(keyb)) == 0);
+	t_api(sp_set(db, o));
 
 	char keye[] = "bbac";
 	o = sp_document(db);
-	t( o != NULL );
-	t( sp_setstring(o, "key", keye, sizeof(keye)) == 0 );
-	t( sp_set(db, o) == 0 );
+	t(o != NULL);
+	t(sp_setstring(o, "key", keye, sizeof(keye)) == 0);
+	t_api(sp_set(db, o));
 
-	char prefix[] = "ab";
+	const char *prefix = "ab";
 
 	void *c = sp_cursor(env);
-	t( c != NULL );
+	t(c != NULL);
 
 	o = sp_document(db);
-	t( o != NULL );
-	t( sp_setstring(o, "order", ">=", 0) == 0 );
-	t( sp_setstring(o, "prefix", prefix, sizeof(prefix) - 1) == 0 );
+	t(o != NULL);
+	t_api(sp_setstring(o, "order", ">=", 0));
+	t_api(sp_setstring(o, "prefix", prefix, strlen(prefix)));
 
 	o = sp_get(c, o);
-	t( o != NULL );
-	t( strcmp((char*)sp_getstring(o, "key", NULL), "ab") == 0 );
+	t(o != NULL);
+	t_string_eq((char *)sp_getstring(o, "key", NULL), "ab");
 
 	o = sp_get(c, o);
-	t( o != NULL );
-	t( strcmp((char*)sp_getstring(o, "key", NULL), "aba") == 0 );
+	t(o != NULL);
+	t_string_eq((char *)sp_getstring(o, "key", NULL), "aba");
 
 	o = sp_get(c, o);
-	t( o != NULL );
-	t( strcmp((char*)sp_getstring(o, "key", NULL), "abac") == 0 );
+	t(o != NULL);
+	t_string_eq((char *)sp_getstring(o, "key", NULL), "abac");
 
 	o = sp_get(c, o);
-	t( o == NULL );
+	t(o == NULL);
 
-	t( sp_destroy(env) == 0 );
+	t(sp_destroy(env) == 0);
 }
 
 static void
@@ -109,50 +109,60 @@ prefix_test1(void)
 
 	char key[] = "a";
 	void *o = sp_document(db);
-	t( o != NULL );
-	t( sp_setstring(o, "key", key, sizeof(key)) == 0 );
-	t( sp_set(db, o) == 0 );
-
-	char keyb[] = "ab";
-	o = sp_document(db);
-	t( o != NULL );
-	t( sp_setstring(o, "key", keyb, sizeof(keyb)) == 0 );
-	t( sp_set(db, o) == 0 );
+	t(o != NULL);
+	t(sp_setstring(o, "key", key, strlen(key)) == 0);
+	t_api(sp_set(db, o));
 
 	char keyc[] = "aba";
 	o = sp_document(db);
-	t( o != NULL );
-	t( sp_setstring(o, "key", keyc, sizeof(keyc)) == 0 );
-	t( sp_set(db, o) == 0 );
+	t(o != NULL);
+	t(sp_setstring(o, "key", keyc, strlen(keyc)) == 0);
+	t_api(sp_set(db, o));
+
+	char keyb[] = "ab";
+	o = sp_document(db);
+	t(o != NULL);
+	t(sp_setstring(o, "key", keyb, strlen(keyb)) == 0);
+	t_api(sp_set(db, o));
 
 	char keyd[] = "abac";
 	o = sp_document(db);
-	t( o != NULL );
-	t( sp_setstring(o, "key", keyd, sizeof(keyd)) == 0 );
-	t( sp_set(db, o) == 0 );
+	t(o != NULL);
+	t(sp_setstring(o, "key", keyd, strlen(keyd)) == 0);
+	t_api(sp_set(db, o));
 
 	char keye[] = "bbac";
 	o = sp_document(db);
-	t( o != NULL );
-	t( sp_setstring(o, "key", keye, sizeof(keye)) == 0 );
-	t( sp_set(db, o) == 0 );
+	t(o != NULL);
+	t(sp_setstring(o, "key", keye, strlen(keye)) == 0);
+	t_api(sp_set(db, o));
 
-	char prefix[] = "ab";
+	const char *prefix = "ab";
 
 	void *c = sp_cursor(env);
-	t( c != NULL );
+	t(c != NULL);
 
 	o = sp_document(db);
-	t( o != NULL );
-	t( sp_setstring(o, "order", "<=", 0) == 0 );
-	t( sp_setstring(o, "prefix", prefix, sizeof(prefix)) == 0 );
+	t(o != NULL);
+	t_api(sp_setstring(o, "order", "<=", 0));
+	t_api(sp_setstring(o, "prefix", prefix, strlen(prefix)));
 
 	o = sp_get(c, o);
-	t( strcmp((char*)sp_getstring(o, "key", NULL), "ab") == 0 );
-	o = sp_get(c, o);
-	t( o == NULL );
+	t(o != NULL);
+	t_string_eq((char *)sp_getstring(o, "key", NULL), "abac");
 
-	t( sp_destroy(env) == 0 );
+	o = sp_get(c, o);
+	t(o != NULL);
+	t_string_eq((char *)sp_getstring(o, "key", NULL), "aba");
+
+	o = sp_get(c, o);
+	t(o != NULL);
+	t_string_eq((char *)sp_getstring(o, "key", NULL), "ab");
+
+	o = sp_get(c, o);
+	t(o == NULL);
+
+	t(sp_destroy(env) == 0);
 }
 
 stgroup *prefix_group(void)

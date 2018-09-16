@@ -281,6 +281,64 @@ github_123(void)
 	rmrf("./abc_log");
 }
 
+static const char *_prefix = "log:";
+
+static void
+github_167()
+{
+    void *env = sp_env();
+    t( env != NULL );
+    t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+    t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+    t( sp_setstring(env, "db", "test", 0) == 0 );
+    t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+
+    t( sp_open(env) == 0 );
+    void *db = sp_getobject(env, "db.test");
+    t( db != NULL );
+
+    // Create a few records using lexicographically ordered keys.
+    uint32_t i = 0;
+    char buffer[64];
+    for ( ; i < 16; ++i ) {
+        void *o = sp_document(db);
+
+        sprintf(buffer, "log:%08x:%08x:record%u", i, i, i);
+        t( sp_setstring(o, "key", buffer, strlen(buffer)) == 0 );
+        t( sp_setstring(o, "value", &i, sizeof(i)) == 0 );
+        t( sp_set(db, o) == 0 );
+    }
+
+    // Retrieve them in the reverse sorted order.
+    void *cur = sp_cursor(env);
+    t( cur != NULL );
+    void *o = sp_document(db);
+    t( o != NULL );
+    sp_setstring(o, "order", "<=", 0);
+
+    i = 0;
+    while ((o = sp_get(cur, o)))
+        i++;
+    t( i == 16 );
+    sp_destroy(cur);
+
+    // Now retrieve the same set by specifying a prefix.
+    cur = sp_cursor(env);
+    t( cur != NULL );
+    o = sp_document(db);
+    t( o != NULL );
+    sp_setstring(o, "order", "<=", 0);
+    sp_setstring(o, "prefix", _prefix, strlen(_prefix));
+
+    i = 0;
+    while ((o = sp_get(cur, o)))
+        i++;
+    t( i == 16 );
+    sp_destroy(cur);
+
+    t( sp_destroy(env) == 0 );
+}
+
 stgroup *github_group(void)
 {
 	stgroup *group = st_group("github");
@@ -291,5 +349,6 @@ stgroup *github_group(void)
 	st_groupadd(group, st_test("ticket_118", github_118));
 	st_groupadd(group, st_test("ticket_120", github_120));
 	st_groupadd(group, st_test("ticket_123", github_123));
+    st_groupadd(group, st_test("ticket_167", github_167));
 	return group;
 }
