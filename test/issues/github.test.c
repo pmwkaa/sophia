@@ -339,6 +339,65 @@ github_164(void)
 	t( sp_destroy(env) == 0 );
 }
 
+static void
+github_171(void)
+{
+	void *env = sp_env();
+	t( env != NULL );
+	t( sp_setstring(env, "sophia.path", st_r.conf->sophia_dir, 0) == 0 );
+	t( sp_setint(env, "scheduler.threads", 0) == 0 );
+	t( sp_setstring(env, "log.path", st_r.conf->log_dir, 0) == 0 );
+	t( sp_setstring(env, "db", "test", 0) == 0 );
+	t( sp_setint(env, "db.test.compaction.cache", 0) == 0 );
+	t( sp_setstring(env, "db.test.path", st_r.conf->db_dir, 0) == 0 );
+
+	t( sp_setstring(env, "db.test.scheme", "key_i", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key_j", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "key_k", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "a", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "b", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "c", 0) == 0 );
+	t( sp_setstring(env, "db.test.scheme", "d", 0) == 0 );
+
+	t( sp_setstring(env, "db.test.scheme.key_i", "u32,key(0)", 0) == 0);
+	t( sp_setstring(env, "db.test.scheme.key_j", "u32,key(1)", 0) == 0);
+	t( sp_setstring(env, "db.test.scheme.key_k", "u32,key(2)", 0) == 0);
+	t( sp_setstring(env, "db.test.scheme.a", "u32", 0) == 0);
+	t( sp_setstring(env, "db.test.scheme.b", "u32", 0) == 0);
+	t( sp_setstring(env, "db.test.scheme.c", "u32", 0) == 0);
+	t( sp_setstring(env, "db.test.scheme.d", "u32", 0) == 0);
+
+	t( sp_setint(env, "db.test.sync", 0) == 0 );
+	t( sp_open(env) == 0 );
+	void *db = sp_getobject(env, "db.test");
+	t( db != NULL );
+
+	void *o = sp_document(db);
+	sp_setint(o, "key_i", 'i');
+	sp_setint(o, "key_j", 'j');
+	sp_setint(o, "key_k", 'k');
+	sp_setint(o, "a", 'a');
+	sp_setint(o, "b", 'b');
+	sp_setint(o, "c", 'c');
+	sp_setint(o, "d", 'd');
+	t( sp_set(db, o) == 0 );
+
+	o = sp_document(db);
+	sp_setint(o, "key_i", 'i');
+	sp_setint(o, "key_j", 'j');
+	sp_setint(o, "key_k", 'k');
+	o = sp_get(db, o);
+	if (o) {
+		t( sp_getint(o, "a") == 'a' );
+		t( sp_getint(o, "b") == 'b' );
+		t( sp_getint(o, "c") == 'c' );
+		t( sp_getint(o, "d") == 'd' );
+		sp_destroy(o);
+	}
+
+	t( sp_destroy(env) == 0 );
+}
+
 stgroup *github_group(void)
 {
 	stgroup *group = st_group("github");
@@ -350,5 +409,6 @@ stgroup *github_group(void)
 	st_groupadd(group, st_test("ticket_120", github_120));
 	st_groupadd(group, st_test("ticket_123", github_123));
 	st_groupadd(group, st_test("ticket_164", github_164));
+	st_groupadd(group, st_test("ticket_171", github_171));
 	return group;
 }
