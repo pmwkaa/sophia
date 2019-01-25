@@ -373,19 +373,19 @@ github_171(void)
 	t( db != NULL );
 
 	void *o = sp_document(db);
-	sp_setint(o, "key_i", 'i');
-	sp_setint(o, "key_j", 'j');
-	sp_setint(o, "key_k", 'k');
-	sp_setint(o, "a", 'a');
-	sp_setint(o, "b", 'b');
-	sp_setint(o, "c", 'c');
-	sp_setint(o, "d", 'd');
+	t( sp_setint(o, "key_i", 'i') == 0);
+	t( sp_setint(o, "key_j", 'j') == 0);
+	t( sp_setint(o, "key_k", 'k') == 0);
+	t( sp_setint(o, "a", 'a') == 0);
+	t( sp_setint(o, "b", 'b') == 0);
+	t( sp_setint(o, "c", 'c') == 0);
+	t( sp_setint(o, "d", 'd') == 0);
 	t( sp_set(db, o) == 0 );
 
 	o = sp_document(db);
-	sp_setint(o, "key_i", 'i');
-	sp_setint(o, "key_j", 'j');
-	sp_setint(o, "key_k", 'k');
+	t( sp_setint(o, "key_i", 'i') == 0);
+	t( sp_setint(o, "key_j", 'j') == 0);
+	t( sp_setint(o, "key_k", 'k') == 0);
 	o = sp_get(db, o);
 	if (o) {
 		t( sp_getint(o, "a") == 'a' );
