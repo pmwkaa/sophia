@@ -12,6 +12,7 @@
 typedef enum {
 	SS_UNDEF,
 	SS_STRING,
+	SS_STRINGREV,
 	SS_STRINGPTR,
 	SS_U8,
 	SS_U8REV,
@@ -31,6 +32,7 @@ ss_typeof(sstype type) {
 	switch (type) {
 	case SS_UNDEF:     return "undef";
 	case SS_STRING:    return "string";
+	case SS_STRINGREV: return "stringrev";
 	case SS_STRINGPTR: return "stringptr";
 	case SS_U8:        return "u8";
 	case SS_U8REV:     return "u8rev";

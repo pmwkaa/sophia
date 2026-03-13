@@ -160,6 +160,15 @@ sf_limitapply(sflimit *b, sfscheme *s, sfv *fields, ssorder order)
 				v->size = b->string_min_size;
 			}
 			break;
+		case SS_STRINGREV:
+			if (order == SS_LT || order == SS_LTE) {
+				v->pointer = b->string_min;
+				v->size = b->string_min_size;
+			} else {
+				v->pointer = b->string_max;
+				v->size = b->string_max_size;
+			}
+			break;
 		default: assert(0);
 			break;
 		}

@@ -112,7 +112,7 @@ int se_document_createkey(sedocument *o)
 
 	/* set prefix */
 	if (o->prefix) {
-		if (db->scheme->scheme.keys[0]->type != SS_STRING)
+		if (db->scheme->scheme.keys[0]->type != SS_STRING && db->scheme->scheme.keys[0]->type != SS_STRINGREV)
 			return sr_error(&e->error, "%s", "prefix search is only "
 			                "supported for a string key");
 		void *copy = ss_malloc(&e->a, o->prefix_size);

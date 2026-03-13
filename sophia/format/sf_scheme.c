@@ -24,6 +24,20 @@ sf_cmpstring(char *a, int asz, char *b, int bsz, void *arg ssunused)
 }
 
 static inline sshot int
+sf_cmpstring_reverse(char *a, int asz, char *b, int bsz, void *arg ssunused)
+{
+	int size = (asz < bsz) ? asz : bsz;
+	int rc = memcmp(a, b, size);
+	if (ssunlikely(rc == 0)) {
+		if (sslikely(asz == bsz))
+			return 0;
+		//TODO reverse for compare with prefix?
+		return (asz < bsz) ? 1 : -1;
+	}
+	return rc > 0 ? -1 : 1;
+}
+
+static inline sshot int
 sf_cmpu8(char *a, int asz ssunused, char *b, int bsz ssunused, void *arg ssunused)
 {
 	uint8_t av = *(uint8_t*)a;
@@ -196,6 +210,11 @@ sf_schemeset(sfscheme *s, sffield *f, char *opt)
 		f->type = SS_STRING;
 		f->fixed_size = 0;
 		f->cmp = sf_cmpstring;
+	} else
+	if (strcmp(opt, "string_rev") == 0) {
+		f->type = SS_STRINGREV;
+		f->fixed_size = 0;
+		f->cmp = sf_cmpstring_reverse;
 	} else
 	if (strcmp(opt, "u8") == 0) {
 		f->type = SS_U8;
