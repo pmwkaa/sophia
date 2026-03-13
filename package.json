@@ -1,0 +1,16 @@
+{
+  "name": "sophia",
+  "version": "1.2.3",
+  "repo": "pmwkaa/sophia",
+  "description": "modern emeddable key-value database",
+  "keywords": [
+    "sophia",
+    "database",
+    "key/value"
+  ],
+  "license": "MIT",
+  "src": [
+    "sophia.c",
+    "sophia.h"
+  ]
+}
